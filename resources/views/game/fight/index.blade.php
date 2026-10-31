@@ -265,7 +265,7 @@
             <!-- CLOUDFLARE TURNSTILE SECURITY BANNER IF REQUIRED -->
             @if($isCaptchaRequired)
             <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoaded&render=explicit" async defer></script>
-            <div id="turnstile-container-banner" class="bg-purple-50 dark:bg-slate-900 border-2 border-purple-300 dark:border-purple-800/80 rounded-xl p-4 shadow-xs space-y-3 transition-colors">
+            <div id="turnstile-container-banner" class="bg-purple-50 dark:bg-slate-800/60 border-2 border-purple-300 dark:border-purple-800/80 rounded-xl p-4 shadow-xs space-y-3 transition-colors">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid fa-shield-halved"></i>
@@ -280,7 +280,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-950 p-3 rounded-lg border border-purple-200 dark:border-purple-800/60 inline-flex flex-col items-start gap-2 shadow-xs min-h-[85px] min-w-[310px] relative">
+                <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-purple-200/80 dark:border-purple-800/60 inline-flex flex-col items-start gap-2 shadow-xs min-h-[85px] min-w-[310px] relative">
                     <div id="turnstile-skeleton" class="flex items-center gap-2 text-xs text-slate-500 font-semibold py-2">
                         <i class="fa-solid fa-circle-notch fa-spin text-purple-600"></i>
                         <span>Beveiligingscontrole initialiseren...</span>
@@ -302,14 +302,14 @@
                     <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
                     <span>Patiënten op de Luchtplaats (Contanten Beroven)</span>
                 </div>
-                <div class="text-xs font-bold text-slate-400">
+                <div class="text-xs font-bold text-slate-400 dark:text-slate-500">
                     <span class="text-purple-700 dark:text-purple-400 font-extrabold">3s cooldown</span> tussen berovingen | Max {{ $maxDailyAttacks }} per dag
                 </div>
             </div>
 
             <!-- Sortering & Filter Tabs -->
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1 pb-1">
-                <div class="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl gap-1 border border-slate-200/80 dark:border-slate-700">
+                <div class="inline-flex items-center p-1 bg-slate-100/90 dark:bg-slate-800/80 rounded-xl gap-1 border border-slate-200/80 dark:border-slate-700/70">
                     <a href="{{ route('fight.index', ['sort' => 'cash']) }}" 
                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {{ ($sort ?? 'respect') === 'cash' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs border border-emerald-200 dark:border-emerald-800' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
                         <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
@@ -332,39 +332,39 @@
             <div class="block md:hidden space-y-2.5">
                 @forelse($opponents as $index => $opp)
                 <div x-show="!searchQuery || @js(strtolower($opp->name)).includes(searchQuery.toLowerCase())"
-                     class="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 space-y-2.5 shadow-2xs">
+                     class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 p-3 space-y-2.5 shadow-xs">
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono font-black text-xs flex items-center justify-center shrink-0">
                                 #{{ $index + 1 }}
                             </span>
                             <div class="relative shrink-0">
-                                <img src="{{ $opp->avatar_url }}" alt="{{ $opp->name }}" class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-2xs">
+                                <img src="{{ $opp->avatar_url }}" alt="{{ $opp->name }}" class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs">
                                 <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $opp->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}"></span>
                             </div>
                             <div class="min-w-0">
-                                <a href="{{ route('profile.show', $opp->name) }}" class="font-black text-xs text-slate-900 dark:text-white hover:text-purple-600 truncate block">
+                                <a href="{{ route('profile.show', $opp->name) }}" class="font-black text-xs text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 truncate block">
                                     {{ $opp->name }}
                                 </a>
-                                <span class="text-[10px] text-slate-400 block truncate">
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block truncate">
                                     {{ $opp->gang ? $opp->gang->name : 'Geen gang' }}
                                 </span>
                             </div>
                         </div>
 
                         <div class="text-right shrink-0">
-                            <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Respect</span>
+                            <span class="text-[9px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold block">Respect</span>
                             <span class="text-xs font-black text-purple-700 dark:text-purple-400 font-mono">
                                 {{ $opp->respect >= 1000000 ? number_format($opp->respect / 1000000, 2) . 'M' : ($opp->respect >= 1000 ? number_format($opp->respect / 1000, 1) . 'K' : $opp->respect) }}
                             </span>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/70">
                         <div class="flex items-center gap-1.5 text-xs font-black text-emerald-600 dark:text-emerald-400">
                             <i class="fa-solid fa-money-bill-wave text-[11px]"></i>
                             <span>€{{ $opp->cash >= 1000000 ? number_format($opp->cash / 1000000, 1) . 'M' : number_format($opp->cash, 0, ',', '.') }}</span>
-                            <span class="text-[9px] text-slate-400 font-normal">op zak</span>
+                            <span class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">op zak</span>
                         </div>
 
                         <form action="{{ route('fight.attack') }}" method="POST"
@@ -383,7 +383,7 @@
 
                             <button type="submit"
                                     :disabled="globalCd > 0"
-                                    class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-2xs cursor-pointer flex items-center gap-1.5">
+                                    class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-1.5">
                                 <template x-if="globalCd <= 0">
                                     <span class="inline-flex items-center gap-1">
                                         <i class="fa-solid fa-sack-dollar text-[11px]"></i>
@@ -411,7 +411,7 @@
             <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">
+                        <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60">
                             <th class="py-3 px-2 w-10 text-center">#</th>
                             <th class="py-3 px-3">PATIËNT & CONTANTEN</th>
                             <th class="py-3 px-3">GANG</th>
@@ -419,13 +419,13 @@
                             <th class="py-3 px-3 text-right">STEEL GELD</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 font-medium">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
                         @forelse($opponents as $index => $opp)
                         <tr x-show="!searchQuery || @js(strtolower($opp->name)).includes(searchQuery.toLowerCase())"
-                            class="hover:bg-slate-50 transition-colors">
+                            class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                             
                             <!-- Rank Number -->
-                            <td class="py-3.5 px-2 text-center font-bold font-mono text-xs {{ $index < 3 ? 'text-purple-700' : 'text-slate-400' }}">
+                            <td class="py-3.5 px-2 text-center font-bold font-mono text-xs {{ $index < 3 ? 'text-purple-700 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500' }}">
                                 {{ $index + 1 }}
                             </td>
 
@@ -439,15 +439,15 @@
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-1.5">
-                                            <a href="{{ route('profile.show', $opp->name) }}" class="font-extrabold text-slate-900 hover:text-purple-600 transition text-xs">
+                                            <a href="{{ route('profile.show', $opp->name) }}" class="font-extrabold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition text-xs">
                                                 {{ $opp->name }}
                                             </a>
                                             <i class="fa-solid fa-circle-check text-purple-600 text-[10px]"></i>
                                         </div>
-                                        <div class="text-[11px] font-extrabold text-emerald-600 flex items-center gap-1">
+                                        <div class="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                             <i class="fa-solid fa-money-bill-wave text-[10px]"></i>
                                             <span>€{{ $opp->cash >= 1000000 ? number_format($opp->cash / 1000000, 1) . 'M' : number_format($opp->cash, 0, ',', '.') }}</span>
-                                            <span class="text-[9px] text-slate-400 font-normal">op zak</span>
+                                            <span class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">op zak</span>
                                         </div>
                                     </div>
                                 </div>
@@ -456,16 +456,16 @@
                             <!-- Gang Column -->
                             <td class="py-3.5 px-3">
                                 @if($opp->gang)
-                                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                                         <span>{{ $opp->gang->name }}</span>
                                     </span>
                                 @else
-                                    <span class="text-slate-400 text-xs italic">Geen gang</span>
+                                    <span class="text-slate-400 dark:text-slate-500 text-xs italic">Geen gang</span>
                                 @endif
                             </td>
 
                             <!-- Slay/Respect Column -->
-                            <td class="py-3.5 px-3 text-right font-extrabold text-purple-700 font-mono">
+                            <td class="py-3.5 px-3 text-right font-extrabold text-purple-700 dark:text-purple-400 font-mono">
                                 {{ $opp->respect >= 1000000 ? number_format($opp->respect / 1000000, 2) . 'M' : ($opp->respect >= 1000 ? number_format($opp->respect / 1000, 1) . 'K' : $opp->respect) }}
                             </td>
 
@@ -488,7 +488,7 @@
                                     <button type="submit"
                                             :disabled="globalCd > 0"
                                             title="Steel geld van {{ $opp->name }} (20 energie)"
-                                            class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                                            class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer inline-flex items-center gap-1.5">
                                         <template x-if="globalCd <= 0">
                                             <span class="inline-flex items-center gap-1.5">
                                                 <i class="fa-solid fa-sack-dollar text-xs"></i>
@@ -507,7 +507,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="py-6 text-center text-slate-400 text-xs">
+                            <td colspan="5" class="py-6 text-center text-slate-400 dark:text-slate-500 text-xs">
                                 Geen patiënten gevonden.
                             </td>
                         </tr>
@@ -517,7 +517,7 @@
             </div>
 
             <!-- Pagination Bar -->
-            <div class="pt-4 border-t border-slate-100 flex justify-end">
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                 {{ $opponents->links() }}
             </div>
         </div>
@@ -525,8 +525,8 @@
     </div>
 
     <!-- Bottom Ranglijst Podium -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
-        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
+        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
             <i class="fa-solid fa-trophy text-amber-500"></i>
             <span>RANGLIJST TOP PATIËNTEN</span>
         </div>
@@ -536,7 +536,7 @@
             <div class="flex flex-col items-center text-center group">
                 <div class="relative mb-2">
                     <img src="{{ $player->avatar_url }}" alt="{{ $player->name }}" 
-                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400' : 'border-slate-200') }} group-hover:scale-105 transition-transform shadow-xs">
+                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400' : 'border-slate-200 dark:border-slate-700') }} group-hover:scale-105 transition-transform shadow-xs">
                     
                     <span class="absolute -top-1 -left-1 w-6 h-6 rounded-full {{ $index === 0 ? 'bg-amber-400 text-slate-950 font-black' : ($index < 3 ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800 text-white font-bold') }} text-xs flex items-center justify-center shadow">
                         {{ $index + 1 }}
@@ -547,10 +547,10 @@
                     </span>
                 </div>
 
-                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 group-hover:text-purple-600 transition truncate w-full block">
+                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate w-full block">
                     {{ $player->name }}
                 </a>
-                <span class="text-[10px] font-bold text-slate-400">
+                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                     {{ $player->respect >= 1000000 ? number_format($player->respect / 1000000, 2) . 'M' : ($player->respect >= 1000 ? number_format($player->respect / 1000, 1) . 'K' : $player->respect) }}
                 </span>
             </div>

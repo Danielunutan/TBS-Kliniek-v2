@@ -6,16 +6,16 @@
 <div class="space-y-6" x-data="cinemaTheater({{ $room->id }}, '{{ $room->slug }}', '{{ $room->youtube_video_id }}', {{ $initialPlaybackSeconds ?? 0 }}, {{ $messages->last()?->id ?? 0 }}, @js($queue ?? []), {{ ($room->host_character_id === $character->id || Auth::user()->isStaff()) ? 'true' : 'false' }})">
 
     <!-- Top Cinema Header & Navigation -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-3.5 min-w-0">
             <a href="{{ route('cinema.index') }}" 
-               class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-sm transition shrink-0 shadow-2xs">
+               class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-sm transition-all duration-150 active:scale-95 shrink-0 shadow-xs">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
 
             <div class="min-w-0 space-y-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h1 class="text-base sm:text-xl font-black text-slate-900 dark:text-white truncate">
+                    <h1 class="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate">
                         {{ $room->title }}
                     </h1>
 
@@ -27,7 +27,7 @@
                     @endif
 
                     @if($room->is_private)
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70">
                         <i class="fa-solid fa-lock text-[9px]"></i> PRIVÉ
                     </span>
                     @endif
@@ -44,13 +44,13 @@
         <!-- Right Action Controls -->
         <div class="flex items-center gap-2 flex-wrap self-end md:self-center shrink-0">
             <!-- Synced Status Badge -->
-            <span class="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center gap-1.5 border border-purple-200 dark:border-purple-800/60">
+            <span class="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center gap-1.5 border border-purple-200/80 dark:border-purple-800/70">
                 <span class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
                 <span x-text="syncStatus">Synchroon</span>
             </span>
 
             <button type="button" @click="copyShareLink"
-                    class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+                    class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer"
                     title="Kopieer Zaallink">
                 <i class="fa-solid fa-share-nodes"></i>
                 <span x-text="copiedLink ? 'Gekopieerd!' : 'Delen'">Delen</span>
@@ -58,14 +58,14 @@
 
             @if($room->host_character_id === $character->id || Auth::user()->isStaff())
             <button type="button" @click="showChangeVideoModal = true"
-                    class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
                 <i class="fa-solid fa-film"></i>
                 <span>Video Wisselen</span>
             </button>
 
             <!-- Zaal Sluiten Knop -->
             <button type="button" @click="showCloseModal = true"
-                    class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs transition shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
                     title="Sluit deze bioscoopzaal voor iedereen">
                 <i class="fa-solid fa-power-off"></i>
                 <span>Zaal Sluiten</span>
@@ -81,21 +81,21 @@
         <div class="lg:col-span-8 space-y-5">
             
             <!-- 16:9 Screen Container with YouTube IFrame Player API -->
-            <div class="rounded-3xl overflow-hidden bg-black border-2 border-slate-900 dark:border-purple-950/60 shadow-2xl relative aspect-video ring-4 ring-purple-950/20">
+            <div class="rounded-2xl overflow-hidden bg-black border border-slate-900 dark:border-purple-950/80 shadow-2xl relative aspect-video ring-4 ring-purple-950/20">
                 <div id="cinema-player" class="w-full h-full"></div>
             </div>
 
             <!-- Video Wachtrij (Queue / Playlist) Section - Realtime Synchronized -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 flex-wrap gap-2">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80 flex-wrap gap-2">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm shadow-2xs">
+                        <div class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-sm shadow-2xs">
                             <i class="fa-solid fa-list-ol"></i>
                         </div>
                         <div>
                             <h3 class="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
                                 <span>Realtime Wachtrij &amp; Playlist</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300"
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70"
                                       x-text="queue.length + ' video(\'s)'"></span>
                             </h3>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400">Speelt automatisch synchroon af voor iedereen in de zaal</p>
@@ -106,7 +106,7 @@
                         @if($room->host_character_id === $character->id || Auth::user()->isStaff())
                         <template x-if="queue.length > 0">
                             <button type="button" @click="playNextFromQueue"
-                                    class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                    class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
                                 <i class="fa-solid fa-forward-step"></i>
                                 <span>Volgende Afspelen</span>
                             </button>
@@ -114,7 +114,7 @@
                         @endif
 
                         <button type="button" @click="showAddQueueModal = true"
-                                class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
                             <i class="fa-solid fa-plus"></i>
                             <span>Voeg Video Toe</span>
                         </button>
@@ -124,7 +124,7 @@
                 <!-- Queue Items List -->
                 <div class="space-y-2.5">
                     <template x-if="queue.length === 0">
-                        <div class="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 space-y-2">
+                        <div class="p-8 text-center rounded-xl border border-dashed border-slate-200/80 dark:border-slate-700/70 bg-slate-50/50 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 space-y-2">
                             <i class="fa-solid fa-clapperboard text-2xl text-slate-400"></i>
                             <p class="text-xs font-bold text-slate-700 dark:text-slate-300">De wachtrij is momenteel leeg.</p>
                             <p class="text-[11px]">Voeg YouTube tracks of video's toe; ze spelen synchroon af voor iedereen!</p>
@@ -135,10 +135,10 @@
                     </template>
 
                     <template x-for="(item, idx) in queue" :key="item.id">
-                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700 transition">
+                        <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
                             <div class="flex items-center gap-3 min-w-0">
                                 <span class="w-6 text-center font-mono font-black text-xs text-slate-400" x-text="'#' + (idx + 1)"></span>
-                                <img :src="item.thumbnail" class="w-20 h-12 object-cover rounded-xl shrink-0 bg-slate-900 border border-slate-300 dark:border-slate-700">
+                                <img :src="item.thumbnail" class="w-20 h-12 object-cover rounded-xl shrink-0 bg-slate-900 border border-slate-200/80 dark:border-slate-700">
                                 <div class="min-w-0 space-y-0.5">
                                     <h4 class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="item.title"></h4>
                                     <div class="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
@@ -153,14 +153,14 @@
                             <div class="flex items-center gap-2 shrink-0">
                                 @if($room->host_character_id === $character->id || Auth::user()->isStaff())
                                 <button type="button" @click="playQueueItem(item.id)"
-                                        class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs transition shadow-2xs flex items-center gap-1 cursor-pointer"
+                                        class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
                                         title="Speel deze video nu direct af voor iedereen">
                                     <i class="fa-solid fa-play text-[10px]"></i>
                                     <span class="hidden sm:inline">Nu Afspelen</span>
                                 </button>
 
                                 <button type="button" @click="removeQueueItem(item.id)"
-                                        class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 dark:text-rose-300 font-bold text-xs transition border border-rose-200 dark:border-rose-800 cursor-pointer"
+                                        class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 dark:text-rose-300 font-bold text-xs transition-all duration-150 border border-rose-200/80 dark:border-rose-800/70 cursor-pointer active:scale-95"
                                         title="Verwijder uit wachtrij">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
@@ -174,10 +174,10 @@
         </div>
 
         <!-- SESSION LIVE CHAT (4 cols) -->
-        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-lg flex flex-col h-[650px] sticky top-20">
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col h-[650px] sticky top-20">
             
             <!-- Chat Header -->
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80 shrink-0">
                 <div class="flex items-center gap-2.5">
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
                     <div>
@@ -196,15 +196,15 @@
             <!-- Messages Stream -->
             <div id="cinema-chat-box" @scroll="checkScrollPosition" class="flex-1 overflow-y-auto py-3 space-y-2.5 pr-1 text-xs">
                 <template x-for="msg in messages" :key="msg.id">
-                    <div class="flex items-start gap-2.5 p-2.5 rounded-2xl border transition"
-                         :class="msg.pending ? 'bg-purple-50/60 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800 opacity-70' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-800 shadow-2xs'">
-                        <img :src="msg.avatar" class="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5 border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-xl border transition-all duration-150"
+                         :class="msg.pending ? 'bg-purple-50/60 dark:bg-purple-950/30 border-purple-200/80 dark:border-purple-800/70 opacity-70' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 shadow-2xs'">
+                        <img :src="msg.avatar" class="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5 border border-slate-200/80 dark:border-slate-700">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between gap-1 mb-0.5">
                                 <div class="flex items-center gap-1.5">
                                     <span class="font-black text-slate-900 dark:text-white truncate" x-text="msg.character_name"></span>
                                     <template x-if="msg.is_staff">
-                                        <span class="px-1.5 py-0.2 rounded text-[8px] font-black bg-purple-600 text-white">STAFF</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-purple-600 text-white">STAFF</span>
                                     </template>
                                 </div>
                                 <span class="text-[10px] text-slate-400 font-mono" x-text="msg.time"></span>
@@ -217,7 +217,7 @@
 
                             <!-- Animated GIF -->
                             <template x-if="msg.gif_url">
-                                <div class="mt-1.5 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 max-w-[220px]">
+                                <div class="mt-1.5 rounded-xl overflow-hidden border border-slate-200/80 dark:border-slate-700 max-w-[220px]">
                                     <img :src="msg.gif_url" class="w-full h-auto object-cover max-h-40">
                                 </div>
                             </template>
@@ -227,19 +227,19 @@
             </div>
 
             <!-- Chat Inputs Bar & Modals -->
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 shrink-0 space-y-2 relative">
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 shrink-0 space-y-2 relative">
                 
                 <!-- GIF Picker Drawer -->
                 <div x-show="showGifPicker" x-cloak @click.away="showGifPicker = false"
-                     class="absolute bottom-16 inset-x-0 bg-white dark:bg-slate-900 border-2 border-purple-500 rounded-2xl p-3 shadow-2xl z-30 max-h-64 overflow-y-auto space-y-2">
-                    <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                     class="absolute bottom-16 inset-x-0 bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 rounded-2xl p-3 shadow-2xl z-30 max-h-64 overflow-y-auto space-y-2">
+                    <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800/80">
                         <span class="text-[11px] font-black text-purple-600 dark:text-purple-400">Kies een Meme GIF Reactie:</span>
                         <button type="button" @click="showGifPicker = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs cursor-pointer">&times;</button>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
                         @foreach($gifs as $gif)
                         <div @click="sendGif('{{ $gif['url'] }}')" 
-                             class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-purple-500 transition cursor-pointer aspect-video bg-slate-950 group">
+                             class="rounded-xl overflow-hidden border border-slate-200/80 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-600 transition-all duration-150 cursor-pointer aspect-video bg-slate-950 group">
                             <img src="{{ $gif['url'] }}" alt="{{ $gif['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy">
                         </div>
                         @endforeach
@@ -252,8 +252,8 @@
                     <div x-show="showMentionDropdown && mentionUsers.length > 0"
                          @click.away="showMentionDropdown = false"
                          x-cloak
-                         class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
-                        <div class="px-3.5 py-2 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                         class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/80">
+                        <div class="px-3.5 py-2 bg-slate-50/90 dark:bg-slate-800/60 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800/80">
                             <span class="flex items-center gap-1.5">
                                 <i class="fa-solid fa-at text-purple-600 dark:text-purple-400 text-xs"></i>
                                 <span>Speler Vermelden</span>
@@ -279,7 +279,7 @@
                                             <div class="text-[10px] text-slate-400" x-text="'Lvl ' + user.level"></div>
                                         </div>
                                     </div>
-                                    <span class="text-[10px] font-bold text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 shrink-0">
+                                    <span class="text-[10px] font-bold text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 shrink-0">
                                         Kies
                                     </span>
                                 </div>
@@ -292,16 +292,16 @@
                                @input="onChatInput($event)"
                                @keydown="onChatKeydown($event)"
                                placeholder="Typ je reactie of @speler..."
-                               class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium placeholder:text-slate-400">
+                               class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         
                         <button type="button" @click="showGifPicker = !showGifPicker"
-                                class="px-3 py-2.5 rounded-xl bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-black text-xs transition cursor-pointer border border-purple-200 dark:border-purple-800"
+                                class="px-3 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-black text-xs transition-all duration-150 cursor-pointer border border-purple-200/80 dark:border-purple-800/70 active:scale-95"
                                 title="Kies een GIF reactie">
                             GIF
                         </button>
 
                         <button type="submit" 
-                                class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs transition shadow-xs flex items-center justify-center cursor-pointer active:scale-95">
+                                class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center cursor-pointer active:scale-95">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </div>
@@ -316,11 +316,11 @@
     <div x-show="showAddQueueModal" x-cloak
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs">
         <div @click.away="showAddQueueModal = false; showQueueDropdown = false;"
-             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
             
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
                 <h3 class="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-plus-circle text-purple-600"></i>
+                    <i class="fa-solid fa-plus-circle text-purple-600 dark:text-purple-400"></i>
                     <span>Voeg Video Toe Aan Wachtrij</span>
                 </h3>
                 <button type="button" @click="showAddQueueModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-base cursor-pointer">&times;</button>
@@ -336,7 +336,7 @@
                         <i class="fa-brands fa-youtube absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-500 text-sm"></i>
                         <input type="text" x-model="queueSearchQuery" @input.debounce.350ms="onQueueSearchInput" @focus="if(queueSearchResults.length > 0) showQueueDropdown = true;"
                                placeholder="Typ zoekterm of plak link..."
-                               class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500">
+                               class="w-full pl-9 pr-8 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         
                         <div class="absolute right-3 top-1/2 -translate-y-1/2">
                             <template x-if="isSearchingQueue">
@@ -349,16 +349,16 @@
                     <div x-show="showQueueDropdown && queueSearchResults.length > 0" 
                          @click.away="showQueueDropdown = false"
                          x-cloak
-                         class="absolute z-50 inset-x-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                         class="absolute z-50 inset-x-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80">
                         <template x-for="item in queueSearchResults" :key="item.id">
                             <div @click="selectQueueVideo(item)" 
-                                 class="p-2.5 flex items-center gap-3 hover:bg-purple-50 dark:hover:bg-purple-950/40 cursor-pointer transition">
+                                 class="p-2.5 flex items-center gap-3 hover:bg-purple-50 dark:hover:bg-purple-950/40 cursor-pointer transition-colors">
                                 <img :src="item.thumbnail" class="w-14 h-9 object-cover rounded-lg shrink-0 bg-slate-950">
                                 <div class="min-w-0 flex-1">
                                     <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate" x-text="item.title"></h5>
                                     <span class="text-[10px] text-slate-500 dark:text-slate-400 truncate block" x-text="item.channel"></span>
                                 </div>
-                                <span class="px-2 py-0.5 rounded-lg bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[10px] font-black shrink-0">
+                                <span class="px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[10px] font-black shrink-0">
                                     Kies
                                 </span>
                             </div>
@@ -366,22 +366,22 @@
                     </div>
                 </div>
 
-                <div x-show="newQueueUrl" class="rounded-xl border border-purple-400/50 bg-slate-950 p-2 text-[11px] text-white flex items-center justify-between gap-2">
+                <div x-show="newQueueUrl" class="rounded-xl border border-purple-300 dark:border-purple-800/80 bg-purple-50/60 dark:bg-purple-950/40 p-2.5 text-xs text-purple-900 dark:text-purple-200 flex items-center justify-between gap-2">
                     <span class="truncate" x-text="'Gekozen: ' + (newQueueTitle || newQueueUrl)"></span>
-                    <i class="fa-solid fa-check text-emerald-400 shrink-0"></i>
+                    <i class="fa-solid fa-check text-emerald-500 dark:text-emerald-400 shrink-0"></i>
                 </div>
 
                 <div>
                     <label class="block text-xs font-black text-slate-900 dark:text-slate-200 mb-1">Titel in Wachtrij:</label>
                     <input type="text" x-model="newQueueTitle" placeholder="bijv. Vette Track of Docu Deel 2" maxlength="80"
-                           class="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500">
+                           class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-2">
-                    <button type="button" @click="showAddQueueModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer transition">
+                    <button type="button" @click="showAddQueueModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold cursor-pointer transition-all duration-150 active:scale-95">
                         Annuleren
                     </button>
-                    <button type="submit" :disabled="!newQueueUrl" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer active:scale-95">
+                    <button type="submit" :disabled="!newQueueUrl" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer active:scale-95">
                         Toevoegen
                     </button>
                 </div>
@@ -393,11 +393,11 @@
     <div x-show="showChangeVideoModal" x-cloak
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs">
         <div @click.away="showChangeVideoModal = false; showQueueDropdown = false;"
-             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
             
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
                 <h3 class="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-film text-purple-600"></i>
+                    <i class="fa-solid fa-film text-purple-600 dark:text-purple-400"></i>
                     <span>Zaal Video Wijzigen</span>
                 </h3>
                 <button type="button" @click="showChangeVideoModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-base cursor-pointer">&times;</button>
@@ -411,23 +411,23 @@
                         <i class="fa-brands fa-youtube absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-500 text-sm"></i>
                         <input type="text" x-model="queueSearchQuery" @input.debounce.350ms="onQueueSearchInput" @focus="if(queueSearchResults.length > 0) showQueueDropdown = true;"
                                placeholder="Typ zoekterm of plak YouTube URL..."
-                               class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500">
+                               class="w-full pl-9 pr-8 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     </div>
 
                     <!-- Dropdown -->
                     <div x-show="showQueueDropdown && queueSearchResults.length > 0" 
                          @click.away="showQueueDropdown = false"
                          x-cloak
-                         class="absolute z-50 inset-x-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                         class="absolute z-50 inset-x-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80">
                         <template x-for="item in queueSearchResults" :key="item.id">
                             <div @click="selectQueueVideo(item)" 
-                                 class="p-2.5 flex items-center gap-3 hover:bg-purple-50 dark:hover:bg-purple-950/40 cursor-pointer transition">
+                                 class="p-2.5 flex items-center gap-3 hover:bg-purple-50 dark:hover:bg-purple-950/40 cursor-pointer transition-colors">
                                 <img :src="item.thumbnail" class="w-14 h-9 object-cover rounded-lg shrink-0 bg-slate-950">
                                 <div class="min-w-0 flex-1">
                                     <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate" x-text="item.title"></h5>
                                     <span class="text-[10px] text-slate-500 dark:text-slate-400 truncate block" x-text="item.channel"></span>
                                 </div>
-                                <span class="px-2 py-0.5 rounded-lg bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[10px] font-black shrink-0">
+                                <span class="px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[10px] font-black shrink-0">
                                     Kies
                                 </span>
                             </div>
@@ -437,16 +437,16 @@
                     <input type="hidden" name="youtube_url" :value="newQueueUrl" required>
                 </div>
 
-                <div x-show="newQueueUrl" class="rounded-xl border border-purple-400/50 bg-slate-950 p-2 text-[11px] text-white flex items-center justify-between gap-2">
+                <div x-show="newQueueUrl" class="rounded-xl border border-purple-300 dark:border-purple-800/80 bg-purple-50/60 dark:bg-purple-950/40 p-2.5 text-xs text-purple-900 dark:text-purple-200 flex items-center justify-between gap-2">
                     <span class="truncate" x-text="'Geselecteerd: ' + (newQueueTitle || newQueueUrl)"></span>
-                    <i class="fa-solid fa-check text-emerald-400 shrink-0"></i>
+                    <i class="fa-solid fa-check text-emerald-500 dark:text-emerald-400 shrink-0"></i>
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-2">
-                    <button type="button" @click="showChangeVideoModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer transition">
+                    <button type="button" @click="showChangeVideoModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold cursor-pointer transition-all duration-150 active:scale-95">
                         Annuleren
                     </button>
-                    <button type="submit" :disabled="!newQueueUrl" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer active:scale-95">
+                    <button type="submit" :disabled="!newQueueUrl" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer active:scale-95">
                         Video Starten
                     </button>
                 </div>
@@ -458,10 +458,10 @@
     <div x-show="showCloseModal" x-cloak
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
         <div @click.away="showCloseModal = false"
-             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
             
             <div class="flex items-center gap-3 text-rose-600">
-                <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 flex items-center justify-center text-xl shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
@@ -476,10 +476,10 @@
 
             <form action="{{ route('cinema.close', $room->slug) }}" method="POST" class="flex items-center justify-end gap-2.5 pt-2">
                 @csrf
-                <button type="button" @click="showCloseModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer transition">
+                <button type="button" @click="showCloseModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold cursor-pointer transition-all duration-150 active:scale-95">
                     Annuleren
                 </button>
-                <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer active:scale-95 flex items-center gap-1.5">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer active:scale-95 flex items-center gap-1.5">
                     <i class="fa-solid fa-power-off"></i>
                     <span>Ja, Sluit Zaal</span>
                 </button>

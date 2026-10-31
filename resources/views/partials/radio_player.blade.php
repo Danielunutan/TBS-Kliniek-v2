@@ -41,7 +41,7 @@
         <!-- Quick Play / Pause Button -->
         <button type="button" 
                 @click.stop="togglePlay()" 
-                class="w-6 h-6 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white flex items-center justify-center text-[10px] shadow-2xs transition cursor-pointer"
+                class="w-6 h-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white flex items-center justify-center text-[10px] shadow-2xs transition-all duration-150 cursor-pointer"
                 :title="(isPlaying || isLoading) ? 'Radio uitzetten' : 'Radio aanzetten'">
             <template x-if="isLoading">
                 <i class="fa-solid fa-circle-notch fa-spin text-[9px]"></i>
@@ -55,7 +55,7 @@
         <template x-if="isPlaying || isLoading">
             <button type="button"
                     @click.stop="stopRadio()"
-                    class="w-6 h-6 rounded-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white flex items-center justify-center text-[10px] shadow-2xs transition cursor-pointer"
+                    class="w-6 h-6 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 active:scale-95 text-white flex items-center justify-center text-[10px] shadow-2xs transition-all duration-150 cursor-pointer"
                     title="Radio helemaal uitzetten">
                 <i class="fa-solid fa-power-off text-[9px]"></i>
             </button>
@@ -81,46 +81,46 @@
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-2 scale-95"
          @click.outside="isExpanded = false"
-         class="absolute {{ $isMobile ? '-right-14 sm:right-0' : 'right-0' }} top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-24px)] bg-white/98 dark:bg-[#110726]/98 backdrop-blur-md border border-slate-200 dark:border-purple-900/60 rounded-2xl shadow-2xl p-3.5 sm:p-4 z-50 space-y-3.5">
+         class="absolute {{ $isMobile ? '-right-14 sm:right-0' : 'right-0' }} top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-24px)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 sm:p-4 z-50 space-y-3.5">
         
         <!-- Header -->
-        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-purple-900/40">
+        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
             <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs">
+                <div class="w-6 h-6 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-tower-broadcast"></i>
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs font-black tracking-tight text-slate-900 dark:text-white uppercase">MIXXR Radio</span>
-                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300">Live</span>
+                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70">Live</span>
                 </div>
             </div>
             <div class="flex items-center gap-1">
-                <a href="https://mixxr.nl" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 flex items-center gap-1">
+                <a href="https://mixxr.nl" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold text-purple-700 dark:text-purple-300 hover:underline px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 flex items-center gap-1">
                     <span>MIXXR.nl</span>
                     <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
                 </a>
-                <button type="button" @click="toggleExpand()" class="w-6 h-6 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/60 text-slate-400 hover:text-slate-700 dark:hover:text-purple-200 flex items-center justify-center transition cursor-pointer">
+                <button type="button" @click="toggleExpand()" class="w-6 h-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
         </div>
 
         <!-- Currently Playing Card with Live Album Art & Metadata -->
-        <div class="p-3 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-100 dark:border-purple-900/40 flex items-center justify-between gap-3">
+        <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 overflow-hidden">
-                <div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-900 shadow-xs border border-purple-200 dark:border-purple-800 shrink-0 relative">
+                <div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-900 shadow-xs border border-slate-200 dark:border-slate-700 shrink-0 relative">
                     <img :src="nowPlaying.cover || 'https://mixxr.nl/album-art.png'" 
                          alt="Cover" 
                          class="w-full h-full object-cover"
                          x-on:error="$event.target.src = 'https://mixxr.nl/album-art.png'">
                     <template x-if="isPlaying">
-                        <span class="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-purple-950 animate-pulse"></span>
+                        <span class="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-800 animate-pulse"></span>
                     </template>
                 </div>
                 <div class="truncate">
                     <span class="text-[9px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block" x-text="nowPlaying.artist || 'MIXXR Radio Non-Stop'"></span>
                     <h4 class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="nowPlaying.title || 'Live Stream'"></h4>
-                    <span class="text-[10px] text-slate-500 dark:text-purple-300/70 block truncate">24/7 Pop, R&amp;B &amp; House</span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">24/7 Pop, R&amp;B &amp; House</span>
                 </div>
             </div>
 
@@ -128,7 +128,7 @@
             <div class="flex items-center gap-1.5 shrink-0">
                 <button type="button" 
                         @click.stop="togglePlay()" 
-                        class="w-10 h-10 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white flex items-center justify-center text-sm shadow-md shadow-purple-500/20 transition cursor-pointer shrink-0"
+                        class="w-10 h-10 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white flex items-center justify-center text-sm shadow-xs transition-all duration-150 cursor-pointer shrink-0"
                         :title="(isPlaying || isLoading) ? 'Pauzeren / Uitzetten' : 'Radio starten'">
                     <template x-if="isLoading">
                         <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
@@ -140,7 +140,7 @@
                 <template x-if="isPlaying || isLoading">
                     <button type="button"
                             @click.stop="stopRadio()"
-                            class="px-2.5 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider shadow-md shadow-rose-500/20 transition cursor-pointer shrink-0"
+                            class="px-2.5 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 active:scale-95 text-white flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider shadow-xs transition-all duration-150 cursor-pointer shrink-0"
                             title="Radio helemaal uitzetten">
                         <i class="fa-solid fa-power-off text-xs"></i>
                         <span>Uit</span>
@@ -151,7 +151,7 @@
 
         <!-- Volume Slider -->
         <div class="flex items-center gap-2.5 px-1">
-            <button type="button" @click="toggleMute()" class="text-slate-400 hover:text-slate-700 dark:hover:text-purple-200 text-xs transition cursor-pointer">
+            <button type="button" @click="toggleMute()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs transition cursor-pointer">
                 <i class="fa-solid" :class="isMuted || volume === 0 ? 'fa-volume-xmark text-rose-500' : (volume < 0.5 ? 'fa-volume-low' : 'fa-volume-high')"></i>
             </button>
             <input type="range" 
@@ -160,29 +160,29 @@
                    step="0.05" 
                    x-model="volume" 
                    @input="updateVolume()" 
-                   class="w-full h-1.5 bg-slate-200 dark:bg-purple-900/60 rounded-lg appearance-none cursor-pointer accent-purple-600">
-            <span class="text-[10px] font-mono text-slate-400 dark:text-purple-300/60 w-7 text-right" x-text="Math.round(volume * 100) + '%'"></span>
+                   class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-600">
+            <span class="text-[10px] font-mono text-slate-400 dark:text-slate-400 w-7 text-right" x-text="Math.round(volume * 100) + '%'"></span>
         </div>
 
         <!-- AutoDJ Verzoekjes Box met Zoekbalk & Laad Meer -->
-        <div class="pt-1 space-y-2 border-t border-slate-100 dark:border-purple-900/40">
+        <div class="pt-1 space-y-2 border-t border-slate-100 dark:border-slate-800">
             <div class="flex items-center justify-between px-1">
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-purple-200 flex items-center gap-1.5">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                     <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
                     <span>AutoDJ Verzoekje</span>
                 </span>
-                <span class="text-[10px] text-slate-400 dark:text-purple-300/60" x-text="autoDjList.length > 0 ? (autoDjList.length + ' tracks') : 'Live database'"></span>
+                <span class="text-[10px] text-slate-400 dark:text-slate-400" x-text="autoDjList.length > 0 ? (autoDjList.length + ' tracks') : 'Live database'"></span>
             </div>
 
             <!-- Zoekbalk -->
             <div class="relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-purple-400 text-xs pointer-events-none"></i>
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-xs pointer-events-none"></i>
                 <input type="text" 
                        x-model="autoDjQuery" 
                        placeholder="Zoek artiest of nummer..." 
-                       class="w-full pl-8 pr-7 py-2 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/60 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition">
+                       class="w-full pl-8 pr-7 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 <template x-if="autoDjQuery.length > 0">
-                    <button type="button" @click="autoDjQuery = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-purple-200 text-xs">
+                    <button type="button" @click="autoDjQuery = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
                         <i class="fa-solid fa-circle-xmark"></i>
                     </button>
                 </template>
@@ -191,7 +191,7 @@
             <!-- Feedback melding na aanvraag -->
             <template x-if="autoDjFeedback">
                 <div class="p-2 rounded-xl text-xs flex items-center gap-2"
-                     :class="autoDjFeedback.isError ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'">
+                     :class="autoDjFeedback.isError ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70'">
                     <i class="fa-solid" :class="autoDjFeedback.isError ? 'fa-triangle-exclamation text-rose-500' : 'fa-circle-check text-emerald-500'"></i>
                     <span class="text-[11px] leading-tight font-medium" x-text="autoDjFeedback.message"></span>
                 </div>
@@ -200,29 +200,29 @@
             <!-- Track List -->
             <div class="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                 <template x-if="autoDjLoading && autoDjList.length === 0">
-                    <div class="p-4 text-center text-xs text-slate-400 dark:text-purple-300/60 flex items-center justify-center gap-2">
+                    <div class="p-4 text-center text-xs text-slate-400 dark:text-slate-400 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-spinner fa-spin text-purple-500"></i>
                         <span>AutoDJ nummers laden...</span>
                     </div>
                 </template>
 
                 <template x-for="track in getVisibleAutoDjTracks()" :key="track.requestId || track.id">
-                    <div class="p-2 rounded-xl bg-slate-50/70 dark:bg-purple-950/20 hover:bg-purple-50/60 dark:hover:bg-purple-950/50 border border-slate-100 dark:border-purple-900/30 flex items-center justify-between gap-2.5 transition">
+                    <div class="p-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 hover:bg-purple-50/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-2.5 transition-all duration-150">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <img :src="track.cover || 'https://mixxr.nl/album-art.png'" 
                                  alt="Art" 
-                                 class="w-8 h-8 rounded-lg object-cover bg-slate-900 border border-purple-200 dark:border-purple-800 shrink-0"
+                                 class="w-8 h-8 rounded-lg object-cover bg-slate-900 border border-slate-200 dark:border-slate-700 shrink-0"
                                  x-on:error="$event.target.src = 'https://mixxr.nl/album-art.png'">
                             <div class="min-w-0 truncate">
-                                <h5 class="text-xs font-bold text-slate-800 dark:text-purple-100 truncate" x-text="track.title"></h5>
-                                <span class="text-[10px] text-slate-500 dark:text-purple-300/70 block truncate" x-text="track.artist"></span>
+                                <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate" x-text="track.title"></h5>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate" x-text="track.artist"></span>
                             </div>
                         </div>
 
                         <button type="button" 
                                 @click="requestTrack(track)"
                                 :disabled="autoDjRequestingId === (track.requestId || track.id)"
-                                class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-[10px] shrink-0 transition cursor-pointer flex items-center gap-1 disabled:opacity-50">
+                                class="px-2.5 py-1 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-[10px] shrink-0 transition-all duration-150 cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
                             <template x-if="autoDjRequestingId === (track.requestId || track.id)">
                                 <i class="fa-solid fa-spinner fa-spin text-[9px]"></i>
                             </template>
@@ -235,7 +235,7 @@
                 </template>
 
                 <template x-if="!autoDjLoading && getFilteredAutoDjTracks().length === 0">
-                    <div class="p-4 text-center text-xs text-slate-400 dark:text-purple-300/60">
+                    <div class="p-4 text-center text-xs text-slate-400 dark:text-slate-400">
                         Geen nummers gevonden voor deze zoekopdracht.
                     </div>
                 </template>
@@ -245,7 +245,7 @@
             <template x-if="hasMoreAutoDjTracks()">
                 <button type="button" 
                         @click="autoDjVisibleCount += 10" 
-                        class="w-full py-2 rounded-xl bg-purple-100/70 dark:bg-purple-950/60 hover:bg-purple-200 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-200 text-xs font-bold border border-purple-200 dark:border-purple-800/50 transition cursor-pointer flex items-center justify-center gap-1.5">
+                        class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-plus text-[10px]"></i>
                     <span>Laad meer nummers</span>
                     <span class="text-[10px] opacity-70" x-text="'(' + (getFilteredAutoDjTracks().length - autoDjVisibleCount) + ' overig)'"></span>

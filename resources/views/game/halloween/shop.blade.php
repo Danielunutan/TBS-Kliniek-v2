@@ -46,7 +46,7 @@
                     </div>
                 </div>
 
-                <a href="{{ route('halloween.quests') }}" class="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs transition active:scale-95 flex items-center gap-2 shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                <a href="{{ route('halloween.quests') }}" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 shrink-0 shadow-2xs">
                     <i class="fa-solid fa-scroll text-purple-600 dark:text-purple-400 text-xs"></i>
                     <span>Naar Quests &raquo;</span>
                 </a>
@@ -105,7 +105,7 @@
                 @endphp
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-600/50 transition {{ $isEquipped ? 'border-purple-400 dark:border-purple-500 ring-2 ring-purple-500/20' : '' }}">
                     <!-- Card Header -->
-                    <div class="p-3.5 bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div class="p-3.5 bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
                         <span class="text-xs font-black text-slate-900 dark:text-white">{{ $border['name'] }}</span>
                         @if($isEquipped)
                             <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-purple-600 text-white shadow-2xs">
@@ -116,7 +116,7 @@
                                 ✓ In Bezit
                             </span>
                         @else
-                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
                                 {{ $border['badge'] }}
                             </span>
                         @endif
@@ -148,7 +148,7 @@
                     </div>
 
                     <!-- Buy / Equip Footer -->
-                    <div class="p-3 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800">
+                    <div class="p-3 bg-slate-50/70 dark:bg-slate-800/50 border-t border-slate-200/80 dark:border-slate-800">
                         @if($isEquipped)
                             <div class="w-full py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 cursor-default">
                                 <i class="fa-solid fa-check"></i>
@@ -158,7 +158,7 @@
                             <form action="{{ route('halloween.equip-border') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="border_key" value="{{ $border['key'] }}">
-                                <button type="submit" class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
+                                <button type="submit" class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-paintbrush text-xs"></i>
                                     <span>Instellen op Profiel</span>
                                 </button>
@@ -169,9 +169,9 @@
                                 <input type="hidden" name="item_key" value="{{ $border['key'] }}">
                                 <button type="submit" 
                                         @if(!$canAfford) disabled @endif
-                                        class="w-full py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60' }}">
+                                        class="w-full py-2 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                     <span>Koop voor</span>
-                                    <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-400' : 'text-amber-600 dark:text-amber-400' }}">{{ $border['price_seeds'] }}</span>
+                                    <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-300' : 'text-slate-400 dark:text-slate-500' }}">{{ $border['price_seeds'] }}</span>
                                     <span>🎃</span>
                                 </button>
                             </form>
@@ -203,7 +203,7 @@
                 @endphp
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-600/50 transition">
                     <!-- Card Header -->
-                    <div class="p-4 bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3">
+                    <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-xl shadow-2xs shrink-0">
                                 <i class="fa-solid {{ $item['icon'] }}"></i>
@@ -229,15 +229,15 @@
                     </div>
 
                     <!-- Card Footer -->
-                    <div class="p-3 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800">
+                    <div class="p-3 bg-slate-50/70 dark:bg-slate-800/50 border-t border-slate-200/80 dark:border-slate-800">
                         <form action="{{ route('halloween.buy') }}" method="POST">
                             @csrf
                             <input type="hidden" name="item_key" value="{{ $item['key'] }}">
                             <button type="submit" 
                                     @if(!$canAfford) disabled @endif
-                                    class="w-full py-2.5 rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60' }}">
+                                    class="w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <span>Koop Item voor</span>
-                                <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-400' : 'text-amber-600 dark:text-amber-400' }}">{{ $item['price_seeds'] }}</span>
+                                <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-300' : 'text-slate-400 dark:text-slate-500' }}">{{ $item['price_seeds'] }}</span>
                                 <span>🎃</span>
                             </button>
                         </form>
@@ -269,7 +269,7 @@
                 @endphp
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-600/50 transition {{ $isPerkActive ? 'border-amber-400 dark:border-amber-500 ring-2 ring-amber-500/20' : '' }}">
                     <!-- Card Header -->
-                    <div class="p-4 bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3">
+                    <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-xl shadow-2xs shrink-0">
                                 <i class="fa-solid {{ $boost['icon'] }}"></i>
@@ -295,15 +295,15 @@
                     </div>
 
                     <!-- Card Footer -->
-                    <div class="p-3 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800">
+                    <div class="p-3 bg-slate-50/70 dark:bg-slate-800/50 border-t border-slate-200/80 dark:border-slate-800">
                         <form action="{{ route('halloween.buy') }}" method="POST">
                             @csrf
                             <input type="hidden" name="item_key" value="{{ $boost['key'] }}">
                             <button type="submit" 
                                     @if(!$canAfford) disabled @endif
-                                    class="w-full py-2.5 rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60' }}">
+                                    class="w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <span>Koop Boost voor</span>
-                                <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-400' : 'text-amber-600 dark:text-amber-400' }}">{{ $boost['price_seeds'] }}</span>
+                                <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-300' : 'text-slate-400 dark:text-slate-500' }}">{{ $boost['price_seeds'] }}</span>
                                 <span>🎃</span>
                             </button>
                         </form>

@@ -6,35 +6,35 @@
 <div class="space-y-6" x-data="{ activeTab: 'alle', createModalOpen: false, selectedType: 'depot_item' }">
 
     <!-- Clean TBS Kliniek Header Banner -->
-    <div class="bg-white dark:bg-[#110726] rounded-2xl p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden shadow-xs border border-slate-200 dark:border-purple-900/40">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden shadow-xs border border-slate-200/90 dark:border-slate-800">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/60 mb-3">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-black px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70 mb-3">
                     <i class="fa-solid fa-shop"></i> Speler-tot-Speler Handelsplatform
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">De Kliniek Marktplaats</h1>
-                <p class="text-slate-500 dark:text-purple-300/80 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
                     Verkoop en koop bezittingen tussen patiënten onderling: verhandel <strong>Depot Items</strong>, complete <strong>Garage Voertuigen</strong>, zeldzame <strong>Bende Panden</strong>, <strong>Sterren</strong>, <strong>Kluiscodes</strong>, <strong>Maskers</strong> en <strong>Smokkeltassen</strong>!
                 </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3 shrink-0">
-                <a href="{{ route('depot.index') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-2 transition">
+                <a href="{{ route('depot.index') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs flex items-center gap-2 transition-all duration-150 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-boxes-stacked text-purple-500"></i>
                     <span>Mijn Depot</span>
                 </a>
-                <a href="{{ route('garage.index') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-2 transition">
+                <a href="{{ route('garage.index') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs flex items-center gap-2 transition-all duration-150 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-warehouse text-purple-500"></i>
                     <span>Mijn Garage</span>
                 </a>
-                <button @click="createModalOpen = true" class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs flex items-center gap-2 transition shadow-xs cursor-pointer">
+                <button @click="createModalOpen = true" class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs flex items-center gap-2 transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
                     <i class="fa-solid fa-plus-circle text-sm text-purple-200"></i>
                     <span>Aanbod Plaatsen</span>
                 </button>
             </div>
         </div>
 
-        <div class="absolute -right-6 -bottom-6 text-slate-100 dark:text-purple-950/20 text-9xl font-black select-none pointer-events-none">
+        <div class="absolute -right-6 -bottom-6 text-slate-100 dark:text-slate-800/40 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-scale-balanced"></i>
         </div>
     </div>
@@ -42,7 +42,7 @@
     <!-- Inventory Quick Overview (What can you sell?) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         <!-- Depot Items -->
-        <a href="{{ route('depot.index') }}" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5 hover:border-indigo-400 transition">
+        <a href="{{ route('depot.index') }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
             <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-box-archive"></i>
             </div>
@@ -53,7 +53,7 @@
         </a>
 
         <!-- Garage Voertuigen -->
-        <a href="{{ route('garage.index') }}" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5 hover:border-purple-400 transition">
+        <a href="{{ route('garage.index') }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
             <div class="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-car-side"></i>
             </div>
@@ -64,7 +64,7 @@
         </a>
 
         <!-- Bende Panden -->
-        <a href="{{ route('gangs.panden') }}" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5 hover:border-emerald-400 transition">
+        <a href="{{ route('gangs.panden') }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
             <div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-building"></i>
             </div>
@@ -75,7 +75,7 @@
         </a>
 
         <!-- Sterren -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-star"></i>
             </div>
@@ -86,7 +86,7 @@
         </div>
 
         <!-- Smokkelkoffers -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-suitcase-rolling"></i>
             </div>
@@ -97,7 +97,7 @@
         </div>
 
         <!-- Maskers -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-mask"></i>
             </div>
@@ -108,7 +108,7 @@
         </div>
 
         <!-- Pompoenpitten -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-lg bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-seedling"></i>
             </div>
@@ -119,7 +119,7 @@
         </div>
 
         <!-- Contant Geld -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-coins"></i>
             </div>
@@ -133,50 +133,50 @@
     <!-- Filter Bar -->
     <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
         <a href="{{ route('marketplace.index', ['type' => 'all']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'all' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'all' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             Alle Aanbiedingen ({{ $listings->total() }})
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'depot_item']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'depot_item' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'depot_item' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-box-archive text-indigo-500 mr-1.5"></i> Depot Items
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'vehicle']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'vehicle' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'vehicle' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-car-side text-purple-500 mr-1.5"></i> Garage & Voertuigen
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'property']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'property' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'property' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-building text-emerald-500 mr-1.5"></i> Bende Panden
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'stars']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'stars' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'stars' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-star text-amber-500 mr-1.5"></i> Sterren
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'vault_codes']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'vault_codes' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'vault_codes' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-key text-violet-500 mr-1.5"></i> Kluiscodes
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'packages']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'packages' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'packages' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-briefcase text-blue-500 mr-1.5"></i> Smokkelkoffers
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'masks']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'masks' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'masks' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-masks-theater text-rose-500 mr-1.5"></i> Maskers
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'pumpkin_seeds']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'pumpkin_seeds' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'pumpkin_seeds' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-seedling text-orange-500 mr-1.5"></i> Pompoenpitten 🎃
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'cash']) }}" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'cash' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
+            class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'cash' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
             <i class="fa-solid fa-coins text-emerald-500 mr-1.5"></i> Contant Geld
         </a>
     </div>
 
     <!-- Listings Table / Grid -->
-    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+        <div class="p-5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
             <h2 class="text-base font-extrabold text-slate-900 dark:text-white">Actuele Aanbiedingen</h2>
             <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">{{ $listings->total() }} artikelen te koop</span>
         </div>
@@ -184,7 +184,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                    <tr class="bg-slate-50 dark:bg-slate-800/60 text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                    <tr class="bg-slate-50/90 dark:bg-slate-800/60 text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
                         <th class="p-4">Aanbod & Categorie</th>
                         <th class="p-4">Verkoper</th>
                         <th class="p-4 text-center">Aantal</th>
@@ -192,14 +192,14 @@
                         <th class="p-4 text-right">Actie</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
                     @forelse($listings as $item)
                         @php
                             $isMine = $item->seller_id === $character->id;
                             $canAfford = $item->currency === 'cash' ? ($character->cash >= $item->price) : (($character->stars ?? 0) >= $item->price);
                             $badge = $item->getTypeBadge();
                         @endphp
-                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors {{ $isMine ? 'bg-purple-50/30 dark:bg-purple-950/20' : '' }}">
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors {{ $isMine ? 'bg-purple-50/40 dark:bg-purple-950/20' : '' }}">
                             <td class="p-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 border {{ $badge['class'] }}">
@@ -273,7 +273,7 @@
                                           data-confirm-btn="Intrekken"
                                           data-confirm-type="warning">
                                         @csrf
-                                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-bold text-xs transition cursor-pointer">
+                                        <button type="submit" class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                             Annuleren
                                         </button>
                                     </form>
@@ -286,8 +286,8 @@
                                         @csrf
                                         <button type="submit" 
                                                 {{ !$canAfford ? 'disabled' : '' }}
-                                                class="px-4 py-1.5 rounded-lg font-black text-xs transition shadow-2xs cursor-pointer
-                                                {{ $canAfford ? 'bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed' }}">
+                                                class="px-4 py-1.5 rounded-xl font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer
+                                                {{ $canAfford ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                             Kopen
                                         </button>
                                     </form>
@@ -306,7 +306,7 @@
             </table>
         </div>
         @if ($listings->hasPages())
-            <div class="p-4 border-t border-slate-100 dark:border-slate-800">
+            <div class="p-4 border-t border-slate-200/80 dark:border-slate-800">
                 {{ $listings->links() }}
             </div>
         @endif
@@ -314,8 +314,8 @@
 
     <!-- CREATE LISTING MODAL -->
     <div x-show="createModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="createModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5">
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div @click.away="createModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3">
                 <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-plus-circle text-purple-600"></i>
                     <span>Nieuw Aanbod Plaatsen</span>
@@ -330,7 +330,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Wat wil je verkopen?</label>
-                    <select name="item_type" x-model="selectedType" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                    <select name="item_type" x-model="selectedType" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <optgroup label="Depot, Garage & Bende">
                             <option value="depot_item">🎒 Depot Item ({{ $inventoryItems->count() }} beschikbaar)</option>
                             <option value="vehicle">🏎️ Garage Voertuig ({{ $ownedVehicles->count() }} beschikbaar)</option>
@@ -353,7 +353,7 @@
                 <div x-show="selectedType === 'depot_item'" class="space-y-1">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Kies een item uit jouw Depot</label>
                     @if($inventoryItems->count() > 0)
-                        <select name="character_item_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <select name="character_item_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             @foreach($inventoryItems as $invItem)
                                 <option value="{{ $invItem->id }}">{{ $invItem->item->name }} (Aantal in depot: {{ $invItem->quantity }}x) - [{{ ucfirst($invItem->item->category ?? 'Item') }}]</option>
                             @endforeach
@@ -369,7 +369,7 @@
                 <div x-show="selectedType === 'vehicle'" class="space-y-1">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Kies een voertuig uit jouw Garage</label>
                     @if($ownedVehicles->count() > 0)
-                        <select name="character_vehicle_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <select name="character_vehicle_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             @foreach($ownedVehicles as $veh)
                                 <option value="{{ $veh->id }}">{{ $veh->vehicle->name }} (Conditie: {{ $veh->current_condition }}%, Snelheid: {{ $veh->effective_speed }} km/u){{ $veh->is_active ? ' [Actief]' : '' }}</option>
                             @endforeach
@@ -388,7 +388,7 @@
                 <div x-show="selectedType === 'property'" class="space-y-1">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Kies een Bende Pand om te verhandelen</label>
                     @if($gangProperties->count() > 0)
-                        <select name="gang_property_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <select name="gang_property_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             @foreach($gangProperties as $prop)
                                 <option value="{{ $prop->id }}">{{ $prop->name }} - [{{ ucfirst($prop->type) }}] (Aankoopwaarde: €{{ number_format($prop->purchase_price) }})</option>
                             @endforeach
@@ -407,7 +407,7 @@
                 <div x-show="selectedType === 'vault_codes'" class="space-y-1">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Kies jouw kluiscode voucher</label>
                     @if($myVaultCodes->count() > 0)
-                        <select name="vault_code_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <select name="vault_code_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             @foreach($myVaultCodes as $code)
                                 <option value="{{ $code->id }}">{{ $code->code }} (+€{{ number_format($code->reward_cash) }} bankgeld)</option>
                             @endforeach
@@ -428,35 +428,35 @@
                         <input type="number" name="amount" min="1" value="1" 
                                :readonly="['vehicle', 'property', 'vault_codes'].includes(selectedType)" 
                                required 
-                               class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white" 
+                               class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition" 
                                :class="{ 'opacity-60 bg-slate-100 dark:bg-slate-800/50': ['vehicle', 'property', 'vault_codes'].includes(selectedType) }">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Vraagprijs</label>
-                        <input type="number" name="price" min="10" max="50000000" value="500" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <input type="number" name="price" min="10" max="50000000" value="500" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Valuta waarin koper moet betalen</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 bg-white dark:bg-slate-800">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/70 cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 bg-slate-50/90 dark:bg-slate-800/60 transition">
                             <input type="radio" name="currency" value="cash" checked class="text-purple-600 focus:ring-purple-500">
                             <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Contant Geld (€)</span>
                         </label>
-                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 bg-white dark:bg-slate-800">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/70 cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 bg-slate-50/90 dark:bg-slate-800/60 transition">
                             <input type="radio" name="currency" value="stars" class="text-purple-600 focus:ring-purple-500">
                             <span class="text-xs font-bold text-slate-800 dark:text-slate-200 inline-flex items-center gap-1">Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></span>
                         </label>
                     </div>
                 </div>
 
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-                    <button @click="createModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                <div class="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-end gap-2">
+                    <button @click="createModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs rounded-xl transition shadow-xs cursor-pointer">
+                    <button type="submit" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                         Plaats op Marktplaats
                     </button>
                 </div>

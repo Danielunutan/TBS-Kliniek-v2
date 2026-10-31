@@ -17,13 +17,13 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">
                             <i class="fa-solid fa-flask-vial mr-1"></i> Ondergronds Smokkelnetwerk
                         </span>
-                        <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1">
+                        <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-md border border-emerald-200/80 dark:border-emerald-800/70 inline-flex items-center gap-1">
                             <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> +5% Rank XP Per Deal
                         </span>
-                        <span class="text-[10px] font-extrabold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 px-2.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
+                        <span class="text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-md border border-amber-200/80 dark:border-amber-800/70">
                             Direct Wit Bankgeld
                         </span>
                     </div>
@@ -38,25 +38,25 @@
 
             <!-- Header Vitals Matrix -->
             <div class="grid grid-cols-2 sm:grid-cols-4 md:flex items-center gap-2 shrink-0">
-                <div class="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
+                <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
                     <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">Energie</span>
                     <span class="text-xs sm:text-sm font-black text-emerald-900 dark:text-emerald-300 font-mono">
                         {{ $character->energy }}<span class="text-[10px] text-emerald-600/80 font-semibold">/{{ $character->max_energy }}</span>
                     </span>
                 </div>
-                <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
+                <div class="bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
                     <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 block">Contant</span>
                     <span class="text-xs sm:text-sm font-black text-amber-900 dark:text-amber-300 font-mono">
                         €{{ $character->cash >= 1000000 ? number_format($character->cash / 1000000, 1) . 'M' : number_format($character->cash, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/90 dark:border-purple-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
+                <div class="bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
                     <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-400 block">Respect</span>
                     <span class="text-xs sm:text-sm font-black text-purple-900 dark:text-purple-300 font-mono">
                         {{ number_format($character->respect, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-center shadow-xs">
+                <div class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 rounded-xl px-3.5 py-2 text-center shadow-xs">
                     <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Sterren</span>
                     <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono flex items-center justify-center gap-1">
                         <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> {{ $character->stars ?? 0 }}
@@ -69,9 +69,9 @@
     <!-- Live Warehouse Inventory Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <!-- Sigaretten Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-amber-300 dark:hover:border-amber-700/60 transition group">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group">
             <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl border border-amber-200/80 dark:border-amber-800/60 shrink-0 group-hover:scale-105 transition-transform">
+                <span class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl border border-amber-200/80 dark:border-amber-800/70 shrink-0 group-hover:scale-105 transition-transform">
                     <i class="fa-solid fa-smoking"></i>
                 </span>
                 <div>
@@ -80,15 +80,15 @@
                     <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">stuks op voorraad</span>
                 </div>
             </div>
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/60 text-amber-700 dark:text-amber-300">
+            <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300">
                 {{ $cigarettes > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
             </span>
         </div>
 
         <!-- Ritalin Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/60 transition group">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group">
             <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl border border-purple-200/80 dark:border-purple-800/60 shrink-0 group-hover:scale-105 transition-transform">
+                <span class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl border border-purple-200/80 dark:border-purple-800/70 shrink-0 group-hover:scale-105 transition-transform">
                     <i class="fa-solid fa-pills"></i>
                 </span>
                 <div>
@@ -97,15 +97,15 @@
                     <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">strips Ritalin</span>
                 </div>
             </div>
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60 text-purple-700 dark:text-purple-300">
+            <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300">
                 {{ $ritalin > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
             </span>
         </div>
 
         <!-- Telefoons Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-indigo-300 dark:hover:border-indigo-700/60 transition group">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group">
             <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl border border-indigo-200/80 dark:border-indigo-800/60 shrink-0 group-hover:scale-105 transition-transform">
+                <span class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl border border-indigo-200/80 dark:border-indigo-800/70 shrink-0 group-hover:scale-105 transition-transform">
                     <i class="fa-solid fa-mobile-screen"></i>
                 </span>
                 <div>
@@ -114,7 +114,7 @@
                     <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">mini toestellen</span>
                 </div>
             </div>
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300">
+            <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-700 dark:text-indigo-300">
                 {{ $phones > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
             </span>
         </div>
@@ -150,9 +150,9 @@
                     @php
                         $sigCooldown = $character->cooldownRemaining('produce_sigaretten');
                     @endphp
-                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700 transition">
+                    <div class="p-4 border border-slate-200/80 dark:border-slate-700/70 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
                         <div class="flex items-center gap-3">
-                            <span class="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-base shrink-0 font-bold">
+                            <span class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/70 flex items-center justify-center text-base shrink-0 font-bold">
                                 <i class="fa-solid fa-smoking"></i>
                             </span>
                             <div>
@@ -181,13 +181,13 @@
                             }
                         }">
                             <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $sigCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
+                                <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $sigCooldown) }}</span>
                                 </span>
                                 <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
                                     @csrf
                                     <input type="hidden" name="action" value="produce_sigaretten">
-                                    <button type="submit" title="Omzeil cooldown met 20 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                    <button type="submit" title="Omzeil cooldown met 20 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5">
                                         <i class="fa-solid fa-star text-[11px]"></i>
                                         <span>Omzeilen (20 ⭐)</span>
                                     </button>
@@ -199,7 +199,7 @@
                                     <input type="hidden" name="type" value="sigaretten">
                                     <button type="submit" 
                                             @if($character->energy < 5) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2">
+                                            class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
                                     </button>
@@ -212,9 +212,9 @@
                     @php
                         $ritCooldown = $character->cooldownRemaining('produce_ritalin');
                     @endphp
-                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700 transition">
+                    <div class="p-4 border border-slate-200/80 dark:border-slate-700/70 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
                         <div class="flex items-center gap-3">
-                            <span class="w-11 h-11 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-base shrink-0 font-bold">
+                            <span class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-base shrink-0 font-bold">
                                 <i class="fa-solid fa-pills"></i>
                             </span>
                             <div>
@@ -243,13 +243,13 @@
                             }
                         }">
                             <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $ritCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
+                                <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $ritCooldown) }}</span>
                                 </span>
                                 <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
                                     @csrf
                                     <input type="hidden" name="action" value="produce_ritalin">
-                                    <button type="submit" title="Omzeil cooldown met 35 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                    <button type="submit" title="Omzeil cooldown met 35 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5">
                                         <i class="fa-solid fa-star text-[11px]"></i>
                                         <span>Omzeilen (35 ⭐)</span>
                                     </button>
@@ -261,7 +261,7 @@
                                     <input type="hidden" name="type" value="ritalin">
                                     <button type="submit" 
                                             @if($character->energy < 10) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2">
+                                            class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
                                     </button>
@@ -274,9 +274,9 @@
                     @php
                         $phoneCooldown = max($character->cooldownRemaining('produce_telefoon'), $character->cooldownRemaining('produce_phone'));
                     @endphp
-                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700 transition">
+                    <div class="p-4 border border-slate-200/80 dark:border-slate-700/70 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
                         <div class="flex items-center gap-3">
-                            <span class="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-base shrink-0 font-bold">
+                            <span class="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/70 flex items-center justify-center text-base shrink-0 font-bold">
                                 <i class="fa-solid fa-mobile-screen"></i>
                             </span>
                             <div>
@@ -305,13 +305,13 @@
                             }
                         }">
                             <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $phoneCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
+                                <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $phoneCooldown) }}</span>
                                 </span>
                                 <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
                                     @csrf
                                     <input type="hidden" name="action" value="produce_telefoon">
-                                    <button type="submit" title="Omzeil cooldown met 50 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                    <button type="submit" title="Omzeil cooldown met 50 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5">
                                         <i class="fa-solid fa-star text-[11px]"></i>
                                         <span>Omzeilen (50 ⭐)</span>
                                     </button>
@@ -323,7 +323,7 @@
                                     <input type="hidden" name="type" value="telefoon">
                                     <button type="submit" 
                                             @if($character->energy < 20) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2">
+                                            class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
                                     </button>
@@ -357,7 +357,7 @@
                             <span class="text-[10px] text-slate-400 font-bold">Lever Goederen & Pak Wit Geld</span>
                         </div>
                     </div>
-                    <span class="text-[11px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800/60 px-2.5 py-1 rounded-full">
+                    <span class="text-[11px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2.5 py-1 rounded-full">
                         +5% Rank XP
                     </span>
                 </div>
@@ -369,7 +369,7 @@
                 <!-- Deals List -->
                 <div class="mt-4 space-y-3">
                     @foreach($orders as $order)
-                    <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition hover:border-purple-300 dark:hover:border-purple-600">
+                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-all duration-200 hover:border-purple-300 dark:hover:border-purple-700/80">
                         <!-- Buyer info -->
                         <div class="flex items-center gap-3.5 min-w-0">
                             <img src="{{ $order['avatar'] }}" alt="{{ $order['buyer'] }}" 
@@ -395,7 +395,7 @@
                                 <input type="hidden" name="order_id" value="{{ $order['id'] }}">
                                 <button type="submit" 
                                         @if(!$order['can_fulfill']) disabled @endif
-                                        class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-1.5">
+                                        class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-check text-[11px]"></i>
                                     <span>Verkopen</span>
                                 </button>
@@ -410,7 +410,7 @@
                                 @csrf
                                 <input type="hidden" name="order_id" value="{{ $order['id'] }}">
                                 <button type="submit" 
-                                        class="w-full py-1.5 px-3 rounded-lg bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-[11px] transition cursor-pointer flex items-center justify-center gap-1">
+                                        class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1">
                                     <i class="fa-solid fa-xmark text-[10px]"></i>
                                     <span>Weigeren</span>
                                 </button>

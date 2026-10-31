@@ -742,7 +742,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 <div class="space-y-4" x-data="tbsLiveMessenger(window.tbsChatConfig)" x-init="initMessenger()">
 
     <!-- HEADER BAR (Mobile-Optimized Compact & Desktop Rich) -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-2.5 sm:p-5 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 sm:p-5 shadow-xs relative overflow-hidden">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 relative z-10">
             <div class="flex items-center gap-2.5 sm:gap-3.5">
                 <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-600 text-white flex items-center justify-center text-base sm:text-xl shadow-md shrink-0">
@@ -751,7 +751,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-sm sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Kliniek Live Chat & DMs</h1>
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold text-[9px] sm:text-[10px] uppercase tracking-wider flex items-center gap-1">
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-extrabold text-[9px] sm:text-[10px] uppercase tracking-wider flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
                         </span>
                     </div>
@@ -762,11 +762,11 @@ window.tbsLiveMessenger = tbsLiveMessenger;
             </div>
 
             <!-- TAB SWITCHER (Full-Width Touch Pills on Mobile) -->
-            <div class="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl shrink-0 w-full sm:w-auto">
+            <div class="flex items-center gap-1 p-1 bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 rounded-xl shrink-0 w-full sm:w-auto">
                 <!-- KLINIEK PLEIN TAB -->
                 <button type="button" 
                         @click="switchTab('global')" 
-                        :class="activeTab === 'global' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        :class="activeTab === 'global' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
                         class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-bullhorn text-[11px]"></i>
                     <span>Plein</span>
@@ -775,13 +775,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <!-- BENDE CHAT TAB -->
                 <button type="button" 
                         @click="switchTab('gang')" 
-                        :class="activeTab === 'gang' ? 'bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        :class="activeTab === 'gang' ? 'bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
                         class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative">
                     <i class="fa-solid fa-walkie-talkie text-[11px]"></i>
                     <span>Bende</span>
                     @if($hasGang)
                         @if($gangHasChat)
-                            <span class="px-1 py-0.2 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-mono text-[8px] font-black hidden xs:inline">
+                            <span class="px-1 py-0.2 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-mono text-[8px] font-black hidden xs:inline">
                                 [{{ $gangTag }}]
                             </span>
                         @else
@@ -799,7 +799,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <!-- PRIVÉ CHATS TAB -->
                 <button type="button" 
                         @click="switchTab('direct')" 
-                        :class="activeTab === 'direct' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        :class="activeTab === 'direct' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
                         class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative">
                     <i class="fa-solid fa-user-lock text-[11px]"></i>
                     <span>Privé</span>
@@ -814,16 +814,16 @@ window.tbsLiveMessenger = tbsLiveMessenger;
     </div>
 
     <!-- MAIN MESSENGER CARD (CONSTRAINED HEIGHT & INTERNALLY SCROLLABLE) -->
-    <div class="tbs-chat-wrapper bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/40 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row relative">
+    <div class="tbs-chat-wrapper bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row relative">
         
         <!-- ========================================== -->
         <!-- LEFT COLUMN: CHANNELS & CONVERSATIONS LIST -->
         <!-- ========================================== -->
-        <div class="w-full md:w-80 lg:w-96 shrink-0 border-r border-slate-200 dark:border-purple-900/40 flex flex-col bg-slate-50/70 dark:bg-[#0c041d]/70 h-full min-h-0 overflow-hidden"
+        <div class="w-full md:w-80 lg:w-96 shrink-0 border-r border-slate-200/90 dark:border-slate-800 flex flex-col bg-slate-50/90 dark:bg-slate-900/80 h-full min-h-0 overflow-hidden"
              :class="mobileView === 'chat' ? 'hidden md:flex' : 'flex'">
             
             <!-- HEADER -->
-            <div class="p-4 border-b border-slate-200 dark:border-purple-900/40 space-y-3 shrink-0 bg-white dark:bg-[#12072b]">
+            <div class="p-4 border-b border-slate-200/90 dark:border-slate-800 space-y-3 shrink-0 bg-white dark:bg-slate-900">
                 <div class="flex items-center justify-between gap-2">
                     <span class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400" 
                           x-text="activeTab === 'direct' ? 'Directe Gesprekken' : 'Kanalen & Ruimtes'">
@@ -833,13 +833,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         <!-- START NIEUW GESPREK KNOP -->
                         <div class="relative" x-data="{ open: false }">
                             <button type="button" @click="open = !open" 
-                                    class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-black tracking-wide transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                    class="px-2.5 py-1 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-black tracking-wide transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
                                 <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                 <span>Nieuw</span>
                             </button>
                             <!-- FRIENDS DROPDOWN -->
                             <div x-show="open" @click.away="open = false" x-cloak
-                                 class="absolute right-0 top-8 z-30 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-purple-800/60 rounded-2xl shadow-xl p-2 space-y-1">
+                                 class="absolute right-0 top-8 z-30 w-64 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xl p-2 space-y-1">
                                 <div class="px-2.5 py-1.5 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Kies een vriend:</div>
                                 @forelse($friends ?? [] as $fr)
                                     <button type="button" 
@@ -872,7 +872,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                             @click="switchTab('global')"
                             :class="activeTab === 'global' 
                                 ? 'bg-purple-50/90 dark:bg-purple-950/60 border-purple-400 dark:border-purple-700/80 shadow-xs ring-1 ring-purple-500/20' 
-                                : 'bg-white dark:bg-[#140830] border-slate-200 dark:border-purple-900/40 hover:bg-slate-100 dark:hover:bg-purple-950/30'"
+                                : 'bg-white dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/70 hover:bg-slate-100 dark:hover:bg-slate-800'"
                             class="w-full p-3 rounded-2xl border text-left transition flex items-center gap-3 cursor-pointer group">
                         <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base shadow-sm shrink-0">
                             <i class="fa-solid fa-bullhorn"></i>
@@ -891,7 +891,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                             @click="switchTab('gang')"
                             :class="activeTab === 'gang' 
                                 ? 'bg-amber-50/80 dark:bg-amber-950/40 border-amber-400 dark:border-amber-700/80 shadow-xs ring-1 ring-amber-500/20' 
-                                : 'bg-white dark:bg-[#140830] border-slate-200 dark:border-purple-900/40 hover:bg-slate-100 dark:hover:bg-purple-950/30'"
+                                : 'bg-white dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/70 hover:bg-slate-100 dark:hover:bg-slate-800'"
                             class="w-full p-3 rounded-2xl border text-left transition flex items-center gap-3 cursor-pointer group">
                         <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-base shadow-sm shrink-0">
                             <i class="fa-solid fa-walkie-talkie"></i>
@@ -908,7 +908,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 @if(!$hasGang)
                                     <span class="text-slate-400 text-xs shrink-0" title="Geen lid"><i class="fa-solid fa-lock"></i></span>
                                 @elseif(!$gangHasChat)
-                                    <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[9px] font-black shrink-0 border border-amber-300 dark:border-amber-800">500 ⭐</span>
+                                    <span class="px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black shrink-0 border border-amber-200/80 dark:border-amber-800/70">500 ⭐</span>
                                 @else
                                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="Portofoon actief"></span>
                                 @endif
@@ -926,7 +926,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     </button>
 
                     <!-- PLEIN REGELS CARD -->
-                    <div class="p-3.5 rounded-2xl bg-purple-50/70 dark:bg-[#150a30]/80 border border-purple-200/80 dark:border-purple-900/40 text-xs space-y-2 mt-4">
+                    <div class="p-3.5 rounded-xl bg-purple-50/90 dark:bg-purple-950/50 border border-purple-200/80 dark:border-purple-800/60 text-xs space-y-2 mt-4">
                         <div class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-black">
                             <i class="fa-solid fa-shield-halved text-sm"></i>
                             <span>Plein & Bende Regels</span>
@@ -938,13 +938,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                     @if($hasGang)
                         <!-- GANG QUICK STATS CARD -->
-                        <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-[#14092e]/80 border border-slate-200 dark:border-purple-900/40 text-xs space-y-2">
+                        <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="font-extrabold text-slate-800 dark:text-white flex items-center gap-1.5">
                                     <i class="fa-solid fa-users text-purple-500"></i>
                                     <span>{{ $gangName }}</span>
                                 </span>
-                                <span class="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-black text-[10px]">
+                                <span class="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black text-[10px]">
                                     [{{ $gangTag }}]
                                 </span>
                             </div>
@@ -958,7 +958,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         </div>
                     @else
                         <!-- JOIN GANG CALLOUT -->
-                        <div class="p-3.5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 text-xs space-y-2">
+                        <div class="p-3.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/60 text-xs space-y-2">
                             <div class="font-black text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
                                 <i class="fa-solid fa-users-viewfinder"></i>
                                 <span>Word lid van een Bende</span>
@@ -995,7 +995,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                        }
                                    "
                                    placeholder="🔍 Zoek patiënt om te chatten..." 
-                                   class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30">
+                                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             <template x-if="isSearching">
                                 <i class="fa-solid fa-spinner fa-spin absolute right-3 top-2.5 text-xs text-purple-500"></i>
                             </template>
@@ -1003,7 +1003,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                         <!-- Search Dropdown -->
                         <template x-if="searchResults.length > 0">
-                            <div class="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-[#160b33] border border-slate-200 dark:border-purple-800/60 rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-purple-900/30 p-1">
+                            <div class="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 p-1">
                                 <template x-for="p in searchResults" :key="p.id">
                                     <button type="button" 
                                             @click="selectPartner(p.id, p.name); searchResults = []; inmateQuery = '';"
@@ -1036,7 +1036,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     <template x-for="conv in filteredConversations" :key="conv.partner_id">
                         <button type="button" 
                                 @click="selectPartner(conv.partner_id, conv.name)"
-                                :class="activePartnerId === conv.partner_id ? 'bg-purple-50 dark:bg-purple-950/60 border-purple-300 dark:border-purple-700/60 shadow-xs ring-1 ring-purple-500/20' : 'bg-white dark:bg-[#140830] border-slate-200 dark:border-purple-900/40 hover:bg-slate-100 dark:hover:bg-purple-950/30'"
+                                :class="activePartnerId === conv.partner_id ? 'bg-purple-50/90 dark:bg-purple-950/60 border-purple-300 dark:border-purple-700/60 shadow-xs ring-1 ring-purple-500/20' : 'bg-white dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/70 hover:bg-slate-100 dark:hover:bg-slate-800'"
                                 class="w-full p-2.5 rounded-2xl border text-left transition flex items-center gap-3 cursor-pointer group relative">
                             
                             <!-- AVATAR -->
@@ -1092,17 +1092,17 @@ window.tbsLiveMessenger = tbsLiveMessenger;
         <!-- ========================================== -->
         <!-- RIGHT COLUMN: MAIN ACTIVE CHAT WINDOW      -->
         <!-- ========================================== -->
-        <div class="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-slate-50/50 dark:bg-[#0d041e]/50 overflow-hidden"
+        <div class="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-slate-50/40 dark:bg-slate-900/60 overflow-hidden"
              :class="mobileView === 'list' ? 'hidden md:flex' : 'flex'">
             
             <!-- CHAT TOP BAR -->
-            <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-purple-900/40 flex items-center justify-between bg-white dark:bg-[#12072b] shrink-0">
+            <div class="p-3.5 sm:p-4 border-b border-slate-200/90 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 shrink-0">
                 <div class="flex items-center gap-3 min-w-0">
                     <!-- Mobile Back Button (Direct Chats) -->
                     <button type="button" 
                             x-show="activeTab === 'direct'"
                             @click="activePartnerId = null; mobileView = 'list'; if(window.tbsVibrate) window.tbsVibrate(10);"
-                            class="md:hidden px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-purple-950/70 text-slate-700 dark:text-purple-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer shrink-0 border border-slate-200/60 dark:border-purple-800/40 shadow-2xs">
+                            class="md:hidden px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer shrink-0 border border-slate-200/80 dark:border-slate-700 shadow-2xs transition-all duration-150">
                         <i class="fa-solid fa-chevron-left text-[11px]"></i>
                         <span class="text-[11px]">Gesprekken</span>
                     </button>
@@ -1135,7 +1135,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
                                     <span x-text="gangName + ' Portofoon'"></span>
                                     <template x-if="gangTag">
-                                        <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-mono text-[9px] font-black" x-text="'[' + gangTag + ']'"></span>
+                                        <span class="px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-mono text-[9px] font-black" x-text="'[' + gangTag + ']'"></span>
                                     </template>
                                 </h3>
                                 <div class="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-semibold truncate">
@@ -1160,7 +1160,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     <template x-if="activeTab === 'direct'">
                         <div class="flex items-center gap-3 min-w-0">
                             <template x-if="activePartnerId === null">
-                                <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shadow-2xs shrink-0">
+                                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-lg shadow-2xs shrink-0">
                                     <i class="fa-solid fa-comments"></i>
                                 </div>
                             </template>
@@ -1178,7 +1178,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 truncate">
                                     <span x-text="activePartnerId === null ? 'Privéberichten' : activePartner.name"></span>
                                     <template x-if="activePartnerId !== null && activePartner.is_bot">
-                                        <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase">Systeem Bot</span>
+                                        <span class="px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[9px] font-black uppercase">Systeem Bot</span>
                                     </template>
                                 </h3>
                                 <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="activePartnerId === null ? 'Selecteer links een gesprek' : activePartner.status_label"></div>
@@ -1191,14 +1191,14 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <div class="flex items-center gap-2 shrink-0">
                     <template x-if="activeTab === 'direct' && activePartnerId !== null && !activePartner.is_bot && activePartner.id > 0">
                         <a :href="'/speler/' + encodeURIComponent(activePartner.name)" 
-                           class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5">
+                           class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition flex items-center gap-1.5">
                             <i class="fa-solid fa-address-card text-xs"></i>
                             <span class="hidden sm:inline">Dossier</span>
                         </a>
                     </template>
                     <button type="button" 
                             @click="refreshActiveChat()" 
-                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-slate-200 dark:hover:bg-purple-900/60 text-slate-600 dark:text-purple-300 flex items-center justify-center text-xs transition cursor-pointer"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-xs transition cursor-pointer"
                             title="Handmatig verversen">
                         <i class="fa-solid fa-arrows-rotate" :class="isRefreshing ? 'animate-spin' : ''"></i>
                     </button>
@@ -1346,10 +1346,10 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                              :class="msg.is_me 
                                                 ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                 : (msg.is_owner 
-                                                    ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
+                                                    ? 'bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
                                                     : (msg.is_admin || msg.is_moderator 
-                                                        ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
-                                                        : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'))"
+                                                        ? 'bg-purple-50/70 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
+                                                        : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'))"
                                              x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                         <!-- PAARS HARTJE REACTIE KNOP 💜 -->
@@ -1384,7 +1384,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         <!-- SCENARIO A: NOT IN A GANG -->
                         <template x-if="!hasGang">
                             <div class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 my-auto">
-                                <div class="w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center text-3xl shadow-sm">
+                                <div class="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-3xl shadow-sm">
                                     <i class="fa-solid fa-users-slash"></i>
                                 </div>
                                 <div class="space-y-1.5 max-w-sm">
@@ -1403,11 +1403,11 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         <!-- SCENARIO B: IN GANG, BUT CHAT NOT UNLOCKED (500 STARS) -->
                         <template x-if="hasGang && !gangHasChat">
                             <div class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 max-w-md mx-auto my-auto">
-                                <div class="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-500 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center text-3xl shadow-lg">
+                                <div class="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 border border-amber-200/80 dark:border-amber-700/60 flex items-center justify-center text-3xl shadow-lg">
                                     <i class="fa-solid fa-walkie-talkie"></i>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-300 dark:border-amber-800">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-200/80 dark:border-amber-800/70">
                                         🔒 Exclusief Kanaal
                                     </span>
                                     <h4 class="text-base font-black text-slate-900 dark:text-white" x-text="gangName + ' Portofoon'"></h4>
@@ -1416,16 +1416,16 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                     </p>
                                 </div>
 
-                                <div class="p-3 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800/50 text-xs text-purple-900 dark:text-purple-200 w-full space-y-1.5">
+                                <div class="p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-900 dark:text-slate-100 w-full space-y-1.5">
                                     <div class="flex items-center justify-between font-bold">
                                         <span>Eenmalige Kosten:</span>
                                         <span class="text-amber-500 font-black">500 Sterren ⭐</span>
                                     </div>
-                                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-purple-300/80">
+                                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                                         <span>Jouw saldo:</span>
                                         <span class="font-bold" x-text="characterStars + ' ⭐'"></span>
                                     </div>
-                                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-purple-300/80">
+                                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                                         <span>Bende kluis saldo:</span>
                                         <span class="font-bold" x-text="gangStars + ' ⭐'"></span>
                                     </div>
@@ -1577,7 +1577,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
                                                      :class="msg.is_me 
                                                         ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
-                                                        : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
+                                                        : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'"
                                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                                 <!-- PAARS HARTJE REACTIE KNOP 💜 -->
@@ -1612,7 +1612,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <div class="space-y-3">
                     <template x-if="activePartnerId === null">
                         <div class="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-3 max-w-sm mx-auto">
-                            <div class="w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl shadow-sm">
+                            <div class="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-2xl shadow-sm">
                                 <i class="fa-solid fa-comments"></i>
                             </div>
                             <div class="space-y-1">
@@ -1642,7 +1642,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                             </template>
                                         </div>
                                         <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
-                                             :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
+                                             :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'"
                                              x-html="formatMessage(dm.message, dm.is_me)"></div>
                                     </div>
                                 </div>
@@ -1661,7 +1661,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
         </div>
 
         <!-- CHAT INPUT BAR (GLOBAL / GANG / DIRECT) -->
-        <div class="p-3 sm:p-4 bg-white dark:bg-[#12072b] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-2">
+        <div class="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-slate-800 shrink-0 space-y-2">
             
             <!-- Disable input on direct chat when no partner selected -->
             <template x-if="activeTab === 'direct' && activePartnerId === null">
@@ -1711,14 +1711,14 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         
                         <!-- EMOJI DRAWER TOGGLE BUTTON & POPUP -->
                         <div class="relative">
-                            <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys & Emojis">
+                            <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys & Emojis">
                                 <i class="fa-regular fa-face-smile"></i>
                             </button>
 
                             <!-- Emoji Drawer Popup -->
                             <div x-show="showEmojiPicker" @click.outside="showEmojiPicker = false" x-cloak
-                                 class="absolute bottom-full left-0 mb-3 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-3 shadow-2xl z-50 space-y-2.5">
-                                <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
+                                 class="absolute bottom-full left-0 mb-3 w-64 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 shadow-2xl z-50 space-y-2.5">
+                                <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys & Misdaad</span>
                                     <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
                                 </div>
@@ -1734,7 +1734,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                     <div>
                                         <span class="text-[9px] font-bold text-slate-400 block mb-0.5">TBS & Misdaad</span>
                                         <div class="grid grid-cols-6 gap-1">
-                                            <template x-for="s in ['🔥','💰','💉','🚬','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊']" :key="s">
+                                            <template x-for="s in ['🔥','💰','💉','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊']" :key="s">
                                                 <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
                                             </template>
                                         </div>
@@ -1755,9 +1755,9 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         <div x-show="showMentionDropdown && mentionUsers.length > 0"
                              @click.away="showMentionDropdown = false"
                              x-cloak
-                             class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 bg-white dark:bg-[#150a30] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
+                             class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
                             
-                            <div class="px-3.5 py-2 bg-slate-50 dark:bg-purple-950/80 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-purple-300 border-b border-slate-100 dark:border-purple-900/40">
+                            <div class="px-3.5 py-2 bg-slate-50/90 dark:bg-slate-800/80 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-purple-300 border-b border-slate-100 dark:border-slate-800">
                                 <span class="flex items-center gap-1.5">
                                     <i class="fa-solid fa-at text-purple-600 dark:text-purple-400 text-xs"></i>
                                     <span>Speler Vermelden</span>
@@ -1817,7 +1817,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                    autocorrect="on"
                                    :placeholder="activeTab === 'direct' ? 'Stuur een privébericht of @speler... (max 500 tekens)' : (activeTab === 'gang' ? 'Typ een bericht voor je bende... (max 250 tekens)' : 'Typ een bericht of @speler... (max 250 tekens)')"
                                    :maxlength="activeTab === 'direct' ? 500 : 250"
-                                   class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-[#0f0524] rounded-xl px-3.5 sm:px-4 py-2 sm:py-3 pr-14 sm:pr-16 text-base sm:text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-3.5 sm:px-4 py-2 sm:py-3 pr-14 sm:pr-16 text-base sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
                             <span x-show="messageInput.length > (activeTab === 'direct' ? 350 : 150)" x-cloak
                                   class="absolute right-3 text-[10px] sm:text-[11px] font-mono pointer-events-none"
                                   :class="messageInput.length >= (activeTab === 'direct' ? 500 : 250) ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
@@ -1828,7 +1828,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         <button type="submit" 
                                 :disabled="isSending || messageInput.trim() === ''"
                                 @click="if(window.tbsVibrate) window.tbsVibrate(15);"
-                                class="px-3.5 sm:px-5 py-2 sm:py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                                class="px-3.5 sm:px-5 py-2 sm:py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-sm flex items-center justify-center gap-2 cursor-pointer shrink-0">
                             <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
                             <span class="hidden sm:inline">Verstuur</span>
                         </button>

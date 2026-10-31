@@ -32,10 +32,10 @@
 }" x-init="if (secReset > 0) { setInterval(() => { secReset--; if (secReset <= 0) window.location.reload(); }, 1000); }">
 
     <!-- Top Hero Banner (Clean TBS White Style) -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
             <div class="space-y-2 text-center md:text-left">
-                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/60">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-black px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Automatische 24-Uurs Dagbattle</span>
                 </div>
@@ -48,15 +48,15 @@
             </div>
 
             <!-- Countdown Timer Card -->
-            <div class="bg-purple-50 dark:bg-slate-800/80 border border-purple-200 dark:border-slate-700 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 dark:text-slate-200 block mb-1">
+            <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 block mb-1">
                     Volgende Reset & Uitbetaling
                 </span>
                 <div class="text-2xl sm:text-3xl font-black font-mono text-purple-700 dark:text-purple-400 tracking-wider" 
                      x-text="formatCountdown(secReset)">
                     {{ $resetTimeFormatted }}
                 </div>
-                <span class="text-[10px] text-purple-600 dark:text-slate-400 block mt-1 font-medium">Prijzen worden direct gestort</span>
+                <span class="text-[10px] text-purple-600 dark:text-purple-400 block mt-1 font-bold">Prijzen worden direct gestort</span>
             </div>
         </div>
     </div>
@@ -64,7 +64,7 @@
     <!-- 7 BATTLE CATEGORY CARDS GRID -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         @foreach($categories as $catKey => $cat)
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600 transition-all rounded-xl p-5 shadow-xs flex flex-col justify-between space-y-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4">
             <!-- Header with Category Title & Clickable Arrow -->
             <div>
                 <button type="button" 
@@ -80,7 +80,7 @@
                 <!-- Rewards List (1, 2, 3) -->
                 <div class="space-y-2 pt-3 text-xs">
                     <!-- Rank 1 Reward -->
-                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-amber-500/10 dark:bg-amber-950/40 border border-amber-300/40 dark:border-amber-800/40 transition">
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-700/60 transition">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span class="w-6 h-6 rounded-md bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
                                 1
@@ -89,11 +89,11 @@
                                 {{ $cat['rewards'][1]['label'] }}
                             </span>
                         </div>
-                        <span class="text-[10px] font-black uppercase text-amber-800 dark:text-amber-300 bg-amber-200/60 dark:bg-amber-900/40 px-2 py-0.5 rounded shrink-0">Hoofdprijs</span>
+                        <span class="text-[10px] font-black uppercase text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2 py-0.5 rounded-full shrink-0">Hoofdprijs</span>
                     </div>
 
                     <!-- Rank 2 Reward -->
-                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 transition">
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 transition">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span class="w-6 h-6 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-black shrink-0">
                                 2
@@ -105,7 +105,7 @@
                     </div>
 
                     <!-- Rank 3 Reward -->
-                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 transition">
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 transition">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span class="w-6 h-6 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-900 dark:text-orange-300 flex items-center justify-center text-xs font-black shrink-0">
                                 3
@@ -132,7 +132,7 @@
                 </div>
                 <div class="space-y-1.5">
                     @forelse($cat['top3'] ?? [] as $topPlayer)
-                    <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 text-xs hover:bg-purple-50/40 dark:hover:bg-slate-800 transition">
+                    <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                         <div class="flex items-center gap-2 min-w-0">
                             <span class="w-4 font-mono font-black text-center {{ $topPlayer['rank'] === 1 ? 'text-amber-500' : 'text-slate-400' }}">#{{ $topPlayer['rank'] }}</span>
                             <span class="font-bold text-slate-800 dark:text-slate-200 truncate">{{ $topPlayer['name'] }}</span>
@@ -140,7 +140,7 @@
                         <span class="font-mono font-extrabold text-purple-700 dark:text-purple-400 text-xs shrink-0 ml-2">{{ number_format($topPlayer['score'], 0, ',', '.') }}</span>
                     </div>
                     @empty
-                    <div class="text-xs text-slate-400 italic py-2 text-center bg-slate-50 dark:bg-slate-800/50 rounded-lg">Nog geen activiteit vandaag</div>
+                    <div class="text-xs text-slate-400 italic py-2 text-center bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl">Nog geen activiteit vandaag</div>
                     @endforelse
                 </div>
             </div>
@@ -149,7 +149,7 @@
     </div>
 
     <!-- Bottom Podium Ranglijst -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-5">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
                 <i class="fa-solid fa-trophy text-amber-500"></i>
@@ -193,7 +193,7 @@
          x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
          @click.self="modalOpen = false">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 text-slate-900 dark:text-white shadow-xl space-y-4 relative max-h-[85vh] flex flex-col">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 text-slate-900 dark:text-white shadow-xl space-y-4 relative max-h-[85vh] flex flex-col">
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2 font-extrabold text-slate-900 dark:text-white text-sm uppercase tracking-wider">
@@ -223,7 +223,7 @@
                 <template x-if="!loadingScores && modalScores.length > 0">
                     <div class="space-y-1.5">
                         <template x-for="item in modalScores" :key="item.rank">
-                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 hover:border-purple-200 dark:hover:border-purple-600 transition">
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
                                 <div class="flex items-center gap-3">
                                     <span class="w-6 font-bold text-sm text-purple-700 dark:text-purple-400 text-center" x-text="'#' + item.rank"></span>
                                     <img :src="item.avatar" 
@@ -243,7 +243,7 @@
 
             <!-- Modal Footer -->
             <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center">
-                <button type="button" @click="modalOpen = false" class="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold text-xs uppercase cursor-pointer transition">
+                <button type="button" @click="modalOpen = false" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                     Sluiten
                 </button>
             </div>

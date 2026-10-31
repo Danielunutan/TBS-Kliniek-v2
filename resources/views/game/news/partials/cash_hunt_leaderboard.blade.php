@@ -48,10 +48,10 @@
         this.timerInterval = setInterval(() => this.updateCountdown(), 1000);
         this.pollInterval = setInterval(() => this.fetchLeaderboard(), 15000);
     }
-}" class="my-6 rounded-2xl bg-white dark:bg-[#160b2e] border-2 border-purple-200 dark:border-purple-800/80 p-5 sm:p-7 shadow-xs text-slate-800 dark:text-slate-100 space-y-6">
+}" class="my-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs text-slate-800 dark:text-slate-100 space-y-6">
 
     <!-- Top Event Header & Live Countdown Badge -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-purple-900/50 pb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800 pb-5">
         <div>
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2"
                  :class="data.is_active ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60' : (data.has_ended ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60')">
@@ -86,25 +86,25 @@
 
     <!-- Stats Snapshot (3 clean metrics) -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 flex items-center justify-between">
-            <span class="text-xs text-slate-600 dark:text-purple-200 font-bold">Hoofdprijs</span>
+        <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
+            <span class="text-xs text-slate-600 dark:text-slate-300 font-bold">Hoofdprijs</span>
             <span class="text-sm font-black text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                 <i class="fa-solid fa-star text-amber-500"></i> 750 Sterren
             </span>
         </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 flex items-center justify-between">
-            <span class="text-xs text-slate-600 dark:text-purple-200 font-bold">Actieve Deelnemers</span>
+        <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
+            <span class="text-xs text-slate-600 dark:text-slate-300 font-bold">Actieve Deelnemers</span>
             <span class="text-sm font-black text-slate-900 dark:text-white" x-text="data.total_participants + ' Patiënten'"></span>
         </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 flex items-center justify-between">
-            <span class="text-xs text-slate-600 dark:text-purple-200 font-bold">Totaal Binnengehaald</span>
+        <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
+            <span class="text-xs text-slate-600 dark:text-slate-300 font-bold">Totaal Binnengehaald</span>
             <span class="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono" x-text="data.total_cash_generated_formatted"></span>
         </div>
     </div>
 
     <!-- My Position Banner (Personalized for logged-in player) -->
     <template x-if="data.my_rank">
-        <div class="p-4 rounded-xl bg-purple-50/80 dark:bg-purple-950/60 border-2 border-purple-200 dark:border-purple-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <div class="p-4 rounded-xl bg-purple-50/90 dark:bg-purple-950/50 border border-purple-200/80 dark:border-purple-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl overflow-hidden border border-purple-300 dark:border-purple-700 shrink-0">
                     <img :src="data.my_rank.avatar_url" class="w-full h-full object-cover">
@@ -145,7 +145,7 @@
         </div>
 
         <!-- Empty State -->
-        <div x-show="!loading && data.leaderboard.length === 0" class="py-8 px-4 text-center rounded-xl bg-slate-50 dark:bg-purple-950/30 border border-slate-200 dark:border-purple-800/40 text-xs text-slate-600 dark:text-purple-200 space-y-1">
+        <div x-show="!loading && data.leaderboard.length === 0" class="py-8 px-4 text-center rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-600 dark:text-slate-300 space-y-1">
             <i class="fa-solid fa-coins text-2xl text-amber-500 mb-1"></i>
             <p class="font-extrabold text-sm text-slate-900 dark:text-white">Nog geen verdiensten geregistreerd sinds 16:30!</p>
             <p class="text-slate-500 dark:text-slate-400 max-w-md mx-auto">Ga direct aan de slag met zakkenrollen, vechten op de luchtplaats, dagbesteding of klusjes om als eerste bovenaan te staan!</p>
@@ -155,7 +155,7 @@
         <div x-show="data.leaderboard.length > 0" class="space-y-1.5">
             <template x-for="player in data.leaderboard" :key="player.character_id">
                 <div class="p-3 sm:p-3.5 rounded-xl border transition-all flex items-center justify-between gap-3"
-                     :class="player.rank === 1 ? 'bg-amber-50/90 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/60 shadow-xs ring-1 ring-amber-300/60' : (player.rank === 2 ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700' : (player.rank === 3 ? 'bg-orange-50/60 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800/40' : 'bg-white dark:bg-slate-900/60 border-slate-200/80 dark:border-purple-900/40 hover:bg-slate-50 dark:hover:bg-purple-950/30'))">
+                     :class="player.rank === 1 ? 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 shadow-xs ring-1 ring-amber-300/60' : (player.rank === 2 ? 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70' : (player.rank === 3 ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40' : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/60 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'))">
                     
                     <div class="flex items-center gap-3 min-w-0">
                         <!-- Rank Badge -->
@@ -193,7 +193,7 @@
     </div>
 
     <!-- Live Event Footnote / Anti-Cheat Note -->
-    <div class="pt-4 border-t border-slate-100 dark:border-purple-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-purple-300/70">
+    <div class="pt-4 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-purple-300/70">
         <span class="flex items-center gap-1.5">
             <i class="fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400"></i>
             <span>Anti-Cheat Actief - Bankopnames en onderlinge spelertransfers zijn uitgesloten van deze telling.</span>

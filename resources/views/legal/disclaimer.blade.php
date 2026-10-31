@@ -6,26 +6,26 @@
 <div class="max-w-4xl mx-auto space-y-6">
 
     <!-- Header Card -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
-        <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-2">
-            <i class="fa-solid fa-circle-exclamation text-purple-600"></i> Fictief Rollenspel Verklaring
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70 mb-2">
+            <i class="fa-solid fa-circle-exclamation text-purple-600 dark:text-purple-400"></i> Fictief Rollenspel Verklaring
         </div>
-        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Disclaimer & Colofon</h1>
-        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Disclaimer & Colofon</h1>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Belangrijke informatie over het fictieve en satirische karakter van dit browsergame.
         </p>
     </div>
 
     <!-- Main Content Body -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-8 text-sm text-slate-700 leading-relaxed">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
 
         <!-- Disclaimer Fictief -->
         <section class="space-y-3">
-            <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-start gap-3">
-                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg mt-0.5 shrink-0"></i>
+            <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-950 dark:text-amber-200 flex items-start gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400 text-lg mt-0.5 shrink-0"></i>
                 <div class="space-y-1 text-xs">
-                    <strong class="font-black uppercase tracking-wider text-amber-900">Belangrijke Mededeling</strong>
-                    <p class="text-amber-800 leading-relaxed">
+                    <strong class="font-black uppercase tracking-wider text-amber-900 dark:text-amber-300">Belangrijke Mededeling</strong>
+                    <p class="text-amber-800 dark:text-amber-200/90 leading-relaxed">
                         <strong>TBS Kliniek is een 100% fictief online browsergame (RPG / satire)</strong>. Alle situaties, karakters, misdrijven, instellingen, namen van behandelaars en gebeurtenissen in dit spel zijn verzonnen en uitsluitend bedoeld voor recreatieve en amusementsdoeleinden.
                     </p>
                 </div>
@@ -34,7 +34,7 @@
             <p>
                 Dit platform is op geen enkele wijze gelieerd aan, gesponsord door, of verbonden met
             </p>
-            <ul class="list-disc pl-5 space-y-1 text-slate-600">
+            <ul class="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-400">
                 <li>Het Nederlandse Ministerie van Justitie en Veiligheid</li>
                 <li>De Dienst Justitiële Inrichtingen (DJI)</li>
                 <li>Bestaande Forensische Psychiatrische Centra (FPC's) of klinieken in Nederland of het buitenland</li>
@@ -47,11 +47,11 @@
 
         <!-- Colofon -->
         <section class="space-y-2">
-            <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">2</span>
+            <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-bold">2</span>
                 Colofon & Contact
             </h2>
-            <div class="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl space-y-2 text-xs">
+            <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl space-y-2 text-xs text-slate-700 dark:text-slate-300">
                 <p><strong>Website</strong> tbs-kliniek.nl</p>
                 <p><strong>Status</strong> Particulier hobbymatig & non-profit project (géén onderneming, geen commerciële verkoop)</p>
                 <p><strong>Beheer / Portfolio</strong> <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-600 dark:text-purple-400 font-bold underline">werkenmetdaniel.nl</a></p>
@@ -69,8 +69,8 @@
 
         <!-- Auteursrecht -->
         <section class="space-y-2">
-            <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">3</span>
+            <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-bold">3</span>
                 Auteursrecht & Intellectueel Eigendom
             </h2>
             <p>

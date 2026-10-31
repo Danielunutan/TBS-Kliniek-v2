@@ -247,7 +247,7 @@
                 </div>
 
                 <!-- 1 Week VIP voor 500 Sterren In-Game Deal -->
-                <div class="rounded-3xl p-6 bg-gradient-to-br from-[#1f0d3d] via-[#15092b] to-[#110726] border-2 border-amber-400/60 shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
+                <div class="rounded-2xl p-6 bg-slate-900 border-2 border-amber-400/60 shadow-xs flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
                     <div class="flex items-center gap-4">
                         <div class="w-14 h-14 rounded-2xl bg-amber-400 text-purple-950 flex items-center justify-center text-2xl font-black shrink-0 shadow-md">
                             ⭐
@@ -267,7 +267,7 @@
                         <input type="hidden" name="item_type" value="vip_week">
                         <button type="submit" 
                                 {{ ($character->stars ?? 0) < 500 ? 'disabled' : '' }}
-                                class="w-full md:w-auto px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ ($character->stars ?? 0) >= 500 ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-purple-950 shadow-lg cursor-pointer transform hover:-translate-y-0.5' : 'bg-slate-800 text-slate-400 cursor-not-allowed' }}">
+                                class="w-full md:w-auto px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 {{ ($character->stars ?? 0) >= 500 ? 'btn-star-gold cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                             <i class="fa-solid fa-crown"></i>
                             <span>Activeer 1 Week VIP (500 ⭐)</span>
                         </button>
@@ -278,7 +278,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     
                     <!-- Tier 1: TBS V.I.P. Lid (€6/mnd) -->
-                    <div class="rounded-2xl overflow-hidden bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 shadow-lg flex flex-col justify-between group hover:border-purple-500 transition">
+                    <div class="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
                         <div>
                             <div class="relative h-44 overflow-hidden bg-purple-950">
                                 <img src="/images/tiers/tier1_vip.jpg" alt="TBS V.I.P. Lid" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -311,14 +311,14 @@
                         </div>
                         <div class="p-5 pt-0">
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS V.I.P. Lid (€6/mnd)')"
-                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
+                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Word V.I.P. Lid (€6/mnd)
                             </button>
                         </div>
                     </div>
 
                     <!-- Tier 2: TBS Gangster Elite (€14/mnd) -->
-                    <div class="rounded-2xl overflow-hidden bg-white dark:bg-[#110726] border-2 border-purple-500 dark:border-purple-500 shadow-xl flex flex-col justify-between group relative">
+                    <div class="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border-2 border-purple-500 dark:border-purple-500 shadow-md flex flex-col justify-between group relative">
                         <div class="absolute -top-3 right-4 z-10 bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 font-black text-[10px] uppercase px-3 py-0.5 rounded-full shadow-md">
                             Populair
                         </div>
@@ -353,14 +353,14 @@
                         </div>
                         <div class="p-5 pt-0">
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS Gangster Elite (€14/mnd)')"
-                               class="w-full block text-center py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
+                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Kies Gangster Elite (€14/mnd)
                             </button>
                         </div>
                     </div>
 
                     <!-- Tier 3: TBS Kliniek Baas (€24/mnd) -->
-                    <div class="rounded-2xl overflow-hidden bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 shadow-lg flex flex-col justify-between group hover:border-purple-500 transition">
+                    <div class="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
                         <div>
                             <div class="relative h-44 overflow-hidden bg-purple-950">
                                 <img src="/images/tiers/tier3_baas.jpg" alt="TBS Kliniek Baas" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -392,14 +392,14 @@
                         </div>
                         <div class="p-5 pt-0">
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS Kliniek Baas (€24/mnd)')"
-                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
+                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Word Kliniek Baas (€24/mnd)
                             </button>
                         </div>
                     </div>
 
                     <!-- Tier 4: VIP LIFETIME (€125 eenmalig) -->
-                    <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 via-purple-50/60 to-amber-50/40 dark:from-[#211105] dark:via-[#190a36] dark:to-[#0f0521] border-2 border-amber-400/80 dark:border-amber-500/60 shadow-xl flex flex-col justify-between group">
+                    <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50/60 via-purple-50/40 to-amber-50/30 dark:from-slate-900 dark:via-purple-950/30 dark:to-slate-900 border-2 border-amber-400/80 dark:border-amber-500/60 shadow-md flex flex-col justify-between group">
                         <div>
                             <div class="p-6 pb-4 border-b border-amber-400/20">
                                 <div class="flex items-center justify-between">
@@ -429,7 +429,7 @@
                         </div>
                         <div class="p-6 pt-0">
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'VIP LIFETIME (€125 eenmalig)')"
-                               class="btn-star-gold w-full block text-center py-3.5 rounded-xl text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg cursor-pointer">
+                               class="btn-star-gold w-full block text-center py-3.5 rounded-xl text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Neem Lifetime VIP (€125)
                             </button>
                         </div>
@@ -440,9 +440,9 @@
 
             <!-- TAB 2: BAKKIE KOFFIE (DONATIES) -->
             <div x-show="activeTab === 'koffie'" class="space-y-6">
-                <div class="bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-                    <div class="border-b border-slate-100 dark:border-purple-900/60 pb-5">
-                        <div class="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 text-xs font-black px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800/60 mb-2">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-5">
+                        <div class="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 text-xs font-black px-3 py-1 rounded-full border border-amber-200/80 dark:border-amber-800/70 mb-2">
                             <i class="fa-solid fa-mug-hot text-amber-500"></i>
                             <span>Vrijwillige Donaties & Server Support</span>
                         </div>
@@ -455,7 +455,7 @@
                     <!-- Coffee Reward Options Grid -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <!-- 1 Coffee -->
-                        <div class="p-5 rounded-2xl bg-purple-50/50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 text-center space-y-3 flex flex-col justify-between">
+                        <div class="p-5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-3 flex flex-col justify-between">
                             <div class="space-y-2">
                                 <div class="text-3xl">☕</div>
                                 <h3 class="font-black text-base text-slate-900 dark:text-white">1x Bakkie Koffie</h3>
@@ -468,13 +468,13 @@
                                 </ul>
                             </div>
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '1x Bakkie Koffie (€3)')"
-                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer">
+                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Doneer 1 Koffie (€3)
                             </button>
                         </div>
 
                         <!-- 3 Coffees -->
-                        <div class="p-5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/30 border-2 border-amber-400 dark:border-amber-500/60 text-center space-y-3 flex flex-col justify-between relative shadow-md">
+                        <div class="p-5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border-2 border-amber-400 dark:border-amber-500/60 text-center space-y-3 flex flex-col justify-between relative shadow-xs">
                             <div class="absolute -top-3 right-4 bg-amber-500 text-purple-950 font-black text-[9px] uppercase px-2.5 py-0.5 rounded-full">
                                 Populairste Koffie
                             </div>
@@ -490,13 +490,13 @@
                                 </ul>
                             </div>
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '3x Bakkie Koffie (€9)')"
-                               class="btn-star-gold block w-full py-2.5 rounded-xl text-slate-900 dark:text-white font-black text-xs shadow-xs transition cursor-pointer">
+                               class="btn-star-gold block w-full py-2.5 rounded-xl text-slate-900 dark:text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Doneer 3 Koffies (€9)
                             </button>
                         </div>
 
                         <!-- 5 Coffees -->
-                        <div class="p-5 rounded-2xl bg-purple-50/50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 text-center space-y-3 flex flex-col justify-between">
+                        <div class="p-5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-3 flex flex-col justify-between">
                             <div class="space-y-2">
                                 <div class="text-3xl">☕☕☕☕☕</div>
                                 <h3 class="font-black text-base text-slate-900 dark:text-white">5x Bakkie Koffie</h3>
@@ -509,14 +509,14 @@
                                 </ul>
                             </div>
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '5x Bakkie Koffie (€15)')"
-                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer">
+                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Doneer 5 Koffies (€15)
                             </button>
                         </div>
                     </div>
 
                     <!-- Identifier Reminder Box -->
-                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800/60 flex items-center justify-between gap-4">
+                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400 text-lg shrink-0"></i>
                             <div class="text-xs text-slate-600 dark:text-slate-300">
@@ -524,7 +524,7 @@
                             </div>
                         </div>
                         <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', 'Bakkie Koffie Donatie')"
-                           class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs shrink-0 transition cursor-pointer">
+                           class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs shrink-0 transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
                             Naar Buy Me a Coffee
                         </button>
                     </div>
@@ -533,9 +533,9 @@
 
             <!-- TAB 3: VIP STYLING (NAAMKLEUR, KLEUROVERLOOP & GLOW) -->
             <div x-show="activeTab === 'styling'" class="space-y-6">
-                <div class="bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-                    <div class="border-b border-slate-100 dark:border-purple-900/60 pb-5">
-                        <div class="inline-flex items-center gap-2 bg-pink-50 dark:bg-pink-950/60 text-pink-800 dark:text-pink-200 text-xs font-black px-3 py-1 rounded-full border border-pink-200 dark:border-pink-800/60 mb-2">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-5">
+                        <div class="inline-flex items-center gap-2 bg-pink-50 dark:bg-pink-950/60 text-pink-800 dark:text-pink-200 text-xs font-black px-3 py-1 rounded-full border border-pink-200/80 dark:border-pink-800/70 mb-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-pink-500"></i>
                             <span>V.I.P. Karakter Personalisatie</span>
                         </div>
@@ -546,7 +546,7 @@
                     </div>
 
                     <!-- Live Name Preview Box -->
-                    <div class="p-6 sm:p-8 rounded-2xl border-2 border-purple-500/60 shadow-2xl text-center space-y-2 relative overflow-hidden" 
+                    <div class="p-6 sm:p-8 rounded-xl border-2 border-purple-500/60 shadow-xs text-center space-y-2 relative overflow-hidden" 
                          style="background-color: #0f0728; background-image: radial-gradient(circle at 50% 50%, #250b4a 0%, #0c0418 100%);">
                         <div class="text-[10px] uppercase tracking-widest font-black text-purple-300">Live Voorbeeld van Jouw Naam & Badge</div>
                         <div class="py-2 flex items-center justify-center gap-2.5 flex-wrap">
@@ -583,7 +583,7 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     @foreach($vipGradientCatalog as $gKey => $grad)
                                         <label class="p-3 rounded-xl border-2 cursor-pointer flex items-center justify-between gap-2.5 transition"
-                                               :class="selectedGradient === '{{ $gKey }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-sm' : 'border-slate-200 dark:border-purple-900/60 hover:bg-slate-50 dark:hover:bg-purple-950/30'">
+                                               :class="selectedGradient === '{{ $gKey }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-xs' : 'border-slate-200/80 dark:border-slate-700/70 hover:bg-slate-50/80 dark:hover:bg-slate-800/60'">
                                             <input type="radio" name="custom_name_gradient" value="{{ $gKey }}" x-model="selectedGradient" class="sr-only">
                                             <div class="flex items-center gap-2.5 min-w-0">
                                                 @if($gKey === 'none')
@@ -605,7 +605,7 @@
                             </div>
 
                             <!-- 2. Effen Kleur (Tier 2+) -->
-                            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-purple-900/60">
+                            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                                 <div class="flex items-center justify-between">
                                     <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
                                         2. Kies Jouw Exclusieve Effen Naamkleur
@@ -617,7 +617,7 @@
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     @foreach($vipColorCatalog as $hex => $color)
                                         <label class="p-3 rounded-xl border-2 cursor-pointer flex items-center gap-2.5 transition"
-                                               :class="selectedColor === '{{ $hex }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-sm' : 'border-slate-200 dark:border-purple-900/60 hover:bg-slate-50 dark:hover:bg-purple-950/30'">
+                                               :class="selectedColor === '{{ $hex }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-xs' : 'border-slate-200/80 dark:border-slate-700/70 hover:bg-slate-50/80 dark:hover:bg-slate-800/60'">
                                             <input type="radio" name="custom_name_color" value="{{ $hex }}" x-model="selectedColor" class="sr-only">
                                             <span class="w-4 h-4 rounded-full {{ $color['class'] }} ring-1 ring-black/20 shrink-0"></span>
                                             <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 truncate">{{ $color['name'] }}</span>
@@ -627,14 +627,14 @@
                             </div>
 
                             <!-- 3. Naam Glow & Lichteffect -->
-                            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-purple-900/60">
+                            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                                 <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
                                     3. Kies Naam Glow & Lichteffect
                                 </label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     @foreach($vipGlowCatalog as $glowKey => $glowInfo)
                                         <label class="p-3 rounded-xl border-2 cursor-pointer flex items-center justify-between gap-2.5 transition"
-                                               :class="selectedGlow === '{{ $glowKey }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-sm' : 'border-slate-200 dark:border-purple-900/60 hover:bg-slate-50 dark:hover:bg-purple-950/30'">
+                                               :class="selectedGlow === '{{ $glowKey }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-xs' : 'border-slate-200/80 dark:border-slate-700/70 hover:bg-slate-50/80 dark:hover:bg-slate-800/60'">
                                             <input type="radio" name="custom_name_glow" value="{{ $glowKey }}" x-model="selectedGlow" class="sr-only">
                                             <div class="min-w-0">
                                                 <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">{{ $glowInfo['name'] }}</span>
@@ -647,12 +647,12 @@
                             </div>
 
                             <!-- 4. Sparkle Toggle (Tier 3+) -->
-                            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-purple-900/60">
+                            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                                 <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
                                     4. Glitter Sparkle Shimmer Effect
                                 </label>
                                 @if($character->canUseSparkleEffect())
-                                    <div class="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 flex items-center justify-between gap-4">
+                                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-4">
                                         <div class="space-y-1">
                                             <div class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                                                 <i class="fa-solid fa-sparkles text-pink-500"></i>
@@ -668,7 +668,7 @@
                                         </label>
                                     </div>
                                 @else
-                                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-purple-950/20 border border-slate-200 dark:border-purple-900/40 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3">
+                                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3">
                                         <i class="fa-solid fa-lock text-amber-500 text-base shrink-0"></i>
                                         <span>Glitter Sparkle is exclusief beschikbaar voor <strong>Tier 3 (TBS Kliniek Baas)</strong> en <strong>VIP LIFETIME</strong> donateurs.</span>
                                     </div>
@@ -676,12 +676,12 @@
                             </div>
 
                             <button type="submit" 
-                                    class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
+                                    class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Instellingen Opslaan
                             </button>
                         </form>
                     @else
-                        <div class="p-6 rounded-2xl bg-slate-50 dark:bg-purple-950/30 border border-slate-200 dark:border-purple-900/60 text-center space-y-3">
+                        <div class="p-6 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-3">
                             <div class="w-12 h-12 mx-auto rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xl">
                                 <i class="fa-solid fa-lock"></i>
                             </div>
@@ -690,7 +690,7 @@
                                 Je hebt minimaal een <strong>Tier 2 (Gangster Elite)</strong> of hoger VIP lidmaatschap nodig om je naamkleur aan te passen.
                             </p>
                             <button type="button" @click="setTab('pakketten')" 
-                                    class="px-5 py-2.5 rounded-xl bg-purple-600 text-white font-extrabold text-xs shadow-xs hover:bg-purple-700 transition">
+                                    class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                 Bekijk VIP Pakketten
                             </button>
                         </div>
@@ -700,10 +700,10 @@
 
             <!-- TAB 4: VIP PUNTEN INWISSELEN -->
             <div x-show="activeTab === 'uitgeven'" class="space-y-6">
-                <div class="bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-                    <div class="border-b border-slate-100 dark:border-purple-900/60 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                            <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-200 text-xs font-black px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/60 mb-2">
+                            <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-200 text-xs font-black px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70 mb-2">
                                 <i class="fa-solid fa-gift text-purple-500"></i>
                                 <span>Verdiend met Actief Spelen</span>
                             </div>
@@ -783,7 +783,7 @@
                                     ? (($character->stars ?? 0) >= $opt['cost']) 
                                     : (($character->vip_points ?? 0) >= $opt['cost']);
                             @endphp
-                            <div class="p-5 rounded-2xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/60 flex flex-col justify-between gap-4">
+                            <div class="p-5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col justify-between gap-4">
                                 <div class="flex items-start gap-3.5">
                                     <div class="w-10 h-10 rounded-xl {{ $opt['iconColor'] }} flex items-center justify-center text-lg shrink-0">
                                         <i class="fa-solid {{ $opt['icon'] }}"></i>
@@ -807,7 +807,7 @@
                                                         }
                                                     }"
                                                     data-testid="vip-cash-protection-countdown"
-                                                    class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5">
+                                                    class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center gap-1.5">
                                                     <i class="fa-solid fa-clock animate-pulse"></i>
                                                     <span>Actief:</span>
                                                     <span class="font-mono tabular-nums" x-text="format(left)">{{ gmdate('H:i:s', $character->getCashProtectionRemainingSeconds()) }}</span>
@@ -818,7 +818,7 @@
                                         <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{{ $opt['desc'] }}</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-purple-900/60">
+                                <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800">
                                     <span class="text-xs font-black {{ $isStars ? 'text-amber-500' : 'text-amber-600 dark:text-amber-400' }} flex items-center gap-1 font-mono">
                                         <span>{{ $opt['cost'] }} {{ $isStars ? 'Sterren ⭐' : 'VIP Punten' }}</span>
                                     </span>
@@ -827,7 +827,7 @@
                                         <input type="hidden" name="reward_type" value="{{ $opt['type'] }}">
                                         <button type="submit" 
                                                 {{ ! $canAfford ? 'disabled' : '' }}
-                                                class="px-4 py-1.5 rounded-lg text-xs font-black transition {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-xs cursor-pointer' : 'bg-slate-200 dark:bg-purple-950/80 text-slate-400 cursor-not-allowed' }}">
+                                                class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white shadow-xs cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                             {{ ($opt['type'] === 'cash_protection' && $character->hasCashProtection()) ? 'Verlengen (+24u)' : 'Inwisselen' }}
                                         </button>
                                     </form>
@@ -846,10 +846,10 @@
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="showDonateModal = false"></div>
 
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-3xl bg-white dark:bg-[#110726] border-2 border-purple-500 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg p-6 sm:p-8 space-y-6">
+            <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg p-6 sm:p-8 space-y-6">
                 
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-purple-900/60 pb-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-amber-400 text-purple-950 flex items-center justify-center text-lg font-black shrink-0 shadow-sm">
                             ☕
@@ -865,7 +865,7 @@
                 </div>
 
                 <!-- STAP 1: KOPPELING / NOTITIE -->
-                <div class="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-500/60 space-y-3">
+                <div class="p-5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400 text-purple-950 text-[10px] font-black uppercase tracking-wider">
                             Stap 1 • Essentieel
@@ -881,7 +881,7 @@
                             {{ $character->name }}
                         </div>
                         <button type="button" @click="copyName()" 
-                                class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-purple-950 font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0">
+                                class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-purple-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0">
                             <i class="fa-solid" :class="copiedName ? 'fa-check text-emerald-800' : 'fa-copy'"></i>
                             <span x-text="copiedName ? 'Gekopieerd!' : 'Kopieer'"></span>
                         </button>
@@ -898,7 +898,7 @@
                     </div>
                     <a :href="donateUrl" target="_blank" rel="noopener noreferrer"
                        @click="showDonateModal = false"
-                       class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-500 hover:to-indigo-600 text-white font-black text-sm text-center flex items-center justify-center gap-2 shadow-lg transition transform hover:-translate-y-0.5 cursor-pointer">
+                       class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-sm text-center flex items-center justify-center gap-2 shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                         <span>Ga Verder naar Buy Me a Coffee</span>
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </a>

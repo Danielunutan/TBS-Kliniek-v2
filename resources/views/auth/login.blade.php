@@ -12,7 +12,7 @@
 }">
 
     <!-- MAIN LOGIN / REGISTER CARD (EXPANSIVE CLEAN SHOWCASE) -->
-    <div id="auth-form-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+    <div id="auth-form-card" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
         
         <!-- LEFT HERO COLUMN (WIDE CLEAN TBS KLINIEK ARTWORK & CHARACTERS) -->
         <div class="lg:col-span-7 xl:col-span-7 bg-slate-950 text-white relative p-6 sm:p-8 flex flex-col justify-between overflow-hidden shadow-inner min-h-[500px] lg:min-h-[620px]">
@@ -39,8 +39,8 @@
             </div>
         </div>
 
-        <!-- RIGHT FORM COLUMN (CLEAN WHITE TO MATCH THE WEBSITE) -->
-        <div class="lg:col-span-5 xl:col-span-5 p-6 sm:p-10 flex flex-col justify-center bg-white">
+        <!-- RIGHT FORM COLUMN (CLEAN WHITE / DARK SLATE SURFACE) -->
+        <div class="lg:col-span-5 xl:col-span-5 p-6 sm:p-10 flex flex-col justify-center bg-white dark:bg-slate-900">
             <div class="w-full max-w-md mx-auto space-y-5">
                 
                 <!-- Header -->
@@ -48,8 +48,8 @@
                     <div class="lg:hidden flex justify-center mb-3">
                         <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-14 h-14 object-contain drop-shadow-md">
                     </div>
-                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Welkom bij de Kliniek</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Meld je aan voor je dossier of start direct.</p>
+                    <h2 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Welkom bij de Kliniek</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Meld je aan voor je dossier of start direct.</p>
                 </div>
 
                 <!-- SOCIAL AUTH (DISCORD 1-KLIK) -->
@@ -63,22 +63,22 @@
 
                 <!-- CLEAN DIVIDER -->
                 <div class="relative flex items-center justify-center">
-                    <div class="border-t border-slate-200 w-full"></div>
-                    <span class="bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
+                    <div class="border-t border-slate-200/80 dark:border-slate-800 w-full"></div>
+                    <span class="bg-white dark:bg-slate-900 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 shrink-0">
                         of met e-mail
                     </span>
-                    <div class="border-t border-slate-200 w-full"></div>
+                    <div class="border-t border-slate-200/80 dark:border-slate-800 w-full"></div>
                 </div>
 
                 <!-- MODERN PILL TAB SWITCHER (MATCHES SITE TABS) -->
-                <div class="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl flex gap-1">
+                <div class="bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl flex gap-1 border border-slate-200/80 dark:border-slate-700/70">
                     <button type="button" @click="tab = 'login'"
-                            :class="tab === 'login' ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white font-extrabold shadow-2xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
+                            :class="tab === 'login' ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
                             class="flex-1 py-2 text-xs rounded-lg transition text-center cursor-pointer">
                         Inloggen
                     </button>
                     <button type="button" @click="tab = 'register'"
-                            :class="tab === 'register' ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white font-extrabold shadow-2xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
+                            :class="tab === 'register' ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
                             class="flex-1 py-2 text-xs rounded-lg transition text-center cursor-pointer">
                         Registreren
                     </button>
@@ -91,38 +91,38 @@
 
                         <!-- Email Input -->
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                                 <i class="fa-solid fa-envelope text-xs"></i>
                             </span>
                             <input type="email" name="email" value="{{ old('email') }}" required
                                    placeholder="E-mailadres / Dossiernummer"
-                                   class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                                   class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         </div>
 
                         <!-- Password Input with Eye Toggle -->
                         <div class="relative" x-data="{ showPass: false }">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                                 <i class="fa-solid fa-lock text-xs"></i>
                             </span>
                             <input :type="showPass ? 'text' : 'password'" name="password" required
                                    placeholder="Wachtwoord"
-                                   class="w-full pl-9 pr-10 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
-                            <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition">
+                                   class="w-full pl-9 pr-10 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                            <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer">
                                 <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
                         </div>
 
                         <!-- Options -->
-                        <div class="flex items-center justify-between text-xs text-slate-500 pt-0.5">
-                            <label class="flex items-center gap-2 cursor-pointer font-medium hover:text-slate-700">
-                                <input type="checkbox" name="remember" checked class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-0.5">
+                            <label class="flex items-center gap-2 cursor-pointer font-medium hover:text-slate-700 dark:hover:text-slate-300">
+                                <input type="checkbox" name="remember" checked class="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-purple-600 focus:ring-purple-500">
                                 <span>Sessie onthouden</span>
                             </label>
                             <a href="{{ route('password.request') }}" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold transition">Wachtwoord kwijt?</a>
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-md transition active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-right-to-bracket text-xs"></i>
                             <span>Inloggen op Dossier</span>
                         </button>
@@ -133,12 +133,12 @@
                 <div x-show="tab === 'register'" x-cloak class="space-y-4">
                     
                     @if($errors->any() && (old('username') || old('terms')))
-                    <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs space-y-1">
+                    <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-xs space-y-1">
                         <div class="font-bold flex items-center gap-1.5">
                             <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
                             <span>Inschrijving niet gelukt:</span>
                         </div>
-                        <ul class="list-disc list-inside space-y-0.5 text-[11px] text-rose-600">
+                        <ul class="list-disc list-inside space-y-0.5 text-[11px] text-rose-600 dark:text-rose-400">
                             @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -166,13 +166,13 @@
                             </div>
                         </div>
                         @else
-                        <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs flex items-center gap-2.5 shadow-2xs">
+                        <div class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-900 dark:text-purple-200 text-xs flex items-center gap-2.5 shadow-2xs">
                             <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center text-sm shrink-0">
                                 <i class="fa-solid fa-gift"></i>
                             </div>
                             <div class="min-w-0">
                                 <span class="font-extrabold block truncate">Uitgenodigd door: {{ $activeRef }}</span>
-                                <span class="text-[11px] text-purple-700">Meld je aan en begin direct samen in de TBS Kliniek!</span>
+                                <span class="text-[11px] text-purple-700 dark:text-purple-300">Meld je aan en begin direct samen in de TBS Kliniek!</span>
                             </div>
                         </div>
                         @endif
@@ -182,67 +182,67 @@
                         <div class="space-y-2.5">
                             <!-- Gebruikersnaam / Alias -->
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                                     <i class="fa-solid fa-user-ninja text-xs"></i>
                                 </span>
                                 <input type="text" name="username" value="{{ old('username') }}" placeholder="Gebruikersnaam / Kliniek Alias" required minlength="3" maxlength="25"
-                                       class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                                       class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             </div>
 
                             <!-- Email -->
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                                     <i class="fa-solid fa-envelope text-xs"></i>
                                 </span>
                                 <input type="email" name="email" value="{{ old('email') }}" placeholder="E-mailadres" required
-                                       class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                                       class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             </div>
 
                             <!-- Wachtwoord & Bevestigen (Strak naast elkaar of compact onder elkaar) -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" x-data="{ showRegPass: false }">
                                 <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                                         <i class="fa-solid fa-lock text-xs"></i>
                                     </span>
                                     <input :type="showRegPass ? 'text' : 'password'" name="password" placeholder="Wachtwoord (min. 6)" required
-                                           class="w-full pl-9 pr-8 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
-                                    <button type="button" @click="showRegPass = !showRegPass" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 transition">
+                                           class="w-full pl-9 pr-8 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                                    <button type="button" @click="showRegPass = !showRegPass" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer">
                                         <i class="fa-solid text-[11px]" :class="showRegPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                                     </button>
                                 </div>
                                 <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                                         <i class="fa-solid fa-shield-halved text-xs"></i>
                                     </span>
                                     <input :type="showRegPass ? 'text' : 'password'" name="password_confirmation" placeholder="Herhaal Wachtwoord" required
-                                           class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                                           class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                                 </div>
                             </div>
                         </div>
 
                         <!-- 2. KARAKTER ONBOARDING (GESLACHT & AVATAR KIEZEN) -->
-                        <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 space-y-3">
+                        <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3.5 space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-id-card text-indigo-600"></i>
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-id-card text-purple-600 dark:text-purple-400"></i>
                                     <span>Patiëntenpas Onboarding</span>
                                 </span>
-                                <span class="text-[10px] text-slate-400 font-bold uppercase">Stap 1 van 1</span>
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">Stap 1 van 1</span>
                             </div>
 
                             <!-- Geslacht Keuze -->
                             <div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <button type="button" @click="regGender = 'male'; if(!regAvatar.includes('male')) regAvatar = 'assets/characters/avatar_male_1.jpg'"
-                                            :class="regGender === 'male' ? 'bg-white border-purple-600 text-purple-950 font-extrabold shadow-xs ring-1 ring-purple-600/20' : 'bg-slate-100/70 border-slate-200 text-slate-500 font-bold hover:bg-white'"
+                                            :class="regGender === 'male' ? 'bg-white dark:bg-purple-600 border-purple-600 text-purple-950 dark:text-white font-extrabold shadow-xs ring-1 ring-purple-600/20' : 'bg-slate-100/70 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:bg-white dark:hover:bg-slate-700'"
                                             class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs transition cursor-pointer">
-                                        <i class="fa-solid fa-mars text-purple-600 text-sm"></i>
+                                        <i class="fa-solid fa-mars text-purple-600 dark:text-purple-400 text-sm"></i>
                                         <span>Man</span>
                                     </button>
                                     <button type="button" @click="regGender = 'female'; if(!regAvatar.includes('female')) regAvatar = 'assets/characters/avatar_female_1.jpg'"
-                                            :class="regGender === 'female' ? 'bg-white border-purple-600 text-purple-950 font-extrabold shadow-xs ring-1 ring-purple-600/20' : 'bg-slate-100/70 border-slate-200 text-slate-500 font-bold hover:bg-white'"
+                                            :class="regGender === 'female' ? 'bg-white dark:bg-purple-600 border-purple-600 text-purple-950 dark:text-white font-extrabold shadow-xs ring-1 ring-purple-600/20' : 'bg-slate-100/70 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:bg-white dark:hover:bg-slate-700'"
                                             class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs transition cursor-pointer">
-                                        <i class="fa-solid fa-venus text-purple-600 text-sm"></i>
+                                        <i class="fa-solid fa-venus text-purple-600 dark:text-purple-400 text-sm"></i>
                                         <span>Vrouw</span>
                                     </button>
                                 </div>
@@ -251,7 +251,7 @@
 
                             <!-- Avatar Gallery (6 Man, 6 Vrouw - Paarse Stijl - Zonder Namen) -->
                             <div>
-                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Kies jouw profielfoto</span>
+                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">Kies jouw profielfoto</span>
                                 
                                 <!-- Mannelijke Avatars (6) -->
                                 <div x-show="regGender === 'male'" class="grid grid-cols-6 gap-1.5 sm:gap-2">
@@ -264,7 +264,7 @@
                                         'assets/characters/avatar_male_6.jpg',
                                     ] as $avFile)
                                     <button type="button" @click="regAvatar = '{{ $avFile }}'"
-                                            :class="regAvatar === '{{ $avFile }}' ? 'border-purple-600 ring-2 ring-purple-600/30 bg-purple-50/50 shadow-xs scale-105' : 'border-slate-200 bg-white hover:border-slate-300 opacity-80 hover:opacity-100'"
+                                            :class="regAvatar === '{{ $avFile }}' ? 'border-purple-600 ring-2 ring-purple-600/30 bg-purple-50/50 dark:bg-purple-950/60 shadow-xs scale-105' : 'border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 opacity-80 hover:opacity-100'"
                                             class="relative p-1 rounded-xl border flex items-center justify-center transition cursor-pointer group aspect-square">
                                         <div class="w-full h-full rounded-lg overflow-hidden relative shadow-2xs">
                                             <img src="{{ asset($avFile) }}" alt="Profielfoto" class="w-full h-full object-cover">
@@ -289,7 +289,7 @@
                                         'assets/characters/avatar_female_6.jpg',
                                     ] as $avFile)
                                     <button type="button" @click="regAvatar = '{{ $avFile }}'"
-                                            :class="regAvatar === '{{ $avFile }}' ? 'border-purple-600 ring-2 ring-purple-600/30 bg-purple-50/50 shadow-xs scale-105' : 'border-slate-200 bg-white hover:border-slate-300 opacity-80 hover:opacity-100'"
+                                            :class="regAvatar === '{{ $avFile }}' ? 'border-purple-600 ring-2 ring-purple-600/30 bg-purple-50/50 dark:bg-purple-950/60 shadow-xs scale-105' : 'border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 opacity-80 hover:opacity-100'"
                                             class="relative p-1 rounded-xl border flex items-center justify-center transition cursor-pointer group aspect-square">
                                         <div class="w-full h-full rounded-lg overflow-hidden relative shadow-2xs">
                                             <img src="{{ asset($avFile) }}" alt="Profielfoto" class="w-full h-full object-cover">
@@ -308,16 +308,16 @@
 
                         <!-- 3. ALGEMENE VOORWAARDEN CHECKBOX -->
                         <div class="pt-0.5">
-                            <label class="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600 group select-none">
-                                <input type="checkbox" name="terms" value="1" required class="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                                <span class="leading-snug group-hover:text-slate-900 transition text-[11px] sm:text-xs">
-                                    Ik ga akkoord met de <a href="{{ route('legal.terms') }}" target="_blank" class="text-indigo-600 font-extrabold hover:underline">algemene voorwaarden</a> en het <a href="{{ route('legal.privacy') }}" target="_blank" class="text-indigo-600 font-extrabold hover:underline">privacybeleid</a>.
+                            <label class="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600 dark:text-slate-400 group select-none">
+                                <input type="checkbox" name="terms" value="1" required class="w-4 h-4 mt-0.5 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                                <span class="leading-snug group-hover:text-slate-900 dark:group-hover:text-slate-200 transition text-[11px] sm:text-xs">
+                                    Ik ga akkoord met de <a href="{{ route('legal.terms') }}" target="_blank" class="text-purple-600 dark:text-purple-400 font-extrabold hover:underline">algemene voorwaarden</a> en het <a href="{{ route('legal.privacy') }}" target="_blank" class="text-purple-600 dark:text-purple-400 font-extrabold hover:underline">privacybeleid</a>.
                                 </span>
                             </label>
                         </div>
 
                         <!-- 4. SUBMIT BUTTON -->
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-[0.99] flex items-center justify-center gap-2">
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-user-plus text-xs"></i>
                             <span>Dossier Aanmaken & Starten</span>
                         </button>
@@ -330,7 +330,7 @@
     </div>
 
     <!-- EXCLUSIVE GANG OVERSTAP BONUS BANNER (HOMEPAGE PROMOTION) -->
-    <div class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-amber-50/40 dark:from-[#180a33] dark:via-[#130b2c] dark:to-[#0f172a] bg-purple-50/60 dark:bg-[#130b2c] border-2 border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-white shadow-sm relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
+    <div class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-amber-50/40 dark:from-[#180a33] dark:via-[#130b2c] dark:to-[#0f172a] bg-purple-50/60 dark:bg-[#130b2c] border-2 border-purple-200/90 dark:border-purple-800/60 text-slate-900 dark:text-white shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
         <!-- Ambient Decorative Glows -->
         <div class="absolute -top-16 -left-16 w-44 h-44 bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute -bottom-16 -right-16 w-44 h-44 bg-amber-500/10 dark:bg-amber-600/15 rounded-full blur-2xl pointer-events-none"></div>
@@ -364,7 +364,7 @@
         </div>
 
         <div class="relative z-10 shrink-0 flex items-center gap-2.5">
-            <a href="{{ route('faq.index') }}" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-200 font-extrabold text-xs transition border border-slate-200 dark:border-purple-800/60 shadow-2xs">
+            <a href="{{ route('faq.index') }}" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition border border-slate-200/80 dark:border-slate-700 rounded-xl shadow-xs">
                 Uitleg in FAQ
             </a>
             <button type="button" @click="tab = 'register'; document.getElementById('auth-form-card').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer">
@@ -376,7 +376,7 @@
 
     <!-- 3 SUBTLE CLEAN FEATURE CARDS (MATCHES DASHBOARD / SITE CLEANLINESS) -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-        <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
             <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/40 flex items-center justify-center text-base shrink-0">
                 <i class="fa-solid fa-hand-holding-dollar"></i>
             </div>
@@ -386,7 +386,7 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
             <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/40 flex items-center justify-center text-base shrink-0">
                 <i class="fa-solid fa-hand-fist"></i>
             </div>
@@ -396,7 +396,7 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
             <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/40 flex items-center justify-center text-base shrink-0">
                 <i class="fa-solid fa-dice"></i>
             </div>

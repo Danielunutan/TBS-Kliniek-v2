@@ -600,9 +600,9 @@
         @php
             $statCatalog = \App\Models\Character::statDescriptionsCatalog();
         @endphp
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6" x-data="{ openStatInfo: null }">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6" x-data="{ openStatInfo: null }">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Statistieken &amp; Vaardigheden</h3>
+                <h3 class="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Statistieken &amp; Vaardigheden</h3>
                 <span class="text-[10px] font-bold text-slate-400">Klik op <i class="fa-solid fa-circle-info text-purple-500"></i> voor uitleg</span>
             </div>
             
@@ -623,113 +623,113 @@
                     $sDesc = $statCatalog[$sRow['key']] ?? ['short' => '', 'detail' => ''];
                     $bonus = max(0, (int) $sRow['eff'] - (int) $sRow['base']);
                 @endphp
-                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="p-2.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
                     <div class="flex justify-between items-center text-xs">
                         <button type="button"
                                 @click="openStatInfo = (openStatInfo === '{{ $sRow['key'] }}' ? null : '{{ $sRow['key'] }}')"
                                 title="{{ $sDesc['detail'] }}"
-                                class="font-bold text-slate-700 flex items-center gap-2 cursor-pointer text-left group">
+                                class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 cursor-pointer text-left group">
                             <i class="fa-solid {{ $sRow['icon'] }} w-4"></i>
                             <span>{{ $sRow['label'] }}</span>
                             <i class="fa-solid fa-circle-info text-slate-400 group-hover:text-purple-600 transition text-[11px]"></i>
                         </button>
                         <div class="flex items-center gap-1.5">
-                            <span class="font-extrabold text-slate-900">{{ $sRow['eff'] }}</span>
+                            <span class="font-extrabold text-slate-900 dark:text-white">{{ $sRow['eff'] }}</span>
                             @if($bonus > 0)
-                                <span class="text-[10px] font-bold text-emerald-600" title="Basis: {{ $sRow['base'] }} + {{ $bonus }} uitrusting">(+{{ $bonus }})</span>
+                                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400" title="Basis: {{ $sRow['base'] }} + {{ $bonus }} uitrusting">(+{{ $bonus }})</span>
                             @endif
                         </div>
                     </div>
-                    <div x-show="openStatInfo === '{{ $sRow['key'] }}'" x-cloak class="mt-2 pt-2 border-t border-slate-200/80 text-[11px] text-slate-500 leading-relaxed">
+                    <div x-show="openStatInfo === '{{ $sRow['key'] }}'" x-cloak class="mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/80 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                         {{ $sDesc['detail'] }}
                     </div>
                 </div>
                 @endforeach
 
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg border border-slate-100">
-                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
+                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
+                    <span class="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2.5">
                         <i class="fa-solid fa-bullseye text-orange-500 w-4"></i> Voltooide Missies
                     </span>
-                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->missions_completed }}</span>
+                    <span class="font-extrabold text-slate-900 dark:text-white">{{ $profileCharacter->missions_completed }}</span>
                 </div>
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg border border-slate-100">
-                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
+                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
+                    <span class="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2.5">
                         <i class="fa-solid fa-trophy text-amber-500 w-4"></i> Gevechten Gewonnen / Verloren
                     </span>
-                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->fights_won }}W / {{ $profileCharacter->fights_lost }}V</span>
+                    <span class="font-extrabold text-slate-900 dark:text-white">{{ $profileCharacter->fights_won }}W / {{ $profileCharacter->fights_lost }}V</span>
                 </div>
             </div>
         </div>
 
         <!-- Persoonlijke Bio -->
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6 flex flex-col justify-between">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Patiëntendossier & Biografie</h3>
+                    <h3 class="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Patiëntendossier & Biografie</h3>
                     @if(Auth::user()->character->id === $profileCharacter->id)
-                    <button @click="bioModalOpen = true" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">
+                    <button @click="bioModalOpen = true" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
                         <i class="fa-solid fa-pen"></i> Bewerken
                     </button>
                     @endif
                 </div>
 
-                <div class="bg-slate-50 p-5 rounded-xl border border-slate-100 text-xs text-slate-600 leading-relaxed min-h-[140px]">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-600 dark:text-slate-300 leading-relaxed min-h-[140px]">
                     @if($profileCharacter->bio)
                         {!! nl2br(e($profileCharacter->bio)) !!}
                     @else
-                        <p class="text-slate-400 italic">Deze patiënt heeft nog geen persoonlijke biografie geschreven. Klik op 'Bio Bewerken' om jouw verhaal te delen!</p>
+                        <p class="text-slate-400 dark:text-slate-500 italic">Deze patiënt heeft nog geen persoonlijke biografie geschreven. Klik op 'Bio Bewerken' om jouw verhaal te delen!</p>
                     @endif
                 </div>
             </div>
 
-            <div class="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 dark:text-slate-500 flex flex-wrap items-center justify-between gap-2">
                 <span>Geregistreerd in kliniek: {{ $profileCharacter->created_at ? \Illuminate\Support\Carbon::parse($profileCharacter->created_at)->format('d-m-Y') : now()->format('d-m-Y') }}</span>
                 <span>Status: 
                     @if($profileCharacter->isOnline())
-                        <strong class="text-emerald-600 font-extrabold inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>Nu Online</strong>
+                        <strong class="text-emerald-600 dark:text-emerald-400 font-extrabold inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>Nu Online</strong>
                     @else
-                        <span class="text-slate-500 font-medium">{{ $profileCharacter->last_active_at ? 'Laatst gezien ' . $profileCharacter->last_active_at->diffForHumans() : 'Nog niet actief geweest' }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">{{ $profileCharacter->last_active_at ? 'Laatst gezien ' . $profileCharacter->last_active_at->diffForHumans() : 'Nog niet actief geweest' }}</span>
                     @endif
                 </span>
             </div>
         </div>
 
         <!-- Vrienden Preview Card in Overview -->
-        <div class="md:col-span-2 bg-white rounded-xl shadow-xs border border-slate-200/80 p-6">
-            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+        <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-black">
+                    <span class="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-black">
                         <i class="fa-solid fa-user-group"></i>
                     </span>
-                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Vrienden & Medepatiënten ({{ $friendsCount }})</h3>
+                    <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Vrienden & Medepatiënten ({{ $friendsCount }})</h3>
                 </div>
-                <button type="button" @click="setActiveTab('vrienden')" class="text-xs font-extrabold text-purple-600 hover:text-purple-800 transition flex items-center gap-1 cursor-pointer">
+                <button type="button" @click="setActiveTab('vrienden')" class="text-xs font-extrabold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition flex items-center gap-1 cursor-pointer">
                     <span>Bekijk Alle ({{ $friendsCount }})</span>
                     <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </button>
             </div>
 
             @if($friends->isEmpty())
-            <div class="p-6 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-slate-100">
+            <div class="p-6 text-center text-xs text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
                 Nog geen goedgekeurde vrienden verbonden in dit kliniekdossier.
             </div>
             @else
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 @foreach($friends->take(6) as $f)
-                <a href="{{ route('profile.show', $f->friend->name) }}" class="p-2.5 rounded-xl border border-slate-200/70 hover:border-purple-300 hover:bg-purple-50/20 transition flex flex-col items-center text-center group">
+                <a href="{{ route('profile.show', $f->friend->name) }}" class="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition flex flex-col items-center text-center group">
                     <div class="relative mb-2">
-                        <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform">
-                        <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $f->friend->online_status_label }}"></span>
+                        <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs group-hover:scale-105 transition-transform">
+                        <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}" title="{{ $f->friend->online_status_label }}"></span>
                         @if($f->is_bff)
                         <span class="absolute -top-1 -right-1 bg-pink-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs" title="BFF">
                             <i class="fa-solid fa-heart text-[7px] text-white"></i>
                         </span>
                         @endif
                     </div>
-                    <span class="text-xs font-extrabold text-slate-900 group-hover:text-purple-600 transition truncate max-w-full block leading-tight">
+                    <span class="text-xs font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate max-w-full block leading-tight">
                         {{ $f->friend->name }}
                     </span>
-                    <span class="text-[10px] font-bold text-slate-400 mt-0.5">Lvl {{ $f->friend->level }}</span>
+                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-0.5">Lvl {{ $f->friend->level }}</span>
                 </a>
                 @endforeach
             </div>
@@ -1093,16 +1093,16 @@
     </div>
 
     <!-- Tab: Medailles & Prestaties (Badgeskast) -->
-    <div x-show="activeTab === 'medailles'" x-cloak x-data="{ activeSet: 'all' }" class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6 space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+    <div x-show="activeTab === 'medailles'" x-cloak x-data="{ activeSet: 'all' }" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
-                <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-medal text-amber-500"></i>
                     <span>Dossier Medailles & Prestaties van {{ $profileCharacter->name }}</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Officiële reputatiestempels, mijlpalen en prestaties behaald tijdens het verblijf in de inrichting.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Officiële reputatiestempels, mijlpalen en prestaties behaald tijdens het verblijf in de inrichting.</p>
             </div>
-            <span class="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-extrabold flex items-center gap-1.5 self-start sm:self-auto">
+            <span class="px-3 py-1 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 rounded-xl text-xs font-extrabold flex items-center gap-1.5 self-start sm:self-auto">
                 <i class="fa-solid fa-trophy text-amber-500"></i>
                 <span>{{ collect($badges)->where('unlocked', true)->count() }} / {{ count($badges) }} Ontgrendeld</span>
             </span>
@@ -1114,16 +1114,16 @@
             $totalBadgesCount = count($badges);
             $totalPercentage = $totalBadgesCount > 0 ? (int) round(($unlockedCount / $totalBadgesCount) * 100) : 0;
         @endphp
-        <div class="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200/70">
+        <div class="space-y-1.5 bg-slate-50/90 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
             <div class="flex items-center justify-between text-xs font-bold">
-                <span class="text-slate-600 flex items-center gap-1.5">
+                <span class="text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                     <i class="fa-solid fa-trophy text-amber-500"></i> Totale Medaille Collectie
                 </span>
-                <span class="text-purple-700 font-black">
+                <span class="text-purple-700 dark:text-purple-400 font-black">
                     {{ $totalPercentage }}% Voltooid ({{ $unlockedCount }}/{{ $totalBadgesCount }})
                 </span>
             </div>
-            <div class="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
+            <div class="w-full bg-slate-200/80 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                 <div class="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-amber-500 rounded-full transition-all duration-500" style="width: {{ $totalPercentage }}%"></div>
             </div>
         </div>
@@ -1131,10 +1131,10 @@
         <!-- Set Filter Tabs Bar -->
         <div class="space-y-2">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 flex items-center gap-1.5">
                     <i class="fa-solid fa-filter text-slate-400"></i> Selecteer Medaille Set
                 </span>
-                <span class="text-[11px] text-slate-500 font-semibold" x-text="activeSet === 'all' ? 'Alle sets getoond' : 'Gefilterd op set'"></span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold" x-text="activeSet === 'all' ? 'Alle sets getoond' : 'Gefilterd op set'"></span>
             </div>
             <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
                 <button type="button" @click="activeSet = 'all'"
@@ -1173,7 +1173,7 @@
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-95"
                 x-transition:enter-end="opacity-100 scale-100"
-                class="p-4 rounded-xl border transition flex flex-col justify-between gap-3 {{ $badge['unlocked'] ? 'bg-white border-slate-200 hover:border-purple-300 hover:shadow-xs' : 'bg-slate-50/70 border-slate-200/60 opacity-75' }}">
+                class="p-4 rounded-xl border transition flex flex-col justify-between gap-3 {{ $badge['unlocked'] ? 'bg-white dark:bg-slate-800/90 border-slate-200/90 dark:border-slate-700/80 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-xs' : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-800 opacity-75' }}">
                 <div class="flex items-start gap-3">
                     <!-- Eigen Icon Asset via Blade Component -->
                     <x-medal-badge :badge="$badge" size="md" />
@@ -1182,10 +1182,10 @@
                         <div class="flex items-center justify-between gap-1 flex-wrap">
                             @php
                                 $tierStyle = match($badge['tier']) {
-                                    'silver' => 'text-slate-700 bg-slate-100 border-slate-300',
-                                    'gold' => 'text-amber-800 bg-amber-50 border-amber-300',
-                                    'diamond' => 'text-cyan-800 bg-cyan-50 border-cyan-300',
-                                    default => 'text-orange-800 bg-orange-50 border-orange-300',
+                                    'silver' => 'text-slate-700 bg-slate-100 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+                                    'gold' => 'text-amber-800 bg-amber-50 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800',
+                                    'diamond' => 'text-cyan-800 bg-cyan-50 border-cyan-300 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800',
+                                    default => 'text-orange-800 bg-orange-50 border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800',
                                 };
                                 $tierStars = str_repeat('★', $badge['tier_stars']);
                             @endphp
@@ -1194,33 +1194,33 @@
                             </span>
 
                             @if($badge['unlocked'])
-                                <span class="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                                <span class="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800">
                                     <i class="fa-solid fa-check text-[8px]"></i> Behaald
                                 </span>
                             @else
-                                <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded">
+                                <span class="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded">
                                     <i class="fa-solid fa-lock text-[8px]"></i> Gesloten
                                 </span>
                             @endif
                         </div>
 
-                        <h4 class="text-xs font-extrabold text-slate-900 mt-1 truncate">
+                        <h4 class="text-xs font-extrabold text-slate-900 dark:text-white mt-1 truncate">
                             {{ $badge['name'] }}
                         </h4>
-                        <p class="text-[11px] text-slate-500 mt-1 leading-snug">
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
                             {{ $badge['description'] }}
                         </p>
                     </div>
                 </div>
 
-                <div class="pt-2 border-t border-slate-100 space-y-1.5">
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
                     <div class="flex items-center justify-between text-[10px]">
                         <span class="font-bold text-slate-400 uppercase tracking-wider">Voortgang:</span>
-                        <span class="font-extrabold {{ $badge['unlocked'] ? 'text-purple-700' : 'text-slate-600' }}">
+                        <span class="font-extrabold {{ $badge['unlocked'] ? 'text-purple-700 dark:text-purple-400' : 'text-slate-600 dark:text-slate-400' }}">
                             {{ $badge['progress'] }}
                         </span>
                     </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
                         <div class="h-full rounded-full transition-all duration-300 {{ $badge['unlocked'] ? 'bg-emerald-500' : 'bg-purple-500' }}" style="width: {{ $badge['progress_pct'] }}%"></div>
                     </div>
                 </div>
@@ -1230,29 +1230,29 @@
     </div>
 
     <!-- Tab 2: Vriendenlijst (Volledig Overzicht) -->
-    <div x-show="activeTab === 'vrienden'" class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6 space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+    <div x-show="activeTab === 'vrienden'" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
-                <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-users text-purple-600"></i>
                     <span>Vrienden & Bondgenoten van {{ $profileCharacter->name }} ({{ $friendsCount }})</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Medepatiënten waarmee een vertrouwensband is opgebouwd binnen de TBS kliniek.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Medepatiënten waarmee een vertrouwensband is opgebouwd binnen de TBS kliniek.</p>
             </div>
             @if($isOwnProfile)
-            <a href="{{ route('friends.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-bold transition">
+            <a href="{{ route('friends.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-xs font-bold transition">
                 <i class="fa-solid fa-gear"></i> Vrienden Beheren & Toevoegen
             </a>
             @endif
         </div>
 
         @if($friends->isEmpty())
-        <div class="p-10 text-center space-y-2 bg-slate-50 rounded-xl border border-slate-100">
-            <div class="w-12 h-12 mx-auto rounded-full bg-purple-50 text-purple-400 flex items-center justify-center text-xl">
+        <div class="p-10 text-center space-y-2 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+            <div class="w-12 h-12 mx-auto rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-400 flex items-center justify-center text-xl">
                 <i class="fa-solid fa-user-group"></i>
             </div>
-            <h4 class="text-xs font-extrabold text-slate-700">Geen vrienden gevonden</h4>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">
+            <h4 class="text-xs font-extrabold text-slate-700 dark:text-slate-300">Geen vrienden gevonden</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 Deze patiënt heeft momenteel nog geen officiële vrienden in het kliniekdossier.
             </p>
         </div>
@@ -1260,11 +1260,11 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             @foreach($friends as $f)
             @if($f->friend)
-            <div class="p-4 rounded-xl border border-slate-200/90 hover:border-purple-300 bg-white hover:bg-purple-50/20 transition flex flex-col justify-between gap-3 shadow-2xs group">
+            <div class="p-4 rounded-xl border border-slate-200/90 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600 bg-slate-50/90 dark:bg-slate-800/60 hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition flex flex-col justify-between gap-3 shadow-2xs group">
                 <div class="flex items-center gap-3">
                     <a href="{{ route('profile.show', $f->friend->name) }}" class="relative shrink-0">
-                        <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform">
-                        <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $f->friend->online_status_label }}"></span>
+                        <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs group-hover:scale-105 transition-transform">
+                        <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}" title="{{ $f->friend->online_status_label }}"></span>
                         @if($f->is_bff)
                         <span class="absolute -top-1 -right-1 bg-pink-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs" title="BFF (Beste Vriend)">
                             <i class="fa-solid fa-heart text-[8px]"></i>
@@ -1273,28 +1273,28 @@
                     </a>
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-1.5">
-                            <a href="{{ route('profile.show', $f->friend->name) }}" class="text-xs font-black text-slate-900 hover:text-purple-600 transition truncate block">
+                            <a href="{{ route('profile.show', $f->friend->name) }}" class="text-xs font-black text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition truncate block">
                                 {{ $f->friend->name }}
                             </a>
                         </div>
                         <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded">
+                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.2 rounded">
                                 Lvl {{ $f->friend->level }}
                             </span>
                             @if($f->friend->gang)
-                            <a href="{{ route('gangs.show', $f->friend->gang->id) }}" class="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded border border-purple-100 hover:bg-purple-100 transition truncate" title="Bekijk {{ $f->friend->gang->name }}">
+                            <a href="{{ route('gangs.show', $f->friend->gang->id) }}" class="text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.2 rounded border border-purple-100 dark:border-purple-800 hover:bg-purple-100 transition truncate" title="Bekijk {{ $f->friend->gang->name }}">
                                 [{{ $f->friend->gang->tag }}]
                             </a>
                             @endif
                         </div>
-                        <span class="text-[10px] text-purple-700 font-extrabold mt-1 block">
+                        <span class="text-[10px] text-purple-700 dark:text-purple-400 font-extrabold mt-1 block">
                             {{ number_format($f->friend->respect, 0, ',', '.') }} Respect
                         </span>
                     </div>
                 </div>
 
-                <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <a href="{{ route('profile.show', $f->friend->name) }}" class="text-[11px] font-bold text-slate-600 hover:text-purple-600 transition flex items-center gap-1">
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between gap-2">
+                    <a href="{{ route('profile.show', $f->friend->name) }}" class="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 transition flex items-center gap-1">
                         <i class="fa-solid fa-address-card text-slate-400"></i> Profiel
                     </a>
                     @if(Auth::user()->character->id !== $f->friend->id)
@@ -1313,27 +1313,27 @@
     </div>
 
     <!-- Tab 3: Gastenboek -->
-    <div x-show="activeTab === 'gastenboek'" class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6 space-y-6">
+    <div x-show="activeTab === 'gastenboek'" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 space-y-6">
         <div>
-            <h3 class="text-sm font-bold text-slate-900 mb-1">Gastenboek van {{ $profileCharacter->name }}</h3>
-            <p class="text-xs text-slate-500">Laat een bericht achter op het prikbord van deze bewoner.</p>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Gastenboek van {{ $profileCharacter->name }}</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Laat een bericht achter op het prikbord van deze bewoner.</p>
         </div>
 
         <!-- Nieuw bericht formulier -->
         <form action="{{ route('guestbook.post', $profileCharacter->name) }}" method="POST" class="space-y-3">
             @csrf
             <div>
-                <textarea name="message" rows="3" required maxlength="500" placeholder="Schrijf een respectvolle (of dreigende) boodschap..." class="w-full text-xs p-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"></textarea>
+                <textarea name="message" rows="3" required maxlength="500" placeholder="Schrijf een respectvolle (of dreigende) boodschap..." class="w-full text-xs p-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition resize-none"></textarea>
             </div>
             <div class="flex justify-end">
-                <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 rounded-lg transition shadow-xs flex items-center gap-2">
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs px-5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center gap-2">
                     <i class="fa-solid fa-paper-plane text-[10px]"></i> Plaats Bericht
                 </button>
             </div>
         </form>
 
         <!-- Berichtjes lijst -->
-        <div class="divide-y divide-slate-100 pt-4">
+        <div class="divide-y divide-slate-100 dark:divide-slate-800 pt-4">
             @forelse($guestbookEntries as $entry)
             @if($entry->author)
             <div class="py-4 flex items-start gap-4">
@@ -1514,7 +1514,7 @@
                         <button @click="avatarModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer">
                             Annuleren
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-xl transition shadow-xs cursor-pointer">
+                        <button type="submit" class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
                             Preset Opslaan & Toepassen
                         </button>
                     </div>
@@ -1526,11 +1526,11 @@
 
     <!-- MODAL 2: Bio & Status Editor -->
     <div x-show="bioModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
-        <div @click.away="bioModalOpen = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
+        <div @click.away="bioModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-900">Bio & Status Aanpassen</h3>
-                <button @click="bioModalOpen = false" type="button" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Bio & Status Aanpassen</h3>
+                <button @click="bioModalOpen = false" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -1538,20 +1538,20 @@
             <form action="{{ route('profile.update') }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Status Citaat (Kort)</label>
-                    <input type="text" name="status_message" value="{{ old('status_message', $profileCharacter->status_message) }}" maxlength="120" placeholder="bijv. Altijd op zoek naar een goede deal..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Status Citaat (Kort)</label>
+                    <input type="text" name="status_message" value="{{ old('status_message', $profileCharacter->status_message) }}" maxlength="120" placeholder="bijv. Altijd op zoek naar een goede deal..." class="w-full text-xs p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Patiënt Biografie</label>
-                    <textarea name="bio" rows="5" maxlength="1000" placeholder="Vertel jouw verhaal in de TBS kliniek..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none">{{ old('bio', $profileCharacter->bio) }}</textarea>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Patiënt Biografie</label>
+                    <textarea name="bio" rows="5" maxlength="1000" placeholder="Vertel jouw verhaal in de TBS kliniek..." class="w-full text-xs p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition resize-none">{{ old('bio', $profileCharacter->bio) }}</textarea>
                 </div>
 
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-                    <button @click="bioModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                    <button @click="bioModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition shadow-xs">
+                    <button type="submit" class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
                         Opslaan
                     </button>
                 </div>
@@ -1562,16 +1562,16 @@
 
     <!-- MODAL 3: Title Selection Modal -->
     <div x-show="titleModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
-        <div @click.away="titleModalOpen = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div @click.away="titleModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
-                    <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+                    <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-award text-purple-600"></i>
                         <span>Dossier Titel Kiezen</span>
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Kies welke officiële status onder jouw naam getoond wordt.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Kies welke officiële status onder jouw naam getoond wordt.</p>
                 </div>
-                <button @click="titleModalOpen = false" type="button" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+                <button @click="titleModalOpen = false" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -1580,31 +1580,31 @@
                 @csrf
                 <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
                     @foreach($availableTitles as $t)
-                    <label class="p-3 rounded-xl border-2 transition flex items-center justify-between gap-3 {{ $t['unlocked'] ? 'cursor-pointer hover:border-purple-300 ' . (($profileCharacter->title === $t['id'] || (! $profileCharacter->title && $t['id'] === 'Modelpatiënt')) ? 'border-purple-600 bg-purple-50/50' : 'border-slate-200 bg-white') : 'opacity-50 bg-slate-50 border-slate-200 cursor-not-allowed' }}">
+                    <label class="p-3 rounded-xl border-2 transition flex items-center justify-between gap-3 {{ $t['unlocked'] ? 'cursor-pointer hover:border-purple-300 dark:hover:border-purple-500 ' . (($profileCharacter->title === $t['id'] || (! $profileCharacter->title && $t['id'] === 'Modelpatiënt')) ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90') : 'opacity-50 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 cursor-not-allowed' }}">
                         <div class="flex items-center gap-3">
                             <input type="radio" name="title" value="{{ $t['id'] }}" {{ $t['unlocked'] ? '' : 'disabled' }} {{ ($profileCharacter->title === $t['id'] || (! $profileCharacter->title && $t['id'] === 'Modelpatiënt')) ? 'checked' : '' }} class="text-purple-600 focus:ring-purple-500">
                             <div>
                                 <div class="flex items-center gap-1.5">
                                     <i class="{{ $t['icon'] }} text-xs text-purple-600"></i>
-                                    <span class="text-xs font-black text-slate-900">{{ $t['name'] }}</span>
+                                    <span class="text-xs font-black text-slate-900 dark:text-white">{{ $t['name'] }}</span>
                                 </div>
-                                <span class="text-[10px] text-slate-500 block mt-0.5">{{ $t['description'] }}</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">{{ $t['description'] }}</span>
                             </div>
                         </div>
                         @if($t['unlocked'])
-                            <span class="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Vrijgespeeld</span>
+                            <span class="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 shrink-0">Vrijgespeeld</span>
                         @else
-                            <span class="text-[9px] font-bold text-slate-400 bg-slate-200 px-1.5 py-0.5 rounded shrink-0"><i class="fa-solid fa-lock text-[8px]"></i> Vergrendeld</span>
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded shrink-0"><i class="fa-solid fa-lock text-[8px]"></i> Vergrendeld</span>
                         @endif
                     </label>
                     @endforeach
                 </div>
 
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-                    <button @click="titleModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                    <button @click="titleModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition shadow-xs cursor-pointer">
+                    <button type="submit" class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
                         Titel Toepassen
                     </button>
                 </div>
@@ -1616,32 +1616,32 @@
     @if(Auth::user()->canModerate() && $profileCharacter->id !== Auth::user()->character->id && $profileCharacter->user)
     <!-- STAFF WARN MODAL -->
     <div x-show="staffWarnModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
-        <div @click.away="staffWarnModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 transform-gpu will-change-transform">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div @click.away="staffWarnModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 transform-gpu will-change-transform">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </span>
                     <div>
-                        <h4 class="text-sm font-black text-slate-900">Officiële Waarschuwing Uitdelen</h4>
-                        <p class="text-xs text-slate-500">Aan patiënt: <strong class="text-slate-800">{{ $profileCharacter->name }}</strong></p>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Officiële Waarschuwing Uitdelen</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Aan patiënt: <strong class="text-slate-800 dark:text-slate-200">{{ $profileCharacter->name }}</strong></p>
                     </div>
                 </div>
-                <button type="button" @click="staffWarnModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
+                <button type="button" @click="staffWarnModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer">&times;</button>
             </div>
 
             <form action="{{ route('admin.moderation.warn', $profileCharacter->user) }}" method="POST" class="space-y-4">
                 @csrf
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-700">Opgegeven Reden (verschijnt direct in het scherm van de speler)</label>
-                    <textarea name="reason" rows="3" required placeholder="Bijv. Onbehoorlijk gedrag in de chat / overtreding regels..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Opgegeven Reden (verschijnt direct in het scherm van de speler)</label>
+                    <textarea name="reason" rows="3" required placeholder="Bijv. Onbehoorlijk gedrag in de chat / overtreding regels..." class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition resize-none"></textarea>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" @click="staffWarnModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="staffWarnModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer shadow-xs">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer shadow-xs active:scale-95">
                         Waarschuwing Verzenden
                     </button>
                 </div>
@@ -1651,25 +1651,25 @@
 
     <!-- STAFF BAN MODAL -->
     <div x-show="staffBanModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
-        <div @click.away="staffBanModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 transform-gpu will-change-transform">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div @click.away="staffBanModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 transform-gpu will-change-transform">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold">
                         <i class="fa-solid fa-ban"></i>
                     </span>
                     <div>
-                        <h4 class="text-sm font-black text-slate-900">Speler Verbannen van het Spel</h4>
-                        <p class="text-xs text-slate-500">Patiënt: <strong class="text-slate-800">{{ $profileCharacter->name }}</strong></p>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Speler Verbannen van het Spel</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Patiënt: <strong class="text-slate-800 dark:text-slate-200">{{ $profileCharacter->name }}</strong></p>
                     </div>
                 </div>
-                <button type="button" @click="staffBanModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
+                <button type="button" @click="staffBanModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer">&times;</button>
             </div>
 
             <form action="{{ route('admin.moderation.ban', $profileCharacter->user) }}" method="POST" class="space-y-4">
                 @csrf
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-700">Duur van de verbanning</label>
-                    <select name="duration" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-purple-600">
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Duur van de verbanning</label>
+                    <select name="duration" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <option value="1_hour">1 uur</option>
                         <option value="6_hours">6 uur</option>
                         <option value="12_hours">12 uur</option>
@@ -1683,15 +1683,15 @@
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-700">Opgegeven Reden van Verbanning</label>
-                    <textarea name="reason" rows="3" required placeholder="Bijv. Herhaaldelijke overtreding van de kliniekregels / wangedrag..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Opgegeven Reden van Verbanning</label>
+                    <textarea name="reason" rows="3" required placeholder="Bijv. Herhaaldelijke overtreding van de kliniekregels / wangedrag..." class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition resize-none"></textarea>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" @click="staffBanModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="staffBanModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs transition cursor-pointer shadow-xs">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs transition cursor-pointer shadow-xs active:scale-95">
                         Definitief Verbannen
                     </button>
                 </div>

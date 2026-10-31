@@ -8,10 +8,10 @@
     <div class="fixed inset-0 bg-black/80 transition-opacity" @click="close()"></div>
 
     <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="relative transform-gpu will-change-transform overflow-hidden rounded-2xl bg-white dark:bg-[#12072b] border border-slate-200 dark:border-purple-800/60 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-purple-900/40">
+        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="relative transform-gpu will-change-transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center text-base">
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-base">
                         <i class="fa-solid fa-flag"></i>
                     </div>
                     <div>
@@ -25,20 +25,20 @@
             </div>
 
             <form @submit.prevent="submitReport()" data-no-async="true" class="space-y-4 pt-4">
-                <div class="p-3 rounded-xl bg-slate-50 dark:bg-purple-950/30 border border-slate-200/80 dark:border-purple-800/40 text-xs">
+                <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs">
                     <span class="text-[10px] font-black uppercase text-slate-400 block mb-0.5">Geraporteerd Onderwerp:</span>
                     <div class="font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[10px] uppercase font-black" x-text="reportedTypeLabel"></span>
+                        <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[10px] uppercase font-black" x-text="reportedTypeLabel"></span>
                         <span class="text-slate-900 dark:text-white font-black truncate" x-text="reportedName"></span>
                     </div>
                     <template x-if="reportedText">
-                        <p class="mt-1.5 text-[11px] text-slate-500 dark:text-purple-300 italic line-clamp-2" x-text="'\"' + reportedText + '\"'"></p>
+                        <p class="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400 italic line-clamp-2" x-text="'\"' + reportedText + '\"'"></p>
                     </template>
                 </div>
 
                 <div>
                     <label class="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">Reden van de melding *</label>
-                    <select x-model="reason" required class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl p-2.5 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                    <select x-model="reason" required class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <option value="">-- Kies een reden --</option>
                         <option value="Belediging / Schelden">Belediging / Schelden</option>
                         <option value="Ongepaste of kwetsende naam">Ongepaste of kwetsende naam</option>
@@ -52,14 +52,14 @@
 
                 <div>
                     <label class="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">Toelichting (optioneel)</label>
-                    <textarea x-model="details" rows="3" placeholder="Wat is er gebeurd? Extra details helpen de moderatoren..." class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl p-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:outline-none"></textarea>
+                    <textarea x-model="details" rows="3" placeholder="Wat is er gebeurd? Extra details helpen de moderatoren..." class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 text-xs focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
-                    <button type="button" @click="close()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer">
+                    <button type="button" @click="close()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" :disabled="isSubmitting || !reason" class="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-black transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                    <button type="submit" :disabled="isSubmitting || !reason" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-black shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-flag"></i>
                         <span x-text="isSubmitting ? 'Bezig met versturen...' : 'Melding Versturen'"></span>
                     </button>
@@ -261,10 +261,10 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-         class="tbs-mini-chat-popup bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100">
+         class="tbs-mini-chat-popup bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100">
         
         <!-- HEADER WITH TABS -->
-        <div class="bg-purple-700 dark:bg-purple-900/90 p-2.5 border-b border-purple-800 text-white shrink-0 space-y-2 shadow-xs">
+        <div class="bg-purple-600 dark:bg-slate-950 p-2.5 border-b border-purple-700 dark:border-slate-800 text-white shrink-0 space-y-2 shadow-xs">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center p-1 shadow-xs overflow-hidden">
@@ -292,15 +292,15 @@
             </div>
 
             <!-- TABS SWITCHER (4 Tabs: Plein, Bende, Privé, Hulp AI) -->
-            <div class="grid grid-cols-4 gap-1 bg-black/20 p-1 rounded-xl text-[10px] font-extrabold text-center">
+            <div class="grid grid-cols-4 gap-1 bg-black/20 dark:bg-slate-900/80 p-1 rounded-xl text-[10px] font-extrabold text-center border border-white/10 dark:border-slate-800">
                 <button type="button" @click="setTab('global')" 
-                        :class="activeTab === 'global' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 hover:text-white'"
+                        :class="activeTab === 'global' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 dark:text-slate-400 hover:text-white'"
                         class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1">
                     <i class="fa-solid fa-bullhorn text-[9px]"></i>
                     <span>Plein</span>
                 </button>
                 <button type="button" @click="setTab('gang')" 
-                        :class="activeTab === 'gang' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 hover:text-white'"
+                        :class="activeTab === 'gang' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 dark:text-slate-400 hover:text-white'"
                         class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1 relative">
                     <i class="fa-solid fa-users-viewfinder text-[9px]"></i>
                     <span>Bende</span>
@@ -309,7 +309,7 @@
                     </template>
                 </button>
                 <button type="button" @click="setTab('direct')" 
-                        :class="activeTab === 'direct' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 hover:text-white'"
+                        :class="activeTab === 'direct' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 dark:text-slate-400 hover:text-white'"
                         class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1 relative">
                     <i class="fa-solid fa-envelope text-[9px]"></i>
                     <span>Privé</span>
@@ -318,7 +318,7 @@
                     </template>
                 </button>
                 <button type="button" @click="setTab('help')" 
-                        :class="activeTab === 'help' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 hover:text-white'"
+                        :class="activeTab === 'help' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 dark:text-slate-400 hover:text-white'"
                         class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1">
                     <i class="fa-solid fa-robot text-[9px]"></i>
                     <span>Hulp AI</span>
@@ -329,7 +329,7 @@
         <!-- 1. TAB: ALGEMENE CHAT (KLINIEK PLEIN) -->
         <div x-show="activeTab === 'global'" class="flex-1 flex flex-col min-h-0">
             <!-- Messages Stream -->
-            <div x-ref="miniChatScroll" id="tbsMiniChatScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50 max-w-full">
+            <div x-ref="miniChatScroll" id="tbsMiniChatScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-slate-950/50 max-w-full">
                 <template x-for="msg in publicMessages" :key="msg.id">
                     <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                         <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
@@ -402,19 +402,19 @@
                                 </template>
 
                                 <!-- LEVEL -->
-                                <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black">
+                                <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
                                     L<span x-text="msg.level"></span>
                                 </span>
 
                                 <!-- RESPECT -->
-                                <span class="px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[8px] font-black flex items-center gap-0.5">
+                                <span class="px-1 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[8px] font-black flex items-center gap-0.5">
                                     <i class="fa-solid fa-fire text-amber-500 text-[7px]"></i>
                                     <span x-text="msg.respect"></span>
                                 </span>
 
                                 <!-- GANG TAG -->
                                 <template x-if="msg.gang_tag">
-                                    <span class="px-1 py-0.2 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[8px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                    <span class="px-1 py-0.2 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[8px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
                                 </template>
 
                                 <!-- TIME -->
@@ -434,7 +434,7 @@
 
                                 <!-- REPORT -->
                                 <template x-if="!msg.is_me">
-                                    <button type="button" @click="window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message })" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[9px] cursor-pointer" title="Rapporteer">
+                                    <button type="button" @click="window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message })" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer" title="Rapporteer">
                                         <i class="fa-solid fa-flag"></i>
                                     </button>
                                 </template>
@@ -442,7 +442,7 @@
 
                             <!-- Reply Quote Bubble (if replied) -->
                             <template x-if="msg.reply_to_name">
-                                <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-100/80 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
+                                <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
                                     <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
                                     <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
                                     <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
@@ -458,7 +458,7 @@
                                             ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
                                             : (msg.is_admin || msg.is_moderator 
                                                 ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
-                                                : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'))"
+                                                : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left'))"
                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                 <!-- Paars Hartje Reactie Knop 💜 -->
@@ -482,7 +482,7 @@
             </div>
 
             <!-- INPUT BAR & CLEAN EMOJI DRAWER -->
-            <div class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-1.5">
+            <div class="p-2.5 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-slate-800 shrink-0 space-y-1.5">
                 <!-- Reply Quoting Preview Banner -->
                 <template x-if="replyingTo">
                     <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
@@ -500,14 +500,14 @@
                 <form @submit.prevent="sendPublicMessage()" data-no-async="true" class="flex items-center gap-1.5 relative">
                     <!-- Clean Emoji Picker Toggle Button -->
                     <div class="relative">
-                        <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys & Emojis">
+                        <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys & Emojis">
                             <i class="fa-regular fa-face-smile"></i>
                         </button>
 
                         <!-- Clean Emoji Drawer Popup -->
                         <div x-show="showEmojiPicker" @click.outside="showEmojiPicker = false" x-cloak
-                             class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
-                            <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
+                             class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
+                            <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
                                 <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys</span>
                                 <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
                             </div>
@@ -544,8 +544,8 @@
                     <div x-show="showMentionDropdown && mentionTargetField === 'global' && mentionUsers.length > 0"
                          @click.outside="showMentionDropdown = false"
                          x-cloak
-                         class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
-                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-purple-950/70 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
+                         class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
                             <span class="flex items-center gap-1">
                                 <i class="fa-solid fa-at text-purple-500"></i>
                                 <span>Speler Vermelden</span>
@@ -576,7 +576,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1 shrink-0">
-                                        <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                        <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
                                         <template x-if="user.staff_role">
                                             <span class="text-[8px] font-extrabold text-amber-500" x-text="user.staff_role"></span>
                                         </template>
@@ -591,13 +591,13 @@
                                @input="onChatInput($event, 'global')"
                                @keydown="onChatKeydown($event, 'global')"
                                placeholder="Typ @naam of een bericht... (Enter)" maxlength="250"
-                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <span x-show="inputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
                               :class="inputMessage.length >= 240 ? 'text-rose-500 font-black' : (inputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
                               x-text="inputMessage.length + '/250'"></span>
                     </div>
-                    <button type="submit" :disabled="isSending || !inputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
+                    <button type="submit" :disabled="isSending || !inputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </form>
@@ -609,14 +609,14 @@
             <!-- SCENARIO A: NOT IN A GANG -->
             <template x-if="!hasGang">
                 <div class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
-                    <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center text-2xl">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-2xl">
                         <i class="fa-solid fa-users-slash"></i>
                     </div>
                     <div class="space-y-1">
                         <h4 class="text-sm font-black text-slate-900 dark:text-white">Geen Bende Lidmaatschap</h4>
                         <p class="text-xs text-slate-500 dark:text-purple-300/80">Sluit je aan bij een bende of richt je eigen factie op om de besloten bende chat te gebruiken.</p>
                     </div>
-                    <a href="{{ route('gangs.index') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md transition">
+                    <a href="{{ route('gangs.index') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black shadow-xs transition-all duration-150 active:scale-95">
                         Bekijk Bendes &raquo;
                     </a>
                 </div>
@@ -625,11 +625,11 @@
             <!-- SCENARIO B: IN GANG, BUT CHAT NOT YET PURCHASED (500 STARS) -->
             <template x-if="hasGang && !gangHasChat">
                 <div class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
-                    <div class="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-500 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center text-3xl shadow-lg">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 border border-amber-200/80 dark:border-amber-800/70 flex items-center justify-center text-3xl shadow-lg">
                         <i class="fa-solid fa-walkie-talkie"></i>
                     </div>
                     <div class="space-y-1.5">
-                        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-300 dark:border-amber-800">
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-200/80 dark:border-amber-800/70">
                             🔒 Exclusief Kanaal
                         </span>
                         <h4 class="text-base font-black text-slate-900 dark:text-white" x-text="gangName + ' Portofoon'"></h4>
@@ -638,7 +638,7 @@
                         </p>
                     </div>
 
-                    <div class="p-3 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800/50 text-xs text-purple-900 dark:text-purple-200 w-full max-w-xs space-y-1">
+                    <div class="p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-800 dark:text-slate-200 w-full max-w-xs space-y-1">
                         <div class="flex items-center justify-between font-bold">
                             <span>Eenmalige Kosten:</span>
                             <span class="text-amber-500 font-black">500 Sterren ⭐</span>
@@ -653,7 +653,7 @@
                         @csrf
                         <input type="hidden" name="item_type" value="gang_chat">
                         <input type="hidden" name="quantity" value="1">
-                        <button type="submit" :disabled="characterStars < 500 && gangStars < 500" class="btn-star-gold w-full py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5">
+                        <button type="submit" :disabled="characterStars < 500 && gangStars < 500" class="btn-star-gold w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-cart-shopping"></i>
                             <span>Koop Bende Chat (500 ⭐)</span>
                         </button>
@@ -665,18 +665,18 @@
             <template x-if="hasGang && gangHasChat">
                 <div class="flex-1 flex flex-col min-h-0">
                     <!-- Gang Header Sub-bar -->
-                    <div class="px-3 py-1.5 bg-purple-100/70 dark:bg-purple-950/80 border-b border-purple-200 dark:border-purple-900/40 flex items-center justify-between text-[11px] font-bold shrink-0">
-                        <div class="flex items-center gap-1.5 text-purple-900 dark:text-purple-200">
+                    <div class="px-3 py-1.5 bg-slate-100/90 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between text-[11px] font-bold shrink-0">
+                        <div class="flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
                             <i class="fa-solid fa-walkie-talkie text-amber-500"></i>
                             <span x-text="gangName + ' [Portofoon]'"></span>
                         </div>
-                        <span class="text-[9px] px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold border border-emerald-500/30">
+                        <span class="text-[9px] px-2 py-0.2 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold border border-emerald-200/80 dark:border-emerald-800/70">
                             Besloten
                         </span>
                     </div>
 
                     <!-- Gang Messages Stream -->
-                    <div x-ref="miniGangScroll" id="tbsMiniGangScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50 max-w-full">
+                    <div x-ref="miniGangScroll" id="tbsMiniGangScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-slate-950/50 max-w-full">
                         <template x-for="msg in gangMessages" :key="msg.id">
                             <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                 <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
@@ -709,7 +709,7 @@
                                             </span>
                                         </template>
 
-                                        <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black">
+                                        <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
                                             L<span x-text="msg.level"></span>
                                         </span>
 
@@ -730,7 +730,7 @@
 
                                     <!-- Reply Quote -->
                                     <template x-if="msg.reply_to_name">
-                                        <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-100/80 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
+                                        <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
                                             <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
                                             <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
                                             <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
@@ -740,7 +740,7 @@
                                     <!-- Bubble & Heart -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                         <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
-                                             :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
+                                             :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left'"
                                              x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                         <!-- Paars Hartje Reactie Knop 💜 -->
@@ -764,7 +764,7 @@
                     </div>
 
                     <!-- Gang Chat Input Bar -->
-                    <div class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-1.5">
+                    <div class="p-2.5 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-slate-800 shrink-0 space-y-1.5">
                         <template x-if="replyingTo">
                             <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
                                 <div class="flex items-center gap-1.5 truncate">
@@ -779,13 +779,13 @@
                         <form @submit.prevent="sendGangMessage()" data-no-async="true" class="flex items-center gap-1.5 relative">
                             <!-- Clean Emoji Picker Toggle -->
                             <div class="relative">
-                                <button type="button" @click="showGangEmojiPicker = !showGangEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys">
+                                <button type="button" @click="showGangEmojiPicker = !showGangEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys">
                                     <i class="fa-regular fa-face-smile"></i>
                                 </button>
 
                                 <div x-show="showGangEmojiPicker" @click.outside="showGangEmojiPicker = false" x-cloak
-                                     class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
-                                    <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
+                                     class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
+                                    <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
                                         <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys</span>
                                         <button type="button" @click="showGangEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
                                     </div>
@@ -822,8 +822,8 @@
                     <div x-show="showMentionDropdown && mentionTargetField === 'gang' && mentionUsers.length > 0"
                          @click.outside="showMentionDropdown = false"
                          x-cloak
-                         class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
-                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-purple-950/70 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
+                         class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
                             <span class="flex items-center gap-1">
                                 <i class="fa-solid fa-at text-purple-500"></i>
                                 <span>Bende Lid Vermelden</span>
@@ -854,7 +854,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1 shrink-0">
-                                        <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                        <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
                                     </div>
                                 </div>
                             </template>
@@ -866,13 +866,13 @@
                                @input="onChatInput($event, 'gang')"
                                @keydown="onChatKeydown($event, 'gang')"
                                placeholder="Typ @naam of een bendebericht... (Enter)" maxlength="250"
-                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <span x-show="gangInputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
                               :class="gangInputMessage.length >= 240 ? 'text-rose-500 font-black' : (gangInputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
                               x-text="gangInputMessage.length + '/250'"></span>
                     </div>
-                            <button type="submit" :disabled="isSendingGang || !gangInputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
+                            <button type="submit" :disabled="isSendingGang || !gangInputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
                                 <i class="fa-solid fa-paper-plane"></i>
                             </button>
                         </form>
@@ -882,7 +882,7 @@
         </div>
 
         <!-- 2. TAB: PRIVÉ CHAT & CONTACTEN -->
-        <div x-show="activeTab === 'direct'" class="flex-1 flex flex-col min-h-0 bg-slate-50/70 dark:bg-[#0d041e]/50">
+        <div x-show="activeTab === 'direct'" class="flex-1 flex flex-col min-h-0 bg-slate-50/70 dark:bg-slate-950/50">
             <!-- VIEW A: OVERVIEW / CONVERSATIONS LIST -->
             <template x-if="!activeDirectPartner">
                 <div class="flex-1 flex flex-col min-h-0 p-3 overflow-y-auto space-y-2.5">
@@ -901,10 +901,10 @@
                                    }
                                "
                                placeholder="🔍 Zoek patiënt om te chatten..." 
-                               class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-[16px] sm:text-xs font-bold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                               class="w-full bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-[16px] sm:text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         
                         <template x-if="searchResults.length > 0">
-                            <div class="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#160b33] border border-slate-200 dark:border-purple-800/60 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto p-1 divide-y divide-slate-100 dark:divide-purple-900/30">
+                            <div class="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto p-1 divide-y divide-slate-100 dark:divide-slate-800">
                                 <template x-for="p in searchResults" :key="p.id">
                                     <button type="button" @click="openDirectChatWithPlayer(p.id, p.name, p.avatar); searchResults = []; q = '';" 
                                             class="w-full p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/40 flex items-center justify-between transition cursor-pointer text-left">
@@ -923,7 +923,7 @@
                     <div class="space-y-1.5 flex-1">
                         <template x-for="conv in directConversations" :key="conv.partner_id">
                             <button type="button" @click="openDirectChat(conv)"
-                                    class="w-full p-2.5 rounded-xl border border-slate-200/80 dark:border-purple-900/40 bg-white dark:bg-purple-950/30 hover:border-purple-400 dark:hover:border-purple-600/60 text-left transition flex items-center justify-between gap-2.5 cursor-pointer shadow-2xs group">
+                                    class="w-full p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-800/60 hover:border-purple-300 dark:hover:border-purple-700/80 text-left transition flex items-center justify-between gap-2.5 cursor-pointer shadow-2xs group">
                                 <div class="flex items-center gap-2.5 truncate">
                                     <div class="relative shrink-0">
                                         <template x-if="conv.is_bot">
@@ -935,7 +935,7 @@
                                             <img :src="conv.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" class="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                         </template>
                                         <template x-if="conv.is_online && !conv.is_bot">
-                                            <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-slate-900"></span>
+                                            <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:ring-1 dark:ring-slate-900"></span>
                                         </template>
                                     </div>
                                     <div class="min-w-0 truncate">
@@ -977,9 +977,9 @@
             <template x-if="activeDirectPartner">
                 <div class="flex-1 flex flex-col min-h-0">
                     <!-- Partner Sub-Header -->
-                    <div class="p-2 sm:p-2.5 bg-white dark:bg-[#150a30] border-b border-slate-200 dark:border-purple-900/40 flex items-center justify-between shrink-0 shadow-2xs">
+                    <div class="p-2 sm:p-2.5 bg-white dark:bg-slate-900 border-b border-slate-200/90 dark:border-slate-800 flex items-center justify-between shrink-0 shadow-2xs">
                         <div class="flex items-center gap-2 min-w-0">
-                            <button type="button" @click="closeDirectChat()" class="p-1.5 -ml-1 text-slate-500 hover:text-purple-600 dark:text-purple-300 transition cursor-pointer text-xs font-bold rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/60 flex items-center gap-1 touch-manipulation" title="Terug naar overzicht">
+                            <button type="button" @click="closeDirectChat()" class="p-1.5 -ml-1 text-slate-500 hover:text-purple-600 dark:text-purple-300 transition cursor-pointer text-xs font-bold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1 touch-manipulation" title="Terug naar overzicht">
                                 <i class="fa-solid fa-arrow-left text-xs"></i>
                                 <span class="text-[11px] font-bold">Terug</span>
                             </button>
@@ -993,7 +993,7 @@
                             </div>
                         </div>
                         <template x-if="!activeDirectPartner.is_bot && (activeDirectPartner.partner_id || activeDirectPartner.id) > 0">
-                            <a :href="'/speler/' + encodeURIComponent(activeDirectPartner.name)" class="px-2.5 py-1 rounded bg-slate-100 dark:bg-purple-950/60 text-slate-600 dark:text-purple-300 hover:text-purple-500 text-[10px] font-bold transition shrink-0">
+                            <a :href="'/speler/' + encodeURIComponent(activeDirectPartner.name)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-[10px] font-bold transition shrink-0">
                                 Dossier &raquo;
                             </a>
                         </template>
@@ -1048,7 +1048,7 @@
                                             <div class="flex items-center gap-1.5 text-[10px] font-bold flex-wrap mb-0.5 min-w-0 max-w-full" :class="dm.is_me ? 'justify-end' : ''">
                                                 <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.is_me ? myName : (activeDirectPartner?.name || 'Inmate')"></span>
                                                 <template x-if="!dm.is_me && activeDirectPartner && activeDirectPartner.level">
-                                                    <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black">
+                                                    <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
                                                         L<span x-text="activeDirectPartner.level"></span>
                                                     </span>
                                                 </template>
@@ -1057,7 +1057,7 @@
 
                                             <!-- Reply Quote if any -->
                                             <template x-if="dm.reply_to_name">
-                                                <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-100/80 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
+                                                <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
                                                     <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
                                                     <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + dm.reply_to_name"></span>
                                                     <span class="truncate opacity-75 italic" x-text="dm.reply_to_snippet"></span>
@@ -1067,7 +1067,7 @@
                                             <!-- Bubble & Reactions -->
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                                 <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
-                                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
+                                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left'"
                                                      x-html="formatMessage(dm.message, dm.is_me)"></div>
 
                                                 <!-- Action Buttons: Heart, Reageer, Delete -->
@@ -1134,7 +1134,7 @@
                     </template>
 
                     <template x-if="!activeDirectPartner.is_bot">
-                        <div class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-1.5">
+                        <div class="p-2.5 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-slate-800 shrink-0 space-y-1.5">
                             <!-- Direct Reply Preview -->
                             <template x-if="directReplyingTo">
                                 <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
@@ -1150,13 +1150,13 @@
                             <form @submit.prevent="sendDirectMessage()" data-no-async="true" class="flex items-center gap-1.5 relative">
                                 <!-- Clean Emoji Toggle -->
                                 <div class="relative">
-                                    <button type="button" @click="showDirectEmojiPicker = !showDirectEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys">
+                                    <button type="button" @click="showDirectEmojiPicker = !showDirectEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys">
                                         <i class="fa-regular fa-face-smile"></i>
                                     </button>
 
                                     <div x-show="showDirectEmojiPicker" @click.outside="showDirectEmojiPicker = false" x-cloak
-                                         class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
-                                        <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
+                                         class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
+                                        <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
                                             <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys</span>
                                             <button type="button" @click="showDirectEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
                                         </div>
@@ -1193,8 +1193,8 @@
                                 <div x-show="showMentionDropdown && mentionTargetField === 'direct' && mentionUsers.length > 0"
                                      @click.outside="showMentionDropdown = false"
                                      x-cloak
-                                     class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
-                                    <div class="px-3 py-1.5 bg-slate-50 dark:bg-purple-950/70 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
+                                     class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+                                    <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
                                         <span class="flex items-center gap-1">
                                             <i class="fa-solid fa-at text-purple-500"></i>
                                             <span>Speler Vermelden</span>
@@ -1225,7 +1225,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center gap-1 shrink-0">
-                                                    <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                                    <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
                                                 </div>
                                             </div>
                                         </template>
@@ -1237,13 +1237,13 @@
                                            @input="onChatInput($event, 'direct')"
                                            @keydown="onChatKeydown($event, 'direct')"
                                            placeholder="Typ @naam of een privébericht... (Enter)" maxlength="500"
-                                           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-1.5 pr-14 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 pr-14 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                                     <span x-show="directInput.length > 350" x-cloak
                                           class="absolute right-2 text-[10px] font-mono pointer-events-none"
                                           :class="directInput.length >= 500 ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
                                           x-text="directInput.length + '/500'"></span>
                                 </div>
-                                <button type="submit" :disabled="isSendingDirect || !directInput.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
+                                <button type="submit" :disabled="isSendingDirect || !directInput.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
                                     <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                 </button>
                             </form>
@@ -1255,16 +1255,16 @@
 
         <!-- 3. TAB: AI KENNISBANK & HELPBOT -->
         <div x-show="activeTab === 'help'" class="flex-1 flex flex-col min-h-0">
-            <div x-ref="helpBox" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
+            <div x-ref="helpBox" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs bg-slate-50/70 dark:bg-slate-950/50">
                 <template x-for="(msg, i) in helpMessages" :key="i">
                     <div :class="msg.from === 'bot' ? 'flex flex-col items-start' : 'flex flex-col items-end'">
-                        <div :class="msg.from === 'bot' ? 'bg-white dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/40 text-slate-800 dark:text-purple-100' : 'bg-purple-600 text-white font-medium'"
+                        <div :class="msg.from === 'bot' ? 'bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 text-slate-800 dark:text-slate-100' : 'bg-purple-600 text-white font-medium'"
                              class="rounded-2xl p-2.5 max-w-[88%] space-y-1.5 shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word]">
                             <p class="whitespace-pre-line leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word]" x-text="msg.text"></p>
                             <template x-if="msg.links && msg.links.length > 0">
-                                <div class="pt-1 flex flex-wrap gap-1 border-t border-slate-100 dark:border-purple-800/30">
+                                <div class="pt-1 flex flex-wrap gap-1 border-t border-slate-100 dark:border-slate-700/60">
                                     <template x-for="lnk in msg.links">
-                                        <a :href="lnk.url" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 text-[10px] font-extrabold border border-purple-200">
+                                        <a :href="lnk.url" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold border border-purple-200/80 dark:border-purple-800/70">
                                             <span x-text="lnk.text"></span> &raquo;
                                         </a>
                                     </template>
@@ -1277,35 +1277,35 @@
             </div>
 
             <!-- Quick FAQ Horizontal Chips Bar -->
-            <div class="px-2.5 py-1.5 bg-slate-100/90 dark:bg-purple-950/70 border-t border-slate-200 dark:border-purple-900/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-                <button type="button" @click="sendHelpQuery('Hoe verdien ik snel geld?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+            <div class="px-2.5 py-1.5 bg-slate-100/90 dark:bg-slate-800/80 border-t border-slate-200/90 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+                <button type="button" @click="sendHelpQuery('Hoe verdien ik snel geld?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
                     <span>💰 Snel Geld</span>
                 </button>
-                <button type="button" @click="sendHelpQuery('Hoe krijg ik energie?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                <button type="button" @click="sendHelpQuery('Hoe krijg ik energie?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-emerald-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
                     <span>⚡ Energie Herstel</span>
                 </button>
-                <button type="button" @click="sendHelpQuery('Hoe werkt vechten en de respectlijst?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                <button type="button" @click="sendHelpQuery('Hoe werkt vechten en de respectlijst?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
                     <span>🥊 Vechten & Respect</span>
                 </button>
-                <button type="button" @click="sendHelpQuery('Hoe beveilig ik mijn contante geld op de bank?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                <button type="button" @click="sendHelpQuery('Hoe beveilig ik mijn contante geld op de bank?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
                     <span>🏦 Geld Beveiligen</span>
                 </button>
-                <button type="button" @click="sendHelpQuery('Hoe kom ik sneller uit de isoleercel?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                <button type="button" @click="sendHelpQuery('Hoe kom ik sneller uit de isoleercel?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
                     <span>🚔 Snel Uit de Cel</span>
                 </button>
-                <button type="button" @click="sendHelpQuery('Hoe verdien ik 100% gratis VIP?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                <button type="button" @click="sendHelpQuery('Hoe verdien ik 100% gratis VIP?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
                     <span>👑 Gratis VIP</span>
                 </button>
-                <button type="button" @click="sendHelpQuery('Wat moet ik doen als beginner?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-purple-50 dark:hover:bg-purple-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                <button type="button" @click="sendHelpQuery('Wat moet ik doen als beginner?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-purple-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
                     <span>🎯 Rookie Gids</span>
                 </button>
             </div>
 
             <!-- Help input -->
-            <form @submit.prevent="sendHelpQuery()" data-no-async="true" class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 flex items-center gap-1.5 shrink-0">
+            <form @submit.prevent="sendHelpQuery()" data-no-async="true" class="p-2.5 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-slate-800 flex items-center gap-1.5 shrink-0">
                 <input type="text" x-model="helpInput" placeholder="Stel een vraag aan Zaalwacht Arjan..." 
-                       class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                <button type="submit" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
+                       class="flex-1 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                <button type="submit" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </form>
@@ -1315,7 +1315,7 @@
 
     <!-- FLOATING LAUNCHER BUTTON (Bottom Right Corner) -->
     <button type="button" @click="isOpen = !isOpen; if(isOpen) { $nextTick(() => { if(activeTab === 'global') scrollChatBottom(); else if(activeTab === 'gang') scrollGangBottom(); else if(activeTab === 'direct' && activeDirectPartner) scrollDirectBottom(); }); }"
-            class="tbs-mini-chat-btn px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-900/25 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-102 active:scale-98 border border-purple-400">
+            class="tbs-mini-chat-btn px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-lg shadow-purple-900/25 flex items-center gap-2.5 cursor-pointer transition-all duration-150 transform hover:scale-102 active:scale-95 border border-purple-400/50">
         <div class="relative w-5 h-5 shrink-0 flex items-center justify-center">
             <i class="fa-solid fa-comments text-white text-sm" x-show="!isOpen"></i>
             <i class="fa-solid fa-xmark text-white text-sm" x-show="isOpen"></i>

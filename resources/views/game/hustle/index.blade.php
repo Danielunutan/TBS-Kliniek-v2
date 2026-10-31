@@ -37,13 +37,13 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2 mb-1 flex-wrap">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">
                             Gangencorridors
                         </span>
-                        <span class="text-[9px] font-extrabold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 px-2.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 inline-flex items-center gap-1">
+                        <span class="text-[9px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-md border border-amber-200/80 dark:border-amber-800/70 inline-flex items-center gap-1">
                             <i class="fa-solid fa-wand-magic-sparkles text-[8px]"></i> +{{ $statBonus ?? 0 }}% Slagingskans Bonus
                         </span>
-                        <span class="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+                        <span class="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-md border border-emerald-200/80 dark:border-emerald-800/70">
                             20% Kogel Drop
                         </span>
                     </div>
@@ -58,25 +58,25 @@
 
             <!-- Vitals Pills -->
             <div class="grid grid-cols-2 sm:grid-cols-4 md:flex items-center gap-2 shrink-0">
-                <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/70 rounded-xl px-3 py-1.5 text-center">
+                <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 rounded-xl px-3 py-1.5 text-center">
                     <span class="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-400 block">Energie</span>
                     <span class="text-xs sm:text-sm font-black text-emerald-800 dark:text-emerald-300 font-mono">
                         {{ $character->energy }}<span class="text-[10px] text-emerald-500 font-semibold">/{{ $character->max_energy }}</span>
                     </span>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-xl px-3 py-1.5 text-center">
+                <div class="bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 rounded-xl px-3 py-1.5 text-center">
                     <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">Contant</span>
                     <span class="text-xs sm:text-sm font-black text-amber-800 dark:text-amber-300 font-mono">
                         €{{ $character->cash >= 1000000 ? number_format($character->cash / 1000000, 1) . 'M' : number_format($character->cash, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/70 rounded-xl px-3 py-1.5 text-center">
+                <div class="bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 rounded-xl px-3 py-1.5 text-center">
                     <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-400 block">Respect</span>
                     <span class="text-xs sm:text-sm font-black text-purple-800 dark:text-purple-300 font-mono">
                         {{ number_format($character->respect, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-center">
+                <div class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 rounded-xl px-3 py-1.5 text-center">
                     <span class="text-[9px] font-black uppercase text-slate-500 dark:text-slate-400 block">Kogels</span>
                     <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono">
                         {{ number_format($character->bullets ?? 0, 0, ',', '.') }}
@@ -86,7 +86,7 @@
         </div>
 
         <!-- Cooldown Notification Banner -->
-        <div x-show="seconds > 0" class="mt-5 p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style="{{ $hustleCooldown > 0 ? '' : 'display: none;' }}">
+        <div x-show="seconds > 0" class="mt-5 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style="{{ $hustleCooldown > 0 ? '' : 'display: none;' }}">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
                     <i class="fa-solid fa-clock"></i>
@@ -101,7 +101,7 @@
             <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full sm:w-auto">
                 @csrf
                 <input type="hidden" name="action" value="hustle">
-                <button type="submit" class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <button type="submit" class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl font-black text-slate-900 dark:text-white text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-star text-[11px]"></i>
                     <span>Omzeilen (10 Sterren)</span>
                 </button>
@@ -115,20 +115,20 @@
         @php
             $hasEnergy = $character->energy >= $h['cost'];
             $riskBg = match($h['risk_level'] ?? 'medium') {
-                'low' => 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-                'medium' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
-                'high' => 'bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800',
-                'extreme' => 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800',
-                default => 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+                'low' => 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/70',
+                'medium' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/70',
+                'high' => 'bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700',
+                'extreme' => 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/70',
+                default => 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700',
             };
         @endphp
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/80 rounded-2xl p-5 shadow-xs transition flex flex-col justify-between gap-4 group">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 shadow-xs transition-all duration-200 flex flex-col justify-between gap-4 group">
             
             <div class="space-y-3">
                 <!-- Header with Icon & Tier -->
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="fa-solid {{ $h['icon'] ?? 'fa-handshake' }}"></i>
                         </div>
                         <div>
@@ -166,11 +166,11 @@
 
                 <!-- Reward Badges -->
                 <div class="grid grid-cols-2 gap-1.5 pt-1 text-[11px]">
-                    <div class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 font-black text-emerald-700 dark:text-emerald-400 font-mono flex items-center gap-1.5">
+                    <div class="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 font-black text-emerald-700 dark:text-emerald-300 font-mono flex items-center gap-1.5">
                         <i class="fa-solid fa-sack-dollar text-[10px]"></i>
                         <span>€{{ number_format($h['cash_min'], 0, ',', '.') }} - €{{ number_format($h['cash_max'], 0, ',', '.') }}</span>
                     </div>
-                    <div class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 font-black text-purple-700 dark:text-purple-300 font-mono flex items-center gap-1.5">
+                    <div class="px-2.5 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 font-black text-purple-700 dark:text-purple-300 font-mono flex items-center gap-1.5">
                         <i class="fa-solid fa-bolt text-[10px]"></i>
                         <span>+{{ $h['xp'] }} XP &bull; +{{ $h['respect'] }} Resp</span>
                     </div>
@@ -193,8 +193,8 @@
                 <input type="hidden" name="hustle_id" value="{{ $h['id'] }}">
                 <button type="submit" 
                         :disabled="seconds > 0 || {{ $hasEnergy ? 'false' : 'true' }}"
-                        :class="seconds > 0 || !{{ $hasEnergy ? 'true' : 'false' }} ? 'opacity-40 cursor-not-allowed bg-slate-300 dark:bg-slate-800 text-slate-500' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer active:scale-95 shadow-xs'"
-                        class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                        :class="seconds > 0 || !{{ $hasEnergy ? 'true' : 'false' }} ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs'"
+                        class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                     <span class="flex items-center gap-1">
                         <i class="fa-solid fa-bolt text-[10px]"></i> {{ $h['cost'] }} Energie
                     </span>

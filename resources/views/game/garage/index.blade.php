@@ -7,7 +7,7 @@
 <div class="space-y-6" x-data="{ tab: 'showroom' }">
 
     <!-- HERO HEADER -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div class="flex items-center gap-3.5">
                 <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
@@ -26,12 +26,12 @@
 
             <div class="flex items-center gap-2 shrink-0">
                 <a href="{{ route('marketplace.index', ['type' => 'vehicle']) }}" 
-                   class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 active:scale-95">
+                   class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-2 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-shop text-xs text-purple-500"></i>
                     <span>Marktplaats</span>
                 </a>
                 <a href="{{ route('heists.index') }}" 
-                   class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 active:scale-95">
+                   class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-2 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-mask text-xs"></i>
                     <span>Naar Grote Heists</span>
                 </a>
@@ -41,26 +41,26 @@
         <!-- QUICK TAB TOGGLE -->
         <div class="flex items-center gap-2 pt-6 border-t border-slate-100 dark:border-slate-800 mt-6 overflow-x-auto no-scrollbar">
             <button type="button" @click="tab = 'showroom'" 
-                    :class="tab === 'showroom' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
+                    :class="tab === 'showroom' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
                 <i class="fa-solid fa-arrows-rotate"></i>
                 <span>Roterende Showroom ({{ count($rotatingListings) }})</span>
             </button>
             <button type="button" @click="tab = 'stars'" 
-                    :class="tab === 'stars' ? 'bg-amber-500 text-slate-950 shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
+                    :class="tab === 'stars' ? 'btn-star-gold text-slate-950 shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
                 <i class="fa-solid fa-star" :class="tab === 'stars' ? 'text-slate-950' : 'text-amber-500 dark:text-amber-400'"></i>
                 <span>Sterren Showroom ⭐ ({{ count($starVehicles) }})</span>
             </button>
             <button type="button" @click="tab = 'garage'" 
-                    :class="tab === 'garage' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
+                    :class="tab === 'garage' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
                 <i class="fa-solid fa-key"></i>
                 <span>Mijn Wagenpark ({{ count($ownedVehicles) }}/{{ $character->getGarageCapacity() }})</span>
             </button>
             @if(isset($gangStoredVehicles) && $gangStoredVehicles->isNotEmpty())
             <a href="{{ route('gangs.garage') }}" 
-               class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 font-bold"
+               class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 font-bold"
                title="Voertuigen die je hebt gestald in de Bende Garage">
                 <i class="fa-solid fa-warehouse text-purple-600 dark:text-purple-400"></i>
                 <span>In Bende Garage ({{ $gangStoredVehicles->count() }})</span>
@@ -71,7 +71,7 @@
 
     <!-- ACTIVE GETAWAY VEHICLE STATUS (IF OWNED) -->
     @if($activeVehicle)
-    <div class="rounded-2xl p-6 shadow-xs border border-purple-200 dark:border-purple-800/60 relative overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+    <div class="rounded-2xl p-6 shadow-xs border border-purple-200/90 dark:border-purple-800/70 relative overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
         <div class="absolute -right-8 -bottom-8 opacity-5 dark:opacity-10 text-9xl text-slate-900 dark:text-white pointer-events-none">
             <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
         </div>
@@ -101,7 +101,7 @@
             <!-- GAUGE METRICS & REPAIR BUTTON -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
                 <!-- Snelheid Meter -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 shadow-2xs">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 shadow-2xs">
                     <div class="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
                         <i class="fa-solid fa-gauge-high text-amber-500"></i> Effectieve Snelheid
                     </div>
@@ -112,7 +112,7 @@
                 </div>
 
                 <!-- Conditie Meter -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 shadow-2xs">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 shadow-2xs">
                     <div class="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
                         <i class="fa-solid fa-wrench text-emerald-500"></i> Conditie
                     </div>
@@ -129,7 +129,7 @@
                 <form action="{{ route('garage.repair', $activeVehicle->id) }}" method="POST" class="shrink-0 flex items-center">
                     @csrf
                     <button type="submit" 
-                            class="w-full sm:w-auto px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+                            class="w-full sm:w-auto px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-screwdriver-wrench"></i>
                         <span>Reviseren (€{{ number_format($activeVehicle->repair_cost, 0, ',', '.') }})</span>
                     </button>
@@ -144,7 +144,7 @@
     <div x-show="tab === 'showroom'" class="space-y-4">
 
         <!-- ROTATIE HEADER BANNER MET LIVE COUNTDOWN -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-900 dark:text-white"
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-900 dark:text-white"
              x-data="{
                  secondsLeft: {{ $secondsUntilRotation }},
                  formatTime(sec) {
@@ -180,7 +180,7 @@
             </div>
 
             <!-- Timer Badge -->
-            <div class="flex items-center gap-3 shrink-0 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 shadow-2xs">
+            <div class="flex items-center gap-3 shrink-0 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-4 py-2.5 shadow-2xs">
                 <i class="fa-regular fa-clock text-purple-600 dark:text-purple-400 text-sm"></i>
                 <div>
                     <span class="text-[9px] uppercase tracking-wider text-slate-400 dark:text-slate-400 font-extrabold block">Volgende Lading Binnen</span>
@@ -207,7 +207,7 @@
                 $isDiscounted = $priceCash < $item['original_price_cash'];
                 $discountPct = $isDiscounted ? round((1 - ($priceCash / $item['original_price_cash'])) * 100) : 0;
             @endphp
-            <div class="bg-white dark:bg-slate-900 border {{ $isOwned ? 'border-purple-300 dark:border-purple-600 ring-2 ring-purple-400/20' : 'border-slate-200 dark:border-slate-800' }} hover:border-purple-400 dark:hover:border-purple-500 rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4 transition group">
+            <div class="bg-white dark:bg-slate-900 border {{ $isOwned ? 'border-purple-300 dark:border-purple-600 ring-2 ring-purple-400/20' : 'border-slate-200/90 dark:border-slate-800' }} hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4 transition group">
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform shadow-2xs">
@@ -321,7 +321,7 @@
                                 @csrf
                                 <input type="hidden" name="listing_token" value="{{ $token }}">
                                 <button type="submit" 
-                                        class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                        class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-cart-shopping text-xs"></i>
                                     <span>Koop Deze Aanbieding</span>
                                 </button>
@@ -337,7 +337,7 @@
     <!-- TAB: EXCLUSIEVE STERREN SHOWROOM -->
     <div x-show="tab === 'stars'" class="space-y-4">
         <!-- VIP PRESTIGE HEADER -->
-        <div class="rounded-2xl p-6 text-slate-900 dark:text-white border border-amber-400/50 shadow-lg relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent">
+        <div class="rounded-2xl p-6 text-slate-900 dark:text-white border border-amber-400/50 dark:border-amber-500/40 shadow-xs relative overflow-hidden bg-white dark:bg-slate-900">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
@@ -351,7 +351,7 @@
                         Deze unieke high-tier voertuigen zijn niet met contant geld te koop. Ze bieden extreme prestaties, titanium bepantsering en ongeëvenaarde heist-bonussen.
                     </p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/40 rounded-xl px-4 py-3 shrink-0 shadow-sm text-center">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-amber-300 dark:border-amber-500/40 rounded-xl px-4 py-3 shrink-0 shadow-2xs text-center">
                     <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Jouw Sterrensaldo</div>
                     <div class="text-xl font-black text-amber-500 font-mono flex items-center justify-center gap-1.5 mt-0.5">
                         <i class="fa-solid fa-star text-base"></i>
@@ -371,7 +371,7 @@
                 $isStarOwned = in_array($sVeh->id, $ownedVehicleIds);
                 $hasEnoughStars = ($character->stars ?? 0) >= $sVeh->price_stars;
             @endphp
-            <div class="bg-white dark:bg-slate-900 border border-amber-300/60 dark:border-amber-500/30 hover:border-amber-400 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-4 relative overflow-hidden group">
+            <div class="bg-white dark:bg-slate-900 border border-amber-300/60 dark:border-amber-500/30 hover:border-amber-400 dark:hover:border-amber-400 rounded-2xl p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between gap-4 relative overflow-hidden group">
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div class="w-13 h-13 rounded-2xl bg-amber-500/10 border border-amber-400/30 text-amber-500 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition">
@@ -392,7 +392,7 @@
 
                     <!-- STATS -->
                     <div class="grid grid-cols-2 gap-2 pt-1">
-                        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 space-y-1">
+                        <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2.5 space-y-1">
                             <div class="flex items-center justify-between text-[11px] font-bold">
                                 <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
                                     <i class="fa-solid fa-gauge-high text-amber-500 text-[10px]"></i> Snelheid
@@ -404,7 +404,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 space-y-1">
+                        <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2.5 space-y-1">
                             <div class="flex items-center justify-between text-[11px] font-bold">
                                 <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
                                     <i class="fa-solid fa-shield-halved text-emerald-500 text-[10px]"></i> Betrouwbaarheid
@@ -431,7 +431,7 @@
                             <input type="hidden" name="payment" value="stars">
                             <button type="submit" 
                                     @if(! $hasEnoughStars) disabled @endif
-                                    class="w-full py-2.5 px-4 rounded-xl {{ $hasEnoughStars ? 'bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black cursor-pointer shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold cursor-not-allowed' }} text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                                    class="w-full py-2.5 px-4 rounded-xl {{ $hasEnoughStars ? 'btn-star-gold text-slate-950 font-black cursor-pointer shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold cursor-not-allowed' }} text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-star"></i>
                                 @if($hasEnoughStars)
                                     <span>Koop voor {{ $sVeh->price_stars }} Sterren</span>
@@ -450,7 +450,7 @@
     <!-- TAB 2: MIJN WAGENPARK -->
     <div x-show="tab === 'garage'" class="space-y-4">
         @if($ownedVehicles->isEmpty())
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-3">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-12 text-center space-y-3">
                 <div class="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mx-auto shadow-xs">
                     <i class="fa-solid fa-warehouse"></i>
                 </div>
@@ -458,17 +458,17 @@
                 <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                     Koop een vluchtwagen in de showroom om Grote Heists te kunnen starten en met volle snelheid de politie af te schudden!
                 </p>
-                <button type="button" @click="tab = 'showroom'" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs cursor-pointer">
+                <button type="button" @click="tab = 'showroom'" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
                     Showroom Bekijken
                 </button>
             </div>
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($ownedVehicles as $ov)
-                <div class="bg-white dark:bg-slate-900 border {{ $ov->is_active ? 'border-emerald-400 dark:border-emerald-500 ring-2 ring-emerald-400/20' : 'border-slate-200 dark:border-slate-800' }} rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4">
+                <div class="bg-white dark:bg-slate-900 border {{ $ov->is_active ? 'border-emerald-400 dark:border-emerald-500 ring-2 ring-emerald-400/20' : 'border-slate-200/90 dark:border-slate-800' }} rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4">
                     <div class="space-y-3">
                         <div class="flex items-start justify-between gap-2">
-                            <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl shrink-0">
+                            <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl shrink-0">
                                 <i class="fa-solid {{ $ov->vehicle->icon }}"></i>
                             </div>
                             <div>
@@ -479,7 +479,7 @@
                                 @else
                                     <form action="{{ route('garage.set-active', $ov->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[10px] transition cursor-pointer">
+                                        <button type="submit" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 font-bold text-[10px] transition-all duration-150 active:scale-95 cursor-pointer">
                                             Kies als Actief
                                         </button>
                                     </form>
@@ -522,7 +522,7 @@
                             <form action="{{ route('garage.repair', $ov->id) }}" method="POST">
                                 @csrf
                                 <button type="submit" 
-                                        class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                                        class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
                                     <i class="fa-solid fa-wrench text-xs"></i>
                                     <span>Reviseren (€{{ number_format($ov->repair_cost, 0, ',', '.') }})</span>
                                 </button>

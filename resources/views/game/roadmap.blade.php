@@ -18,7 +18,7 @@
     
 
     <!-- Clean TBS Kliniek Title Banner -->
-    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/90 dark:border-slate-800 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div class="flex items-start sm:items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/70 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
@@ -58,13 +58,13 @@
         <!-- Main Tab Navigation -->
         <div class="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2">
             <button type="button" @click="activeTab = 'planned'"
-                    :class="activeTab === 'planned' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
+                    :class="activeTab === 'planned' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2">
                 <i class="fa-solid fa-rocket text-xs"></i>
                 <span>Geplande Features & Stemmen ({{ count($features) }})</span>
             </button>
             <button type="button" @click="activeTab = 'completed'"
-                    :class="activeTab === 'completed' ? 'bg-emerald-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
+                    :class="activeTab === 'completed' ? 'bg-emerald-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2">
                 <i class="fa-solid fa-circle-check text-xs"></i>
                 <span>Recent Uitgebracht & Live ({{ count($completedFeatures) }})</span>
@@ -75,25 +75,25 @@
     <!-- TAB 1: PLANNED FEATURES -->
     <div x-show="activeTab === 'planned'" class="space-y-6">
         <!-- Filter Bar & Helper Notice -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-1.5 text-xs">
                 <button @click="phaseFilter = 'all'"
-                    :class="phaseFilter === 'all' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                    :class="phaseFilter === 'all' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-3.5 py-1.5 rounded-xl transition cursor-pointer">
                     Alles ({{ count($features) }})
                 </button>
                 <button @click="phaseFilter = 'fase1'"
-                    :class="phaseFilter === 'fase1' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                    :class="phaseFilter === 'fase1' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-fire text-[10px]" :class="phaseFilter === 'fase1' ? 'text-amber-300' : 'text-amber-500 dark:text-amber-300'"></i> Fase 1: Binnenkort
                 </button>
                 <button @click="phaseFilter = 'fase2'"
-                    :class="phaseFilter === 'fase2' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                    :class="phaseFilter === 'fase2' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-clock text-[10px]"></i> Fase 2: Gepland
                 </button>
                 <button @click="phaseFilter = 'fase3'"
-                    :class="phaseFilter === 'fase3' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                    :class="phaseFilter === 'fase3' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-lightbulb text-[10px]" :class="phaseFilter === 'fase3' ? 'text-amber-300' : 'text-amber-500 dark:text-amber-300'"></i> Fase 3: Toekomst
                 </button>
@@ -109,7 +109,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($features as $featureKey => $f)
             <div x-show="matches({ phase: '{{ $f['phase'] }}' })"
-                class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-200 flex flex-col justify-between p-5 sm:p-6 {{ $f['has_voted'] ? 'ring-2 ring-purple-400/40 bg-purple-50/10 dark:bg-purple-950/20' : '' }}">
+                class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 flex flex-col justify-between p-5 sm:p-6 {{ $f['has_voted'] ? 'ring-2 ring-purple-400/40 bg-purple-50/10 dark:bg-purple-950/20' : '' }}">
                 
                 <div class="space-y-3.5">
                     <!-- Header with Icon & Badges -->
@@ -143,7 +143,7 @@
                     </p>
 
                     <!-- Kernonderdelen Checklist Box -->
-                    <div class="bg-slate-50/80 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800 space-y-1.5">
+                    <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
                         <span class="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider block">Kernonderdelen:</span>
                         <ul class="space-y-1 text-xs text-slate-700 dark:text-slate-300 font-medium">
                             @foreach($f['highlights'] as $highlight)
@@ -159,7 +159,7 @@
                 <!-- Card Footer: Votes & Action Button -->
                 <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 mt-4 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 text-xs">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-black text-slate-800 dark:text-slate-200 text-[11px]">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 font-black text-slate-800 dark:text-slate-200 text-[11px]">
                             <i class="fa-solid fa-fire text-amber-500 text-[10px]"></i>
                             <span>{{ number_format($f['votes'], 0, ',', '.') }} Stemmen</span>
                         </span>
@@ -173,13 +173,13 @@
                         @csrf
                         @if($f['has_voted'])
                         <button type="submit" 
-                            class="px-3.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-200 font-extrabold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            class="px-3.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-800 dark:text-purple-200 font-extrabold text-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400"></i>
                             <span>Gestemd! (Klik om in te trekken)</span>
                         </button>
                         @else
                         <button type="submit" 
-                            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+                            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 flex items-center gap-1.5 cursor-pointer shadow-xs">
                             <i class="fa-solid fa-thumbs-up text-amber-300 text-[10px]"></i>
                             <span>Stem op deze feature</span>
                         </button>
@@ -203,7 +203,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($completedFeatures as $compKey => $c)
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between p-5 sm:p-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between p-5 sm:p-6">
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex items-start gap-3.5 min-w-0">
@@ -241,7 +241,7 @@
                     </span>
 
                     @if(\Illuminate\Support\Facades\Route::has($c['route']))
-                    <a href="{{ route($c['route']) }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition inline-flex items-center gap-1.5 shadow-xs">
+                    <a href="{{ route($c['route']) }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
                         <span>{{ $c['action_label'] }}</span>
                         <i class="fa-solid fa-arrow-right text-[10px]"></i>
                     </a>
@@ -253,7 +253,7 @@
     </div>
 
     <!-- Suggestion Box Bottom -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="flex items-start gap-3.5">
             <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/70 border border-purple-100 dark:border-purple-800/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
                 <i class="fa-solid fa-lightbulb"></i>
@@ -267,7 +267,7 @@
         </div>
 
         <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-            <a href="{{ route('help.tickets.create') }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition text-center shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer">
+            <a href="{{ route('help.tickets.create') }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 text-center shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-paper-plane text-[10px]"></i>
                 <span>Suggestie Indienen</span>
             </a>

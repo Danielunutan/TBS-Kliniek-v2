@@ -279,8 +279,8 @@
                         <!-- Spin Button -->
                         <div class="max-w-xs mx-auto">
                             <button type="button" @click="spinWheel()" :disabled="isSpinning"
-                                    class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg"
-                                    :class="isSpinning ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.6)] cursor-pointer active:scale-95'">
+                                    class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 shadow-xs"
+                                    :class="isSpinning ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-95'">
                                 <i class="fa-solid fa-dharmachakra" :class="isSpinning ? 'fa-spin' : ''"></i>
                                 <span x-text="isSpinning ? 'BEZIG MET DRAAIEN...' : 'DRAAI HACKER SPINNER'"></span>
                             </button>
@@ -305,9 +305,9 @@
         <div class="lg:col-span-4 space-y-6">
 
             <!-- 10 REWARDS LEGEND CARD -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800 p-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-5 space-y-4">
                 <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
-                    <span class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-black">
+                    <span class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center justify-center text-xs font-black">
                         <i class="fa-solid fa-gift"></i>
                     </span>
                     <div>
@@ -318,7 +318,7 @@
 
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     @foreach($wheelSectors as $sec)
-                        <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                        <div class="p-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center gap-2">
                             <span class="text-base shrink-0">{{ $sec['emoji'] }}</span>
                             <div class="min-w-0">
                                 <span class="font-extrabold text-slate-900 dark:text-white block truncate">{{ $sec['short'] }}</span>
@@ -329,7 +329,7 @@
                 </div>
 
                 <!-- VIP Perk Note -->
-                <div class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-xs space-y-1">
+                <div class="p-3 rounded-xl bg-purple-50/80 dark:bg-slate-800/60 border border-purple-200/80 dark:border-purple-800/70 text-xs space-y-1">
                     <div class="flex items-center gap-1.5 font-black text-purple-700 dark:text-purple-300">
                         <i class="fa-solid fa-crown text-amber-500"></i>
                         <span>Exclusieve VIP Bonus</span>
@@ -341,10 +341,10 @@
             </div>
 
             <!-- RECENT TERMINAL HACKS FEED -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800 p-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-5 space-y-4">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                     <div class="flex items-center gap-2.5">
-                        <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center text-xs font-black">
+                        <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-xs font-black">
                             <i class="fa-solid fa-list-check"></i>
                         </span>
                         <div>
@@ -357,7 +357,7 @@
 
                 <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
                     @forelse($recentLogs as $log)
-                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 text-xs">
+                        <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-3 text-xs">
                             <div class="min-w-0">
                                 <span class="font-extrabold text-slate-900 dark:text-white block truncate">
                                     {{ $log->character?->name ?? 'Onbekende Hacker' }}

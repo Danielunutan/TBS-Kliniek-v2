@@ -38,7 +38,7 @@
 
     <!-- Top Hero Banner Card -->
     <!-- Top Hero Banner Card (High-Contrast, Readable in Both Light and Dark Mode) -->
-    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
         <div class="min-h-[220px] sm:min-h-[240px] md:h-64 w-full overflow-hidden relative bg-purple-950 flex flex-col justify-between p-4 sm:p-6">
             <img src="{{ $gang->banner_url }}" alt="{{ $gang->name }} Banner" class="absolute inset-0 w-full h-full object-cover">
             <!-- Dark gradient overlay ensuring text on banner is ALWAYS 100% crystal clear in both light and dark modes -->
@@ -126,7 +126,7 @@
         </div>
 
         <!-- Call-to-action toolbar below banner -->
-        <div class="px-6 py-3.5 bg-slate-50/80 dark:bg-slate-900/60 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+        <div class="px-6 py-3.5 bg-slate-50/90 dark:bg-slate-800/60 border-t border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
                 <span>Openbaar Bende Profiel</span>
@@ -135,16 +135,16 @@
             <!-- Call-to-action buttons for the viewer -->
             <div class="flex items-center gap-2.5 shrink-0">
                 @if($isMyGang)
-                    <span class="px-3.5 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-black text-xs inline-flex items-center gap-1.5 border border-purple-200 dark:border-purple-800">
-                        <i class="fa-solid fa-check text-purple-600"></i> Jouw Bende
+                    <span class="px-3.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-black text-xs inline-flex items-center gap-1.5 border border-purple-200/80 dark:border-purple-800/70">
+                        <i class="fa-solid fa-check text-purple-600 dark:text-purple-400"></i> Jouw Bende
                     </span>
-                    <a href="{{ route('gangs.index') }}" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2">
+                    <a href="{{ route('gangs.index') }}" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved"></i>
                         <span>Bende Dashboard</span>
                     </a>
                 @elseif(! $character->gang_id)
                     @if($hasPendingRequest)
-                        <span class="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-extrabold text-xs inline-flex items-center gap-2 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                        <span class="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-extrabold text-xs inline-flex items-center gap-2 border border-amber-200/80 dark:border-amber-800/70 shadow-2xs">
                             <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
                             <span>Aanvraag In Behandeling</span>
                         </span>
@@ -152,19 +152,19 @@
                         @if(($character->respect ?? 0) >= ($gang->min_respect ?? 0))
                             <form action="{{ route('gangs.request-join', $gang->id) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 cursor-pointer">
+                                <button type="submit" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                                     <i class="fa-solid fa-user-plus"></i>
                                     <span>Lidmaatschap Aanvragen</span>
                                 </button>
                             </form>
                         @else
-                            <button type="button" disabled class="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-not-allowed" title="Je hebt minimaal {{ number_format($gang->min_respect, 0, ',', '.') }} respect nodig">
+                            <button type="button" disabled class="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 font-bold text-xs border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-2 cursor-not-allowed" title="Je hebt minimaal {{ number_format($gang->min_respect, 0, ',', '.') }} respect nodig">
                                 <i class="fa-solid fa-lock"></i>
                                 <span>Min. {{ number_format($gang->min_respect, 0, ',', '.') }} Respect Vereist</span>
                             </button>
                         @endif
                     @else
-                        <span class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs inline-flex items-center gap-2 border border-slate-200 dark:border-slate-700">
+                        <span class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 font-bold text-xs inline-flex items-center gap-2 border border-slate-200/80 dark:border-slate-700/60">
                             <i class="fa-solid fa-lock"></i>
                             <span>Lidmaatschap Gesloten</span>
                         </span>
@@ -172,12 +172,12 @@
                 @else
                     <!-- Viewer is member of another gang -->
                     @if($character->gang && in_array($character->gang_role, ['leader', 'co_leader']))
-                        <a href="{{ route('gangs.index', ['tab' => 'oorlog']) }}" class="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2">
+                        <a href="{{ route('gangs.index', ['tab' => 'oorlog']) }}" class="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-crosshairs"></i>
                             <span>Bende Oorlog</span>
                         </a>
                     @else
-                        <span class="px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-bold text-xs inline-flex items-center gap-2 border border-slate-200 dark:border-slate-800">
+                        <span class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs inline-flex items-center gap-2 border border-slate-200/80 dark:border-slate-700">
                             <i class="fa-solid fa-shield text-purple-500"></i>
                             <span>Lid van [{{ $character->gang->tag }}]</span>
                         </span>
@@ -190,38 +190,38 @@
     <!-- 6 KEY STATS CARDS -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <!-- Totaal Respect -->
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">BENDE RESPECT</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">BENDE RESPECT</span>
             <div class="flex items-center justify-center gap-1.5 text-purple-700 dark:text-purple-400 text-lg font-black font-mono">
                 <i class="fa-solid fa-fire text-xs text-purple-500"></i>
                 <span>{{ number_format($totalRespect, 0, ',', '.') }}</span>
             </div>
-            <span class="text-[10px] text-slate-400 block font-medium">Collectieve reputatie</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Collectieve reputatie</span>
         </div>
 
         <!-- Bende Kas (Treasury) -->
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">BENDE KAS</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">BENDE KAS</span>
             <div class="flex items-center justify-center gap-1.5 text-emerald-700 dark:text-emerald-400 text-lg font-black font-mono">
                 <i class="fa-solid fa-vault text-xs text-emerald-600"></i>
                 <span>€{{ number_format($gang->treasury, 0, ',', '.') }}</span>
             </div>
-            <span class="text-[10px] text-slate-400 block font-medium">Gezamenlijke kluis</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Gezamenlijke kluis</span>
         </div>
 
         <!-- Uurloon Bonus -->
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">UURLOON</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">UURLOON</span>
             <div class="flex items-center justify-center gap-1 text-amber-700 dark:text-amber-400 text-lg font-black font-mono">
                 <i class="fa-solid fa-coins text-xs text-amber-500"></i>
                 <span>€{{ number_format($hourlyWage, 0, ',', '.') }}</span>
             </div>
-            <span class="text-[10px] text-slate-400 block font-medium">Dag: €{{ number_format($dailyWage, 0, ',', '.') }}</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Dag: €{{ number_format($dailyWage, 0, ',', '.') }}</span>
         </div>
 
         <!-- Leden & Online -->
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">LEDEN</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">LEDEN</span>
             <div class="flex items-center justify-center gap-1.5 text-blue-700 dark:text-blue-400 text-lg font-black font-mono">
                 <i class="fa-solid fa-users text-xs text-blue-500"></i>
                 <span>{{ $gang->members->count() }}/{{ $gang->max_members ?? 10 }}</span>
@@ -230,23 +230,23 @@
         </div>
 
         <!-- Smokkelkiosken -->
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">SMOKKELKIOSKEN</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">SMOKKELKIOSKEN</span>
             <div class="flex items-center justify-center gap-1.5 text-purple-700 dark:text-purple-400 text-lg font-black font-mono">
                 <i class="fa-solid fa-store text-xs text-purple-500"></i>
                 <span>{{ $gang->bling_shops ?? 0 }}</span>
             </div>
-            <span class="text-[10px] text-slate-400 block font-medium">+€100/u per kiosk</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">+€100/u per kiosk</span>
         </div>
 
         <!-- Panden / Vastgoed -->
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">BENDE PANDEN</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">BENDE PANDEN</span>
             <div class="flex items-center justify-center gap-1.5 text-indigo-700 dark:text-indigo-400 text-lg font-black font-mono">
                 <i class="fa-solid fa-building text-xs text-indigo-500"></i>
                 <span>{{ $gang->properties->count() }}</span>
             </div>
-            <span class="text-[10px] text-slate-400 block font-medium">Kliniek vastgoed</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Kliniek vastgoed</span>
         </div>
     </div>
 
@@ -257,23 +257,23 @@
         <div class="lg:col-span-8 space-y-6">
 
             <!-- Bende Manifest / Beschrijving -->
-            <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-3">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-scroll text-purple-600 dark:text-purple-400"></i>
                         <span>Bende Manifest & Omschrijving</span>
                     </h3>
-                    <span class="text-[10px] font-mono font-bold text-slate-400">
+                    <span class="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500">
                         Specialiteit: {{ $gang->specialty ?: 'Kantine Controle' }}
                     </span>
                 </div>
-                <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed italic bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed italic bg-slate-50/90 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
                     {{ $gang->description ?: 'Deze bende heeft nog geen publiek manifest of omschrijving achtergelaten, medepatiënt.' }}
                 </div>
             </div>
 
             <!-- ALLE LEDEN Table with Live Search & Online Toggle -->
-            <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
                         <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i>
@@ -284,8 +284,8 @@
                     <div class="flex items-center gap-2">
                         <button type="button" 
                                 @click="onlyOnline = !onlyOnline" 
-                                :class="onlyOnline ? 'bg-emerald-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
-                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
+                                :class="onlyOnline ? 'bg-emerald-600 text-white font-black shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold border border-slate-200/80 dark:border-slate-700'"
+                                class="px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5">
                             <span class="w-2 h-2 rounded-full" :class="onlyOnline ? 'bg-emerald-100' : 'bg-emerald-500 animate-pulse'"></span>
                             <span>Online ({{ $onlineMembersCount }})</span>
                         </button>
@@ -294,7 +294,7 @@
                             <input type="text" 
                                    x-model="memberSearch" 
                                    placeholder="Zoek bendelid..." 
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:border-purple-600 transition">
+                                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl pl-7 pr-6 py-1.5 text-xs focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             <button type="button" x-show="memberSearch" @click="memberSearch = ''" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-[10px]">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
@@ -305,7 +305,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <tr class="bg-slate-50/90 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-extrabold uppercase tracking-wider">
                                 <th class="py-2.5 px-3">PATIËNT</th>
                                 <th class="py-2.5 px-3">ROL</th>
                                 <th class="py-2.5 px-3 text-right">LEVEL</th>
@@ -315,7 +315,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
                             <template x-for="member in list" :key="member.id">
-                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                                     <td class="py-3 px-3">
                                         <div class="flex items-center gap-3">
                                             <a :href="member.profile_url" class="relative shrink-0">
@@ -327,7 +327,7 @@
                                             </a>
                                             <div>
                                                 <a :href="member.profile_url" class="font-bold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition" x-text="member.name"></a>
-                                                <span class="text-[10px] text-slate-400 block" x-text="member.is_online ? 'Nu online' : ('Actief ' + member.last_active_at)"></span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block" x-text="member.is_online ? 'Nu online' : ('Actief ' + member.last_active_at)"></span>
                                             </div>
                                         </div>
                                     </td>
@@ -345,11 +345,11 @@
                                     <td class="py-3 px-3 text-right font-extrabold text-purple-700 dark:text-purple-400 font-mono" x-text="member.respect_formatted"></td>
                                     <td class="py-3 px-3 text-right">
                                         <div class="inline-flex items-center gap-1.5 justify-end">
-                                            <a :href="member.message_url" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition inline-flex items-center gap-1" title="Stuur privébericht">
-                                                <i class="fa-solid fa-envelope text-[9px] text-purple-600"></i>
+                                            <a :href="member.message_url" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-[10px] font-bold transition-all duration-150 active:scale-95 inline-flex items-center gap-1" title="Stuur privébericht">
+                                                <i class="fa-solid fa-envelope text-[9px] text-purple-600 dark:text-purple-400"></i>
                                                 <span class="hidden sm:inline">Bericht</span>
                                             </a>
-                                            <a :href="member.profile_url" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition inline-flex items-center gap-1" title="Bekijk dossier">
+                                            <a :href="member.profile_url" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-[10px] font-bold transition-all duration-150 active:scale-95 inline-flex items-center gap-1" title="Bekijk dossier">
                                                 <i class="fa-solid fa-id-card text-[9px]"></i>
                                                 <span class="hidden sm:inline">Dossier</span>
                                             </a>
@@ -367,13 +367,13 @@
 
             <!-- Recente Bende Oorlogen / Veldslagen -->
             @if($recentAttacks->isNotEmpty())
-            <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-crosshairs text-rose-600 dark:text-rose-400"></i>
                         <span>Recente Veldslagen & Oorlogsgeschiedenis</span>
                     </h3>
-                    <span class="text-[10px] font-bold text-slate-400">
+                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                         Totaal: {{ $warsWon }} Overwinningen &bull; {{ $warsLost }} Nederlagen
                     </span>
                 </div>
@@ -381,7 +381,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <tr class="bg-slate-50/90 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-extrabold uppercase tracking-wider">
                                 <th class="py-2.5 px-3">AANVALLER</th>
                                 <th class="py-2.5 px-3">VERDEDIGER</th>
                                 <th class="py-2.5 px-3">UITSLAG</th>
@@ -395,14 +395,14 @@
                                     $isThisGangAttacker = $att->attacker_gang_id === $gang->id;
                                     $thisGangWon = ($isThisGangAttacker && $att->won) || (! $isThisGangAttacker && ! $att->won);
                                 @endphp
-                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                                     <td class="py-2.5 px-3">
                                         @if($att->attackerGang)
                                             <a href="{{ route('gangs.show', $att->attackerGang->id) }}" class="font-bold {{ $att->attacker_gang_id === $gang->id ? 'text-purple-600 dark:text-purple-400' : 'text-slate-800 dark:text-slate-200' }} hover:underline">
                                                 [{{ $att->attackerGang->tag }}] {{ $att->attackerGang->name }}
                                             </a>
                                         @else
-                                            <span class="text-slate-400 italic">Onbekend</span>
+                                            <span class="text-slate-400 dark:text-slate-500 italic">Onbekend</span>
                                         @endif
                                     </td>
                                     <td class="py-2.5 px-3">
@@ -411,16 +411,16 @@
                                                 [{{ $att->targetGang->tag }}] {{ $att->targetGang->name }}
                                             </a>
                                         @else
-                                            <span class="text-slate-400 italic">Onbekend</span>
+                                            <span class="text-slate-400 dark:text-slate-500 italic">Onbekend</span>
                                         @endif
                                     </td>
                                     <td class="py-2.5 px-3">
                                         @if($thisGangWon)
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70">
                                                 <i class="fa-solid fa-trophy text-[9px]"></i> Overwinning
                                             </span>
                                         @else
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70">
                                                 <i class="fa-solid fa-skull text-[9px]"></i> Nederlaag
                                             </span>
                                         @endif
@@ -429,10 +429,10 @@
                                         @if($att->stolen_cash > 0)
                                             €{{ number_format($att->stolen_cash, 0, ',', '.') }}
                                         @else
-                                            <span class="text-slate-400 font-normal">Geen</span>
+                                            <span class="text-slate-400 dark:text-slate-500 font-normal">Geen</span>
                                         @endif
                                     </td>
-                                    <td class="py-2.5 px-3 text-right text-[10px] text-slate-400">
+                                    <td class="py-2.5 px-3 text-right text-[10px] text-slate-400 dark:text-slate-500">
                                         {{ $att->created_at ? $att->created_at->diffForHumans() : '-' }}
                                     </td>
                                 </tr>
@@ -449,7 +449,7 @@
         <div class="lg:col-span-4 space-y-6">
 
             <!-- Bende Factsheet & Gegevens (Matches internal gang view) -->
-            <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-id-card-clip text-purple-600 dark:text-purple-400"></i>
@@ -472,7 +472,7 @@
                                 <i class="fa-solid fa-circle-check text-purple-600 text-[10px]"></i>
                             </a>
                         @else
-                            <span class="text-slate-400 italic">Onbekend</span>
+                            <span class="text-slate-400 dark:text-slate-500 italic">Onbekend</span>
                         @endif
                     </div>
 
@@ -482,25 +482,25 @@
                             <i class="fa-solid fa-box-open text-purple-600 dark:text-purple-400"></i> Kantine Smokkelaar
                         </span>
                         @if($gang->personalShopper)
-                            <a href="{{ route('profile.show', $gang->personalShopper->name) }}" class="font-bold text-slate-800 dark:text-slate-200 hover:text-purple-600">
+                            <a href="{{ route('profile.show', $gang->personalShopper->name) }}" class="font-bold text-slate-800 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400">
                                 {{ $gang->personalShopper->name }}
                             </a>
                         @else
-                            <span class="text-slate-400 italic">Nog niet aangewezen</span>
+                            <span class="text-slate-400 dark:text-slate-500 italic">Nog niet aangewezen</span>
                         @endif
                     </div>
 
                     <!-- Kasbeheerder -->
                     <div class="py-2.5 flex items-center justify-between">
                         <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <i class="fa-solid fa-vault text-emerald-600"></i> Kasbeheerder
+                            <i class="fa-solid fa-vault text-emerald-600 dark:text-emerald-400"></i> Kasbeheerder
                         </span>
                         @if($gang->moneyMagnet)
-                            <a href="{{ route('profile.show', $gang->moneyMagnet->name) }}" class="font-bold text-slate-800 dark:text-slate-200 hover:text-purple-600">
+                            <a href="{{ route('profile.show', $gang->moneyMagnet->name) }}" class="font-bold text-slate-800 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400">
                                 {{ $gang->moneyMagnet->name }}
                             </a>
                         @else
-                            <span class="text-slate-400 italic">Nog niet aangewezen</span>
+                            <span class="text-slate-400 dark:text-slate-500 italic">Nog niet aangewezen</span>
                         @endif
                     </div>
 
@@ -527,7 +527,7 @@
                     <!-- Power -->
                     <div class="py-2.5 flex items-center justify-between">
                         <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <i class="fa-solid fa-bolt-lightning text-purple-600"></i> Power
+                            <i class="fa-solid fa-bolt-lightning text-purple-600 dark:text-purple-400"></i> Power
                         </span>
                         <span class="font-bold text-purple-700 dark:text-purple-400 font-mono">
                             {{ number_format($gang->attack_power ?? 500, 2, ',', '.') }}
@@ -537,7 +537,7 @@
                     <!-- Bescherming -->
                     <div class="py-2.5 flex items-center justify-between">
                         <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <i class="fa-solid fa-shield-halved text-emerald-600"></i> Totale Bescherming
+                            <i class="fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400"></i> Totale Bescherming
                         </span>
                         <span class="font-bold text-emerald-700 dark:text-emerald-400 font-mono">
                             {{ number_format(($gang->protection_points ?? 1000) * 1.5, 2, ',', '.') }}
@@ -550,7 +550,7 @@
                             <i class="fa-solid fa-skull text-rose-500"></i> Oorlogsbalans
                         </span>
                         <span class="font-bold text-slate-900 dark:text-white">
-                            <span class="text-emerald-600">{{ $warsWon }} W</span> &bull; <span class="text-rose-600">{{ $warsLost }} V</span>
+                            <span class="text-emerald-600 dark:text-emerald-400">{{ $warsWon }} W</span> &bull; <span class="text-rose-600 dark:text-rose-400">{{ $warsLost }} V</span>
                         </span>
                     </div>
 
@@ -567,7 +567,7 @@
                     <!-- Oprichtingsdatum -->
                     <div class="py-2.5 flex items-center justify-between">
                         <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-days text-slate-400"></i> Opgericht op
+                            <i class="fa-solid fa-calendar-days text-slate-400 dark:text-slate-500"></i> Opgericht op
                         </span>
                         <span class="font-bold text-slate-700 dark:text-slate-300">
                             {{ $gang->created_at ? $gang->created_at->format('d-m-Y') : 'Onbekend' }}
@@ -577,13 +577,13 @@
             </div>
 
             <!-- Bondgenoten / Allianties Card -->
-            <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-handshake text-blue-500"></i>
                         <span>Bondgenoten</span>
                     </h4>
-                    <span class="text-[10px] font-bold text-slate-400">
+                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                         {{ $gang->alliances->count() }} actieve pacten
                     </span>
                 </div>
@@ -592,7 +592,7 @@
                     <div class="space-y-2">
                         @foreach($gang->alliances as $alliance)
                             @if($alliance->allyGang)
-                                <a href="{{ route('gangs.show', $alliance->allyGang->id) }}" class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <a href="{{ route('gangs.show', $alliance->allyGang->id) }}" class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all duration-150">
                                     <div class="flex items-center gap-2.5">
                                         <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-bold shrink-0">
                                             <i class="fa-solid {{ $alliance->allyGang->emblem ?? 'fa-crown' }}"></i>
@@ -602,10 +602,10 @@
                                                 <span>{{ $alliance->allyGang->name }}</span>
                                                 <span class="text-purple-600 dark:text-purple-400 font-mono text-[10px]">[{{ $alliance->allyGang->tag }}]</span>
                                             </div>
-                                            <span class="text-[10px] text-slate-400">{{ $alliance->allyGang->members->count() }} leden</span>
+                                            <span class="text-[10px] text-slate-400 dark:text-slate-500">{{ $alliance->allyGang->members->count() }} leden</span>
                                         </div>
                                     </div>
-                                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 dark:text-slate-500"></i>
                                 </a>
                             @endif
                         @endforeach
@@ -619,7 +619,7 @@
             </div>
 
             <!-- Bende Panden & Vastgoed Preview -->
-            <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-building text-indigo-600 dark:text-indigo-400"></i>
@@ -633,7 +633,7 @@
                 @if($gang->properties->isNotEmpty())
                     <div class="space-y-2">
                         @foreach($gang->properties->take(5) as $prop)
-                            <div class="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between text-xs">
+                            <div class="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 flex items-center justify-between text-xs">
                                 <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                                     <i class="fa-solid fa-building-wheat text-indigo-500 text-xs"></i>
                                     {{ $prop->name }}
@@ -644,7 +644,7 @@
                             </div>
                         @endforeach
                         @if($gang->properties->count() > 5)
-                            <span class="text-[10px] text-slate-400 text-center block pt-1">
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500 text-center block pt-1">
                                 +{{ $gang->properties->count() - 5 }} meer panden in eigendom
                             </span>
                         @endif

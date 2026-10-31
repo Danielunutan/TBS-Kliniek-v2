@@ -21,17 +21,17 @@
     </div>
 
     <!-- Main Card -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
         
         <!-- Header -->
-        <div class="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 bg-gradient-to-r from-purple-50/50 via-white to-indigo-50/30 dark:from-purple-950/20 dark:via-slate-900 dark:to-indigo-950/20">
+        <div class="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-800/80 flex items-start justify-between gap-4 bg-gradient-to-r from-purple-50/50 via-white to-indigo-50/30 dark:from-purple-950/20 dark:via-slate-900 dark:to-indigo-950/20">
             <div class="flex items-start gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-2xl shadow-md shadow-purple-600/20 shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
                     <i class="fa-solid fa-ticket-simple"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2 mb-1">
-                        <span class="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 text-[10px] font-black uppercase tracking-wider border border-purple-200 dark:border-purple-800">
+                        <span class="px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-black uppercase tracking-wider border border-purple-200/80 dark:border-purple-800/70">
                             Helpdesk & Support
                         </span>
                         <span class="text-[11px] text-slate-400 dark:text-slate-500 font-bold">&bull; Snelle Reactie</span>
@@ -62,8 +62,8 @@
                     <!-- Gang Overstap Bonus Card (Special Spotlight) -->
                     <button type="button" 
                             @click="selectCategory('gang_overstap')"
-                            :class="selectedCategory === 'gang_overstap' ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/70 dark:bg-amber-950/30' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:border-amber-300 dark:hover:border-amber-700'"
-                            class="p-4 rounded-2xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
+                            :class="selectedCategory === 'gang_overstap' ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/70 dark:bg-amber-950/40' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:border-amber-300 dark:hover:border-amber-700'"
+                            class="p-4 rounded-xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
                         <div class="flex items-center justify-between gap-2">
                             <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
                                 <i class="fa-solid fa-users-between-lines"></i>
@@ -86,9 +86,9 @@
                     <!-- Vraag over de Game -->
                     <button type="button" 
                             @click="selectCategory('vraag')"
-                            :class="selectedCategory === 'vraag' ? 'border-purple-500 ring-2 ring-purple-500/20 bg-purple-50/70 dark:bg-purple-950/30' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:border-purple-300 dark:hover:border-purple-700'"
-                            class="p-4 rounded-2xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                            :class="selectedCategory === 'vraag' ? 'border-purple-500 ring-2 ring-purple-500/20 bg-purple-50/70 dark:bg-purple-950/40' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:border-purple-300 dark:hover:border-purple-700'"
+                            class="p-4 rounded-xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
                             <i class="fa-solid fa-circle-question"></i>
                         </div>
                         <div>
@@ -97,15 +97,15 @@
                                 Vragen over functies, statistieken, missies, de bank of afdelingen.
                             </p>
                         </div>
-                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">Algemene hulp</span>
+                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/80">Algemene hulp</span>
                     </button>
 
                     <!-- Bug / Foutmelding -->
                     <button type="button" 
                             @click="selectCategory('bug')"
-                            :class="selectedCategory === 'bug' ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/70 dark:bg-rose-950/30' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:border-rose-300 dark:hover:border-rose-700'"
-                            class="p-4 rounded-2xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                            :class="selectedCategory === 'bug' ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/70 dark:bg-rose-950/40' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:border-rose-300 dark:hover:border-rose-700'"
+                            class="p-4 rounded-xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
                             <i class="fa-solid fa-bug"></i>
                         </div>
                         <div>
@@ -114,15 +114,15 @@
                                 Meld een technisch mankement, paginafout of vastloper in het spel.
                             </p>
                         </div>
-                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">Technisch probleem</span>
+                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/80">Technisch probleem</span>
                     </button>
 
                     <!-- Feedback & Suggesties -->
                     <button type="button" 
                             @click="selectCategory('feedback')"
-                            :class="selectedCategory === 'feedback' ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/70 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:border-indigo-300 dark:hover:border-indigo-700'"
-                            class="p-4 rounded-2xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                            :class="selectedCategory === 'feedback' ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/70 dark:bg-indigo-950/40' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:border-indigo-300 dark:hover:border-indigo-700'"
+                            class="p-4 rounded-xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/70 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
                             <i class="fa-solid fa-lightbulb"></i>
                         </div>
                         <div>
@@ -131,15 +131,15 @@
                                 Suggesties om de gameplay, misdaden of economie te verbeteren.
                             </p>
                         </div>
-                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">Spelverbetering</span>
+                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/80">Spelverbetering</span>
                     </button>
 
                     <!-- VIP & Donaties -->
                     <button type="button" 
                             @click="selectCategory('vip')"
-                            :class="selectedCategory === 'vip' ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/70 dark:bg-amber-950/30' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:border-amber-300 dark:hover:border-amber-700'"
-                            class="p-4 rounded-2xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                            :class="selectedCategory === 'vip' ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/70 dark:bg-amber-950/40' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:border-amber-300 dark:hover:border-amber-700'"
+                            class="p-4 rounded-xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/70 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
                             <i class="fa-solid fa-crown"></i>
                         </div>
                         <div>
@@ -148,15 +148,15 @@
                                 Vragen over VIP-lidmaatschap, donaties of ontbrekende VIP-tijd.
                             </p>
                         </div>
-                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">VIP & Shop</span>
+                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/80">VIP & Shop</span>
                     </button>
 
                     <!-- Overig -->
                     <button type="button" 
                             @click="selectCategory('overig')"
-                            :class="selectedCategory === 'overig' ? 'border-slate-500 ring-2 ring-slate-500/20 bg-slate-50 dark:bg-slate-800' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:border-slate-400'"
-                            class="p-4 rounded-2xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
-                        <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                            :class="selectedCategory === 'overig' ? 'border-slate-500 ring-2 ring-slate-500/20 bg-slate-100 dark:bg-slate-700/60' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:border-slate-400'"
+                            class="p-4 rounded-xl border text-left transition cursor-pointer relative group flex flex-col justify-between space-y-2.5 shadow-2xs">
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
                             <i class="fa-solid fa-message"></i>
                         </div>
                         <div>
@@ -165,7 +165,7 @@
                                 Alle overige zaken en vragen die niet in bovenstaande vakken passen.
                             </p>
                         </div>
-                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800">Algemeen contact</span>
+                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/80">Algemeen contact</span>
                     </button>
 
                 </div>
@@ -220,7 +220,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     
                     <!-- Gewenste Bendenaam (2 cols) -->
-                    <div class="sm:col-span-2 space-y-1.5">
+                    <div class="space-y-1.5 sm:col-span-2">
                         <label for="gang_name" class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
                             Gewenste Bendenaam <span class="text-rose-500">*</span>
                         </label>
@@ -233,7 +233,7 @@
                                    name="gang_name" 
                                    value="{{ old('gang_name') }}" 
                                    placeholder="Bijv. Peaky Blinders, Mocro Maffia, Cartel" 
-                                   class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:bg-white dark:focus:bg-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 outline-none transition"
+                                   class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
                                    :required="selectedCategory === 'gang_overstap'">
                         </div>
                         @error('gang_name')
@@ -256,7 +256,7 @@
                                    maxlength="4" 
                                    value="{{ old('gang_tag') }}" 
                                    placeholder="PB" 
-                                   class="w-full pl-8 pr-4 py-2.5 uppercase font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:bg-white dark:focus:bg-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 outline-none transition"
+                                   class="w-full pl-8 pr-4 py-2.5 uppercase font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
                                    :required="selectedCategory === 'gang_overstap'">
                         </div>
                         @error('gang_tag')
@@ -280,7 +280,7 @@
                                name="external_gang_link" 
                                value="{{ old('external_gang_link') }}" 
                                placeholder="https://www.anderegame.nl/gang/profiel-link-of-pagina" 
-                               class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:bg-white dark:focus:bg-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 outline-none transition"
+                               class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
                                :required="selectedCategory === 'gang_overstap'">
                     </div>
                     <p class="text-[11px] text-slate-400 dark:text-slate-500">
@@ -300,7 +300,7 @@
                               name="member_names" 
                               rows="3" 
                               placeholder="Vul hier de gebruikersnamen in van je vrienden die meekomen (gescheiden door komma's of op nieuwe regels). Als ze al geregistreerd zijn in TBS Kliniek ontvangen ze direct VIP!"
-                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:bg-white dark:focus:bg-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 outline-none transition resize-y">{{ old('member_names') }}</textarea>
+                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y">{{ old('member_names') }}</textarea>
                     @error('member_names')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                     @enderror
@@ -315,7 +315,7 @@
                               name="proof_details" 
                               rows="2" 
                               placeholder="Eventuele toelichting of links naar Imgur/screenshot van jullie bendeleden..."
-                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:bg-white dark:focus:bg-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 outline-none transition resize-y">{{ old('proof_details') }}</textarea>
+                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y">{{ old('proof_details') }}</textarea>
                     @error('proof_details')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                     @enderror
@@ -336,7 +336,7 @@
                            name="subject" 
                            value="{{ old('subject') }}" 
                            placeholder="Bijv. Vraag over kluis kraken, of: Foutmelding bij missie 4" 
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:bg-white dark:focus:bg-slate-800 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 outline-none transition"
+                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
                            :required="selectedCategory !== 'gang_overstap'">
                     @error('subject')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
@@ -352,7 +352,7 @@
                               name="message" 
                               rows="6" 
                               placeholder="Typ hier je uitgebreide vraag, bug-omschrijving of feedback. Hoe meer details en screenshots, hoe sneller we kunnen helpen!"
-                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:bg-white dark:focus:bg-slate-800 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 outline-none transition resize-y"
+                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y"
                               :required="selectedCategory !== 'gang_overstap'">{{ old('message') }}</textarea>
                     @error('message')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
@@ -362,7 +362,7 @@
             </div>
 
             <!-- CUSTOM PRIORITY SELECTOR -->
-            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
                 <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
                     Prioriteit
                 </label>
@@ -373,7 +373,7 @@
                     
                     <button type="button" 
                             @click="selectedPriority = 'laag'"
-                            :class="selectedPriority === 'laag' ? 'bg-slate-100 dark:bg-slate-700 border-slate-400 dark:border-slate-500 text-slate-900 dark:text-white font-black shadow-xs' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold'"
+                            :class="selectedPriority === 'laag' ? 'bg-slate-200 dark:bg-slate-700 border-slate-400 dark:border-slate-500 text-slate-900 dark:text-white font-black shadow-xs' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 text-slate-600 dark:text-slate-400 font-bold'"
                             class="py-2.5 px-3 rounded-xl border text-xs flex items-center justify-center gap-2 cursor-pointer transition">
                         <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                         <span>Laag</span>
@@ -381,7 +381,7 @@
 
                     <button type="button" 
                             @click="selectedPriority = 'normaal'"
-                            :class="selectedPriority === 'normaal' ? 'bg-indigo-50 dark:bg-indigo-950/70 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-black shadow-xs ring-1 ring-indigo-500/30' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold'"
+                            :class="selectedPriority === 'normaal' ? 'bg-indigo-50 dark:bg-indigo-950/70 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-black shadow-xs ring-1 ring-indigo-500/30' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 text-slate-600 dark:text-slate-400 font-bold'"
                             class="py-2.5 px-3 rounded-xl border text-xs flex items-center justify-center gap-2 cursor-pointer transition">
                         <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
                         <span>Normaal</span>
@@ -389,7 +389,7 @@
 
                     <button type="button" 
                             @click="selectedPriority = 'hoog'"
-                            :class="selectedPriority === 'hoog' ? 'bg-amber-50 dark:bg-amber-950/70 border-amber-500 text-amber-700 dark:text-amber-300 font-black shadow-xs ring-1 ring-amber-500/30' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold'"
+                            :class="selectedPriority === 'hoog' ? 'bg-amber-50 dark:bg-amber-950/70 border-amber-500 text-amber-700 dark:text-amber-300 font-black shadow-xs ring-1 ring-amber-500/30' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 text-slate-600 dark:text-slate-400 font-bold'"
                             class="py-2.5 px-3 rounded-xl border text-xs flex items-center justify-center gap-2 cursor-pointer transition">
                         <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                         <span>Hoog</span>
@@ -397,7 +397,7 @@
 
                     <button type="button" 
                             @click="selectedPriority = 'spoed'"
-                            :class="selectedPriority === 'spoed' ? 'bg-rose-50 dark:bg-rose-950/70 border-rose-500 text-rose-700 dark:text-rose-300 font-black shadow-xs ring-1 ring-rose-500/30' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold'"
+                            :class="selectedPriority === 'spoed' ? 'bg-rose-50 dark:bg-rose-950/70 border-rose-500 text-rose-700 dark:text-rose-300 font-black shadow-xs ring-1 ring-rose-500/30' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 text-slate-600 dark:text-slate-400 font-bold'"
                             class="py-2.5 px-3 rounded-xl border text-xs flex items-center justify-center gap-2 cursor-pointer transition">
                         <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
                         <span>Spoed</span>
@@ -407,14 +407,14 @@
             </div>
 
             <!-- SUBMIT BAR -->
-            <div class="flex items-center justify-between gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between gap-3 pt-6 border-t border-slate-100 dark:border-slate-800/80">
                 <a href="{{ route('help.tickets.index') }}" 
-                   class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer">
+                   class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer">
                     Annuleren
                 </a>
                 
                 <button type="submit" 
-                        class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-md shadow-purple-600/20 cursor-pointer flex items-center gap-2">
+                        class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-2">
                     <i class="fa-solid fa-paper-plane text-amber-300"></i>
                     <span x-text="selectedCategory === 'gang_overstap' ? 'Bende Overstap Bonus Aanvragen' : 'Support Ticket Verzenden'"></span>
                 </button>

@@ -26,10 +26,10 @@
              x-transition:leave="transition ease-in duration-100"
              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
              x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
-             class="w-full max-w-2xl bg-white dark:bg-[#110726] rounded-2xl shadow-2xl border border-slate-200 dark:border-purple-800/60 overflow-hidden text-slate-800 dark:text-slate-100 my-auto transform-gpu will-change-transform">
+             class="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden text-slate-800 dark:text-slate-100 my-auto transform-gpu will-change-transform">
 
             <!-- Search Header Bar -->
-            <div class="relative flex items-center px-4 py-3.5 border-b border-slate-100 dark:border-purple-900/40 bg-slate-50/50 dark:bg-slate-900/40">
+            <div class="relative flex items-center px-4 py-3.5 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60">
                 <i class="fa-solid fa-magnifying-glass text-purple-600 dark:text-purple-400 text-base mr-3 shrink-0"></i>
                 <input type="text"
                        x-ref="searchInput"
@@ -44,23 +44,23 @@
                 <!-- Clear Button -->
                 <button x-show="query.length > 0" 
                         @click="query = ''; selectedIndex = 0; $refs.searchInput.focus()"
-                        class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg transition mr-2 cursor-pointer">
+                        class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg transition-colors mr-2 cursor-pointer">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
 
                 <!-- Keyboard Hint -->
-                <kbd class="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold text-slate-400 bg-white dark:bg-slate-800/80 px-2 py-1 rounded-md border border-slate-200 dark:border-purple-900/60 shadow-2xs">ESC</kbd>
+                <kbd class="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 shadow-2xs">ESC</kbd>
             </div>
 
             <!-- Category Filter Pills -->
-            <div class="flex items-center gap-1.5 px-4 py-2 border-b border-slate-100 dark:border-purple-900/30 overflow-x-auto scrollbar-none bg-white dark:bg-[#0c041c] text-xs">
+            <div class="flex items-center gap-1.5 px-4 py-2 border-b border-slate-200/80 dark:border-slate-800 overflow-x-auto scrollbar-none bg-white dark:bg-slate-900 text-xs">
                 <template x-for="cat in categories" :key="cat.id">
                     <button type="button"
                             @click="activeCategory = cat.id; selectedIndex = 0"
                             :class="activeCategory === cat.id 
                                 ? 'bg-purple-600 text-white shadow-xs font-black' 
-                                : 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 font-bold'"
-                            class="px-2.5 py-1 rounded-lg text-[11px] whitespace-nowrap transition cursor-pointer flex items-center gap-1.5">
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 border border-slate-200/80 dark:border-slate-700 font-bold'"
+                            class="px-2.5 py-1 rounded-xl text-[11px] whitespace-nowrap transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5">
                         <span x-html="cat.icon"></span>
                         <span x-text="cat.name"></span>
                     </button>
@@ -68,10 +68,10 @@
             </div>
 
             <!-- Search Results List -->
-            <div class="max-h-[60vh] sm:max-h-96 overflow-y-auto p-2 divide-y divide-slate-100/60 dark:divide-purple-900/20">
+            <div class="max-h-[60vh] sm:max-h-96 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-slate-800/80">
                 <template x-if="filteredItems.length === 0">
                     <div class="py-12 text-center space-y-2">
-                        <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-purple-950/60 flex items-center justify-center text-slate-400 dark:text-purple-400 text-lg">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-purple-400 text-lg">
                             <i class="fa-solid fa-compass"></i>
                         </div>
                         <p class="text-sm font-bold text-slate-700 dark:text-slate-300">Geen functies gevonden</p>
@@ -85,9 +85,9 @@
                     <div @click="goToItem(item)"
                          @mouseenter="selectedIndex = idx"
                          :class="selectedIndex === idx 
-                             ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 border-purple-200 dark:border-purple-800' 
-                             : 'hover:bg-slate-50 dark:hover:bg-slate-900/40 text-slate-700 dark:text-slate-300 border-transparent'"
-                         class="flex items-center justify-between p-2.5 rounded-xl border transition cursor-pointer group">
+                             ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 border-purple-200/80 dark:border-purple-800/70' 
+                             : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300 border-transparent'"
+                         class="flex items-center justify-between p-2.5 rounded-xl border transition-all duration-150 cursor-pointer group">
                         
                         <div class="flex items-center gap-3 min-w-0">
                             <!-- Icon Badge -->
@@ -110,7 +110,7 @@
                         <!-- Right Pill / Action Arrow -->
                         <div class="flex items-center gap-2 shrink-0 ml-2">
                             <template x-if="item.badge">
-                                <span :class="item.badgeClass || 'bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300'"
+                                <span :class="item.badgeClass || 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70'"
                                       class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md"
                                       x-text="item.badge"></span>
                             </template>
@@ -121,7 +121,7 @@
             </div>
 
             <!-- Footer Shortcuts Hint -->
-            <div class="px-4 py-2.5 bg-slate-50 dark:bg-[#0c041c] border-t border-slate-100 dark:border-purple-900/30 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+            <div class="px-4 py-2.5 bg-slate-50/90 dark:bg-slate-800/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                 <div class="flex items-center gap-3">
                     <span class="flex items-center gap-1"><kbd class="font-mono bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-[10px]">↑↓</kbd> Navigeren</span>
                     <span class="flex items-center gap-1"><kbd class="font-mono bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-[10px]">↵</kbd> Openen</span>
@@ -155,11 +155,11 @@ document.addEventListener('alpine:init', () => {
         items: [
             // Dashboard & Algemeen
             { name: 'Dashboard', icon: 'fa-solid fa-gauge', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("dashboard") }}', category: 'algemeen', desc: 'Jouw overzicht, patiënt status en snelle acties', keywords: 'overzicht home start dashboard' },
-            { name: 'Live Chat & DMs', icon: 'fa-solid fa-comments', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/60', route: '{{ route("chat.index") }}', category: 'algemeen', desc: 'Kliniek chatbox, bendechat en privéberichten', keywords: 'chat dms berichten praten praten live', badge: 'Live', badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300' },
+            { name: 'Live Chat & DMs', icon: 'fa-solid fa-comments', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/60', route: '{{ route("chat.index") }}', category: 'algemeen', desc: 'Kliniek chatbox, bendechat en privéberichten', keywords: 'chat dms berichten praten praten live', badge: 'Live', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' },
             { name: 'Cinema Watchparties', icon: 'fa-solid fa-film', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("cinema.index") }}', category: 'algemeen', desc: 'Samen video\'s kijken met andere patiënten', keywords: 'bioscoop film video youtube cinema' },
             { name: 'Kliniek Nieuws', icon: 'fa-solid fa-newspaper', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("news.index") }}', category: 'algemeen', desc: 'Officiële aankondigingen van de directie', keywords: 'nieuws updates artikelen mededeling' },
             { name: 'Het Afdelingsblad', icon: 'fa-solid fa-file-lines', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("newspaper.index") }}', category: 'algemeen', desc: 'De dagelijkse krant van de kliniek', keywords: 'krant nieuws papier afdeling' },
-            { name: 'TBS FM (Radio)', icon: 'fa-solid fa-radio', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("radio.index") }}', category: 'algemeen', desc: 'Non-stop muziek streamen tijdens het spelen', keywords: 'radio muziek luisteren tbs fm zender', badge: 'Radio', badgeClass: 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300' },
+            { name: 'TBS FM (Radio)', icon: 'fa-solid fa-radio', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("radio.index") }}', category: 'algemeen', desc: 'Non-stop muziek streamen tijdens het spelen', keywords: 'radio muziek luisteren tbs fm zender', badge: 'Radio', badgeClass: 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70' },
             { name: 'Tijdlijn (Feed)', icon: 'fa-solid fa-bullhorn', color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/60', route: '{{ route("timeline.index") }}', category: 'algemeen', desc: 'Openbare berichten van medepatiënten', keywords: 'tijdlijn feed status posts' },
             { name: 'Vrienden & BFF', icon: 'fa-solid fa-user-group', color: 'text-pink-600', bg: 'bg-pink-50 dark:bg-pink-950/60', route: '{{ route("friends.index") }}', category: 'algemeen', desc: 'Vriendenlijst, verzoeken en speciale BFF', keywords: 'vrienden bff relatie maten' },
             { name: 'Leden & Online', icon: 'fa-solid fa-users', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/60', route: '{{ route("members.index") }}', category: 'algemeen', desc: 'Bekijk wie er nu online is in de kliniek', keywords: 'online leden spelers actief' },
@@ -171,7 +171,7 @@ document.addEventListener('alpine:init', () => {
             // Bendes
             { name: 'Mijn Bende', icon: 'fa-solid fa-shield-halved', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("gangs.index", ["tab" => "mijn_gang"]) }}', category: 'bende', desc: 'Factieoverzicht, kas en collectief uurloon', keywords: 'gang bende factie club kas uurloon' },
             { name: 'Bende Leden & Beheer', icon: 'fa-solid fa-users-gear', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("gangs.index", ["tab" => "beheer"]) }}', category: 'bende', desc: 'Ledenlijst, toelaten, promoties en donaties', keywords: 'beheer verzoeken accepteren leden bendeleden' },
-            { name: 'Bende Oorlog', icon: 'fa-solid fa-crosshairs', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("gangs.index", ["tab" => "oorlog"]) }}', category: 'bende', desc: 'Aanvallen op rivaliserende bendes in de kliniek', keywords: 'oorlog gang war attack bende strijd', badge: 'PvP', badgeClass: 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300' },
+            { name: 'Bende Oorlog', icon: 'fa-solid fa-crosshairs', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("gangs.index", ["tab" => "oorlog"]) }}', category: 'bende', desc: 'Aanvallen op rivaliserende bendes in de kliniek', keywords: 'oorlog gang war attack bende strijd', badge: 'PvP', badgeClass: 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70' },
             { name: 'Bende Panden (Productie)', icon: 'fa-solid fa-building', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("gangs.panden") }}', category: 'bende', desc: 'Smokkelkiosken, opslag en NPC dealers', keywords: 'panden gebouwen productie kiosken bende' },
             { name: 'Bende Garage', icon: 'fa-solid fa-warehouse', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("gangs.garage") }}', category: 'bende', desc: 'Gezamenlijk bende wagenpark en slots', keywords: 'garage wagens autos bende voertuigen' },
             { name: 'Bende Heists (Co-Op)', icon: 'fa-solid fa-masks-theater', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("heists.index", ["tab" => "gang"]) }}', category: 'bende', desc: 'Samen met je bende grote overvallen plegen', keywords: 'heists overvallen roof co-op bende' },
@@ -182,7 +182,7 @@ document.addEventListener('alpine:init', () => {
             { name: 'Missies & Opdrachten', icon: 'fa-solid fa-list-check', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("missions.index") }}', category: 'voortgang', desc: 'Voltooi hoofdstukken voor XP en grote beloningen', keywords: 'missies quests taken opdrachten' },
             { name: 'Krachttraining (Gym)', icon: 'fa-solid fa-dumbbell', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("training.index") }}', category: 'voortgang', desc: 'Train Kracht, Verdediging en Snelheid in de zaal', keywords: 'sportzaal gym trainen kracht defense speed' },
             { name: 'Behandelaarsgesprek', icon: 'fa-solid fa-brain', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("treatment.index") }}', category: 'voortgang', desc: 'Praat met de psychiater en verdien verlof', keywords: 'dokter psycholoog verlof therapie gesprek' },
-            { name: 'Ziekenboeg & Pillen', icon: 'fa-solid fa-hospital-user', color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/60', route: '{{ route("infirmary.index") }}', category: 'voortgang', desc: 'Herstel je HP en neem medicijnen in', keywords: 'hp genezen healen dokter pillen ziekenhuis', badge: 'HP Herstel', badgeClass: 'bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300' },
+            { name: 'Ziekenboeg & Pillen', icon: 'fa-solid fa-hospital-user', color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/60', route: '{{ route("infirmary.index") }}', category: 'voortgang', desc: 'Herstel je HP en neem medicijnen in', keywords: 'hp genezen healen dokter pillen ziekenhuis', badge: 'HP Herstel', badgeClass: 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200/80 dark:border-teal-800/70' },
             { name: 'Dagbesteding & Werk', icon: 'fa-solid fa-person-digging', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("daycare.index") }}', category: 'voortgang', desc: 'Werken in de kliniek voor eerlijk loon en XP', keywords: 'dagbesteding werk werken uurloon klusjes' },
 
             // Illegale Acties (Misdaad)
@@ -192,10 +192,10 @@ document.addEventListener('alpine:init', () => {
             { name: 'Kluisjes Kraken', icon: 'fa-solid fa-id-card', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/60', route: '{{ route("lockers.index") }}', category: 'misdaad', desc: 'Breek lockerkasten open en steel buit', keywords: 'kluisjes lockerkast openbreken pasjes buit' },
             { name: 'Tennisbal & Drones', icon: 'fa-solid fa-plane-arrival', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/60', route: '{{ route("droppings.index") }}', category: 'misdaad', desc: 'Laat pakketjes over de kliniekmuur droppen', keywords: 'smokkeldropping drone tennisbal over muur' },
             { name: 'Uitbraaktunnel Graven', icon: 'fa-solid fa-person-digging', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("tunnel.index") }}', category: 'misdaad', desc: 'Graaf met een schep een geheime uitbraaktunnel', keywords: 'tunnel schep ontsnappen graven vrijheid' },
-            { name: 'Grote Heists', icon: 'fa-solid fa-masks-theater', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("heists.index") }}', category: 'misdaad', desc: 'Plan geavanceerde overvallen met hoge opbrengsten', keywords: 'heists overval bankroof roof roofoverval', badge: 'Groot', badgeClass: 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300' },
+            { name: 'Grote Heists', icon: 'fa-solid fa-masks-theater', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("heists.index") }}', category: 'misdaad', desc: 'Plan geavanceerde overvallen met hoge opbrengsten', keywords: 'heists overval bankroof roof roofoverval', badge: 'Groot', badgeClass: 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70' },
 
             // Bonus & Kluizen
-            { name: 'Rad van Fortuin (Daily)', icon: 'fa-solid fa-dharmachakra', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("daily.index") }}', category: 'bonus', desc: 'Draai dagelijks gratis aan het rad voor prijzen', keywords: 'rad spin draaien gratis beloning daily', badge: 'Daily', badgeClass: 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300' },
+            { name: 'Rad van Fortuin (Daily)', icon: 'fa-solid fa-dharmachakra', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("daily.index") }}', category: 'bonus', desc: 'Draai dagelijks gratis aan het rad voor prijzen', keywords: 'rad spin draaien gratis beloning daily', badge: 'Daily', badgeClass: 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70' },
             { name: 'MedicijnKluis (Kraak de Code)', icon: 'fa-solid fa-vault', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("vault.index") }}', category: 'bonus', desc: 'Kraak de kluiscode en win de jackpot', keywords: 'kluis code raden jackpot medicijnen' },
             { name: 'Koffers & Pakketjes', icon: 'fa-solid fa-box-open', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("packages.index") }}', category: 'bonus', desc: 'Open mysterieuze koffers voor zeldzame loot', keywords: 'mystery box pakketjes koffers unboxen' },
             { name: 'Zakkenrollen', icon: 'fa-solid fa-mask', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("pickpocket.index") }}', category: 'bonus', desc: 'Rol zakken van artsen en verplegers', keywords: 'zakkenrollen stelen personeel zakken' },

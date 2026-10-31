@@ -868,16 +868,16 @@
 
     @if($character)
     <!-- SIDEBAR NAVIGATION (Desktop & Tablet) - Clean Modern White Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col w-64 bg-white border-r border-slate-200/90 shrink-0 min-h-screen text-slate-700 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
+    <aside class="hidden lg:flex lg:flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 shrink-0 min-h-screen text-slate-700 dark:text-slate-200 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
            x-data="window.tbsSidebarController('{{ $activeCategory ?? '' }}')">
         <!-- Logo Header (TBS Kliniek Brand Emblem & Typography) -->
-        <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-100 bg-white sticky top-0 z-10">
+        <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
             <a href="{{ route('dashboard') }}" data-no-fav="1" class="w-11 h-11 shrink-0 drop-shadow-md hover:scale-105 transition-transform flex items-center justify-center" title="TBS Kliniek Dashboard">
                 <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
             </a>
             <div class="flex flex-col">
                 <a href="{{ route('dashboard') }}" data-no-fav="1" class="flex items-center gap-1.5 hover:opacity-90 transition" title="TBS Kliniek Dashboard">
-                    <span class="text-sm font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
+                    <span class="text-sm font-black tracking-tight text-slate-900 dark:text-white leading-none">TBS <span class="text-purple-600 dark:text-purple-400">KLINIEK</span></span>
                 </a>
                 <div class="mt-1">
                     <a href="{{ route('members.index', ['filter' => 'online']) }}" data-no-fav="1" class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 transition cursor-pointer" title="{{ $onlineCount }} patiënten momenteel online in de kliniek (klik voor online lijst)">
@@ -896,27 +896,27 @@
                 <button type="button" 
                         data-spotlight-btn="1"
                         onclick="if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
-                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 hover:bg-purple-50/60 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 text-slate-500 hover:text-purple-700 dark:text-purple-300 dark:hover:text-white border border-slate-200/80 dark:border-purple-900/40 transition shadow-2xs group cursor-pointer text-left">
+                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/70 transition-all duration-150 shadow-2xs group cursor-pointer text-left">
                     <span class="flex items-center gap-2.5">
                         <i class="fa-solid fa-magnifying-glass text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform text-xs"></i>
                         <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Zoek functie...</span>
                     </span>
-                    <kbd class="text-[9px] font-black uppercase text-slate-400 dark:text-purple-400/80 bg-white dark:bg-purple-900/60 px-1.5 py-0.5 rounded border border-slate-200 dark:border-purple-800 shadow-2xs">Ctrl+K</kbd>
+                    <kbd class="text-[9px] font-black uppercase text-slate-500 dark:text-slate-300 bg-white dark:bg-slate-700/80 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-600 shadow-2xs">Ctrl+K</kbd>
                 </button>
             </div>
 
             <!-- ⭐ SNELLE TOEGANG (Persoonlijke Favorieten Grid + Alles Openen) -->
-            <div class="mb-2.5 p-2 rounded-xl bg-slate-50/80 dark:bg-purple-950/30 border border-slate-200/70 dark:border-purple-900/40" data-favorites-grid="1">
-                <div class="flex items-center justify-between px-1 mb-1.5 text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-purple-400/80">
+            <div class="mb-2.5 p-2.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70" data-favorites-grid="1">
+                <div class="flex items-center justify-between px-1 mb-1.5 text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     <span class="flex items-center gap-1" title="Klik op het sterretje ☆ achter een menu-item om jouw favorieten hier vast te pinnen!">
                         <i class="fa-solid fa-star text-amber-400 text-[8px]"></i> Snelle Toegang
                     </span>
-                    <button type="button" @click="expandAll()" class="text-[8px] font-black text-purple-600 dark:text-purple-300 hover:underline cursor-pointer" x-text="openCategories.length >= allCats.length ? 'Sluit menu\'s' : 'Alles openen'"></button>
+                    <button type="button" @click="expandAll()" class="text-[8px] font-black text-purple-600 dark:text-purple-400 hover:underline cursor-pointer" x-text="openCategories.length >= allCats.length ? 'Sluit menu\'s' : 'Alles openen'"></button>
                 </div>
                 <div class="grid grid-cols-3 gap-1">
                     <template x-for="fav in favorites" :key="fav.url">
                         <a :href="fav.url" data-no-fav="1"
-                           class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-purple-300 transition text-center group"
+                           class="flex flex-col items-center justify-center p-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-purple-50/60 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150 text-center group shadow-2xs"
                            :title="fav.label">
                             <i :class="fav.icon + ' group-hover:scale-110 transition-transform text-xs mb-0.5'"></i>
                             <span class="text-[9px] font-bold truncate w-full" x-text="fav.label"></span>
@@ -927,8 +927,8 @@
 
             <!-- Vaste Hoofdnavigatie Boven Dropdowns (Dashboard & Berichten & Post) -->
             <div class="space-y-1 pb-2 mb-1 border-b border-slate-100 dark:border-slate-800/60">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('dashboard') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                    <i class="fa-solid fa-gauge w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('dashboard') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-gauge w-4 text-center text-purple-600 dark:text-purple-400"></i>
                     <span>Dashboard</span>
                 </a>
                 <a href="{{ route('chat.index') }}" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition {{ request()->routeIs('chat.*') ? 'nav-item-active bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
@@ -942,7 +942,7 @@
                     @if($unreadChatCount > 0)
                         <span class="bg-emerald-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full leading-none shrink-0 animate-pulse">{{ $unreadChatCount }}</span>
                     @else
-                        <span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide shrink-0">Live</span>
+                        <span class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide shrink-0">Live</span>
                     @endif
                 </a>
                 <a href="{{ route('cinema.index') }}" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition {{ request()->routeIs('cinema.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
@@ -966,15 +966,15 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('algemeen') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'algemeen') style="transform: rotate(180deg);" @endif></i>
                 </button>
                 <div x-show="isOpen('algemeen')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'algemeen') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('news.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('news.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-newspaper w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span>Kliniek Nieuws</span>
                     </a>
-                    <a href="{{ route('newspaper.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('newspaper.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('newspaper.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('newspaper.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-file-lines w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Het Afdelingsblad</span>
                     </a>
-                    <a href="{{ route('radio.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('radio.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('radio.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('radio.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-radio w-4 text-center text-purple-500 dark:text-purple-400"></i>
                             <span>TBS FM (Radio)</span>
@@ -984,15 +984,15 @@
                             Live
                         </span>
                     </a>
-                    <a href="{{ route('timeline.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('timeline.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('timeline.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('timeline.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-bullhorn w-4 text-center text-sky-500 dark:text-sky-400"></i>
                         <span>Tijdlijn (Feed)</span>
                     </a>
-                    <a href="{{ route('friends.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('friends.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('friends.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('friends.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-user-group w-4 text-center text-pink-500 dark:text-pink-400"></i>
                         <span>Vrienden & BFF</span>
                     </a>
-                    <a href="{{ route('members.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('members.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('members.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('members.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-users w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                             <span>Leden & Online</span>
@@ -1002,11 +1002,11 @@
                             <span x-text="(stats.onlineCount !== undefined) ? stats.onlineCount : {{ (int) $onlineCount }}">{{ $onlineCount }}</span>
                         </span>
                     </a>
-                    <a href="{{ route('leaderboard.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('leaderboard.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('leaderboard.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('leaderboard.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Ranglijsten</span>
                     </a>
-                    <a href="{{ route('battle.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('battle.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battle.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-bolt w-4 text-center text-purple-600 dark:text-purple-400"></i>
                             <span>24 Uur Battle</span>
@@ -1015,11 +1015,11 @@
                             Battle
                         </span>
                     </a>
-                    <a href="{{ route('prison') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('prison') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('prison') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('prison') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-dungeon w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Isoleercel</span>
                     </a>
-                    <a href="{{ route('roadmap.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('roadmap.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('roadmap.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('roadmap.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-compass w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Toekomst & Roadmap</span>
                     </a>
@@ -1046,21 +1046,21 @@
                 </button>
                 <div x-show="isOpen('bende')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bende') style="display: none;" @endif class="space-y-0.5 pl-1">
                     @if($character->gang)
-                        <a href="{{ route('gangs.index', ['tab' => 'mijn_gang']) }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'mijn_gang') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'mijn_gang']) }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'mijn_gang') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
                                 <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600 dark:text-purple-400"></i>
                                 <span>Mijn Bende</span>
                             </div>
                             <span class="text-[10px] font-extrabold text-purple-600 dark:text-purple-400">{{ $character->gang->name }}</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'alle_bendes']) }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'alle_bendes' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'alle_bendes']) }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'alle_bendes' ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
                                 <i class="fa-solid fa-address-book w-4 text-center text-purple-500 dark:text-purple-400"></i>
                                 <span>Alle Bendes</span>
                             </div>
                             <span class="text-[9px] font-extrabold uppercase text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">Lijst</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'leden']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'leden' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'leden']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'leden' ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-user-group w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                             <span>Bende Leden</span>
                         </a>
@@ -1071,41 +1071,41 @@
                             </div>
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
                         </a>
-                        <a href="{{ route('gangs.panden') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.panden*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.panden') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.panden*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-building w-4 text-center text-purple-600 dark:text-purple-400"></i>
                             <span>Bende Panden</span>
                         </a>
-                        <a href="{{ route('gangs.garage') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.garage*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.garage') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.garage*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-warehouse w-4 text-center text-purple-600 dark:text-purple-400"></i>
                             <span>Bende Garage</span>
                         </a>
-                        <a href="{{ route('heists.index', ['tab' => 'gang']) }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('heists.*') && request('tab') === 'gang' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('heists.index', ['tab' => 'gang']) }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('heists.*') && request('tab') === 'gang' ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
                                 <i class="fa-solid fa-masks-theater w-4 text-center text-rose-500 dark:text-rose-400"></i>
                                 <span>Bende Heists</span>
                             </div>
                             <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">Co-Op</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Bende Ranglijst</span>
                         </a>
                         @if($character->gang->isOfficer($character))
-                        <a href="{{ route('gangs.index', ['tab' => 'beheer']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'beheer' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'beheer']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'beheer' ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-users-gear w-4 text-center text-purple-600 dark:text-purple-400"></i>
                             <span>Bende Beheer</span>
                         </a>
                         @endif
                     @else
-                        <a href="{{ route('gangs.index', ['tab' => 'alle_bendes']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'alle_bendes') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'alle_bendes']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'alle_bendes') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-address-book w-4 text-center text-purple-600 dark:text-purple-400"></i>
                             <span>Alle Bendes</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Bende Ranglijst</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'oprichten']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'oprichten' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'oprichten']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'oprichten' ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-plus w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                             <span>Bende Oprichten</span>
                         </a>
@@ -1178,19 +1178,19 @@
                             </span>
                         @endif
                     </a>
-                    <a href="{{ route('depot.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('depot.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('depot.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('depot.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-boxes-stacked w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Depot (Inventaris)</span>
                     </a>
-                    <a href="{{ route('missions.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('missions.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-list-check w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Missies & Opdrachten</span>
                     </a>
-                    <a href="{{ route('training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('training.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('training.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-dumbbell w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Krachttraining</span>
                     </a>
-                    <a href="{{ route('treatment.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('treatment.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('treatment.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('treatment.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-brain w-4 text-center text-rose-500 dark:text-rose-400"></i>
                             <span>Behandelaarsgesprek</span>
@@ -1205,11 +1205,11 @@
                         </span>
                         @endif
                     </a>
-                    <a href="{{ route('infirmary.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('infirmary.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('infirmary.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('infirmary.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-hospital-user w-4 text-center text-teal-500 dark:text-teal-400"></i>
                         <span>Ziekenboeg & Pillen</span>
                     </a>
-                    <a href="{{ route('daycare.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('daycare.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('daycare.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('daycare.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-person-digging w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Dagbesteding & Werk</span>
                     </a>
@@ -1228,31 +1228,31 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('misdaad') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'misdaad') style="transform: rotate(180deg);" @endif></i>
                 </button>
                 <div x-show="isOpen('misdaad')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'misdaad') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('hustle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hustle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('hustle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hustle.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-hand-holding-dollar w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>Hosselen</span>
                     </a>
-                    <a href="{{ route('smuggle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('smuggle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('smuggle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('smuggle.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-capsules w-4 text-center text-teal-500 dark:text-teal-400"></i>
                         <span>Dealen & Smokkel</span>
                     </a>
-                    <a href="{{ route('extort.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('extort.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('extort.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('extort.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-person-military-pointing w-4 text-center text-orange-500 dark:text-orange-400"></i>
                         <span>Afpersen</span>
                     </a>
-                    <a href="{{ route('lockers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('lockers.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('lockers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('lockers.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-id-card w-4 text-center text-blue-500 dark:text-blue-400"></i>
                         <span>Kluisjes Kraken</span>
                     </a>
-                    <a href="{{ route('droppings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('droppings.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('droppings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('droppings.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-plane-arrival w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>Tennisbal & Drones</span>
                     </a>
-                    <a href="{{ route('tunnel.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('tunnel.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('tunnel.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('tunnel.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-person-digging w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Uitbraaktunnel</span>
                     </a>
-                    <a href="{{ route('heists.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('heists.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('heists.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('heists.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-masks-theater w-4 text-center text-rose-500 dark:text-rose-400"></i>
                             <span>Grote Heists</span>
@@ -1276,7 +1276,7 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('bonus') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bonus') style="transform: rotate(180deg);" @endif></i>
                 </button>
                 <div x-show="isOpen('bonus')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bonus') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('daily.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('daily.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-dharmachakra w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Rad van Fortuin</span>
@@ -1287,15 +1287,15 @@
                         </span>
                         @endif
                     </a>
-                    <a href="{{ route('vault.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('vault.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('vault.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('vault.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-vault w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>MedicijnKluis (Kraak)</span>
                     </a>
-                    <a href="{{ route('packages.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('packages.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('packages.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('packages.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-box-open w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Koffers & Pakketjes</span>
                     </a>
-                    <a href="{{ route('pickpocket.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('pickpocket.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('pickpocket.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('pickpocket.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-mask w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Zakkenrollen</span>
                     </a>
@@ -1327,7 +1327,7 @@
                     </div>
                 </button>
                 <div x-show="isOpen('specials')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'specials') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('connect_four.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('connect_four.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('connect_four.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('connect_four.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-chess-board w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                             <span>4 op 'n Rij (Arjan)</span>
@@ -1336,13 +1336,13 @@
                             OOHPA
                         </span>
                     </a>
-                    <a href="{{ route('true_crime.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('true_crime.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('true_crime.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('true_crime.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-fingerprint w-4 text-center text-purple-500 dark:text-purple-400"></i>
                             <span>True Crime (Caroline)</span>
                         </div>
                     </a>
-                    <a href="{{ route('memory.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('memory.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('memory.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('memory.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-brain w-4 text-center text-pink-500 dark:text-pink-400"></i>
                             <span>Memory</span>
@@ -1366,35 +1366,35 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('geweld') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'geweld') style="transform: rotate(180deg);" @endif></i>
                 </button>
                 <div x-show="isOpen('geweld')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'geweld') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('fight.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('fight.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('fight.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('fight.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-skull w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Respectlijst</span>
                     </a>
-                    <a href="{{ route('theft.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('theft.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('theft.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('theft.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-briefcase w-4 text-center text-slate-500 dark:text-slate-400"></i>
                         <span>Klusjes & Diefstal</span>
                     </a>
-                    <a href="{{ route('combat_training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('combat_training.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('combat_training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('combat_training.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-bullseye w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Vechtoefening</span>
                     </a>
-                    <a href="{{ route('armwrestling.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('armwrestling.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('armwrestling.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('armwrestling.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-hand-back-fist w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Armpjedruk Arena</span>
                     </a>
-                    <a href="{{ route('hitman.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hitman.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('hitman.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hitman.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-crosshairs w-4 text-center text-rose-600 dark:text-rose-400"></i>
                         <span>Liquidatie</span>
                     </a>
-                    <a href="{{ route('bounties.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bounties.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('bounties.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bounties.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-skull-crossbones w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Kopgeld & Premies</span>
                     </a>
-                    <a href="{{ route('informants.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('informants.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('informants.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('informants.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-user-secret w-4 text-center text-slate-500 dark:text-slate-400"></i>
                         <span>Informanten</span>
                     </a>
-                    <a href="{{ route('isolation.index') }}" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition {{ request()->routeIs('isolation.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('isolation.index') }}" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition {{ request()->routeIs('isolation.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <span class="flex items-center gap-3 min-w-0">
                             <i class="fa-solid fa-ghost w-4 text-center text-purple-500 dark:text-purple-400"></i>
                             <span class="truncate">Vrijwillige Isolatie</span>
@@ -1435,15 +1435,15 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('economie') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'economie') style="transform: rotate(180deg);" @endif></i>
                 </button>
                 <div x-show="isOpen('economie')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'economie') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('bank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bank.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('bank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bank.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-building-columns w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>De Bank</span>
                     </a>
-                    <a href="{{ route('travel.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('travel.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('travel.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('travel.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-signs-post w-4 text-center text-teal-500 dark:text-teal-400"></i>
                         <span>Verplaatsen</span>
                     </a>
-                    <a href="{{ route('casino.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('casino.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-dice w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Casino & Gokhal</span>
                     </a>
@@ -1452,15 +1452,15 @@
                         <span>Afdelingsloterij</span>
                         <span class="ml-auto bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">Pot</span>
                     </a>
-                    <a href="{{ route('shop.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('shop.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-cart-shopping w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Kliniek Winkel</span>
                     </a>
-                    <a href="{{ route('garage.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('garage.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('garage.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('garage.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-warehouse w-4 text-center text-cyan-500 dark:text-cyan-400"></i>
                         <span>Smokkel Garage</span>
                     </a>
-                    <a href="{{ route('perks.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('perks.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('perks.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('perks.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-award w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Karakter Perks</span>
@@ -1469,7 +1469,7 @@
                             ⭐ Perks
                         </span>
                     </a>
-                    <a href="{{ route('marketplace.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('marketplace.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('marketplace.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('marketplace.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-shop w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span>Marktplaats</span>
                     </a>
@@ -1478,11 +1478,11 @@
 
             <!-- 6. HELPTOOL, PROFIEL & ACCOUNT (Direct boven Veilig Uitloggen) -->
             <div class="space-y-0.5 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800/60">
-                <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-headset w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                     <span>Helptool & FAQ</span>
                 </a>
-                <a href="{{ route('help.tickets.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <a href="{{ route('help.tickets.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-ticket w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Support Tickets</span>
@@ -1494,11 +1494,11 @@
                     <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Reactie!</span>
                     @endif
                 </a>
-                <a href="{{ route('help.tickets.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.create') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <a href="{{ route('help.tickets.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.create') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-plus w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                     <span>Nieuw Ticket Aanmaken</span>
                 </a>
-                <a href="{{ route('profile.me') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('profile.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <a href="{{ route('profile.me') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('profile.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-id-badge w-4 text-center text-blue-500 dark:text-blue-400"></i>
                     <span>Mijn Profiel</span>
                 </a>
@@ -1515,7 +1515,7 @@
                     </div>
                     <span class="text-[9px] bg-gradient-to-r from-amber-500 to-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Shop</span>
                 </a>
-                <a href="{{ route('settings.account') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <a href="{{ route('settings.account') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-gear w-4 text-center text-slate-500 dark:text-slate-400"></i>
                     <span>Account Instellingen</span>
                 </a>
@@ -1533,13 +1533,13 @@
         </nav>
 
         <!-- Sidebar Footer / PWA Install & Logout -->
-        <div class="p-3 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/60 mt-auto">
-            <button type="button" onclick="if(window.tbsOpenPwaModal){window.tbsOpenPwaModal();}" class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 mb-2 transition cursor-pointer border border-purple-200/60 dark:border-purple-800/40">
+        <div class="p-3 border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900 mt-auto">
+            <button type="button" onclick="if(window.tbsOpenPwaModal){window.tbsOpenPwaModal();}" class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 mb-2 transition-all duration-150 cursor-pointer border border-purple-200/80 dark:border-purple-800/70 active:scale-95 shadow-2xs">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-mobile-screen-button text-purple-600 dark:text-purple-400"></i>
                     <span>Download App</span>
                 </div>
-                <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase tracking-wider">App</span>
+                <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase tracking-wider shadow-2xs">App</span>
             </button>
             <form method="POST" action="{{ route('logout') }}"
                   data-confirm="Weet je zeker dat je wilt uitloggen uit de TBS Kliniek?"
@@ -1548,7 +1548,7 @@
                   data-confirm-type="logout"
                   data-confirm-icon="fa-right-from-bracket">
                 @csrf
-                <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer">
+                <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200/80 dark:hover:border-rose-900/60 transition-all duration-150 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Veilig Uitloggen</span>
                 </button>
@@ -1564,14 +1564,14 @@
     <div class="flex-1 flex flex-col min-w-0">
         @if(isset($character))
         <!-- NATIVE MOBILE TOP-HUD (Compact Single-Line, Max Gaming Screen Space) -->
-        <header class="lg:hidden bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md text-slate-800 dark:text-slate-100 px-2 py-2 flex items-center justify-between border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs select-none" style="padding-top: max(0.5rem, env(safe-area-inset-top));">
+        <header class="lg:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-800 dark:text-slate-100 px-2 py-2 flex items-center justify-between border-b border-slate-200/90 dark:border-slate-800 sticky top-0 z-40 shadow-xs select-none" style="padding-top: max(0.5rem, env(safe-area-inset-top));">
             
             <!-- 1. Left: Back, Avatar, & Level/Name -->
             <div class="flex items-center gap-1.5 shrink-0 min-w-0">
                 <!-- WebApp Terug Knop -->
                 <button type="button" 
                         onclick="window.tbsGoBack()" 
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" 
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" 
                         title="Vorige pagina (Terug)"
                         aria-label="Terug">
                     <i class="fa-solid fa-arrow-left text-[11px]"></i>
@@ -1586,7 +1586,7 @@
                         <div class="w-7 h-7 rounded-full p-[1px] flex items-center justify-center overflow-hidden {{ $mobileTopBorder ? str_replace('ring-4', 'ring-2', $mobileTopBorder['ring']) : 'ring-1 ring-purple-300 dark:ring-purple-700' }}">
                             <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
                         </div>
-                        <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-[#110726]"></span>
+                        <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
                     </div>
                     <div class="flex flex-col min-w-0 max-w-[54px] xs:max-w-[74px]">
                         <span class="text-[11px] font-black truncate leading-tight py-0.5 {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</span>
@@ -1600,13 +1600,13 @@
                 <!-- Energy Pill (Tap = Quick sheet of boost) -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-1.5 py-1 rounded-xl cursor-pointer active:scale-95 transition"
+                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-1 rounded-xl cursor-pointer active:scale-95 transition"
                         title="Energie (klik voor acties)">
                     <div class="flex items-center gap-1 text-[10px] leading-none font-extrabold text-emerald-600 dark:text-emerald-400">
                         <i class="fa-solid fa-bolt text-[9px] text-emerald-500"></i>
-                        <span class="font-mono text-[10px]" x-text="stats.energy">{{ $character->energy }}</span><span class="text-[8px] text-slate-400 dark:text-purple-300/60 font-mono">/<span x-text="stats.max_energy">{{ $character->max_energy }}</span></span>
+                        <span class="font-mono text-[10px]" x-text="stats.energy">{{ $character->energy }}</span><span class="text-[8px] text-slate-400 dark:text-slate-500 font-mono">/<span x-text="stats.max_energy">{{ $character->max_energy }}</span></span>
                     </div>
-                    <div class="w-10 xs:w-12 bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1 mt-1 overflow-hidden">
+                    <div class="w-10 xs:w-12 bg-slate-200/80 dark:bg-slate-700 rounded-full h-1 mt-1 overflow-hidden">
                         <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                     </div>
                 </button>
@@ -1614,13 +1614,13 @@
                 <!-- Health Pill (Tap = Quick sheet of ziekenhuis) -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-1.5 py-1 rounded-xl cursor-pointer active:scale-95 transition"
+                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-1 rounded-xl cursor-pointer active:scale-95 transition"
                         title="Gezondheid (klik voor genezen)">
                     <div class="flex items-center gap-1 text-[10px] leading-none font-extrabold text-rose-600 dark:text-rose-400">
                         <i class="fa-solid fa-heart text-[9px] text-rose-500"></i>
-                        <span class="font-mono text-[10px]" x-text="stats.health">{{ $character->health }}</span><span class="text-[8px] text-slate-400 dark:text-purple-300/60 font-mono">/<span x-text="stats.max_health">{{ $character->max_health }}</span></span>
+                        <span class="font-mono text-[10px]" x-text="stats.health">{{ $character->health }}</span><span class="text-[8px] text-slate-400 dark:text-slate-500 font-mono">/<span x-text="stats.max_health">{{ $character->max_health }}</span></span>
                     </div>
-                    <div class="w-10 xs:w-12 bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1 mt-1 overflow-hidden">
+                    <div class="w-10 xs:w-12 bg-slate-200/80 dark:bg-slate-700 rounded-full h-1 mt-1 overflow-hidden">
                         <div class="bg-rose-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
                     </div>
                 </button>
@@ -1628,7 +1628,7 @@
                 <!-- Cash Pill (Tap = Quick sheet of bank storten) -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="hidden xs:flex items-center gap-1 bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-1.5 py-1.5 rounded-xl cursor-pointer active:scale-95 transition"
+                        class="hidden xs:flex items-center gap-1 bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-1.5 rounded-xl cursor-pointer active:scale-95 transition"
                         title="Contant geld (klik om te storten)">
                     <i class="fa-solid fa-money-bill-wave text-[10px] text-emerald-500"></i>
                     <span class="font-black text-slate-900 dark:text-white text-[10px] font-mono leading-none tracking-tight" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
@@ -1640,7 +1640,7 @@
                 <!-- Direct Soft Reload Button -->
                 <button type="button" 
                         onclick="window.tbsReloadPage(this)" 
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" 
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" 
                         title="Pagina vernieuwen" 
                         aria-label="Vernieuwen">
                     <i class="fa-solid fa-rotate-right text-[11px]"></i>
@@ -1650,23 +1650,23 @@
                 @php
                     $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
                 @endphp
-                <a href="{{ route('chat.index') }}" class="relative w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" title="Live Chat & DMs" aria-label="Live Chat">
+                <a href="{{ route('chat.index') }}" class="relative w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" title="Live Chat & DMs" aria-label="Live Chat">
                     <i class="fa-solid fa-comments text-xs"></i>
                     @if($unreadChatCount > 0)
-                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#110726] animate-ping"></span>
-                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#110726]"></span>
+                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 animate-ping"></span>
+                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
                     @endif
                 </a>
 
                 <!-- Hamburger Drawer Trigger -->
-                <button @click="mobileMenuOpen = true" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" aria-label="Open menu">
+                <button @click="mobileMenuOpen = true" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" aria-label="Open menu">
                     <i class="fa-solid fa-bars text-sm"></i>
                 </button>
             </div>
         </header>
 
         <!-- TOP MODERN WHITE HEADER BAR (DESKTOP) - Styled after Reference Design in Site Colors -->
-        <header class="hidden lg:block bg-white dark:bg-[#110726] border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-30 shadow-xs">
+        <header class="hidden lg:block bg-white dark:bg-slate-900 border-b border-slate-200/90 dark:border-slate-800 sticky top-0 z-30 shadow-xs">
             <div class="w-full px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-10 h-20 flex items-center justify-between gap-2 xl:gap-4 min-w-0">
                 
                 <!-- 1. LEFT: WebApp Navigation Controls & Player Profile Summary -->
@@ -1675,14 +1675,14 @@
                     <div class="flex items-center gap-1 shrink-0 mr-0.5">
                         <button type="button" 
                                 onclick="window.tbsGoBack()" 
-                                class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-300 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200/60 dark:border-purple-800/40 active:scale-95 shadow-2xs" 
+                                class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200/80 dark:border-slate-700 active:scale-95 shadow-2xs" 
                                 title="Vorige pagina (Terug)"
                                 aria-label="Terug">
                             <i class="fa-solid fa-arrow-left"></i>
                         </button>
                         <button type="button" 
                                 onclick="window.tbsReloadPage(this)" 
-                                class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-300 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200/60 dark:border-purple-800/40 active:scale-95 shadow-2xs" 
+                                class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200/80 dark:border-slate-700 active:scale-95 shadow-2xs" 
                                 title="Pagina vernieuwen"
                                 aria-label="Vernieuwen">
                             <i class="fa-solid fa-rotate-right"></i>
@@ -1694,7 +1694,7 @@
                             $headerBorder = $character->getEquippedBorderInfo();
                         @endphp
                         <div class="relative">
-                            <div class="w-12 h-12 rounded-full p-0.5 transition-all bg-white dark:bg-purple-950/60 {{ $headerBorder ? $headerBorder['ring'] . ' ' . $headerBorder['glow'] : 'ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 shadow-2xs' }}">
+                            <div class="w-12 h-12 rounded-full p-0.5 transition-all bg-white dark:bg-slate-800 {{ $headerBorder ? $headerBorder['ring'] . ' ' . $headerBorder['glow'] : 'ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 shadow-2xs' }}">
                                 <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover bg-slate-100">
                             </div>
                             @if($headerBorder)
@@ -1712,12 +1712,12 @@
                             @if($character->isSparkleActive())
                                 <i class="fa-solid fa-sparkles text-[10px] text-amber-400 animate-pulse shrink-0" title="VIP Glitter Shimmer"></i>
                             @endif
-                            <span class="bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 border border-slate-200/80 dark:border-purple-800/40 font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider shadow-2xs shrink-0">
+                            <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black text-[9px] px-2 py-0.5 rounded-lg uppercase tracking-wider shadow-2xs shrink-0">
                                 LVL {{ $character->level }}
                             </span>
                         </div>
-                        <div class="w-36 sm:w-44 bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
-                            <div class="bg-indigo-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.xp_pct + '%'" style="width: {{ $pctXp }}%"></div>
+                        <div class="w-36 sm:w-44 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
+                            <div class="bg-purple-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.xp_pct + '%'" style="width: {{ $pctXp }}%"></div>
                         </div>
                         <div class="flex items-center justify-between text-[10px] leading-normal pt-0.5">
                             @if($character->gang)
@@ -1737,7 +1737,7 @@
                 </div>
 
                 <!-- VERTICAL DIVIDER -->
-                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0 hidden xl:block"></div>
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-slate-800 shrink-0 hidden xl:block"></div>
 
                 <!-- 2. CENTER-LEFT: Clean Energy & Health Dual Filled Pill Bars & Quick Eat Dropdown -->
                 <div class="hidden xl:flex items-center gap-2.5 2xl:gap-3.5 shrink-0">
@@ -1754,7 +1754,7 @@
                                     {{ $character->energy }}/{{ $character->max_energy }}
                                 </span>
                             </div>
-                            <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
                                 <div class="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.energy <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                             </div>
                         </a>
@@ -1771,7 +1771,7 @@
                                     {{ $character->health }}/{{ $character->max_health }}
                                 </span>
                             </div>
-                            <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
                                 <div class="bg-rose-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.health <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
                             </div>
                         </a>
@@ -1802,11 +1802,11 @@
                              x-transition:leave="transition ease-in duration-100"
                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                              x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                             class="absolute left-0 mt-2 bg-white dark:bg-[#120826] rounded-2xl shadow-2xl border border-slate-200 dark:border-purple-800/70 z-50 overflow-hidden text-slate-800 dark:text-slate-100"
+                             class="absolute left-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 z-50 overflow-hidden text-slate-800 dark:text-slate-100"
                              style="width: 360px; min-width: 320px; max-width: min(380px, calc(100vw - 2rem));">
                              
                             <!-- Dropdown Header -->
-                            <div class="px-4 py-3 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent dark:from-emerald-950/60 dark:via-purple-950/40 dark:to-transparent border-b border-slate-100 dark:border-purple-900/40 flex items-center justify-between gap-2">
+                            <div class="px-4 py-3 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent dark:from-emerald-950/60 dark:via-purple-950/40 dark:to-transparent border-b border-slate-200/90 dark:border-slate-800 flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0">
                                     <div class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xs shadow-md shadow-emerald-500/20 shrink-0">
                                         <i class="fa-solid fa-burger"></i>
@@ -1822,7 +1822,7 @@
                             </div>
 
                             <!-- Live Mini Status Bars & 1-Click Auto-Refill Buttons -->
-                            <div class="px-4 py-2.5 bg-slate-50/70 dark:bg-purple-950/30 border-b border-slate-100 dark:border-purple-900/30 space-y-2.5 text-[10px]">
+                            <div class="px-4 py-2.5 bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 space-y-2.5 text-[10px]">
                                 <div class="grid grid-cols-2 gap-3">
                                     <!-- Energie -->
                                     <div class="space-y-1 min-w-0">
@@ -1834,7 +1834,7 @@
                                                 {{ $character->energy }}/{{ $character->max_energy }}
                                             </span>
                                         </div>
-                                        <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
+                                        <div class="w-full bg-slate-200/80 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
                                             <div class="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                                         </div>
                                     </div>
@@ -1848,7 +1848,7 @@
                                                 {{ $character->health }}/{{ $character->max_health }}
                                             </span>
                                         </div>
-                                        <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
+                                        <div class="w-full bg-slate-200/80 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
                                             <div class="bg-rose-500 h-full rounded-full transition-all duration-300 ease-out" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
                                         </div>
                                     </div>
@@ -1859,7 +1859,7 @@
                                     <form action="{{ route('shop.auto-refill') }}" method="POST" data-no-async="true" onsubmit="window.tbsQuickConsume(event, this)">
                                         @csrf
                                         <input type="hidden" name="stat" value="energy">
-                                        <button type="submit" class="w-full py-1.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] shadow-2xs transition cursor-pointer flex items-center justify-center gap-1.5" title="Eet automatisch genoeg snacks uit je voorraad tot 100% Energie">
+                                        <button type="submit" class="w-full py-1.5 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] shadow-2xs transition cursor-pointer flex items-center justify-center gap-1.5" title="Eet automatisch genoeg snacks uit je voorraad tot 100% Energie">
                                             <i class="fa-solid fa-bolt text-[9px]"></i>
                                             <span>Vul Energie 100%</span>
                                         </button>
@@ -1867,7 +1867,7 @@
                                     <form action="{{ route('shop.auto-refill') }}" method="POST" data-no-async="true" onsubmit="window.tbsQuickConsume(event, this)">
                                         @csrf
                                         <input type="hidden" name="stat" value="health">
-                                        <button type="submit" class="w-full py-1.5 px-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-[10px] shadow-2xs transition cursor-pointer flex items-center justify-center gap-1.5" title="Gebruik automatisch genoeg items uit je voorraad tot 100% Gezondheid (HP)">
+                                        <button type="submit" class="w-full py-1.5 px-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-[10px] shadow-2xs transition cursor-pointer flex items-center justify-center gap-1.5" title="Gebruik automatisch genoeg items uit je voorraad tot 100% Gezondheid (HP)">
                                             <i class="fa-solid fa-heart text-[9px]"></i>
                                             <span>Vul HP 100%</span>
                                         </button>
@@ -1876,14 +1876,14 @@
                             </div>
 
                             <!-- Consumable Items List -->
-                            <div id="quick-eat-items-list" class="max-h-64 overflow-y-auto custom-scrollbar p-2 space-y-1.5 divide-y divide-slate-100 dark:divide-purple-900/30 {{ $quickFoodItems->isEmpty() ? 'hidden' : '' }}">
+                            <div id="quick-eat-items-list" class="max-h-64 overflow-y-auto custom-scrollbar p-2 space-y-1.5 divide-y divide-slate-100 dark:divide-slate-800 {{ $quickFoodItems->isEmpty() ? 'hidden' : '' }}">
                                 @foreach($quickFoodItems as $ci)
                                     @php $item = $ci->item; @endphp
                                     @if($item)
-                                    <div data-quick-item-id="{{ $ci->id }}" class="pt-1.5 first:pt-0 flex items-center justify-between gap-2 p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-purple-950/40 transition">
+                                    <div data-quick-item-id="{{ $ci->id }}" class="pt-1.5 first:pt-0 flex items-center justify-between gap-2 p-1.5 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
                                         <!-- Item Info -->
                                         <div class="flex items-center gap-2 min-w-0">
-                                            <div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center text-xs shadow-2xs {{ $item->energy_restore > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' }}">
+                                            <div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center text-xs shadow-2xs {{ $item->energy_restore > 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70' }}">
                                                 <i class="fa-solid {{ $item->icon ?? 'fa-utensils' }}"></i>
                                             </div>
                                             <div class="min-w-0">
@@ -1891,7 +1891,7 @@
                                                     <span class="font-black text-xs text-slate-900 dark:text-white truncate" title="{{ $item->name }}">
                                                         {{ $item->name }}
                                                     </span>
-                                                    <span data-item-qty class="bg-slate-200 dark:bg-purple-900 text-slate-700 dark:text-purple-200 text-[10px] font-black px-1.5 py-0.5 leading-none rounded-md shrink-0">
+                                                    <span data-item-qty class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[10px] font-black px-1.5 py-0.5 leading-none rounded-md shrink-0">
                                                         x{{ $ci->quantity }}
                                                     </span>
                                                 </div>
@@ -1917,7 +1917,7 @@
                                                 @csrf
                                                 <input type="hidden" name="quantity" value="1">
                                                 <button type="submit" 
-                                                        class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] shadow-xs cursor-pointer transition flex items-center gap-1"
+                                                        class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] shadow-xs cursor-pointer transition flex items-center gap-1"
                                                         title="Eet of gebruik 1 stuk">
                                                     <span>1x Eten</span>
                                                 </button>
@@ -1929,7 +1929,7 @@
                                                 @csrf
                                                 <input type="hidden" name="fill_max" value="1">
                                                 <button type="submit" 
-                                                        class="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-purple-950/80 dark:hover:bg-purple-900 text-slate-700 dark:text-purple-200 border border-slate-200 dark:border-purple-800 font-black text-[10px] shadow-2xs cursor-pointer transition active:scale-95 flex items-center gap-0.5"
+                                                        class="px-2 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-[10px] shadow-2xs cursor-pointer transition-all duration-150 active:scale-95 flex items-center gap-0.5"
                                                         title="Eet automatisch genoeg om je energie/hp vol te maken">
                                                     <span>Max ⚡</span>
                                                 </button>
@@ -1943,7 +1943,7 @@
 
                             <!-- Empty State (No scrollbar, clean and neat) -->
                             <div id="quick-eat-empty-state" class="py-6 px-5 text-center {{ $quickFoodItems->isEmpty() ? '' : 'hidden' }}">
-                                <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-950/70 dark:to-purple-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg mb-2.5 shadow-inner">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/60 dark:to-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg mb-2.5 shadow-inner">
                                     <i class="fa-solid fa-utensils"></i>
                                 </div>
                                 <h5 class="font-black text-xs text-slate-800 dark:text-slate-100 mb-1">Geen snacks in je rugzak</h5>
@@ -1959,7 +1959,7 @@
                             </div>
 
                             <!-- Dropdown Footer -->
-                            <div class="px-3.5 py-2.5 bg-slate-50/80 dark:bg-purple-950/50 border-t border-slate-100 dark:border-purple-900/40 flex items-center justify-between text-[11px] gap-2">
+                            <div class="px-3.5 py-2.5 bg-slate-50/90 dark:bg-slate-800/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-[11px] gap-2">
                                 <a href="{{ route('shop.index') }}" class="text-slate-500 hover:text-emerald-600 dark:text-purple-300 dark:hover:text-emerald-400 font-bold flex items-center gap-1.5 transition truncate">
                                     <i class="fa-solid fa-store text-[11px] text-emerald-500"></i>
                                     <span>Kantine</span>
@@ -1975,15 +1975,15 @@
                 </div>
 
                 <!-- VERTICAL DIVIDER -->
-                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0 hidden xl:block"></div>
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-slate-800 shrink-0 hidden xl:block"></div>
 
                 <!-- 3. CENTER-RIGHT: Financial Overview (Wallet Icon, Total + Cash & Bank Subtitle) -->
                 <a href="{{ route('bank.index') }}" class="flex items-center gap-3 group cursor-pointer shrink-0 hover:opacity-90 transition select-none" title="Totaal Vermogen &bull; Klik voor De Bank">
-                    <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-purple-950/60 border border-slate-200/90 dark:border-purple-900/40 text-slate-600 dark:text-purple-300 group-hover:bg-indigo-600 dark:group-hover:bg-purple-600 group-hover:text-white group-hover:border-indigo-600 transition flex items-center justify-center text-lg shadow-2xs">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-slate-600 dark:text-slate-300 group-hover:bg-purple-600 dark:group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-600 transition-all duration-150 flex items-center justify-center text-lg shadow-2xs">
                         <i class="fa-solid fa-wallet"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none group-hover:text-indigo-600 dark:group-hover:text-purple-400 transition" x-text="stats.totalFormatted">
+                        <span class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none group-hover:text-purple-600 dark:group-hover:text-purple-400 transition" x-text="stats.totalFormatted">
                             €{{ number_format($character->cash + $character->bank, 0, ',', '.') }}
                         </span>
                         <span class="hidden 2xl:inline text-[10px] font-medium text-slate-400 dark:text-purple-300/70 mt-1 leading-none">
@@ -1993,7 +1993,7 @@
                 </a>
 
                 <!-- VERTICAL DIVIDER -->
-                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0 hidden xl:block"></div>
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-slate-800 shrink-0 hidden xl:block"></div>
 
                 <!-- 4. RIGHT: VIP, STARS & RESPECT -->
                 <div class="flex items-center gap-3 xl:gap-4 shrink-0">
@@ -2077,7 +2077,7 @@
         </header>
         @else
         <!-- TOP MODERN GUEST HEADER BAR -->
-        <header x-data="{ guestMenuOpen: false }" class="bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md border-b border-slate-200 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs">
+        <header x-data="{ guestMenuOpen: false }" class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800 sticky top-0 z-40 shadow-xs">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-3">
                 <!-- Logo & Title -->
                 <a href="{{ Auth::check() ? route('dashboard') : route('login') }}" data-turbo="false" data-turbo-prefetch="false" class="flex items-center gap-3 group shrink-0">
@@ -2086,7 +2086,7 @@
                     </div>
                     <div>
                         <span class="block text-base font-extrabold tracking-tight text-slate-900 dark:text-white uppercase leading-none">
-                            TBS <span class="text-indigo-600 dark:text-purple-400">KLINIEK</span>
+                            TBS <span class="text-purple-600 dark:text-purple-400">KLINIEK</span>
                         </span>
                     </div>
                 </a>
@@ -2094,12 +2094,12 @@
                 <!-- Desktop / Tablet Navigation Menu -->
                 <nav class="hidden md:flex items-center gap-2">
                     @if(Auth::check())
-                        <a href="{{ route('dashboard') }}" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-2">
+                        <a href="{{ route('dashboard') }}" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
                             <i class="fa-solid fa-house text-purple-600 dark:text-purple-400 text-xs"></i>
                             <span>Dashboard</span>
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-2">
+                        <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
                             <i class="fa-solid fa-right-to-bracket text-purple-600 dark:text-purple-400 text-xs"></i>
                             <span>Inloggen</span>
                         </a>
@@ -2139,7 +2139,7 @@
 
                     <!-- Mobile Hamburger Toggle Button -->
                     <button type="button" @click="guestMenuOpen = !guestMenuOpen" 
-                            class="md:hidden w-10 h-10 rounded-xl bg-slate-100 dark:bg-purple-950/60 border border-slate-200 dark:border-purple-900/40 text-slate-700 dark:text-purple-200 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-purple-900/60 transition"
+                            class="md:hidden w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition cursor-pointer active:scale-95"
                             aria-label="Open Menu">
                         <i class="fa-solid fa-bars text-base" x-show="!guestMenuOpen"></i>
                         <i class="fa-solid fa-xmark text-base" x-show="guestMenuOpen" style="display: none;"></i>
@@ -2155,30 +2155,30 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 translate-y-0"
                  x-transition:leave-end="opacity-0 -translate-y-2"
-                 class="md:hidden border-t border-slate-200 dark:border-purple-900/40 bg-white/98 dark:bg-[#110726]/98 px-4 pt-3 pb-5 space-y-2 shadow-lg"
+                 class="md:hidden border-t border-slate-200/90 dark:border-slate-800 bg-white/98 dark:bg-slate-900/98 px-4 pt-3 pb-5 space-y-2 shadow-lg"
                  style="display: none;">
                 
                 @if(Auth::check())
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-slate-800/60 transition">
                         <i class="fa-solid fa-house text-purple-600 dark:text-purple-400 w-5 text-center"></i>
                         <span>Dashboard</span>
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
+                    <a href="{{ route('login') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-slate-800/60 transition">
                         <i class="fa-solid fa-right-to-bracket text-purple-600 dark:text-purple-400 w-5 text-center"></i>
                         <span>Inloggen</span>
                     </a>
-                    <a href="{{ route('register') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-extrabold text-white bg-purple-600 hover:bg-purple-700 transition">
+                    <a href="{{ route('register') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-extrabold text-white bg-purple-600 hover:bg-purple-700 active:scale-95 transition shadow-xs">
                         <i class="fa-solid fa-user-plus w-5 text-center"></i>
                         <span>Nieuw Account Registreren</span>
                     </a>
                 @endif
 
-                <div class="pt-2 border-t border-slate-100 dark:border-purple-900/40 flex items-center justify-between gap-2">
-                    <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-[#5865F2] text-white text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                <div class="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
+                    <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-[#5865F2] text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 active:scale-95 transition">
                         <i class="fa-brands fa-discord"></i> Discord
                     </a>
-                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 dark:border dark:border-slate-700 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 border border-transparent dark:border-slate-700 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 active:scale-95 transition">
                         <i class="fa-brands fa-tiktok"></i> TikTok
                     </a>
                 </div>
@@ -2270,7 +2270,7 @@
                         @csrf
                         <input type="hidden" name="currency" value="cash">
                         <button type="submit" 
-                                class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-95">
+                                class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-95">
                             <i class="fa-solid fa-syringe text-emerald-400"></i>
                             <span>Koop Epinefrine-Ampul (€1.500.000)</span>
                         </button>
@@ -2396,7 +2396,7 @@
                         </p>
                     </div>
                 </div>
-                <a href="{{ route('vault.index') }}" class="shrink-0 hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
+                <a href="{{ route('vault.index') }}" class="shrink-0 hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-black shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-vault text-amber-400"></i>
                     <span>Naar MedicijnKluis</span>
                 </a>
@@ -2438,7 +2438,7 @@
         @include('partials.season_welcome_modal')
 
         <!-- SITE-WIDE JURIDISCHE & COMPLIANCE FOOTER (Nederland & Europa AVG/GDPR) -->
-        <footer class="mt-auto border-t border-slate-200 dark:border-purple-900/40 bg-white dark:bg-[#0c061a] pt-10 pb-20 lg:pb-10 text-xs text-slate-500 dark:text-slate-400">
+        <footer class="mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 pt-10 pb-20 lg:pb-10 text-xs text-slate-500 dark:text-slate-400">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
                 
                 <!-- Main Footer Grid (4 Perfectly Balanced Columns) -->
@@ -2456,48 +2456,48 @@
 
                         <!-- Sleek Social Media Icon Buttons -->
                         <div class="space-y-1.5 pt-1">
-                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-purple-300/70 block">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
                                 Volg Onze Socials
                             </span>
                             <div class="flex flex-wrap items-center gap-2">
                                 <!-- Discord -->
                                 <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" 
-                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-[#5865F2] hover:text-white text-[#5865F2] border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-sm transition shadow-2xs group" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#5865F2] hover:text-white text-[#5865F2] border border-slate-200 dark:border-slate-700 flex items-center justify-center text-sm transition shadow-2xs group" 
                                    title="Officiële Discord">
                                     <i class="fa-brands fa-discord group-hover:scale-110 transition-transform"></i>
                                 </a>
 
                                 <!-- YouTube -->
                                 <a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" 
-                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-[#FF0000] hover:text-white text-[#FF0000] border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-sm transition shadow-2xs group" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#FF0000] hover:text-white text-[#FF0000] border border-slate-200 dark:border-slate-700 flex items-center justify-center text-sm transition shadow-2xs group" 
                                    title="YouTube @tbsklinieknl">
                                     <i class="fa-brands fa-youtube group-hover:scale-110 transition-transform"></i>
                                 </a>
 
                                 <!-- TikTok -->
                                 <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" 
-                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-slate-900 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-sm transition shadow-2xs group" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-900 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-sm transition shadow-2xs group" 
                                    title="TikTok @tbsklinieknl">
                                     <i class="fa-brands fa-tiktok group-hover:scale-110 transition-transform"></i>
                                 </a>
 
                                 <!-- Instagram -->
                                 <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener noreferrer" 
-                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-gradient-to-tr hover:from-[#fd1d1d] hover:to-[#833ab4] hover:text-white text-[#e1306c] border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-sm transition shadow-2xs group" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-gradient-to-tr hover:from-[#fd1d1d] hover:to-[#833ab4] hover:text-white text-[#e1306c] border border-slate-200 dark:border-slate-700 flex items-center justify-center text-sm transition shadow-2xs group" 
                                    title="Instagram @tbsklinieknl">
                                     <i class="fa-brands fa-instagram group-hover:scale-110 transition-transform"></i>
                                 </a>
 
                                 <!-- Twitter / X -->
                                 <a href="https://x.com/tbskliniek" target="_blank" rel="noopener noreferrer" 
-                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-black hover:text-white text-slate-900 dark:text-white border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-xs transition shadow-2xs group" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-black hover:text-white text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs transition shadow-2xs group" 
                                    title="Twitter / X @tbskliniek">
                                     <i class="fa-brands fa-x-twitter group-hover:scale-110 transition-transform"></i>
                                 </a>
 
                                 <!-- Hyves -->
                                 <a href="https://hyves.nl/#my-profile/hyve?id=Zv3DWejo" target="_blank" rel="noopener noreferrer" 
-                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-[#f36f21] hover:text-white text-[#f36f21] border border-slate-200 dark:border-purple-900/40 flex items-center justify-center transition shadow-2xs group" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#f36f21] hover:text-white text-[#f36f21] border border-slate-200 dark:border-slate-700 flex items-center justify-center transition shadow-2xs group" 
                                    title="Hyves (TBS Kliniek)">
                                     <span class="w-4 h-4 rounded bg-[#f36f21] group-hover:bg-white text-white group-hover:text-[#f36f21] flex items-center justify-center font-black text-[10px] leading-none shrink-0 shadow-2xs transition-colors">H</span>
                                 </a>
@@ -2560,7 +2560,7 @@
                 </div>
 
                 <!-- Satire / Fictief Verklaring Bar -->
-                <div class="p-4 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-900/40 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed flex items-start gap-3">
+                <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed flex items-start gap-3">
                     <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400 text-sm mt-0.5 shrink-0"></i>
                     <div>
                         <strong class="text-slate-800 dark:text-slate-200 font-bold">Fictief Rollenspel Verklaring:</strong> TBS Kliniek is een 100% fictief online browsergame (RPG / satire) ter recreatief vermaak. Deze website is op geen enkele wijze gelieerd aan het Ministerie van Justitie en Veiligheid, de Dienst Justitiële Inrichtingen (DJI) of bestaande forensische psychiatrische centra. In-game valuta en items hebben geen reële economische waarde.
@@ -2568,7 +2568,7 @@
                 </div>
 
                 <!-- Copyright Bar -->
-                <div class="pt-4 border-t border-slate-100 dark:border-purple-900/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400 dark:text-slate-500">
+                <div class="pt-4 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400 dark:text-slate-500">
                     <div>
                         &copy; {{ date('Y') }} TBS Kliniek (tbs-kliniek.nl). Alle rechten voorbehouden.
                     </div>
@@ -2588,7 +2588,7 @@
 
         @if(isset($character))
         <!-- NATIVE MOBILE APP BOTTOM DOCK -->
-        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-purple-900/50 z-30 flex items-center justify-around py-1.5 px-2 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 z-30 flex items-center justify-around py-1.5 px-2 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
             
             <!-- 1. Home / Dashboard -->
             <a href="{{ route('dashboard') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
@@ -2606,7 +2606,7 @@
             <div class="flex-1 flex flex-col items-center justify-center -mt-5">
                 <button type="button" 
                         @click="mobileQuickSheetOpen = !mobileQuickSheetOpen; if(window.tbsVibrate) window.tbsVibrate(15);"
-                        class="relative w-13 h-13 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/40 active:scale-90 transition-transform cursor-pointer border-3 border-white dark:border-[#110726] group"
+                        class="relative w-13 h-13 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/40 active:scale-90 transition-transform cursor-pointer border-3 border-white dark:border-slate-900 group"
                         aria-label="Snelmenu Acties">
                     <span class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping"></span>
                     <i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform"></i>
@@ -2625,7 +2625,7 @@
                 <div class="relative">
                     <i class="fa-solid fa-comments text-base"></i>
                     @if(isset($unreadChatCount) && $unreadChatCount > 0)
-                        <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#110726]"></span>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
                     @endif
                 </div>
                 <span>Chat</span>
@@ -2658,7 +2658,7 @@
                  x-transition:leave="transition ease-in duration-200 transform-gpu"
                  x-transition:leave-start="translate-y-0"
                  x-transition:leave-end="translate-y-full"
-                 class="relative bg-white dark:bg-[#0f172a] rounded-t-3xl shadow-2xl border-t border-purple-500/30 max-h-[85vh] overflow-y-auto p-4 z-10 flex flex-col gap-4 text-slate-800 dark:text-slate-100"
+                 class="relative bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl border-t border-slate-200/90 dark:border-slate-800 max-h-[85vh] overflow-y-auto p-4 z-10 flex flex-col gap-4 text-slate-800 dark:text-slate-100"
                  style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));">
                 
                 <!-- Pull Bar Handle (Tap or Swipe Down to Dismiss) -->
@@ -2667,11 +2667,11 @@
                      @touchstart="touchStartY = $event.touches[0].clientY"
                      @touchmove="if ($event.touches[0].clientY - touchStartY > 40) { mobileQuickSheetOpen = false; if(window.tbsVibrate) window.tbsVibrate(15); }"
                      @click="mobileQuickSheetOpen = false">
-                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-purple-900/80 shrink-0"></div>
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 shrink-0"></div>
                 </div>
 
                 <!-- Header / Player Summary -->
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-purple-900/40 pb-3">
+                <div class="flex items-center justify-between border-b border-slate-200/90 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-10 h-10 rounded-full p-0.5 bg-purple-100 dark:bg-purple-950 ring-2 ring-purple-500/30 overflow-hidden">
                             <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
@@ -2681,7 +2681,7 @@
                             <div class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold">LVL {{ $character->level }} &bull; {{ $character->formatted_respect }} Respect</div>
                         </div>
                     </div>
-                    <button @click="mobileQuickSheetOpen = false" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center text-sm transition cursor-pointer">
+                    <button @click="mobileQuickSheetOpen = false" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-sm transition-all duration-150 cursor-pointer">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -2689,7 +2689,7 @@
                 <!-- Stats Overview Grid (Cards) -->
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <!-- Cash & Deposit -->
-                    <div class="p-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 flex flex-col justify-between">
+                    <div class="p-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/70 flex flex-col justify-between">
                         <div class="flex items-center justify-between text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
                             <span class="flex items-center gap-1"><i class="fa-solid fa-wallet"></i> Contant</span>
                             <span class="font-mono font-black text-xs" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
@@ -2710,23 +2710,23 @@
                     </div>
 
                     <!-- Bank Balance -->
-                    <div class="p-2.5 rounded-2xl bg-indigo-50 dark:bg-purple-950/40 border border-indigo-200/80 dark:border-purple-800/40 flex flex-col justify-between">
-                        <div class="flex items-center justify-between text-[10px] font-bold text-indigo-800 dark:text-purple-300">
+                    <div class="p-2.5 rounded-2xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/50 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-[10px] font-bold text-purple-900 dark:text-purple-300">
                             <span class="flex items-center gap-1"><i class="fa-solid fa-building-columns"></i> Bank Saldo</span>
                             <span class="font-mono font-black text-xs" x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span>
                         </div>
-                        <a href="{{ route('bank.index') }}" class="mt-2 w-full py-1 px-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1">
+                        <a href="{{ route('bank.index') }}" class="mt-2 w-full py-1 px-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1">
                             <i class="fa-solid fa-vault text-[9px]"></i> Bank Beheer
                         </a>
                     </div>
 
                     <!-- Energy -->
-                    <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 flex flex-col justify-between">
+                    <div class="p-2.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col justify-between">
                         <div class="flex items-center justify-between text-[10px] font-bold text-slate-700 dark:text-slate-300">
                             <span class="flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Energie</span>
                             <span class="font-mono font-black text-xs text-emerald-600 dark:text-emerald-400" x-text="stats.energy + '/' + stats.max_energy">{{ $character->energy }}/{{ $character->max_energy }}</span>
                         </div>
-                        <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 my-1.5 overflow-hidden">
+                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 my-1.5 overflow-hidden">
                             <div class="bg-emerald-500 h-full rounded-full transition-all" :style="'width: ' + stats.energy_pct + '%'"></div>
                         </div>
                         <form action="{{ route('shop.auto-refill') }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
@@ -2739,12 +2739,12 @@
                     </div>
 
                     <!-- Health -->
-                    <div class="p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-800/40 flex flex-col justify-between">
+                    <div class="p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-800/70 flex flex-col justify-between">
                         <div class="flex items-center justify-between text-[10px] font-bold text-rose-800 dark:text-rose-300">
                             <span class="flex items-center gap-1"><i class="fa-solid fa-heart text-rose-500"></i> Gezondheid</span>
                             <span class="font-mono font-black text-xs text-rose-600 dark:text-rose-400" x-text="stats.health + '/' + stats.max_health">{{ $character->health }}/{{ $character->max_health }}</span>
                         </div>
-                        <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 my-1.5 overflow-hidden">
+                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 my-1.5 overflow-hidden">
                             <div class="bg-rose-500 h-full rounded-full transition-all" :style="'width: ' + stats.health_pct + '%'"></div>
                         </div>
                         <form action="{{ route('shop.auto-refill') }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
@@ -2759,51 +2759,51 @@
 
                 <!-- 🚀 Snelle Acties Grid (Large Touch Buttons) -->
                 <div>
-                    <span class="text-[10px] font-black uppercase text-slate-400 dark:text-purple-300/70 tracking-wider mb-2 block">Direct Naar</span>
+                    <span class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-2 block">Direct Naar</span>
                     <div class="grid grid-cols-4 gap-2 text-center text-xs font-bold">
-                        <a href="{{ route('hustle.index') }}" class="p-2 rounded-2xl bg-slate-100 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('hustle.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-hand-holding-dollar"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Hosselen</span>
                         </a>
 
-                        <a href="{{ route('fight.index') }}" class="p-2 rounded-2xl bg-slate-100 hover:bg-emerald-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('fight.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-emerald-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-hand-fist"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Stelen</span>
                         </a>
 
-                        <a href="{{ route('hitman.index') }}" class="p-2 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('hitman.index') }}" class="p-2 rounded-2xl bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 border border-rose-200/80 dark:border-rose-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-crosshairs"></i>
                             </div>
                             <span class="text-[9px] truncate w-full text-rose-700 dark:text-rose-300 font-black">Liquidatie</span>
                         </a>
 
-                        <a href="{{ route('packages.index') }}" class="p-2 rounded-2xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('packages.index') }}" class="p-2 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-briefcase"></i>
                             </div>
                             <span class="text-[9px] truncate w-full text-amber-800 dark:text-amber-300 font-black">Koffers</span>
                         </a>
 
-                        <a href="{{ route('vault.index') }}" class="p-2 rounded-2xl bg-slate-100 hover:bg-amber-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('vault.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-amber-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-key"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Kluis</span>
                         </a>
 
-                        <a href="{{ route('marketplace.index') }}" class="p-2 rounded-2xl bg-slate-100 hover:bg-indigo-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('marketplace.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-store"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Markt</span>
                         </a>
 
-                        <a href="{{ route('shop.index') }}" class="p-2 rounded-2xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('shop.index') }}" class="p-2 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-star"></i>
                             </div>
@@ -2812,7 +2812,7 @@
 
                         <button type="button" 
                                 @click="mobileQuickSheetOpen = false; if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
-                                class="p-2 rounded-2xl bg-slate-100 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95 cursor-pointer">
+                                class="p-2 rounded-2xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95 cursor-pointer">
                             <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
@@ -2822,20 +2822,20 @@
                 </div>
 
                 <!-- Navigation Controls (Terug, Vernieuwen & Thema Wissel) -->
-                <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-purple-900/40">
+                <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200/80 dark:border-slate-800">
                     <button type="button" 
                             onclick="window.tbsGoBack()" 
-                            class="py-2 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer">
+                            class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-all duration-150 cursor-pointer">
                         <i class="fa-solid fa-arrow-left"></i> Terug
                     </button>
                     <button type="button" 
                             onclick="window.tbsReloadPage(this)" 
-                            class="py-2 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer">
+                            class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-all duration-150 cursor-pointer">
                         <i class="fa-solid fa-rotate-right"></i> Refresh
                     </button>
                     <button type="button" 
                             onclick="window.tbsToggleTheme()" 
-                            class="py-2 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer">
+                            class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-all duration-150 cursor-pointer">
                         <i class="fa-solid fa-circle-half-stroke"></i> Thema
                     </button>
                 </div>
@@ -3417,7 +3417,7 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                  x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
-                 class="pointer-events-auto relative overflow-hidden flex flex-col rounded-2xl border shadow-2xl min-w-[300px] sm:min-w-[380px] max-w-md w-full bg-white dark:bg-[#120a2e] text-slate-900 dark:text-white transition-all select-none border-slate-200 dark:border-purple-800">
+                 class="pointer-events-auto relative overflow-hidden flex flex-col rounded-2xl border shadow-2xl min-w-[300px] sm:min-w-[380px] max-w-md w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white transition-all select-none border-slate-200/90 dark:border-slate-800">
                 
                 <div class="flex items-center gap-3 p-3.5 sm:p-4">
                     <!-- Icon Badge -->
@@ -3462,7 +3462,7 @@
                     <!-- Kruisje (Close Button) with direct reliable hit area and visual response -->
                     <button type="button" 
                             @click.stop="removeToast(toast)" 
-                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-purple-950/80 hover:bg-slate-200 dark:hover:bg-purple-900/60 active:scale-90 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 ml-1 border border-slate-200/60 dark:border-purple-800/60"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-90 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 ml-1 border border-slate-200/80 dark:border-slate-700"
                             title="Melding sluiten">
                         <i class="fa-solid fa-xmark text-sm pointer-events-none"></i>
                     </button>
@@ -3496,7 +3496,7 @@
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-6 scale-95"
          style="display: none;"
-         class="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 left-3 sm:left-auto sm:max-w-md z-[999998] p-4 rounded-2xl bg-slate-900/95 dark:bg-[#130b2e]/95 backdrop-blur-md border border-purple-500/40 shadow-2xl text-white select-none">
+         class="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 left-3 sm:left-auto sm:max-w-md z-[999998] p-4 rounded-2xl bg-slate-900/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-700/80 dark:border-slate-800 shadow-2xl text-white select-none">
         
         <div class="flex items-start gap-3">
             <div class="relative w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-purple-300 shrink-0 mt-0.5">

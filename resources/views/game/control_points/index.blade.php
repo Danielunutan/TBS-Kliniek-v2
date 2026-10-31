@@ -13,7 +13,7 @@
 }">
 
     <!-- HERO HEADER -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div class="flex items-center gap-4">
@@ -23,7 +23,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Kliniek Controlepunten</h1>
-                        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800 font-black text-[10px] uppercase tracking-wider animate-pulse">
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-black text-[10px] uppercase tracking-wider animate-pulse">
                             King of the Hill
                         </span>
                     </div>
@@ -35,21 +35,21 @@
 
             <!-- QUICK STATS -->
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 shrink-0">
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-center">
+                <div class="p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-center">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">In Jouw Bezit</span>
                     <span class="text-lg font-black {{ $userHeldCount > 0 ? 'text-emerald-500' : 'text-slate-700 dark:text-slate-200' }}">
                         {{ $userHeldCount }} / {{ $points->count() }}
                     </span>
                 </div>
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-center">
+                <div class="p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-center">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Tarief / Minuut</span>
                     <span class="text-xs font-black text-amber-500">
                         +€50 (+1 ⭐ na 30m)
                     </span>
                 </div>
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-center col-span-2 sm:col-span-1">
+                <div class="p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-center col-span-2 sm:col-span-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Kosten Claim</span>
-                    <span class="text-xs font-black text-indigo-500">
+                    <span class="text-xs font-black text-purple-600 dark:text-purple-400">
                         2⚡ Energie
                     </span>
                 </div>
@@ -69,7 +69,7 @@
                 $pendingCash = $point->getPendingCash();
                 $pendingStars = $point->getPendingStars();
             @endphp
-            <div class="bg-white dark:bg-slate-900 border {{ $isHolder ? 'border-amber-400 dark:border-amber-500 shadow-lg shadow-amber-500/10 ring-2 ring-amber-400/20' : 'border-slate-200 dark:border-slate-800 shadow-xs' }} rounded-2xl p-5 flex flex-col justify-between transition relative overflow-hidden group">
+            <div class="bg-white dark:bg-slate-900 border {{ $isHolder ? 'border-amber-400 dark:border-amber-500 shadow-md ring-2 ring-amber-400/20' : 'border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 shadow-xs' }} rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 relative overflow-hidden group">
                 
                 @if($isHolder)
                 <div class="absolute -top-3 -right-3 px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[10px] font-black uppercase tracking-widest shadow-md rotate-12 flex items-center gap-1.5 z-20">
@@ -82,7 +82,7 @@
                     <!-- TOP BAR: ICON & BADGE -->
                     <div class="flex items-center justify-between gap-3 mb-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-xl {{ $isHolder ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-purple-600 dark:text-purple-400' }} flex items-center justify-center text-xl shrink-0 shadow-inner">
+                            <div class="w-12 h-12 rounded-xl {{ $isHolder ? 'bg-amber-500 text-white' : 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70' }} flex items-center justify-center text-xl shrink-0 shadow-2xs">
                                 <i class="fa-solid {{ $point->icon }}"></i>
                             </div>
                             <div>
@@ -90,13 +90,13 @@
                                     {{ $point->name }}
                                 </h2>
                                 <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                                    <i class="fa-solid fa-location-dot text-indigo-500 text-[10px]"></i>
+                                    <i class="fa-solid fa-location-dot text-purple-600 dark:text-purple-400 text-[10px]"></i>
                                     {{ $point->location_name }}
                                 </span>
                             </div>
                         </div>
 
-                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider {{ $point->current_character_id ? ($isHolder ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60' : 'bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-700/60') : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60' }}">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider {{ $point->current_character_id ? ($isHolder ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70') : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' }}">
                             {{ $point->current_character_id ? ($isHolder ? 'In jouw bezit' : 'Bezet') : 'Vrij' }}
                         </span>
                     </div>
@@ -107,7 +107,7 @@
                     </p>
 
                     <!-- CURRENT HOLDER BOX -->
-                    <div class="p-3.5 rounded-xl {{ $isHolder ? 'bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60' : 'bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800' }} mb-4">
+                    <div class="p-3.5 rounded-xl {{ $isHolder ? 'bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60' : 'bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70' }} mb-4">
                         @if($point->holder)
                             <div class="flex items-center gap-3">
                                 <img src="{{ $point->holder->avatar_url }}" 
@@ -119,7 +119,7 @@
                                             {{ $point->holder->name }}
                                         </a>
                                         @if($point->holder->gang)
-                                            <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-800">
+                                            <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70">
                                                 [{{ $point->holder->gang->tag }}]
                                             </span>
                                         @endif
@@ -156,24 +156,24 @@
                 <!-- ACTION BUTTON -->
                 <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3">
                     <span class="text-[10px] text-slate-400 font-bold flex items-center gap-1">
-                        <i class="fa-solid fa-bolt text-indigo-500"></i> Kost {{ $point->energy_cost }}⚡
+                        <i class="fa-solid fa-bolt text-purple-600 dark:text-purple-400"></i> Kost {{ $point->energy_cost }}⚡
                     </span>
 
                     @if($isHolder)
                         <button disabled 
-                                class="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">
+                                class="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">
                             <i class="fa-solid fa-check"></i>
                             <span>Jij Heerst Hier!</span>
                         </button>
                     @elseif($character && $character->isImprisoned())
                         <button disabled 
-                                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">
+                                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">
                             <i class="fa-solid fa-lock"></i>
                             <span>Isoleercel</span>
                         </button>
                     @elseif($character && $character->energy < $point->energy_cost)
                         <button disabled 
-                                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">
+                                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">
                             <i class="fa-solid fa-bolt"></i>
                             <span>Te Weinig Energie</span>
                         </button>
@@ -181,7 +181,7 @@
                         <form method="POST" action="{{ route('control-points.capture', $point) }}">
                             @csrf
                             <button type="submit" 
-                                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-xs uppercase tracking-wider transition shadow-sm shadow-amber-500/20 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]">
+                                    class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2">
                                 <i class="fa-solid fa-hand-fist"></i>
                                 <span>{{ $point->current_character_id ? 'Overnemen' : 'Opeisen' }}</span>
                             </button>
@@ -194,10 +194,10 @@
     </div>
 
     <!-- RECENT TAKEOVER LOGS -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
         <div class="flex items-center justify-between gap-4 mb-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-lg shrink-0">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
                 <div>
@@ -216,7 +216,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
                     <thead>
-                        <tr class="border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-black tracking-wider text-slate-400">
+                        <tr class="bg-slate-50/90 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 text-[10px] uppercase font-black tracking-wider">
                             <th class="py-3 px-3">Tijdstip</th>
                             <th class="py-3 px-3">Controlepunt</th>
                             <th class="py-3 px-3">Vorige Heerser</th>
@@ -225,9 +225,9 @@
                             <th class="py-3 px-3 text-right">Uitbetaalde Buit</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
                         @foreach($logs as $log)
-                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                             <td class="py-3 px-3 text-slate-400 text-[11px] whitespace-nowrap">
                                 {{ $log->created_at ? $log->created_at->diffForHumans() : '-' }}
                             </td>
@@ -243,7 +243,7 @@
                                         {{ $log->character->name }}
                                     </a>
                                     @if($log->gang)
-                                        <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-1 py-0.2 rounded ml-1">
+                                        <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-1.5 py-0.5 rounded-full ml-1">
                                             [{{ $log->gang->tag }}]
                                         </span>
                                     @endif
@@ -276,14 +276,14 @@
     </div>
 
     <!-- SPELREGELS & HOW IT WORKS -->
-    <div class="p-5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/50 text-xs text-amber-900 dark:text-amber-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div class="p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-700 dark:text-slate-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
         <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
+            <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm shrink-0 mt-0.5 shadow-2xs">
                 <i class="fa-solid fa-lightbulb"></i>
             </div>
             <div>
-                <strong class="font-black text-sm text-amber-950 dark:text-amber-100 block">Hoe werken Controlepunten?</strong>
-                <p class="mt-0.5 text-amber-800 dark:text-amber-300 leading-relaxed">
+                <strong class="font-black text-sm text-slate-900 dark:text-white block">Hoe werken Controlepunten?</strong>
+                <p class="mt-0.5 text-slate-600 dark:text-slate-300 leading-relaxed">
                     1. Klik op <strong>Opeisen/Overnemen</strong> om de controle over een plek te grijpen (kost 2⚡ energie).<br>
                     2. Jij behoudt het controlepunt <em>totdat een andere speler het van jou afpakt</em>.<br>
                     3. Elke minuut telt mee: <strong>1 minuut = +€50</strong> en vanaf 30 minuten bezit ontvang je tevens <strong>+1 ⭐</strong> bonus.<br>

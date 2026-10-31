@@ -5,7 +5,7 @@
 
     <!-- Top Breadcrumb Navigation -->
     <div class="flex items-center justify-between">
-        <a href="{{ route('news.index') }}" class="inline-flex items-center gap-2 text-xs font-black text-slate-500 hover:text-purple-600 transition">
+        <a href="{{ route('news.index') }}" class="inline-flex items-center gap-2 text-xs font-black text-slate-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400 transition">
             <i class="fa-solid fa-arrow-left"></i>
             <span>Terug naar alle nieuwsberichten</span>
         </a>
@@ -14,7 +14,7 @@
                 <i class="fa-regular fa-eye mr-1"></i> {{ number_format($article->views_count, 0, ',', '.') }} weergaven
             </span>
             @if(Auth::user()->canModerate())
-            <a href="{{ route('admin.news.edit', $article) }}" class="px-3 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition flex items-center gap-1.5 border border-purple-200">
+            <a href="{{ route('admin.news.edit', $article) }}" class="px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-xs font-bold transition flex items-center gap-1.5 border border-purple-200/80 dark:border-purple-800/70">
                 <i class="fa-solid fa-pen-to-square"></i> Bewerken in Admin
             </a>
             @endif
@@ -50,7 +50,7 @@
             <div class="flex flex-col md:flex-row items-start gap-6">
                 
                 <!-- Author Sidebar / Card -->
-                <div class="shrink-0 w-full md:w-44 flex flex-row md:flex-col items-center text-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700 gap-3">
+                <div class="shrink-0 w-full md:w-44 flex flex-row md:flex-col items-center text-center p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 gap-3">
                     @if($article->author)
                         <a href="{{ route('profile.show', $article->author->name) }}" class="relative group">
                             <img src="{{ $article->author->avatar_url }}" alt="{{ $article->author->name }}" class="w-16 h-16 rounded-2xl object-cover border-2 border-purple-200 dark:border-purple-700 shadow-2xs group-hover:scale-105 transition-transform">
@@ -102,7 +102,7 @@
         </div>
 
         <!-- Article Footer Bar -->
-        <div class="px-6 sm:px-8 py-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold">
+        <div class="px-6 sm:px-8 py-4 bg-slate-50/90 dark:bg-slate-800/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold">
             <div class="flex items-center gap-3">
                 <span><i class="fa-solid fa-clock mr-1 text-slate-400"></i>{{ $article->created_at->translatedFormat('d F Y, H:i') }}</span>
             </div>
@@ -137,19 +137,19 @@
         </div>
         @else
         <!-- New Comment Form -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-5" x-data="{ commentText: '' }">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5" x-data="{ commentText: '' }">
             <form action="{{ route('news.comment', $article) }}" method="POST" class="space-y-3">
                 @csrf
                 <div class="flex items-start gap-3.5">
-                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-xl object-cover border border-purple-200 shadow-2xs shrink-0">
+                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-xl object-cover border border-purple-200 dark:border-purple-800 shadow-2xs shrink-0">
                     <div class="flex-1 min-w-0">
                         <textarea name="content" 
-                                  x-model="commentText"
-                                   maxlength="500"
+                                  x-model="commentText" 
+                                  maxlength="500" 
                                   required 
                                   rows="3" 
                                   placeholder="Laat een respectvolle reactie achter op dit nieuwsbericht, {{ $character->name }}..."
-                                  class="w-full text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl p-3.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-600 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900 outline-none resize-none transition"></textarea>
+                                  class="w-full text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition"></textarea>
                     </div>
                 </div>
 
@@ -159,7 +159,7 @@
                     </div>
                     <button type="submit" 
                             :disabled="commentText.trim().length === 0" 
-                            class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                            class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white rounded-xl transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-paper-plane text-[10px]"></i>
                         <span>Plaats Reactie</span>
                     </button>
@@ -170,8 +170,8 @@
 
         <!-- Comments List -->
         @if($comments->isEmpty())
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-8 text-center space-y-2">
-            <div class="w-12 h-12 mx-auto rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-400 flex items-center justify-center text-xl">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-8 text-center space-y-2">
+            <div class="w-12 h-12 mx-auto rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl">
                 <i class="fa-regular fa-comment-dots"></i>
             </div>
             <h4 class="text-xs font-black text-slate-700 dark:text-slate-200">Nog geen reacties</h4>
@@ -183,7 +183,7 @@
         <div class="space-y-3">
             @foreach($comments as $comment)
             @if($comment->character)
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex items-start justify-between gap-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs flex items-start justify-between gap-4">
                 <div class="flex items-start gap-3.5 min-w-0 flex-1">
                     <a href="{{ route('profile.show', $comment->character->name) }}" class="shrink-0">
                         <img src="{{ $comment->character->avatar_url }}" alt="{{ $comment->character->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs">
@@ -199,11 +199,11 @@
                                     <i class="fa-solid {{ $cBadge['icon'] }} text-[8px]"></i> {{ $cBadge['label'] }}
                                 </span>
                             @endif
-                            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded">
+                            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-0.2 rounded">
                                 Lvl {{ $comment->character->level }}
                             </span>
                             @if($comment->character->gang)
-                            <span class="text-[10px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950 border border-purple-100 dark:border-purple-800 px-1.5 py-0.2 rounded">
+                            <span class="text-[10px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-1.5 py-0.2 rounded">
                                 [{{ $comment->character->gang->tag }}]
                             </span>
                             @endif
@@ -228,7 +228,7 @@
                       class="shrink-0">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="{{ Auth::user()->canModerate() ? 'Verwijderen als moderator' : 'Verwijderen' }}">
+                    <button type="submit" class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" title="{{ Auth::user()->canModerate() ? 'Verwijderen als moderator' : 'Verwijderen' }}">
                         <i class="fa-regular fa-trash-can text-xs"></i>
                     </button>
                 </form>
@@ -238,7 +238,7 @@
             @endforeach
         </div>
 
-        <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+        <div class="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
             {{ $comments->links() }}
         </div>
         @endif

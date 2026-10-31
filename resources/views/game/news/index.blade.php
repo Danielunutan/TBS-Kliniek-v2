@@ -4,20 +4,20 @@
 <div class="space-y-6">
 
     <!-- Top Hero Banner -->
-    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 relative overflow-hidden bg-white border border-slate-200">
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-2xl text-purple-600 shadow-2xs shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/50 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                     <i class="fa-solid fa-newspaper"></i>
                 </div>
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-purple-200 mb-1">
+                    <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70 mb-1">
                         Officiële Mededelingen
                     </div>
-                    <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                    <h1 class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                         Kliniek Nieuws
                     </h1>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5 max-w-xl">
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl">
                         Blijf op de hoogte van alle updates, spelregels, evenementen en vernieuwingen in de TBS Kliniek.
                     </p>
                 </div>
@@ -25,7 +25,7 @@
 
             @if(Auth::user()->canModerate())
             <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('admin.news.create') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black transition shadow-xs flex items-center gap-1.5">
+                <a href="{{ route('admin.news.create') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-plus text-[10px]"></i> Nieuw Artikel Schrijven
                 </a>
             </div>
@@ -36,7 +36,7 @@
     <!-- Pinned Articles (if any) -->
     @if(isset($pinnedArticles) && $pinnedArticles->isNotEmpty())
     <div class="space-y-3">
-        <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-600">
+        <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
             <i class="fa-solid fa-thumbtack text-amber-500"></i>
             <span>Vastgepinde Berichten</span>
         </div>
@@ -88,26 +88,26 @@
     <!-- All Articles List -->
     <div class="space-y-4">
         <div class="flex items-center justify-between">
-            <h2 class="text-xs font-black uppercase tracking-wider text-slate-600 flex items-center gap-2">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
                 <i class="fa-solid fa-list-ul text-purple-600"></i>
                 <span>Alle Nieuwsberichten ({{ $articles->total() }})</span>
             </h2>
         </div>
 
         @if($articles->isEmpty())
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-12 text-center space-y-3">
-            <div class="w-14 h-14 mx-auto rounded-full bg-purple-50 text-purple-400 flex items-center justify-center text-2xl">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-12 text-center space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-full bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl">
                 <i class="fa-solid fa-newspaper"></i>
             </div>
-            <h3 class="text-sm font-black text-slate-800">Nog geen nieuwsberichten</h3>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">
+            <h3 class="text-sm font-black text-slate-900 dark:text-white">Nog geen nieuwsberichten</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 Er zijn momenteel nog geen officiële nieuwsartikelen gepubliceerd door de leiding.
             </p>
         </div>
         @else
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($articles as $article)
-            <a href="{{ route('news.show', $article->slug) }}" class="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600 p-5 shadow-xs hover:shadow-md transition group flex flex-col justify-between">
+            <a href="{{ route('news.show', $article->slug) }}" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 p-5 shadow-xs hover:shadow-md transition group flex flex-col justify-between">
                 <div class="space-y-3">
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
@@ -148,7 +148,7 @@
             @endforeach
         </div>
 
-        <div class="p-4 bg-white dark:bg-[#111827] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+        <div class="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
             {{ $articles->links() }}
         </div>
         @endif
@@ -156,7 +156,7 @@
 
     <!-- REFERRAL SECTIE ONDER HET NIEUWS (Vrienden uitnodigen met unieke @username) -->
     @if(isset($referralStats))
-    <div class="bg-white dark:bg-[#111827] rounded-2xl p-5 sm:p-6 shadow-xs border border-purple-200/90 dark:border-slate-800 relative overflow-hidden" 
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 shadow-xs border border-purple-200/90 dark:border-slate-800 relative overflow-hidden" 
          x-data="{ 
              copied: false,
              copyLink() {
@@ -229,7 +229,7 @@
                 </div>
                 <button type="button" 
                         @click="copyLink()"
-                        class="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition cursor-pointer shadow-xs flex items-center justify-center gap-2 shrink-0">
+                        class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 shrink-0">
                     <i class="fa-solid" :class="copied ? 'fa-check text-emerald-400' : 'fa-copy'"></i>
                     <span x-text="copied ? 'Gekopieerd!' : 'Kopieer Link'">Kopieer Link</span>
                 </button>

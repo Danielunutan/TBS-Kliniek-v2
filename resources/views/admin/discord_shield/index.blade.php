@@ -23,7 +23,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <a href="{{ route('discord.verify') }}" target="_blank" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-xs">
+            <a href="{{ route('discord.verify') }}" target="_blank" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black transition-all duration-150 active:scale-95 flex items-center gap-2 shadow-xs cursor-pointer">
                 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
                 <span>Bekijk Verificatie Poort</span>
             </a>
@@ -32,57 +32,57 @@
 
     <!-- Metrics Strip -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Geverifieerde Leden</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">Geverifieerde Leden</span>
             <div class="flex items-center justify-between">
-                <span class="text-2xl font-black text-slate-900 font-mono">{{ number_format($totalVerified, 0, ',', '.') }}</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($totalVerified, 0, ',', '.') }}</span>
                 <i class="fa-solid fa-circle-check text-emerald-500 text-xl"></i>
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Alts Onderschept</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">Alts Onderschept</span>
             <div class="flex items-center justify-between">
-                <span class="text-2xl font-black text-rose-600 font-mono">{{ number_format($totalAltsCaught, 0, ',', '.') }}</span>
+                <span class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">{{ number_format($totalAltsCaught, 0, ',', '.') }}</span>
                 <i class="fa-solid fa-user-ninja text-rose-500 text-xl"></i>
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">VPNs Geblokkeerd</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">VPNs Geblokkeerd</span>
             <div class="flex items-center justify-between">
-                <span class="text-2xl font-black text-amber-500 font-mono">{{ number_format($totalVpnBlocked, 0, ',', '.') }}</span>
+                <span class="text-2xl font-black text-amber-500 dark:text-amber-400 font-mono">{{ number_format($totalVpnBlocked, 0, ',', '.') }}</span>
                 <i class="fa-solid fa-shield-halved text-amber-500 text-xl"></i>
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">Actieve Bans</span>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">Actieve Bans</span>
             <div class="flex items-center justify-between">
-                <span class="text-2xl font-black text-purple-700 font-mono">{{ number_format($totalBans, 0, ',', '.') }}</span>
+                <span class="text-2xl font-black text-purple-700 dark:text-purple-400 font-mono">{{ number_format($totalBans, 0, ',', '.') }}</span>
                 <i class="fa-solid fa-ban text-purple-500 text-xl"></i>
             </div>
         </div>
     </div>
 
     <!-- Navigation Sub-tabs -->
-    <div class="bg-white border border-slate-200 rounded-xl p-1.5 flex flex-wrap gap-1 shadow-xs">
-        <button type="button" @click="activeTab = 'verifications'" :class="activeTab === 'verifications' ? 'bg-purple-600 text-white' : 'text-slate-600 hover:bg-slate-50'" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-1.5 flex flex-wrap gap-1 shadow-xs">
+        <button type="button" @click="activeTab = 'verifications'" :class="activeTab === 'verifications' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white font-bold'" class="px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer">
             <i class="fa-solid fa-users-viewfinder"></i>
             <span>Verificaties & Gelinkte Accounts</span>
         </button>
 
-        <button type="button" @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'bg-purple-600 text-white' : 'text-slate-600 hover:bg-slate-50'" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer">
+        <button type="button" @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white font-bold'" class="px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer">
             <i class="fa-solid fa-clock-rotate-left"></i>
             <span>Audit & Security Logs</span>
         </button>
 
-        <button type="button" @click="activeTab = 'bans'" :class="activeTab === 'bans' ? 'bg-purple-600 text-white' : 'text-slate-600 hover:bg-slate-50'" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer">
+        <button type="button" @click="activeTab = 'bans'" :class="activeTab === 'bans' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white font-bold'" class="px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer">
             <i class="fa-solid fa-ban"></i>
             <span>Zwarte Lijst (Hardware Bans)</span>
         </button>
 
-        <button type="button" @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'bg-purple-600 text-white' : 'text-slate-600 hover:bg-slate-50'" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer">
+        <button type="button" @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white font-bold'" class="px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 cursor-pointer">
             <i class="fa-solid fa-gear"></i>
             <span>Bot & Server Instellingen</span>
         </button>
@@ -90,17 +90,17 @@
 
     <!-- TAB 1: VERIFICATIONS TABLE -->
     <div x-show="activeTab === 'verifications'" class="space-y-4">
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
-                    <h3 class="font-extrabold text-sm text-slate-900">Geverifieerde Discord Leden</h3>
-                    <p class="text-xs text-slate-500">Overzicht van alle Discord accounts met gekoppelde hardware vingerafdrukken.</p>
+                    <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Geverifieerde Discord Leden</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Overzicht van alle Discord accounts met gekoppelde hardware vingerafdrukken.</p>
                 </div>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-slate-100">
+                    <thead class="bg-slate-50/90 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-200/80 dark:border-slate-800">
                         <tr>
                             <th class="py-3 px-4">Discord Gebruiker</th>
                             <th class="py-3 px-4">Game Speler</th>
@@ -111,54 +111,54 @@
                             <th class="py-3 px-4 text-right">Actie</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
                         @forelse($verifications as $v)
-                        <tr class="hover:bg-slate-50/70 transition">
+                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                             <td class="py-3 px-4">
                                 <div class="flex items-center gap-2.5">
-                                    <img src="{{ $v->avatar_url }}" alt="{{ $v->username }}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0">
+                                    <img src="{{ $v->avatar_url }}" alt="{{ $v->username }}" class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0">
                                     <div>
-                                        <span class="font-bold text-slate-900 block leading-tight">{{ $v->username }}</span>
-                                        <span class="text-[10px] font-mono text-slate-400">ID: {{ $v->discord_id }}</span>
+                                        <span class="font-bold text-slate-900 dark:text-white block leading-tight">{{ $v->username }}</span>
+                                        <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">ID: {{ $v->discord_id }}</span>
                                     </div>
                                 </div>
                             </td>
                             <td class="py-3 px-4">
                                 @if($v->character)
-                                <span class="font-bold text-purple-700">{{ $v->character->name }}</span>
-                                <span class="text-[10px] text-slate-400 block">Lvl {{ $v->character->level }}</span>
+                                <span class="font-bold text-purple-700 dark:text-purple-400">{{ $v->character->name }}</span>
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block">Lvl {{ $v->character->level }}</span>
                                 @else
-                                <span class="text-slate-400 italic">Niet ingelogd</span>
+                                <span class="text-slate-400 dark:text-slate-500 italic">Niet ingelogd</span>
                                 @endif
                             </td>
                             <td class="py-3 px-4">
                                 @if($v->status === 'verified')
-                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 px-2 py-0.5 rounded-full">
                                     <i class="fa-solid fa-check text-[9px]"></i> Geverifieerd
                                 </span>
                                 @elseif($v->status === 'alt_detected')
-                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-full" title="Alt van: {{ $v->alt_of_username }}">
+                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 px-2 py-0.5 rounded-full" title="Alt van: {{ $v->alt_of_username }}">
                                     <i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Alt Gedetecteerd
                                 </span>
                                 @elseif($v->status === 'vpn_blocked')
-                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 px-2 py-0.5 rounded-full">
                                     <i class="fa-solid fa-shield-halved text-[9px]"></i> VPN Geblokkeerd
                                 </span>
                                 @else
-                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
+                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-full">
                                     {{ $v->status }}
                                 </span>
                                 @endif
                             </td>
                             <td class="py-3 px-4">
-                                <span class="font-mono text-slate-900 block font-semibold">{{ $v->ip_address }}</span>
-                                <span class="text-[10px] text-slate-400">{{ $v->country_code ?? 'NL' }} @if($v->is_vpn) <span class="text-rose-500 font-bold">(VPN)</span> @endif</span>
+                                <span class="font-mono text-slate-900 dark:text-white block font-semibold">{{ $v->ip_address }}</span>
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500">{{ $v->country_code ?? 'NL' }} @if($v->is_vpn) <span class="text-rose-500 dark:text-rose-400 font-bold">(VPN)</span> @endif</span>
                             </td>
                             <td class="py-3 px-4">
-                                <span class="font-bold text-slate-800 block">{{ $v->os ?? 'Windows' }} • {{ $v->browser ?? 'Chrome' }}</span>
-                                <span class="text-[10px] font-mono text-slate-400">Hash: {{ substr($v->fingerprint_hash, 0, 10) }}...</span>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 block">{{ $v->os ?? 'Windows' }} • {{ $v->browser ?? 'Chrome' }}</span>
+                                <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">Hash: {{ substr($v->fingerprint_hash, 0, 10) }}...</span>
                             </td>
-                            <td class="py-3 px-4 font-mono text-slate-500 text-[11px]">
+                            <td class="py-3 px-4 font-mono text-slate-500 dark:text-slate-400 text-[11px]">
                                 {{ $v->verified_at ? $v->verified_at->format('d-m-Y H:i') : $v->created_at->format('d-m-Y H:i') }}
                             </td>
                             <td class="py-3 px-4 text-right">
@@ -166,7 +166,7 @@
                                     @if($v->status !== 'verified')
                                     <form method="POST" action="{{ route('admin.discord_shield.approve', $v->id) }}">
                                         @csrf
-                                        <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-extrabold transition" title="Handmatig Goedkeuren & Rol Toekennen">
+                                        <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-lg text-[10px] font-extrabold transition-all duration-150 active:scale-95 cursor-pointer shadow-xs" title="Handmatig Goedkeuren & Rol Toekennen">
                                             Goedkeuren
                                         </button>
                                     </form>
@@ -182,7 +182,7 @@
                                         <input type="hidden" name="type" value="discord_id">
                                         <input type="hidden" name="value" value="{{ $v->discord_id }}">
                                         <input type="hidden" name="reason" value="Permanente ban opgelegd door staff">
-                                        <button type="submit" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[10px] font-extrabold transition">
+                                        <button type="submit" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 rounded-lg text-[10px] font-extrabold transition-all duration-150 active:scale-95 cursor-pointer">
                                             Ban ID
                                         </button>
                                     </form>
@@ -191,7 +191,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="py-8 text-center text-slate-400">
+                            <td colspan="7" class="py-8 text-center text-slate-400 dark:text-slate-500">
                                 Nog geen Discord verificaties geregistreerd.
                             </td>
                         </tr>
@@ -201,7 +201,7 @@
             </div>
 
             @if($verifications->hasPages())
-            <div class="p-4 border-t border-slate-100">
+            <div class="p-4 border-t border-slate-100 dark:border-slate-800">
                 {{ $verifications->links() }}
             </div>
             @endif
@@ -210,21 +210,21 @@
 
     <!-- TAB 2: AUDIT LOGS -->
     <div x-show="activeTab === 'logs'" class="space-y-4">
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-            <div class="p-5 border-b border-slate-100">
-                <h3 class="font-extrabold text-sm text-slate-900">Beveiligingslogboek</h3>
-                <p class="text-xs text-slate-500">Real-time log van alle verificaties, alt-detecties, mislukte checks en moderator overrides.</p>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Beveiligingslogboek</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Real-time log van alle verificaties, alt-detecties, mislukte checks en moderator overrides.</p>
             </div>
 
-            <div class="divide-y divide-slate-100">
+            <div class="divide-y divide-slate-100 dark:divide-slate-800/80">
                 @forelse($logs as $log)
-                <div class="p-4 flex items-start justify-between gap-4 hover:bg-slate-50/70 transition">
+                <div class="p-4 flex items-start justify-between gap-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                     <div class="flex items-start gap-3">
                         <div class="w-8 h-8 rounded-xl flex items-center justify-center text-xs shrink-0 mt-0.5
-                            {{ $log->severity === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : '' }}
-                            {{ $log->severity === 'danger' ? 'bg-rose-50 text-rose-600 border border-rose-200' : '' }}
-                            {{ $log->severity === 'warning' ? 'bg-amber-50 text-amber-600 border border-amber-200' : '' }}
-                            {{ $log->severity === 'info' ? 'bg-blue-50 text-blue-600 border border-blue-200' : '' }}">
+                            {{ $log->severity === 'success' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : '' }}
+                            {{ $log->severity === 'danger' ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' : '' }}
+                            {{ $log->severity === 'warning' ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/70' : '' }}
+                            {{ $log->severity === 'info' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200/80 dark:border-sky-800/70' : '' }}">
                             <i class="fa-solid 
                                 {{ $log->severity === 'success' ? 'fa-check' : '' }}
                                 {{ $log->severity === 'danger' ? 'fa-triangle-exclamation' : '' }}
@@ -232,28 +232,28 @@
                                 {{ $log->severity === 'info' ? 'fa-info' : '' }}"></i>
                         </div>
                         <div>
-                            <span class="font-bold text-xs text-slate-900 block">{{ $log->description }}</span>
-                            <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
-                                @if($log->username) <span>Gebruiker: <strong class="text-slate-700">{{ $log->username }}</strong></span> &bull; @endif
-                                <span>IP: <strong class="text-slate-700 font-mono">{{ $log->ip_address ?? 'Onbekend' }}</strong></span>
+                            <span class="font-bold text-xs text-slate-900 dark:text-white block">{{ $log->description }}</span>
+                            <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                @if($log->username) <span>Gebruiker: <strong class="text-slate-700 dark:text-slate-300">{{ $log->username }}</strong></span> &bull; @endif
+                                <span>IP: <strong class="text-slate-700 dark:text-slate-300 font-mono">{{ $log->ip_address ?? 'Onbekend' }}</strong></span>
                                 @if($log->fingerprint_hash) &bull; <span>Hash: <span class="font-mono">{{ substr($log->fingerprint_hash, 0, 8) }}</span></span> @endif
                             </div>
                         </div>
                     </div>
 
-                    <span class="text-[11px] font-mono text-slate-400 shrink-0">
+                    <span class="text-[11px] font-mono text-slate-400 dark:text-slate-500 shrink-0">
                         {{ $log->created_at->diffForHumans() }}
                     </span>
                 </div>
                 @empty
-                <div class="p-8 text-center text-slate-400 text-xs">
+                <div class="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
                     Nog geen security logs vastgelegd.
                 </div>
                 @endforelse
             </div>
 
             @if($logs->hasPages())
-            <div class="p-4 border-t border-slate-100">
+            <div class="p-4 border-t border-slate-100 dark:border-slate-800">
                 {{ $logs->links() }}
             </div>
             @endif
@@ -263,15 +263,15 @@
     <!-- TAB 3: BANS / BLACKLIST -->
     <div x-show="activeTab === 'bans'" class="space-y-6">
         <!-- Add Ban Box -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-            <h3 class="font-extrabold text-sm text-slate-900 mb-1">Handmatige Ban Toevoegen</h3>
-            <p class="text-xs text-slate-500 mb-4">Blokkeer een specifiek Discord ID, IP-adres of hardware-vingerafdruk permanent.</p>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+            <h3 class="font-extrabold text-sm text-slate-900 dark:text-white mb-1">Handmatige Ban Toevoegen</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Blokkeer een specifiek Discord ID, IP-adres of hardware-vingerafdruk permanent.</p>
 
             <form method="POST" action="{{ route('admin.discord_shield.ban') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 @csrf
                 <div>
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Type</label>
-                    <select name="type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 mb-1">Type</label>
+                    <select name="type" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 transition">
                         <option value="discord_id">Discord ID</option>
                         <option value="ip_address">IP Adres</option>
                         <option value="fingerprint">Hardware Vingerafdruk Hash</option>
@@ -279,17 +279,17 @@
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Waarde / ID</label>
-                    <input type="text" name="value" placeholder="bijv. 1558628995439 of 192.168.1.1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 mb-1">Waarde / ID</label>
+                    <input type="text" name="value" placeholder="bijv. 1558628995439 of 192.168.1.1" required class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Reden (Optioneel)</label>
-                    <input type="text" name="reason" placeholder="bijv. Ban evasion / overlast" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 mb-1">Reden (Optioneel)</label>
+                    <input type="text" name="reason" placeholder="bijv. Ban evasion / overlast" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div class="flex items-end">
-                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold py-2 px-4 rounded-xl text-xs transition shadow-xs cursor-pointer">
+                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black py-2 px-4 rounded-xl text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
                         <i class="fa-solid fa-ban mr-1"></i> Ban Toevoegen
                     </button>
                 </div>
@@ -297,14 +297,14 @@
         </div>
 
         <!-- Bans List Table -->
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-            <div class="p-5 border-b border-slate-100">
-                <h3 class="font-extrabold text-sm text-slate-900">Actieve Zwarte Lijst</h3>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Actieve Zwarte Lijst</h3>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-slate-100">
+                    <thead class="bg-slate-50/90 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-200/80 dark:border-slate-800">
                         <tr>
                             <th class="py-3 px-4">Type</th>
                             <th class="py-3 px-4">Waarde</th>
@@ -314,16 +314,16 @@
                             <th class="py-3 px-4 text-right">Actie</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-700">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
                         @forelse($bans as $ban)
-                        <tr class="hover:bg-slate-50/70 transition">
+                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                             <td class="py-3 px-4 font-bold uppercase text-[10px]">
-                                <span class="bg-slate-100 px-2 py-0.5 rounded">{{ $ban->type }}</span>
+                                <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200/80 dark:border-slate-700">{{ $ban->type }}</span>
                             </td>
-                            <td class="py-3 px-4 font-mono font-bold text-slate-900">{{ $ban->value }}</td>
-                            <td class="py-3 px-4 text-slate-600">{{ $ban->reason ?? 'Geen reden opgegeven' }}</td>
-                            <td class="py-3 px-4 font-bold text-purple-700">{{ $ban->banned_by ?? 'Systeem' }}</td>
-                            <td class="py-3 px-4 font-mono text-slate-500 text-[11px]">{{ $ban->created_at->format('d-m-Y H:i') }}</td>
+                            <td class="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white">{{ $ban->value }}</td>
+                            <td class="py-3 px-4 text-slate-600 dark:text-slate-400">{{ $ban->reason ?? 'Geen reden opgegeven' }}</td>
+                            <td class="py-3 px-4 font-bold text-purple-700 dark:text-purple-400">{{ $ban->banned_by ?? 'Systeem' }}</td>
+                            <td class="py-3 px-4 font-mono text-slate-500 dark:text-slate-400 text-[11px]">{{ $ban->created_at->format('d-m-Y H:i') }}</td>
                             <td class="py-3 px-4 text-right">
                                 <form method="POST" action="{{ route('admin.discord_shield.unban', $ban->id) }}"
                                       data-confirm="Weet je zeker dat je deze ban wilt opheffen?"
@@ -333,7 +333,7 @@
                                       data-confirm-icon="fa-lock-open">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-extrabold transition">
+                                    <button type="submit" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 rounded-lg text-[10px] font-extrabold transition-all duration-150 active:scale-95 cursor-pointer">
                                         Opheffen
                                     </button>
                                 </form>
@@ -341,7 +341,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-slate-400">
+                            <td colspan="6" class="py-8 text-center text-slate-400 dark:text-slate-500">
                                 Geen actieve bans op de zwarte lijst.
                             </td>
                         </tr>
@@ -356,113 +356,113 @@
     <div x-show="activeTab === 'settings'" class="space-y-6">
 
         <!-- Discord Embed Poster Widget -->
-        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40 border border-purple-200 dark:border-purple-800/70 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-bullhorn text-purple-600"></i>
-                    <h3 class="font-extrabold text-sm text-slate-900">Verificatie Knop in Discord Kanaal Plaatsen</h3>
+                    <i class="fa-solid fa-bullhorn text-purple-600 dark:text-purple-400"></i>
+                    <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Verificatie Knop in Discord Kanaal Plaatsen</h3>
                 </div>
-                <p class="text-xs text-slate-600 mt-1">
+                <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
                     Laat de bot direct de officiële TBS Kliniek verificatie-embed met knop in jullie <code>#verifieer</code> kanaal posten.
                 </p>
             </div>
 
             <form method="POST" action="{{ route('admin.discord_shield.post_message') }}" class="flex items-center gap-2 w-full md:w-auto">
                 @csrf
-                <input type="text" name="channel_id" value="{{ $settings['verify_channel_id'] }}" placeholder="Kanaal ID (bijv. 123456789)" class="bg-white border border-purple-300 rounded-xl px-3 py-2 text-xs font-semibold min-w-[200px]" required>
-                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs transition shadow-xs shrink-0 cursor-pointer">
+                <input type="text" name="channel_id" value="{{ $settings['verify_channel_id'] }}" placeholder="Kanaal ID (bijv. 123456789)" class="bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-semibold min-w-[200px] focus:outline-none focus:ring-2 focus:ring-purple-500/20" required>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black px-4 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 shadow-xs shrink-0 cursor-pointer">
                     <i class="fa-solid fa-paper-plane mr-1"></i> Plaats Bericht
                 </button>
             </form>
         </div>
 
         <!-- Main Settings Form -->
-        <form method="POST" action="{{ route('admin.discord_shield.settings') }}" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
+        <form method="POST" action="{{ route('admin.discord_shield.settings') }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-6">
             @csrf
 
             <div>
-                <h3 class="font-black text-base text-slate-900 font-['Outfit']">Discord API & Bot Gegevens</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Vul hier de Bot Token en Server IDs in van je Discord server.</p>
+                <h3 class="font-black text-base text-slate-900 dark:text-white font-['Outfit']">Discord API & Bot Gegevens</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Vul hier de Bot Token en Server IDs in van je Discord server.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Discord Bot Token</label>
-                    <input type="password" name="bot_token" value="{{ $settings['bot_token'] }}" placeholder="Plak hier je Bot Token van discord.com/developers" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold">
-                    <span class="text-[10px] text-slate-400 mt-1 block">Te vinden onder Developer Portal ➔ Bot ➔ Reset Token.</span>
+                    <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Discord Bot Token</label>
+                    <input type="password" name="bot_token" value="{{ $settings['bot_token'] }}" placeholder="Plak hier je Bot Token van discord.com/developers" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">Te vinden onder Developer Portal ➔ Bot ➔ Reset Token.</span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Discord Server ID (Guild ID)</label>
-                    <input type="text" name="guild_id" value="{{ $settings['guild_id'] }}" placeholder="bijv. 109283746592837465" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold">
-                    <span class="text-[10px] text-slate-400 mt-1 block">Rechtermuisknop op je Discord servericoon ➔ Kopieer server-ID.</span>
+                    <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Discord Server ID (Guild ID)</label>
+                    <input type="text" name="guild_id" value="{{ $settings['guild_id'] }}" placeholder="bijv. 109283746592837465" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">Rechtermuisknop op je Discord servericoon ➔ Kopieer server-ID.</span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Geverifieerde Rol ID (Verleend aan leden)</label>
-                    <input type="text" name="verified_role_id" value="{{ $settings['verified_role_id'] }}" placeholder="bijv. 129384756102938475" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold">
-                    <span class="text-[10px] text-slate-400 mt-1 block">Serverinstellingen ➔ Rollen ➔ Rechtermuisknop op rol ➔ Kopieer rol-ID.</span>
+                    <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Geverifieerde Rol ID (Verleend aan leden)</label>
+                    <input type="text" name="verified_role_id" value="{{ $settings['verified_role_id'] }}" placeholder="bijv. 129384756102938475" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">Serverinstellingen ➔ Rollen ➔ Rechtermuisknop op rol ➔ Kopieer rol-ID.</span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Niet-Geverifieerde Rol ID (Optioneel: wordt verwijderd)</label>
-                    <input type="text" name="unverified_role_id" value="{{ $settings['unverified_role_id'] }}" placeholder="bijv. 129384756102938476" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold">
-                    <span class="text-[10px] text-slate-400 mt-1 block">Als je een speciale rol gebruikt voor nieuwe leden.</span>
+                    <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Niet-Geverifieerde Rol ID (Optioneel: wordt verwijderd)</label>
+                    <input type="text" name="unverified_role_id" value="{{ $settings['unverified_role_id'] }}" placeholder="bijv. 129384756102938476" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">Als je een speciale rol gebruikt voor nieuwe leden.</span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Mod Log Kanaal ID (Voor staff rapporten)</label>
-                    <input type="text" name="log_channel_id" value="{{ $settings['log_channel_id'] }}" placeholder="bijv. 129384756102938477" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold">
-                    <span class="text-[10px] text-slate-400 mt-1 block">Kanaal waarin alts, VPN's en logs gemeld worden.</span>
+                    <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Mod Log Kanaal ID (Voor staff rapporten)</label>
+                    <input type="text" name="log_channel_id" value="{{ $settings['log_channel_id'] }}" placeholder="bijv. 129384756102938477" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">Kanaal waarin alts, VPN's en logs gemeld worden.</span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Verificatie Kanaal ID (Waar de knop staat)</label>
-                    <input type="text" name="verify_channel_id" value="{{ $settings['verify_channel_id'] }}" placeholder="bijv. 129384756102938478" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold">
-                    <span class="text-[10px] text-slate-400 mt-1 block">Het openbare kanaal waar nieuwe leden binnenkomen.</span>
+                    <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Verificatie Kanaal ID (Waar de knop staat)</label>
+                    <input type="text" name="verify_channel_id" value="{{ $settings['verify_channel_id'] }}" placeholder="bijv. 129384756102938478" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">Het openbare kanaal waar nieuwe leden binnenkomen.</span>
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-100">
-                <h4 class="font-extrabold text-sm text-slate-900 mb-3">Beveiligingsbeleid & Automatisering</h4>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                <h4 class="font-extrabold text-sm text-slate-900 dark:text-white mb-3">Beveiligingsbeleid & Automatisering</h4>
 
                 <div class="space-y-3">
                     <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="block_alts" value="1" {{ $settings['block_alts'] === '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300">
+                        <input type="checkbox" name="block_alts" value="1" {{ $settings['block_alts'] === '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700">
                         <div>
-                            <span class="text-xs font-extrabold text-slate-800 block">Blokkeer Dubbele Accounts (Anti-Alt)</span>
-                            <span class="text-[11px] text-slate-500">Weigert verificatie als hetzelfde apparaat/vingerafdruk al aan een ander Discord-account is gekoppeld.</span>
+                            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">Blokkeer Dubbele Accounts (Anti-Alt)</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400">Weigert verificatie als hetzelfde apparaat/vingerafdruk al aan een ander Discord-account is gekoppeld.</span>
                         </div>
                     </label>
 
                     <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="auto_kick_alts" value="1" {{ $settings['auto_kick_alts'] === '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300">
+                        <input type="checkbox" name="auto_kick_alts" value="1" {{ $settings['auto_kick_alts'] === '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700">
                         <div>
-                            <span class="text-xs font-extrabold text-slate-800 block">Kick Alts Automatisch uit de Discord Server</span>
-                            <span class="text-[11px] text-slate-500">Als iemand met een alt probeert te verifiëren, kickt de bot het nieuwe account direct uit de server.</span>
+                            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">Kick Alts Automatisch uit de Discord Server</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400">Als iemand met een alt probeert te verifiëren, kickt de bot het nieuwe account direct uit de server.</span>
                         </div>
                     </label>
 
                     <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="block_vpns" value="1" {{ $settings['block_vpns'] === '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300">
+                        <input type="checkbox" name="block_vpns" value="1" {{ $settings['block_vpns'] === '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700">
                         <div>
-                            <span class="text-xs font-extrabold text-slate-800 block">Blokkeer VPN & Proxy verbindingen</span>
-                            <span class="text-[11px] text-slate-500">Dwingt gebruikers om hun VPN uit te zetten tijdens de verificatie zodat hun echte IP geregistreerd wordt.</span>
+                            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">Blokkeer VPN & Proxy verbindingen</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400">Dwingt gebruikers om hun VPN uit te zetten tijdens de verificatie zodat hun echte IP geregistreerd wordt.</span>
                         </div>
                     </label>
 
                     <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="turnstile_enabled" value="1" {{ $settings['turnstile_enabled'] === '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300">
+                        <input type="checkbox" name="turnstile_enabled" value="1" {{ $settings['turnstile_enabled'] === '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700">
                         <div>
-                            <span class="text-xs font-extrabold text-slate-800 block">Cloudflare Turnstile Bot-Beveiliging Actief</span>
-                            <span class="text-[11px] text-slate-500">Voorkomt dat geautomatiseerde bots het verificatiesysteem kunnen spammen.</span>
+                            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">Cloudflare Turnstile Bot-Beveiliging Actief</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400">Voorkomt dat geautomatiseerde bots het verificatiesysteem kunnen spammen.</span>
                         </div>
                     </label>
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-end">
-                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs transition shadow-xs flex items-center gap-2 cursor-pointer">
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black px-6 py-2.5 rounded-xl text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-floppy-disk"></i>
                     <span>Instellingen Opslaan</span>
                 </button>

@@ -51,9 +51,9 @@
                     </span>
                 </div>
                 <a href="{{ route('marketplace.index') }}" 
-                   class="bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl px-3 py-1.5 text-center flex flex-col justify-center items-center transition border border-slate-700">
-                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-300">Markt</span>
-                    <span class="text-xs font-black text-amber-400 flex items-center gap-1">
+                   class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl px-3 py-1.5 text-center flex flex-col justify-center items-center transition-all duration-150 active:scale-95 border border-slate-200/80 dark:border-slate-700">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Markt</span>
+                    <span class="text-xs font-black text-purple-700 dark:text-purple-300 flex items-center gap-1">
                         <i class="fa-solid fa-scale-balanced text-[10px]"></i> Handel
                     </span>
                 </a>
@@ -90,7 +90,7 @@
 
             <!-- Maskers Info Cards -->
             <div class="space-y-3">
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-start gap-3">
                     <div class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm shrink-0 mt-0.5">
                         <i class="fa-solid fa-user-secret"></i>
                     </div>
@@ -102,7 +102,7 @@
                     </div>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-start gap-3">
                     <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shrink-0 mt-0.5">
                         <i class="fa-solid fa-sack-dollar"></i>
                     </div>
@@ -119,7 +119,7 @@
             </div>
 
             <!-- Maskers Waarde Calculator & Actieknoppen -->
-            <div class="p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 space-y-3">
+            <div class="p-4 rounded-xl bg-emerald-50/70 dark:bg-slate-800/60 border border-emerald-200/80 dark:border-emerald-800/70 space-y-3">
                 <div class="flex items-center justify-between text-xs">
                     <span class="font-bold text-slate-600 dark:text-slate-300">Totale Handelswaarde:</span>
                     <span class="font-black text-emerald-700 dark:text-emerald-400 text-sm font-mono">
@@ -133,7 +133,7 @@
                             @csrf
                             <input type="hidden" name="amount" value="1">
                             <button type="submit" 
-                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-sack-dollar text-[11px]"></i>
                                 <span>Verkoop 1 (€1.500)</span>
                             </button>
@@ -144,7 +144,7 @@
                             @csrf
                             <input type="hidden" name="amount" value="{{ $character->masks }}">
                             <button type="submit" 
-                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-extrabold text-xs transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-money-bill-transfer text-[11px]"></i>
                                 <span>Verkoop Alle ({{ $character->masks }})</span>
                             </button>
@@ -163,12 +163,12 @@
             <!-- Snelle Links voor Maskers -->
             <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <a href="{{ route('shop.index', ['tab' => 'items']) }}" 
-                   class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] text-center transition flex items-center justify-center gap-1.5">
+                   class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-cart-shopping text-purple-600 dark:text-purple-400"></i>
                     <span>Winkel Maskers</span>
                 </a>
                 <a href="{{ route('gangs.index') }}" 
-                   class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] text-center transition flex items-center justify-center gap-1.5">
+                   class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-users-viewfinder text-amber-500"></i>
                     <span>Doneer aan Bende</span>
                 </a>
@@ -193,7 +193,7 @@
                 </div>
 
                 @if(isset($myCodes) && $myCodes->count() > 0)
-                    <span class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-xs font-black border border-emerald-200 dark:border-emerald-800">
+                    <span class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-xs font-black border border-emerald-200/80 dark:border-emerald-800/70">
                         {{ $myCodes->count() }} klaar
                     </span>
                 @endif
@@ -201,7 +201,7 @@
 
             <!-- Batch Redeem Banner (Indien Codes Beschikbaar) -->
             @if(isset($myCodes) && $myCodes->count() > 0)
-                <div class="p-4 sm:p-5 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 space-y-3">
+                <div class="p-4 sm:p-5 rounded-2xl bg-purple-50/80 dark:bg-slate-800/60 border border-purple-200/80 dark:border-purple-800/70 space-y-3">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                             <div class="text-sm font-black text-purple-950 dark:text-purple-200 flex items-center gap-2">
@@ -218,7 +218,7 @@
                         @csrf
                         <input type="hidden" name="redeem_all" value="1">
                         <button type="submit" 
-                                class="w-full py-3.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                class="w-full py-3.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                             <i class="fa-solid fa-bolt"></i>
                             <span>Kraak & Verzilver Alle Codes ({{ $myCodes->count() }})</span>
                         </button>
@@ -227,7 +227,7 @@
             @endif
 
             <!-- Handmatige Code Invoer Terminal -->
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/90 dark:border-slate-800 space-y-3">
+            <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-3">
                 <div class="text-xs font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                     <i class="fa-solid fa-terminal text-purple-600 dark:text-purple-400"></i>
                     <span>Voer Handmatig een Kluiscode of Promotiecode in</span>
@@ -239,10 +239,10 @@
                            name="code" 
                            value="{{ old('code', $prefillCode ?? '') }}" 
                            placeholder="BIJV. KLUIS-L5-XXXX OF SPONSOR-XXX" 
-                           class="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-xs font-mono font-black text-slate-900 dark:text-white placeholder-slate-400 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition"
+                           class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-4 py-2.5 text-xs font-mono font-black text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition"
                            required>
                     <button type="submit" 
-                            class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0">
+                            class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 shrink-0 shadow-xs">
                         <i class="fa-solid fa-check"></i>
                         <span>Verzilveren</span>
                     </button>
@@ -250,9 +250,9 @@
             </div>
 
             <!-- Sterren Booster -->
-            <div class="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="p-4 rounded-xl bg-amber-50/70 dark:bg-slate-800/60 border border-amber-200/80 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-sm font-black shrink-0 shadow-2xs">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
                         <i class="fa-solid fa-star"></i>
                     </div>
                     <div>
@@ -269,7 +269,7 @@
                 </div>
 
                 <a href="{{ route('shop.index') }}" 
-                   class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
+                   class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
                     <i class="fa-solid fa-star text-[10px]"></i>
                     <span>Naar Sterren Shop</span>
                 </a>
@@ -303,7 +303,7 @@
         @if(isset($myCodes) && $myCodes->count() > 0)
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 @foreach($myCodes as $c)
-                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 hover:border-purple-300 dark:hover:border-purple-500 transition shadow-xs flex flex-col justify-between gap-3">
+                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 shadow-xs flex flex-col justify-between gap-3">
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <span class="px-2.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 font-mono text-xs font-black tracking-wider inline-flex items-center gap-1.5">
@@ -334,7 +334,7 @@
                                 @csrf
                                 <input type="hidden" name="code_id" value="{{ $c->id }}">
                                 <button type="submit" 
-                                        class="w-full py-2 px-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-[11px] font-black uppercase tracking-wider transition flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                        class="w-full py-2 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white text-[11px] font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-1 shadow-xs cursor-pointer"
                                         title="Verzilver deze kluiscode direct">
                                     <i class="fa-solid fa-unlock-keyhole text-[10px]"></i>
                                     <span>Verzilveren</span>
@@ -345,7 +345,7 @@
                                 @csrf
                                 <input type="hidden" name="code_id" value="{{ $c->id }}">
                                 <button type="submit" 
-                                        class="w-full py-2 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-[11px] font-black uppercase tracking-wider transition flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                        class="w-full py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white text-[11px] font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-1 shadow-xs cursor-pointer"
                                         title="Verkoop deze code aan de opkoper voor €3.500 wit bankgeld">
                                     <i class="fa-solid fa-sack-dollar text-[10px]"></i>
                                     <span>Verkoop (€3.5k)</span>

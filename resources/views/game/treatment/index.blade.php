@@ -6,15 +6,15 @@
 <div class="space-y-6">
 
     <!-- Header Banner in TBS Kliniek Styling -->
-    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-start gap-4">
-            <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 flex items-center justify-center text-2xl shrink-0 shadow-xs">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-2xl shrink-0 shadow-xs">
                 <i class="fa-solid fa-brain"></i>
             </div>
             <div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-wide">Behandelaarsgesprek & Verlof</h1>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 uppercase">
                         Paviljoen 7
                     </span>
                 </div>
@@ -25,13 +25,13 @@
         </div>
 
         <div class="flex items-center gap-3 self-start sm:self-auto shrink-0">
-            <div class="px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-right">
+            <div class="px-4 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-right">
                 <span class="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 block tracking-wider">Meewerkendheid</span>
                 <span class="text-lg font-bold font-mono {{ ($character->treatment_score ?? 50) >= 60 ? 'text-emerald-600 dark:text-emerald-400' : (($character->treatment_score ?? 50) >= 35 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
                     {{ $character->treatment_score ?? 50 }}%
                 </span>
             </div>
-            <div class="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-right">
+            <div class="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-right">
                 <span class="text-[10px] font-bold uppercase text-amber-800 dark:text-amber-300 block tracking-wider">Verloftrips</span>
                 <span class="text-lg font-bold text-slate-900 dark:text-white font-mono">
                     {{ $character->leave_trips_count ?? 0 }}x
@@ -42,9 +42,9 @@
 
     <!-- Active Status Alerts -->
     @if($character->isOnLeave())
-    <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-950/40 dark:to-slate-900 border border-emerald-300 dark:border-emerald-800 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-950/40 dark:to-slate-900 border border-emerald-300/80 dark:border-emerald-800/70 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0 shadow-xs animate-bounce">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0 shadow-xs animate-bounce">
                 <i class="fa-solid fa-person-walking-arrow-right"></i>
             </div>
             <div>
@@ -67,7 +67,7 @@
         </div>
     </div>
     @elseif($character->isSedated())
-    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 shadow-xs flex items-center justify-between gap-4">
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300/80 dark:border-rose-800/70 shadow-xs flex items-center justify-between gap-4">
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-syringe text-rose-600 dark:text-rose-400 text-2xl"></i>
             <div>
@@ -88,10 +88,10 @@
         <div class="lg:col-span-2 space-y-6">
 
             <!-- Arts Dossier & 365-Dagen Casus van Vandaag -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-800 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70 flex items-center gap-1.5">
                             <i class="fa-solid fa-calendar-day text-purple-600 dark:text-purple-400"></i>
                             <span>Dag {{ $dailyCase['day_of_year'] }} / 365 &bull; {{ $dailyCase['date_label'] }}</span>
                         </span>
@@ -104,7 +104,7 @@
                 </div>
 
                 <div class="flex items-start gap-4">
-                    <div class="w-14 h-14 rounded-full bg-purple-50 dark:bg-purple-950/60 border-2 border-purple-200 dark:border-purple-800 flex items-center justify-center text-purple-700 dark:text-purple-300 text-2xl shrink-0 shadow-xs">
+                    <div class="w-14 h-14 rounded-full bg-purple-50 dark:bg-purple-950/60 border-2 border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-purple-700 dark:text-purple-300 text-2xl shrink-0 shadow-xs">
                         <i class="fa-solid {{ $dailyCase['doctor']['avatar_icon'] }}"></i>
                     </div>
                     <div class="space-y-1 flex-1">
@@ -113,11 +113,11 @@
                                 <h3 class="text-sm font-bold text-slate-900 dark:text-white">{{ $dailyCase['doctor']['name'] }}</h3>
                                 <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ $dailyCase['doctor']['role'] }} &bull; {{ $dailyCase['doctor']['big'] }}</span>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 self-start sm:self-auto">
                                 Dossier #{{ $character->id + 1042 }}
                             </span>
                         </div>
-                        <p class="text-xs text-slate-600 dark:text-slate-300 italic bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 mt-2">
+                        <p class="text-xs text-slate-600 dark:text-slate-300 italic bg-slate-50/90 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/70 mt-2">
                             &ldquo;{{ $dailyCase['doctor']['quote'] }}&rdquo;
                         </p>
                     </div>
@@ -141,8 +141,8 @@
 
             <!-- Als op cooldown staat -->
             @if($isOnCooldown)
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 text-center space-y-4">
-                <div class="w-12 h-12 mx-auto rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-xl shadow-xs">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-6 text-center space-y-4">
+                <div class="w-12 h-12 mx-auto rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/70 flex items-center justify-center text-xl shadow-xs">
                     <i class="fa-solid fa-clock"></i>
                 </div>
                 <div>
@@ -161,7 +161,7 @@
                         @csrf
                         <input type="hidden" name="action" value="treatment_session">
                         <button type="submit" 
-                                class="btn-star-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs cursor-pointer">
+                                class="btn-star-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs cursor-pointer">
                             <i class="fa-solid fa-star text-[11px]"></i>
                             <span>Omzeilen (35 Sterren)</span>
                         </button>
@@ -175,17 +175,17 @@
 
                 @php $step = 1; @endphp
                 @foreach($activeQuestions as $qId => $q)
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-4">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div class="flex items-center gap-2.5">
-                            <span class="w-6 h-6 rounded-full bg-purple-700 text-white text-xs font-bold flex items-center justify-center">
+                            <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-black flex items-center justify-center">
                                 {{ $step++ }}
                             </span>
                             <span class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
                                 {{ $q['theme'] }}
                             </span>
                         </div>
-                        <span class="text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800">
+                        <span class="text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border border-purple-200/80 dark:border-purple-800/70">
                             {{ $dailyCase['doctor']['name'] }}
                         </span>
                     </div>
@@ -197,7 +197,7 @@
                     <!-- Opties A, B, C, D -->
                     <div class="space-y-2.5">
                         @foreach($q['options'] as $key => $opt)
-                        <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-50/40 dark:hover:bg-purple-950/40 cursor-pointer transition group has-checked:border-purple-600 dark:has-checked:border-purple-500 has-checked:bg-purple-50/60 dark:has-checked:bg-purple-950/60 has-checked:ring-1 has-checked:ring-purple-600">
+                        <label class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-50/40 dark:hover:bg-purple-950/40 cursor-pointer transition-all duration-150 group has-checked:border-purple-600 dark:has-checked:border-purple-500 has-checked:bg-purple-50/60 dark:has-checked:bg-purple-950/60 has-checked:ring-1 has-checked:ring-purple-600">
                             <input type="radio" 
                                    name="answers[{{ $qId }}]" 
                                    value="{{ $key }}" 
@@ -215,7 +215,7 @@
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        class="w-full py-4 px-6 rounded-xl font-bold text-base text-white bg-purple-700 hover:bg-purple-800 active:scale-98 transition shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full py-4 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 transition-all duration-150 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-file-signature text-base"></i>
                     <span>Dossier & Antwoorden Indienen bij Behandelteam</span>
                 </button>
@@ -228,26 +228,26 @@
         <div class="space-y-6">
 
             <!-- Verlof Activiteiten (Buiten de hekken) -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wide text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-tree-city text-emerald-600 dark:text-emerald-400"></i>
                         <span>Verlof Activiteiten</span>
                     </h3>
                     @if($character->isOnLeave())
-                    <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                    <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/70">
                         Toegankelijk
                     </span>
                     @else
-                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200/80 dark:border-slate-700">
                         Vergrendeld
                     </span>
                     @endif
                 </div>
 
                 @if(! $character->isOnLeave())
-                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-center space-y-2">
-                    <i class="fa-solid fa-lock text-slate-400 text-xl"></i>
+                <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-2">
+                    <i class="fa-solid fa-lock text-slate-400 dark:text-slate-500 text-xl"></i>
                     <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
                         Deze activiteiten vinden plaats buiten de muren van de kliniek. Slaag eerst voor je Behandelaarsgesprek om 3 uur verlof te verdienen!
                     </p>
@@ -256,7 +256,7 @@
 
                 <div class="space-y-3">
                     @foreach($leaveActions as $actionId => $act)
-                    <div class="p-4 rounded-xl border {{ $character->isOnLeave() ? 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 hover:border-purple-300 dark:hover:border-purple-500' : 'border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 opacity-75' }} transition space-y-2.5">
+                    <div class="p-4 rounded-xl border {{ $character->isOnLeave() ? 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:border-purple-300 dark:hover:border-purple-600' : 'border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 opacity-75' }} transition-all duration-150 space-y-2.5">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <i class="fa-solid {{ $act['icon'] }} text-purple-700 dark:text-purple-400"></i>
@@ -281,7 +281,7 @@
                                 <input type="hidden" name="action_id" value="{{ $actionId }}">
                                 <button type="submit" 
                                         :disabled="{{ $isLeaveActionOnCooldown ? 'true' : 'false' }}"
-                                        class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        class="px-3 py-1.5 rounded-xl text-xs font-black text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-play text-[10px]"></i>
                                     <span>Uitvoeren</span>
                                 </button>
@@ -297,14 +297,14 @@
                 </div>
 
                 @if($isLeaveActionOnCooldown && $character->isOnLeave())
-                <div class="text-center text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800">
+                <div class="text-center text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800">
                     ⏳ Begeleider houdt je in de gaten! Wacht nog {{ $remainingLeaveCooldown }}s.
                 </div>
                 @endif
             </div>
 
             <!-- Laatste Psychologisch Beoordelingsverslag -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-3">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-3">
                 <h3 class="text-xs font-bold uppercase tracking-wide text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
                     <i class="fa-solid fa-clipboard-check text-purple-700 dark:text-purple-400"></i>
                     <span>Laatste Evaluatieverslag</span>
@@ -322,7 +322,7 @@
                     </div>
 
                     @if(! empty($character->treatment_history['notes']))
-                    <div class="bg-slate-50 dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 space-y-1 font-mono">
+                    <div class="bg-slate-50/90 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-[11px] text-slate-600 dark:text-slate-300 space-y-1 font-mono">
                         @foreach($character->treatment_history['notes'] as $note)
                         <div>{{ $note }}</div>
                         @endforeach

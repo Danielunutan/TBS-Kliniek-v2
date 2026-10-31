@@ -11,7 +11,7 @@
                     <i class="fa-solid fa-dharmachakra"></i>
                 </div>
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/60 mb-1">
+                    <div class="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-amber-200/80 dark:border-amber-800/70 mb-1">
                         Dagelijkse Beloningen & 22:00 Inlog Bonus
                     </div>
                     <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -25,7 +25,7 @@
 
             <!-- Stats & Spin status -->
             <div class="flex items-center gap-3 shrink-0">
-                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Draaien Vandaag</span>
                     <span class="text-base font-black text-purple-700 dark:text-purple-400" x-text="availableSpins">
                         {{ $availableSpins }}
@@ -34,7 +34,7 @@
                         {{ $character->isVip() ? 'VIP: 2x per dag' : 'Normaal: 1x per dag' }}
                     </span>
                 </div>
-                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Actieve Streak</span>
                     <span class="text-base font-black text-amber-600 dark:text-amber-400">
                         {{ $currentStreak }} {{ $currentStreak === 1 ? 'dag' : 'dagen' }}
@@ -55,7 +55,7 @@
             <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 flex flex-col items-center relative overflow-hidden">
                 <div class="w-full flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
                     <div class="flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-bold border border-purple-200 dark:border-purple-800/60">
+                        <span class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-bold border border-purple-200/80 dark:border-purple-800/70">
                             <i class="fa-solid fa-gift"></i>
                         </span>
                         <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white">
@@ -63,7 +63,7 @@
                         </h2>
                     </div>
                     <span class="text-xs font-extrabold px-2.5 py-1 rounded-full"
-                          :class="availableSpins > 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'">
+                          :class="availableSpins > 0 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700'">
                         <span x-text="availableSpins > 0 ? 'Klaar om te draaien!' : 'Vandaag verbruikt'"></span>
                     </span>
                 </div>
@@ -90,7 +90,7 @@
                 </div>
 
                 <!-- Prize announcement box -->
-                <div x-show="lastPrizeMessage" x-transition class="w-full mt-4 p-4 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/60 text-center">
+                <div x-show="lastPrizeMessage" x-transition class="w-full mt-4 p-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-center">
                     <div class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-0.5">Laatste Winst</div>
                     <div class="text-base font-black text-purple-900 dark:text-purple-200" x-text="lastPrizeMessage"></div>
                 </div>
@@ -100,8 +100,8 @@
                     <button type="button" 
                             @click="spinWheel()" 
                             :disabled="spinning || availableSpins <= 0"
-                            class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            :class="availableSpins > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-slate-400 dark:bg-slate-700'">
+                            class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2"
+                            :class="availableSpins > 0 ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none'">
                         <span x-show="!spinning && availableSpins > 0">
                             <i class="fa-solid fa-play mr-1"></i>
                             <span x-text="availableSpins > 1 ? ('Gratis Draaien! (' + availableSpins + 'x over)') : (lastPrizeMessage ? 'Nogmaals Gratis Draaien! (1x over)' : 'Gratis Draaien!')"></span>
@@ -132,7 +132,7 @@
                     </span>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         @foreach($sectors as $sec)
-                        <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 flex items-center gap-2 text-left">
+                        <div class="p-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center gap-2 text-left">
                             <span class="w-7 h-7 rounded-lg text-white flex items-center justify-center text-xs shrink-0" style="background-color: {{ $sec['color'] }}">
                                 <i class="fa-solid {{ $sec['icon'] }}"></i>
                             </span>
@@ -192,7 +192,7 @@
                 <div>
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
                         <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-bold border border-amber-200 dark:border-amber-800/60">
+                            <span class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center justify-center text-xs font-bold border border-amber-200/80 dark:border-amber-800/70">
                                 <i class="fa-solid fa-calendar-days"></i>
                             </span>
                             <div>
@@ -219,16 +219,16 @@
                                 $isFinalDay = ($d === 7);
                             @endphp
 
-                            <div class="p-3 sm:p-3.5 rounded-xl border transition flex items-center justify-between gap-3
-                                {{ $isCompleted ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/80 opacity-60' : '' }}
-                                {{ $isCurrent ? 'bg-purple-50/50 dark:bg-purple-950/30 border-2 border-purple-600 dark:border-purple-500 shadow-xs' : '' }}
-                                {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700' : '' }}
-                                {{ $isFinalDay && !$isCurrent && !$isCompleted ? 'bg-amber-50/40 dark:bg-amber-950/20 border-2 border-amber-400 dark:border-amber-500' : '' }}">
+                            <div class="p-3 sm:p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-between gap-3
+                                {{ $isCompleted ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/60 opacity-60' : '' }}
+                                {{ $isCurrent ? 'bg-purple-50/60 dark:bg-purple-950/40 border-2 border-purple-500 dark:border-purple-500 shadow-xs' : '' }}
+                                {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70' : '' }}
+                                {{ $isFinalDay && !$isCurrent && !$isCompleted ? 'bg-amber-50/60 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-500' : '' }}">
                                 
                                 <div class="flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0
                                         {{ $isCompleted ? 'bg-emerald-600 text-white' : '' }}
-                                        {{ $isCurrent ? 'bg-purple-700 text-white' : '' }}
+                                        {{ $isCurrent ? 'bg-purple-600 dark:bg-purple-500 text-white' : '' }}
                                         {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' : '' }}
                                         {{ $isFinalDay && !$isCurrent && !$isCompleted ? 'bg-amber-500 text-white' : '' }}">
                                         @if($isCompleted)
@@ -243,11 +243,11 @@
                                                 Dag {{ $d }}
                                             </span>
                                             @if($isCompleted)
-                                                <span class="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800/60">
+                                                <span class="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/80 dark:border-emerald-800/70">
                                                     Geclaimd
                                                 </span>
                                             @elseif($isCurrent)
-                                                <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-800 animate-pulse">
+                                                <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200/80 dark:border-purple-800/70 animate-pulse">
                                                     Nu Claimbaar!
                                                 </span>
                                             @endif
@@ -259,7 +259,7 @@
                                 </div>
 
                                 <div class="text-right shrink-0">
-                                    <span class="text-xs font-black text-slate-800 dark:text-slate-200 block">
+                                    <span class="text-xs font-black text-slate-800 dark:text-slate-200 block font-mono">
                                         +€{{ number_format($item['cash'], 0, ',', '.') }}
                                     </span>
                                 </div>
@@ -274,7 +274,7 @@
                     <form action="{{ route('daily.claim-streak') }}" method="POST">
                         @csrf
                         <button type="submit" 
-                                class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
+                                class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-gift"></i> Claim Dag {{ $nextStreakDay }} Inlog Bonus!
                         </button>
                     </form>
@@ -283,12 +283,12 @@
                         <span>Inlog bonus is geopend tot 22:30! (Nog <strong x-text="formatTimer(secRemaining)"></strong>)</span>
                     </div>
                     @elseif($hasClaimedStreakToday)
-                    <div class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold text-center flex items-center justify-center gap-2">
+                    <div class="w-full py-3 px-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-slate-600 dark:text-slate-300 text-xs font-bold text-center flex items-center justify-center gap-2">
                         <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-sm"></i>
                         <span>Vandaag al geclaimd! Kom morgen tussen 22:00 en 22:30 terug voor Dag {{ $nextStreakDay === 7 ? 1 : $nextStreakDay + 1 }}.</span>
                     </div>
                     @else
-                    <div class="w-full p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-center space-y-2">
+                    <div class="w-full p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 text-center space-y-2">
                         <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-amber-900 dark:text-amber-200">
                             <i class="fa-regular fa-clock text-amber-600 dark:text-amber-400"></i>
                             <span>Inlog Bonus Venster: Elke avond van 22:00 tot 22:30</span>
@@ -296,13 +296,13 @@
                         <p class="text-[11px] text-amber-800 dark:text-amber-300">
                             De inlog bonus kan alleen worden geclaimd tijdens het avondvenster tussen 22:00 en 22:30.
                         </p>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-xs font-black text-slate-900 dark:text-white shadow-xs">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white dark:bg-slate-800 border border-amber-300/80 dark:border-amber-700 text-xs font-black text-slate-900 dark:text-white shadow-xs">
                             <span class="text-amber-600 dark:text-amber-400">Opent over:</span>
                             <span x-text="formatTimer(secUntilStart)"></span>
                         </div>
                     </div>
                     <button type="button" disabled
-                            class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                            class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-lock text-slate-400"></i>
                         <span>Beschikbaar tussen 22:00 en 22:30</span>
                     </button>

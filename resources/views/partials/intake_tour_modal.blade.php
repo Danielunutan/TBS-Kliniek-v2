@@ -77,7 +77,7 @@
 
             <!-- Solid Dark Backdrop -->
             <div class="fixed inset-0 transition-opacity" 
-                 style="background-color: rgba(4, 2, 14, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999998 !important;"
+                 style="background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999998 !important;"
                  x-show="isOpen"
                  x-transition:enter="ease-out duration-200"
                  x-transition:enter-start="opacity-0"
@@ -87,11 +87,11 @@
                  x-transition:leave-end="opacity-0"
                  @click="dismiss()"></div>
 
-            <!-- Completely Opaque Modal Box (No Transparency Bleed) -->
+            <!-- Completely Opaque Modal Box (Unified Design Standard) -->
             <div role="dialog"
                  aria-modal="true"
-                 class="relative w-full max-w-lg bg-white dark:bg-[#110726] text-slate-900 dark:text-slate-100 rounded-3xl shadow-2xl border-2 border-purple-500 overflow-hidden transition-all p-6 sm:p-7 text-left"
-                 style="z-index: 1000000 !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(168, 85, 247, 0.25);"
+                 class="relative w-full max-w-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transition-all p-6 sm:p-7 text-left"
+                 style="z-index: 1000000 !important;"
                  x-show="isOpen"
                  x-transition:enter="ease-out duration-250"
                  x-transition:enter-start="opacity-0 translate-y-4 scale-95"
@@ -102,7 +102,7 @@
                  @click.stop>
                 
                 <!-- Header -->
-                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5 mb-4">
+                <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3.5 mb-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-sm font-black shadow-xs">
                             <i class="fa-solid fa-hospital-user"></i>
@@ -119,7 +119,7 @@
 
                     <button type="button" 
                             @click="dismiss()"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center text-xs transition cursor-pointer"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer"
                             title="Sluit rondleiding">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -196,10 +196,10 @@
                 </div>
 
                 <!-- Dots Indicator -->
-                <div class="flex items-center justify-center gap-1.5 py-3 border-t border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-center gap-1.5 py-3 border-t border-slate-200/80 dark:border-slate-800">
                     <template x-for="i in totalSteps" :key="i">
                         <span class="h-2 rounded-full transition-all duration-300"
-                              :class="i === step ? 'w-6 bg-purple-600' : 'w-2 bg-slate-300 dark:bg-slate-700'"></span>
+                              :class="i === step ? 'w-6 bg-purple-600' : 'w-2 bg-slate-200 dark:bg-slate-700'"></span>
                     </template>
                 </div>
 
@@ -209,7 +209,7 @@
                         <button type="button" 
                                 x-show="step > 1" 
                                 @click="prev()"
-                                class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition cursor-pointer">
+                                class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer">
                             <i class="fa-solid fa-arrow-left mr-1"></i> Vorige
                         </button>
                         <button type="button" 
@@ -224,7 +224,7 @@
                         <button type="button" 
                                 x-show="step < totalSteps" 
                                 @click="next()"
-                                class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition shadow-md shadow-purple-600/30 flex items-center gap-2 cursor-pointer">
+                                class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer">
                             <span>Volgende</span>
                             <i class="fa-solid fa-arrow-right text-[11px]"></i>
                         </button>
@@ -233,7 +233,7 @@
                                 x-show="step === totalSteps" 
                                 @click="complete()"
                                 :disabled="isSubmitting"
-                                class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs transition shadow-md shadow-amber-500/25 flex items-center gap-2 cursor-pointer">
+                                class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer">
                             <i class="fa-solid" :class="isSubmitting ? 'fa-spinner fa-spin' : 'fa-award'"></i>
                             <span>Afronden &amp; Claim €1.000 Bonus</span>
                         </button>

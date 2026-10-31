@@ -10,18 +10,18 @@
     
 
     <!-- Clean TBS Kliniek Title Banner -->
-    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/90 dark:border-slate-800 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div class="flex items-start sm:items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/70 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                     <i class="fa-solid fa-hand-back-fist"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800/60">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70">
                             Krachthonk & Minigames
                         </span>
-                        <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/60">
+                        <span class="text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200/80 dark:border-amber-800/70">
                             1-op-1 Showdown
                         </span>
                     </div>
@@ -36,15 +36,15 @@
 
             <!-- Stats Pill Counters -->
             <div class="flex flex-wrap items-center gap-2 text-xs font-bold shrink-0">
-                <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3.5 py-2 rounded-xl border border-purple-200 dark:border-purple-800 shadow-2xs flex items-center gap-1.5">
+                <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3.5 py-2 rounded-xl border border-purple-200/80 dark:border-purple-800/70 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-trophy text-purple-600 dark:text-purple-400"></i>
                     <span>{{ $stat->wins }} Gewonnen</span>
                 </span>
-                <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center gap-1.5">
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3.5 py-2 rounded-xl border border-slate-200/80 dark:border-slate-700 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-skull text-slate-500"></i>
                     <span>{{ $stat->losses }} Verloren</span>
                 </span>
-                <span class="bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-3.5 py-2 rounded-xl border border-amber-200 dark:border-amber-800 shadow-2xs flex items-center gap-1.5">
+                <span class="bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-3.5 py-2 rounded-xl border border-amber-200/80 dark:border-amber-800/70 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-fire text-amber-500"></i>
                     <span>Reeks: {{ $stat->current_streak }} (Beste: {{ $stat->best_streak }})</span>
                 </span>
@@ -77,7 +77,7 @@
                     $hasEnergy = (int) ($character->energy ?? 0) >= 5;
                     $canPlay = $canAfford && $meetsStrength && $hasEnergy;
                 @endphp
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-600 transition flex flex-col justify-between p-5 space-y-4">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 flex flex-col justify-between p-5 space-y-4">
                     
                     <div class="space-y-3">
                         <div class="flex items-start justify-between gap-3">
@@ -98,18 +98,18 @@
                         </div>
 
                         <!-- Quote Box -->
-                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 italic">
+                        <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-[11px] text-slate-600 dark:text-slate-300 italic">
                             &ldquo;{{ $npc['quote'] }}&rdquo;
                         </div>
 
                         <!-- Requirements & Rewards Pill Grid -->
                         <div class="grid grid-cols-2 gap-2 text-[11px]">
-                            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-0.5">
+                            <div class="p-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-0.5">
                                 <span class="text-[9px] font-bold uppercase text-slate-400 dark:text-slate-500 block">Inzet / Prijzenpot</span>
                                 <span class="font-extrabold text-slate-900 dark:text-white">€ {{ number_format($npc['bet'], 0, ',', '.') }}</span>
                                 <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block">Winst: € {{ number_format($npc['win_payout'], 0, ',', '.') }}</span>
                             </div>
-                            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-0.5">
+                            <div class="p-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-0.5">
                                 <span class="text-[9px] font-bold uppercase text-slate-400 dark:text-slate-500 block">Beloning & Eis</span>
                                 <span class="font-extrabold text-purple-700 dark:text-purple-400">+{{ $npc['xp'] }} XP &bull; +{{ $npc['respect'] }} Respect</span>
                                 <span class="text-[10px] font-bold block {{ $meetsStrength ? 'text-slate-500 dark:text-slate-400' : 'text-rose-600 dark:text-rose-400' }}">
@@ -122,22 +122,22 @@
                     <!-- Action Button -->
                     <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
                         @if(!$meetsStrength)
-                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
+                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
                                 Onvoldoende Kracht (min. {{ $npc['min_strength'] }})
                             </button>
                         @elseif(!$canAfford)
-                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
+                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
                                 Onvoldoende Contant Geld (€ {{ number_format($npc['bet'], 0, ',', '.') }})
                             </button>
                         @elseif(!$hasEnergy)
-                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
+                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
                                 Onvoldoende Energie (5 vereist)
                             </button>
                         @else
                             <button type="button" 
                                     x-show="cooldownSeconds <= 0 && playerCash >= {{ $npc['bet'] }} && playerEnergy >= 5 && playerStrength >= {{ $npc['min_strength'] }}"
                                     @click="startMatch('{{ $npcKey }}')" 
-                                    class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                                    class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-hand-back-fist text-amber-300"></i>
                                 <span>Tafelduel Aangaan (€ {{ number_format($npc['bet'], 0, ',', '.') }})</span>
                             </button>
@@ -145,21 +145,21 @@
                                     x-show="cooldownSeconds <= 0 && playerCash < {{ $npc['bet'] }}"
                                     x-cloak
                                     disabled
-                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
+                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
                                 Onvoldoende Contant Geld (€ {{ number_format($npc['bet'], 0, ',', '.') }})
                             </button>
                             <button type="button"
                                     x-show="cooldownSeconds <= 0 && playerCash >= {{ $npc['bet'] }} && playerEnergy < 5"
                                     x-cloak
                                     disabled
-                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
+                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
                                 Onvoldoende Energie (5 vereist)
                             </button>
                             <button type="button" 
                                     x-show="cooldownSeconds > 0"
                                     x-cloak
                                     disabled 
-                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed">
+                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed">
                                 <i class="fa-solid fa-hourglass-half text-amber-500"></i>
                                 <span>Spieren Herstellen (<span x-text="cooldownSeconds + 's'"></span>)</span>
                             </button>
@@ -171,10 +171,10 @@
             </div>
 
             <!-- PVP OPEN TABLE CHALLENGES -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 space-y-5">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-6 space-y-5">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm border border-purple-200 dark:border-purple-800/60">
+                        <div class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm border border-purple-200/80 dark:border-purple-800/70 shadow-2xs">
                             <i class="fa-solid fa-users"></i>
                         </div>
                         <div>
@@ -186,7 +186,7 @@
 
                 <!-- Own Open Challenge Banner (if any) -->
                 @if($myOpenChallenge)
-                <div class="p-4 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-circle-dot text-purple-600 dark:text-purple-400 text-base animate-pulse"></i>
                         <div>
@@ -196,7 +196,7 @@
                     </div>
                     <form action="{{ route('armwrestling.challenge.cancel', $myOpenChallenge->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="px-3.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer shadow-2xs">
+                        <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
                             Annuleren & Geld Terugvragen
                         </button>
                     </form>
@@ -207,21 +207,21 @@
                     $cashOnHand = (int) ($character->cash ?? 0);
                     $canCreateAnyChallenge = $cashOnHand >= 2500 && !$character->isImprisoned();
                 @endphp
-                <form action="{{ route('armwrestling.challenge.create') }}" method="POST" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <form action="{{ route('armwrestling.challenge.create') }}" method="POST" class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
                     @csrf
                     <div>
                         <h4 class="text-xs font-black text-slate-900 dark:text-white">Zet Jouw Geld op de Tafel</h4>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400">Kies een inzetbedrag (betaald met contant geld op zak) en wacht tot een tegenstander de handschoen oppakt.</p>
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <select name="bet_amount" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <select name="bet_amount" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="text-xs font-bold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition">
                             @foreach([2500, 5000, 10000, 25000, 50000, 100000] as $betOption)
                                 <option value="{{ $betOption }}" {{ $cashOnHand < $betOption ? 'disabled' : '' }} {{ ($betOption === 10000 && $cashOnHand >= 10000) || ($betOption === 2500 && $cashOnHand < 10000) ? 'selected' : '' }}>
                                     € {{ number_format($betOption, 0, ',', '.') }}{{ $cashOnHand < $betOption ? ' (Te weinig contant)' : '' }}
                                 </option>
                             @endforeach
                         </select>
-                        <button type="submit" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="px-4 py-2 rounded-xl {{ $canCreateAnyChallenge ? 'bg-purple-600 hover:bg-purple-700 active:scale-95 text-white cursor-pointer' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' }} text-xs font-black transition shadow-xs shrink-0">
+                        <button type="submit" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="px-4 py-2 rounded-xl {{ $canCreateAnyChallenge ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-xs font-black transition-all duration-150 shadow-xs shrink-0">
                             {{ $canCreateAnyChallenge ? 'Plaats Uitdaging' : 'Onvoldoende Contant' }}
                         </button>
                     </div>
@@ -237,7 +237,7 @@
                         $hasEnergyForChallenge = (int) ($character->energy ?? 0) >= 5;
                         $canAcceptChallenge = $canAffordChallenge && $hasEnergyForChallenge && !$character->isImprisoned();
                     @endphp
-                    <div class="p-3 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-between gap-3">
+                    <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <img src="{{ $open->challenger->avatar_url }}" alt="Avatar" class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
                             <div>
@@ -249,11 +249,11 @@
                             <span class="text-xs font-black text-purple-700 dark:text-purple-400">Pot: € {{ number_format($open->bet_amount * 2, 0, ',', '.') }}</span>
                             <form action="{{ route('armwrestling.challenge.accept', $open->id) }}" method="POST">
                                 @csrf
-                                <button type="submit" {{ !$canAcceptChallenge ? 'disabled' : '' }} class="px-3.5 py-1.5 rounded-xl {{ $canAcceptChallenge ? 'bg-purple-600 hover:bg-purple-700 active:scale-95 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' }} text-xs font-black transition shadow-xs flex items-center gap-1.5">
+                                <button type="submit" {{ !$canAcceptChallenge ? 'disabled' : '' }} class="px-3.5 py-1.5 rounded-xl {{ $canAcceptChallenge ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-xs font-black transition-all duration-150 shadow-xs flex items-center gap-1.5">
                                     <i class="fa-solid fa-hand-fist {{ $canAcceptChallenge ? 'text-amber-300' : 'text-slate-400' }} text-[10px]"></i>
                                     <span>
                                         @if(!$canAffordChallenge)
-                                            Onvoldoende Contant (€ {{ number_format($open->bet_amount, 0, ',', '.') }})
+                                             Onvoldoende Contant (€ {{ number_format($open->bet_amount, 0, ',', '.') }})
                                         @elseif(!$hasEnergyForChallenge)
                                             Onvoldoende Energie (5 EP)
                                         @else
@@ -265,7 +265,7 @@
                         </div>
                     </div>
                     @empty
-                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-400 font-bold">
+                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center text-xs text-slate-500 dark:text-slate-400 font-bold">
                         Er liggen momenteel geen open uitdagingen van andere patiënten op tafel. Plaats er zelf een!
                     </div>
                     @endforelse
@@ -279,7 +279,7 @@
         <div class="lg:col-span-4 space-y-6">
 
             <!-- Top Tafel Kampioenen -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-4">
                 <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <i class="fa-solid fa-trophy text-amber-500"></i>
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">Top 5 Tafel Kampioenen</h3>
@@ -287,7 +287,7 @@
 
                 <div class="space-y-2.5">
                     @forelse($topChampions as $idx => $champ)
-                    <div class="flex items-center justify-between text-xs p-2.5 rounded-xl {{ $idx === 0 ? 'bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60' : 'bg-slate-50 dark:bg-slate-800/40' }}">
+                    <div class="flex items-center justify-between text-xs p-2.5 rounded-xl {{ $idx === 0 ? 'bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60' : 'bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70' }}">
                         <div class="flex items-center gap-2.5">
                             <span class="w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] {{ $idx === 0 ? 'bg-amber-400 text-slate-950' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
                                 {{ $idx + 1 }}
@@ -300,13 +300,13 @@
                         </div>
                     </div>
                     @empty
-                    <p class="text-xs text-slate-400 italic text-center py-2">Nog geen overwinningen geregistreerd.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 italic text-center py-2">Nog geen overwinningen geregistreerd.</p>
                     @endforelse
                 </div>
             </div>
 
             <!-- Recente Tafel Duels -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-4">
                 <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <i class="fa-solid fa-clock-rotate-left text-slate-500"></i>
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">Recente Tafeluitslagen</h3>
@@ -314,7 +314,7 @@
 
                 <div class="space-y-2">
                     @forelse($recentMatches as $m)
-                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-[11px] space-y-1">
+                    <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-[11px] space-y-1">
                         <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200">
                             <span>{{ $m->challenger->name ?? 'Patiënt' }}</span>
                             <span class="text-slate-400">vs</span>
@@ -326,13 +326,13 @@
                         </div>
                     </div>
                     @empty
-                    <p class="text-xs text-slate-400 italic text-center py-2">Geen recente wedstrijden.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 italic text-center py-2">Geen recente wedstrijden.</p>
                     @endforelse
                 </div>
             </div>
 
             <!-- Fitness Tips & Krachthonk Banner -->
-            <div class="rounded-2xl p-5 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40 border border-purple-200 dark:border-purple-800/60 space-y-3 text-slate-800 dark:text-slate-200">
+            <div class="rounded-2xl p-5 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40 border border-purple-200/80 dark:border-purple-800/70 space-y-3 text-slate-800 dark:text-slate-200">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-lightbulb text-purple-600 dark:text-purple-400"></i>
                     <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">Kliniek Kracht Tip</h4>
@@ -355,7 +355,7 @@
          @keyup.window="handleKeyup($event)"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs select-none">
         
-        <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 border-2 border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden">
             
             <!-- Top Match Status Header -->
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -364,7 +364,7 @@
                     <h3 class="text-base font-black text-slate-900 dark:text-white">Tafelduel Showdown</h3>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800" x-text="timeLeft + 's resterend'"></span>
+                    <span class="text-xs font-black text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-xl border border-rose-200/80 dark:border-rose-800/70" x-text="timeLeft + 's resterend'"></span>
                     <button type="button" tabindex="-1" x-show="isMatchActive && !isSubmitting && !matchResult" @click="cancelMatch()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-1 ml-1 cursor-pointer" title="Sluiten / Opgeven">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -426,7 +426,7 @@
             </div>
 
             <!-- Sweet-Spot Timing Oscillating Bar -->
-            <div class="space-y-1.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center">
+            <div class="space-y-1.5 p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center">
                 <span class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider block">Timing Sweet-Spot (Groene Zone = 1.45x Krachtboost):</span>
                 <div class="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded-full relative overflow-hidden">
                     <!-- Green Sweet Spot in Center -->
@@ -440,7 +440,7 @@
             <!-- Big Slam Power Button -->
             <div class="space-y-2">
                 <button type="button" tabindex="-1" @click="pushArm(false)"
-                        class="w-full py-4 rounded-2xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-base transition cursor-pointer shadow-lg flex items-center justify-center gap-2">
+                        class="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-base transition-all duration-150 cursor-pointer shadow-lg flex items-center justify-center gap-2">
                     <i class="fa-solid fa-hand-fist text-xl text-amber-300"></i>
                     <span>SLAM DE ARM! (OF SPATIEBALK)</span>
                 </button>
@@ -472,7 +472,7 @@
                         <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm" x-text="matchResult.message"></p>
                     </div>
                     <button type="button" @click="closeMatch()"
-                            class="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition cursor-pointer shadow-xs">
+                            class="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs">
                         Sluiten & Verder Spelen
                     </button>
                 </div>

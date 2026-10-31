@@ -27,20 +27,20 @@
     }
 }">
     <!-- Clean TBS Kliniek Title Banner -->
-    <div class="rounded-2xl bg-white p-6 sm:p-8 text-slate-800 shadow-xs border border-slate-200 relative overflow-hidden">
+    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/90 dark:border-slate-800 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-2xl text-purple-600 shadow-2xs shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                     <i class="fa-solid fa-key"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">TBS Kliniek Illegaal</span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70">TBS Kliniek Illegaal</span>
                     </div>
-                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                         Kluisjes Kraken
                     </h1>
-                    <p class="text-xs text-slate-500 mt-0.5 max-w-xl">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl">
                         Crack kluisjes en lockerkasten in de kliniek om contant geld, geheime sleutels en respect te scoren. Hogere kluizen vereisen meer energie maar leveren flink op.
                     </p>
                 </div>
@@ -48,31 +48,31 @@
         </div>
     </div>
 
-    <div class="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-5 py-3 shadow-xs">
-        <i class="fa-solid fa-bolt text-emerald-500"></i>
-        <span class="text-xs font-bold text-slate-700">Energie: <span class="text-emerald-700">{{ $character->energy }} / {{ $character->max_energy }}</span></span>
-        <div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
-            <div class="bg-emerald-500 h-full rounded-full" style="width: {{ min(100, round(($character->energy / max(1, $character->max_energy)) * 100)) }}%"></div>
+    <div class="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl px-5 py-3.5 shadow-xs">
+        <i class="fa-solid fa-bolt text-emerald-500 text-sm"></i>
+        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Energie: <span class="text-emerald-600 dark:text-emerald-400 font-black font-mono">{{ $character->energy }} / {{ $character->max_energy }}</span></span>
+        <div class="flex-1 bg-slate-100 dark:bg-slate-800/80 rounded-full h-2 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
+            <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: {{ min(100, round(($character->energy / max(1, $character->max_energy)) * 100)) }}%"></div>
         </div>
     </div>
 
-    <div x-show="seconds > 0" class="p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/60 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $lockerCooldown > 0 ? '' : 'display: none;' }}">
-        <div class="flex items-center gap-3">
+    <div x-show="seconds > 0" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $lockerCooldown > 0 ? '' : 'display: none;' }}">
+        <div class="flex items-center gap-3.5">
             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
                 <i class="fa-solid fa-clock"></i>
             </div>
             <div>
-                <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Kluisjes Cooldown Actief</h4>
-                <p class="text-[11px] text-amber-800 dark:text-amber-300">Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-100 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $lockerCooldown) }}</strong> of omzeil direct met Sterren.</p>
+                <h4 class="text-xs font-black text-slate-900 dark:text-white">Kluisjes Cooldown Actief</h4>
+                <p class="text-xs text-amber-800 dark:text-amber-300 mt-0.5">Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-200 font-black" x-text="format(seconds)">{{ gmdate('i:s', $lockerCooldown) }}</strong> of omzeil direct met Sterren.</p>
             </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
             <form method="POST" action="{{ route('cooldown.skip') }}">
                 @csrf
                 <input type="hidden" name="action" value="locker">
-                <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-star text-[11px]"></i>
-                    <span>Omzeilen (10 Sterren)</span>
+                    <span>Omzeilen ({{ $lockerSkipCost ?? 10 }} Sterren)</span>
                 </button>
             </form>
         </div>
@@ -84,33 +84,33 @@
             $otherBlocked = $character->isImprisoned() || $character->energy < $locker['energy'];
             $isDisabled = $otherBlocked || $lockerCooldown > 0;
         @endphp
-        <div class="bg-white rounded-xl border border-slate-200 hover:border-slate-300 shadow-xs transition p-5 flex flex-col justify-between gap-4">
-            <div class="flex items-start gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 shadow-xs transition-all duration-200 p-5 sm:p-6 flex flex-col justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 shadow-2xs">
                     <i class="fa-solid {{ $locker['icon'] }}"></i>
                 </div>
                 <div>
-                    <h3 class="text-sm font-extrabold text-slate-900">{{ $locker['name'] }}</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">{{ $locker['desc'] }}</p>
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $locker['name'] }}</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $locker['desc'] }}</p>
                 </div>
             </div>
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+            <div class="pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-4 flex-wrap">
                 <div class="space-y-1">
-                    <div class="flex items-center gap-3 text-xs">
-                        <span class="text-slate-400 w-20 font-semibold">Buit:</span>
-                        <span class="font-extrabold text-emerald-700">€{{ number_format($locker['min'], 0, ',', '.') }}–€{{ number_format($locker['max'], 0, ',', '.') }}</span>
+                    <div class="flex items-center gap-2.5 text-xs">
+                        <span class="text-slate-400 dark:text-slate-500 w-20 font-bold">Buit:</span>
+                        <span class="font-black text-emerald-600 dark:text-emerald-400 font-mono">€{{ number_format($locker['min'], 0, ',', '.') }}–€{{ number_format($locker['max'], 0, ',', '.') }}</span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs">
-                        <span class="text-slate-400 w-20 font-semibold">Energie:</span>
-                        <span class="font-bold text-amber-700">{{ $locker['energy'] }} EP</span>
+                    <div class="flex items-center gap-2.5 text-xs">
+                        <span class="text-slate-400 dark:text-slate-500 w-20 font-bold">Energie:</span>
+                        <span class="font-bold text-amber-600 dark:text-amber-400 font-mono">{{ $locker['energy'] }} EP</span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs">
-                        <span class="text-slate-400 w-20 font-semibold">Slagingskans:</span>
-                        <span class="font-bold text-indigo-600">{{ $locker['rate'] }}%</span>
+                    <div class="flex items-center gap-2.5 text-xs">
+                        <span class="text-slate-400 dark:text-slate-500 w-20 font-bold">Slagingskans:</span>
+                        <span class="font-bold text-purple-600 dark:text-purple-400 font-mono">{{ $locker['rate'] }}%</span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs">
-                        <span class="text-slate-400 w-20 font-semibold">Cooldown:</span>
-                        <span class="font-bold text-amber-700">⏳ {{ gmdate('i:s', $locker['cooldown']) }}</span>
+                    <div class="flex items-center gap-2.5 text-xs">
+                        <span class="text-slate-400 dark:text-slate-500 w-20 font-bold">Cooldown:</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-300 font-mono"><i class="fa-solid fa-clock text-[10px] mr-1 text-slate-400"></i>{{ gmdate('i:s', $locker['cooldown']) }}</span>
                     </div>
                 </div>
                 <form action="{{ route('lockers.crack') }}" method="POST">
@@ -118,10 +118,11 @@
                     <input type="hidden" name="locker_id" value="{{ $locker['id'] }}">
                     <button type="submit"
                             :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
-                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer'"
+                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs'"
                             {{ $isDisabled ? 'disabled' : '' }}
-                            class="px-4 py-2 rounded-lg text-xs font-extrabold transition shadow-xs">
-                        <i class="fa-solid fa-key mr-1"></i> Kraken
+                            class="px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-150 flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-key text-[11px]"></i>
+                        <span>Kraken</span>
                     </button>
                 </form>
             </div>

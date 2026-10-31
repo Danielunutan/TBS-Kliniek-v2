@@ -44,7 +44,7 @@
         <!-- Customizer Button -->
         <button type="button" 
                 @click="showCustomizer = true"
-                class="px-4 py-2 rounded-xl bg-white dark:bg-purple-950/40 border border-slate-200/90 dark:border-purple-800/80 hover:border-purple-400 dark:hover:border-purple-500 text-slate-700 dark:text-purple-200 hover:text-purple-600 dark:hover:text-purple-100 font-bold text-xs transition shadow-2xs flex items-center gap-2 cursor-pointer active:scale-95">
+                class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 hover:border-purple-400 dark:hover:border-purple-500 text-slate-700 dark:text-purple-200 hover:text-purple-600 dark:hover:text-purple-100 font-bold text-xs transition shadow-2xs flex items-center gap-2 cursor-pointer active:scale-95">
             <i class="fa-solid fa-sliders text-purple-600 dark:text-purple-400"></i>
             <span>Dashboard Inrichten</span>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -97,7 +97,7 @@
             @if(isset($latestNews) && $latestNews->isNotEmpty())
                 @php $featuredNews = $latestNews->first(); @endphp
                 <!-- PROMINENT NIEUWS HIGHLIGHT BOVENIN DASHBOARD (Licht & Donker Modus) -->
-                <div class="relative overflow-hidden rounded-2xl bg-white dark:bg-[#110726] p-5 sm:p-6 text-slate-900 dark:text-white shadow-md border-2 border-purple-200 dark:border-purple-800/80">
+                <div class="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 p-5 sm:p-6 text-slate-900 dark:text-white shadow-xs border border-purple-200/90 dark:border-purple-800/80">
                     <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
                     <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div class="flex items-start gap-4">
@@ -126,12 +126,12 @@
                         </div>
                         <div class="flex items-center gap-2.5 shrink-0 pt-2 md:pt-0">
                             <a href="{{ route('news.show', $featuredNews->slug) }}" 
-                               class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-extrabold text-xs transition shadow-md shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                               class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                                 <span>Lees Artikel</span>
                                 <i class="fa-solid fa-arrow-right text-[11px]"></i>
                             </a>
                             <a href="{{ route('news.index') }}" 
-                               class="hidden sm:inline-flex px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-purple-200 hover:text-slate-900 dark:hover:text-white font-bold text-xs transition border border-slate-200 dark:border-white/10 items-center justify-center">
+                                class="hidden sm:inline-flex px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition border border-slate-200/80 dark:border-slate-700 items-center justify-center cursor-pointer active:scale-95">
                                 <span>Alle Berichten</span>
                             </a>
                         </div>
@@ -142,7 +142,7 @@
             <!-- Open Beta Notice Card (Toggleable) -->
             <div x-show="widgets.betaNotice" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] border border-purple-200/90 dark:border-purple-900/60 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
+                 class="bg-white dark:bg-slate-900 border border-purple-200/90 dark:border-purple-900/60 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
                 <button type="button" 
                         @click="toggleWidget('betaNotice')" 
                         class="absolute top-2 right-2 text-slate-400 hover:text-slate-600 text-xs w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -169,7 +169,7 @@
 
                 <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
                     <a href="{{ route('help.tickets.create') }}" 
-                       class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs transition shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5">
+                       class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-plus text-[10px]"></i>
                         <span>Ticket Aanmaken</span>
                     </a>
@@ -179,7 +179,7 @@
             <!-- Roadmap & Updates Teaser Card (Toggleable) -->
             <div x-show="widgets.roadmap" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl p-4 sm:p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
+                 class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
                 <button type="button" 
                         @click="toggleWidget('roadmap')" 
                         class="absolute top-2 right-2 text-slate-400 hover:text-slate-600 text-xs w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -204,7 +204,7 @@
                 </div>
 
                 <a href="{{ route('roadmap.index') }}" 
-                   class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-sm shadow-purple-600/30 inline-flex items-center justify-center gap-2 shrink-0">
+                   class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition shadow-xs inline-flex items-center justify-center gap-2 shrink-0 cursor-pointer">
                     <i class="fa-solid fa-thumbs-up text-amber-300 text-xs"></i>
                     <span>Bekijk & Stem Nu</span>
                     <i class="fa-solid fa-arrow-right text-[10px]"></i>
@@ -212,7 +212,7 @@
             </div>
 
             <!-- Welcome Hero Card (Themed) -->
-            <div class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border transition-all duration-300 overflow-hidden relative"
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border transition-all duration-300 overflow-hidden relative"
                  :class="{
                      'border-slate-200/90 dark:border-slate-800': theme === 'clinical',
                      'border-rose-300/80 dark:border-rose-900/60 shadow-rose-950/10': theme === 'ebi',
@@ -281,7 +281,7 @@
                         <!-- Saldo & Gang Info Directly Inside Hero Card -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
                             <!-- Contant Saldo -->
-                            <a href="{{ route('bank.index') }}" class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 hover:border-purple-400 dark:hover:border-purple-500 transition group block shadow-2xs">
+                            <a href="{{ route('bank.index') }}" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 hover:border-purple-400 dark:hover:border-purple-500 transition group block shadow-2xs">
                                 <div class="flex items-center gap-2 mb-1">
                                     <div class="w-6 h-6 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px]">
                                         <i class="fa-solid fa-coins"></i>
@@ -294,7 +294,7 @@
                             </a>
 
                             <!-- Bank Saldo -->
-                            <a href="{{ route('bank.index') }}" class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 hover:border-indigo-400 dark:hover:border-indigo-500 transition group block shadow-2xs">
+                            <a href="{{ route('bank.index') }}" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 hover:border-indigo-400 dark:hover:border-indigo-500 transition group block shadow-2xs">
                                 <div class="flex items-center gap-2 mb-1">
                                     <div class="w-6 h-6 rounded-md bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px]">
                                         <i class="fa-solid fa-building-columns"></i>
@@ -307,7 +307,7 @@
                             </a>
 
                             <!-- Bende / Gang Info -->
-                            <a href="{{ route('gangs.index') }}" class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 hover:border-purple-400 dark:hover:border-purple-500 transition group block shadow-2xs">
+                            <a href="{{ route('gangs.index') }}" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 hover:border-purple-400 dark:hover:border-purple-500 transition group block shadow-2xs">
                                 <div class="flex items-center gap-2 mb-1">
                                     <div class="w-6 h-6 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px]">
                                         <i class="fa-solid fa-users"></i>
@@ -320,7 +320,7 @@
                             </a>
 
                             <!-- TBS Uitkering -->
-                            <div class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-2xs">
+                            <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 shadow-2xs">
                                 <div class="flex items-center gap-2 mb-1">
                                     <div class="w-6 h-6 rounded-md {{ $character->isVip() ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400' : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' }} flex items-center justify-center text-[10px]">
                                         <i class="fa-solid {{ $character->isVip() ? 'fa-crown text-amber-500' : 'fa-hand-holding-dollar' }}"></i>
@@ -339,7 +339,7 @@
             <!-- FAVORITE QUICK ACTIONS TOOLBAR (Customizable by player) -->
             <div x-show="widgets.quickToolbar" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/90 dark:border-slate-800">
+                 class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/90 dark:border-slate-800">
                 <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
                     <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
                         <i class="fa-solid fa-bolt-lightning text-amber-500"></i>
@@ -356,7 +356,7 @@
                            class="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 bg-slate-50/70 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 transition flex flex-col items-center text-center gap-2 group shadow-2xs">
                             <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-xs transition-transform group-hover:scale-110"
                                  :class="act.color">
-                                <i class="fa-solid" :class="act.icon"></i>
+                                 <i class="fa-solid" :class="act.icon"></i>
                             </div>
                             <span class="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate w-full" x-text="act.label"></span>
                         </a>
@@ -367,7 +367,7 @@
             <!-- IN-DASHBOARD RADIO KLINIEK FM WIDGET (Toggleable & Premium) -->
             <div x-show="widgets.radio" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 relative overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 relative overflow-hidden">
                 <!-- Locked State -->
                 <div x-show="!isUnlocked('radio')" x-cloak @if($character->isWidgetUnlocked('radio')) style="display: none;" @endif class="text-center py-4 space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-rose-200 dark:border-rose-800/80">
@@ -528,7 +528,7 @@
                         <div x-show="autoDjOpen" 
                              x-cloak
                              x-transition
-                             class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0d071d] border border-purple-200/90 dark:border-purple-900/60 shadow-lg space-y-3.5">
+                             class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-purple-200/90 dark:border-purple-900/60 shadow-lg space-y-3.5">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 dark:border-purple-900/40 pb-3">
                                 <div>
                                     <h4 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -630,7 +630,7 @@
             @if(isset($lotteryRound))
             <div x-show="widgets.lottery" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 text-slate-900 dark:text-white shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
+                 class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 text-slate-900 dark:text-white shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
                 <div class="space-y-2 max-w-xl">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-700/60">
@@ -652,7 +652,7 @@
                     @php
                         $dashSecondsLeft = max(0, (int) round(now()->diffInSeconds($lotteryRound->draws_at, false)));
                     @endphp
-                    <div class="w-full sm:w-auto p-3 rounded-xl bg-amber-50/70 dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-center shrink-0"
+                    <div class="w-full sm:w-auto p-3 rounded-xl bg-amber-50/70 dark:bg-slate-800/80 border border-amber-200 dark:border-slate-700 text-center shrink-0"
                          x-data="{
                              left: {{ $dashSecondsLeft }},
                              format() {
@@ -673,7 +673,7 @@
                     </div>
 
                     <a href="{{ route('lottery.index') }}" 
-                       class="w-full sm:w-auto px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider transition text-center shadow-xs flex items-center justify-center gap-2 shrink-0">
+                       class="w-full sm:w-auto px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider transition text-center shadow-xs flex items-center justify-center gap-2 shrink-0 active:scale-95 cursor-pointer">
                         <i class="fa-solid fa-ticket"></i>
                         <span>Koop een Lot</span>
                     </a>
@@ -684,7 +684,7 @@
             <!-- PERSOONLIJKE REFERRAL & GRATIS VIP CARD (Toggleable) -->
             <div x-show="widgets.referral" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl p-5 sm:p-6 shadow-xs border border-purple-200/90 dark:border-purple-900/60 relative overflow-hidden" 
+                 class="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 shadow-xs border border-purple-200/90 dark:border-purple-900/60 relative overflow-hidden" 
                  x-data="{ 
                      copied: false,
                      copyLink() {
@@ -719,7 +719,7 @@
 
                     <button type="button" 
                             @click="copyLink()"
-                            class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition shadow-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95">
+                            class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95">
                         <i class="fa-solid" :class="copied ? 'fa-check' : 'fa-link'"></i>
                         <span x-text="copied ? 'Gekopieerd!' : 'Kopieer Link'"></span>
                     </button>
@@ -729,7 +729,7 @@
             <!-- DAGELIJKSE INLOG BONUS & STREAK (Toggleable) -->
             <div x-show="widgets.loginBonus" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/90 dark:border-slate-800"
+                 class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/90 dark:border-slate-800"
                  x-data="{
                      active: {{ $isLoginBonusActive ? 'true' : 'false' }},
                      claimed: {{ $hasClaimedStreakToday ? 'true' : 'false' }},
@@ -769,7 +769,7 @@
                         <template x-if="active && !claimed">
                             <form action="{{ route('daily.claim-streak') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider shadow-xs transition">
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer">
                                     Claim Dag {{ $nextStreakDay }}
                                 </button>
                             </form>
@@ -787,7 +787,7 @@
             <!-- Karakter Eigenschappen & Actieve Stats (Toggleable) -->
             <div x-show="widgets.attributes" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6">
                 <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
@@ -809,7 +809,7 @@
                         ];
                     @endphp
                     @foreach($attrList as $attr)
-                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800">
+                        <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                             <i class="fa-solid {{ $attr['icon'] }} {{ $attr['color'] }} text-base mb-1 block"></i>
                             <span class="text-[10px] font-bold text-slate-400 block">{{ $attr['label'] }}</span>
                             <span class="text-sm font-black text-slate-900 dark:text-white">{{ number_format($attr['effective'], 0, ',', '.') }}</span>
@@ -821,7 +821,7 @@
             <!-- Recente Activiteiten Feed (Toggleable) -->
             <div x-show="widgets.activities" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
                     <div class="flex items-center gap-2">
                         <span class="w-6 h-6 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">
@@ -861,7 +861,7 @@
             <!-- 1. LAATSTE KLINIEK NIEUWS (Toggleable) -->
             <div x-show="widgets.clinicNews" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                         <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-[10px] border border-purple-200 dark:border-purple-800">
@@ -901,7 +901,7 @@
             <!-- 2. WEERSTATION & BUIENRADAR WIDGET (Toggleable & Premium) -->
             <div x-show="widgets.weather" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 
                 <!-- Locked State -->
                 <div x-show="!isUnlocked('weather')" x-cloak @if($character->isWidgetUnlocked('weather')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
@@ -1042,7 +1042,7 @@
             <!-- 2. ALGEMEEN BUITENWERELD NIEUWS WIDGET (Toggleable & Premium) -->
             <div x-show="widgets.nunl" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 
                 <!-- Locked State -->
                 <div x-show="!isUnlocked('nunl')" x-cloak @if($character->isWidgetUnlocked('nunl')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-indigo-500/5 to-transparent">
@@ -1123,7 +1123,7 @@
             <!-- 2B. WIDGET: GEHEIME ONTSNAPPINGSTUNNEL (Toggleable & Premium) -->
             <div x-show="widgets.tunnel" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-amber-200/90 dark:border-amber-900/50 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-amber-200/90 dark:border-amber-900/50 overflow-hidden">
                 
                 <!-- Locked State -->
                 <div x-show="!isUnlocked('tunnel')" x-cloak @if($character->isWidgetUnlocked('tunnel')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
@@ -1258,7 +1258,7 @@
             <!-- 2C. WIDGET: BEHANDELING & VERLOFTRAJECT (Toggleable & Premium) -->
             <div x-show="widgets.treatment" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-teal-200/90 dark:border-teal-900/50 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-teal-200/90 dark:border-teal-900/50 overflow-hidden">
                 
                 <!-- Locked State -->
                 <div x-show="!isUnlocked('treatment')" x-cloak @if($character->isWidgetUnlocked('treatment')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-teal-500/5 to-transparent">
@@ -1374,7 +1374,7 @@
             <!-- 2D. WIDGET: KOFFERS & KLUISCODES (Toggleable & Premium) -->
             <div x-show="widgets.packages" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-purple-200/90 dark:border-purple-900/50 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-purple-200/90 dark:border-purple-900/50 overflow-hidden">
                 
                 <!-- Locked State -->
                 <div x-show="!isUnlocked('packages')" x-cloak @if($character->isWidgetUnlocked('packages')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-purple-500/5 to-transparent">
@@ -1525,7 +1525,7 @@
             <!-- 4. BENDE KAART (Toggleable) -->
             <div x-show="widgets.gang" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 @if($character->gang)
                     <div class="p-6 flex flex-col items-center text-center">
                         <div class="w-16 h-16 mb-3 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center text-2xl shadow-xs overflow-hidden border border-slate-200 dark:border-slate-700">
@@ -1547,7 +1547,7 @@
                                 <span class="text-emerald-600 font-extrabold">€{{ number_format($character->gang->treasury, 0, ',', '.') }}</span>
                             </div>
                         </div>
-                        <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition text-xs shadow-sm shadow-purple-600/25">
+                        <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black py-2.5 rounded-xl transition text-xs shadow-xs cursor-pointer">
                             Mijn Bende Bezoeken
                         </a>
                     </div>
@@ -1560,7 +1560,7 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                             Samen sta je sterker in de kliniek. Vecht mee in heists en wars!
                         </p>
-                        <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-xs">
+                        <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black py-2.5 rounded-xl transition text-xs shadow-xs cursor-pointer active:scale-95">
                             Bendes Bekijken
                         </a>
                     </div>
@@ -1570,7 +1570,7 @@
             <!-- 5. ACTIEVE MISSIES SNELKOPPELING (Toggleable) -->
             <div x-show="widgets.missions" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <span class="text-xs font-black text-slate-900 dark:text-white">Snelle Missies</span>
                     <a href="{{ route('missions.index') }}" class="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline">
@@ -1585,7 +1585,7 @@
                                 <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ $m->title }}</h4>
                                 <span class="text-[10px] text-emerald-600 font-bold">+€{{ number_format($m->min_cash_reward, 0, ',', '.') }} &bull; +{{ $m->xp_reward }} XP</span>
                             </div>
-                            <a href="{{ route('missions.index') }}" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-xs shadow-purple-600/20 shrink-0">
+                            <a href="{{ route('missions.index') }}" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition shadow-xs shrink-0 cursor-pointer">
                                 Start
                             </a>
                         </div>
@@ -1613,7 +1613,7 @@
          style="display: none;">
         
         <div @click.outside="showCustomizer = false"
-             class="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] transform-gpu will-change-transform">
+             class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] transform-gpu will-change-transform">
             
             <!-- Modal Header -->
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
@@ -1845,7 +1845,7 @@
 
                 <button type="button" 
                         @click="showCustomizer = false" 
-                        class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer">
+                        class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition cursor-pointer active:scale-95">
                     Opslaan & Sluiten
                 </button>
             </div>
@@ -1858,7 +1858,7 @@
          x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80"
          @keydown.escape.window="showCityModal = false">
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 transform-gpu will-change-transform" @click.outside="showCityModal = false">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 transform-gpu will-change-transform" @click.outside="showCityModal = false">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm">
@@ -1879,9 +1879,9 @@
                 <input type="text" 
                        x-model="citySearchQuery"
                        placeholder="Bijv. Amsterdam, Tilburg, Zwolle..." 
-                       class="flex-1 px-3.5 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-hidden focus:border-sky-500">
+                       class="flex-1 px-3.5 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 <button type="submit" 
-                        class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs transition cursor-pointer">
+                        class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition cursor-pointer active:scale-95 shadow-xs">
                     Opslaan
                 </button>
             </form>

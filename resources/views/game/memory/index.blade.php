@@ -13,24 +13,24 @@
      x-init="initGame()">
 
     <!-- 1. HEADER & INTRO -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs relative overflow-hidden">
         <div class="absolute -right-12 -top-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
             <div class="flex items-start gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-purple-500/25 shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
                     <i class="fa-solid fa-brain"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2 flex-wrap mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70 flex items-center gap-1">
                             <i class="fa-solid fa-bolt text-purple-500"></i> Minigame
                         </span>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-pink-700 dark:text-pink-300 bg-pink-50 dark:bg-pink-950/80 px-2.5 py-0.5 rounded-full border border-pink-200 dark:border-pink-800">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70">
                             Psychose Geheugentest
                         </span>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/80 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/80 px-2.5 py-0.5 rounded-full border border-rose-200/80 dark:border-rose-800/70">
                             Extreem Moeilijk
                         </span>
                     </div>
@@ -46,17 +46,17 @@
 
             <!-- Stats Badge Quick Summary & Sound Toggle -->
             <div class="flex items-center gap-2.5 shrink-0">
-                <div class="px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-center">
+                <div class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center">
                     <span class="text-[9px] font-bold text-slate-400 block uppercase">Gewonnen</span>
                     <span class="text-sm font-black text-purple-600 dark:text-purple-400 font-mono" x-text="stats.games_won">{{ $stat->games_won }}</span>
                 </div>
-                <div class="px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-center">
+                <div class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center">
                     <span class="text-[9px] font-bold text-slate-400 block uppercase">Snelste Tijd</span>
                     <span class="text-sm font-black text-amber-500 font-mono">{{ $stat->best_time_seconds ? $stat->best_time_seconds . 's' : '--' }}</span>
                 </div>
                 <button type="button" 
                         @click="toggleSound()" 
-                        class="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-slate-500 hover:text-purple-600 dark:hover:text-purple-300 transition cursor-pointer shadow-2xs"
+                        class="w-10 h-10 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-center text-slate-500 hover:text-purple-600 dark:hover:text-purple-300 transition-all duration-150 active:scale-95 cursor-pointer shadow-xs"
                         :title="muted ? 'Geluid aanzetten' : 'Geluid dempen'">
                     <i class="fa-solid text-sm" :class="muted ? 'fa-volume-xmark text-rose-500' : 'fa-volume-high text-emerald-500'"></i>
                 </button>
@@ -66,8 +66,8 @@
 
     <!-- 2. COOLDOWN SCREEN (SHOWN WHEN ACTIVE) -->
     <template x-if="cooldownRemaining > 0 && gameState === 'idle'">
-        <div class="bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700/80 rounded-3xl p-6 sm:p-10 shadow-lg text-center space-y-6">
-            <div class="w-20 h-20 mx-auto rounded-3xl bg-amber-500/10 text-amber-500 border border-amber-400/40 flex items-center justify-center text-4xl shadow-inner animate-pulse">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-10 shadow-xs text-center space-y-6">
+            <div class="w-20 h-20 mx-auto rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-400/40 flex items-center justify-center text-4xl shadow-inner animate-pulse">
                 <i class="fa-solid fa-hourglass-half"></i>
             </div>
             
@@ -79,7 +79,7 @@
             </div>
 
             <!-- AD SKIP COOLDOWN BUTTON -->
-            <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-purple-50 to-pink-50 dark:from-amber-950/40 dark:via-purple-950/40 dark:to-pink-950/40 border border-amber-300/80 dark:border-purple-800 max-w-md mx-auto space-y-3">
+            <div class="p-5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 max-w-md mx-auto space-y-3">
                 <div class="flex items-center justify-center gap-2 text-xs font-black text-amber-900 dark:text-amber-200">
                     <i class="fa-solid fa-star text-amber-500 animate-bounce"></i>
                     <span>Geen geduld? Reset direct met Sterren!</span>
@@ -87,7 +87,7 @@
                 <form action="{{ route('memory.skip_cooldown_stars') }}" method="POST">
                     @csrf
                     <button type="submit" 
-                            class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shadow-amber-500/30 flex items-center justify-center gap-2">
+                            class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
                         <i class="fa-solid fa-star text-[12px]"></i>
                         <span>Direct Opnieuw Spelen (10 Sterren ⭐)</span>
                     </button>
@@ -100,11 +100,11 @@
     <!-- 3. GAME HUD BAR (LIVES, TIMER, MOVES, PAIRS) -->
     <div x-show="cooldownRemaining <= 0 || gameState !== 'idle'" class="space-y-4">
         
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 
                 <!-- LEVENS (3 HEARTS) -->
-                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col items-center justify-center">
+                <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center justify-center">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Levens (Fouten)</span>
                     <div class="flex items-center gap-1.5 text-base sm:text-lg">
                         <template x-for="i in 3" :key="i">
@@ -115,7 +115,7 @@
                 </div>
 
                 <!-- TIMER (60s COUNTDOWN) -->
-                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col items-center justify-center">
+                <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center justify-center">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Resterende Tijd</span>
                     <div class="flex items-center gap-1.5 font-mono font-black text-base sm:text-lg"
                          :class="timerSeconds <= 10 ? 'text-rose-500 animate-pulse' : (timerSeconds <= 20 ? 'text-amber-500' : 'text-purple-600 dark:text-purple-400')">
@@ -125,7 +125,7 @@
                 </div>
 
                 <!-- PAREN GEVONDEN (X / 8) -->
-                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col items-center justify-center">
+                <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center justify-center">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Paren Gevonden</span>
                     <div class="flex items-center gap-1.5 font-mono font-black text-base sm:text-lg text-emerald-600 dark:text-emerald-400">
                         <span x-text="matchedPairs">0</span> / 8
@@ -140,7 +140,7 @@
                 </div>
 
                 <!-- ZETTEN GEDAAN & COMBO STREAK -->
-                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col items-center justify-center relative">
+                <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center justify-center relative">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Zetten</span>
                     <div class="font-mono font-black text-base sm:text-lg text-slate-700 dark:text-slate-200">
                         <span x-text="moves">0</span>
@@ -155,7 +155,7 @@
             <!-- INKIJKFASE COUNTDOWN ALERT BANNER -->
             <div x-show="gameState === 'preview'" 
                  x-transition
-                 class="mt-4 p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-pink-600 to-purple-600 text-white shadow-lg space-y-2">
+                 class="mt-4 p-4 rounded-xl bg-purple-600 text-white shadow-xs space-y-2">
                 <div class="flex items-center justify-between text-xs sm:text-sm font-black">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-eye text-base animate-bounce"></i>
@@ -176,7 +176,7 @@
             <div x-show="gameState === 'idle' && cooldownRemaining <= 0" class="mt-4 text-center">
                 <button type="button" 
                         @click="startGame()"
-                        class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:to-pink-700 active:scale-95 text-white font-black text-sm uppercase tracking-wider transition shadow-lg shadow-purple-600/30 cursor-pointer inline-flex items-center gap-2.5">
+                        class="px-8 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-sm uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer inline-flex items-center gap-2.5">
                     <i class="fa-solid fa-play"></i>
                     <span>Start Ronde (5s Inkijkfase + 55s Speeltijd)</span>
                 </button>
@@ -184,13 +184,13 @@
         </div>
 
         <!-- 4. MEMORY CARDS 4x4 GRID (ROCK-SOLID CSS 3D FLIP) -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3 sm:p-6 shadow-xs relative">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 sm:p-6 shadow-xs relative">
             
             <!-- OVERLAY WHEN IDLE (PROMPT TO START) -->
             <div x-show="gameState === 'idle' && cooldownRemaining <= 0" 
-                 class="absolute inset-0 z-20 backdrop-blur-2xs bg-slate-950/20 dark:bg-slate-950/40 rounded-3xl flex items-center justify-center p-4">
-                <div class="bg-white dark:bg-slate-900 border-2 border-purple-500/50 rounded-2xl p-5 shadow-2xl text-center space-y-2 max-w-sm animate-fade-in">
-                    <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl mx-auto">
+                 class="absolute inset-0 z-20 backdrop-blur-2xs bg-slate-950/20 dark:bg-slate-950/40 rounded-2xl flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-slate-900 border border-purple-500/80 dark:border-purple-500 rounded-2xl p-5 shadow-xl text-center space-y-2 max-w-sm animate-fade-in">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-xl mx-auto">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
                     <h4 class="text-sm font-black text-slate-900 dark:text-white">Klaar voor de Test?</h4>
@@ -199,7 +199,7 @@
                     </p>
                     <button type="button" 
                             @click="startGame()"
-                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-purple-600/30 cursor-pointer">
+                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer">
                         Start Ronde
                     </button>
                 </div>
@@ -283,14 +283,14 @@
 
     <!-- 5. VICTORY MODAL -->
     <template x-if="gameResult === 'won'">
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-            <div class="bg-white dark:bg-slate-900 border-2 border-emerald-400 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative overflow-hidden">
-                <div class="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/10 text-emerald-500 border border-emerald-400 flex items-center justify-center text-4xl shadow-lg animate-bounce">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
+            <div class="bg-white dark:bg-slate-900 border border-emerald-500/80 dark:border-emerald-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative overflow-hidden">
+                <div class="w-20 h-20 mx-auto rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center justify-center text-4xl shadow-xs animate-bounce">
                     <i class="fa-solid fa-trophy"></i>
                 </div>
 
                 <div class="space-y-1">
-                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70">
                         Psychose Test Voltooid!
                     </span>
                     <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-2">IJzersterk Geheugen!</h3>
@@ -300,7 +300,7 @@
                 </div>
 
                 <!-- Reward Showcase -->
-                <div class="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 text-left space-y-2">
+                <div class="p-4 rounded-xl bg-emerald-50/70 dark:bg-slate-800/60 border border-emerald-200/80 dark:border-emerald-800/70 text-left space-y-2">
                     <div class="text-[11px] font-black uppercase text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
                         <i class="fa-solid fa-gift"></i>
                         <span>Ontvangen Beloningen:</span>
@@ -325,7 +325,7 @@
 
                 <button type="button" 
                         @click="closeModal()"
-                        class="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shadow-emerald-600/30">
+                        class="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs">
                     Geweldig, Terug naar Overzicht
                 </button>
             </div>
@@ -334,14 +334,14 @@
 
     <!-- 6. GAME OVER MODAL -->
     <template x-if="gameResult === 'lost'">
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-            <div class="bg-white dark:bg-slate-900 border-2 border-rose-400 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative overflow-hidden">
-                <div class="w-20 h-20 mx-auto rounded-3xl bg-rose-500/10 text-rose-500 border border-rose-400 flex items-center justify-center text-4xl shadow-lg animate-pulse">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
+            <div class="bg-white dark:bg-slate-900 border border-rose-500/80 dark:border-rose-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative overflow-hidden">
+                <div class="w-20 h-20 mx-auto rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-4xl shadow-xs animate-pulse">
                     <i class="fa-solid fa-skull"></i>
                 </div>
 
                 <div class="space-y-1">
-                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-700">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70">
                         Geheugenverlies!
                     </span>
                     <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-2">Helaas, Geen Match!</h3>
@@ -351,7 +351,7 @@
                 </div>
 
                 <!-- Consolation prize -->
-                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-left text-xs font-bold text-slate-600 dark:text-slate-300">
+                <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-left text-xs font-bold text-slate-600 dark:text-slate-300">
                     <span class="text-[10px] uppercase text-slate-400 block font-black mb-1">Troostprijs:</span>
                     <div class="flex items-center gap-3">
                         <span class="text-emerald-600 dark:text-emerald-400 font-mono">+ €3.000 Cash</span>
@@ -361,7 +361,7 @@
 
                 <button type="button" 
                         @click="closeModal()"
-                        class="w-full py-3.5 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer">
+                        class="w-full py-3.5 px-6 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 cursor-pointer">
                     Sluiten
                 </button>
             </div>
@@ -369,9 +369,9 @@
     </template>
 
     <!-- 7. SPELREGELS & INFO FOOTER -->
-    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm font-black shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-sm font-black shrink-0">
                 <i class="fa-solid fa-brain"></i>
             </div>
             <div>

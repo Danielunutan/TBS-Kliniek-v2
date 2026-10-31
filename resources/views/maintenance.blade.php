@@ -55,7 +55,7 @@
     <!-- Main Content Container -->
     <main class="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 my-auto">
         
-        <div class="bg-gradient-to-b from-slate-900/90 via-slate-900/80 to-[#120a26]/90 backdrop-blur-xl border border-purple-500/30 rounded-3xl p-6 sm:p-10 shadow-2xl shadow-purple-950/50 text-center space-y-8">
+        <div class="bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-[#120a26]/95 backdrop-blur-xl border border-purple-500/30 dark:border-slate-800 rounded-2xl p-6 sm:p-10 shadow-2xl shadow-purple-950/50 text-center space-y-8">
             
             <!-- Animated Padlock Icon with Rings -->
             <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
@@ -81,7 +81,7 @@
             </div>
 
             <!-- Expected Return Time Card & Live Countdown -->
-            <div class="bg-purple-950/40 border border-purple-500/30 rounded-2xl p-5 sm:p-6 space-y-4 shadow-inner">
+            <div class="bg-purple-950/40 border border-purple-500/30 rounded-xl p-5 sm:p-6 space-y-4 shadow-inner">
                 <div class="flex items-center justify-center gap-2 text-xs font-black text-purple-300 uppercase tracking-widest">
                     <i class="fa-solid fa-clock text-amber-400"></i>
                     <span>Verwachte Heropening</span>
@@ -109,7 +109,7 @@
             </div>
 
             <!-- Progress Steps Tracker -->
-            <div class="space-y-2 text-left max-w-lg mx-auto bg-slate-950/50 p-4 rounded-2xl border border-slate-800">
+            <div class="space-y-2 text-left max-w-lg mx-auto bg-slate-950/60 p-4 rounded-xl border border-slate-800">
                 <div class="text-[11px] font-black uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-800/80 flex items-center justify-between">
                     <span>Voortgang Onderhoud</span>
                     <span class="text-purple-400 font-bold">Stap 2 van 3</span>

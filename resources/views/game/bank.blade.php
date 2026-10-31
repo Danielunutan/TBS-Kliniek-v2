@@ -290,7 +290,7 @@
     <!-- SLIM COMPACT HEADER WITH INTEGRATED PAS & SALDO TICKER         -->
     <!-- ============================================================== -->
     <div class="rounded-2xl shadow-xs border p-3 sm:p-4 transition-all duration-300
-                bg-white border-slate-200 text-slate-800
+                bg-white border-slate-200/90 text-slate-800
                 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-100">
         <div class="flex items-center justify-between gap-2.5 flex-wrap">
             <!-- Left: Brand / Pas Capsule -->
@@ -303,7 +303,7 @@
                         <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
                             Geldmaat TBS
                         </span>
-                        <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                        <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70">
                             #0884
                         </span>
                     </div>
@@ -315,11 +315,11 @@
 
             <!-- Center: Quick Balances Capsule -->
             <div class="flex items-center gap-3 font-mono text-xs">
-                <div class="px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-900 dark:text-amber-300 flex items-center gap-1.5 shadow-2xs">
+                <div class="px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 flex items-center gap-1.5 shadow-2xs">
                     <span class="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400">Zak:</span>
                     <strong class="font-black text-xs sm:text-sm">€{{ number_format($character->cash, 0, ',', '.') }}</strong>
                 </div>
-                <div class="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5 shadow-2xs">
+                <div class="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 shadow-2xs">
                     <span class="text-[9px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Kluis:</span>
                     <strong class="font-black text-xs sm:text-sm">€{{ number_format($character->bank, 0, ',', '.') }}</strong>
                 </div>
@@ -330,15 +330,13 @@
                 <button type="button" @click="soundEnabled = !soundEnabled"
                         :title="soundEnabled ? 'Geluid Dempen' : 'Geluid Inschakelen'"
                         class="p-2 rounded-xl text-xs transition border cursor-pointer
-                               bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-600
-                               dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-300">
+                               bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700 active:scale-95">
                     <i class="fa-solid" :class="soundEnabled ? 'fa-volume-high text-emerald-500' : 'fa-volume-xmark text-slate-400'"></i>
                 </button>
                 <button type="button" @click="viewMode = (viewMode === 'atm' ? 'classic' : 'atm')"
-                        class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border cursor-pointer font-mono shadow-2xs
-                               bg-amber-400/20 hover:bg-amber-400/30 border-amber-300 text-amber-950
-                               dark:bg-purple-900/40 dark:hover:bg-purple-900/60 dark:border-purple-700/60 dark:text-purple-200">
-                    <i class="fa-solid" :class="viewMode === 'atm' ? 'fa-table-list text-amber-700 dark:text-purple-300' : 'fa-cash-register text-amber-700 dark:text-purple-300'"></i>
+                        class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border cursor-pointer font-mono shadow-2xs active:scale-95
+                               bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700">
+                    <i class="fa-solid" :class="viewMode === 'atm' ? 'fa-table-list text-purple-600 dark:text-purple-400' : 'fa-cash-register text-amber-600 dark:text-amber-400'"></i>
                     <span class="text-[11px]" x-text="viewMode === 'atm' ? 'Tabel' : 'Geldmaat'"></span>
                 </button>
             </div>
@@ -784,22 +782,22 @@
 
         <!-- Optional Quick Vitals Accordion (Schuld / Krediet / Uitkering) -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono">
-            <div class="p-2.5 rounded-xl border bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800">
+            <div class="p-2.5 rounded-xl border bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 shadow-xs">
                 <span class="text-[9px] text-slate-500 uppercase block">Totale Schuld</span>
                 <span class="text-xs sm:text-sm font-bold text-rose-600 dark:text-rose-400">€{{ number_format($openstaandeSchuld ?? 0, 0, ',', '.') }}</span>
             </div>
-            <div class="p-2.5 rounded-xl border bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800">
+            <div class="p-2.5 rounded-xl border bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 shadow-xs">
                 <span class="text-[9px] text-slate-500 uppercase block">Kredietruimte</span>
                 <span class="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400">€{{ number_format($beschikbareLening ?? 0, 0, ',', '.') }}</span>
             </div>
-            <div class="col-span-2 sm:col-span-1 p-2.5 rounded-xl border bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800 flex items-center justify-between">
+            <div class="col-span-2 sm:col-span-1 p-2.5 rounded-xl border bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between">
                 <div>
                     <span class="text-[9px] text-slate-500 uppercase block">Kwartierloon</span>
                     <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                         {{ ($allowanceDetails['eligible'] ?? false) ? '€' . number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') . '/15m' : 'Bende Loon' }}
                     </span>
                 </div>
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold">
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-bold">
                     {{ ($allowanceDetails['eligible'] ?? false) ? 'Actief' : 'Gang' }}
                 </span>
             </div>
@@ -811,20 +809,20 @@
     <!-- ============================================================== -->
     <div x-show="viewMode === 'classic'" class="space-y-4">
         <!-- Tab Navigation Bar -->
-        <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5 overflow-x-auto">
+        <div class="bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/70 flex items-center gap-1.5 overflow-x-auto">
             <button type="button" @click="activeTab = 'vault'"
-                    class="px-3.5 py-2 rounded-xl text-xs font-black uppercase font-mono transition cursor-pointer shrink-0"
-                    :class="activeTab === 'vault' ? 'bg-amber-400 text-slate-950 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'">
+                    class="px-3.5 py-2 rounded-xl text-xs font-black uppercase font-mono transition-all duration-150 active:scale-95 cursor-pointer shrink-0"
+                    :class="activeTab === 'vault' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-700/60'">
                 <i class="fa-solid fa-vault mr-1"></i> Kluis &amp; Beheer
             </button>
             <button type="button" @click="activeTab = 'loans'"
-                    class="px-3.5 py-2 rounded-xl text-xs font-black uppercase font-mono transition cursor-pointer shrink-0"
-                    :class="activeTab === 'loans' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'">
+                    class="px-3.5 py-2 rounded-xl text-xs font-black uppercase font-mono transition-all duration-150 active:scale-95 cursor-pointer shrink-0"
+                    :class="activeTab === 'loans' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-700/60'">
                 <i class="fa-solid fa-hand-holding-dollar mr-1"></i> Leningen &amp; Krediet
             </button>
             <button type="button" @click="activeTab = 'transactions'"
-                    class="px-3.5 py-2 rounded-xl text-xs font-black uppercase font-mono transition cursor-pointer shrink-0"
-                    :class="activeTab === 'transactions' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'">
+                    class="px-3.5 py-2 rounded-xl text-xs font-black uppercase font-mono transition-all duration-150 active:scale-95 cursor-pointer shrink-0"
+                    :class="activeTab === 'transactions' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-700/60'">
                 <i class="fa-solid fa-receipt mr-1"></i> Transacties
             </button>
         </div>
@@ -832,7 +830,7 @@
         <!-- TAB 1: KLUIS & BEHEER -->
         <div x-show="activeTab === 'vault'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Storten Form -->
-            <div class="p-5 rounded-2xl border shadow-xs bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="p-5 rounded-2xl border shadow-xs bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 space-y-3">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
                         <i class="fa-solid fa-arrow-down"></i>
@@ -849,17 +847,17 @@
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold">€</span>
                             <input type="number" name="amount" min="1" max="{{ $character->cash }}" placeholder="0" required
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl py-2 pl-8 pr-4 font-mono font-bold text-slate-900 dark:text-white focus:outline-hidden focus:border-emerald-500">
+                                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-8 pr-4 font-mono font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         </div>
                     </div>
-                    <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition cursor-pointer">
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                         Storten in Beveiligde Kluis
                     </button>
                 </form>
             </div>
 
             <!-- Opnemen Form -->
-            <div class="p-5 rounded-2xl border shadow-xs bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="p-5 rounded-2xl border shadow-xs bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 space-y-3">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
                         <i class="fa-solid fa-arrow-up"></i>
@@ -876,10 +874,10 @@
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold">€</span>
                             <input type="number" name="amount" min="1" max="{{ $character->bank }}" placeholder="0" required
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl py-2 pl-8 pr-4 font-mono font-bold text-slate-900 dark:text-white focus:outline-hidden focus:border-amber-500">
+                                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-8 pr-4 font-mono font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         </div>
                     </div>
-                    <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition cursor-pointer">
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                         Contant Opnemen (-{{ $character->isVip() ? '3%' : '5%' }} Tax)
                     </button>
                 </form>
@@ -888,10 +886,10 @@
 
         <!-- TAB 2: LENINGEN & KREDIET -->
         <div x-show="activeTab === 'loans'" class="space-y-4">
-            <div class="p-5 rounded-2xl border shadow-xs bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="p-5 rounded-2xl border shadow-xs bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 space-y-3">
                 <div>
                     <h3 class="font-black text-slate-900 dark:text-white text-sm">Nieuwe lening aanvragen</h3>
-                    <p class="text-xs text-slate-500">Max capaciteit: €{{ number_format($maxCapacity ?? 0, 0, ',', '.') }} | Rente &amp; Leningtax (8,5%)</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Max capaciteit: €{{ number_format($maxCapacity ?? 0, 0, ',', '.') }} | Rente &amp; Leningtax (8,5%)</p>
                 </div>
 
                 @if(($beschikbareLening ?? 0) >= 10000)
@@ -899,46 +897,46 @@
                         @csrf
                         <input type="number" name="amount" min="10000" max="{{ $beschikbareLening }}" step="5000"
                                value="{{ min(25000, $beschikbareLening) }}" required
-                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl py-2 px-3 font-mono font-bold text-xs">
-                        <select name="deposit_to" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl py-2 px-3 font-mono font-bold text-xs">
+                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-3 font-mono font-bold text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                        <select name="deposit_to" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-3 font-mono font-bold text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             <option value="bank">Veilige Bankkluis</option>
                             <option value="cash">Contant op Zak</option>
                         </select>
-                        <button type="submit" class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs cursor-pointer">
+                        <button type="submit" class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                             Lening Afsluiten
                         </button>
                     </form>
                 @else
-                    <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300">
+                    <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-xs text-amber-800 dark:text-amber-300">
                         Maximale leencapaciteit bereikt. Los eerst leningen af.
                     </div>
                 @endif
             </div>
 
             <!-- Active Loans Table -->
-            <div class="rounded-2xl border shadow-xs overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                <div class="p-3.5 border-b border-slate-200 dark:border-slate-800">
+            <div class="rounded-2xl border shadow-xs overflow-hidden bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800">
+                <div class="p-3.5 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60">
                     <h3 class="font-black text-slate-900 dark:text-white text-xs uppercase tracking-wider">Leningen Overzicht</h3>
                 </div>
-                <div class="divide-y divide-slate-200 dark:divide-slate-800">
+                <div class="divide-y divide-slate-100 dark:divide-slate-800/80">
                     @forelse($activeLoans as $loan)
-                        <div class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                             <div>
                                 <span class="text-xs font-mono font-bold text-rose-600 dark:text-rose-400 block">
                                     Restant: €{{ number_format($loan->remaining_due, 0, ',', '.') }} van €{{ number_format($loan->total_due, 0, ',', '.') }}
                                 </span>
-                                <span class="text-[10px] text-slate-500">Rente: {{ $loan->interest_rate }}% (€{{ number_format($loan->interest_amount, 0, ',', '.') }})</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">Rente: {{ $loan->interest_rate }}% (€{{ number_format($loan->interest_amount, 0, ',', '.') }})</span>
                             </div>
                             <form method="POST" action="{{ route('bank.loans.repay-full', $loan) }}">
                                 @csrf
                                 <input type="hidden" name="source" value="bank">
-                                <button type="submit" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-mono font-bold text-xs cursor-pointer">
+                                <button type="submit" class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-mono font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                     Alles Aflossen
                                 </button>
                             </form>
                         </div>
                     @empty
-                        <div class="p-5 text-center text-xs text-slate-500 font-mono">
+                        <div class="p-5 text-center text-xs text-slate-500 dark:text-slate-400 font-mono">
                             Geen actieve leningen openstaan.
                         </div>
                     @endforelse
@@ -947,24 +945,24 @@
         </div>
 
         <!-- TAB 3: TRANSACTIES -->
-        <div x-show="activeTab === 'transactions'" class="rounded-2xl border shadow-xs overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            <div class="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div x-show="activeTab === 'transactions'" class="rounded-2xl border shadow-xs overflow-hidden bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800">
+            <div class="p-3.5 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 flex items-center justify-between">
                 <h3 class="font-black text-slate-900 dark:text-white text-xs uppercase tracking-wider">Transacties &amp; Afschriften</h3>
-                <span class="text-xs text-slate-500 font-mono">Laatste 15</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-mono">Laatste 15</span>
             </div>
-            <div class="divide-y divide-slate-200 dark:divide-slate-800 font-mono text-xs">
+            <div class="divide-y divide-slate-100 dark:divide-slate-800/80 font-mono text-xs">
                 @forelse($transactions as $tx)
-                    <div class="p-3 flex items-center justify-between">
+                    <div class="p-3 flex items-center justify-between hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                         <div>
                             <span class="font-bold text-slate-800 dark:text-slate-200 uppercase block text-xs">{{ str_replace('_', ' ', $tx->type) }}</span>
-                            <span class="text-[10px] text-slate-500">{{ $tx->created_at->format('d-m-Y H:i') }}</span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ $tx->created_at->format('d-m-Y H:i') }}</span>
                         </div>
                         <span class="font-black text-sm {{ $tx->amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
                             {{ $tx->amount >= 0 ? '+' : '' }}€{{ number_format($tx->amount, 0, ',', '.') }}
                         </span>
                     </div>
                 @empty
-                    <div class="p-5 text-center text-slate-500">
+                    <div class="p-5 text-center text-slate-500 dark:text-slate-400">
                         Geen rekeningtransacties gevonden.
                     </div>
                 @endforelse

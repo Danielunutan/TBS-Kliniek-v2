@@ -4,32 +4,32 @@
 <div class="space-y-6" x-data="{ addFriendOpen: false, massMessageOpen: false, selectedFriendForRespect: null }">
 
     <!-- Clean TBS Kliniek Page Title Bar -->
-    <div class="rounded-2xl bg-white p-6 sm:p-8 text-slate-800 shadow-xs border border-slate-200 relative overflow-hidden">
+    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-200 shadow-xs border border-slate-200/90 dark:border-slate-800 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-2xl text-purple-600 shadow-2xs shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                     <i class="fa-solid fa-user-group"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">TBS Kliniek Sociaal</span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">TBS Kliniek Sociaal</span>
                     </div>
-                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                         Vrienden & Medepatiënten
                     </h1>
-                    <p class="text-xs text-slate-500 mt-0.5 max-w-xl">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl">
                         Bouw een betrouwbaar netwerk op binnen de muren. Stel een officiële BFF in, stuur 24-uurs omroepen en geef elkaar dagelijks respect via kliniek-verificatie.
                     </p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <button type="button" @click="massMessageOpen = true" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs transition shadow-xs flex items-center gap-2">
+                <button type="button" @click="massMessageOpen = true" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-bullhorn text-amber-300"></i>
                     <span>Massa Bericht</span>
                 </button>
-                <button type="button" @click="addFriendOpen = true" class="px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-black text-xs transition shadow-2xs flex items-center gap-2">
-                    <i class="fa-solid fa-user-plus text-purple-600"></i>
+                <button type="button" @click="addFriendOpen = true" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 shadow-2xs flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-user-plus text-purple-600 dark:text-purple-400"></i>
                     <span>Vriend Toevoegen</span>
                 </button>
             </div>
@@ -40,15 +40,15 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         
         <!-- BFF Showcase Card -->
-        <div class="md:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden">
-            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+        <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-black">
+                    <span class="w-7 h-7 rounded-lg bg-pink-50 dark:bg-pink-950/60 text-pink-600 dark:text-pink-400 border border-pink-200/80 dark:border-pink-800/70 flex items-center justify-center text-xs font-black">
                         <i class="fa-solid fa-heart"></i>
                     </span>
-                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-tight">BFF (Beste Medepatiënt)</h2>
+                    <h2 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">BFF (Beste Medepatiënt)</h2>
                 </div>
-                <span class="text-[10px] font-bold text-pink-600 bg-pink-50 border border-pink-100 px-2 py-0.5 rounded-full">Dubbel Respect Bonus</span>
+                <span class="text-[10px] font-black text-pink-700 dark:text-pink-300 bg-pink-50 dark:bg-pink-950/60 border border-pink-200/80 dark:border-pink-800/70 px-2 py-0.5 rounded-full">Dubbel Respect Bonus</span>
             </div>
 
             @if($bff && $bff->friend)
@@ -61,28 +61,28 @@
                 </a>
                 <div class="flex-1 text-center sm:text-left space-y-1">
                     <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                        <a href="{{ route('profile.show', $bff->friend->name) }}" class="text-base font-black text-slate-900 hover:text-purple-600 transition">
+                        <a href="{{ route('profile.show', $bff->friend->name) }}" class="text-base font-black text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition">
                             {{ $bff->friend->name }}
                         </a>
-                        <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">Level {{ $bff->friend->level }}</span>
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-md">Level {{ $bff->friend->level }}</span>
                         @if($bff->friend->gang)
-                        <span class="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
+                        <span class="text-xs font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">
                             [{{ $bff->friend->gang->tag }}] {{ $bff->friend->gang->name }}
                         </span>
                         @endif
                     </div>
-                    <p class="text-xs text-slate-500">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
                         {{ $bff->friend->bio ?: 'Deze patiënt heeft nog geen biografie ingesteld in het kliniekdossier.' }}
                     </p>
                     <div class="pt-2 flex items-center justify-center sm:justify-start gap-2">
                         <button type="button" 
                                 onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $bff->friend->id }}, @js($bff->friend->name), @js($bff->friend->avatar_url)); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $bff->friend->id]) }}'; }" 
-                                class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-comments text-emerald-600"></i> Privé Chat
+                                class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-comments text-emerald-600 dark:text-emerald-400"></i> Privé Chat
                         </button>
                         <form action="{{ route('friends.toggle-bff', $bff) }}" method="POST">
                             @csrf
-                            <button type="submit" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
+                            <button type="submit" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer">
                                 BFF Status Opheffen
                             </button>
                         </form>
@@ -90,12 +90,12 @@
                 </div>
             </div>
             @else
-            <div class="p-6 text-center space-y-2 bg-purple-50/40 rounded-xl border border-purple-100/60 my-auto">
-                <div class="w-12 h-12 mx-auto rounded-full bg-pink-100 text-pink-500 flex items-center justify-center text-xl">
+            <div class="p-6 text-center space-y-2 bg-purple-50/90 dark:bg-purple-950/40 rounded-xl border border-purple-200/80 dark:border-purple-800/70 my-auto">
+                <div class="w-12 h-12 mx-auto rounded-full bg-pink-100 dark:bg-pink-950/60 text-pink-500 border border-pink-200/80 dark:border-pink-800/70 flex items-center justify-center text-xl">
                     <i class="fa-regular fa-heart"></i>
                 </div>
-                <h3 class="text-xs font-extrabold text-slate-800">Nog geen BFF geselecteerd</h3>
-                <p class="text-[11px] text-slate-500 max-w-sm mx-auto">
+                <h3 class="text-xs font-black text-slate-900 dark:text-white">Nog geen BFF geselecteerd</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                     Kies je meest trouwe bondgenoot uit je vriendenlijst hieronder om aan te wijzen als jouw officiële BFF. Een BFF levert dubbele respectbonussen op!
                 </p>
             </div>
@@ -103,30 +103,30 @@
         </div>
 
         <!-- Mass Message Info Card -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between">
             <div>
-                <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+                <div class="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-black">
+                        <span class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-xs font-black">
                             <i class="fa-solid fa-tower-broadcast"></i>
                         </span>
-                        <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-tight">Vrienden Omroep</h2>
+                        <h2 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Vrienden Omroep</h2>
                     </div>
-                    <span class="text-[10px] font-bold text-slate-500">1x per 24u</span>
+                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">1x per 24u</span>
                 </div>
-                <p class="text-xs text-slate-500 leading-relaxed">
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                     Stuur met één klik een belangrijk bericht of oproep naar al je aangesloten vrienden tegelijkertijd. Handig voor bende-oproepen of deals!
                 </p>
             </div>
 
-            <div class="mt-4 pt-4 border-t border-slate-100">
+            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                 @if($canMassMessage)
-                <button type="button" @click="massMessageOpen = true" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition shadow-sm flex items-center justify-center gap-2">
+                <button type="button" @click="massMessageOpen = true" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>Massa Bericht Verzenden</span>
                 </button>
                 @else
-                <div class="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs text-center flex items-center justify-center gap-2 cursor-not-allowed">
+                <div class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs text-center flex items-center justify-center gap-2 cursor-not-allowed">
                     <i class="fa-solid fa-clock"></i>
                     <span>Nog {{ $massMessageCooldown }} uur cooldown</span>
                 </div>
@@ -138,8 +138,8 @@
 
     <!-- Inbound Pending Friend Requests -->
     @if($pendingRequests->isNotEmpty())
-    <div class="bg-white rounded-2xl border-2 border-purple-300 shadow-md overflow-hidden">
-        <div class="p-4 sm:p-5 border-b border-purple-100 bg-purple-50/60 flex items-center justify-between">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border-2 border-purple-300 dark:border-purple-700/80 shadow-md overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-purple-100 dark:border-purple-800/60 bg-purple-50/60 dark:bg-purple-950/40 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <span class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-sm font-black shadow-xs">
                     <i class="fa-solid fa-user-clock"></i>
@@ -147,34 +147,34 @@
                 <div>
                     <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <span>Inkomende Vriendschapsverzoeken</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-200 dark:bg-purple-900/70 text-purple-900 dark:text-purple-200">{{ $pendingRequests->count() }}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 dark:bg-purple-900/70 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-800/70">{{ $pendingRequests->count() }}</span>
                     </h3>
                     <p class="text-xs text-slate-600 dark:text-slate-400">Deze medepatiënten willen een bondgenootschap met jou sluiten. Accepteer of weiger het verzoek.</p>
                 </div>
             </div>
         </div>
 
-        <div class="divide-y divide-purple-100">
+        <div class="divide-y divide-purple-100 dark:divide-purple-900/40">
             @foreach($pendingRequests as $req)
             @if($req->character)
-            <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-purple-50/30 transition">
+            <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-purple-50/30 dark:hover:bg-purple-950/20 transition">
                 <div class="flex items-center gap-3.5">
                     <a href="{{ route('profile.show', $req->character->name) }}">
-                        <img src="{{ $req->character->avatar_url }}" alt="{{ $req->character->name }}" class="w-11 h-11 rounded-xl object-cover border-2 border-purple-200 shadow-xs hover:scale-105 transition-transform">
+                        <img src="{{ $req->character->avatar_url }}" alt="{{ $req->character->name }}" class="w-11 h-11 rounded-xl object-cover border-2 border-purple-200 dark:border-purple-800 shadow-xs hover:scale-105 transition-transform">
                     </a>
                     <div>
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('profile.show', $req->character->name) }}" class="font-black text-slate-900 hover:text-purple-600 transition text-sm">
+                            <a href="{{ route('profile.show', $req->character->name) }}" class="font-black text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition text-sm">
                                 {{ $req->character->name }}
                             </a>
-                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">Level {{ $req->character->level }}</span>
+                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-md">Level {{ $req->character->level }}</span>
                             @if($req->character->gang)
-                            <span class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
+                            <span class="text-[10px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">
                                 [{{ $req->character->gang->tag }}]
                             </span>
                             @endif
                         </div>
-                        <p class="text-xs text-slate-500 mt-0.5">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                             Verzoek verzonden {{ $req->created_at->diffForHumans() }}
                         </p>
                     </div>
@@ -183,7 +183,7 @@
                 <div class="flex items-center gap-2 self-end sm:self-auto">
                     <form action="{{ route('friends.accept', $req) }}" method="POST">
                         @csrf
-                        <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-xs flex items-center gap-1.5">
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-check"></i> Accepteren
                         </button>
                     </form>
@@ -193,7 +193,7 @@
                           data-confirm-btn="Weigeren"
                           data-confirm-type="warning">
                         @csrf
-                        <button type="submit" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 font-bold text-xs transition flex items-center gap-1.5">
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/40 text-slate-700 hover:text-rose-600 dark:text-slate-200 dark:hover:text-rose-400 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-xmark"></i> Weigeren
                         </button>
                     </form>
@@ -207,9 +207,9 @@
 
     <!-- Outbound Sent Friend Requests Pending -->
     @if($sentRequests->isNotEmpty())
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        <div class="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
-            <h4 class="text-xs font-black text-slate-700 flex items-center gap-2">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div class="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 flex items-center justify-between">
+            <h4 class="text-xs font-black text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <i class="fa-solid fa-paper-plane text-slate-400"></i>
                 <span>Verzonden Vriendschapsverzoeken ({{ $sentRequests->count() }}) - Wachten op acceptatie</span>
             </h4>
@@ -217,10 +217,10 @@
         <div class="p-3 sm:p-4 flex flex-wrap gap-2.5">
             @foreach($sentRequests as $sent)
             @if($sent->friend)
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-xs">
                 <img src="{{ $sent->friend->avatar_url }}" alt="{{ $sent->friend->name }}" class="w-5 h-5 rounded-md object-cover">
-                <span class="font-extrabold text-slate-800">{{ $sent->friend->name }}</span>
-                <span class="text-[10px] text-amber-600 font-semibold">(Wachten op acceptatie)</span>
+                <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ $sent->friend->name }}</span>
+                <span class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">(Wachten op acceptatie)</span>
                 <form action="{{ route('friends.remove', $sent) }}" method="POST" class="inline"
                       data-confirm="Wil je dit verzonden vriendschapsverzoek annuleren?"
                       data-confirm-title="Verzoek Annuleren"
@@ -228,7 +228,7 @@
                       data-confirm-type="warning">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="text-slate-400 hover:text-rose-600 ml-1" title="Verzoek annuleren">
+                    <button type="submit" class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 ml-1 cursor-pointer" title="Verzoek annuleren">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </form>
@@ -240,31 +240,31 @@
     @endif
 
     <!-- Friends List Table -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70 dark:bg-slate-800/60">
             <div>
-                <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-users text-purple-600"></i>
+                <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i>
                     <span>Mijn Vriendenlijst ({{ $friends->count() }})</span>
                 </h3>
-                <p class="text-xs text-slate-500">Patiënten waarmee je een vertrouwensband hebt opgebouwd in de kliniek.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Patiënten waarmee je een vertrouwensband hebt opgebouwd in de kliniek.</p>
             </div>
             
-            <button type="button" @click="addFriendOpen = true" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 text-xs font-bold hover:bg-purple-100 transition self-start sm:self-auto">
+            <button type="button" @click="addFriendOpen = true" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-xs font-bold hover:bg-purple-100 dark:hover:bg-purple-900/60 transition-all duration-150 active:scale-95 self-start sm:self-auto cursor-pointer">
                 <i class="fa-solid fa-plus"></i> Nieuwe Vriend Toevoegen
             </button>
         </div>
 
         @if($friends->isEmpty())
         <div class="p-12 text-center space-y-3">
-            <div class="w-14 h-14 mx-auto rounded-full bg-purple-50 text-purple-400 flex items-center justify-center text-2xl">
+            <div class="w-14 h-14 mx-auto rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-2xl">
                 <i class="fa-solid fa-user-plus"></i>
             </div>
-            <h4 class="text-sm font-black text-slate-800">Je hebt nog geen vrienden toegevoegd</h4>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">
+            <h4 class="text-sm font-black text-slate-800 dark:text-slate-100">Je hebt nog geen vrienden toegevoegd</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 Voeg medepatiënten toe om elkaar dagelijks respect te schenken en geheime brieven uit te wisselen.
             </p>
-            <button type="button" @click="addFriendOpen = true" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-black hover:bg-slate-800 transition">
+            <button type="button" @click="addFriendOpen = true" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer">
                 Zoek Patiënten
             </button>
         </div>
@@ -272,7 +272,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50/30">
+                    <tr class="border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50/90 dark:bg-slate-800/60">
                         <th class="py-3 px-4">Patiënt</th>
                         <th class="py-3 px-4">Level</th>
                         <th class="py-3 px-4">Respect Status</th>
@@ -280,10 +280,10 @@
                         <th class="py-3 px-4 text-right">Acties</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-xs">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
                     @foreach($friends as $f)
                     @if($f->friend)
-                    <tr class="hover:bg-slate-50/70 transition">
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                         <td class="py-3.5 px-4">
                             <div class="flex items-center gap-3">
                                 <div class="relative shrink-0">
@@ -293,38 +293,38 @@
                                     <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}" title="{{ $f->friend->online_status_label }}"></span>
                                 </div>
                                 <div>
-                                    <a href="{{ route('profile.show', $f->friend->name) }}" class="font-extrabold text-slate-900 hover:text-purple-600 transition block">
+                                    <a href="{{ route('profile.show', $f->friend->name) }}" class="font-extrabold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition block">
                                         {{ $f->friend->name }}
                                     </a>
                                     <div class="flex items-center gap-1.5 mt-0.5">
                                         @if($f->friend->gang)
-                                        <span class="text-[10px] font-bold text-purple-600">
+                                        <span class="text-[10px] font-bold text-purple-600 dark:text-purple-400">
                                             [{{ $f->friend->gang->tag }}]
                                         </span>
                                         @endif
-                                        <span class="text-[10px] {{ $f->friend->isOnline() ? 'text-emerald-600 font-bold' : 'text-slate-400' }}">
+                                        <span class="text-[10px] {{ $f->friend->isOnline() ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 dark:text-slate-500' }}">
                                             {{ $f->friend->isOnline() ? 'Online' : 'Offline' }}
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         </td>
-                        <td class="py-3.5 px-4 font-bold text-slate-600">
+                        <td class="py-3.5 px-4 font-bold text-slate-600 dark:text-slate-300">
                             Level {{ $f->friend->level }}
                         </td>
                         <td class="py-3.5 px-4">
-                            <span class="font-extrabold text-purple-700">
+                            <span class="font-extrabold text-purple-700 dark:text-purple-300">
                                 {{ number_format($f->friend->respect, 0, ',', '.') }}
                             </span>
-                            <span class="text-[10px] text-slate-400">Respect</span>
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500">Respect</span>
                         </td>
                         <td class="py-3.5 px-4">
                             @if($f->is_bff)
-                            <span class="inline-flex items-center gap-1 text-[10px] font-black text-pink-700 bg-pink-100 border border-pink-200 px-2 py-0.5 rounded-full">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-black text-pink-700 dark:text-pink-300 bg-pink-50 dark:bg-pink-950/60 border border-pink-200/80 dark:border-pink-800/70 px-2 py-0.5 rounded-full">
                                 <i class="fa-solid fa-heart"></i> BFF
                             </span>
                             @else
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-full">
                                 Vriend
                             </span>
                             @endif
@@ -339,12 +339,12 @@
                                 @if($canRespect)
                                 <button type="button" 
                                         @click="selectedFriendForRespect = { id: {{ $f->id }}, name: @js($f->friend->name), is_bff: {{ $f->is_bff ? 'true' : 'false' }} }"
-                                        class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-[11px] transition shadow-2xs flex items-center gap-1.5">
+                                        class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-[11px] transition-all duration-150 active:scale-95 shadow-2xs flex items-center gap-1.5 cursor-pointer">
                                     <i class="fa-solid fa-award text-amber-300"></i>
                                     <span>Geef Respect</span>
                                 </button>
                                 @else
-                                <span class="px-2.5 py-1 text-[10px] font-bold text-slate-400 bg-slate-100 rounded-lg">
+                                <span class="px-2.5 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
                                     <i class="fa-solid fa-check text-emerald-500 mr-1"></i> Gerespecteerd
                                 </span>
                                 @endif
@@ -354,7 +354,7 @@
                                     @csrf
                                     <button type="submit" 
                                             title="{{ $f->is_bff ? 'Verwijder BFF status' : 'Maak deze vriend mijn officiële BFF' }}"
-                                            class="p-2 rounded-xl border text-xs font-bold transition {{ $f->is_bff ? 'bg-pink-50 border-pink-200 text-pink-600 hover:bg-pink-100' : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-pink-600 hover:bg-pink-50' }}">
+                                            class="p-2 rounded-xl border text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer {{ $f->is_bff ? 'bg-pink-50 dark:bg-pink-950/60 border-pink-200/80 dark:border-pink-800/70 text-pink-600 dark:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-900/60' : 'bg-slate-100 hover:bg-pink-50 dark:bg-slate-800 dark:hover:bg-pink-950/40 border-slate-200/80 dark:border-slate-700 text-slate-400 dark:text-slate-400 hover:text-pink-600 dark:hover:text-pink-400' }}">
                                         <i class="fa-solid fa-heart"></i>
                                     </button>
                                 </form>
@@ -363,7 +363,7 @@
                                 <button type="button" 
                                         onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $f->friend->id }}, @js($f->friend->name), @js($f->friend->avatar_url)); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $f->friend->id]) }}'; }" 
                                         title="Privé chat openen met {{ $f->friend->name }}"
-                                        class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 text-xs transition cursor-pointer">
+                                        class="p-2 rounded-xl bg-slate-100 hover:bg-emerald-50 dark:bg-slate-800 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 text-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                     <i class="fa-solid fa-comments"></i>
                                 </button>
 
@@ -375,7 +375,7 @@
                                       data-confirm-type="danger">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" title="Vriend verwijderen" class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-xs transition">
+                                    <button type="submit" title="Vriend verwijderen" class="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/40 border border-slate-200/80 dark:border-slate-700 text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 text-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                         <i class="fa-solid fa-user-xmark"></i>
                                     </button>
                                 </form>
@@ -392,18 +392,18 @@
     </div>
 
     <!-- RESPECT CAPTCHA MODAL -->
-    <div x-show="selectedFriendForRespect !== null" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="selectedFriendForRespect = null" class="bg-white rounded-2xl shadow-2xl border border-purple-200 max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+    <div x-show="selectedFriendForRespect !== null" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
+        <div @click.away="selectedFriendForRespect = null" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-black">
+                    <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-sm font-black">
                         <i class="fa-solid fa-award"></i>
                     </span>
-                    <h3 class="text-sm font-extrabold text-slate-900">
-                        Respect Geven aan <span class="text-purple-700" x-text="selectedFriendForRespect?.name"></span>
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                        Respect Geven aan <span class="text-purple-700 dark:text-purple-400" x-text="selectedFriendForRespect?.name"></span>
                     </h3>
                 </div>
-                <button type="button" @click="selectedFriendForRespect = null" class="text-slate-400 hover:text-slate-600">
+                <button type="button" @click="selectedFriendForRespect = null" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -412,43 +412,43 @@
                 <form :action="'{{ url('/vrienden') }}/' + selectedFriendForRespect.id + '/respect'" method="POST" class="space-y-4">
                     @csrf
                     
-                    <div class="p-4 rounded-xl bg-purple-50/70 border border-purple-100 text-xs text-purple-900 space-y-2">
+                    <div class="p-4 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-800/60 text-xs text-purple-900 dark:text-purple-200 space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="font-bold">Beloning voor je vriend:</span>
-                            <span class="font-black text-purple-700" x-text="selectedFriendForRespect.is_bff ? '+2 Respect (BFF Bonus!)' : '+1 Respect'"></span>
+                            <span class="font-black text-purple-700 dark:text-purple-300" x-text="selectedFriendForRespect.is_bff ? '+2 Respect (BFF Bonus!)' : '+1 Respect'"></span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="font-bold">XP voor jou:</span>
-                            <span class="font-black text-indigo-700">+50 XP</span>
+                            <span class="font-black text-indigo-700 dark:text-indigo-400">+50 XP</span>
                         </div>
                     </div>
 
                     <!-- TBS Anti-Bot Security Captcha -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div class="bg-slate-50/90 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/70 space-y-3">
                         <div class="flex items-center justify-between">
-                            <label class="block text-xs font-black text-slate-800">
-                                <i class="fa-solid fa-shield-halved text-purple-600 mr-1"></i> TBS Kliniek Beveiligingscontrole
+                            <label class="block text-xs font-black text-slate-800 dark:text-slate-200">
+                                <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400 mr-1"></i> TBS Kliniek Beveiligingscontrole
                             </label>
-                            <span class="text-[10px] font-bold text-slate-400">Anti-script</span>
+                            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">Anti-script</span>
                         </div>
-                        <p class="text-[11px] text-slate-500">
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">
                             Los deze rekensom op om te bewijzen dat je een echte patiënt bent en geen geautomatiseerd script:
                         </p>
                         
                         <div class="flex items-center gap-3">
-                            <div class="px-4 py-2 bg-purple-900 text-white font-mono font-black text-base rounded-xl border border-purple-700 tracking-wider select-none shadow-xs">
+                            <div class="px-4 py-2 bg-purple-900 dark:bg-purple-950 text-white font-mono font-black text-base rounded-xl border border-purple-700 dark:border-purple-800 tracking-wider select-none shadow-xs">
                                 {{ $numA }} + {{ $numB }} = ?
                             </div>
                             <input type="number" name="captcha_answer" required autofocus placeholder="Antwoord"
-                                   class="flex-1 text-sm font-black bg-white border-2 border-purple-300 text-slate-900 rounded-xl px-3.5 py-2 focus:border-purple-600 focus:ring-2 focus:ring-purple-200 outline-none transition">
+                                   class="flex-1 text-sm font-black bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 focus:border-purple-600 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition">
                         </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-2">
-                        <button type="button" @click="selectedFriendForRespect = null" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                        <button type="button" @click="selectedFriendForRespect = null" class="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 transition cursor-pointer">
                             Annuleren
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
+                        <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-fire text-amber-300"></i>
                             <span>Respect Bevestigen</span>
                         </button>
@@ -459,14 +459,14 @@
     </div>
 
     <!-- ADD FRIEND MODAL (with Autocomplete Search Dropdown) -->
-    <div x-show="addFriendOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="addFriendOpen = false" class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-user-plus text-purple-600"></i>
+    <div x-show="addFriendOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
+        <div @click.away="addFriendOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-purple-600 dark:text-purple-400"></i>
                     <span>Medepatiënt Toevoegen als Vriend</span>
                 </h3>
-                <button type="button" @click="addFriendOpen = false" class="text-slate-400 hover:text-slate-600">
+                <button type="button" @click="addFriendOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -488,7 +488,7 @@
                         this.openDropdown = false;
                     }
                 }" class="relative">
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Zoek Medepatiënt op Naam</label>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Zoek Medepatiënt op Naam</label>
                     <input type="hidden" name="friend_name" :value="selectedName || search" required>
                     
                     <div class="relative flex items-center">
@@ -502,7 +502,7 @@
                                @click.outside="openDropdown = false"
                                autocomplete="off"
                                placeholder="Typ om een speler te zoeken..."
-                               class="w-full text-xs font-semibold bg-slate-50 border border-purple-300 text-slate-800 rounded-xl py-2.5 focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-200 outline-none transition tbs-search-input"
+                               class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl py-2.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition tbs-search-input"
                                style="padding-left: 2.75rem !important; padding-right: 2.25rem !important;">
                         <div class="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
                             <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
@@ -512,31 +512,31 @@
                     <!-- Autocomplete Dropdown -->
                     <div x-show="openDropdown" 
                          x-transition
-                         class="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-xl border border-purple-200 divide-y divide-slate-100">
+                         class="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-purple-200 dark:border-purple-800/80 divide-y divide-slate-100 dark:divide-slate-800">
                         <template x-if="filtered.length === 0">
-                            <div class="p-3 text-xs text-slate-400 text-center">
+                            <div class="p-3 text-xs text-slate-400 dark:text-slate-500 text-center">
                                 Geen patiënt gevonden met '<span x-text="search"></span>'
                             </div>
                         </template>
                         <template x-for="p in filtered" :key="p.name">
                             <button type="button" 
                                     @click="select(p.name)"
-                                    class="w-full flex items-center justify-between px-3.5 py-2.5 hover:bg-purple-50/70 text-left transition group">
+                                    class="w-full flex items-center justify-between px-3.5 py-2.5 hover:bg-purple-50/70 dark:hover:bg-slate-800/70 text-left transition group">
                                 <div class="flex items-center gap-2.5">
-                                    <img :src="p.avatar" class="w-6 h-6 rounded-full object-cover border border-purple-100">
-                                    <span class="text-xs font-bold text-slate-800 group-hover:text-purple-700" x-text="p.name"></span>
+                                    <img :src="p.avatar" class="w-6 h-6 rounded-full object-cover border border-purple-100 dark:border-purple-900/60">
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-700 dark:group-hover:text-purple-400" x-text="p.name"></span>
                                 </div>
-                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full" x-text="'Level ' + p.level"></span>
+                                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full" x-text="'Level ' + p.level"></span>
                             </button>
                         </template>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
-                    <button type="button" @click="addFriendOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                    <button type="button" @click="addFriendOpen = false" class="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 transition cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-purple-700 hover:bg-purple-600 text-white rounded-xl transition shadow-xs">
+                    <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl transition shadow-xs cursor-pointer">
                         Toevoegen als Vriend
                     </button>
                 </div>
@@ -545,28 +545,28 @@
     </div>
 
     <!-- MASS MESSAGE MODAL -->
-    <div x-show="massMessageOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="massMessageOpen = false" class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+    <div x-show="massMessageOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
+        <div @click.away="massMessageOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-black">
+                    <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-sm font-black">
                         <i class="fa-solid fa-bullhorn"></i>
                     </span>
-                    <h3 class="text-sm font-extrabold text-slate-900">
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
                         Massa Bericht Versturen (1x per 24u)
                     </h3>
                 </div>
-                <button type="button" @click="massMessageOpen = false" class="text-slate-400 hover:text-slate-600">
+                <button type="button" @click="massMessageOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             @if(! $canMassMessage)
-            <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-3">
-                <i class="fa-solid fa-clock text-amber-600 text-lg"></i>
+            <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-3">
+                <i class="fa-solid fa-clock text-amber-600 dark:text-amber-400 text-lg"></i>
                 <div>
                     <div>Cooldown actief</div>
-                    <div class="text-[11px] font-normal text-amber-700">Je hebt in de afgelopen 24 uur al een omroep gestuurd. Wacht nog {{ $massMessageCooldown }} uur.</div>
+                    <div class="text-[11px] font-normal text-amber-700 dark:text-amber-400">Je hebt in de afgelopen 24 uur al een omroep gestuurd. Wacht nog {{ $massMessageCooldown }} uur.</div>
                 </div>
             </div>
             @endif
@@ -574,25 +574,25 @@
             <form action="{{ route('friends.mass-message') }}" method="POST" class="space-y-3">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Onderwerp</label>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Onderwerp</label>
                     <input type="text" name="subject" required placeholder="Bijv. Oproep aan alle vertrouwelingen!"
-                           class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 focus:bg-white focus:border-purple-600 outline-none">
+                           class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Bericht</label>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Bericht</label>
                     <textarea name="message" required rows="4" placeholder="Schrijf je bericht dat naar al je vrienden verstuurd zal worden..."
-                              class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-3 focus:bg-white focus:border-purple-600 outline-none resize-none"></textarea>
+                              class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition"></textarea>
                 </div>
 
                 <div class="flex items-center justify-between pt-2">
-                    <span class="text-[11px] text-slate-400">Ontvangers: {{ $friends->count() }} vrienden</span>
+                    <span class="text-[11px] text-slate-400 dark:text-slate-500">Ontvangers: {{ $friends->count() }} vrienden</span>
                     <div class="flex items-center gap-2">
-                        <button type="button" @click="massMessageOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                        <button type="button" @click="massMessageOpen = false" class="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 transition cursor-pointer">
                             Sluiten
                         </button>
                         <button type="submit" @disabled(! $canMassMessage || $friends->isEmpty()) 
-                                class="px-5 py-2 text-xs font-extrabold bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white rounded-xl transition shadow-xs">
+                                class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl transition shadow-xs cursor-pointer">
                             Verzenden
                         </button>
                     </div>
@@ -603,7 +603,7 @@
 
     <!-- Bottom Podium Ranglijst (Kliniek Respect Top 10, Clean TBS Style) -->
     @if(isset($topRankings) && $topRankings->count())
-    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-5">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
                 <i class="fa-solid fa-trophy text-amber-500"></i>
@@ -634,7 +634,7 @@
                 <a href="{{ route('profile.show', $ranked->name) }}" class="text-xs font-bold text-slate-900 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate w-full block" title="{{ $ranked->name }}">
                     {{ $ranked->name }}
                 </a>
-                <span class="text-[10px] font-bold text-slate-400">
+                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                     {{ number_format($ranked->respect, 0, ',', '.') }}
                 </span>
             </div>

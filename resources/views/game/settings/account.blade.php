@@ -6,15 +6,15 @@
 <div class="space-y-6" x-data="accountSettings()">
 
     <!-- Top Hero Card (TBS Modern Aesthetic) -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center text-2xl shadow-xs shrink-0">
+                <div class="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/70 flex items-center justify-center text-2xl shadow-xs shrink-0">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Account & Beveiliging</h1>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed max-w-xl">
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Account & Beveiliging</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed max-w-xl">
                         Beheer je inloggegevens, gebruikersnaam, weergavenaam, profielfoto, tweestapsverificatie en actieve apparaten.
                     </p>
                 </div>
@@ -22,7 +22,7 @@
 
             <!-- User Badge -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
-                <div class="px-3.5 py-2 rounded-xl bg-purple-50 border border-purple-200 text-xs font-bold text-purple-800">
+                <div class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/70 text-xs font-bold text-purple-800 dark:text-purple-300">
                     <span class="text-purple-400 block text-[10px] uppercase font-mono">E-mailadres</span>
                     <span>{{ $user->email }}</span>
                 </div>
@@ -34,18 +34,18 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <!-- 1. USERNAME & DISPLAY NAME CHANGE -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-signature text-purple-600"></i>
-                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">Identiteit & Namen</h3>
+                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">Identiteit & Namen</h3>
                 </div>
                 <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full {{ $canChangeUsername ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
                     {{ $canChangeUsername ? 'Beschikbaar' : 'Vergrendeld' }}
                 </span>
             </div>
 
-            <p class="text-xs text-slate-500 leading-relaxed">
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 Je <strong>Gebruikersnaam</strong> is jouw unieke systeemnaam (zonder rare tekens). Je <strong>Weergavenaam</strong> is de roepnaam waarmee mede-patiënten jou zien in het spel.
             </p>
 
@@ -78,7 +78,7 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold text-xs">@</span>
                         <input type="text" name="username" value="{{ old('username', $character->username) }}" maxlength="20"
                                @if(! $canChangeUsername) readonly @endif
-                               class="w-full rounded-xl pl-7 pr-3.5 py-2 text-xs font-bold transition focus:outline-none {{ ! $canChangeUsername ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700' : 'bg-slate-50 dark:bg-purple-950/40 border border-slate-300 dark:border-purple-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-600' }}">
+                               class="w-full rounded-xl pl-7 pr-3.5 py-2 text-xs font-bold transition focus:outline-none {{ ! $canChangeUsername ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-600' }}">
                     </div>
                     <span class="text-[10px] text-slate-400 mt-1 block">
                         @if($canChangeUsername)
@@ -95,7 +95,7 @@
                         Weergavenaam / Roepnaam <span class="text-emerald-600 dark:text-emerald-400 font-semibold">(Altijd aanpasbaar)</span>
                     </label>
                     <input type="text" name="display_name" value="{{ old('display_name', $character->display_name ?: $character->name) }}" required maxlength="30"
-                           class="w-full bg-slate-50 dark:bg-purple-950/40 border border-slate-300 dark:border-purple-800 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-600">
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     <span class="text-[10px] text-slate-400 mt-1 block">
                         Hoe je naam getoond wordt in het spel (mag spaties, leestekens en emoji's bevatten).
                     </span>
@@ -106,7 +106,7 @@
                     <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
                         Profiel Accentkleur <span class="text-emerald-600 dark:text-emerald-400 font-semibold">(Altijd aanpasbaar)</span>
                     </label>
-                    <select name="profile_color" class="w-full bg-slate-50 dark:bg-purple-950/40 border border-slate-300 dark:border-purple-800 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-600">
+                    <select name="profile_color" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <option value="purple" {{ $character->profile_color === 'purple' ? 'selected' : '' }}>TBS Paars (Standaard)</option>
                         <option value="rose" {{ $character->profile_color === 'rose' ? 'selected' : '' }}>Bloedrood</option>
                         <option value="emerald" {{ $character->profile_color === 'emerald' ? 'selected' : '' }}>Smaragdgroen</option>
@@ -117,35 +117,35 @@
                     </select>
                 </div>
 
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer">
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
                     <i class="fa-solid fa-check mr-1.5"></i> Identiteit & Kleur Opslaan
                 </button>
             </form>
         </div>
 
         <!-- 2. AVATAR UPLOAD & RASTER CROP TOOL -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-image text-purple-600"></i>
-                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">Profielfoto & Crop Tool</h3>
+                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">Profielfoto & Crop Tool</h3>
                 </div>
-                <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300">
                     Interactief Raster
                 </span>
             </div>
 
             <div class="flex items-center gap-4">
-                <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-purple-500 shadow-sm shrink-0 bg-slate-100">
+                <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-purple-500 shadow-sm shrink-0 bg-slate-100 dark:bg-slate-800">
                     <img :src="currentAvatarUrl" alt="{{ $character->display_name }}" class="w-full h-full object-cover">
                 </div>
                 <div class="space-y-1">
-                    <h4 class="text-xs font-black text-slate-900">Huidige Patiëntfoto</h4>
-                    <p class="text-[11px] text-slate-500 leading-relaxed">
+                    <h4 class="text-xs font-black text-slate-900 dark:text-white">Huidige Patiëntfoto</h4>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                         Upload een eigen foto en snijd hem nauwkeurig bij met het interactieve crop-raster.
                     </p>
                     <button type="button" @click="openCropModal()" 
-                            class="mt-2 py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                            class="mt-2 py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-crop-simple"></i>
                         <span>Nieuwe Foto Uitsnijden</span>
                     </button>
@@ -154,65 +154,65 @@
         </div>
 
         <!-- 3. WACHTWOORD WIJZIGEN -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-                <i class="fa-solid fa-key text-purple-600"></i>
-                <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">Wachtwoord Wijzigen</h3>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+                <i class="fa-solid fa-key text-purple-600 dark:text-purple-400"></i>
+                <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">Wachtwoord Wijzigen</h3>
             </div>
 
             <form action="{{ route('settings.password.update') }}" method="POST" class="space-y-3">
                 @csrf
                 <div>
-                    <label class="text-xs font-bold text-slate-700 block mb-1">Huidig Wachtwoord</label>
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Huidig Wachtwoord</label>
                     <input type="password" name="current_password" required
-                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white">
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-slate-700 block mb-1">Nieuw Wachtwoord</label>
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Nieuw Wachtwoord</label>
                     <input type="password" name="password" required minlength="8"
-                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white">
-                    <span class="text-[11px] text-slate-400 mt-1 block">Minimaal 8 tekens.</span>
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <span class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">Minimaal 8 tekens.</span>
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-slate-700 block mb-1">Bevestig Nieuw Wachtwoord</label>
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Bevestig Nieuw Wachtwoord</label>
                     <input type="password" name="password_confirmation" required minlength="8"
-                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white">
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer">
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
                     <i class="fa-solid fa-lock mr-1.5"></i> Wachtwoord Opslaan
                 </button>
             </form>
         </div>
 
         <!-- 4. TWO-FACTOR AUTHENTICATION (2FA) -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-purple-600"></i>
-                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">2-Factor Authenticatie</h3>
+                    <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
+                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">2-Factor Authenticatie</h3>
                 </div>
-                <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full {{ $user->two_factor_enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' }}">
+                <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full {{ $user->two_factor_enabled ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700' }}">
                     {{ $user->two_factor_enabled ? 'Ingeschakeld' : 'Uitgeschakeld' }}
                 </span>
             </div>
 
-            <p class="text-xs text-slate-500 leading-relaxed">
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 Beveilig je account extra met een tweede verificatiestap. Hierdoor kan niemand zonder jouw toestemming inloggen op je TBS profiel.
             </p>
 
             <form action="{{ route('settings.2fa.toggle') }}" method="POST">
                 @csrf
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
                     <div>
-                        <span class="text-xs font-extrabold text-slate-800 block">Status van 2FA</span>
-                        <span class="text-[11px] text-slate-500">
+                        <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">Status van 2FA</span>
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">
                             {{ $user->two_factor_enabled ? 'Jouw account is extra beveiligd.' : 'Schakel 2FA in voor extra veiligheid.' }}
                         </span>
                     </div>
-                    <button type="submit" class="px-4 py-2 rounded-xl {{ $user->two_factor_enabled ? 'bg-rose-600 hover:bg-rose-700' : 'bg-purple-600 hover:bg-purple-700' }} text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer">
+                    <button type="submit" class="px-4 py-2 rounded-xl {{ $user->two_factor_enabled ? 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500' }} text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
                         {{ $user->two_factor_enabled ? 'Uitschakelen' : 'Inschakelen' }}
                     </button>
                 </div>
@@ -220,38 +220,38 @@
         </div>
 
         <!-- 5. ACTIEVE SESSIES & AFSTAND -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4 md:col-span-2">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4 md:col-span-2">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-mobile-screen-button text-purple-600"></i>
-                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">Actieve Sessies & Afstand</h3>
+                    <i class="fa-solid fa-mobile-screen-button text-purple-600 dark:text-purple-400"></i>
+                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">Actieve Sessies & Afstand</h3>
                 </div>
             </div>
 
-            <p class="text-xs text-slate-500 leading-relaxed">
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 Overzicht van apparaten waarop je momenteel bent ingelogd. Ben je vergeten uit te loggen op een andere computer of telefoon? Log direct alle andere apparaten op afstand uit.
             </p>
 
             <div class="space-y-2.5">
                 @forelse($sessions as $sess)
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 flex items-center justify-between text-xs">
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid {{ $sess['device'] === 'Mobiele Telefoon' ? 'fa-mobile-screen' : 'fa-laptop' }} text-purple-600 text-base"></i>
+                        <i class="fa-solid {{ $sess['device'] === 'Mobiele Telefoon' ? 'fa-mobile-screen' : 'fa-laptop' }} text-purple-600 dark:text-purple-400 text-base"></i>
                         <div>
-                            <div class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                            <div class="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
                                 <span>{{ $sess['device'] }}</span>
                                 @if($sess['is_current'])
-                                    <span class="bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">Dit apparaat</span>
+                                    <span class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">Dit apparaat</span>
                                 @endif
                             </div>
-                            <div class="text-[10px] text-slate-400 font-mono">
+                            <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
                                 IP: {{ $sess['ip'] }} • {{ $sess['last_active'] }}
                             </div>
                         </div>
                     </div>
                 </div>
                 @empty
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-500 flex items-center gap-2">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
                     <i class="fa-solid fa-circle-check text-emerald-500"></i>
                     <span>Huidig apparaat actief.</span>
                 </div>
@@ -259,14 +259,14 @@
             </div>
 
             <!-- Remote Logout Form -->
-            <form action="{{ route('settings.sessions.logout-others') }}" method="POST" class="pt-2 border-t border-slate-100 space-y-2">
+            <form action="{{ route('settings.sessions.logout-others') }}" method="POST" class="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
                 @csrf
-                <label class="text-[11px] font-bold text-slate-600 block">Vul je wachtwoord in om andere apparaten te verbreken:</label>
+                <label class="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">Vul je wachtwoord in om andere apparaten te verbreken:</label>
                 <div class="flex items-center gap-2">
                     <input type="password" name="password" placeholder="Jouw wachtwoord" required
-                           class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-purple-600">
+                           class="flex-1 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     <button type="submit" 
-                            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs uppercase tracking-wider transition cursor-pointer whitespace-nowrap">
+                            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer whitespace-nowrap">
                         <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Overal Uitloggen
                     </button>
                 </div>
@@ -274,17 +274,17 @@
         </div>
 
         <!-- 6. PUSHNOTIFICATIES (DESKTOP & MOBIELE WEBAPP) -->
-        <div x-data="pushSettings()" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4 md:col-span-2">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div x-data="pushSettings()" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4 md:col-span-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
                         <i class="fa-solid fa-bell"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">Pushnotificaties (Desktop &amp; WebApp)</h3>
-                        <p class="text-xs text-slate-500">Ontvang live meldingen op je scherm, zelfs als de website of app afgesloten is.</p>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700 font-extrabold text-[11px] mt-1.5">
-                            <i class="fa-solid fa-gift text-amber-600"></i>
+                        <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">Pushnotificaties (Desktop &amp; WebApp)</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Ontvang live meldingen op je scherm, zelfs als de website of app afgesloten is.</p>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 dark:bg-amber-950/40 border border-amber-500/30 dark:border-amber-700/50 text-amber-700 dark:text-amber-300 font-extrabold text-[11px] mt-1.5">
+                            <i class="fa-solid fa-gift text-amber-600 dark:text-amber-400"></i>
                             <span>🎁 Bonus: Ontvang direct € 25.000 cash, 25 respect en 20 energie bij activatie!</span>
                         </div>
                     </div>
@@ -292,62 +292,62 @@
 
                 <div class="flex items-center gap-2">
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
-                          :class="isSubscribed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'"
+                          :class="isSubscribed ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'"
                           x-text="isSubscribed ? 'Meldingen Actief' : 'Uitgeschakeld'"></span>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
                 <div class="lg:col-span-2 space-y-3">
-                    <p class="text-slate-600 leading-relaxed">
+                    <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
                         Schakel native meldingen in om direct gewaarschuwd te worden bij kritieke gebeurtenissen in de kliniek:
                     </p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-700 font-semibold">
-                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-700 dark:text-slate-300 font-semibold">
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                             <span class="text-rose-500 text-base">🚨</span>
                             <span>Bestolen of beroofd worden</span>
                         </div>
-                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                             <span class="text-amber-500 text-base">⚔️</span>
                             <span>Aangevallen op de luchtplaats</span>
                         </div>
-                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                             <span class="text-purple-500 text-base">💬</span>
                             <span>Nieuwe privéberichten (DMs)</span>
                         </div>
-                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                             <span class="text-indigo-500 text-base">🛡️</span>
                             <span>Bende-uitnodigingen &amp; oorlogen</span>
                         </div>
-                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                             <span class="text-blue-500 text-base">🔒</span>
                             <span>Vrijlating uit isoleercel of bajes</span>
                         </div>
-                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                             <span class="text-emerald-500 text-base">⚡</span>
                             <span>Energie vol of dagelijkse beloning</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-4 rounded-xl bg-purple-50/50 border border-purple-100 flex flex-col justify-between space-y-3">
+                <div class="p-4 rounded-xl bg-purple-50/50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 flex flex-col justify-between space-y-3">
                     <div>
-                        <span class="text-[10px] font-black uppercase text-purple-600 tracking-wider block">Jouw Apparaat</span>
-                        <p class="text-xs text-slate-600 mt-1">
+                        <span class="text-[10px] font-black uppercase text-purple-600 dark:text-purple-400 tracking-wider block">Jouw Apparaat</span>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
                             Ondersteunt Windows, macOS, Android en iOS 16.4+ (wanneer geïnstalleerd als webapp op je startscherm).
                         </p>
                     </div>
 
                     <div class="space-y-2 pt-2">
                         <button type="button" @click="togglePush()" :disabled="loading"
-                                class="w-full py-2.5 px-4 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
-                                :class="isSubscribed ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-purple-600 hover:bg-purple-700 text-white'">
+                                class="w-full py-2.5 px-4 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                                :class="isSubscribed ? 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white'">
                             <i class="fa-solid" :class="loading ? 'fa-spinner animate-spin' : (isSubscribed ? 'fa-bell-slash' : 'fa-bell')"></i>
                             <span x-text="loading ? 'Bezig...' : (isSubscribed ? 'Meldingen Uitschakelen' : 'Meldingen Inschakelen')"></span>
                         </button>
 
                         <button type="button" x-show="isSubscribed" @click="sendTestNotification()" :disabled="testing"
-                                class="w-full py-2 px-3 rounded-xl bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+                                class="w-full py-2 px-3 rounded-xl bg-white hover:bg-purple-50 dark:bg-slate-900 dark:hover:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[11px] font-bold transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
                             <i class="fa-solid" :class="testing ? 'fa-spinner animate-spin' : 'fa-paper-plane'"></i>
                             <span x-text="testing ? 'Verzenden...' : 'Stuur Testnotificatie'"></span>
                         </button>
@@ -361,30 +361,30 @@
     <!-- ======================================================== -->
     <!-- INTERACTIEVE CROP MODAL MET RASTER VOOR PROFIELFOTO      -->
     <!-- ======================================================== -->
-    <div x-show="cropModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in">
-        <div @click.away="closeCropModal()" class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4">
+    <div x-show="cropModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+        <div @click.away="closeCropModal()" class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-bold">
+                    <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-sm font-bold">
                         <i class="fa-solid fa-crop-simple"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-black text-slate-900">Profielfoto Uitsnijden (Raster)</h3>
-                        <p class="text-[11px] text-slate-400">Sleep en zoom voor de perfecte uitsnede.</p>
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white">Profielfoto Uitsnijden (Raster)</h3>
+                        <p class="text-[11px] text-slate-400 dark:text-slate-500">Sleep en zoom voor de perfecte uitsnede.</p>
                     </div>
                 </div>
-                <button type="button" @click="closeCropModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold cursor-pointer">&times;</button>
+                <button type="button" @click="closeCropModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl font-bold cursor-pointer">&times;</button>
             </div>
 
             <!-- FILE PICKER AREA (IF NO IMAGE YET) -->
-            <div x-show="!imageLoaded" class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-3 bg-slate-50 hover:bg-slate-100 transition cursor-pointer" @click="$refs.fileInput.click()">
-                <div class="w-14 h-14 mx-auto rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-2xl">
+            <div x-show="!imageLoaded" class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-8 text-center space-y-3 bg-slate-50/90 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition cursor-pointer" @click="$refs.fileInput.click()">
+                <div class="w-14 h-14 mx-auto rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                 </div>
                 <div>
-                    <span class="text-xs font-black text-slate-800 block">Klik om een nieuwe foto te kiezen</span>
-                    <span class="text-[11px] text-slate-400">JPG, PNG of WebP (max 5MB)</span>
+                    <span class="text-xs font-black text-slate-800 dark:text-slate-200 block">Klik om een nieuwe foto te kiezen</span>
+                    <span class="text-[11px] text-slate-400 dark:text-slate-500">JPG, PNG of WebP (max 5MB)</span>
                 </div>
                 <input type="file" x-ref="fileInput" @change="handleFileSelect($event)" accept="image/*" class="hidden">
             </div>
@@ -414,27 +414,27 @@
                 </div>
 
                 <!-- CONTROLS: ZOOM SLIDER -->
-                <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                    <i class="fa-solid fa-magnifying-glass-minus text-slate-400 text-xs"></i>
+                <div class="flex items-center gap-3 bg-slate-50/90 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
+                    <i class="fa-solid fa-magnifying-glass-minus text-slate-400 dark:text-slate-500 text-xs"></i>
                     <input type="range" min="0.5" max="3" step="0.05" x-model="zoom" @input="redrawCanvas()"
-                           class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
-                    <i class="fa-solid fa-magnifying-glass-plus text-slate-400 text-xs"></i>
-                    <button type="button" @click="rotateImage()" class="px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition" title="90 graden draaien">
+                           class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                    <i class="fa-solid fa-magnifying-glass-plus text-slate-400 dark:text-slate-500 text-xs"></i>
+                    <button type="button" @click="rotateImage()" class="px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer" title="90 graden draaien">
                         <i class="fa-solid fa-rotate-right"></i>
                     </button>
                 </div>
 
                 <!-- MODAL BUTTONS -->
                 <div class="flex items-center justify-between pt-2">
-                    <button type="button" @click="$refs.fileInput.click()" class="text-xs text-purple-600 font-bold hover:underline cursor-pointer">
+                    <button type="button" @click="$refs.fileInput.click()" class="text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline cursor-pointer">
                         Andere foto kiezen
                     </button>
                     <div class="flex items-center gap-2">
-                        <button type="button" @click="closeCropModal()" class="py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition cursor-pointer">
+                        <button type="button" @click="closeCropModal()" class="py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer">
                             Annuleren
                         </button>
                         <button type="button" @click="applyCrop()" :disabled="uploadingCrop"
-                                class="py-2 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                class="py-2 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
                             <i x-show="uploadingCrop" class="fa-solid fa-spinner animate-spin"></i>
                             <span x-text="uploadingCrop ? 'Opslaan...' : 'Foto Opslaan'"></span>
                         </button>

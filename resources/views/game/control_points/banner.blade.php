@@ -9,7 +9,7 @@
 @endphp
 
 @if($cpPoint)
-<div class="relative overflow-hidden rounded-2xl border transition-all duration-300 mb-6 shadow-xs {{ $cpIsHolder ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-white dark:to-slate-900 border-amber-400 dark:border-amber-500/60 shadow-amber-500/10' : ($cpPoint->holder ? 'bg-white dark:bg-slate-900/90 border-slate-200 dark:border-slate-800' : 'bg-gradient-to-r from-emerald-500/10 via-emerald-500/[0.03] to-white dark:to-slate-900 border-emerald-300 dark:border-emerald-700/60') }}">
+<div class="relative overflow-hidden rounded-2xl border transition-all duration-300 mb-6 shadow-xs {{ $cpIsHolder ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-white dark:to-slate-900 border-amber-400 dark:border-amber-500/60 shadow-amber-500/10' : ($cpPoint->holder ? 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800' : 'bg-gradient-to-r from-emerald-500/10 via-emerald-500/[0.03] to-white dark:to-slate-900 border-emerald-300 dark:border-emerald-700/60') }}">
     
     <!-- Ambient corner glow -->
     <div class="absolute -top-10 -right-10 w-36 h-36 {{ $cpIsHolder ? 'bg-amber-500/20' : ($cpPoint->holder ? 'bg-purple-500/10' : 'bg-emerald-500/15') }} rounded-full blur-2xl pointer-events-none"></div>
@@ -19,14 +19,14 @@
         <!-- Left info section -->
         <div class="flex items-start sm:items-center gap-3.5 min-w-0">
             <!-- Icon box -->
-            <div class="w-12 h-12 rounded-xl {{ $cpIsHolder ? 'bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white ring-2 ring-amber-300 dark:ring-amber-400/50 shadow-md shadow-amber-500/30' : ($cpPoint->holder ? 'bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-slate-950 text-amber-400 border border-slate-700/60 dark:border-slate-700 shadow-md' : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25') }} flex items-center justify-center text-xl shrink-0">
+            <div class="w-12 h-12 rounded-xl {{ $cpIsHolder ? 'bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white ring-2 ring-amber-300 dark:ring-amber-400/50 shadow-md shadow-amber-500/30' : ($cpPoint->holder ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 shadow-2xs' : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25') }} flex items-center justify-center text-xl shrink-0">
                 <i class="fa-solid {{ $cpIsHolder ? 'fa-crown' : ($cpPoint->icon ?? 'fa-flag') }}"></i>
             </div>
 
             <!-- Title & meta description -->
             <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider {{ $cpIsHolder ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700' : ($cpPoint->holder ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700' : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700') }}">
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider {{ $cpIsHolder ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70' : ($cpPoint->holder ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70') }}">
                         <i class="fa-solid fa-flag text-[9px] {{ $cpIsHolder ? 'text-amber-500' : ($cpPoint->holder ? 'text-slate-400' : 'text-emerald-500') }}"></i>
                         King of the Hill
                     </span>
@@ -59,7 +59,7 @@
                                 {{ $cpPoint->holder->name }}
                             </a>
                             @if($cpPoint->holder->gang)
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
                                     [{{ $cpPoint->holder->gang->tag }}]
                                 </span>
                             @endif
@@ -85,17 +85,17 @@
         <!-- Right action section -->
         <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
             @if($cpIsHolder)
-                <div class="px-3.5 py-2 rounded-xl bg-amber-100/80 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+                <div class="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
                     <i class="fa-solid fa-crown text-amber-500 text-sm animate-bounce"></i>
                     <span>Jij bent de Baas</span>
                 </div>
             @elseif($cpCharacter && $cpCharacter->isImprisoned())
-                <span class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5">
+                <span class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-1.5 cursor-not-allowed">
                     <i class="fa-solid fa-lock text-rose-500"></i>
                     <span>Isoleercel</span>
                 </span>
             @elseif($cpCharacter && $cpCharacter->energy < $cpPoint->energy_cost)
-                <span class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5">
+                <span class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-1.5 cursor-not-allowed">
                     <i class="fa-solid fa-bolt text-amber-500"></i>
                     <span>2 Energie Nodig</span>
                 </span>
@@ -103,8 +103,8 @@
                 <form method="POST" action="{{ route('control-points.capture', $cpPoint) }}" class="inline m-0">
                     @csrf
                     <button type="submit" 
-                            class="group relative px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black uppercase tracking-wider shadow-sm shadow-amber-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-flag text-[11px] transition-transform group-hover:rotate-12"></i>
+                            class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-flag text-[11px]"></i>
                         <span>{{ $cpPoint->holder ? 'Controlepunt Overnemen (-2⚡)' : 'Controlepunt Opeisen (-2⚡)' }}</span>
                     </button>
                 </form>

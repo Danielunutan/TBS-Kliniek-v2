@@ -46,7 +46,7 @@
                     </div>
                 </div>
 
-                <a href="{{ route('halloween.shop') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-xs transition active:scale-95 flex items-center gap-2 shrink-0">
+                <a href="{{ route('halloween.shop') }}" class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black py-2.5 px-4 rounded-xl text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 shrink-0">
                     <i class="fa-solid fa-store text-xs"></i>
                     <span>Naar Shop &raquo;</span>
                 </a>
@@ -112,7 +112,7 @@
                 @endphp
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-600/50 transition">
                     <!-- Card Header (Subtle contrast tint) -->
-                    <div class="p-4 bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3">
+                    <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 border {{ $isClaimed ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : ($canClaim ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800' : 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 border-purple-200 dark:border-purple-800/60') }}">
                                 <i class="fa-solid {{ $quest['icon'] }}"></i>
@@ -191,7 +191,7 @@
                         @if($canClaim)
                             <form action="{{ route('halloween.claim-quest', $quest['key']) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-gift"></i>
                                     <span>Claim {{ $quest['seeds'] }} Pompoenpitten 🎃</span>
                                 </button>
@@ -202,7 +202,7 @@
                                 <span>Voltooid & geclaimd</span>
                             </div>
                         @else
-                            <a href="{{ $link }}" class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold text-xs shadow-2xs transition active:scale-95 text-center flex items-center justify-center gap-1.5">
+                            <a href="{{ $link }}" class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer text-center flex items-center justify-center gap-1.5">
                                 <span>{{ $btnLabel }}</span>
                             </a>
                         @endif
@@ -251,7 +251,7 @@
                 @endphp
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-600/50 transition">
                     <!-- Card Header -->
-                    <div class="p-4 sm:p-5 bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3">
+                    <div class="p-4 sm:p-5 bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 border {{ $isClaimed ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : ($canClaim ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800' : 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60') }}">
                                 <i class="fa-solid {{ $quest['icon'] }}"></i>
@@ -330,7 +330,7 @@
                         @if($canClaim)
                             <form action="{{ route('halloween.claim-quest', $quest['key']) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-trophy"></i>
                                     <span>Claim Mijlpaal: +{{ $quest['seeds'] }} Pitten 🎃</span>
                                 </button>
@@ -341,7 +341,7 @@
                                 <span>Mijlpaal voltooid & geclaimd</span>
                             </div>
                         @else
-                            <a href="{{ $link }}" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold text-xs shadow-2xs transition active:scale-95 text-center flex items-center justify-center gap-1.5">
+                            <a href="{{ $link }}" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer text-center flex items-center justify-center gap-1.5">
                                 <span>{{ $btnLabel }}</span>
                             </a>
                         @endif

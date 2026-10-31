@@ -6,8 +6,8 @@
 <div class="max-w-4xl mx-auto space-y-6">
 
     <!-- Header Card -->
-    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
-        <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/80 mb-2">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/80 mb-2">
             <i class="fa-solid fa-scale-balanced text-purple-600 dark:text-purple-400"></i> Gebruikersovereenkomst & Bepalingen
         </div>
         <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Algemene Voorwaarden</h1>
@@ -31,16 +31,16 @@
                 </span>
             </div>
             <p>
-                <strong>TBS Kliniek (tbs-kliniek.nl) is géén commercieel bedrijf of onderneming</strong>, maar een puur hobbymatig non-profit project, opgezet en beheerd door Daniël via <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-700 dark:text-purple-400 font-bold underline hover:text-purple-900">werkenmetdaniel.nl</a>.
+                <strong>TBS Kliniek (tbs-kliniek.nl) is géén commercieel bedrijf of onderneming</strong>, maar een puur hobbymatig non-profit project, opgezet en beheerd door Daniël via <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-700 dark:text-purple-400 font-bold underline hover:text-purple-900 dark:hover:text-purple-300">werkenmetdaniel.nl</a>.
             </p>
             <p>
-                <strong>Vrijwillige ondersteuning</strong> Er zijn geen verplichte betaalde producten of commerciële abonnementen. Vrijwillige supportersdonaties via het onafhankelijke platform Buy Me a Coffee (<a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="text-purple-700 dark:text-purple-400 font-bold underline">buymeacoffee.com/tbskliniek</a>) worden <strong>100% en uitsluitend gebruikt om de directe hosting-, server- en onderhoudskosten te dekken</strong>. Er is uitdrukkelijk <strong>geen winstoogmerk</strong> en er zijn geen commerciële belangen.
+                <strong>Vrijwillige ondersteuning</strong> Er zijn geen verplichte betaalde producten of commerciële abonnementen. Vrijwillige supportersdonaties via het onafhankelijke platform Buy Me a Coffee (<a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="text-purple-700 dark:text-purple-400 font-bold underline hover:text-purple-900 dark:hover:text-purple-300">buymeacoffee.com/tbskliniek</a>) worden <strong>100% en uitsluitend gebruikt om de directe hosting-, server- en onderhoudskosten te dekken</strong>. Er is uitdrukkelijk <strong>geen winstoogmerk</strong> en er zijn geen commerciële belangen.
             </p>
         </div>
     </div>
 
     <!-- Main Content Body -->
-    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
 
         <!-- Artikel 1 -->
         <section class="space-y-2.5">
@@ -68,7 +68,7 @@
                 <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-black">2</span>
                 Juridische Status Particulier Hobbymatig Project & Geen Onderneming
             </h2>
-            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 space-y-2 text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-2 text-xs">
                 <p>
                     2.1. <strong>Geen onderneming</strong> TBS Kliniek is geen commerciële onderneming, eenmanszaak, maatschap of vennootschap in de zin van het Handelsregister of het Burgerlijk Wetboek. Het platform is een particulier en educatief hobbyproject beheerd vanuit het persoonlijke portfolio en webinitiatief <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-600 dark:text-purple-400 font-bold underline">werkenmetdaniel.nl</a>.
                 </p>
@@ -190,7 +190,7 @@
             <p>
                 8.2. Voor vragen, opmerkingen of contact omtrent deze voorwaarden kun je terecht via
             </p>
-            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl text-xs space-y-1">
+            <div class="p-3.5 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl text-xs space-y-1">
                 <p><strong>Platform</strong> tbs-kliniek.nl</p>
                 <p><strong>Beheer / Portfolio</strong> <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-600 dark:text-purple-400 font-bold underline">werkenmetdaniel.nl</a></p>
                 <p><strong>E-mailadres</strong> <em>contact@tbs-kliniek.nl</em></p>

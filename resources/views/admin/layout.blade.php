@@ -4,60 +4,60 @@
 <div class="space-y-6">
 
     <!-- Admin Top Nav Bar -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs text-slate-900">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs text-slate-900 dark:text-white">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-3 sm:gap-4">
-                <div class="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-xl text-purple-600 shadow-2xs shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/70 flex items-center justify-center text-xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Medewerkers Paneel</h1>
-                        <span class="bg-purple-100 text-purple-800 border border-purple-200 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+                        <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">Medewerkers Paneel</h1>
+                        <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
                             STAFF
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Beheer van patiënten, VIP-toekenning, spelbalans, winkansen, kisten en de centrale kluis.
                     </p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <a href="{{ route('dashboard') }}" class="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700 transition flex items-center gap-1.5 border border-slate-200">
-                    <i class="fa-solid fa-gamepad text-slate-500"></i> Terug naar Spel
+                <a href="{{ route('dashboard') }}" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-gamepad text-slate-500 dark:text-slate-400"></i> Terug naar Spel
                 </a>
             </div>
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="flex flex-wrap items-center gap-2 pt-5 mt-5 border-t border-slate-100 text-xs font-bold">
+        <div class="flex flex-wrap items-center gap-2 pt-5 mt-5 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
             <a href="{{ route('admin.dashboard') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.dashboard') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.dashboard') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-chart-pie"></i> Overzicht
             </a>
             <a href="{{ route('admin.players') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.players') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.players') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-users"></i> Spelers & VIP
             </a>
             <a href="{{ route('admin.gameplay') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.gameplay') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.gameplay') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-sliders"></i> Winkansen & Balans
             </a>
             <a href="{{ route('admin.chests') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.chests') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.chests') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-box-open"></i> Kisten & Loot
             </a>
             <a href="{{ route('admin.vault') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.vault') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.vault') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-vault"></i> Kluis & Codes
             </a>
             <a href="{{ route('admin.referrals') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.referrals*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.referrals*') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-user-plus"></i> Referrals & VIP Beloningen
             </a>
             <a href="{{ route('admin.buymeacoffee.index') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.buymeacoffee*') ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.buymeacoffee*') ? 'bg-amber-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-mug-hot {{ request()->routeIs('admin.buymeacoffee*') ? 'text-white' : 'text-amber-500' }}"></i> Buy Me a Coffee
                 @php
                     $unmatchedBmcCount = \Illuminate\Support\Facades\Schema::hasTable('buymeacoffee_orders') ? \App\Models\BuyMeACoffeeOrder::where('status', 'unmatched')->count() : 0;
@@ -69,11 +69,11 @@
                 @endif
             </a>
             <a href="{{ route('admin.news.index') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.news.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.news.*') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-newspaper"></i> Nieuws Artikelen
             </a>
             <a href="{{ route('admin.tickets.index') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.tickets.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.tickets.*') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-headset"></i> Support Tickets
                 @php
                     $pendingAdminTicketsCount = \App\Models\SupportTicket::whereIn('status', ['open', 'in_behandeling'])->count();
@@ -85,11 +85,11 @@
                 @endif
             </a>
             <a href="{{ route('admin.discord_shield.index') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.discord_shield.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.discord_shield.*') ? 'bg-indigo-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-brands fa-discord text-indigo-400"></i> Discord Shield
             </a>
             <a href="{{ route('admin.moderation.index') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.moderation.*') ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.moderation.*') ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-gavel {{ request()->routeIs('admin.moderation.*') ? 'text-white' : 'text-rose-500' }}"></i> Moderatie & Sancties
                 @php
                     $pendingReportsBadge = \App\Models\Report::where('status', 'pending')->count();
@@ -101,7 +101,7 @@
                 @endif
             </a>
             <a href="{{ route('admin.audit_log.index') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.audit_log.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.audit_log.*') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-shield-virus {{ request()->routeIs('admin.audit_log.*') ? 'text-white' : 'text-purple-600' }}"></i> Audit Log &amp; Risico
                 @php
                     $highRiskCountBadge = \App\Models\AuditLog::where('risk_level', 'hoog')->count();
@@ -114,7 +114,7 @@
             </a>
             @if(auth()->user()?->isOwner())
             <a href="{{ route('admin.mail.index') }}" 
-               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.mail.*') ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.mail.*') ? 'bg-amber-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-crown {{ request()->routeIs('admin.mail.*') ? 'text-amber-200' : 'text-amber-500' }}"></i> Mailbox &amp; Brevo E-mail
             </a>
             @endif

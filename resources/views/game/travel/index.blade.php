@@ -5,10 +5,10 @@
 
     
 
-    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="bg-slate-50 dark:bg-slate-800/60 p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+        <div class="bg-slate-50/90 dark:bg-slate-800/60 p-5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 flex items-center justify-center text-teal-600 dark:text-teal-400">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
                     <i class="fa-solid fa-map-location-dot text-lg"></i>
                 </div>
                 <div>
@@ -19,7 +19,7 @@
             
             <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Huidige locatie:</span>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     {{ $character->current_location ?? 'Paviljoen 1 (Gesloten)' }}
                 </span>
@@ -51,8 +51,8 @@
                         <label class="flex items-center justify-between p-4 rounded-xl border transition cursor-pointer select-none
                             {{ $isCurrent 
                                 ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed' 
-                                : 'border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50/30 dark:hover:bg-purple-950/20' }}"
-                            :class="selected === '{{ $key }}' ? 'ring-2 ring-purple-500 border-purple-500 bg-purple-50/50 dark:bg-purple-950/30' : ''">
+                                : 'border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 hover:bg-purple-50/30 dark:hover:bg-purple-950/20' }}"
+                            :class="selected === '{{ $key }}' ? 'ring-2 ring-purple-500/30 border-purple-500 bg-purple-50/50 dark:bg-purple-950/30' : ''">
                             
                             <div class="flex items-center gap-3.5">
                                 <input type="radio" 
@@ -77,7 +77,7 @@
                                 </div>
                             </div>
 
-                            <span class="hidden sm:inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 shrink-0 ml-2">
+                            <span class="hidden sm:inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 shrink-0 ml-2">
                                 {{ $loc['badge'] }}
                             </span>
                         </label>
@@ -87,7 +87,7 @@
                 <div class="text-center">
                     <button type="submit" 
                             :disabled="!selected"
-                            class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-wider transition shadow-sm w-full sm:w-auto">
+                            class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer w-full sm:w-auto">
                         <i class="fa-solid fa-person-walking-arrow-right"></i>
                         <span>Verplaatsen naar afdeling</span>
                     </button>

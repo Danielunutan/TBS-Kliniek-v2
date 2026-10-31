@@ -7,11 +7,11 @@
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-rose-600 dark:bg-rose-600 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
                     <i class="fa-solid fa-crosshairs"></i>
                 </div>
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-rose-200 dark:border-rose-800/60 mb-1">
+                    <div class="inline-flex items-center gap-2 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-rose-200/80 dark:border-rose-800/70 mb-1">
                         Premiejagers & Vogelvrij
                     </div>
                     <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -24,22 +24,22 @@
             </div>
 
             <!-- Tabs -->
-            <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0">
+            <div class="flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/70 shrink-0">
                 <button type="button" 
                         @click="tab = 'wanted'" 
-                        :class="tab === 'wanted' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        :class="tab === 'wanted' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-purple-200/80 dark:border-purple-800/70 font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
                         class="px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-skull text-rose-500"></i> Gezocht ({{ $bounties->count() }})
                 </button>
                 <button type="button" 
                         @click="tab = 'place'" 
-                        :class="tab === 'place' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        :class="tab === 'place' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-purple-200/80 dark:border-purple-800/70 font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
                         class="px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-circle-plus text-purple-600 dark:text-purple-400"></i> Kopgeld Uitzetten
                 </button>
                 <button type="button" 
                         @click="tab = 'claimed'" 
-                        :class="tab === 'claimed' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        :class="tab === 'claimed' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-purple-200/80 dark:border-purple-800/70 font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
                         class="px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-trophy text-amber-500"></i> Geïncasseerd
                 </button>
@@ -66,10 +66,10 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 @foreach($bounties as $bounty)
                 @if($bounty->target)
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border-2 border-rose-200 dark:border-rose-900/60 shadow-xs hover:border-rose-400 dark:hover:border-rose-600 transition overflow-hidden flex flex-col justify-between group">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border-2 border-rose-200 dark:border-rose-900/60 shadow-xs hover:border-rose-400 dark:hover:border-rose-600 transition-all duration-200 overflow-hidden flex flex-col justify-between group">
                     <div>
                         <!-- Header Banner -->
-                        <div class="bg-rose-700 px-4 py-2.5 flex items-center justify-between text-white">
+                        <div class="bg-rose-600 dark:bg-rose-700 px-4 py-2.5 flex items-center justify-between text-white">
                             <span class="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
                                 <i class="fa-solid fa-skull"></i> VOGELVRIJ
                             </span>
@@ -101,7 +101,7 @@
                             </div>
 
                             <!-- Reason Quote Box -->
-                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 italic font-medium leading-snug">
+                            <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-700 dark:text-slate-300 italic font-medium leading-snug">
                                 <i class="fa-solid fa-quote-left text-slate-300 dark:text-slate-600 mr-1"></i>
                                 "{{ $bounty->reason ?: 'Vogelvrij verklaard!' }}"
                             </div>
@@ -109,17 +109,17 @@
                     </div>
 
                     <!-- Footer / Attack Button -->
-                    <div class="p-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3">
                         <span class="text-[10px] font-bold text-slate-400">
                             {{ $bounty->created_at->diffForHumans() }}
                         </span>
 
                         @if(Auth::user()->character->id === $bounty->target_character_id)
-                            <span class="text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-800">
+                            <span class="text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-3 py-1.5 rounded-xl border border-rose-200/80 dark:border-rose-800/70">
                                 Dit ben jij!
                             </span>
                         @else
-                            <a href="{{ route('fight.arena', $bounty->target) }}" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider transition shadow-xs flex items-center gap-1.5">
+                            <a href="{{ route('fight.arena', $bounty->target) }}" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-crosshairs"></i> Vecht & Incasseer
                             </a>
                         @endif
@@ -133,9 +133,9 @@
 
     <!-- TAB 2: PLACE BOUNTY FORM -->
     <div x-show="tab === 'place'" class="max-w-2xl mx-auto">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 sm:p-8">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-6 sm:p-8">
             <div class="flex items-center gap-3 pb-5 border-b border-slate-100 dark:border-slate-800 mb-6">
-                <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg font-black border border-purple-200 dark:border-purple-800/60">
+                <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg font-black border border-purple-200/80 dark:border-purple-800/70 shadow-2xs">
                     <i class="fa-solid fa-bullseye"></i>
                 </span>
                 <div>
@@ -193,7 +193,7 @@
                                required
                                autocomplete="off"
                                placeholder="Typ de naam van de patiënt..."
-                               class="w-full text-sm font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-purple-600 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900/40 outline-none transition shadow-2xs">
+                               class="w-full text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-10 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
                         <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
                             <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
                         </div>
@@ -214,7 +214,7 @@
                                         <span class="text-[10px] text-slate-400 font-semibold" x-text="'Niveau ' + t.level"></span>
                                     </div>
                                 </div>
-                                <span class="text-[10px] font-bold text-purple-600 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/60 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                                <span class="text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/60 px-2 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">
                                     Kies
                                 </span>
                             </button>
@@ -243,13 +243,13 @@
                                step="500"
                                required
                                value="5000"
-                               class="w-full text-sm font-black pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:border-purple-600 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900/40 outline-none transition">
+                               class="w-full text-sm font-black pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     </div>
                     <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                         @foreach([1000, 5000, 10000, 25000, 50000] as $preset)
                         <button type="button" 
                                 onclick="document.querySelector('input[name=amount]').value = {{ $preset }}"
-                                class="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 dark:hover:bg-purple-900/60 hover:text-purple-700 dark:hover:text-purple-300 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700 transition cursor-pointer">
+                                class="text-[10px] font-bold px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 transition-all duration-150 active:scale-95 cursor-pointer">
                             +€ {{ number_format($preset, 0, ',', '.') }}
                         </button>
                         @endforeach
@@ -265,12 +265,12 @@
                            name="reason" 
                            maxlength="150" 
                            placeholder="bijv: Heeft me bestolen op de luchtplaats! Pak hem!"
-                           class="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-purple-600 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900/40 outline-none transition">
+                           class="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <!-- Submit Button -->
                 <div class="pt-3">
-                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm uppercase tracking-wider shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-sm uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-bullseye"></i> Plaats Kopgeld op het Prikbord
                     </button>
                 </div>
@@ -280,10 +280,10 @@
 
     <!-- TAB 3: CLAIMED BOUNTIES (Hall of Fame) -->
     <div x-show="tab === 'claimed'" class="space-y-4">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-            <div class="px-6 py-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div class="px-6 py-4 bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-bold border border-amber-200 dark:border-amber-800/60">
+                    <span class="w-6 h-6 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center justify-center text-xs font-bold border border-amber-200/80 dark:border-amber-800/70">
                         <i class="fa-solid fa-trophy"></i>
                     </span>
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">Recent Geïncasseerde Premies</h3>
@@ -292,31 +292,31 @@
 
             <div class="divide-y divide-slate-100 dark:divide-slate-800">
                 @forelse($claimedBounties as $cb)
-                <div class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition">
+                <div class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-black shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 flex items-center justify-center text-sm font-black shrink-0">
                             <i class="fa-solid fa-medal"></i>
                         </div>
                         <div class="min-w-0">
                             <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
                                 <strong class="text-purple-700 dark:text-purple-400">{{ $cb->claimedBy->name ?? 'Onbekende jager' }}</strong>
-                                <span class="font-normal text-slate-400">versloeg</span>
+                                <span class="font-normal text-slate-400 dark:text-slate-500">versloeg</span>
                                 <strong class="text-rose-600 dark:text-rose-400">{{ $cb->target->name ?? 'Onbekend' }}</strong>
                             </div>
-                            <span class="text-[10px] text-slate-400 font-medium block mt-0.5">
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-0.5">
                                 {{ $cb->claimed_at ? $cb->claimed_at->diffForHumans() : 'Recent' }}
                             </span>
                         </div>
                     </div>
 
                     <div class="text-right shrink-0">
-                        <span class="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/60">
+                        <span class="text-xs sm:text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-200/80 dark:border-emerald-800/70">
                             +€ {{ number_format($cb->amount, 0, ',', '.') }}
                         </span>
                     </div>
                 </div>
                 @empty
-                <div class="p-8 text-center text-xs font-bold text-slate-400 italic">
+                <div class="p-8 text-center text-xs font-bold text-slate-400 dark:text-slate-500 italic">
                     Nog geen kopgeld geïncasseerd. Wees de eerste premiejager!
                 </div>
                 @endforelse

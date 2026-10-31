@@ -8,7 +8,7 @@
     <!-- Top Navigation / Breadcrumbs -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <a href="{{ route('help.tickets.index') }}" 
-           class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition">
+           class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition">
             <i class="fa-solid fa-arrow-left"></i>
             <span>Terug naar al mijn tickets</span>
         </a>
@@ -23,14 +23,14 @@
                   data-confirm-icon="fa-lock">
                 @csrf
                 <button type="submit" 
-                        class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200 hover:border-rose-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                        class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-700 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-200/80 hover:border-rose-200 dark:border-slate-700 dark:hover:border-rose-800/70 text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-lock text-xs"></i>
                     <span>Ticket Sluiten</span>
                 </button>
             </form>
             @endif
             <a href="{{ route('help.tickets.create') }}" 
-               class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition flex items-center gap-1.5 shadow-2xs">
+               class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 shadow-2xs cursor-pointer">
                 <i class="fa-solid fa-plus"></i>
                 <span>Nieuw Ticket</span>
             </a>
@@ -38,11 +38,11 @@
     </div>
 
     <!-- Ticket Summary Card -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800/80">
             <div>
                 <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <span class="font-mono text-xs font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <span class="font-mono text-xs font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-lg border border-purple-200/80 dark:border-purple-800/70">
                         {{ $ticket->ticket_number }}
                     </span>
                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $ticket->status_badge_classes }}">
@@ -52,7 +52,7 @@
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $ticket->priority_badge_classes }}">
                         Prioriteit: {{ $ticket->priority_label }}
                     </span>
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[10px] font-bold">
                         <i class="fa-solid {{ $ticket->category_icon }} text-[9px] text-slate-500 dark:text-slate-400"></i>
                         {{ $ticket->category_label }}
                     </span>
@@ -69,7 +69,7 @@
         </div>
 
         @if($ticket->status === 'gesloten')
-        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
+        <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
             <div class="flex items-center gap-2.5">
                 <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-base"></i>
                 <span>Dit support ticket is gemarkeerd als afgehandeld en gesloten.</span>
@@ -84,10 +84,10 @@
     <!-- Messages Timeline -->
     <div class="space-y-4">
         @foreach($ticket->messages as $msg)
-        <div class="bg-white dark:bg-slate-900 border {{ $msg->is_staff ? 'border-purple-300 dark:border-purple-800/80 ring-1 ring-purple-400/20' : 'border-slate-200 dark:border-slate-800' }} rounded-2xl p-5 shadow-2xs space-y-3">
+        <div class="bg-white dark:bg-slate-900 border {{ $msg->is_staff ? 'border-purple-300/80 dark:border-purple-800/80 ring-1 ring-purple-400/20' : 'border-slate-200/90 dark:border-slate-800' }} rounded-2xl p-5 shadow-2xs space-y-3">
             
             <!-- Message Header -->
-            <div class="flex items-center justify-between gap-3 border-b {{ $msg->is_staff ? 'border-purple-100 dark:border-purple-900/40' : 'border-slate-100 dark:border-slate-800' }} pb-3">
+            <div class="flex items-center justify-between gap-3 border-b {{ $msg->is_staff ? 'border-purple-100 dark:border-purple-900/40' : 'border-slate-100 dark:border-slate-800/80' }} pb-3">
                 <div class="flex items-center gap-3">
                     @if($msg->is_staff)
                     <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg font-bold shadow-xs">
@@ -96,7 +96,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-sm text-purple-900 dark:text-purple-200">{{ $msg->user?->name ? ucfirst($msg->user->name) : 'Daniel' }}</span>
-                            <span class="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 text-[10px] font-black uppercase tracking-wider border border-purple-200 dark:border-purple-800">
+                            <span class="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 text-[10px] font-black uppercase tracking-wider border border-purple-200/80 dark:border-purple-800/70">
                                 MEDEWERKER
                             </span>
                         </div>
@@ -109,7 +109,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-sm text-slate-900 dark:text-white">{{ $msg->character?->name ?? 'Jij' }}</span>
-                            <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[10px] font-bold">
                                 Speler
                             </span>
                         </div>
@@ -125,7 +125,7 @@
             </div>
 
             <!-- Message Body -->
-            <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed font-medium {{ $msg->is_staff ? 'bg-purple-50/70 dark:bg-slate-950/70 p-4 sm:p-5 rounded-xl border border-purple-200/80 dark:border-purple-900/60' : 'p-1' }}">
+            <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed font-medium {{ $msg->is_staff ? 'bg-purple-50/70 dark:bg-slate-800/60 p-4 sm:p-5 rounded-xl border border-purple-200/80 dark:border-purple-900/60' : 'p-1' }}">
                 {!! $msg->formatted_message !!}
             </div>
 
@@ -135,7 +135,7 @@
 
     <!-- Reply Box (if open) -->
     @if($ticket->isOpen())
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
         <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900 dark:text-white">
             <i class="fa-solid fa-reply text-purple-600 dark:text-purple-400"></i>
             <span>Antwoord of reageer op dit ticket</span>
@@ -148,7 +148,7 @@
                 <textarea name="message" 
                           rows="4" 
                           placeholder="Typ hier je extra toelichting of reactie op de medewerker..."
-                          class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-950 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y"
+                          class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition resize-y"
                           required></textarea>
                 @error('message')
                 <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 font-semibold">{{ $message }}</p>
@@ -161,7 +161,7 @@
                 </p>
 
                 <button type="submit" 
-                        class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs transition shadow-xs cursor-pointer flex items-center gap-2">
+                        class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-2">
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>Reactie Plaatsen</span>
                 </button>

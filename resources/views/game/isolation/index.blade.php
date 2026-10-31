@@ -4,9 +4,9 @@
 <div class="space-y-6">
     
     <!-- Title Card (Clean & Modern) -->
-    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50">
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
         <div class="relative z-10">
-            <div class="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800/60 mb-3">
+            <div class="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200/80 dark:border-indigo-800/70 mb-3">
                 <i class="fa-solid fa-ghost text-indigo-600 dark:text-indigo-400"></i> Persoonlijke Bescherming &amp; Beveiliging
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Vrijwillige Isolatie</h1>
@@ -17,23 +17,23 @@
     </div>
 
     <!-- Pricing Summary Banner -->
-    <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-700 dark:text-slate-200 shadow-xs">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-700 dark:text-slate-200 shadow-xs">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center text-purple-600 dark:text-purple-400 text-lg shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-purple-600 dark:text-purple-400 text-lg shrink-0">
                 <i class="fa-solid fa-tags"></i>
             </div>
             <div>
-                <span class="text-xs font-black uppercase tracking-wider text-purple-700 dark:text-purple-400">Vast Tarief per uur</span>
+                <span class="text-xs font-black uppercase tracking-wider text-purple-700 dark:text-purple-300">Vast Tarief per uur</span>
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
                     Bescherming kost <span class="font-extrabold text-slate-900 dark:text-white">€50.000</span> óf <span class="font-extrabold text-amber-600 dark:text-amber-400">25 Sterren</span> per uur.
                 </p>
             </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800/50 text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+            <span class="px-3 py-1.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
                 <i class="fa-solid fa-wallet text-emerald-600 dark:text-emerald-400"></i> €{{ number_format($character->cash + $character->bank, 0, ',', '.') }}
             </span>
-            <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800/50 text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+            <span class="px-3 py-1.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                 <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Sterren
             </span>
         </div>
@@ -122,9 +122,9 @@
         </div>
     </div>
     @else
-    <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-xl p-5 flex items-center justify-between gap-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between gap-4 shadow-xs">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-lg shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-lg shrink-0">
                 <i class="fa-solid fa-door-open"></i>
             </div>
             <div>
@@ -134,7 +134,7 @@
                 </p>
             </div>
         </div>
-        <span class="bg-slate-100 dark:bg-purple-950/60 text-slate-600 dark:text-slate-300 text-xs font-bold px-3 py-1 rounded-lg shrink-0">
+        <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-bold px-3 py-1 rounded-xl shrink-0">
             Kwetsbaar
         </span>
     </div>
@@ -143,7 +143,7 @@
     @if(!empty($hasCashProtection) || !empty($hasVest))
     <div class="grid grid-cols-1 {{ (!empty($hasCashProtection) && !empty($hasVest)) ? 'md:grid-cols-2' : '' }} gap-4">
         @if(!empty($hasCashProtection))
-        <div class="bg-white dark:bg-[#160b2e] border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-4 flex items-center justify-between gap-3 shadow-2xs"
+        <div class="bg-white dark:bg-slate-900 border border-emerald-200/80 dark:border-emerald-800/70 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-xs"
              x-data="{
                  sec: {{ max(0, (int) ($cashProtectionSeconds ?? 0)) }},
                  format() {
@@ -166,13 +166,13 @@
                     <div class="text-[11px] text-slate-500 dark:text-slate-400">Tot {{ $character->cash_protection_until?->format('d-m H:i') }} uur</div>
                 </div>
             </div>
-            <span class="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-black font-mono shrink-0"
+            <span class="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200/80 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-black font-mono shrink-0"
                   x-text="format()"></span>
         </div>
         @endif
 
         @if(!empty($hasVest))
-        <div class="bg-white dark:bg-[#160b2e] border border-indigo-200 dark:border-indigo-800/60 rounded-xl p-4 flex items-center justify-between gap-3 shadow-2xs"
+        <div class="bg-white dark:bg-slate-900 border border-indigo-200/80 dark:border-indigo-800/70 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-xs"
              x-data="{
                  sec: {{ max(0, (int) ($vestSeconds ?? 0)) }},
                  format() {
@@ -195,7 +195,7 @@
                     <div class="text-[11px] text-slate-500 dark:text-slate-400">Tot {{ $character->vest_until?->format('d-m H:i') }} uur</div>
                 </div>
             </div>
-            <span class="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-black font-mono shrink-0"
+            <span class="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200/80 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-black font-mono shrink-0"
                   x-text="format()"></span>
         </div>
         @endif
@@ -203,13 +203,13 @@
     @endif
 
     <!-- Package Selection -->
-    <div class="bg-white dark:bg-[#160b2e] rounded-xl shadow-xs border border-slate-200 dark:border-purple-900/50 p-6 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-purple-900/40 pb-3">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <h2 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-lock text-indigo-600 dark:text-indigo-400"></i>
                 <span>{{ $isProtected ? 'Verleng jouw actieve beveiliging' : 'Kies de duur van jouw isolatie' }}</span>
             </h2>
-            <span class="text-xs text-slate-400 font-medium">Betaal per uur met Geld of Sterren</span>
+            <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Betaal per uur met Geld of Sterren</span>
         </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
@@ -219,20 +219,20 @@
                 $canAffordStars = ($character->stars ?? 0) >= $pkg['cost_stars'];
                 $newExpiry = ($isProtected && $character->protection_until ? $character->protection_until->copy() : now())->addHours($pkg['hours']);
             @endphp
-            <div class="p-5 rounded-2xl border border-slate-200 dark:border-purple-800/50 hover:border-indigo-400 dark:hover:border-purple-500 bg-slate-50/50 dark:bg-purple-950/30 hover:bg-white dark:hover:bg-purple-950/50 flex flex-col justify-between gap-4 transition shadow-xs group">
+            <div class="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 transition-all duration-200 shadow-xs group">
                 <div class="flex items-center justify-between">
                     <div>
-                        <span class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-purple-300 transition">{{ $pkg['label'] }}</span>
+                        <span class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition">{{ $pkg['label'] }}</span>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                             {{ $isProtected ? 'Verlengt tot ' . $newExpiry->format('d-m H:i') . ' uur' : 'Volledige immuniteit op de luchtplaats' }}
                         </p>
                     </div>
-                    <span class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-bold shadow-xs">
+                    <span class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/50 flex items-center justify-center text-sm font-bold shadow-xs">
                         <i class="fa-solid fa-clock"></i>
                     </span>
                 </div>
 
-                <div class="p-3 rounded-xl bg-white dark:bg-[#110726] border border-slate-100 dark:border-purple-900/50 text-xs space-y-1">
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-xs space-y-1">
                     <div class="flex items-center justify-between font-bold text-slate-700 dark:text-slate-300">
                         <span>Kosten in geld:</span>
                         <span class="text-slate-900 dark:text-white font-black">€{{ number_format($pkg['cost_cash'], 0, ',', '.') }}</span>
@@ -245,7 +245,7 @@
                     </div>
                 </div>
 
-                <div class="pt-3 border-t border-slate-200/80 dark:border-purple-900/40 grid grid-cols-2 gap-2">
+                <div class="pt-3 border-t border-slate-200/80 dark:border-slate-700/70 grid grid-cols-2 gap-2">
                     <!-- Pay with cash -->
                     <form action="{{ route('isolation.activate') }}" method="POST">
                         @csrf
@@ -254,7 +254,7 @@
                         <button type="submit" 
                                 {{ ! $canAffordCash ? 'disabled' : '' }}
                                 title="Betaal met contant/bankgeld (€{{ number_format($pkg['cost_cash'], 0, ',', '.') }})"
-                                class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canAffordCash ? 'bg-slate-900 hover:bg-slate-800 dark:bg-purple-700 dark:hover:bg-purple-600 text-white cursor-pointer shadow-xs active:scale-[0.98]' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' }}">
+                                class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 {{ $canAffordCash ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                             <i class="fa-solid fa-money-bill-wave"></i>
                             <span>€{{ $pkg['hours'] * 50 }}k</span>
                         </button>
@@ -268,7 +268,7 @@
                         <button type="submit" 
                                 {{ ! $canAffordStars ? 'disabled' : '' }}
                                 title="Betaal met sterren ({{ $pkg['cost_stars'] }} Sterren)"
-                                class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canAffordStars ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-xs active:scale-[0.98]' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' }}">
+                                class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 {{ $canAffordStars ? 'btn-star-gold text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                             <i class="fa-solid fa-star text-amber-200"></i>
                             <span>{{ $pkg['cost_stars'] }} Sterren</span>
                         </button>
@@ -280,7 +280,7 @@
     </div>
 
     <!-- Custom Hours Card -->
-    <div class="bg-white dark:bg-[#160b2e] rounded-xl shadow-xs border border-slate-200 dark:border-purple-900/50 p-6 space-y-4" x-data="{ hours: 1 }">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 space-y-4" x-data="{ hours: 1 }">
         <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
             <i class="fa-solid fa-sliders text-indigo-600 dark:text-indigo-400"></i>
             <span>Of kies zelf het aantal uren isolatie</span>
@@ -289,11 +289,11 @@
             Kies precies hoeveel uur je achter slot en grendel wilt blijven (1 tot 24 uur). Het tarief is €50.000 of 25 Sterren per uur.
         </p>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-slate-50 dark:bg-purple-950/30 p-4 rounded-xl border border-slate-200 dark:border-purple-800/50">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-slate-50/90 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
             <div class="md:col-span-4 space-y-1">
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Aantal Uren (1 - 24)</label>
                 <input type="number" min="1" max="24" x-model.number="hours" 
-                       class="w-full p-2.5 bg-white dark:bg-[#110726] border border-slate-300 dark:border-purple-800 rounded-xl text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
             </div>
 
             <div class="md:col-span-4 space-y-1">
@@ -315,7 +315,7 @@
                     @csrf
                     <input type="hidden" name="hours" :value="hours">
                     <input type="hidden" name="currency" value="cash">
-                    <button type="submit" class="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 dark:bg-purple-700 dark:hover:bg-purple-600 text-white font-extrabold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button type="submit" class="w-full py-2.5 px-3 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
                         <i class="fa-solid fa-money-bill-wave"></i>
                         <span>Betaal Geld</span>
                     </button>
@@ -325,7 +325,7 @@
                     @csrf
                     <input type="hidden" name="hours" :value="hours">
                     <input type="hidden" name="currency" value="stars">
-                    <button type="submit" class="w-full py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button type="submit" class="w-full py-2.5 px-3 btn-star-gold text-white font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
                         <i class="fa-solid fa-star"></i>
                         <span>Betaal Sterren</span>
                     </button>

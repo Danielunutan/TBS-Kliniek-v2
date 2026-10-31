@@ -28,17 +28,17 @@
     }
 }">
     <!-- HERO HEADER -->
-    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-7 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-7 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/90 dark:border-slate-800 relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/80 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                     <i class="fa-solid fa-person-military-pointing"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70">
                             TBS Kliniek Illegaal
                         </span>
                     </div>
@@ -54,16 +54,16 @@
     </div>
 
     <!-- ENERGY BAR CARD -->
-    <div class="flex items-center gap-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3.5 shadow-xs">
+    <div class="flex items-center gap-3.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl px-5 py-3.5 shadow-xs">
         <i class="fa-solid fa-bolt text-emerald-500 text-sm"></i>
         <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Energie: <span class="text-emerald-600 dark:text-emerald-400 font-black font-mono">{{ $character->energy }} / {{ $character->max_energy }}</span></span>
-        <div class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
+        <div class="flex-1 bg-slate-100 dark:bg-slate-800/80 rounded-full h-2 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
             <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: {{ min(100, round(($character->energy / max(1, $character->max_energy)) * 100)) }}%"></div>
         </div>
     </div>
 
     <!-- COOLDOWN BANNER -->
-    <div x-show="seconds > 0" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $extortCooldown > 0 ? '' : 'display: none;' }}">
+    <div x-show="seconds > 0" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $extortCooldown > 0 ? '' : 'display: none;' }}">
         <div class="flex items-center gap-3.5">
             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white shadow-xs flex items-center justify-center text-lg font-black shrink-0">
                 <i class="fa-solid fa-clock"></i>
@@ -77,7 +77,7 @@
             <form method="POST" action="{{ route('cooldown.skip') }}">
                 @csrf
                 <input type="hidden" name="action" value="extort">
-                <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-star text-[11px]"></i>
                     <span>Omzeilen ({{ $extortSkipCost ?? 10 }} Sterren)</span>
                 </button>
@@ -92,9 +92,9 @@
             $otherBlocked = $character->isImprisoned() || $character->energy < $target['energy'];
             $isDisabled = $otherBlocked || $extortCooldown > 0;
         @endphp
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600 shadow-xs transition p-5 sm:p-6 flex flex-col justify-between gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 shadow-xs transition-all duration-200 p-5 sm:p-6 flex flex-col justify-between gap-4">
             <div class="flex items-start gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 shadow-2xs">
+                <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 shadow-2xs">
                     <i class="fa-solid {{ $target['icon'] }}"></i>
                 </div>
                 <div>
@@ -102,7 +102,7 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $target['desc'] }}</p>
                 </div>
             </div>
-            <div class="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 flex-wrap">
+            <div class="pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-4 flex-wrap">
                 <div class="space-y-1">
                     <div class="flex items-center gap-2.5 text-xs">
                         <span class="text-slate-400 dark:text-slate-500 w-20 font-bold">Beloning:</span>
@@ -126,9 +126,9 @@
                     <input type="hidden" name="target_id" value="{{ $target['id'] }}">
                     <button type="submit"
                             :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
-                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer active:scale-95 shadow-xs'"
+                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs'"
                             {{ $isDisabled ? 'disabled' : '' }}
-                            class="px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-1.5">
+                            class="px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-150 flex items-center gap-1.5">
                         <i class="fa-solid fa-hand-back-fist text-[11px]"></i>
                         <span>Afpersen</span>
                     </button>

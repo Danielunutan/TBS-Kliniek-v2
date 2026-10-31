@@ -469,7 +469,7 @@
     </div>
 
     <!-- RAZENDSNELLE NIVEAU BALK (30 LEVELS PER REEKS) + PIJLEN VOOR & ACHTER -->
-    <div class="bg-white dark:bg-slate-900 border border-purple-200/80 dark:border-purple-900/60 rounded-2xl p-3 sm:p-4 shadow-sm space-y-3">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xs space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
                 <span class="w-9 h-9 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
@@ -490,20 +490,20 @@
                 <template x-if="firstClaimableLvl() !== null">
                     <button type="button"
                             @click="goToLevel(firstClaimableLvl())"
-                            class="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-black transition cursor-pointer flex items-center gap-1">
+                            class="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 text-[11px] font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1">
                         <i class="fa-solid fa-gift"></i>
                         <span x-text="'Claimbaar (Lvl ' + firstClaimableLvl() + ')'"></span>
                     </button>
                 </template>
                 <button type="button"
                         @click="goToLevel(Math.min(totalLevels, Math.max(1, playerLevel)))"
-                        class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 text-[11px] font-bold transition cursor-pointer"
+                        class="px-2.5 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[11px] font-bold transition-all duration-150 active:scale-95 cursor-pointer"
                         x-text="'Huidig (Lvl ' + Math.min(totalLevels, Math.max(1, playerLevel)) + ')'">
                 </button>
                 @foreach([[1, 30], [31, 60], [61, 90], [91, 120], [121, 150]] as [$startLvl, $endLvl])
                     <button type="button" @click="goToLevel({{ $startLvl }})"
-                            :class="activeLevel >= {{ $startLvl }} && activeLevel <= {{ $endLvl }} ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-purple-500/20'"
-                            class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
+                            :class="activeLevel >= {{ $startLvl }} && activeLevel <= {{ $endLvl }} ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold'"
+                            class="px-2.5 py-1 rounded-xl text-[11px] transition-all duration-150 active:scale-95 cursor-pointer">
                         Lvl {{ $startLvl }}–{{ $endLvl }}
                     </button>
                 @endforeach
@@ -514,7 +514,7 @@
         <div class="flex items-center gap-2">
             <button type="button"
                     @click="prevSlide()"
-                    class="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black flex items-center justify-center shrink-0 shadow-sm transition cursor-pointer active:scale-90"
+                    class="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black flex items-center justify-center shrink-0 shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
                     title="Vorig Niveau">
                 <i class="fa-solid fa-chevron-left text-xs"></i>
             </button>
@@ -539,7 +539,7 @@
 
             <button type="button"
                     @click="nextSlide()"
-                    class="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black flex items-center justify-center shrink-0 shadow-sm transition cursor-pointer active:scale-90"
+                    class="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black flex items-center justify-center shrink-0 shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
                     title="Volgend Niveau">
                 <i class="fa-solid fa-chevron-right text-xs"></i>
             </button>
@@ -568,8 +568,8 @@
         </button>
 
         <!-- Enkele Actieve Niveau Kaart (Directe 0ms Weergave) -->
-        <div class="w-full rounded-3xl border-2 overflow-hidden transition-colors duration-150 bg-white dark:bg-slate-900 shadow-lg"
-             :class="isCurrentUnlocked ? 'border-purple-400/80 dark:border-purple-600/80' : 'border-slate-200 dark:border-slate-800'">
+        <div class="w-full rounded-2xl border overflow-hidden transition-colors duration-150 bg-white dark:bg-slate-900 shadow-xs"
+             :class="isCurrentUnlocked ? 'border-purple-300 dark:border-purple-700/80' : 'border-slate-200/90 dark:border-slate-800'">
 
             <!-- Niveau Slide Top Banner (Paarse TBS Stijl) -->
             <div class="relative overflow-hidden bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-950 text-white px-4 sm:px-6 py-4 border-b border-purple-500/30">
@@ -640,12 +640,12 @@
                 @foreach(['free', 'vip1', 'vip2', 'vip3'] as $tKey)
                     @php $tInfo = $tracksMeta[$tKey]; @endphp
 
-                    <div class="rounded-2xl border-2 flex flex-col justify-between overflow-hidden"
+                    <div class="rounded-xl border flex flex-col justify-between overflow-hidden"
                          :class="isClaimed(activeLevel, '{{ $tKey }}')
-                            ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-75'
+                            ? 'bg-slate-50/80 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/70 opacity-75'
                             : (canClaim(activeLevel, '{{ $tKey }}')
-                                ? 'bg-purple-50/60 dark:bg-purple-950/35 border-purple-400 dark:border-purple-500 shadow-md ring-1 ring-purple-400/40'
-                                : 'bg-slate-50/50 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800')">
+                                ? 'bg-purple-50/60 dark:bg-purple-950/35 border-purple-400 dark:border-purple-500 shadow-xs ring-1 ring-purple-400/40'
+                                : 'bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70')">
 
                         <!-- Pas Mini Artwork Header -->
                         <div class="relative h-20 overflow-hidden bg-slate-950 p-3 flex flex-col justify-between">
@@ -699,7 +699,7 @@
                             <!-- Actieknop onderaan elk pas-vak -->
                             <div class="pt-1">
                                 <template x-if="isClaimed(activeLevel, '{{ $tKey }}')">
-                                    <div class="w-full py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5">
+                                    <div class="w-full py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-circle-check"></i>
                                         <span>Geclaimd</span>
                                     </div>
@@ -709,21 +709,21 @@
                                     <button type="button"
                                             @click="claimReward(activeLevel, '{{ $tKey }}')"
                                             :disabled="busyKey !== null"
-                                            class="w-full py-2 rounded-xl {{ $tInfo['btn_cls'] }} text-[11px] font-black uppercase tracking-wider transition shadow-md cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
+                                            class="w-full py-2 rounded-xl {{ $tInfo['btn_cls'] }} text-[11px] font-black uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-gift"></i>
                                         <span>Claim Beloning</span>
                                     </button>
                                 </template>
 
                                 <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && !isTrackUnlocked('{{ $tKey }}')">
-                                    <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="btn-star-gold w-full py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer text-center">
+                                    <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="btn-star-gold w-full py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all duration-150 active:scale-95 cursor-pointer text-center">
                                         <i class="fa-solid fa-crown text-[10px]"></i>
                                         <span>VIP Lidmaatschap Winkel</span>
                                     </a>
                                 </template>
 
                                 <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && isTrackUnlocked('{{ $tKey }}') && !isCurrentUnlocked">
-                                    <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px] font-bold flex items-center justify-center gap-1.5">
+                                    <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-[10px] font-bold flex items-center justify-center gap-1.5 cursor-not-allowed">
                                         <i class="fa-solid fa-lock text-[9px]"></i>
                                         <span x-text="'Vereist Level ' + currentItem.req_level"></span>
                                     </div>
@@ -735,10 +735,10 @@
             </div>
 
             <!-- Onder-Navigatie Pijlen (Voor en Achter) binnen de kaart -->
-            <div class="px-4 py-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
+            <div class="px-4 py-3 bg-slate-50/90 dark:bg-slate-800/60 border-t border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-2">
                 <button type="button"
                         @click="prevSlide()"
-                        class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95">
+                        class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition-all duration-150 cursor-pointer active:scale-95">
                     <i class="fa-solid fa-arrow-left"></i>
                     <span>Vorig Niveau</span>
                 </button>
@@ -749,7 +749,7 @@
 
                 <button type="button"
                         @click="nextSlide()"
-                        class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95">
+                        class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition-all duration-150 cursor-pointer active:scale-95">
                     <span>Volgend Niveau</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>

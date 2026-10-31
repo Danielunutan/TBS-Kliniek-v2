@@ -21,7 +21,7 @@
             We hebben een beveiligde 6-cijferige verificatiecode gestuurd naar jouw e-mailadres:
         </p>
         <div>
-            <span class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 font-mono text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full border border-purple-200 dark:border-purple-800 shadow-xs">
+            <span class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full border border-purple-200/80 dark:border-purple-800/70 shadow-xs">
                 <i class="fa-solid fa-envelope text-purple-500 text-xs"></i>
                 {{ auth()->user()->email ?? $user->email }}
             </span>
@@ -29,24 +29,24 @@
     </div>
 
     <!-- Main Card Container (Default Light, Dark Mode Compatible) -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-3xl p-6 sm:p-8 shadow-sm dark:shadow-2xl dark:shadow-purple-950/50 space-y-6">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
 
         @if(session('status') === 'verification-code-sent' || session('status') === 'verification-link-sent')
-            <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-semibold flex items-center gap-3">
+            <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-semibold flex items-center gap-3">
                 <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-base shrink-0"></i>
                 <span>Er is zojuist een nieuwe 6-cijferige verificatiecode verzonden! Deze code is 30 minuten geldig.</span>
             </div>
         @endif
 
         @if(session('error'))
-            <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-500/50 text-rose-800 dark:text-rose-300 text-xs sm:text-sm font-semibold flex items-center gap-3">
+            <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-800 dark:text-rose-300 text-xs sm:text-sm font-semibold flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-base shrink-0"></i>
                 <span>{{ session('error') }}</span>
             </div>
         @endif
 
         @if($errors->has('code'))
-            <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-500/50 text-rose-800 dark:text-rose-300 text-xs sm:text-sm font-semibold flex items-center gap-3">
+            <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-800 dark:text-rose-300 text-xs sm:text-sm font-semibold flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-base shrink-0"></i>
                 <span>{{ $errors->first('code') }}</span>
             </div>
@@ -72,7 +72,7 @@
                            required
                            autofocus
                            value="{{ old('code') }}"
-                           class="w-full text-center font-mono text-3xl sm:text-4xl tracking-[0.4em] sm:tracking-[0.5em] font-black py-4 px-3 rounded-2xl bg-slate-50 dark:!bg-slate-950 border-2 border-purple-300 dark:!border-purple-600 text-purple-950 dark:!text-amber-400 placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:!bg-slate-900 focus:ring-4 focus:ring-purple-500/20 transition shadow-inner">
+                           class="w-full text-center font-mono text-3xl sm:text-4xl tracking-[0.4em] sm:tracking-[0.5em] font-black py-4 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border-2 border-purple-300 dark:border-purple-600 text-purple-950 dark:text-amber-400 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-600 dark:focus:border-purple-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-purple-500/20 transition shadow-inner">
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400 pt-1">
                     Vul de 6 cijfers uit je e-mail in.
@@ -80,7 +80,7 @@
             </div>
 
             <!-- Expiration Countdown & Info -->
-            <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-xs">
+            <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs">
                 <div class="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold">
                     <i class="fa-regular fa-clock"></i>
                     <span>30 minuten geldig</span>
@@ -94,7 +94,7 @@
 
             <!-- Submit Button -->
             <button type="submit"
-                    class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-500 text-white font-extrabold text-sm uppercase tracking-wider transition duration-200 shadow-md shadow-purple-600/30 cursor-pointer flex items-center justify-center gap-2.5 transform active:scale-[0.98]">
+                    class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-sm uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2.5">
                 <i class="fa-solid fa-check-double text-amber-300 text-base"></i>
                 <span>Verifieer Code &amp; Start Spel</span>
             </button>
@@ -108,7 +108,7 @@
             <form action="{{ route('verification.send') }}" method="POST">
                 @csrf
                 <button type="submit"
-                        class="inline-flex items-center gap-2 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition py-2 px-4 rounded-xl bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-950/80 border border-purple-200 dark:border-purple-800 cursor-pointer">
+                        class="inline-flex items-center gap-2 text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition py-2 px-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/70 cursor-pointer">
                     <i class="fa-solid fa-rotate-right text-xs"></i>
                     <span>Nieuwe 6-cijferige code aanvragen</span>
                 </button>
@@ -116,7 +116,7 @@
         </div>
 
         <!-- Helpful Hints -->
-        <div class="bg-purple-50/50 dark:bg-slate-950/40 rounded-2xl p-4 border border-purple-100 dark:border-slate-800/60 space-y-2 text-xs text-slate-600 dark:text-slate-400">
+        <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200/80 dark:border-slate-700/70 space-y-2 text-xs text-slate-600 dark:text-slate-400">
             <div class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                 <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400"></i>
                 <span>Tips bij het ontvangen van de e-mail:</span>

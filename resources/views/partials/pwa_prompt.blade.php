@@ -79,7 +79,7 @@
         <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5">
                 <span class="text-xs font-black text-slate-900 dark:text-white">Download TBS Kliniek App</span>
-                <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">App</span>
+                <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">App</span>
             </div>
             <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
                 Speel in fullscreen zonder adresbalk, direct vanaf je startscherm!
@@ -87,19 +87,19 @@
             <div class="flex items-center gap-2 mt-2.5">
                 <button type="button" 
                         @click="canNativeInstall ? installNative() : (showModal = true)"
-                        class="h-8 px-3.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                        class="h-8 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs shadow-xs transition-all duration-150 flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-download text-[10px]"></i>
                     <span>Nu Installeren</span>
                 </button>
                 <button type="button" 
                         @click="dismissBanner()" 
-                        class="h-8 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-xs font-semibold transition cursor-pointer">
+                        class="h-8 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer">
                     Later
                 </button>
             </div>
         </div>
 
-        <button type="button" @click="dismissBanner()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 text-sm cursor-pointer transition -mr-1 -mt-1" aria-label="Sluiten">
+        <button type="button" @click="dismissBanner()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 text-sm cursor-pointer transition-colors duration-150 -mr-1 -mt-1" aria-label="Sluiten">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
@@ -109,7 +109,7 @@
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none">
         
         <div @click.away="showModal = false"
-             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
+             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
             
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
                 <div class="flex items-center gap-3">
@@ -121,13 +121,13 @@
                         <span class="text-[11px] text-purple-600 dark:text-purple-400 font-bold">Web App Installatie</span>
                     </div>
                 </div>
-                <button type="button" @click="showModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer p-1">
+                <button type="button" @click="showModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer p-1 transition-colors duration-150">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <div class="space-y-3.5 text-xs text-slate-600 dark:text-slate-300">
-                <div class="p-3.5 rounded-2xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-900/50 space-y-2">
+                <div class="p-3.5 rounded-xl bg-purple-50/90 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 space-y-2">
                     <div class="font-extrabold text-purple-900 dark:text-purple-200 flex items-center gap-2 text-xs">
                         <i class="fa-solid fa-bolt text-amber-500"></i> Waarom de App installeren?
                     </div>
@@ -149,7 +149,7 @@
 
                 <!-- Platform Specific Guidance -->
                 <template x-if="isIos">
-                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2.5">
+                    <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-2.5">
                         <div class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <i class="fa-brands fa-apple text-slate-800 dark:text-slate-200 text-sm"></i>
                             <span>Installatie op iPhone / iPad (Safari)</span>
@@ -163,7 +163,7 @@
                 </template>
 
                 <template x-if="!isIos">
-                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-2">
                         <div class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <i class="fa-solid fa-desktop text-slate-600 dark:text-slate-300"></i>
                             <span>Windows, Mac & Android (Chrome / Edge)</span>
@@ -177,12 +177,12 @@
 
             <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button type="button" @click="showModal = false"
-                        class="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer">
+                        class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer">
                     Sluiten
                 </button>
                 <template x-if="canNativeInstall">
                     <button type="button" @click="installNative()"
-                            class="py-2.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-extrabold transition cursor-pointer shadow-md flex items-center gap-1.5">
+                            class="py-2.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center gap-1.5">
                         <i class="fa-solid fa-download"></i>
                         <span>Direct Installeren</span>
                     </button>

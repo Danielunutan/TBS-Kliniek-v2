@@ -62,10 +62,10 @@
 }">
 
     <!-- Header Card (Clean Light & Dark Mode) -->
-    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50">
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-                <div class="inline-flex items-center gap-2 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-bold px-3 py-1 rounded-full border border-rose-200 dark:border-rose-800/60 mb-3">
+                <div class="inline-flex items-center gap-2 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-bold px-3 py-1 rounded-full border border-rose-200/80 dark:border-rose-800/70 mb-3">
                     <i class="fa-solid fa-crosshairs text-rose-600 dark:text-rose-400"></i> Forensische Afrekeningen &amp; Schaduw-Inlichtingen 2.0
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Liquidatie &amp; Wapenarsenaal</h1>
@@ -75,13 +75,13 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800/50 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-wallet text-emerald-600 dark:text-emerald-400"></i> €{{ number_format($totalWealth, 0, ',', '.') }}
                 </span>
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800/50 text-xs font-extrabold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-star text-amber-500"></i> {{ number_format($character->stars ?? 0, 0, ',', '.') }} Sterren
                 </span>
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800/50 text-xs font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-gun text-rose-600 dark:text-rose-400"></i> {{ number_format($character->bullets ?? 0, 0, ',', '.') }} Patronen
                 </span>
             </div>
@@ -90,14 +90,14 @@
 
     <!-- Code Blauw / 10x Geliquideerd Alert Banner -->
     @if($needsSerum || $streakDeaths >= 7)
-    <div class="bg-white dark:bg-[#160b2e] border-2 {{ $needsSerum ? 'border-rose-500' : 'border-amber-400' }} rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="bg-white dark:bg-slate-900 border-2 {{ $needsSerum ? 'border-rose-500' : 'border-amber-400' }} rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-xl {{ $needsSerum ? 'bg-rose-600 text-white animate-pulse' : 'bg-amber-500 text-white' }} flex items-center justify-center text-lg font-bold shrink-0">
+            <div class="w-11 h-11 rounded-xl {{ $needsSerum ? 'bg-rose-600 text-white animate-pulse' : 'bg-amber-500 text-slate-950' }} flex items-center justify-center text-lg font-bold shrink-0 shadow-xs">
                 <i class="fa-solid fa-syringe"></i>
             </div>
             <div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $needsSerum ? 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800' : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800' }}">
+                    <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $needsSerum ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70' }}">
                         Reanimatie-Dossier: {{ $streakDeaths }} / 10 Liquidaties
                     </span>
                     <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
@@ -113,7 +113,7 @@
             <form action="{{ route('hitman.revive_serum') }}" method="POST" class="flex-1 md:flex-initial">
                 @csrf
                 <input type="hidden" name="currency" value="cash">
-                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                     <i class="fa-solid fa-syringe text-emerald-400"></i>
                     <span>Koop Ampul (€1,5M)</span>
                 </button>
@@ -121,7 +121,7 @@
             <form action="{{ route('hitman.revive_serum') }}" method="POST" class="flex-1 md:flex-initial">
                 @csrf
                 <input type="hidden" name="currency" value="stars">
-                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                     <i class="fa-solid fa-star text-amber-200"></i>
                     <span>{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</span>
                 </button>
@@ -133,10 +133,10 @@
     <!-- Forensisch Status HUD (4 overzichtelijke kaarten) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- 1. Dossier-Graad (1 - 30) -->
-        <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between gap-2">
                 <span class="text-[11px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-400">Dossier-Graad</span>
-                <span class="px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-[11px] font-extrabold shrink-0">
+                <span class="px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 text-[11px] font-extrabold shrink-0">
                     Graad {{ $gradeInfo['grade'] }} / 30
                 </span>
             </div>
@@ -144,7 +144,7 @@
                 <div class="text-base font-extrabold text-slate-900 dark:text-white">{{ $gradeInfo['title'] }}</div>
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{{ $gradeInfo['phase'] }}</p>
             </div>
-            <div class="pt-2.5 border-t border-slate-100 dark:border-purple-900/40 flex items-center justify-between text-xs">
+            <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                 <span class="text-slate-500 dark:text-slate-400 font-medium">Vereist salvo:</span>
                 @if($canOneTap)
                     <span class="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -157,15 +157,15 @@
         </div>
 
         <!-- 2. Koudbloedigheid (%) -->
-        <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between gap-2">
                 <span class="text-[11px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Koudbloedigheid</span>
-                <span class="px-2.5 py-0.5 rounded-full {{ $coldBloodedPct >= 30 ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300' }} border text-[11px] font-extrabold shrink-0">
+                <span class="px-2.5 py-0.5 rounded-full {{ $coldBloodedPct >= 30 ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-950/60 border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300' }} border text-[11px] font-extrabold shrink-0">
                     {{ $coldBloodedPct }}% Focus
                 </span>
             </div>
             <div>
-                <div class="w-full h-2.5 bg-slate-100 dark:bg-purple-950/80 rounded-full overflow-hidden border border-slate-200 dark:border-purple-800/50">
+                <div class="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/80 dark:border-slate-700">
                     <div class="h-full rounded-full transition-all duration-300 {{ $coldBloodedPct >= 30 ? 'bg-emerald-500' : 'bg-rose-500' }}"
                          style="width: {{ $coldBloodedPct }}%"></div>
                 </div>
@@ -175,22 +175,22 @@
                     <span>100%</span>
                 </div>
             </div>
-            <div class="pt-2.5 border-t border-slate-100 dark:border-purple-900/40 flex items-center justify-between text-xs">
+            <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                 <span class="text-slate-500 dark:text-slate-400 font-medium">Pantser-penetratie:</span>
                 <span class="font-black text-slate-900 dark:text-white">+{{ $gradeInfo['armor_pierce'] }}%</span>
             </div>
         </div>
 
         <!-- 3. Huidige Kliniek-Ruimte (Gefixte uitlijning voor dropdown + knop) -->
-        <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3 overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3 overflow-hidden">
             <div class="flex items-center justify-between gap-2">
                 <span class="text-[11px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Huidige Afdeling</span>
                 @if($character->isWingLocked())
-                    <span class="px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold shrink-0">
+                    <span class="px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold shrink-0">
                         <i class="fa-solid fa-lock"></i> Lockdown ({{ ceil($character->getWingLockRemainingSeconds() / 60) }}m)
                     </span>
                 @else
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold shrink-0">
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold shrink-0">
                         Vrij Verplaatsbaar
                     </span>
                 @endif
@@ -201,26 +201,26 @@
                 </div>
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Je moet in dezelfde ruimte staan als je doelwit.</p>
             </div>
-            <form action="{{ route('hitman.quick_travel') }}" method="POST" class="pt-2.5 border-t border-slate-100 dark:border-purple-900/40 flex items-center gap-1.5 min-w-0">
+            <form action="{{ route('hitman.quick_travel') }}" method="POST" class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 min-w-0">
                 @csrf
-                <select name="destination" class="flex-1 min-w-0 py-1.5 px-2 bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800/50 rounded-lg text-[11px] font-bold text-slate-800 dark:text-slate-200 focus:outline-none truncate">
+                <select name="destination" class="flex-1 min-w-0 py-1.5 px-2 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-[11px] font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500 truncate">
                     @foreach($locations as $locKey => $locItem)
                         <option value="{{ $locKey }}" {{ $currentWing === $locItem['name'] ? 'selected' : '' }}>
                             {{ $locItem['name'] }}
                         </option>
                     @endforeach
                 </select>
-                <button type="submit" class="py-1.5 px-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-[11px] font-black transition cursor-pointer shrink-0 whitespace-nowrap">
+                <button type="submit" class="py-1.5 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-[11px] font-black transition-all duration-150 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap shadow-xs">
                     Reis (€{{ number_format($travelCost, 0, ',', '.') }})
                 </button>
             </form>
         </div>
 
         <!-- 4. Actief Backfire-Pantser & Reanimatie-Dossier -->
-        <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between gap-2">
                 <span class="text-[11px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400">Pantser &amp; Status</span>
-                <span class="px-2.5 py-0.5 rounded-full {{ $streakDeaths >= 8 ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300' : 'bg-slate-100 dark:bg-purple-950/60 border-slate-200 dark:border-purple-800/60 text-slate-700 dark:text-slate-300' }} border text-[11px] font-extrabold shrink-0">
+                <span class="px-2.5 py-0.5 rounded-full {{ $streakDeaths >= 8 ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300' : 'bg-slate-100 dark:bg-slate-800 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300' }} border text-[11px] font-extrabold shrink-0">
                     Dossier: {{ $streakDeaths }} / 10 Kills
                 </span>
             </div>
@@ -257,7 +257,7 @@
                     </p>
                 @endif
             </div>
-            <div class="pt-2.5 border-t border-slate-100 dark:border-purple-900/40 flex items-center justify-between text-xs">
+            <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                 <button type="button" @click="activeTab = 'arsenaal'" class="text-purple-700 dark:text-purple-400 hover:underline font-extrabold text-[11px] cursor-pointer">
                     <i class="fa-solid fa-shield-halved mr-1"></i> Open Pantser &amp; Munitie Shop &rarr;
                 </button>
@@ -267,7 +267,7 @@
 
     <!-- Active Blood Feuds Banner (Bloedwraak) -->
     @if($bloodFeuds->isNotEmpty())
-    <div class="bg-white dark:bg-[#160b2e] border-2 border-rose-300 dark:border-rose-800/80 rounded-2xl p-5 shadow-xs space-y-3">
+    <div class="bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-800/80 rounded-2xl p-5 shadow-xs space-y-3">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <span class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
@@ -282,7 +282,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             @foreach($bloodFeuds as $feud)
                 @if($feud->attacker)
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 flex items-center justify-between gap-3">
+                <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-3 shadow-xs">
                     <div class="min-w-0">
                         <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">
                             Dader: <span class="text-rose-600 dark:text-rose-400">{{ $feud->attacker->name }}</span> (Lvl {{ $feud->attacker->level }})
@@ -293,7 +293,7 @@
                     </div>
                     <button type="button"
                             @click="activeTab = 'inlichtingen'; selectTarget(@js((string) $feud->attacker->id), @js($feud->attacker->name), false, '')"
-                            class="py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition cursor-pointer shrink-0 whitespace-nowrap">
+                            class="py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap shadow-xs">
                         <i class="fa-solid fa-crosshairs mr-1"></i> Spoor Op
                     </button>
                 </div>
@@ -304,16 +304,16 @@
     @endif
 
     <!-- Navigation Tabs -->
-    <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-2 shadow-xs flex flex-wrap gap-2">
+    <div class="bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl p-1.5 shadow-xs flex flex-wrap gap-2">
         <button type="button" @click="activeTab = 'liquidatie'"
-                :class="activeTab === 'liquidatie' ? 'bg-slate-900 dark:bg-purple-700 text-white shadow-xs' : 'bg-slate-50 dark:bg-purple-950/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-purple-900/50'"
+                :class="activeTab === 'liquidatie' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-purple-200/80 dark:border-purple-800/70 font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'"
                 class="flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer">
             <i class="fa-solid fa-crosshairs"></i>
             <span>1. Liquidatie &amp; Schietbaan</span>
         </button>
 
         <button type="button" @click="activeTab = 'inlichtingen'"
-                :class="activeTab === 'inlichtingen' ? 'bg-slate-900 dark:bg-purple-700 text-white shadow-xs' : 'bg-slate-50 dark:bg-purple-950/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-purple-900/50'"
+                :class="activeTab === 'inlichtingen' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-purple-200/80 dark:border-purple-800/70 font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'"
                 class="flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer">
             <i class="fa-solid fa-user-secret"></i>
             <span>2. Schaduw-Inlichtingen (15m)</span>
@@ -323,14 +323,14 @@
         </button>
 
         <button type="button" @click="activeTab = 'arsenaal'"
-                :class="activeTab === 'arsenaal' ? 'bg-slate-900 dark:bg-purple-700 text-white shadow-xs' : 'bg-slate-50 dark:bg-purple-950/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-purple-900/50'"
+                :class="activeTab === 'arsenaal' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-purple-200/80 dark:border-purple-800/70 font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'"
                 class="flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer">
             <i class="fa-solid fa-shield-halved"></i>
             <span>3. Pantser &amp; Munitie Arsenaal</span>
         </button>
 
         <button type="button" @click="activeTab = 'contracten'"
-                :class="activeTab === 'contracten' ? 'bg-slate-900 dark:bg-purple-700 text-white shadow-xs' : 'bg-slate-50 dark:bg-purple-950/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-purple-900/50'"
+                :class="activeTab === 'contracten' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-purple-200/80 dark:border-purple-800/70 font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'"
                 class="flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer">
             <i class="fa-solid fa-file-contract"></i>
             <span>4. Onderwereld Contracten</span>
@@ -344,8 +344,8 @@
 
         <!-- Left Column (7 cols): Target Selection & Fire Controls -->
         <div class="lg:col-span-7 space-y-6">
-            <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-6 shadow-xs space-y-5">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-purple-900/40 pb-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
                     <div>
                         <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                             <i class="fa-solid fa-gun text-rose-600 dark:text-rose-400"></i> Doelwit Viseren &amp; Vuren
@@ -354,7 +354,7 @@
                             Buit bij voltreffer: <strong class="text-slate-800 dark:text-slate-200">45% Contant Geld + 7% Bankrekening</strong> + 60 Respect + 400 XP.
                         </p>
                     </div>
-                    <span class="px-3 py-1 rounded-xl bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800/50 text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0 self-start sm:self-auto">
+                    <span class="px-3 py-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0 self-start sm:self-auto shadow-xs">
                         20 Energie per aanslag
                     </span>
                 </div>
@@ -367,15 +367,15 @@
                                x-model="searchQuery"
                                @input.debounce.250ms="performSearch()"
                                placeholder="Typ de naam van je doelwit..."
-                               class="w-full p-3 pl-9 bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 rounded-xl text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                               class="w-full p-3 pl-9 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
                         <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 top-3.5 text-xs"></i>
                     </div>
 
                     <!-- Search Dropdown Results -->
-                    <div x-show="searchResults.length > 0" class="bg-white dark:bg-[#1e103c] border border-slate-200 dark:border-purple-800/60 rounded-xl divide-y divide-slate-100 dark:divide-purple-900/40 max-h-56 overflow-y-auto shadow-sm">
+                    <div x-show="searchResults.length > 0" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-700 max-h-56 overflow-y-auto shadow-md">
                         <template x-for="item in searchResults" :key="item.id">
                             <div @click="selectTarget(item.id, item.name, item.inSameWing, item.revealedLocation); searchResults = []; searchQuery = '';"
-                                 class="p-3 hover:bg-slate-50 dark:hover:bg-purple-900/40 flex items-center justify-between gap-3 cursor-pointer transition">
+                                 class="p-3 hover:bg-slate-50/80 dark:hover:bg-slate-700/60 flex items-center justify-between gap-3 cursor-pointer transition-colors">
                                 <div class="min-w-0">
                                     <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate" x-text="item.name + ' (Lvl ' + item.level + ')'"></div>
                                     <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -384,7 +384,7 @@
                                         <span x-show="!item.inSameWing && !item.revealedLocation" class="text-slate-500 dark:text-slate-400">🕵️ Afdeling Onbekend (Start 15m Schaduwing)</span>
                                     </div>
                                 </div>
-                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-purple-950 text-slate-800 dark:text-purple-200 text-[11px] font-bold shrink-0">Selecteer</span>
+                                <span class="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-bold shrink-0 border border-slate-200/80 dark:border-slate-600">Selecteer</span>
                             </div>
                         </template>
                     </div>
@@ -400,14 +400,14 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto p-1 -mx-1">
                         @foreach($targets as $t)
                         <div @click="selectTarget(@js((string) $t->id), @js($t->name), {{ $t->in_same_wing ? 'true' : 'false' }}, @js($t->revealed_location ?? ''))"
-                             :class="selectedTargetId === '{{ $t->id }}' ? 'border-purple-600 dark:border-purple-500 bg-purple-50/60 dark:bg-purple-900/40 ring-2 ring-purple-500/40 shadow-2xs' : 'border-slate-200 dark:border-purple-900/50 bg-slate-50/80 dark:bg-purple-950/30 hover:bg-white dark:hover:bg-purple-950/60'"
-                             class="p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between gap-2">
+                             :class="selectedTargetId === '{{ $t->id }}' ? 'border-purple-600 dark:border-purple-500 bg-purple-50/60 dark:bg-purple-900/40 ring-2 ring-purple-500/40 shadow-xs' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 hover:border-purple-300 dark:hover:border-purple-700/80'"
+                             class="p-3.5 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-2">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="truncate">
                                     <span class="text-xs font-extrabold text-slate-900 dark:text-white">{{ $t->name }}</span>
                                     <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 ml-1">Lvl {{ $t->level }}</span>
                                 </div>
-                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 {{ $t->streak_deaths >= 10 ? 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300' : 'bg-slate-200/80 dark:bg-purple-900/60 text-slate-700 dark:text-purple-200' }}">
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 {{ $t->streak_deaths >= 10 ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-600' }}">
                                     {{ $t->streak_deaths }}/10
                                 </span>
                             </div>
@@ -442,7 +442,7 @@
                 </div>
 
                 <!-- Selected Target Status & Quick Action Bar -->
-                <div id="selected-target-controls" x-show="selectedTargetId !== ''" class="p-4 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 space-y-3">
+                <div id="selected-target-controls" x-show="selectedTargetId !== ''" class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-3">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div class="min-w-0">
                             <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Geselecteerd Doelwit:</span>
@@ -450,39 +450,39 @@
                         </div>
 
                         <div class="shrink-0">
-                            <span x-show="selectedTargetSameWing" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold border border-emerald-200 dark:border-emerald-800/60">
+                            <span x-show="selectedTargetSameWing" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold border border-emerald-200/80 dark:border-emerald-800/70">
                                 <i class="fa-solid fa-check-circle"></i> In dezelfde ruimte ({{ $currentWing }}) — +25% Sluipaanval-bonus actief!
                             </span>
-                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-extrabold border border-amber-200 dark:border-amber-800/60">
+                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-extrabold border border-amber-200/80 dark:border-amber-800/70">
                                 <i class="fa-solid fa-location-dot"></i> Op <span x-text="selectedTargetRevealedWing"></span> — Afstandsschot mogelijk (Reis voor +25% bonus)
                             </span>
-                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 text-xs font-extrabold border border-indigo-200 dark:border-indigo-800/60">
+                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-xs font-extrabold border border-indigo-200/80 dark:border-indigo-800/70">
                                 <i class="fa-solid fa-crosshairs"></i> Schot op afstand mogelijk — Start Schaduwing voor locatie &amp; bonus!
                             </span>
                         </div>
                     </div>
 
                     <!-- Helper action if not in same wing -->
-                    <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="pt-2.5 border-t border-slate-200 dark:border-purple-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Wil je de <strong>+25% Sluipaanval-bonus</strong>? Reis direct naar dezelfde vleugel:</span>
                         <form action="{{ route('hitman.quick_travel') }}" method="POST" class="shrink-0">
                             @csrf
                             <input type="hidden" name="destination" :value="selectedTargetRevealedWing">
-                            <button type="submit" class="w-full sm:w-auto py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <button type="submit" class="w-full sm:w-auto py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                                 <i class="fa-solid fa-person-running"></i>
                                 <span>Reis direct naar <span x-text="selectedTargetRevealedWing"></span> (€{{ number_format($travelCost, 0, ',', '.') }})</span>
                             </button>
                         </form>
                     </div>
 
-                    <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="pt-2.5 border-t border-slate-200 dark:border-purple-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Je kunt direct op afstand vuren, of schaduwen om zijn afdeling te vinden (+25% bonus):</span>
                         <form action="{{ route('hitman.intel') }}" method="POST" class="shrink-0">
                             @csrf
                             <input type="hidden" name="target_id" :value="selectedTargetId" value="{{ $initialTarget?->id ?? '' }}">
                             <input type="hidden" name="intel_type" value="standard_15m">
                             <input type="hidden" name="currency" value="cash">
-                            <button type="submit" class="w-full sm:w-auto py-2 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <button type="submit" class="w-full sm:w-auto py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                                 <i class="fa-solid fa-video"></i>
                                 <span>Start 15m Schaduwing (€350.000)</span>
                             </button>
@@ -491,13 +491,13 @@
                 </div>
 
                 <!-- Shooting Form -->
-                <form action="{{ route('hitman.shoot') }}" method="POST" class="space-y-4 pt-2 border-t border-slate-100 dark:border-purple-900/40">
+                <form action="{{ route('hitman.shoot') }}" method="POST" class="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800">
                     @csrf
                     <input type="hidden" name="target_id" :value="selectedTargetId" value="{{ $initialTarget?->id ?? '' }}">
                     <input type="hidden" name="target_name" :value="selectedTargetName" value="{{ $initialTarget?->name ?? '' }}">
 
                     @if($canOneTap)
-                    <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                         <div>
                             <span class="text-xs font-black text-emerald-900 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                                 <i class="fa-solid fa-bolt text-emerald-600 dark:text-emerald-400"></i> Genadeschot Ontgrendeld (Graad {{ $gradeInfo['grade'] }} &bull; {{ $coldBloodedPct }}% Focus)
@@ -507,12 +507,12 @@
                             </p>
                         </div>
                         <button type="button" @click="bulletAmount = 1"
-                                class="py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer shrink-0 whitespace-nowrap">
+                                class="py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap shadow-xs">
                             Zet op 1 Patroon
                         </button>
                     </div>
                     @else
-                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                         <div>
                             <span class="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
                                 <i class="fa-solid fa-lock text-slate-500 dark:text-slate-400"></i> 1-Patroon Genadeschot Vereiste
@@ -522,7 +522,7 @@
                             </p>
                         </div>
                         <button type="button" @click="bulletAmount = {{ $minBullets }}"
-                                class="py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-purple-900/60 dark:hover:bg-purple-800 text-slate-800 dark:text-purple-200 text-xs font-black transition cursor-pointer shrink-0 whitespace-nowrap">
+                                class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-600 text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap shadow-xs">
                             Aanbevolen ({{ $minBullets }})
                         </button>
                     </div>
@@ -532,12 +532,12 @@
                         <div class="sm:col-span-5 space-y-1">
                             <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300">Aantal Patronen Vuren</label>
                             <input type="number" name="bullets" x-model.number="bulletAmount" value="{{ $canOneTap ? 1 : $minBullets }}" min="1" max="10000"
-                                   class="w-full p-3 bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 rounded-xl text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                   class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-black text-slate-900 dark:text-slate-100 focus:outline-none focus:border-rose-500 dark:focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition shadow-2xs">
                         </div>
 
                         <div class="sm:col-span-7">
                             <button type="submit"
-                                    class="w-full py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
+                                    class="w-full py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
                                 <i class="fa-solid fa-crosshairs"></i>
                                 <span x-text="bulletAmount === 1 ? 'Voer 1-Patroon Genadeschot Uit' : 'Vuur Salvo (' + bulletAmount + ' Patronen)'">
                                     Vuur Salvo ({{ $canOneTap ? 1 : $minBullets }} Patronen)
@@ -553,8 +553,8 @@
         <div class="lg:col-span-5 space-y-6">
 
             <!-- Ondergrondse Schietbaan (Train Koudbloedigheid %) -->
-            <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-6 shadow-xs space-y-4">
-                <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-purple-900/40 pb-3">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="min-w-0">
                         <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400 shrink-0"></i>
@@ -562,12 +562,12 @@
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Verhoog je Koudbloedigheid (%) om met 1 patroon te kunnen schieten.</p>
                     </div>
-                    <span class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 text-xs font-black shrink-0 whitespace-nowrap">
+                    <span class="px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/70 text-xs font-black shrink-0 whitespace-nowrap">
                         {{ $coldBloodedPct }}% / 100%
                     </span>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 text-xs space-y-2">
+                <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs space-y-2">
                     <div class="flex items-center justify-between gap-2 font-bold text-slate-700 dark:text-slate-300">
                         <span>Standaard Schiettraining (+10% Focus &amp; +120 XP):</span>
                         <span class="text-slate-900 dark:text-white font-black shrink-0 whitespace-nowrap">€350.000 + 15 E</span>
@@ -582,7 +582,7 @@
                     <form action="{{ route('hitman.train_cold_blooded') }}" method="POST">
                         @csrf
                         <input type="hidden" name="currency" value="cash">
-                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                             <i class="fa-solid fa-money-bill-wave"></i>
                             <span>Train (€350k)</span>
                         </button>
@@ -590,7 +590,7 @@
                     <form action="{{ route('hitman.train_cold_blooded') }}" method="POST">
                         @csrf
                         <input type="hidden" name="currency" value="stars">
-                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                             <i class="fa-solid fa-star text-amber-200"></i>
                             <span>Train (25 ⭐)</span>
                         </button>
@@ -599,8 +599,8 @@
             </div>
 
             <!-- Forensisch Reanimatie-Serum (Epinefrine-Ampul) Card -->
-            <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-6 shadow-xs space-y-4">
-                <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-purple-900/40 pb-3">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="min-w-0">
                         <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-syringe text-rose-600 dark:text-rose-400 shrink-0"></i>
@@ -608,12 +608,12 @@
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Reset je 10x liquidatieteller naar 0/10 en wek jezelf direct tot leven bij Code Blauw.</p>
                     </div>
-                    <span class="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 text-xs font-black shrink-0 whitespace-nowrap">
+                    <span class="px-2.5 py-1 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 text-xs font-black shrink-0 whitespace-nowrap">
                         {{ $streakDeaths }} / 10
                     </span>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 text-xs space-y-2">
+                <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs space-y-2">
                     <div class="flex items-center justify-between gap-2 font-bold text-slate-700 dark:text-slate-300">
                         <span>Prijs in geld (Contant + Bank):</span>
                         <span class="text-slate-900 dark:text-white font-black shrink-0 whitespace-nowrap">€{{ number_format(\App\Models\Character::REVIVE_SERUM_CASH, 0, ',', '.') }}</span>
@@ -628,7 +628,7 @@
                     <form action="{{ route('hitman.revive_serum') }}" method="POST">
                         @csrf
                         <input type="hidden" name="currency" value="cash">
-                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                             <i class="fa-solid fa-syringe"></i>
                             <span>€1.500.000</span>
                         </button>
@@ -636,7 +636,7 @@
                     <form action="{{ route('hitman.revive_serum') }}" method="POST">
                         @csrf
                         <input type="hidden" name="currency" value="stars">
-                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                             <i class="fa-solid fa-star text-amber-200"></i>
                             <span>{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</span>
                         </button>
@@ -645,19 +645,19 @@
             </div>
 
             <!-- 30 TBS Dossier-Gradaties Ladder -->
-            <div class="bg-white dark:bg-[#160b2e] border border-slate-200 dark:border-purple-900/50 rounded-2xl p-6 shadow-xs space-y-3">
-                <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-purple-900/40 pb-3">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-folder-open text-purple-600 dark:text-purple-400"></i> De 30 TBS Dossier-Gradaties
                     </h3>
                     <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0">Graad 25+ = 1-Patroon Schot</span>
                 </div>
 
-                <div class="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-purple-900/30 pr-1 text-xs">
+                <div class="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 pr-1 text-xs">
                     @foreach($gradesCatalog as $g)
                     <div class="py-2 px-2.5 flex items-center justify-between rounded-lg {{ $g['grade'] === $gradeInfo['grade'] ? 'bg-purple-50 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-700 font-extrabold' : '' }}">
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="w-6 h-6 rounded-md {{ $g['can_one_tap'] ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-purple-950 text-slate-700 dark:text-purple-200' }} flex items-center justify-center text-[10px] font-black shrink-0">
+                            <span class="w-6 h-6 rounded-md {{ $g['can_one_tap'] ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-purple-200' }} flex items-center justify-center text-[10px] font-black shrink-0">
                                 {{ $g['grade'] }}
                             </span>
                             <div class="truncate">
@@ -687,22 +687,22 @@
     <div x-show="activeTab === 'inlichtingen'" class="space-y-6">
 
         <!-- Start New Intel Operation -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div>
-                    <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-user-secret text-indigo-600"></i> Schaduw-Inlichtingen Operatie Starten
+                    <h2 class="text-base font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-user-secret text-indigo-600 dark:text-indigo-400"></i> Schaduw-Inlichtingen Operatie Starten
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Om een speler te liquideren moet je weten in welke kliniek-vleugel hij zich bevindt. Onze corrupte bewaarders lokaliseren elk doelwit binnen 15 minuten!
                     </p>
                 </div>
             </div>
 
             <div class="max-w-md space-y-1.5">
-                <label class="block text-xs font-extrabold text-slate-700 uppercase">Kies of typ de naam van het doelwit</label>
+                <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase">Kies of typ de naam van het doelwit</label>
                 <input type="text" x-model="selectedTargetName" placeholder="Typ exacte spelersnaam..."
-                       class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -711,32 +711,32 @@
                     $canCash = $totalWealth >= $intel['cost_cash'];
                     $canStars = ($character->stars ?? 0) >= $intel['cost_stars'];
                 @endphp
-                <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col justify-between gap-4 shadow-xs">
+                <div class="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 shadow-xs">
                     <div class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center text-base font-bold">
+                            <span class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-base font-bold shadow-2xs">
                                 <i class="{{ $intel['icon'] }}"></i>
                             </span>
-                            <span class="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-xs font-extrabold text-slate-800">
-                                <i class="fa-solid fa-clock text-indigo-600 mr-1"></i> {{ $intel['wait_minutes'] }} min zoektijd
+                            <span class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-xs font-extrabold text-slate-800 dark:text-slate-200 shadow-2xs">
+                                <i class="fa-solid fa-clock text-indigo-600 dark:text-indigo-400 mr-1"></i> {{ $intel['wait_minutes'] }} min zoektijd
                             </span>
                         </div>
-                        <h3 class="text-sm font-extrabold text-slate-900">{{ $intel['name'] }}</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed">{{ $intel['subtitle'] }}</p>
+                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ $intel['name'] }}</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{{ $intel['subtitle'] }}</p>
                     </div>
 
-                    <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                        <div class="flex items-center justify-between font-bold text-slate-700">
+                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/70 text-xs space-y-1">
+                        <div class="flex items-center justify-between font-bold text-slate-700 dark:text-slate-300">
                             <span>Kosten in geld:</span>
-                            <span class="text-slate-900 font-black">€{{ number_format($intel['cost_cash'], 0, ',', '.') }}</span>
+                            <span class="text-slate-900 dark:text-white font-black">€{{ number_format($intel['cost_cash'], 0, ',', '.') }}</span>
                         </div>
-                        <div class="flex items-center justify-between font-bold text-slate-700">
+                        <div class="flex items-center justify-between font-bold text-slate-700 dark:text-slate-300">
                             <span>Kosten in sterren:</span>
-                            <span class="text-amber-600 font-black">{{ $intel['cost_stars'] }} Sterren ⭐</span>
+                            <span class="text-amber-600 dark:text-amber-400 font-black">{{ $intel['cost_stars'] }} Sterren ⭐</span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/70">
                         <form action="{{ route('hitman.intel') }}" method="POST">
                             @csrf
                             <input type="hidden" name="target_id" :value="selectedTargetId">
@@ -744,7 +744,7 @@
                             <input type="hidden" name="intel_type" value="{{ $intel['id'] }}">
                             <input type="hidden" name="currency" value="cash">
                             <button type="submit" {{ ! $canCash ? 'disabled' : '' }}
-                                    class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canCash ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                    class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 shadow-xs {{ $canCash ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <i class="fa-solid fa-money-bill-wave"></i>
                                 <span>€{{ number_format($intel['cost_cash'] / 1000, 0, ',', '.') }}k</span>
                             </button>
@@ -757,7 +757,7 @@
                             <input type="hidden" name="intel_type" value="{{ $intel['id'] }}">
                             <input type="hidden" name="currency" value="stars">
                             <button type="submit" {{ ! $canStars ? 'disabled' : '' }}
-                                    class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canStars ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                    class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 shadow-xs {{ $canStars ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <i class="fa-solid fa-star text-amber-200"></i>
                                 <span>{{ $intel['cost_stars'] }} ⭐</span>
                             </button>
@@ -769,19 +769,19 @@
         </div>
 
         <!-- Active & Ready Intel Dossiers -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-satellite-dish text-emerald-600"></i> Jouw Actieve Observatie-Dossiers
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-satellite-dish text-emerald-600 dark:text-emerald-400"></i> Jouw Actieve Observatie-Dossiers
                 </h3>
-                <span class="text-xs text-slate-500">{{ count($enrichedIntelOps) }} actief</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">{{ count($enrichedIntelOps) }} actief</span>
             </div>
 
             @if(empty($enrichedIntelOps))
-                <div class="p-8 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
-                    <i class="fa-solid fa-folder-closed text-2xl text-slate-400"></i>
-                    <div class="text-sm font-extrabold text-slate-800">Geen lopende Schaduw-Inlichtingen</div>
-                    <p class="text-xs text-slate-500 max-w-md mx-auto">
+                <div class="p-8 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-2">
+                    <i class="fa-solid fa-folder-closed text-2xl text-slate-400 dark:text-slate-500"></i>
+                    <div class="text-sm font-extrabold text-slate-800 dark:text-slate-200">Geen lopende Schaduw-Inlichtingen</div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                         Start hierboven een 15-minuten Camera-Schaduwing om te achterhalen op welke kliniek-afdeling je doelwit rondloopt.
                     </p>
                 </div>
@@ -808,45 +808,45 @@
                                 }, 1000);
                             }
                          }"
-                         class="p-5 rounded-2xl border {{ $op['is_ready'] ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 bg-slate-50' }} flex flex-col justify-between gap-4">
+                         class="p-5 rounded-2xl border {{ $op['is_ready'] ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60' }} flex flex-col justify-between gap-4 shadow-xs">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $op['is_ready'] ? 'bg-emerald-600 text-white' : 'bg-indigo-100 text-indigo-800 border border-indigo-200' }}">
+                                <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $op['is_ready'] ? 'bg-emerald-600 text-white' : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/70' }}">
                                     {{ $op['is_ready'] ? 'RAPPORT BINNEN' : 'BEZIG MET SCHADUWEN...' }}
                                 </span>
-                                <h4 class="text-base font-extrabold text-slate-900 mt-1.5">{{ $op['target_name'] }}</h4>
-                                <p class="text-[11px] text-slate-500">{{ $op['type_name'] }}</p>
+                                <h4 class="text-base font-extrabold text-slate-900 dark:text-white mt-1.5">{{ $op['target_name'] }}</h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ $op['type_name'] }}</p>
                             </div>
 
                             <div class="text-right">
                                 @if(! $op['is_ready'])
-                                    <div class="text-xs font-bold text-slate-500">Klaar over:</div>
-                                    <div class="text-lg font-mono font-black text-indigo-600" x-text="fmt(waitSec)"></div>
+                                    <div class="text-xs font-bold text-slate-500 dark:text-slate-400">Klaar over:</div>
+                                    <div class="text-lg font-mono font-black text-indigo-600 dark:text-indigo-400" x-text="fmt(waitSec)"></div>
                                 @else
-                                    <div class="text-xs font-bold text-slate-500">Geldig:</div>
-                                    <div class="text-sm font-mono font-black text-emerald-700" x-text="fmt(validSec)"></div>
+                                    <div class="text-xs font-bold text-slate-500 dark:text-slate-400">Geldig:</div>
+                                    <div class="text-sm font-mono font-black text-emerald-700 dark:text-emerald-400" x-text="fmt(validSec)"></div>
                                 @endif
                             </div>
                         </div>
 
                         @if($op['is_ready'])
-                            <div class="p-3.5 rounded-xl bg-white border border-slate-200 text-xs space-y-1.5">
+                            <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/70 text-xs space-y-1.5 shadow-2xs">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 font-bold">Huidige Kliniek-Ruimte:</span>
-                                    <span class="font-black text-emerald-700"><i class="fa-solid fa-location-dot mr-1"></i> {{ $op['revealed_location'] }}</span>
+                                    <span class="text-slate-500 dark:text-slate-400 font-bold">Huidige Kliniek-Ruimte:</span>
+                                    <span class="font-black text-emerald-700 dark:text-emerald-400"><i class="fa-solid fa-location-dot mr-1"></i> {{ $op['revealed_location'] }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 font-bold">Contant / Bank op naam:</span>
-                                    <span class="font-black text-slate-900">{{ $op['cash_formatted'] }} / {{ $op['bank_formatted'] }}</span>
+                                    <span class="text-slate-500 dark:text-slate-400 font-bold">Contant / Bank op naam:</span>
+                                    <span class="font-black text-slate-900 dark:text-white">{{ $op['cash_formatted'] }} / {{ $op['bank_formatted'] }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-slate-500 font-bold">Gedragen Pantser:</span>
-                                    <span class="font-black {{ $op['has_vest'] ? 'text-amber-600' : 'text-slate-700' }}">
+                                    <span class="text-slate-500 dark:text-slate-400 font-bold">Gedragen Pantser:</span>
+                                    <span class="font-black {{ $op['has_vest'] ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300' }}">
                                         {{ $op['has_vest'] ? $op['vest_name'] : 'Geen Vest' }}
                                     </span>
                                 </div>
                                 @if($op['is_wing_locked'])
-                                <div class="flex items-center justify-between text-rose-600 font-black pt-1 border-t border-slate-100">
+                                <div class="flex items-center justify-between text-rose-600 dark:text-rose-400 font-black pt-1 border-t border-slate-100 dark:border-slate-800">
                                     <span>Celblok-Lockdown:</span>
                                     <span><i class="fa-solid fa-lock"></i> Doelwit zit vast op deze afdeling!</span>
                                 </div>
@@ -858,7 +858,7 @@
                                     <form action="{{ route('hitman.quick_travel') }}" method="POST" class="flex-1">
                                         @csrf
                                         <input type="hidden" name="destination" value="{{ $op['revealed_location'] }}">
-                                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
                                             <i class="fa-solid fa-person-running"></i>
                                             <span>Reis naar {{ $op['revealed_location'] }}</span>
                                         </button>
@@ -866,13 +866,13 @@
                                 @endif
                                 <button type="button"
                                         @click="selectTarget(@js((string) $op['target_id']), @js($op['target_name']), {{ $op['same_wing'] ? 'true' : 'false' }}, @js($op['revealed_location'] ?? '')); activeTab = 'liquidatie';"
-                                        class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                                        class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
                                     <i class="fa-solid fa-crosshairs"></i>
                                     <span>Direct Viseren</span>
                                 </button>
                             </div>
                         @else
-                            <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-500 flex items-center gap-2">
+                            <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
                                 <i class="fa-solid fa-hourglass-half text-indigo-500"></i>
                                 <span>Bewaarders bekijken momenteel de camerabeelden en gangpaden om {{ $op['target_name'] }} te lokaliseren...</span>
                             </div>
@@ -890,17 +890,17 @@
     <div x-show="activeTab === 'arsenaal'" class="space-y-6">
 
         <!-- Backfire Vests Section -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
-                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-indigo-600"></i> Zwarte Markt Backfire-Vesten &amp; Pantsers
+                    <h2 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-indigo-600 dark:text-indigo-400"></i> Zwarte Markt Backfire-Vesten &amp; Pantsers
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Bescherm jezelf tegen liquidaties. Als een schutter te weinig vuurkracht heeft, ketst het schot terug (Backfire) en raakt de aanvaller zelf zwaargewond!
                     </p>
                 </div>
-                <span class="text-xs text-slate-400 font-medium">Betaal met Geld (Contant/Bank) of Sterren</span>
+                <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Betaal met Geld (Contant/Bank) of Sterren</span>
             </div>
 
             @if($activeVest)
@@ -918,19 +918,19 @@
                             setInterval(() => { if (this.left > 0) this.left--; }, 1000);
                         }
                     }"
-                    class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                     <div class="flex items-center gap-3">
-                        <span class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <span class="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-shield-halved"></i>
                         </span>
                         <div>
-                            <div class="text-xs font-black text-emerald-900 uppercase tracking-wider">Actief Pantser: {{ $activeVest['name'] }}</div>
-                            <div class="text-[11px] text-emerald-700">Verloopt om {{ $character->vest_until->format('d-m-Y H:i:s') }} uur • Nieuwe aankoop verlengt direct!</div>
+                            <div class="text-xs font-black text-emerald-900 dark:text-emerald-200 uppercase tracking-wider">Actief Pantser: {{ $activeVest['name'] }}</div>
+                            <div class="text-[11px] text-emerald-700 dark:text-emerald-400">Verloopt om {{ $character->vest_until->format('d-m-Y H:i:s') }} uur • Nieuwe aankoop verlengt direct!</div>
                         </div>
                     </div>
-                    <div class="px-3.5 py-2 rounded-lg bg-white border border-emerald-200 text-right shrink-0">
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Resterende Vest-Tijd</div>
-                        <div class="text-sm font-black font-mono text-emerald-700 tabular-nums" x-text="format(left)">
+                    <div class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200/80 dark:border-emerald-800/70 text-right shrink-0 shadow-2xs">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Resterende Vest-Tijd</div>
+                        <div class="text-sm font-black font-mono text-emerald-700 dark:text-emerald-300 tabular-nums" x-text="format(left)">
                             {{ gmdate('H:i:s', $character->getVestRemainingSeconds()) }}
                         </div>
                     </div>
@@ -944,42 +944,42 @@
                     $canStarVest = ($character->stars ?? 0) >= $vest['cost_stars'];
                     $isPopular = ($vKey === 'tactical_3h');
                 @endphp
-                <div class="p-5 rounded-2xl border {{ $isPopular ? 'border-purple-500 ring-1 ring-purple-400' : 'border-slate-200' }} bg-slate-50 flex flex-col justify-between gap-4 shadow-xs relative">
+                <div class="p-5 rounded-2xl border {{ $isPopular ? 'border-purple-500 dark:border-purple-600 ring-1 ring-purple-400 dark:ring-purple-600/50' : 'border-slate-200/80 dark:border-slate-700/70' }} bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 shadow-xs relative">
                     <div class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                            <span class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-bold shadow-2xs">
                                 <i class="{{ $vest['icon'] }}"></i>
                             </span>
-                            <span class="px-2.5 py-0.5 rounded-full {{ $isPopular ? 'bg-purple-600 text-white' : 'bg-white border border-slate-200 text-slate-800' }} text-[10px] font-black">
+                            <span class="px-2.5 py-0.5 rounded-full {{ $isPopular ? 'bg-purple-600 text-white' : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200' }} text-[10px] font-black shadow-2xs">
                                 {{ $isPopular ? '🔥 POPULAIRST (3 UUR)' : $vest['badge'] }}
                             </span>
                         </div>
-                        <h3 class="text-sm font-extrabold text-slate-900">{{ $vest['name'] }}</h3>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">{{ $vest['subtitle'] }}</p>
+                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ $vest['name'] }}</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{{ $vest['subtitle'] }}</p>
                     </div>
 
-                    <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                        <div class="flex items-center justify-between font-bold text-slate-700">
+                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/70 text-xs space-y-1 shadow-2xs">
+                        <div class="flex items-center justify-between font-bold text-slate-700 dark:text-slate-300">
                             <span>Verdediging / Backfire:</span>
-                            <span class="text-emerald-700 font-black">+{{ $vest['defense_bonus'] }} Def • {{ $vest['backfire_chance'] }}%</span>
+                            <span class="text-emerald-700 dark:text-emerald-400 font-black">+{{ $vest['defense_bonus'] }} Def • {{ $vest['backfire_chance'] }}%</span>
                         </div>
-                        <div class="flex items-center justify-between font-bold text-slate-700">
+                        <div class="flex items-center justify-between font-bold text-slate-700 dark:text-slate-300">
                             <span>Prijs in geld:</span>
-                            <span class="text-slate-900 font-black">€{{ number_format($vest['cost_cash'], 0, ',', '.') }}</span>
+                            <span class="text-slate-900 dark:text-white font-black">€{{ number_format($vest['cost_cash'], 0, ',', '.') }}</span>
                         </div>
-                        <div class="flex items-center justify-between font-bold text-slate-700">
+                        <div class="flex items-center justify-between font-bold text-slate-700 dark:text-slate-300">
                             <span>Prijs in sterren:</span>
-                            <span class="text-amber-600 font-black">{{ $vest['cost_stars'] }} Sterren ⭐</span>
+                            <span class="text-amber-600 dark:text-amber-400 font-black">{{ $vest['cost_stars'] }} Sterren ⭐</span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/70">
                         <form action="{{ route('hitman.buy_vest') }}" method="POST">
                             @csrf
                             <input type="hidden" name="vest_tier" value="{{ $vest['id'] }}">
                             <input type="hidden" name="currency" value="cash">
                             <button type="submit" {{ ! $canCashVest ? 'disabled' : '' }}
-                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 {{ $canCashVest ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center justify-center gap-1 shadow-xs {{ $canCashVest ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <i class="fa-solid fa-money-bill-wave"></i>
                                 <span>€{{ number_format($vest['cost_cash'] / 1000, 0, ',', '.') }}k</span>
                             </button>
@@ -990,7 +990,7 @@
                             <input type="hidden" name="vest_tier" value="{{ $vest['id'] }}">
                             <input type="hidden" name="currency" value="stars">
                             <button type="submit" {{ ! $canStarVest ? 'disabled' : '' }}
-                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 {{ $canStarVest ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center justify-center gap-1 shadow-xs {{ $canStarVest ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <i class="fa-solid fa-star text-amber-200"></i>
                                 <span>{{ $vest['cost_stars'] }} ⭐</span>
                             </button>
@@ -1002,17 +1002,17 @@
         </div>
 
         <!-- Ammunition Crates Section -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
-                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-boxes-stacked text-rose-600"></i> Zwarte Markt Munitiekisten
+                    <h2 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked text-rose-600 dark:text-rose-400"></i> Zwarte Markt Munitiekisten
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Sla zware patronen in voor salvo's of precisie-executies. Grote kisten verhogen direct je Koudbloedigheid (%)!
                     </p>
                 </div>
-                <span class="text-xs font-extrabold text-slate-700">Voorraad: {{ number_format($character->bullets ?? 0, 0, ',', '.') }} patronen</span>
+                <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300">Voorraad: {{ number_format($character->bullets ?? 0, 0, ',', '.') }} patronen</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1021,38 +1021,38 @@
                     $canCashAmmo = $totalWealth >= $ammo['cost_cash'];
                     $canStarAmmo = ($character->stars ?? 0) >= $ammo['cost_stars'];
                 @endphp
-                <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col justify-between gap-4 shadow-xs">
+                <div class="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 shadow-xs">
                     <div class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-sm font-bold">
+                            <span class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm font-bold shadow-2xs">
                                 <i class="{{ $ammo['icon'] }}"></i>
                             </span>
-                            <span class="px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-[11px] font-black text-slate-800">
+                            <span class="px-2.5 py-0.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-[11px] font-black text-slate-800 dark:text-slate-200 shadow-2xs">
                                 +{{ number_format($ammo['bullets'], 0, ',', '.') }} Patronen
                             </span>
                         </div>
-                        <h3 class="text-sm font-extrabold text-slate-900">{{ $ammo['name'] }}</h3>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">{{ $ammo['subtitle'] }}</p>
+                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ $ammo['name'] }}</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{{ $ammo['subtitle'] }}</p>
                     </div>
 
-                    <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                        <div class="flex items-center justify-between font-bold text-slate-700">
+                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/70 text-xs space-y-1 shadow-2xs">
+                        <div class="flex items-center justify-between font-bold text-slate-700 dark:text-slate-300">
                             <span>Prijs in geld:</span>
-                            <span class="text-slate-900 font-black">€{{ number_format($ammo['cost_cash'], 0, ',', '.') }}</span>
+                            <span class="text-slate-900 dark:text-white font-black">€{{ number_format($ammo['cost_cash'], 0, ',', '.') }}</span>
                         </div>
-                        <div class="flex items-center justify-between font-bold text-slate-700">
+                        <div class="flex items-center justify-between font-bold text-slate-700 dark:text-slate-300">
                             <span>Prijs in sterren:</span>
-                            <span class="text-amber-600 font-black">{{ $ammo['cost_stars'] }} Sterren ⭐</span>
+                            <span class="text-amber-600 dark:text-amber-400 font-black">{{ $ammo['cost_stars'] }} Sterren ⭐</span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/70">
                         <form action="{{ route('hitman.buy_bullets') }}" method="POST">
                             @csrf
                             <input type="hidden" name="ammo_tier" value="{{ $ammo['id'] }}">
                             <input type="hidden" name="currency" value="cash">
                             <button type="submit" {{ ! $canCashAmmo ? 'disabled' : '' }}
-                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 {{ $canCashAmmo ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center justify-center gap-1 shadow-xs {{ $canCashAmmo ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <i class="fa-solid fa-money-bill-wave"></i>
                                 <span>€{{ number_format($ammo['cost_cash'] / 1000, 0, ',', '.') }}k</span>
                             </button>
@@ -1063,7 +1063,7 @@
                             <input type="hidden" name="ammo_tier" value="{{ $ammo['id'] }}">
                             <input type="hidden" name="currency" value="stars">
                             <button type="submit" {{ ! $canStarAmmo ? 'disabled' : '' }}
-                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 {{ $canStarAmmo ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center justify-center gap-1 shadow-xs {{ $canStarAmmo ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <i class="fa-solid fa-star text-amber-200"></i>
                                 <span>{{ $ammo['cost_stars'] }} ⭐</span>
                             </button>
@@ -1078,43 +1078,43 @@
     <!-- ========================================================================= -->
     <!-- TAB 4: ONDERWERELD CONTRACTEN                                             -->
     <!-- ========================================================================= -->
-    <div x-show="activeTab === 'contracten'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
-        <div class="border-b border-slate-100 pb-3">
-            <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-file-contract text-purple-600"></i> Onderwereld Intimidatie-Contracten
+    <div x-show="activeTab === 'contracten'" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h2 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-file-contract text-purple-600 dark:text-purple-400"></i> Onderwereld Intimidatie-Contracten
             </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Laat een handlanger een rivaal verzwakken zonder zelf kogels te verbruiken.
             </p>
         </div>
 
         <div class="max-w-md space-y-1.5">
-            <label class="block text-xs font-extrabold text-slate-700 uppercase">Doelwit Naam</label>
+            <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase">Doelwit Naam</label>
             <input type="text" x-model="selectedTargetName" placeholder="Typ spelersnaam..."
-                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                   class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             @foreach($contracts as $c)
-            <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col justify-between gap-4">
+            <div class="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 shadow-xs">
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-extrabold text-slate-900">{{ $c['name'] }}</span>
-                        <span class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[11px] font-black text-rose-600">
+                        <span class="text-sm font-extrabold text-slate-900 dark:text-white">{{ $c['name'] }}</span>
+                        <span class="px-2 py-0.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-[11px] font-black text-rose-600 dark:text-rose-400">
                             -{{ $c['damage'] }} HP
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500">{{ $c['desc'] }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ $c['desc'] }}</p>
                 </div>
 
-                <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
-                    <div class="flex justify-between font-bold text-slate-700">
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/70 text-xs space-y-1 shadow-2xs">
+                    <div class="flex justify-between font-bold text-slate-700 dark:text-slate-300">
                         <span>Kosten:</span>
-                        <span class="text-slate-900 font-black">€{{ number_format($c['cost'], 0, ',', '.') }}</span>
+                        <span class="text-slate-900 dark:text-white font-black">€{{ number_format($c['cost'], 0, ',', '.') }}</span>
                     </div>
-                    <div class="flex justify-between font-bold text-slate-700">
+                    <div class="flex justify-between font-bold text-slate-700 dark:text-slate-300">
                         <span>Energie / Slagingskans:</span>
-                        <span class="text-slate-900 font-black">{{ $c['energy'] }} E • {{ $c['rate'] }}%</span>
+                        <span class="text-slate-900 dark:text-white font-black">{{ $c['energy'] }} E • {{ $c['rate'] }}%</span>
                     </div>
                 </div>
 
@@ -1123,7 +1123,7 @@
                     <input type="hidden" name="target_id" :value="selectedTargetId">
                     <input type="hidden" name="target_name" :value="selectedTargetName">
                     <input type="hidden" name="contract_id" value="{{ $c['id'] }}">
-                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition cursor-pointer">
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
                         Voer Contract Uit (€{{ number_format($c['cost'], 0, ',', '.') }})
                     </button>
                 </form>

@@ -7,7 +7,7 @@
 <div class="space-y-6">
 
     <!-- HEADER -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div class="flex items-center gap-3.5">
                 <div class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-xl shadow-md shrink-0">
@@ -16,7 +16,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h2 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Karakter Perks (24 Uur Actief)</h2>
-                        <span class="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-black text-[10px] uppercase tracking-wider">24 Uur Boost ⭐</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-black text-[10px] uppercase tracking-wider">24 Uur Boost ⭐</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Investeer je zeldzame Sterren in krachtige 24-uurs privileges. Elke geactiveerde perk blijft exact 24 uur actief en kan na afloop direct weer opnieuw worden geactiveerd!
@@ -25,7 +25,7 @@
             </div>
 
             <div class="flex items-center gap-3 shrink-0">
-                <div class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-center">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-4 py-2.5 text-center">
                     <div class="text-[10px] uppercase font-bold text-slate-400">Jouw Sterren</div>
                     <div class="text-base font-black text-amber-500 font-mono flex items-center justify-center gap-1">
                         <i class="fa-solid fa-star text-xs"></i>
@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <a href="{{ route('garage.index') }}" 
-                   class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2">
+                   class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center gap-2">
                     <i class="fa-solid fa-car text-xs"></i>
                     <span>Sterren Voertuigen</span>
                 </a>
@@ -50,7 +50,7 @@
             $secondsLeft = $character->getPerkRemainingSeconds($key);
             $hasEnough = ($character->stars ?? 0) >= $perk['cost_stars'];
         @endphp
-        <div class="bg-white dark:bg-slate-900 border {{ $isOwned ? 'border-emerald-400/80 dark:border-emerald-500/80 ring-2 ring-emerald-400/20' : 'border-slate-200 dark:border-slate-800' }} rounded-2xl p-6 shadow-xs flex flex-col justify-between gap-5 relative overflow-hidden transition hover:shadow-md">
+        <div class="bg-white dark:bg-slate-900 border {{ $isOwned ? 'border-emerald-400/80 dark:border-emerald-500/80 ring-2 ring-emerald-400/20' : 'border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200' }} rounded-2xl p-6 shadow-xs flex flex-col justify-between gap-5 relative overflow-hidden">
             
             @if($isOwned)
                 <div class="absolute -right-12 top-6 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase tracking-wider py-1 px-12 rotate-45 shadow-xs text-center pointer-events-none">
@@ -64,7 +64,7 @@
                         <i class="fa-solid {{ $perk['icon'] }}"></i>
                     </div>
                     <div class="text-right">
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 font-black text-xs font-mono">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-black text-xs font-mono">
                             <i class="fa-solid fa-star text-[10px]"></i>
                             <span>{{ $perk['cost_stars'] }} Sterren</span>
                         </span>
@@ -80,14 +80,14 @@
                 </div>
 
                 <!-- BENEFIT HIGHLIGHT -->
-                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 rounded-xl p-3 flex items-center gap-2.5">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 flex items-center gap-2.5">
                     <i class="fa-solid fa-circle-check text-emerald-500 text-sm shrink-0"></i>
                     <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $perk['benefit'] }}</span>
                 </div>
 
                 @if($isOwned)
                     <!-- COUNTDOWN TIMER BOX -->
-                    <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-3 text-xs space-y-1"
+                    <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 rounded-xl p-3 text-xs space-y-1"
                          x-data="{
                              left: {{ $secondsLeft }},
                              format() {
@@ -118,7 +118,7 @@
             <!-- ACTION BUTTON -->
             <div class="pt-2">
                 @if($isOwned)
-                    <div class="w-full py-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-black text-xs text-center border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center gap-2">
+                    <div class="w-full py-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-black text-xs text-center border border-emerald-200/80 dark:border-emerald-800/70 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-circle-check text-xs"></i>
                         <span>24 Uur Actief Ingeschakeld</span>
                     </div>
@@ -127,7 +127,7 @@
                         @csrf
                         <button type="submit" 
                                 @if(! $hasEnough) disabled @endif
-                                class="w-full py-3 px-4 rounded-xl {{ $hasEnough ? 'bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black cursor-pointer shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold cursor-not-allowed' }} text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                                class="w-full py-3 px-4 rounded-xl {{ $hasEnough ? 'btn-star-gold cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-bolt"></i>
                             @if($hasEnough)
                                 <span>Activeer 24 Uur ({{ $perk['cost_stars'] }} ⭐)</span>
@@ -144,7 +144,7 @@
     </div>
 
     <!-- INFO CARD OVER STERREN -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div class="space-y-1">
                 <h4 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -156,7 +156,7 @@
                 </p>
             </div>
             <a href="{{ route('shop.index') }}" 
-               class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-2 shrink-0 cursor-pointer">
+               class="btn-star-gold px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 text-slate-900 dark:text-white shadow-xs flex items-center gap-2 shrink-0 cursor-pointer">
                 <i class="fa-solid fa-star"></i>
                 <span>Naar Sterren Shop</span>
             </a>

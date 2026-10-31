@@ -4,7 +4,7 @@
 <div class="space-y-6">
 
     <!-- Top Header Banner (TBS Kliniek Website Styling) -->
-    <div class="bg-white dark:bg-[#111827] rounded-2xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div class="flex items-start gap-4">
                 <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs mt-0.5">
@@ -12,10 +12,10 @@
                 </div>
                 <div class="space-y-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-700/60">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-700/60">
                             <i class="fa-solid fa-spoon"></i> Het Grote Uitbraakcomplot
                         </span>
-                        <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                        <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/40 px-2 py-0.5 rounded-full border border-amber-200/80 dark:border-amber-800/70">
                             Etappe {{ $tunnel->stage }}/5 &bull; {{ $tunnel->progress_pct }}% Voltooid
                         </span>
                     </div>
@@ -30,13 +30,13 @@
 
             <!-- Stats Summary Badges -->
             <div class="flex items-center gap-3 shrink-0 self-start md:self-center">
-                <div class="p-3 sm:p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center min-w-[100px]">
+                <div class="p-3 sm:p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center min-w-[100px]">
                     <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Lepels</span>
                     <span class="text-lg font-black text-slate-900 dark:text-white leading-none font-mono">
                         {{ $tunnel->spoons_used }}x
                     </span>
                 </div>
-                <div class="p-3 sm:p-3.5 rounded-xl bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-center min-w-[120px]">
+                <div class="p-3 sm:p-3.5 rounded-xl bg-amber-50/80 dark:bg-slate-800/60 border border-amber-200/80 dark:border-slate-700/70 text-center min-w-[120px]">
                     <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 block mb-0.5">Voortgang</span>
                     <span class="text-lg font-black text-amber-600 dark:text-amber-400 leading-none font-mono">
                         {{ $tunnel->progress_pct }}%
@@ -50,7 +50,7 @@
     
 
     <!-- Voortgangsbalk & Huidige Etappe Card -->
-    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
                 <span class="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">Huidige Etappe ({{ $tunnel->stage }}/5)</span>
@@ -91,7 +91,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <!-- Actie 1: Graven met Eetlepel -->
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5">
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
                     <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-xl shrink-0">
@@ -109,7 +109,7 @@
                     </p>
                 </div>
 
-                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 text-xs space-y-1.5 font-medium text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-3 text-xs space-y-1.5 font-medium text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/70">
                     <div class="flex justify-between">
                         <span><i class="fa-solid fa-utensils text-amber-500 mr-1.5"></i> Versleten lepels:</span>
                         <span class="font-bold text-slate-900 dark:text-white">{{ $tunnel->spoons_used }} stuks</span>
@@ -123,28 +123,28 @@
 
             <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
                 @if($tunnel->is_completed)
-                    <button disabled class="w-full py-3 px-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-trophy"></i> Tunnel Voltooid & Ontsnapt!
                     </button>
                 @elseif($tunnel->progress_pct >= 100)
                     <form action="{{ route('tunnel.escape') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs hover:shadow-sm transition flex items-center justify-center gap-2 cursor-pointer animate-pulse">
+                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer animate-pulse">
                             <i class="fa-solid fa-person-running"></i> Breek Uit Naar Vrijheid (€25.000 + 25 Sterren)
                         </button>
                     </form>
                 @elseif($tunnel->sand_in_socks >= 100)
-                    <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 border border-rose-200 dark:border-rose-800 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-triangle-exclamation"></i> Zakken Vol Zand (Eerst Dumpen)
                     </button>
                 @elseif($digCooldown > 0)
-                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-clock"></i> Uitrusten (Nog {{ ceil($digCooldown / 60) }} min)
                     </button>
                 @else
                     <form action="{{ route('tunnel.dig') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider shadow-xs hover:shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-person-digging"></i> Schraap Zand Af met Lepel
                         </button>
                     </form>
@@ -153,13 +153,13 @@
         </div>
 
         <!-- Actie 2: Zand Afvoeren op Luchtplaats -->
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5">
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 rounded-xl bg-stone-50 dark:bg-stone-900/40 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-xl shrink-0">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-xl shrink-0">
                         <i class="fa-solid fa-mound"></i>
                     </div>
-                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full {{ $tunnel->sand_in_socks >= 80 ? 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }}">
+                    <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full {{ $tunnel->sand_in_socks >= 80 ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700' }}">
                         Zandcapaciteit: {{ $tunnel->sand_in_socks }}% / 100%
                     </span>
                 </div>
@@ -174,27 +174,27 @@
                 <div class="space-y-1.5">
                     <div class="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
                         <span>Zand in je zakken:</span>
-                        <span class="{{ $tunnel->sand_in_socks >= 100 ? 'text-rose-600 font-black animate-pulse' : 'text-slate-900 dark:text-white' }}">{{ $tunnel->sand_in_socks }}% vol</span>
+                        <span class="{{ $tunnel->sand_in_socks >= 100 ? 'text-rose-600 dark:text-rose-400 font-black animate-pulse' : 'text-slate-900 dark:text-white' }}">{{ $tunnel->sand_in_socks }}% vol</span>
                     </div>
                     <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
-                        <div class="h-full rounded-full transition-all duration-300 {{ $tunnel->sand_in_socks >= 100 ? 'bg-rose-500' : 'bg-stone-500' }}" style="width: {{ $tunnel->sand_in_socks }}%"></div>
+                        <div class="h-full rounded-full transition-all duration-300 {{ $tunnel->sand_in_socks >= 100 ? 'bg-rose-500' : 'bg-purple-600' }}" style="width: {{ $tunnel->sand_in_socks }}%"></div>
                     </div>
                 </div>
             </div>
 
             <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
                 @if($dumpCooldown > 0)
-                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-clock"></i> Bewaker Kijkt (Nog {{ ceil($dumpCooldown / 60) }} min)
                     </button>
                 @elseif($tunnel->sand_in_socks <= 0)
-                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-check"></i> Zakken zijn Schoon (0% Zand)
                     </button>
                 @else
                     <form action="{{ route('tunnel.dump') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-stone-700 hover:bg-stone-800 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider shadow-xs hover:shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-shoe-prints"></i> Strooi Zand Uit op Luchtplaats (Leeg {{ $tunnel->sand_in_socks }}%)
                         </button>
                     </form>

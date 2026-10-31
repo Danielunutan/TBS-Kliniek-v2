@@ -142,7 +142,7 @@ body.dark .board-socket:hover,
     
 
     <!-- Header Banner -->
-    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+    <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/90 dark:border-slate-800 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-start sm:items-center gap-4">
                 <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-purple-300 dark:border-purple-700 shadow-md shrink-0 bg-purple-50 dark:bg-purple-950/70">
@@ -150,10 +150,10 @@ body.dark .board-socket:hover,
                 </div>
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800/60">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">
                             Officiële Partner Minigame
                         </span>
-                        <a href="https://oohpaarjan.nl/" target="_blank" rel="noopener" class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/60 transition inline-flex items-center gap-1">
+                        <a href="https://oohpaarjan.nl/" target="_blank" rel="noopener" class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200/80 dark:border-emerald-800/70 transition inline-flex items-center gap-1">
                             <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> oohpaarjan.nl
                         </a>
                     </div>
@@ -168,11 +168,11 @@ body.dark .board-socket:hover,
 
             <!-- Stats Counters -->
             <div class="flex flex-wrap items-center gap-2 text-xs font-bold shrink-0">
-                <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3.5 py-2 rounded-xl border border-purple-200 dark:border-purple-800 shadow-2xs flex items-center gap-1.5">
+                <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3.5 py-2 rounded-xl border border-purple-200/80 dark:border-purple-800/70 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-trophy text-purple-600 dark:text-purple-400"></i>
                     <span>{{ $stat->total_tournaments_won }} Toernooien Gewonnen</span>
                 </span>
-                <span class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-3.5 py-2 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-2xs flex items-center gap-1.5">
+                <span class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-3.5 py-2 rounded-xl border border-emerald-200/80 dark:border-emerald-800/70 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-sack-dollar text-emerald-600 dark:text-emerald-400"></i>
                     <span>€ {{ number_format($stat->total_cash_won, 0, ',', '.') }} Gewonnen</span>
                 </span>
@@ -187,9 +187,9 @@ body.dark .board-socket:hover,
         <div class="lg:col-span-8 space-y-4">
 
             <!-- COOLDOWN CONTAINER (SHOWN WHEN COOLDOWN > 0: 10 MINS OR AD SKIP) -->
-            <div id="cooldown-container" class="{{ ($cooldownRemaining ?? 0) > 0 ? '' : 'hidden' }} bg-white dark:bg-slate-900 rounded-3xl border-2 border-purple-200 dark:border-purple-800 shadow-xl p-8 text-center space-y-6">
-                <div class="w-24 h-24 mx-auto rounded-3xl overflow-hidden border-4 border-purple-400 shadow-lg">
-                    <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}?v=2" alt="OOHPA Arjan" class="w-full h-full object-contain bg-gradient-to-b from-purple-100 to-indigo-100 dark:from-purple-950 dark:to-indigo-950">
+            <div id="cooldown-container" class="{{ ($cooldownRemaining ?? 0) > 0 ? '' : 'hidden' }} bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-8 text-center space-y-6">
+                <div class="w-24 h-24 mx-auto rounded-2xl overflow-hidden border-2 border-purple-400 dark:border-purple-600 shadow-md">
+                    <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}?v=2" alt="OOHPA Arjan" class="w-full h-full object-contain bg-slate-50 dark:bg-slate-800">
                 </div>
                 <div class="space-y-2 max-w-md mx-auto">
                     <h3 class="text-xl font-black text-slate-900 dark:text-white">Arjan drinkt even een bakkie leeg!</h3>
@@ -199,14 +199,14 @@ body.dark .board-socket:hover,
                 </div>
 
                 <!-- AD SKIP BUTTON (INSTANT REVANCHE VIA AD) -->
-                <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-purple-50 dark:from-amber-950/40 dark:to-purple-950/40 border border-amber-200 dark:border-purple-800 max-w-md mx-auto space-y-3">
+                <div class="p-5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 max-w-md mx-auto space-y-3">
                     <div class="flex items-center justify-center gap-2 text-xs font-extrabold text-amber-800 dark:text-amber-300">
                         <i class="fa-solid fa-bolt text-amber-500 animate-bounce"></i>
                         <span>Geen zin om 10 minuten te wachten?</span>
                     </div>
                     <form action="{{ route('connect_four.skip_cooldown_ad') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95 text-white font-black text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2">
+                        <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i>
                             <span>Overslaan via Sponsor-Ad (Direct Revanche)</span>
                         </button>
@@ -219,11 +219,11 @@ body.dark .board-socket:hover,
             <div id="game-container" class="{{ ($cooldownRemaining ?? 0) > 0 ? 'hidden' : '' }} space-y-4">
 
                 <!-- 1. MATCH HUD (BALANCED ROW, NEVER SQUISHED) -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xs">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xs">
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
                         
                         <!-- Player 1 Card (Paars) -->
-                        <div id="player1-card" class="w-full sm:w-auto flex-1 flex items-center justify-between p-2 rounded-xl bg-purple-50/90 dark:bg-slate-800/80 border-2 border-purple-500 transition-all duration-200">
+                        <div id="player1-card" class="w-full sm:w-auto flex-1 flex items-center justify-between p-2.5 rounded-xl bg-purple-50/90 dark:bg-slate-800/80 border-2 border-purple-500/80 dark:border-purple-500 transition-all duration-200">
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <div class="relative shrink-0">
                                     <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-9 h-9 rounded-lg object-cover border border-purple-300">
@@ -249,18 +249,18 @@ body.dark .board-socket:hover,
                                     <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse shrink-0"></span>
                                     <span class="truncate">Jouw beurt</span>
                                 </span>
-                                <span id="turn-timer-badge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-mono font-black text-[11px] shrink-0">
+                                <span id="turn-timer-badge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/80 border border-purple-200/80 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-mono font-black text-[11px] shrink-0">
                                     <i class="fa-solid fa-stopwatch text-[10px]"></i>
                                     <span id="timer-seconds">15</span>s
                                 </span>
                             </div>
                             <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                <div id="turn-timer-bar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-300" style="width: 100%;"></div>
+                                <div id="turn-timer-bar" class="h-full bg-purple-600 transition-all duration-300" style="width: 100%;"></div>
                             </div>
                         </div>
 
                         <!-- Player 2 Card (Groen Arjan) -->
-                        <div id="player2-card" class="w-full sm:w-auto flex-1 flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 opacity-75 transition-all duration-200">
+                        <div id="player2-card" class="w-full sm:w-auto flex-1 flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 opacity-75 transition-all duration-200">
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <div class="relative shrink-0">
                                     <img src="{{ asset('assets/characters/oohpa_arjan.jpg') }}?v=2" alt="OOHPA Arjan" class="w-9 h-9 rounded-lg object-cover border border-emerald-300">
@@ -283,20 +283,20 @@ body.dark .board-socket:hover,
                 </div>
 
                 <!-- 2. THE CONNECT FOUR BOARD (WEBSITE STYLING - SEAMLESS LIGHT & DARK THEME) -->
-                <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-xs border border-slate-200 dark:border-slate-800">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 shadow-xs border border-slate-200/90 dark:border-slate-800">
                     
                     <!-- Top Controls Bar (Sound, Aftrap & Restart) -->
                     <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800 text-xs">
                         <div class="flex items-center gap-2">
-                            <button type="button" id="sound-toggle-btn" onclick="toggleSound()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700">
+                            <button type="button" id="sound-toggle-btn" onclick="toggleSound()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
                                 <i id="sound-icon" class="fa-solid fa-volume-high text-purple-600 dark:text-purple-400"></i>
                                 <span id="sound-label">Geluid Aan</span>
                             </button>
-                            <span id="starter-indicator" class="text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
+                            <span id="starter-indicator" class="text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1 rounded-lg border border-purple-200/80 dark:border-purple-800/70">
                                 Aftrap: Jij 🎲
                             </span>
                         </div>
-                        <button type="button" onclick="restartMatch()" id="restart-btn" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700">
+                        <button type="button" onclick="restartMatch()" id="restart-btn" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-rotate-left text-slate-500"></i>
                             <span>Herstart Potje</span>
                         </button>
@@ -310,7 +310,7 @@ body.dark .board-socket:hover,
                                     onmouseenter="handleColumnHover({{ $col }})" 
                                     onmouseleave="handleColumnLeave({{ $col }})"
                                     id="col-btn-{{ $col }}"
-                                    class="col-drop-btn h-9 sm:h-10 rounded-xl bg-purple-50 hover:bg-purple-600 dark:bg-slate-800 dark:hover:bg-purple-600 border border-purple-200 dark:border-slate-700 hover:border-purple-600 dark:hover:border-purple-500 flex items-center justify-center text-purple-700 hover:text-white dark:text-purple-300 dark:hover:text-white transition-all cursor-pointer focus:outline-none shadow-2xs group"
+                                    class="col-drop-btn h-9 sm:h-10 rounded-xl bg-slate-100 hover:bg-purple-600 dark:bg-slate-800 dark:hover:bg-purple-600 border border-slate-200/80 dark:border-slate-700 hover:border-purple-600 dark:hover:border-purple-500 flex items-center justify-center text-slate-700 hover:text-white dark:text-slate-300 dark:hover:text-white transition-all cursor-pointer focus:outline-none shadow-xs group"
                                     title="Munt laten vallen in kolom {{ $col + 1 }}">
                                 <i class="fa-solid fa-chevron-down text-xs transition-transform group-hover:translate-y-0.5"></i>
                             </button>
@@ -318,15 +318,15 @@ body.dark .board-socket:hover,
                     </div>
 
                     <!-- 7x6 Grid Board Frame -->
-                    <div class="board-frame bg-slate-100 dark:bg-slate-950 p-2.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
+                    <div class="board-frame bg-slate-100 dark:bg-slate-950 p-2.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-inner">
                         <div id="board-grid" class="c4-board-grid">
                             @for ($row = 0; $row < 6; $row++)
                                 @for ($col = 0; $col < 7; $col++)
                                     <div id="cell-{{ $row }}-{{ $col }}" 
-                                         onclick="handleColumnClick({{ $col }})"
-                                         onmouseenter="handleColumnHover({{ $col }})"
-                                         onmouseleave="handleColumnLeave({{ $col }})"
-                                         class="aspect-square rounded-full board-socket p-1 flex items-center justify-center cursor-pointer relative overflow-hidden">
+                                          onclick="handleColumnClick({{ $col }})"
+                                          onmouseenter="handleColumnHover({{ $col }})"
+                                          onmouseleave="handleColumnLeave({{ $col }})"
+                                          class="aspect-square rounded-full board-socket p-1 flex items-center justify-center cursor-pointer relative overflow-hidden">
                                         <!-- Injected 3D Coin -->
                                     </div>
                                 @endfor
@@ -361,7 +361,7 @@ body.dark .board-socket:hover,
         <div class="lg:col-span-4 space-y-5">
 
             <!-- 1. TOURNAMENT SCORECARD (MOVED TO RIGHT SIDEBAR SO BOARD SITS DIRECTLY AT TOP!) -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-3">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-chess-board text-purple-600 dark:text-purple-400 text-base"></i>
@@ -369,24 +369,24 @@ body.dark .board-socket:hover,
                             Toernooi Stand (5 Potjes)
                         </h2>
                     </div>
-                    <span id="match-progress-badge" class="text-[11px] font-black px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                    <span id="match-progress-badge" class="text-[11px] font-black px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
                         Potje {{ min(5, (int) ($stat->matches_played ?? 0) + 1) }} van 5
                     </span>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2.5 text-center">
                     <!-- Player Wins -->
-                    <div class="p-2.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60">
+                    <div class="p-2.5 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60">
                         <span class="text-[9px] font-bold uppercase text-purple-700 dark:text-purple-300 block">Jij (Paars)</span>
                         <span class="text-lg font-black text-purple-900 dark:text-purple-100" id="stat-player-wins">{{ $stat->current_player_wins ?? 0 }}</span>
                     </div>
                     <!-- Draws -->
-                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
+                    <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                         <span class="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 block">Gelijk</span>
                         <span class="text-lg font-black text-slate-700 dark:text-slate-300" id="stat-draws">{{ $stat->current_draws ?? 0 }}</span>
                     </div>
                     <!-- Arjan Wins -->
-                    <div class="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+                    <div class="p-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60">
                         <span class="text-[9px] font-bold uppercase text-emerald-700 dark:text-emerald-300 block">Arjan (Groen)</span>
                         <span class="text-lg font-black text-emerald-900 dark:text-emerald-100" id="stat-arjan-wins">{{ $stat->current_arjan_wins ?? 0 }}</span>
                     </div>
@@ -394,7 +394,7 @@ body.dark .board-socket:hover,
             </div>
 
             <!-- 2. OOHPA ARJAN LIVE INTERACTION CARD -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-3.5">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-3.5">
                 <div class="flex items-center gap-3">
                     <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-purple-300 dark:border-purple-700 shadow-sm shrink-0 bg-purple-50 dark:bg-purple-950">
                         <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}?v=2" alt="OOHPA Arjan" class="w-full h-full object-contain">
@@ -410,8 +410,8 @@ body.dark .board-socket:hover,
                 </div>
 
                 <!-- Reactive Speech Bubble -->
-                <div class="p-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 relative">
-                    <div class="absolute -top-2 left-6 w-3 h-3 bg-purple-50 dark:bg-purple-950/80 border-t border-l border-purple-200 dark:border-purple-800 rotate-45"></div>
+                <div class="p-3 rounded-xl bg-purple-50/80 dark:bg-slate-800/80 border border-purple-200/80 dark:border-purple-800/60 relative">
+                    <div class="absolute -top-2 left-6 w-3 h-3 bg-purple-50 dark:bg-slate-800 border-t border-l border-purple-200/80 dark:border-purple-800/60 rotate-45"></div>
                     <p id="arjan-speech" class="text-xs text-purple-950 dark:text-purple-200 font-medium leading-relaxed italic">
                         &ldquo;{{ $quotes['intro'] }}&rdquo;
                     </p>
@@ -419,7 +419,7 @@ body.dark .board-socket:hover,
 
                 <!-- Arjan's Channel & Social Link -->
                 <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <a href="https://oohpaarjan.nl/" target="_blank" rel="noopener" class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center justify-between">
+                    <a href="https://oohpaarjan.nl/" target="_blank" rel="noopener" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 flex items-center justify-between">
                         <span class="flex items-center gap-2">
                             <i class="fa-solid fa-tv text-purple-600"></i> Bekijk OOHPA's Livestream
                         </span>
@@ -429,14 +429,14 @@ body.dark .board-socket:hover,
             </div>
 
             <!-- 3. TOURNAMENT BONUSES BREAKDOWN (STERREN ⭐ INSTEAD OF VIP) -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-3.5">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-3.5">
                 <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <i class="fa-solid fa-gift text-amber-500"></i>
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">Toernooibonussen (5 Potjes)</h3>
                 </div>
 
                 <div class="space-y-2 text-xs">
-                    <div class="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between">
+                    <div class="p-2.5 rounded-xl bg-amber-50/80 dark:bg-slate-800/60 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between">
                         <div>
                             <span class="font-extrabold text-amber-950 dark:text-amber-200 block">5 - 0 Grand Slam</span>
                             <span class="text-[10px] text-amber-700 dark:text-amber-400">Onverslagen meester</span>
@@ -444,7 +444,7 @@ body.dark .board-socket:hover,
                         <span class="font-black text-emerald-600 dark:text-emerald-400 text-right">+€ 100.000<br><span class="text-[9px] text-amber-600 dark:text-amber-400 font-extrabold">+10 Sterren ⭐</span></span>
                     </div>
 
-                    <div class="p-2.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 flex items-center justify-between">
+                    <div class="p-2.5 rounded-xl bg-purple-50/80 dark:bg-slate-800/60 border border-purple-200/80 dark:border-purple-800/60 flex items-center justify-between">
                         <div>
                             <span class="font-extrabold text-purple-950 dark:text-purple-200 block">4 - 1 Toernooiwinst</span>
                             <span class="text-[10px] text-purple-700 dark:text-purple-400">Duidelijke overmacht</span>
@@ -452,7 +452,7 @@ body.dark .board-socket:hover,
                         <span class="font-black text-emerald-600 dark:text-emerald-400 text-right">+€ 50.000<br><span class="text-[9px] text-purple-600 dark:text-purple-400">+100 XP, +30 Resp</span></span>
                     </div>
 
-                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
                         <div>
                             <span class="font-extrabold text-slate-900 dark:text-slate-100 block">3 - 2 Serie Winst</span>
                             <span class="text-[10px] text-slate-500">Nipte voorsprong</span>
@@ -472,7 +472,7 @@ body.dark .board-socket:hover,
 
     <!-- MATCH OVER MODAL -->
     <div id="match-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 border-2 border-purple-300 dark:border-purple-700 max-w-sm w-full p-6 text-center rounded-3xl shadow-2xl relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 max-w-sm w-full p-6 text-center rounded-2xl shadow-xl relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div id="match-modal-icon" class="text-5xl">🏆</div>
             <div>
                 <h3 id="match-modal-title" class="text-xl font-black text-slate-900 dark:text-white">Gefeliciteerd!</h3>
@@ -480,10 +480,10 @@ body.dark .board-socket:hover,
                     Je hebt 4 op 'n rij gemaakt en Arjan verslagen!
                 </p>
             </div>
-            <div id="match-modal-rewards" class="p-3 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-xs font-black text-purple-800 dark:text-purple-300">
+            <div id="match-modal-rewards" class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-xs font-black text-purple-700 dark:text-purple-300">
                 +€ 5.000 Cash • +10 XP • +3 Respect
             </div>
-            <button type="button" onclick="closeMatchModalAndContinue()" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2">
+            <button type="button" onclick="closeMatchModalAndContinue()" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
                 <i class="fa-solid fa-play"></i>
                 <span id="match-modal-btn-text">Volgend Potje Spelen</span>
             </button>
@@ -492,8 +492,8 @@ body.dark .board-socket:hover,
 
     <!-- TOURNAMENT SUMMARY MODAL (5 MATCHES FINISHED) -->
     <div id="tournament-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 border-2 border-purple-300 dark:border-purple-700 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            <div id="tourney-icon" class="w-16 h-16 mx-auto rounded-3xl flex items-center justify-center text-3xl shadow-md bg-emerald-100 dark:bg-emerald-950 text-emerald-600 border border-emerald-300">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div id="tourney-icon" class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-3xl shadow-xs bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 border border-emerald-200/80 dark:border-emerald-800/70">
                 <i class="fa-solid fa-trophy"></i>
             </div>
             <div class="space-y-1">
@@ -501,19 +501,19 @@ body.dark .board-socket:hover,
                 <p id="tourney-desc" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed"></p>
             </div>
 
-            <div id="tourney-score" class="p-3 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-xs font-black text-purple-800 dark:text-purple-300">
+            <div id="tourney-score" class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-xs font-black text-purple-700 dark:text-purple-300">
                 Eindstand: 0 - 0 (Gelijk: 0)
             </div>
 
             <form action="{{ route('connect_four.skip_cooldown_ad') }}" method="POST">
                 @csrf
-                <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2">
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
                     <i class="fa-solid fa-play"></i>
                     <span>Direct Revanche via Sponsor-Ad</span>
                 </button>
             </form>
 
-            <button type="button" onclick="closeTournamentModal()" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
+            <button type="button" onclick="closeTournamentModal()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer">
                 Sluiten & Cooldown Afwachten
             </button>
         </div>

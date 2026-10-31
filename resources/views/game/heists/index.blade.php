@@ -7,20 +7,20 @@
 <div class="space-y-6">
 
     <!-- HERO HEADER (TBS Kliniek Website Style) -->
-    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs relative overflow-hidden">
+    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 w-52 h-52 bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div class="flex items-start sm:items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/80 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                     <i class="fa-solid fa-masks-theater"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70">
                             TBS Kliniek Illegaal
                         </span>
-                        <span class="px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
                             High Stakes
                         </span>
@@ -37,8 +37,8 @@
             <!-- INVENTORY & STATUS BADGES (Mobile App Responsive Strip) -->
             <div class="grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2.5 shrink-0 w-full sm:w-auto">
                 <!-- Solo Maskers Badge -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 flex items-center justify-center text-xs shrink-0">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-600 dark:text-indigo-300 flex items-center justify-center text-xs shrink-0">
                         <i class="fa-solid fa-mask"></i>
                     </div>
                     <div class="min-w-0">
@@ -50,7 +50,7 @@
 
                 @if($myGang)
                 <!-- Gang Depot Maskers Badge -->
-                <div class="bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
+                <div class="bg-amber-50/90 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
                     <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-100 dark:bg-amber-900/60 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs shrink-0">
                         <i class="fa-solid fa-box-archive"></i>
                     </div>
@@ -62,7 +62,7 @@
                 </div>
                 @else
                 <!-- Geen Bende Placeholder Badge -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left opacity-60">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left opacity-60">
                     <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center text-xs shrink-0">
                         <i class="fa-solid fa-users"></i>
                     </div>
@@ -74,8 +74,8 @@
                 @endif
 
                 <!-- Actief Voertuig Badge -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs shrink-0">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs shrink-0">
                         <i class="fa-solid {{ $activeVehicle ? $activeVehicle->vehicle->icon : 'fa-car' }}"></i>
                     </div>
                     <div class="min-w-0">
@@ -95,11 +95,11 @@
 
         <!-- SEGMENTED PILL TAB SWITCHER (Full-Width Responsive App Switcher) -->
         <div class="flex items-center justify-between gap-4 flex-wrap">
-            <div class="w-full sm:w-auto grid grid-cols-2 sm:flex bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+            <div class="w-full sm:w-auto grid grid-cols-2 sm:flex bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl gap-1.5 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs">
                 <button type="button" 
                         @click="mode = 'solo'; window.history.replaceState({}, '', '{{ route('heists.index') }}?tab=solo')"
                         :class="mode === 'solo' 
-                            ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-slate-200/90 dark:border-slate-700 font-black' 
+                            ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-slate-200/80 dark:border-slate-700 font-black' 
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent font-bold'"
                         class="px-3 sm:px-5 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2">
                     <i class="fa-solid fa-user-secret"></i>
@@ -113,12 +113,12 @@
                 <button type="button" 
                         @click="mode = 'gang'; window.history.replaceState({}, '', '{{ route('heists.index') }}?tab=gang')"
                         :class="mode === 'gang' 
-                            ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-slate-200/90 dark:border-slate-700 font-black' 
+                            ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-slate-200/80 dark:border-slate-700 font-black' 
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent font-bold'"
                         class="px-3 sm:px-5 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2">
                     <i class="fa-solid fa-users text-amber-500"></i>
                     <span>Bende Heists</span>
-                    <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70">
                         {{ count($gangHeists) }}
                     </span>
                 </button>
@@ -161,11 +161,11 @@
                 $estChance = max(15, min(92, $baseChance + $speedBonus + $condBonus + $statBonus));
             @endphp
 
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 transition group relative overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 transition-all duration-200 group relative overflow-hidden">
                 <div class="space-y-4">
                     <!-- Top Bar: Icon + Difficulty Badge -->
                     <div class="flex items-start justify-between gap-2">
-                        <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/80 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
                             <i class="fa-solid {{ $heist->icon }}"></i>
                         </div>
                         <div class="text-right space-y-1">
@@ -187,7 +187,7 @@
                     </div>
 
                     <!-- Payout & Rewards Box -->
-                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3.5 border border-slate-100 dark:border-slate-800 space-y-2">
+                    <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-3.5 border border-slate-200/80 dark:border-slate-700/70 space-y-2">
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
                                 <i class="fa-solid fa-coins text-amber-500"></i> Geschatte Buit:
@@ -209,7 +209,7 @@
                     <!-- Requirements Checklist (Compact 2x2 App Grid) -->
                     <div class="grid grid-cols-2 gap-1.5 text-[11px] pt-2 border-t border-slate-100 dark:border-slate-800">
                         <!-- Level -->
-                        <div class="flex items-center justify-between p-2 rounded-xl {{ $hasLevel ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800' }}">
+                        <div class="flex items-center justify-between p-2 rounded-xl {{ $hasLevel ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/70' }}">
                             <span class="flex items-center gap-1 font-bold truncate">
                                 <i class="fa-solid {{ $hasLevel ? 'fa-check text-emerald-600' : 'fa-xmark text-slate-400' }}"></i>
                                 <span>Lvl {{ $heist->min_level }}</span>
@@ -218,7 +218,7 @@
                         </div>
 
                         <!-- Maskers -->
-                        <div class="flex items-center justify-between p-2 rounded-xl {{ $hasMasks ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                        <div class="flex items-center justify-between p-2 rounded-xl {{ $hasMasks ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}">
                             <span class="flex items-center gap-1 font-bold truncate">
                                 <i class="fa-solid fa-mask {{ $hasMasks ? 'text-emerald-600' : 'text-rose-500' }}"></i>
                                 <span>{{ $heist->required_mask_count }}x Masker</span>
@@ -227,7 +227,7 @@
                         </div>
 
                         <!-- Vluchtwagen Conditie -->
-                        <div class="flex items-center justify-between p-2 rounded-xl {{ ($hasVehicle && $hasCondition) ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                        <div class="flex items-center justify-between p-2 rounded-xl {{ ($hasVehicle && $hasCondition) ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}">
                             <span class="flex items-center gap-1 font-bold truncate">
                                 <i class="fa-solid fa-car {{ ($hasVehicle && $hasCondition) ? 'text-emerald-600' : 'text-rose-500' }}"></i>
                                 <span>Wagen &ge;{{ $heist->min_condition_required }}%</span>
@@ -236,7 +236,7 @@
                         </div>
 
                         <!-- Energie -->
-                        <div class="flex items-center justify-between p-2 rounded-xl {{ $character->energy >= $heist->energy_cost ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800' }}">
+                        <div class="flex items-center justify-between p-2 rounded-xl {{ $character->energy >= $heist->energy_cost ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/70' }}">
                             <span class="flex items-center gap-1 font-bold truncate">
                                 <i class="fa-solid fa-bolt text-amber-500"></i>
                                 <span>Kosten</span>
@@ -252,7 +252,7 @@
                             <span class="text-slate-600 dark:text-slate-400">Geschatte Slagingskans:</span>
                             <span class="font-mono {{ $estChance >= 60 ? 'text-emerald-600 dark:text-emerald-400' : ($estChance >= 40 ? 'text-amber-500' : 'text-rose-600 dark:text-rose-400') }}">{{ $estChance }}%</span>
                         </div>
-                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                        <div class="w-full bg-slate-100 dark:bg-slate-800/80 rounded-full h-2 overflow-hidden">
                             <div class="h-full rounded-full transition-all duration-300 {{ $estChance >= 60 ? 'bg-emerald-500' : ($estChance >= 40 ? 'bg-amber-500' : 'bg-rose-500') }}" style="width: {{ $estChance }}%"></div>
                         </div>
                     </div>
@@ -263,34 +263,34 @@
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
                     @if(! $hasVehicle)
                         <a href="{{ route('garage.index') }}" 
-                           class="w-full py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                           class="w-full py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-warehouse"></i>
                             <span>Koop Vluchtwagen in Garage</span>
                         </a>
                     @elseif(! $hasType || ! $hasSpeed)
                         <a href="{{ route('garage.index') }}" 
-                           class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                           class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-gauge-high"></i>
                             <span>Wagen Vereist &ge;{{ $heist->min_speed_required }} km/u</span>
                         </a>
                     @elseif(! $hasCondition)
                         <a href="{{ route('garage.index') }}" 
-                           class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                           class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-wrench"></i>
                             <span>Wagen Repareren in Garage</span>
                         </a>
                     @elseif(! $hasMasks)
                         <a href="{{ route('shop.index', ['tab' => 'items']) }}" 
-                           class="w-full py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                           class="w-full py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-700 dark:text-indigo-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-mask"></i>
                             <span>Koop Maskers in Winkel</span>
                         </a>
                     @elseif($character->energy < $heist->energy_cost)
-                        <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs cursor-not-allowed text-center">
+                        <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs cursor-not-allowed text-center">
                             Niet genoeg energie ({{ $character->energy }}/{{ $heist->energy_cost }})
                         </button>
                     @elseif(! $hasLevel)
-                        <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs cursor-not-allowed text-center">
+                        <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs cursor-not-allowed text-center">
                             Ontgrendelt op Level {{ $heist->min_level }}
                         </button>
                     @else
@@ -302,7 +302,7 @@
                                     data-confirm-btn="Ja, Start Heist!"
                                     data-confirm-type="attack"
                                     data-confirm-icon="fa-bomb"
-                                    class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+                                    class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-bomb text-xs"></i>
                                 <span>Start Solo Heist</span>
                             </button>
@@ -320,11 +320,11 @@
 
             <!-- GANG STATUS HEADER -->
             @if($myGang)
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 relative overflow-hidden">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 relative overflow-hidden">
                     <div class="absolute -right-6 -bottom-6 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
                     <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
+                        <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
                             <i class="fa-solid fa-shield-halved"></i>
                         </div>
                         <div>
@@ -332,11 +332,11 @@
                                 <h2 class="text-base font-black text-slate-900 dark:text-white tracking-tight">
                                     [{{ $myGang->tag }}] {{ $myGang->name }}
                                 </h2>
-                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider">
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider">
                                     {{ $myGang->members()->count() }} Leden Actief
                                 </span>
                                 @if(($myGang->respect ?? 0) > 0)
-                                    <span class="px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-[10px] font-black">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 text-[10px] font-black">
                                         ⭐ {{ number_format($myGang->respect, 0, ',', '.') }} Respect
                                     </span>
                                 @endif
@@ -349,26 +349,26 @@
 
                     <div class="flex items-center gap-3 flex-wrap shrink-0">
                         <!-- Bendekas -->
-                        <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-4 py-2.5 shadow-2xs">
+                        <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-4 py-2.5 shadow-2xs">
                             <span class="text-[9px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-extrabold block">Bendekas Saldo</span>
                             <span class="font-mono text-sm font-black text-emerald-600 dark:text-emerald-400">€ {{ number_format($myGang->treasury, 0, ',', '.') }}</span>
                         </div>
 
                         <!-- Depot Maskers -->
-                        <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-4 py-2.5 shadow-2xs">
+                        <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-4 py-2.5 shadow-2xs">
                             <span class="text-[9px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-extrabold block">Bende Depot Maskers</span>
                             <span class="font-mono text-sm font-black text-amber-600 dark:text-amber-400">{{ $myGang->masks ?? 0 }} stuks</span>
                         </div>
 
                         <!-- Quick Navigation Buttons -->
                         <div class="flex items-center gap-1.5">
-                            <a href="{{ route('gangs.index', ['tab' => 'depot']) }}" class="px-3 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-black text-xs transition shadow-2xs" title="Bende Depot">
+                            <a href="{{ route('gangs.index', ['tab' => 'depot']) }}" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer" title="Bende Depot">
                                 <i class="fa-solid fa-box-archive"></i>
                             </a>
-                            <a href="{{ route('gangs.garage') }}" class="px-3 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-black text-xs transition shadow-2xs" title="Bende Garage">
+                            <a href="{{ route('gangs.garage') }}" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer" title="Bende Garage">
                                 <i class="fa-solid fa-warehouse"></i>
                             </a>
-                            <a href="{{ route('gangs.index') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition shadow-xs flex items-center gap-1.5">
+                            <a href="{{ route('gangs.index') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 cursor-pointer">
                                 <span>Bendepagina</span>
                                 <i class="fa-solid fa-chevron-right text-[10px]"></i>
                             </a>
@@ -376,7 +376,7 @@
                     </div>
                 </div>
             @else
-                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
                             <i class="fa-solid fa-triangle-exclamation"></i>
@@ -388,7 +388,7 @@
                             </p>
                         </div>
                     </div>
-                    <a href="{{ route('gangs.index') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-xs flex items-center gap-2">
+                    <a href="{{ route('gangs.index') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-users"></i>
                         <span>Bendes Bekijken &amp; Aansluiten</span>
                     </a>
@@ -450,7 +450,7 @@
                     $gangShareMax = $heist->payout_max - $personalMax;
                 @endphp
 
-                <div class="bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800/60 hover:border-purple-400 dark:hover:border-purple-500 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 transition group relative overflow-hidden">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 transition-all duration-200 group relative overflow-hidden">
                     <div class="space-y-4">
                         <!-- Top Row: Icon + Badges -->
                         <div class="flex items-start justify-between gap-2">
@@ -470,7 +470,7 @@
                         <!-- Heist Name & Description -->
                         <div>
                             <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-[10px] font-black uppercase">
+                                <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[10px] font-black uppercase">
                                     Bende Co-Op Heist
                                 </span>
                                 <span class="text-[11px] font-black text-purple-600 dark:text-purple-400">
@@ -486,7 +486,7 @@
                         </div>
 
                         <!-- 50/50 Buitverdeling Box -->
-                        <div class="bg-purple-50/50 dark:bg-slate-800/80 rounded-xl p-3.5 border border-purple-100 dark:border-purple-900/50 space-y-2">
+                        <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-3.5 border border-slate-200/80 dark:border-slate-700/70 space-y-2">
                             <div class="flex items-center justify-between text-xs">
                                 <span class="text-slate-600 dark:text-slate-300 font-medium flex items-center gap-1.5">
                                     <i class="fa-solid fa-wallet text-emerald-500"></i> Jouw Deel (50% Contant):
@@ -503,7 +503,7 @@
                                     +€{{ number_format($gangShareMin, 0, ',', '.') }} &ndash; €{{ number_format($gangShareMax, 0, ',', '.') }}
                                 </span>
                             </div>
-                            <div class="flex items-center justify-between text-xs pt-1.5 border-t border-purple-100 dark:border-purple-900/60 text-[11px]">
+                            <div class="flex items-center justify-between text-xs pt-1.5 border-t border-slate-200/80 dark:border-slate-700/70 text-[11px]">
                                 <span class="text-slate-500 dark:text-slate-400">Bende Beloning:</span>
                                 <span class="font-extrabold text-purple-700 dark:text-purple-300">+{{ $heist->gang_respect_reward }} Bende Respect ⭐</span>
                             </div>
@@ -512,7 +512,7 @@
                         <!-- Checklist Requirements (Compact 2-col Grid) -->
                         <div class="grid grid-cols-2 gap-1.5 text-[11px] pt-2 border-t border-slate-100 dark:border-slate-800">
                             <!-- 1. Gang Leden Quota -->
-                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasGangMembers ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasGangMembers ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}">
                                 <span class="flex items-center gap-1 font-bold truncate">
                                     <i class="fa-solid {{ $hasGangMembers ? 'fa-users text-emerald-600' : 'fa-users text-rose-500' }}"></i>
                                     <span>Leden</span>
@@ -521,7 +521,7 @@
                             </div>
 
                             <!-- 2. Depot Maskers -->
-                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasGangMasks ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasGangMasks ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}">
                                 <span class="flex items-center gap-1 font-bold truncate">
                                     <i class="fa-solid fa-mask {{ $hasGangMasks ? 'text-emerald-600' : 'text-rose-500' }}"></i>
                                     <span>Depot</span>
@@ -530,7 +530,7 @@
                             </div>
 
                             <!-- 3. Benodigd Voertuig in Bende Garage -->
-                            <div class="flex items-center justify-between p-2 rounded-xl {{ ($hasVehicle && $hasCondition && $isGangGarageVehicle) ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ ($hasVehicle && $hasCondition && $isGangGarageVehicle) ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}">
                                 <span class="flex items-center gap-1 font-bold truncate">
                                     <i class="fa-solid fa-car {{ ($hasVehicle && $hasCondition && $isGangGarageVehicle) ? 'text-emerald-600' : 'text-rose-500' }}"></i>
                                     <span>Garage Wagen</span>
@@ -542,7 +542,7 @@
 
                             <!-- 4. Pand of Energie -->
                             @if($heist->required_property_name)
-                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasProperty ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasProperty ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}">
                                 <span class="flex items-center gap-1 font-bold truncate">
                                     <i class="fa-solid fa-building {{ $hasProperty ? 'text-emerald-600' : 'text-rose-500' }}"></i>
                                     <span>Pand</span>
@@ -550,7 +550,7 @@
                                 <span class="font-mono font-black text-[10px]">{{ $hasProperty ? 'In bezit' : 'Nodig' }}</span>
                             </div>
                             @else
-                            <div class="flex items-center justify-between p-2 rounded-xl {{ $character->energy >= $heist->energy_cost ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800' }}">
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $character->energy >= $heist->energy_cost ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/70' }}">
                                 <span class="flex items-center gap-1 font-bold truncate">
                                     <i class="fa-solid fa-bolt text-amber-500"></i>
                                     <span>Kosten</span>
@@ -567,7 +567,7 @@
                                 <span class="text-slate-600 dark:text-slate-400">Slagingskans (incl. Bende Bonus +{{ $gangBonus }}%):</span>
                                 <span class="font-mono {{ $estChance >= 60 ? 'text-emerald-600 dark:text-emerald-400' : ($estChance >= 40 ? 'text-amber-500' : 'text-rose-600 dark:text-rose-400') }}">{{ $estChance }}%</span>
                             </div>
-                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                            <div class="w-full bg-slate-100 dark:bg-slate-800/80 rounded-full h-2 overflow-hidden">
                                 <div class="h-full rounded-full transition-all duration-300 {{ $estChance >= 60 ? 'bg-emerald-500' : ($estChance >= 40 ? 'bg-amber-500' : 'bg-rose-500') }}" style="width: {{ $estChance }}%"></div>
                             </div>
                         </div>
@@ -578,50 +578,50 @@
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
                         @if(! $hasGang)
                             <a href="{{ route('gangs.index') }}" 
-                               class="w-full py-3 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                               class="w-full py-3 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-users"></i>
                                 <span>Sluit je eerst aan bij een Bende</span>
                             </a>
                         @elseif(! $hasGangMembers)
-                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs cursor-not-allowed text-center">
+                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs cursor-not-allowed text-center">
                                 Onvoldoende Leden Quota ({{ $gangMemberCount }}/{{ $heist->min_gang_members }})
                             </button>
                         @elseif(! $hasProperty)
                             <a href="{{ route('gangs.panden') }}" 
-                               class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                               class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-building"></i>
                                 <span>Koop Pand: {{ $heist->required_property_name }}</span>
                             </a>
                         @elseif(! $hasVehicle || ! $isGangGarageVehicle)
                             <a href="{{ route('gangs.garage') }}" 
-                               class="w-full py-3 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                               class="w-full py-3 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-warehouse"></i>
                                 <span>Koppel Wagen in Bende Garage</span>
                             </a>
                         @elseif(! $hasType || ! $hasSpeed)
-                        <a href="{{ route('garage.index') }}" 
-                           class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-gauge-high"></i>
-                            <span>Wagen Vereist &ge;{{ $heist->min_speed_required }} km/u</span>
-                        </a>
-                    @elseif(! $hasCondition)
                             <a href="{{ route('garage.index') }}" 
-                               class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 border border-amber-300 text-amber-800 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                               class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-gauge-high"></i>
+                                <span>Wagen Vereist &ge;{{ $heist->min_speed_required }} km/u</span>
+                            </a>
+                        @elseif(! $hasCondition)
+                            <a href="{{ route('garage.index') }}" 
+                               class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-wrench"></i>
                                 <span>Wagen Repareren in Garage</span>
                             </a>
                         @elseif(! $hasGangMasks)
                             <a href="{{ route('gangs.index', ['tab' => 'doneren']) }}" 
-                               class="w-full py-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 dark:text-indigo-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                               class="w-full py-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-700 dark:text-indigo-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-mask"></i>
                                 <span>Doneer {{ $heist->required_mask_count }}x Maskers in Depot</span>
                             </a>
                         @elseif($character->energy < $heist->energy_cost)
-                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs cursor-not-allowed text-center">
+                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs cursor-not-allowed text-center">
                                 Niet genoeg energie ({{ $character->energy }}/{{ $heist->energy_cost }})
                             </button>
                         @elseif(! $hasLevel)
-                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs cursor-not-allowed text-center">
+                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs cursor-not-allowed text-center">
                                 Vereist Level {{ $heist->min_level }}
                             </button>
                         @else
@@ -633,7 +633,7 @@
                                         data-confirm-btn="Ja, Lanceer Heist!"
                                         data-confirm-type="attack"
                                         data-confirm-icon="fa-bomb"
-                                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-rose-600 via-purple-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                                        class="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                                     <i class="fa-solid fa-bomb text-xs"></i>
                                     <span>Lanceer Bende Heist Operatie</span>
                                 </button>
@@ -649,7 +649,7 @@
 
     <!-- RECENT HEISTS TICKER (Clean TBS Kliniek Card) -->
     @if($recentLogs->isNotEmpty())
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-clock-rotate-left text-purple-600 dark:text-purple-400"></i>
