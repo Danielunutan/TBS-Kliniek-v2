@@ -92,4 +92,38 @@ class ChatBotService
             'is_read' => false,
         ]);
     }
+
+    /**
+     * Send an official liquidation notification from the Kliniek Directie as a private message.
+     */
+    public function sendLiquidationNotice(Character $character, string $message, array $metadata = []): DirectMessage
+    {
+        return DirectMessage::create([
+            'sender_id' => null, // Kliniek Directie Bot
+            'recipient_id' => $character->id,
+            'type' => 'liquidation',
+            'message' => $message,
+            'metadata' => array_merge([
+                'title' => 'Liquidatie Bericht',
+                'source' => 'kliniek_directie',
+            ], $metadata),
+            'is_read' => false,
+        ]);
+    }
+
+    /**
+     * Send liquidation notification to all involved parties via private message from the Kliniek Directie.
+     *
+     * @param  iterable<Character>|Character  $parties
+     */
+    public function notifyLiquidationParties(iterable|Character $parties, string $message, array $metadata = []): void
+    {
+        $recipients = $parties instanceof Character ? collect([$parties]) : collect($parties);
+
+        foreach ($recipients->unique('id') as $character) {
+            if ($character instanceof Character) {
+                $this->sendLiquidationNotice($character, $message, $metadata);
+            }
+        }
+    }
 }

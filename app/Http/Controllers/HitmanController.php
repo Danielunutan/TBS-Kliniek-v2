@@ -910,7 +910,9 @@ class HitmanController extends Controller
                 }
 
                 // Handle Blood Feud resolution or creation
+                $avengedVictim = null;
                 if ($bloodFeud) {
+                    $avengedVictim = $bloodFeud->victim_id ? Character::find($bloodFeud->victim_id) : null;
                     $bloodFeud->update([
                         'is_avenged' => true,
                         'avenged_by_id' => $attacker->id,
@@ -923,7 +925,17 @@ class HitmanController extends Controller
                     }
 
                     try {
-                        app(ChatBotService::class)->broadcast("🩸 BLOEDWRAAK VOLTROKKEN: {$attacker->name} heeft {$defender->name} op {$defenderWing} geliquideerd en de bende-vete gewroken!");
+                        $feudParties = collect([$attacker, $defender]);
+                        if ($avengedVictim) {
+                            $feudParties->push($avengedVictim);
+                        }
+                        $feudNotice = "🩸 BLOEDWRAAK VOLTROKKEN: {$attacker->name} heeft {$defender->name} op {$defenderWing} geliquideerd en de bende-vete gewroken!";
+                        app(ChatBotService::class)->notifyLiquidationParties($feudParties, $feudNotice, [
+                            'subtype' => 'blood_feud',
+                            'location' => $defenderWing,
+                            'attacker_id' => $attacker->id,
+                            'defender_id' => $defender->id,
+                        ]);
                     } catch (\Throwable) {
                     }
                 } else {
@@ -963,7 +975,20 @@ class HitmanController extends Controller
 
                 try {
                     $totalFmt = '€'.number_format($totalStolen, 0, ',', '.');
-                    app(ChatBotService::class)->broadcast("🎯 LIQUIDATIE OP {$defenderWing}: {$attacker->name} heeft {$defender->name} neergeschoten met {$shotTypeLabel} en {$totalFmt} (45% contant + 7% bank) buitgemaakt!");
+                    $liquidationNotice = "🎯 LIQUIDATIE OP {$defenderWing}: {$attacker->name} heeft {$defender->name} neergeschoten met {$shotTypeLabel} en {$totalFmt} (45% contant + 7% bank) buitgemaakt!";
+                    $involvedParties = collect([$attacker, $defender]);
+                    if ($avengedVictim) {
+                        $involvedParties->push($avengedVictim);
+                    }
+                    app(ChatBotService::class)->notifyLiquidationParties($involvedParties, $liquidationNotice, [
+                        'subtype' => 'liquidation',
+                        'location' => $defenderWing,
+                        'attacker_id' => $attacker->id,
+                        'defender_id' => $defender->id,
+                        'stolen_cash' => $stolenCash,
+                        'stolen_bank' => $stolenBank,
+                        'total_stolen' => $totalStolen,
+                    ]);
                 } catch (\Throwable) {
                 }
 

@@ -1670,6 +1670,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 </div>
             </template>
 
+            <!-- Disable input on official Kliniek Directie conversation -->
+            <template x-if="activeTab === 'direct' && (activePartnerId === 0 || activePartner?.is_bot)">
+                <div class="text-center py-2 text-xs text-slate-400 italic">
+                    Officiële directieberichten (geen antwoord mogelijk).
+                </div>
+            </template>
+
             <!-- Disable input on locked gang states -->
             <template x-if="activeTab === 'gang' && (!hasGang || !gangHasChat)">
                 <div class="text-center py-2 text-xs text-slate-400 italic">
@@ -1677,7 +1684,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 </div>
             </template>
 
-            <template x-if="activeTab === 'global' || (activeTab === 'direct' && activePartnerId !== null) || (activeTab === 'gang' && hasGang && gangHasChat)">
+            <template x-if="activeTab === 'global' || (activeTab === 'direct' && activePartnerId !== null && activePartnerId !== 0 && !activePartner?.is_bot) || (activeTab === 'gang' && hasGang && gangHasChat)">
                 <div class="space-y-2">
                     
                     <!-- REPLY QUOTE PREVIEW BANNER -->
