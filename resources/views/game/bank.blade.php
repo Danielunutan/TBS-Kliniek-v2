@@ -353,7 +353,7 @@
                     bg-gradient-to-b from-[#ffd700] via-[#ffcc00] to-[#e6b800] p-2.5 sm:p-4 relative">
 
             <!-- Subtle Canopy Sheen -->
-            <div class="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white/40 to-transparent pointer-events-none"></div>
+            <div class="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-amber-100/50 dark:from-amber-200/20 to-transparent pointer-events-none"></div>
 
             <!-- ATM Header Strip -->
             <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-amber-500/30 px-1 relative z-10">
@@ -361,8 +361,8 @@
                     <span class="w-6 h-6 rounded-lg bg-slate-950 text-[#ffcc00] flex items-center justify-center text-xs font-black shadow-xs">
                         <i class="fa-solid fa-vault"></i>
                     </span>
-                    <span class="text-xs font-black tracking-widest text-black uppercase font-mono">
-                        geld<span class="text-[#78350f]">maat</span>
+                    <span class="text-xs font-black tracking-widest text-slate-950 dark:text-slate-950 uppercase font-mono">
+                        geld<span class="text-amber-950 dark:text-amber-950">maat</span>
                     </span>
                 </div>
 
@@ -376,7 +376,7 @@
                         <i class="fa-solid" :class="cardInserted ? 'fa-eject text-amber-400' : 'fa-arrow-down text-white'"></i>
                         <span x-text="cardInserted ? 'Pas In (Eject)' : 'Steek Pas In'"></span>
                     </button>
-                    <div class="flex items-center gap-1 bg-slate-950/15 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold text-black">
+                    <div class="flex items-center gap-1 bg-slate-950/15 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold text-slate-950 dark:text-slate-950">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span>
                         <span>CAM</span>
                     </div>

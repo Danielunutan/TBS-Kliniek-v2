@@ -100,9 +100,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
             <!-- LOTERIJ JACKPOT PROMO CARD -->
-            <a href="{{ route('lottery.index') }}" class="p-5 bg-gradient-to-r from-amber-50/70 via-purple-50/50 to-white dark:from-slate-900 dark:via-purple-950/20 dark:to-slate-900 rounded-2xl border-2 border-amber-400/60 shadow-xs hover:border-amber-400 dark:hover:border-amber-400/80 transition-all duration-200 group flex items-center justify-between gap-4 col-span-1 sm:col-span-2 lg:col-span-3">
+            <a href="{{ route('lottery.index') }}" class="p-5 bg-white dark:bg-slate-900 rounded-2xl border-2 border-amber-400/60 dark:border-amber-500/60 shadow-xs hover:border-amber-400 dark:hover:border-amber-400 transition-all duration-200 group flex items-center justify-between gap-4 col-span-1 sm:col-span-2 lg:col-span-3">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-amber-400/25 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl border border-amber-400/40 group-hover:scale-105 transition-transform shrink-0 shadow-2xs">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl border border-amber-200/80 dark:border-amber-800/70 group-hover:scale-105 transition-transform shrink-0 shadow-2xs">
                         <i class="fa-solid fa-crown"></i>
                     </div>
                     <div>

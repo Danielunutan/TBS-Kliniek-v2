@@ -279,6 +279,8 @@ class GangAttackAndSingleMembershipTest extends TestCase
             route('daycare.index'),
             route('droppings.index'),
             route('true_crime.index'),
+            route('bank.index'),
+            route('casino.index'),
         ] as $url) {
             $response = $this->get($url);
             $response->assertOk();
