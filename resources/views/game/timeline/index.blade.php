@@ -59,20 +59,20 @@
             </div>
 
             <!-- Smileys / Emoji Bar -->
-            <div class="pl-14 flex flex-wrap items-center gap-1.5 pt-1">
+            <div class="sm:pl-14 flex flex-wrap items-center gap-1.5 pt-1">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-1 flex items-center gap-1">
                     <i class="fa-regular fa-face-smile text-amber-500"></i> Smileys:
                 </span>
                 <template x-for="e in emojis" :key="e">
                     <button type="button" 
                             @click="insertEmoji(e)"
-                            class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-purple-100 dark:hover:bg-purple-950/80 border border-slate-200/80 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700 text-sm flex items-center justify-center transition active:scale-95 cursor-pointer">
+                            class="w-8 h-8 sm:w-7 sm:h-7 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-purple-100 dark:hover:bg-purple-950/80 border border-slate-200/80 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700 text-sm flex items-center justify-center transition active:scale-95 cursor-pointer">
                         <span x-text="e"></span>
                     </button>
                 </template>
             </div>
 
-            <div class="flex items-center justify-between pt-2 pl-14 border-t border-slate-100 dark:border-slate-800/80">
+            <div class="flex items-center justify-between pt-2 sm:pl-14 border-t border-slate-100 dark:border-slate-800/80">
                 <div class="text-[11px] font-bold" :class="text.length > 250 ? 'text-rose-500 font-extrabold' : 'text-slate-400 dark:text-slate-500'">
                     <span x-text="text.length"></span> / 280 tekens
                 </div>

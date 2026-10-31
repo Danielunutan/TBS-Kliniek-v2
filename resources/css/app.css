@@ -918,6 +918,9 @@ html, body, button, a, input, select, textarea {
 
     .fixed.inset-0.z-50.flex.items-center.justify-center > div {
         max-height: calc(100dvh - 6.5rem - env(safe-area-inset-bottom, 0px));
+    }
+
+    .fixed.inset-0.z-50.flex.items-center.justify-center > div:not(.flex-col):not(.overflow-hidden) {
         overflow-y: auto;
     }
 }

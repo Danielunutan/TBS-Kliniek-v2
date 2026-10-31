@@ -391,8 +391,8 @@
 
             <!-- INTERACTIVE CANVAS WITH GRID OVERLAY (WHEN IMAGE LOADED) -->
             <div x-show="imageLoaded" class="space-y-4">
-                <div class="relative w-full aspect-square bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 select-none">
-                    <canvas x-ref="cropCanvas" width="360" height="360" class="cursor-grab active:cursor-grabbing w-full h-full"
+                <div class="relative w-full aspect-square bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 select-none touch-none">
+                    <canvas x-ref="cropCanvas" width="360" height="360" class="cursor-grab active:cursor-grabbing w-full h-full touch-none"
                             @mousedown="startDrag($event)" @mousemove="onDrag($event)" @mouseup="endDrag()" @mouseleave="endDrag()"
                             @touchstart="startTouch($event)" @touchmove="onTouch($event)" @touchend="endDrag()"></canvas>
 
