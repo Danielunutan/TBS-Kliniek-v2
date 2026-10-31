@@ -339,9 +339,21 @@ class FightController extends Controller
         }
 
         if ($attacker->hasIsolationProtection()) {
-            $remaining = $attacker->protection_until->diffForHumans(null, true);
+            if (! $request->boolean('confirm_break_isolation')) {
+                $remaining = $attacker->protection_until->diffForHumans(null, true);
 
-            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt niet vechten op de luchtplaats zolang je cel op slot zit.");
+                return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een aanval uit te voeren.");
+            }
+
+            $attacker->breakProtection();
+
+            GameNotification::create([
+                'character_id' => $attacker->id,
+                'type' => 'theft',
+                'icon' => 'fa-door-open',
+                'title' => 'Isolatie Vroegtijdig Beëindigd',
+                'message' => 'Je hebt je cel verlaten om een beroving uit te voeren. Je isolatiebescherming is beëindigd.',
+            ]);
         }
 
         if ($attacker->isComatose()) {

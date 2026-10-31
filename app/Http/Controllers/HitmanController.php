@@ -523,9 +523,13 @@ class HitmanController extends Controller
         }
 
         if ($character->hasIsolationProtection()) {
-            $remaining = $character->protection_until->diffForHumans(null, true);
+            if (! $request->boolean('confirm_break_isolation')) {
+                $remaining = $character->protection_until->diffForHumans(null, true);
 
-            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt geen contracten uitzetten zolang je cel op slot zit.");
+                return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een contract uit te zetten.");
+            }
+
+            $character->breakProtection();
         }
 
         if ($character->needsReviveSerum()) {
@@ -637,9 +641,13 @@ class HitmanController extends Controller
         }
 
         if ($attacker->hasIsolationProtection()) {
-            $remaining = $attacker->protection_until->diffForHumans(null, true);
+            if (! $request->boolean('confirm_break_isolation')) {
+                $remaining = $attacker->protection_until->diffForHumans(null, true);
 
-            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt geen liquidaties uitvoeren zolang je cel op slot zit.");
+                return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een liquidatie uit te voeren.");
+            }
+
+            $attacker->breakProtection();
         }
 
         if ($attacker->needsReviveSerum()) {

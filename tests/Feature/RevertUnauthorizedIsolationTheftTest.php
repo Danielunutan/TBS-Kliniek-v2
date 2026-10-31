@@ -118,6 +118,36 @@ class RevertUnauthorizedIsolationTheftTest extends TestCase
         $this->assertTrue($attacker->hasIsolationProtection());
     }
 
+    public function test_attacker_can_confirm_break_isolation_to_attack(): void
+    {
+        $attacker = $this->createCharacter([
+            'level' => 15,
+            'energy' => 100,
+            'protection_until' => now()->addHours(20),
+        ]);
+
+        $defender = $this->createCharacter([
+            'level' => 12,
+            'cash' => 300000,
+        ]);
+
+        $response = $this->actingAs($attacker->user)->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+            'confirm_break_isolation' => 1,
+        ]);
+
+        $response->assertRedirect();
+        $attacker->refresh();
+
+        // Isolation must now be broken because user explicitly confirmed!
+        $this->assertNull($attacker->protection_until);
+        $this->assertFalse($attacker->hasIsolationProtection());
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $attacker->id,
+            'title' => 'Isolatie Vroegtijdig Beëindigd',
+        ]);
+    }
+
     public function test_commit_pending_battle_blocks_theft_when_defender_is_protected(): void
     {
         $attacker = $this->createCharacter(['level' => 15]);

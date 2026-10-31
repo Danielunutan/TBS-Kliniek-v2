@@ -1,7 +1,56 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-4 sm:space-y-6" x-data="{ searchQuery: '' }">
+<div class="space-y-4 sm:space-y-6" x-data="{
+    searchQuery: '',
+    isolationModalOpen: false,
+    pendingForm: null,
+    targetName: '',
+    hasIsolation: {{ $character->hasIsolationProtection() ? 'true' : 'false' }},
+    handleAttack(event, name) {
+        if (this.hasIsolation) {
+            event.preventDefault();
+            this.pendingForm = event.target;
+            this.targetName = name;
+            this.isolationModalOpen = true;
+            return false;
+        }
+        return true;
+    },
+    confirmBreakAndAttack() {
+        if (!this.pendingForm) return;
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'confirm_break_isolation';
+        hidden.value = '1';
+        this.pendingForm.appendChild(hidden);
+        this.isolationModalOpen = false;
+        this.hasIsolation = false;
+        this.pendingForm.submit();
+    }
+}">
+
+    @if($character->hasIsolationProtection())
+    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/70 flex items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+                <div class="text-xs font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>Vrijwillige Isolatie Actief</span>
+                    <span class="px-2 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 text-[10px]">100% Beschermd</span>
+                </div>
+                <p class="text-xs text-amber-900 dark:text-amber-300 mt-0.5">
+                    Je cel is vergrendeld tot <strong>{{ $character->protection_until->format('d-m H:i') }}</strong>. Als je iemand berooft, vraagt het spel eerst een bevestiging en vervalt je isolatie.
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('isolation.index') }}" class="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shrink-0 transition shadow-xs">
+            Bekijk Isolatie &raquo;
+        </a>
+    </div>
+    @endif
 
     <!-- Combat Mode App Tab Switcher -->
     <div class="grid grid-cols-2 gap-2 bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70">
@@ -379,6 +428,7 @@
 
                         <form action="{{ route('fight.attack') }}" method="POST"
                               @submit="
+                                if (!handleAttack($event, '{{ addslashes($opp->name) }}')) return;
                                 if(globalCd > 0) { $event.preventDefault(); return false; }
                                 const token = window.tbsTurnstileToken 
                                     || (document.querySelector('.cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('.cf-turnstile [name=cf-turnstile-response]').value : '')
@@ -484,6 +534,7 @@
                             <td class="py-3.5 px-3 text-right">
                                 <form action="{{ route('fight.attack') }}" method="POST" class="inline-block"
                                       @submit="
+                                        if (!handleAttack($event, '{{ addslashes($opp->name) }}')) return;
                                         if(globalCd > 0) { $event.preventDefault(); return false; }
                                         const token = window.tbsTurnstileToken 
                                             || (document.querySelector('.cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('.cf-turnstile [name=cf-turnstile-response]').value : '')
@@ -567,6 +618,56 @@
                 </span>
             </div>
             @endforeach
+        </div>
+    </div>
+
+    <!-- MODAL: ISOLATIE VERBREKEN BEVESTIGING -->
+    <div x-show="isolationModalOpen"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs transition-opacity duration-200"
+         x-transition:enter="ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        <div class="bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-700 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 relative"
+             @click.away="isolationModalOpen = false"
+             x-transition:enter="ease-out duration-200"
+             x-transition:enter-start="scale-95 opacity-0"
+             x-transition:enter-end="scale-100 opacity-100">
+            
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Isolatie Vroegtijdig Beëindigen?</h3>
+                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400">Let op: je verlaat je veilige cel!</span>
+                </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                <p>
+                    Je hebt momenteel <strong>Vrijwillige Isolatie</strong> aanstaan (tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>).
+                </p>
+                <p>
+                    Als je nu <span class="font-extrabold text-slate-900 dark:text-white" x-text="targetName"></span> berooft, verlaat je je cel en <strong>vervalt je isolatiebescherming direct</strong>. Andere patiënten kunnen jou daarna ook weer aanvallen!
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button"
+                        @click="isolationModalOpen = false"
+                        class="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition cursor-pointer">
+                    Nee, veilig blijven
+                </button>
+                <button type="button"
+                        @click="confirmBreakAndAttack()"
+                        class="py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs transition shadow-xs active:scale-95 cursor-pointer">
+                    Ja, val toch aan!
+                </button>
+            </div>
         </div>
     </div>
 
