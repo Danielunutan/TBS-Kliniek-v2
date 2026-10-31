@@ -134,9 +134,12 @@ function tbsLiveMessenger(config) {
 
             // 3. Convert links (https:// or http://) into safe clickable links
             const urlRegex = /(?<!href="|href=')(https?:\/\/[^\s<]+)/gi;
+            const linkColorClass = isMe
+                ? 'text-amber-200 hover:text-white'
+                : 'text-purple-700 dark:text-amber-400 hover:text-purple-900 dark:hover:text-amber-300';
             safe = safe.replace(urlRegex, (url) => {
                 const cleanUrl = url.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold text-amber-300 dark:text-amber-400 hover:text-amber-200 dark:hover:text-amber-300 break-all transition">${cleanUrl}</a>`;
+                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold ${linkColorClass} break-all transition">${cleanUrl}</a>`;
             });
 
             return safe;

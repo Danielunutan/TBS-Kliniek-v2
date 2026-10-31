@@ -14,13 +14,13 @@
     <!-- Top Dashboard Header with Customizer Trigger -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-1">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-base shadow-xs"
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-base shadow-xs"
                  :class="{
-                     'bg-purple-600': theme === 'clinical',
-                     'bg-rose-600 shadow-rose-500/20': theme === 'ebi',
+                     'bg-purple-600 text-white': theme === 'clinical',
+                     'bg-rose-600 text-white shadow-rose-500/20': theme === 'ebi',
                      'bg-amber-500 text-slate-950 shadow-amber-500/20': theme === 'vip',
-                     'bg-cyan-500 shadow-cyan-500/20': theme === 'cyber',
-                     'bg-orange-600 shadow-orange-500/20': theme === 'orange'
+                     'bg-cyan-500 text-white shadow-cyan-500/20': theme === 'cyber',
+                     'bg-orange-600 text-white shadow-orange-500/20': theme === 'orange'
                  }">
                 <i class="fa-solid fa-gauge-high"></i>
             </div>
@@ -1800,7 +1800,7 @@
                                         @click="toggleWidget(item.key)"
                                         class="w-11 h-6 rounded-full transition-colors p-0.5 cursor-pointer shrink-0"
                                         :class="widgets[item.key] ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-700'">
-                                    <div class="w-5 h-5 rounded-full bg-white transition-transform"
+                                    <div class="w-5 h-5 rounded-full bg-white dark:bg-white transition-transform"
                                          :class="widgets[item.key] ? 'translate-x-5' : 'translate-x-0'"></div>
                                 </button>
                             </template>

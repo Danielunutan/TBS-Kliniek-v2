@@ -110,7 +110,7 @@
                     <!-- Search Input -->
                     <div class="relative">
                         <input type="text" x-model="searchQuery" placeholder="Zoeken..." 
-                                class="w-full bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 focus:border-purple-600 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600">
+                                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:border-purple-600 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600">
                         <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-400 text-xs"></i>
                     </div>
                 </div>
@@ -177,7 +177,7 @@
                     });
                     const banner = document.getElementById('turnstile-container-banner');
                     if (banner) {
-                        banner.classList.remove('bg-purple-50', 'dark:bg-slate-900', 'border-purple-300', 'dark:border-purple-800');
+                        banner.classList.remove('bg-purple-50', 'dark:bg-slate-900', 'border-purple-300', 'dark:border-purple-800', 'dark:border-purple-800/80');
                         banner.classList.add('bg-emerald-50', 'dark:bg-emerald-950/40', 'border-emerald-300', 'dark:border-emerald-800');
                     }
                     const statusText = document.getElementById('turnstile-status-text');
@@ -434,8 +434,8 @@
                                 <div class="flex items-center gap-3">
                                     <div class="relative">
                                         <img src="{{ $opp->avatar_url }}" alt="{{ $opp->name }}" 
-                                             class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-xs">
-                                        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white {{ $opp->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $opp->online_status_label }}"></span>
+                                             class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-xs">
+                                        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 {{ $opp->isOnline() ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}" title="{{ $opp->online_status_label }}"></span>
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-1.5">

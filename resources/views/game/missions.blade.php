@@ -130,7 +130,7 @@
             <button @click="levelFilter = 'legendary'"
                 :class="levelFilter === 'legendary' ? 'bg-amber-500 text-slate-950 font-black shadow-xs' : 'text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-amber-300 dark:border-amber-700'"
                 class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0 flex items-center gap-1">
-                <i class="fa-solid fa-crown text-[10px] text-amber-500"></i> Lvl 36+ (Legendes)
+                <i class="fa-solid fa-crown text-[10px]" :class="levelFilter === 'legendary' ? 'text-slate-950' : 'text-amber-500'"></i> Lvl 36+ (Legendes)
             </button>
         </div>
     </div>

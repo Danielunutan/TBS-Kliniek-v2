@@ -81,14 +81,17 @@
             </div>
             <div class="space-y-1">
                 <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="text-sm sm:text-base font-extrabold text-emerald-950 dark:text-emerald-200">
+                    <h3 class="text-sm sm:text-base font-extrabold"
+                        :class="sec > 0 && sec <= 1800 ? 'text-amber-950 dark:text-amber-200' : (sec <= 0 ? 'text-rose-950 dark:text-rose-200' : 'text-emerald-950 dark:text-emerald-200')">
                         Isolatiebescherming Actief!
                     </h3>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-200/80 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-200">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                          :class="sec > 0 && sec <= 1800 ? 'bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200' : (sec <= 0 ? 'bg-rose-200/80 dark:bg-rose-900/80 text-rose-900 dark:text-rose-200' : 'bg-emerald-200/80 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-200')">
                         <span x-text="sec > 0 ? (sec <= 1800 ? 'Bijna Verlopen — Verleng Nu' : '100% Veilig') : 'Zojuist Verlopen'">100% Veilig</span>
                     </span>
                 </div>
-                <p class="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                <p class="text-xs leading-relaxed"
+                   :class="sec > 0 && sec <= 1800 ? 'text-amber-900 dark:text-amber-300' : (sec <= 0 ? 'text-rose-900 dark:text-rose-300' : 'text-emerald-800 dark:text-emerald-300')">
                     Je cel is vergrendeld tot <span class="font-extrabold">{{ $character->protection_until->format('d-m-Y \o\m H:i') }} uur</span> (nog ~{{ $remainingHours }} uur / {{ $remainingMinutes }} min). Andere patiënten kunnen je niet aanvallen of liquideren. Verleng je beveiliging hieronder op tijd!
                 </p>
                 <p x-show="sec > 0 && sec <= 1800" x-cloak class="text-xs font-extrabold text-amber-800 dark:text-amber-300 flex items-center gap-1.5 pt-0.5">
@@ -98,13 +101,16 @@
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row md:flex-col items-stretch sm:items-center md:items-end justify-between gap-1.5 bg-white/90 dark:bg-slate-900/80 border border-emerald-200 dark:border-emerald-800/60 rounded-xl px-4 py-3 shrink-0 shadow-2xs">
+        <div class="flex flex-col sm:flex-row md:flex-col items-stretch sm:items-center md:items-end justify-between gap-1.5 bg-white/90 dark:bg-slate-900/80 border rounded-xl px-4 py-3 shrink-0 shadow-2xs"
+             :class="sec > 0 && sec <= 1800 ? 'border-amber-200 dark:border-amber-800/60' : (sec <= 0 ? 'border-rose-200 dark:border-rose-800/60' : 'border-emerald-200 dark:border-emerald-800/60')">
             <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-stopwatch text-emerald-600 dark:text-emerald-400 animate-pulse"></i>
+                <i class="fa-solid fa-stopwatch animate-pulse"
+                   :class="sec > 0 && sec <= 1800 ? 'text-amber-600 dark:text-amber-400' : (sec <= 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400')"></i>
                 <span>Resterende beveiligingstijd</span>
             </span>
             <div class="flex items-baseline gap-2">
-                <span class="text-lg sm:text-xl font-black font-mono text-emerald-700 dark:text-emerald-400 tracking-tight"
+                <span class="text-lg sm:text-xl font-black font-mono tracking-tight"
+                      :class="sec > 0 && sec <= 1800 ? 'text-amber-700 dark:text-amber-400' : (sec <= 0 ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400')"
                       x-text="formatClock(sec)">
                     {{ sprintf('%02d:%02d:%02d', intdiv((int) ($remainingSeconds ?? 0), 3600), intdiv(((int) ($remainingSeconds ?? 0)) % 3600, 60), ((int) ($remainingSeconds ?? 0)) % 60) }}
                 </span>
@@ -153,7 +159,7 @@
              }">
             <div class="flex items-center gap-3 min-w-0">
                 <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shrink-0">
-                    <i class="fa-solid fa-Vault fa-shield"></i>
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div class="min-w-0">
                     <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">VIP 24u Cash Bescherming Actief</div>

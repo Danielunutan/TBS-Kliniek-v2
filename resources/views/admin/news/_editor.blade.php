@@ -172,7 +172,19 @@ function tbsNewsEditor(initialContent) {
             t = t.replace(/\[(?:link|url)=((?:https?:\/\/|\/)[^\s<"']+)\](.*?)\[\/(?:link|url)\]/gi, '<a href="$1" target="_blank" class="text-purple-600 underline font-extrabold hover:text-purple-800">$2 ↗</a>');
             
             // Colors & alignment
-            t = t.replace(/\[color=([a-z0-9#]+)\](.*?)\[\/color\]/gi, '<span style="color:$1" class="font-bold">$2</span>');
+            const colorMap = {
+                purple: '#9333ea',
+                emerald: '#10b981',
+                amber: '#f59e0b',
+                red: '#ef4444',
+                rose: '#f43f5e',
+                indigo: '#6366f1',
+                blue: '#3b82f6'
+            };
+            t = t.replace(/\[color=([a-z0-9#]+)\](.*?)\[\/color\]/gi, (m, col, inner) => {
+                const resolved = colorMap[col.toLowerCase()] || col;
+                return `<span style="color:${resolved}" class="font-bold">${inner}</span>`;
+            });
             t = t.replace(/\[center\](.*?)\[\/center\]/gi, '<div class="text-center my-2">$1</div>');
 
             // Headers

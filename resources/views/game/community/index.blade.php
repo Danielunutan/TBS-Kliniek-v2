@@ -98,7 +98,7 @@
                                 H
                             </div>
                         @else
-                            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-xs shrink-0" style="color: {{ $p['color'] }};">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-xs shrink-0 {{ ($p['color'] ?? '') === '#000000' ? 'dark:!text-white' : '' }}" style="color: {{ $p['color'] }};">
                                 <i class="{{ $p['icon'] }}"></i>
                             </div>
                         @endif

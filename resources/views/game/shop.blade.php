@@ -1826,7 +1826,7 @@
                     </div>
 
                     <!-- 9. 1 Week VIP Status (500 Sterren) -->
-                    <div class="bg-gradient-to-b from-purple-950/40 via-purple-900/20 to-slate-900 border-2 border-purple-500/60 rounded-2xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden group">
+                    <div class="bg-gradient-to-b from-purple-950 via-purple-900 to-slate-900 border-2 border-purple-500/60 rounded-2xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden group">
                         <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
                         <div class="space-y-3 relative z-10">
                             <div class="flex items-center justify-between">

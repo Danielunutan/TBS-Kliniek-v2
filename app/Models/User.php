@@ -100,9 +100,9 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->isOwner()) {
             return [
                 'label' => 'Eigenaar',
-                'bg' => 'bg-amber-100',
-                'text' => 'text-amber-800',
-                'border' => 'border-amber-200',
+                'bg' => 'bg-amber-100 dark:bg-amber-950/60',
+                'text' => 'text-amber-800 dark:text-amber-300',
+                'border' => 'border-amber-200 dark:border-amber-800/60',
                 'icon' => 'fa-crown',
             ];
         }
@@ -110,9 +110,9 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->role === 'admin') {
             return [
                 'label' => 'Beheerder',
-                'bg' => 'bg-purple-100',
-                'text' => 'text-purple-800',
-                'border' => 'border-purple-200',
+                'bg' => 'bg-purple-100 dark:bg-purple-950/60',
+                'text' => 'text-purple-800 dark:text-purple-300',
+                'border' => 'border-purple-200 dark:border-purple-800/60',
                 'icon' => 'fa-user-shield',
             ];
         }
@@ -120,18 +120,18 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->role === 'moderator') {
             return [
                 'label' => 'Moderator',
-                'bg' => 'bg-blue-100',
-                'text' => 'text-blue-800',
-                'border' => 'border-blue-200',
+                'bg' => 'bg-blue-100 dark:bg-blue-950/60',
+                'text' => 'text-blue-800 dark:text-blue-300',
+                'border' => 'border-blue-200 dark:border-blue-800/60',
                 'icon' => 'fa-gavel',
             ];
         }
 
         return [
             'label' => 'Lid',
-            'bg' => 'bg-slate-100',
-            'text' => 'text-slate-600',
-            'border' => 'border-slate-200',
+            'bg' => 'bg-slate-100 dark:bg-slate-800',
+            'text' => 'text-slate-600 dark:text-slate-300',
+            'border' => 'border-slate-200 dark:border-slate-700',
             'icon' => 'fa-user',
         ];
     }

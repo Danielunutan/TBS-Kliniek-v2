@@ -72,7 +72,7 @@
                            required
                            autofocus
                            value="{{ old('code') }}"
-                           class="w-full text-center font-mono text-3xl sm:text-4xl tracking-[0.4em] sm:tracking-[0.5em] font-black py-4 px-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border-2 border-purple-300 dark:border-purple-600 text-purple-950 dark:text-amber-400 placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-purple-500/20 transition shadow-inner">
+                           class="w-full text-center font-mono text-3xl sm:text-4xl tracking-[0.4em] sm:tracking-[0.5em] font-black py-4 px-3 rounded-2xl bg-slate-50 dark:!bg-slate-950 border-2 border-purple-300 dark:!border-purple-600 text-purple-950 dark:!text-amber-400 placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:!bg-slate-900 focus:ring-4 focus:ring-purple-500/20 transition shadow-inner">
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400 pt-1">
                     Vul de 6 cijfers uit je e-mail in.

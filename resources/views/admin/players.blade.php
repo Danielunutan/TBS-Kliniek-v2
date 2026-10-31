@@ -8,7 +8,7 @@
         <form method="GET" action="{{ route('admin.players') }}" class="w-full sm:w-auto flex items-center gap-2">
             <div class="relative flex-1 sm:w-72">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Zoek op patiëntnaam of email..." 
-                       class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:bg-white">
+                       class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-3.5 pr-8 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:bg-white">
                 <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-400 text-xs"></i>
             </div>
             <button type="submit" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition">
@@ -40,7 +40,7 @@
             </a>
             <a href="{{ route('admin.players', ['filter' => 'banned']) }}" 
                class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ request('filter') === 'banned' ? 'bg-red-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                <i class="fa-solid fa-ban text-red-500 mr-1 {{ request('filter') === 'banned' ? 'text-white' : '' }}"></i> Verbannen
+                <i class="fa-solid fa-ban mr-1 {{ request('filter') === 'banned' ? 'text-white' : 'text-red-500' }}"></i> Verbannen
             </a>
             <a href="{{ route('admin.players', ['filter' => 'warned']) }}" 
                class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ request('filter') === 'warned' ? 'bg-amber-100 text-amber-900 font-extrabold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">

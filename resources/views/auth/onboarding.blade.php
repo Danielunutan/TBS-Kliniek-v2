@@ -101,7 +101,7 @@
                     <div>
                         <h4 class="text-sm font-black text-amber-950 flex items-center gap-2">
                             <span>Leeftijdscontrole (16+)</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-200/80 text-amber-900 border border-amber-300">Wettelijk Vereist</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800">Wettelijk Vereist</span>
                         </h4>
                         <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
                             TBS Kliniek bevat misdaad-, casino- en fictieve geweldsthema's. Volgens de Nederlandse AVG-wetgeving en ons kliniekreglement dien je <strong>minimaal 16 jaar oud</strong> te zijn om een account te beheren.
@@ -245,7 +245,7 @@
                     <!-- Hosselaar -->
                     <div @click="selectedSpecialty = 'hossel'"
                          class="cursor-pointer p-4 rounded-2xl border-2 transition-all space-y-2 relative overflow-hidden"
-                         :class="selectedSpecialty === 'hossel' ? 'border-amber-500 bg-amber-50/40 shadow-xs ring-2 ring-amber-300' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                         :class="selectedSpecialty === 'hossel' ? 'border-amber-500 bg-amber-50/40 dark:bg-amber-950/30 shadow-xs ring-2 ring-amber-300 dark:ring-amber-500/40' : 'border-slate-200 hover:border-slate-300 bg-white'">
                         <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg">
                             <i class="fa-solid fa-coins"></i>
                         </div>
@@ -259,7 +259,7 @@
                     <!-- Vechter -->
                     <div @click="selectedSpecialty = 'vecht'"
                          class="cursor-pointer p-4 rounded-2xl border-2 transition-all space-y-2 relative overflow-hidden"
-                         :class="selectedSpecialty === 'vecht' ? 'border-rose-500 bg-rose-50/40 shadow-xs ring-2 ring-rose-300' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                         :class="selectedSpecialty === 'vecht' ? 'border-rose-500 bg-rose-50/40 dark:bg-rose-950/30 shadow-xs ring-2 ring-rose-300 dark:ring-rose-500/40' : 'border-slate-200 hover:border-slate-300 bg-white'">
                         <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-lg">
                             <i class="fa-solid fa-hand-fist"></i>
                         </div>
@@ -273,7 +273,7 @@
                     <!-- Meesterbrein -->
                     <div @click="selectedSpecialty = 'brein'"
                          class="cursor-pointer p-4 rounded-2xl border-2 transition-all space-y-2 relative overflow-hidden"
-                         :class="selectedSpecialty === 'brein' ? 'border-purple-600 bg-purple-50/40 shadow-xs ring-2 ring-purple-300' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                         :class="selectedSpecialty === 'brein' ? 'border-purple-600 bg-purple-50/40 dark:bg-purple-950/30 shadow-xs ring-2 ring-purple-300 dark:ring-purple-500/40' : 'border-slate-200 hover:border-slate-300 bg-white'">
                         <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg">
                             <i class="fa-solid fa-brain"></i>
                         </div>
@@ -370,7 +370,7 @@
                 <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <i class="fa-solid fa-magnifying-glass-minus text-slate-400 text-xs"></i>
                     <input type="range" min="0.5" max="3" step="0.05" x-model="zoom" @input="redrawCanvas()"
-                           class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                           class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-600">
                     <i class="fa-solid fa-magnifying-glass-plus text-slate-400 text-xs"></i>
                     <button type="button" @click="rotateImage()" class="px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition" title="90 graden draaien">
                         <i class="fa-solid fa-rotate-right"></i>

@@ -1,5 +1,5 @@
 <!-- MOBILE FULL SLIDE-OVER NAVIGATION DRAWER (Modern Desktop-Matching Categorized Experience) -->
-<div x-show="mobileMenuOpen" x-cloak class="lg:hidden fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
+<div x-show="mobileMenuOpen" x-cloak class="lg:hidden fixed inset-0 z-50 flex justify-end">
     <div x-show="mobileMenuOpen" 
          x-transition:enter="transition-opacity ease-linear duration-200"
          x-transition:enter-start="opacity-0"
@@ -11,6 +11,8 @@
          class="fixed inset-0 bg-slate-950/75"></div>
 
     <div x-show="mobileMenuOpen"
+         role="dialog"
+         aria-modal="true"
          x-transition:enter="transition ease-out duration-200 transform-gpu"
          x-transition:enter-start="translate-x-full"
          x-transition:enter-end="translate-x-0"

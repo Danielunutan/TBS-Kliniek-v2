@@ -172,7 +172,7 @@
                     <input type="hidden" name="informant_id" value="{{ $inf['id'] }}">
                     <button type="submit"
                             {{ $character->isImprisoned() || $character->energy < $inf['energy'] || $character->cash < $inf['cost'] ? 'disabled' : '' }}
-                            class="px-4 py-2 rounded-lg text-xs font-extrabold text-white transition shadow-xs {{ $character->isImprisoned() || $character->energy < $inf['energy'] || $character->cash < $inf['cost'] ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 active:scale-95 cursor-pointer' }}">
+                            class="px-4 py-2 rounded-lg text-xs font-extrabold transition shadow-xs {{ $character->isImprisoned() || $character->energy < $inf['energy'] || $character->cash < $inf['cost'] ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95 cursor-pointer' }}">
                         <i class="fa-solid fa-user-secret mr-1"></i> Inhuren
                     </button>
                 </form>

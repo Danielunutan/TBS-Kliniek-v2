@@ -71,14 +71,14 @@
                 </div>
 
                 <!-- MODERN PILL TAB SWITCHER (MATCHES SITE TABS) -->
-                <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+                <div class="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl flex gap-1">
                     <button type="button" @click="tab = 'login'"
-                            :class="tab === 'login' ? 'bg-white text-slate-900 font-extrabold shadow-2xs' : 'text-slate-500 hover:text-slate-900 font-bold'"
+                            :class="tab === 'login' ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white font-extrabold shadow-2xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
                             class="flex-1 py-2 text-xs rounded-lg transition text-center cursor-pointer">
                         Inloggen
                     </button>
                     <button type="button" @click="tab = 'register'"
-                            :class="tab === 'register' ? 'bg-white text-slate-900 font-extrabold shadow-2xs' : 'text-slate-500 hover:text-slate-900 font-bold'"
+                            :class="tab === 'register' ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white font-extrabold shadow-2xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
                             class="flex-1 py-2 text-xs rounded-lg transition text-center cursor-pointer">
                         Registreren
                     </button>
@@ -161,8 +161,8 @@
                                 <i class="fa-solid fa-crown"></i>
                             </div>
                             <div class="min-w-0">
-                                <span class="font-black text-amber-500 dark:text-amber-300 block text-xs uppercase tracking-wide">🎉 OOHPA Arjan Actie Geactiveerd!</span>
-                                <span class="text-[11px] font-semibold text-slate-700 dark:text-zinc-200 block">Maak nu je account aan en ontvang direct <strong class="text-amber-400 underline">3 Dagen Gratis VIP</strong> status cadeau!</span>
+                                <span class="font-black text-amber-700 dark:text-amber-300 block text-xs uppercase tracking-wide">🎉 OOHPA Arjan Actie Geactiveerd!</span>
+                                <span class="text-[11px] font-semibold text-slate-700 dark:text-zinc-200 block">Maak nu je account aan en ontvang direct <strong class="text-amber-700 dark:text-amber-400 underline">3 Dagen Gratis VIP</strong> status cadeau!</span>
                             </div>
                         </div>
                         @else

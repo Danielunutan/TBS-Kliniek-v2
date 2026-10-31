@@ -49,7 +49,7 @@
             <button type="button" @click="tab = 'stars'" 
                     :class="tab === 'stars' ? 'bg-amber-500 text-slate-950 shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
-                <i class="fa-solid fa-star text-amber-500 dark:text-amber-400"></i>
+                <i class="fa-solid fa-star" :class="tab === 'stars' ? 'text-slate-950' : 'text-amber-500 dark:text-amber-400'"></i>
                 <span>Sterren Showroom ⭐ ({{ count($starVehicles) }})</span>
             </button>
             <button type="button" @click="tab = 'garage'" 

@@ -106,7 +106,7 @@
         <form method="GET" action="{{ route('admin.moderation.index') }}" class="w-full sm:w-auto flex items-center gap-2">
             <div class="relative flex-1 sm:w-64">
                 <input type="text" name="search" value="{{ $search }}" placeholder="Zoek op naam, email of reden..." 
-                       class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-rose-500 focus:bg-white">
+                       class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-3.5 pr-8 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-rose-500 focus:bg-white">
                 <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-400 text-xs"></i>
             </div>
             <button type="submit" class="px-4 py-2 rounded-lg bg-slate-900 hover:bg-black text-white text-xs font-bold transition">
@@ -186,6 +186,7 @@
                             <td class="py-3 px-3 text-slate-500 text-[11px] font-mono">
                                 {{ $bannedUser->banned_at ? $bannedUser->banned_at->isoFormat('D MMM YYYY [om] HH:mm') : '-' }}
                             </td>
+                            <td class="py-3 px-4 text-right">
                                 <form action="{{ route('admin.moderation.unban', $bannedUser) }}" method="POST"
                                       data-confirm="Weet je zeker dat je de ban van {{ $bannedUser->character?->name ?? $bannedUser->name }} wilt opheffen?"
                                       data-confirm-title="Verbanning Opheffen"

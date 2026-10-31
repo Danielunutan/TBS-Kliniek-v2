@@ -249,7 +249,6 @@
                                 <div class="w-full flex items-center justify-between text-[7px] sm:text-[9px] font-black uppercase tracking-wider">
                                     <span class="px-1.5 py-0.5 rounded-md font-extrabold"
                                           :class="card.matched ? 'bg-emerald-500 text-white' : ('card-pill-' + card.id)"
-                                          :style="(!card.matched && card.badge_bg) ? ('background-color: ' + card.badge_bg + '; color: ' + card.badge_text + ';') : ''"
                                           x-text="card.category"></span>
                                     <i x-show="card.matched" class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
                                 </div>
@@ -874,5 +873,16 @@ function memoryGame(config) {
 .card-badge-traliecel { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; }
 .card-border-traliecel { border-color: #fb923c !important; }
 .card-pill-traliecel { background-color: rgba(249, 115, 22, 0.15) !important; color: #c2410c !important; }
+
+html.dark .card-pill-smokkelkoffer { background-color: rgba(168, 85, 247, 0.22) !important; color: #d8b4fe !important; }
+html.dark .card-pill-medicijnspuit { background-color: rgba(16, 185, 129, 0.22) !important; color: #6ee7b7 !important; }
+html.dark .card-pill-handboeien { background-color: rgba(148, 163, 184, 0.22) !important; color: #cbd5e1 !important; }
+html.dark .card-pill-bende_masker { background-color: rgba(244, 63, 94, 0.22) !important; color: #fda4af !important; }
+html.dark .card-pill-dodelijke_pillen { background-color: rgba(245, 158, 11, 0.22) !important; color: #fcd34d !important; }
+html.dark .card-pill-sleutelbos { background-color: rgba(99, 102, 241, 0.22) !important; color: #a5b4fc !important; }
+html.dark .card-pill-steekwapen { background-color: rgba(239, 68, 68, 0.22) !important; color: #fca5a5 !important; }
+html.dark .card-pill-kluis { background-color: rgba(234, 179, 8, 0.22) !important; color: #fde047 !important; }
+html.dark .card-pill-portofoon { background-color: rgba(6, 182, 212, 0.22) !important; color: #67e8f9 !important; }
+html.dark .card-pill-traliecel { background-color: rgba(249, 115, 22, 0.22) !important; color: #fdba74 !important; }
 </style>
 @endsection

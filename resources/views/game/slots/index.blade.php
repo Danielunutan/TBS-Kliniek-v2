@@ -163,31 +163,31 @@
                         <!-- Reel 1 -->
                         <div class="bg-white rounded-lg h-28 sm:h-36 flex items-center justify-center text-5xl sm:text-6xl shadow-sm border border-slate-200 relative overflow-hidden transition-all duration-150"
                              :class="isSpinning ? 'scale-[0.98] ring-2 ring-purple-400' : ''">
-                            <div class="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-slate-200/60 to-transparent pointer-events-none"></div>
+                            <div class="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-slate-200/60 dark:from-slate-950/80 to-transparent pointer-events-none"></div>
                             <span class="transition-transform duration-100 select-none transform" 
                                   :class="isSpinning ? 'animate-bounce' : ''"
                                   x-text="rollingReels[0]"></span>
-                            <div class="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-200/60 to-transparent pointer-events-none"></div>
+                            <div class="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-200/60 dark:from-slate-950/80 to-transparent pointer-events-none"></div>
                         </div>
 
                         <!-- Reel 2 -->
                         <div class="bg-white rounded-lg h-28 sm:h-36 flex items-center justify-center text-5xl sm:text-6xl shadow-sm border border-slate-200 relative overflow-hidden transition-all duration-150"
                              :class="isSpinning ? 'scale-[0.98] ring-2 ring-purple-400' : ''">
-                            <div class="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-slate-200/60 to-transparent pointer-events-none"></div>
+                            <div class="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-slate-200/60 dark:from-slate-950/80 to-transparent pointer-events-none"></div>
                             <span class="transition-transform duration-100 select-none transform" 
                                   :class="isSpinning ? 'animate-bounce' : ''"
                                   x-text="rollingReels[1]"></span>
-                            <div class="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-200/60 to-transparent pointer-events-none"></div>
+                            <div class="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-200/60 dark:from-slate-950/80 to-transparent pointer-events-none"></div>
                         </div>
 
                         <!-- Reel 3 -->
                         <div class="bg-white rounded-lg h-28 sm:h-36 flex items-center justify-center text-5xl sm:text-6xl shadow-sm border border-slate-200 relative overflow-hidden transition-all duration-150"
                              :class="isSpinning ? 'scale-[0.98] ring-2 ring-purple-400' : ''">
-                            <div class="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-slate-200/60 to-transparent pointer-events-none"></div>
+                            <div class="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-slate-200/60 dark:from-slate-950/80 to-transparent pointer-events-none"></div>
                             <span class="transition-transform duration-100 select-none transform" 
                                   :class="isSpinning ? 'animate-bounce' : ''"
                                   x-text="rollingReels[2]"></span>
-                            <div class="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-200/60 to-transparent pointer-events-none"></div>
+                            <div class="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-200/60 dark:from-slate-950/80 to-transparent pointer-events-none"></div>
                         </div>
 
                     </div>
@@ -241,7 +241,7 @@
             <button type="button" @click="spin()"
                     :disabled="isSpinning || cash < bet || {{ $character->isImprisoned() ? 'true' : 'false' }}"
                     class="w-full py-3.5 px-6 rounded-lg font-bold text-base transition shadow-sm cursor-pointer flex items-center justify-center gap-2"
-                    :class="isSpinning || cash < bet ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' : 'bg-purple-700 hover:bg-purple-800 text-white shadow-md active:scale-98'">
+                    :class="isSpinning || cash < bet ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none' : 'bg-purple-700 hover:bg-purple-800 text-white shadow-md active:scale-[0.98]'">
                 <i class="fa-solid fa-rotate-right text-base" :class="isSpinning ? 'animate-spin' : ''"></i>
                 <span x-text="isSpinning ? 'Rollen Draaien...' : 'Draai Rollen (Spin!)'"></span>
             </button>

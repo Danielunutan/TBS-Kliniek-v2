@@ -247,7 +247,7 @@
                 </div>
 
                 <!-- 1 Week VIP voor 500 Sterren In-Game Deal -->
-                <div class="rounded-3xl p-6 bg-gradient-to-br from-amber-500/10 via-purple-950/40 to-[#110726] border-2 border-amber-400/60 shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
+                <div class="rounded-3xl p-6 bg-gradient-to-br from-[#1f0d3d] via-[#15092b] to-[#110726] border-2 border-amber-400/60 shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
                     <div class="flex items-center gap-4">
                         <div class="w-14 h-14 rounded-2xl bg-amber-400 text-purple-950 flex items-center justify-center text-2xl font-black shrink-0 shadow-md">
                             ⭐
@@ -267,7 +267,7 @@
                         <input type="hidden" name="item_type" value="vip_week">
                         <button type="submit" 
                                 {{ ($character->stars ?? 0) < 500 ? 'disabled' : '' }}
-                                class="w-full md:w-auto px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ ($character->stars ?? 0) >= 500 ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-purple-950 shadow-lg cursor-pointer transform hover:-translate-y-0.5' : 'bg-slate-700 text-slate-400 cursor-not-allowed' }}">
+                                class="w-full md:w-auto px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ ($character->stars ?? 0) >= 500 ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-purple-950 shadow-lg cursor-pointer transform hover:-translate-y-0.5' : 'bg-slate-800 text-slate-400 cursor-not-allowed' }}">
                             <i class="fa-solid fa-crown"></i>
                             <span>Activeer 1 Week VIP (500 ⭐)</span>
                         </button>
@@ -399,7 +399,7 @@
                     </div>
 
                     <!-- Tier 4: VIP LIFETIME (€125 eenmalig) -->
-                    <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-amber-500/10 via-purple-950/20 to-purple-950/40 dark:from-[#211105] dark:via-[#190a36] dark:to-[#0f0521] border-2 border-amber-400/80 dark:border-amber-500/60 shadow-xl flex flex-col justify-between group">
+                    <div class="rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 via-purple-50/60 to-amber-50/40 dark:from-[#211105] dark:via-[#190a36] dark:to-[#0f0521] border-2 border-amber-400/80 dark:border-amber-500/60 shadow-xl flex flex-col justify-between group">
                         <div>
                             <div class="p-6 pb-4 border-b border-amber-400/20">
                                 <div class="flex items-center justify-between">

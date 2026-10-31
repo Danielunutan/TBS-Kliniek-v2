@@ -250,9 +250,10 @@
             <div class="flex-1 w-full text-center md:text-left">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
                     <div>
+                        @php $isDarkCard = ($activeTheme['key'] ?? 'default') !== 'default'; @endphp
                         <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
                             <h1 class="text-2xl font-black tracking-tight flex items-center gap-1.5">
-                                <span class="px-1 -mx-1 {{ $profileCharacter->getNameCssClasses('text-slate-900 dark:text-white') }}"
+                                <span class="px-1 -mx-1 {{ $profileCharacter->getNameCssClasses($isDarkCard ? 'text-white' : 'text-slate-900 dark:text-white') }}"
                                       style="{{ $profileCharacter->getNameInlineStyle() }}">
                                     {{ $profileCharacter->name }}
                                 </span>

@@ -881,16 +881,16 @@ body.dark .board-socket:hover,
         if (isGameOver || isAiThinking || isDropping || currentPlayer !== PLAYER) return;
         const btn = document.getElementById(`col-btn-${col}`);
         if (btn) {
-            btn.classList.add('bg-purple-600', 'text-white', 'border-purple-600');
-            btn.classList.remove('bg-purple-50', 'text-purple-700', 'border-purple-200');
+            btn.classList.add('bg-purple-600', 'text-white', 'border-purple-600', 'dark:bg-purple-600', 'dark:text-white', 'dark:border-purple-500');
+            btn.classList.remove('bg-purple-50', 'text-purple-700', 'border-purple-200', 'dark:bg-slate-800', 'dark:text-purple-300', 'dark:border-slate-700');
         }
     };
 
     window.handleColumnLeave = function(col) {
         const btn = document.getElementById(`col-btn-${col}`);
         if (btn) {
-            btn.classList.remove('bg-purple-600', 'text-white', 'border-purple-600');
-            btn.classList.add('bg-purple-50', 'text-purple-700', 'border-purple-200');
+            btn.classList.remove('bg-purple-600', 'text-white', 'border-purple-600', 'dark:bg-purple-600', 'dark:text-white', 'dark:border-purple-500');
+            btn.classList.add('bg-purple-50', 'text-purple-700', 'border-purple-200', 'dark:bg-slate-800', 'dark:text-purple-300', 'dark:border-slate-700');
         }
     };
 

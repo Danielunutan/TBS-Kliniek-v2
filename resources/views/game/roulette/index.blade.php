@@ -10,7 +10,7 @@
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Europees Roulette</h1>
             <p class="text-slate-500 text-xs sm:text-sm mt-1">Plaats je inzet op rood, zwart, even, oneven of ga voor de 35x jackpot op Groen 0!</p>
         </div>
-        <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black select-none pointer-events-none">
+        <div class="absolute -right-6 -bottom-6 text-slate-100 dark:text-slate-800/40 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-circle-notch"></i>
         </div>
     </div>
@@ -28,24 +28,24 @@
                     <div class="grid grid-cols-3 gap-3">
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="rood" class="peer sr-only" required checked>
-                            <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-rose-600 peer-checked:bg-rose-500 peer-checked:text-white text-center hover:border-rose-300 transition shadow-xs flex flex-col items-center gap-1 text-slate-700">
-                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-rose-500 peer-checked:text-white"></i> Rood</span>
+                            <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-rose-600 peer-checked:bg-rose-500 peer-checked:text-white text-center hover:border-rose-300 transition shadow-xs flex flex-col items-center gap-1 text-slate-700 dark:text-slate-200 group">
+                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-rose-500 group-[.peer:checked+&]:text-white"></i> Rood</span>
                                 <span class="text-[10px] font-bold opacity-80">Uitbetaling: 2x</span>
                             </div>
                         </label>
 
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="zwart" class="peer sr-only" required>
-                            <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white text-center hover:border-slate-400 transition shadow-xs flex flex-col items-center gap-1 text-slate-700">
-                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-slate-800 peer-checked:text-white"></i> Zwart</span>
+                            <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-slate-900 dark:peer-checked:border-purple-500 peer-checked:bg-slate-900 dark:peer-checked:bg-purple-600 peer-checked:text-white text-center hover:border-slate-400 transition shadow-xs flex flex-col items-center gap-1 text-slate-700 dark:text-slate-200 group">
+                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-slate-800 dark:text-slate-300 group-[.peer:checked+&]:text-white"></i> Zwart</span>
                                 <span class="text-[10px] font-bold opacity-80">Uitbetaling: 2x</span>
                             </div>
                         </label>
 
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="groen" class="peer sr-only" required>
-                            <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white text-center hover:border-emerald-300 transition shadow-xs flex flex-col items-center gap-1 text-slate-700">
-                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-emerald-500 peer-checked:text-white"></i> Groen (0)</span>
+                            <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white text-center hover:border-emerald-300 transition shadow-xs flex flex-col items-center gap-1 text-slate-700 dark:text-slate-200 group">
+                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-emerald-500 group-[.peer:checked+&]:text-white"></i> Groen (0)</span>
                                 <span class="text-[10px] font-bold opacity-80">Uitbetaling: 35x</span>
                             </div>
                         </label>
@@ -55,7 +55,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="even" class="peer sr-only" required>
-                            <div class="p-3 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 text-center hover:border-indigo-300 transition shadow-xs flex items-center justify-between px-4">
+                            <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-950/60 peer-checked:text-indigo-900 dark:peer-checked:text-indigo-200 text-center hover:border-indigo-300 transition shadow-xs flex items-center justify-between px-4 text-slate-700 dark:text-slate-200">
                                 <span class="text-xs font-black uppercase">Even</span>
                                 <span class="text-[10px] font-bold text-slate-400">2x</span>
                             </div>
@@ -63,7 +63,7 @@
 
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="oneven" class="peer sr-only" required>
-                            <div class="p-3 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 text-center hover:border-indigo-300 transition shadow-xs flex items-center justify-between px-4">
+                            <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-950/60 peer-checked:text-indigo-900 dark:peer-checked:text-indigo-200 text-center hover:border-indigo-300 transition shadow-xs flex items-center justify-between px-4 text-slate-700 dark:text-slate-200">
                                 <span class="text-xs font-black uppercase">Oneven</span>
                                 <span class="text-[10px] font-bold text-slate-400">2x</span>
                             </div>
@@ -74,7 +74,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="eerste_helft" class="peer sr-only" required>
-                            <div class="p-3 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 text-center hover:border-indigo-300 transition shadow-xs flex items-center justify-between px-4">
+                            <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-950/60 peer-checked:text-indigo-900 dark:peer-checked:text-indigo-200 text-center hover:border-indigo-300 transition shadow-xs flex items-center justify-between px-4 text-slate-700 dark:text-slate-200">
                                 <span class="text-xs font-black uppercase">1 t/m 18</span>
                                 <span class="text-[10px] font-bold text-slate-400">2x</span>
                             </div>
@@ -82,7 +82,7 @@
 
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="tweede_helft" class="peer sr-only" required>
-                            <div class="p-3 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 text-center hover:border-indigo-300 transition shadow-xs flex items-center justify-between px-4">
+                            <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-950/60 peer-checked:text-indigo-900 dark:peer-checked:text-indigo-200 text-center hover:border-indigo-300 transition shadow-xs flex items-center justify-between px-4 text-slate-700 dark:text-slate-200">
                                 <span class="text-xs font-black uppercase">19 t/m 36</span>
                                 <span class="text-[10px] font-bold text-slate-400">2x</span>
                             </div>
@@ -112,7 +112,7 @@
 
             <button type="submit"
                     {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
-                    class="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm text-white transition shadow-sm {{ $character->isImprisoned() || $character->cash < 50 ? 'bg-slate-300 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 active:scale-[0.99]' }}">
+                    class="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm transition shadow-sm {{ $character->isImprisoned() || $character->cash < 50 ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 text-white active:scale-[0.99]' }}">
                 <i class="fa-solid fa-dharmachakra mr-2"></i> Draai aan het wiel!
             </button>
         </form>

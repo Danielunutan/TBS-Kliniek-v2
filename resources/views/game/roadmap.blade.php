@@ -85,7 +85,7 @@
                 <button @click="phaseFilter = 'fase1'"
                     :class="phaseFilter === 'fase1' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
                     class="px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
-                    <i class="fa-solid fa-fire text-amber-300 text-[10px]"></i> Fase 1: Binnenkort
+                    <i class="fa-solid fa-fire text-[10px]" :class="phaseFilter === 'fase1' ? 'text-amber-300' : 'text-amber-500 dark:text-amber-300'"></i> Fase 1: Binnenkort
                 </button>
                 <button @click="phaseFilter = 'fase2'"
                     :class="phaseFilter === 'fase2' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
@@ -95,7 +95,7 @@
                 <button @click="phaseFilter = 'fase3'"
                     :class="phaseFilter === 'fase3' ? 'bg-purple-600 text-white font-black shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
                     class="px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
-                    <i class="fa-solid fa-lightbulb text-amber-300 text-[10px]"></i> Fase 3: Toekomst
+                    <i class="fa-solid fa-lightbulb text-[10px]" :class="phaseFilter === 'fase3' ? 'text-amber-300' : 'text-amber-500 dark:text-amber-300'"></i> Fase 3: Toekomst
                 </button>
             </div>
 

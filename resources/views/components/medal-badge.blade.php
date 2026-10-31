@@ -7,7 +7,7 @@
     $tier = $badge['tier'] ?? 'bronze';
     $unlocked = (bool) ($badge['unlocked'] ?? false);
     $assetId = $badge['asset_id'] ?? 'intake';
-    $uid = 'badge_' . ($badge['id'] ?? 'b') . '_' . ($unlocked ? 'u' : 'l');
+    $uid = 'badge_' . ($badge['id'] ?? $assetId) . '_' . $tier . '_' . ($unlocked ? 'u' : 'l') . '_' . uniqid();
 
     $sizeClasses = match($size) {
         'sm' => 'w-14 h-16',
@@ -24,9 +24,9 @@
             'outer_stop1' => '#fed7aa',
             'outer_stop2' => '#c2410c',
             'outer_stop3' => '#7c2d12',
-            'inner_stop1' => '#ea580c',
-            'inner_stop2' => '#9a3412',
-            'inner_stop3' => '#431407',
+            'inner_stop1' => '#9a3412',
+            'inner_stop2' => '#7c2d12',
+            'inner_stop3' => '#3b0a04',
             'accent' => '#ffedd5',
             'rim_glow' => '#fb923c',
             'stars' => 1,
@@ -150,7 +150,7 @@
         <!-- 2. MEDALLION BODY -->
         <g filter="url(#shadow_{{ $uid }})">
             <!-- Outer Ring (Metallic Bevel) -->
-            <circle cx="50" cy="78" r="38" fill="url(#outer_grad_{{ $uid }})" stroke="#000" stroke-opacity="0.25" stroke-width="0.8" />
+            <circle cx="50" cy="78" r="38" fill="url(#outer_grad_{{ $uid }})" stroke="{{ $unlocked ? '#000' : '#475569' }}" stroke-opacity="{{ $unlocked ? '0.25' : '0.8' }}" stroke-width="0.8" />
 
             <!-- Beaded / Riveted Outer Border -->
             <circle cx="50" cy="78" r="34" fill="none" stroke="{{ $cfg['outer_stop3'] }}" stroke-width="1" stroke-dasharray="2 3" opacity="0.7" />
@@ -169,7 +169,7 @@
             @endif
 
             <!-- 3. CUSTOM EMBLEM SVG ICON (24 UNIQUE ASSETS) -->
-            <g id="emblem" transform="translate(50, 78)">
+            <g transform="translate(50, 78)">
                 @if(!$unlocked)
                     <!-- LOCKED: Heavy Weathered Padlock -->
                     <g transform="translate(0, -2)">

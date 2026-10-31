@@ -10,7 +10,7 @@
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Het Nummerspel</h1>
             <p class="text-slate-500 text-xs sm:text-sm mt-1">Kies een getal tussen 1 en 20. Exact raak = 15x Jackpot! 1 getal ernaast = 2x troostprijs!</p>
         </div>
-        <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black select-none pointer-events-none">
+        <div class="absolute -right-6 -bottom-6 text-slate-100 dark:text-slate-800/40 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-arrow-down-1-9"></i>
         </div>
     </div>
@@ -26,7 +26,7 @@
                     @for($i = 1; $i <= 20; $i++)
                     <label class="cursor-pointer">
                         <input type="radio" name="number" value="{{ $i }}" class="peer sr-only" required {{ $i === 7 ? 'checked' : '' }}>
-                        <div class="h-10 rounded-xl border-2 border-slate-200 peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white font-extrabold text-sm flex items-center justify-center hover:border-emerald-300 transition text-slate-700 shadow-xs">
+                        <div class="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white font-extrabold text-sm flex items-center justify-center hover:border-emerald-300 transition text-slate-700 dark:text-slate-200 shadow-xs">
                             {{ $i }}
                         </div>
                     </label>
@@ -55,7 +55,7 @@
 
             <button type="submit"
                     {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
-                    class="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm text-white transition shadow-sm {{ $character->isImprisoned() || $character->cash < 50 ? 'bg-slate-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99]' }}">
+                    class="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm transition shadow-sm {{ $character->isImprisoned() || $character->cash < 50 ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-[0.99]' }}">
                 <i class="fa-solid fa-dice mr-2"></i> Draaien & Inzetten
             </button>
         </form>

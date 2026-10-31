@@ -14,12 +14,12 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 md:p-12 overflow-y-auto bg-slate-950/80"
-         role="dialog"
-         aria-modal="true"
          @click.self="closeModal()">
 
         <!-- Spotlight Dialog Card -->
         <div x-show="isOpen"
+             role="dialog"
+             aria-modal="true"
              x-transition:enter="transition ease-out duration-150"
              x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -110,7 +110,7 @@
                         <!-- Right Pill / Action Arrow -->
                         <div class="flex items-center gap-2 shrink-0 ml-2">
                             <template x-if="item.badge">
-                                <span :class="item.badgeClass || 'bg-purple-100 text-purple-700'"
+                                <span :class="item.badgeClass || 'bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300'"
                                       class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md"
                                       x-text="item.badge"></span>
                             </template>
@@ -171,7 +171,7 @@ document.addEventListener('alpine:init', () => {
             // Bendes
             { name: 'Mijn Bende', icon: 'fa-solid fa-shield-halved', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("gangs.index", ["tab" => "mijn_gang"]) }}', category: 'bende', desc: 'Factieoverzicht, kas en collectief uurloon', keywords: 'gang bende factie club kas uurloon' },
             { name: 'Bende Leden & Beheer', icon: 'fa-solid fa-users-gear', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("gangs.index", ["tab" => "beheer"]) }}', category: 'bende', desc: 'Ledenlijst, toelaten, promoties en donaties', keywords: 'beheer verzoeken accepteren leden bendeleden' },
-            { name: 'Bende Oorlog', icon: 'fa-solid fa-crosshairs', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("gangs.index", ["tab" => "oorlog"]) }}', category: 'bende', desc: 'Aanvallen op rivaliserende bendes in de kliniek', keywords: 'oorlog gang war attack bende strijd', badge: 'PvP', badgeClass: 'bg-rose-100 text-rose-700' },
+            { name: 'Bende Oorlog', icon: 'fa-solid fa-crosshairs', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("gangs.index", ["tab" => "oorlog"]) }}', category: 'bende', desc: 'Aanvallen op rivaliserende bendes in de kliniek', keywords: 'oorlog gang war attack bende strijd', badge: 'PvP', badgeClass: 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300' },
             { name: 'Bende Panden (Productie)', icon: 'fa-solid fa-building', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("gangs.panden") }}', category: 'bende', desc: 'Smokkelkiosken, opslag en NPC dealers', keywords: 'panden gebouwen productie kiosken bende' },
             { name: 'Bende Garage', icon: 'fa-solid fa-warehouse', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("gangs.garage") }}', category: 'bende', desc: 'Gezamenlijk bende wagenpark en slots', keywords: 'garage wagens autos bende voertuigen' },
             { name: 'Bende Heists (Co-Op)', icon: 'fa-solid fa-masks-theater', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("heists.index", ["tab" => "gang"]) }}', category: 'bende', desc: 'Samen met je bende grote overvallen plegen', keywords: 'heists overvallen roof co-op bende' },
@@ -182,7 +182,7 @@ document.addEventListener('alpine:init', () => {
             { name: 'Missies & Opdrachten', icon: 'fa-solid fa-list-check', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("missions.index") }}', category: 'voortgang', desc: 'Voltooi hoofdstukken voor XP en grote beloningen', keywords: 'missies quests taken opdrachten' },
             { name: 'Krachttraining (Gym)', icon: 'fa-solid fa-dumbbell', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("training.index") }}', category: 'voortgang', desc: 'Train Kracht, Verdediging en Snelheid in de zaal', keywords: 'sportzaal gym trainen kracht defense speed' },
             { name: 'Behandelaarsgesprek', icon: 'fa-solid fa-brain', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("treatment.index") }}', category: 'voortgang', desc: 'Praat met de psychiater en verdien verlof', keywords: 'dokter psycholoog verlof therapie gesprek' },
-            { name: 'Ziekenboeg & Pillen', icon: 'fa-solid fa-hospital-user', color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/60', route: '{{ route("infirmary.index") }}', category: 'voortgang', desc: 'Herstel je HP en neem medicijnen in', keywords: 'hp genezen healen dokter pillen ziekenhuis', badge: 'HP Herstel', badgeClass: 'bg-teal-100 text-teal-700' },
+            { name: 'Ziekenboeg & Pillen', icon: 'fa-solid fa-hospital-user', color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-950/60', route: '{{ route("infirmary.index") }}', category: 'voortgang', desc: 'Herstel je HP en neem medicijnen in', keywords: 'hp genezen healen dokter pillen ziekenhuis', badge: 'HP Herstel', badgeClass: 'bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300' },
             { name: 'Dagbesteding & Werk', icon: 'fa-solid fa-person-digging', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("daycare.index") }}', category: 'voortgang', desc: 'Werken in de kliniek voor eerlijk loon en XP', keywords: 'dagbesteding werk werken uurloon klusjes' },
 
             // Illegale Acties (Misdaad)
@@ -192,10 +192,10 @@ document.addEventListener('alpine:init', () => {
             { name: 'Kluisjes Kraken', icon: 'fa-solid fa-id-card', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/60', route: '{{ route("lockers.index") }}', category: 'misdaad', desc: 'Breek lockerkasten open en steel buit', keywords: 'kluisjes lockerkast openbreken pasjes buit' },
             { name: 'Tennisbal & Drones', icon: 'fa-solid fa-plane-arrival', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/60', route: '{{ route("droppings.index") }}', category: 'misdaad', desc: 'Laat pakketjes over de kliniekmuur droppen', keywords: 'smokkeldropping drone tennisbal over muur' },
             { name: 'Uitbraaktunnel Graven', icon: 'fa-solid fa-person-digging', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("tunnel.index") }}', category: 'misdaad', desc: 'Graaf met een schep een geheime uitbraaktunnel', keywords: 'tunnel schep ontsnappen graven vrijheid' },
-            { name: 'Grote Heists', icon: 'fa-solid fa-masks-theater', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("heists.index") }}', category: 'misdaad', desc: 'Plan geavanceerde overvallen met hoge opbrengsten', keywords: 'heists overval bankroof roof roofoverval', badge: 'Groot', badgeClass: 'bg-rose-100 text-rose-700' },
+            { name: 'Grote Heists', icon: 'fa-solid fa-masks-theater', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("heists.index") }}', category: 'misdaad', desc: 'Plan geavanceerde overvallen met hoge opbrengsten', keywords: 'heists overval bankroof roof roofoverval', badge: 'Groot', badgeClass: 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300' },
 
             // Bonus & Kluizen
-            { name: 'Rad van Fortuin (Daily)', icon: 'fa-solid fa-dharmachakra', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("daily.index") }}', category: 'bonus', desc: 'Draai dagelijks gratis aan het rad voor prijzen', keywords: 'rad spin draaien gratis beloning daily', badge: 'Daily', badgeClass: 'bg-amber-100 text-amber-700' },
+            { name: 'Rad van Fortuin (Daily)', icon: 'fa-solid fa-dharmachakra', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("daily.index") }}', category: 'bonus', desc: 'Draai dagelijks gratis aan het rad voor prijzen', keywords: 'rad spin draaien gratis beloning daily', badge: 'Daily', badgeClass: 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300' },
             { name: 'MedicijnKluis (Kraak de Code)', icon: 'fa-solid fa-vault', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("vault.index") }}', category: 'bonus', desc: 'Kraak de kluiscode en win de jackpot', keywords: 'kluis code raden jackpot medicijnen' },
             { name: 'Koffers & Pakketjes', icon: 'fa-solid fa-box-open', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("packages.index") }}', category: 'bonus', desc: 'Open mysterieuze koffers voor zeldzame loot', keywords: 'mystery box pakketjes koffers unboxen' },
             { name: 'Zakkenrollen', icon: 'fa-solid fa-mask', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("pickpocket.index") }}', category: 'bonus', desc: 'Rol zakken van artsen en verplegers', keywords: 'zakkenrollen stelen personeel zakken' },

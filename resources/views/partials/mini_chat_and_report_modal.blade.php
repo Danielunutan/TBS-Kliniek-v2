@@ -3,13 +3,12 @@
      x-show="isOpen" 
      x-cloak 
      style="display: none;" 
-     class="fixed inset-0 z-[99999] overflow-y-auto"
-     aria-labelledby="modal-title" role="dialog" aria-modal="true">
+     class="fixed inset-0 z-[99999] overflow-y-auto">
     
     <div class="fixed inset-0 bg-black/80 transition-opacity" @click="close()"></div>
 
     <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div class="relative transform-gpu will-change-transform overflow-hidden rounded-2xl bg-white dark:bg-[#12072b] border border-slate-200 dark:border-purple-800/60 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6">
+        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="relative transform-gpu will-change-transform overflow-hidden rounded-2xl bg-white dark:bg-[#12072b] border border-slate-200 dark:border-purple-800/60 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-purple-900/40">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center text-base">
@@ -443,9 +442,9 @@
 
                             <!-- Reply Quote Bubble (if replied) -->
                             <template x-if="msg.reply_to_name">
-                                <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
-                                    <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
-                                    <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
+                                <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-100/80 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
+                                    <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
+                                    <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
                                     <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
                                 </div>
                             </template>
@@ -731,9 +730,9 @@
 
                                     <!-- Reply Quote -->
                                     <template x-if="msg.reply_to_name">
-                                        <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
-                                            <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
-                                            <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
+                                        <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-100/80 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
+                                            <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
+                                            <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
                                             <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
                                         </div>
                                     </template>
@@ -1058,9 +1057,9 @@
 
                                             <!-- Reply Quote if any -->
                                             <template x-if="dm.reply_to_name">
-                                                <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
-                                                    <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
-                                                    <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + dm.reply_to_name"></span>
+                                                <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-100/80 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
+                                                    <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
+                                                    <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + dm.reply_to_name"></span>
                                                     <span class="truncate opacity-75 italic" x-text="dm.reply_to_snippet"></span>
                                                 </div>
                                             </template>
@@ -1817,9 +1816,12 @@
 
                 // Convert links (https:// or http://) into safe clickable links
                 const urlRegex = /(?<!href="|href=')(https?:\/\/[^\s<]+)/gi;
+                const linkClass = isMe
+                    ? 'underline font-bold text-amber-300 hover:text-amber-200 break-all transition'
+                    : 'underline font-bold text-purple-700 dark:text-amber-400 hover:text-purple-900 dark:hover:text-amber-300 break-all transition';
                 safe = safe.replace(urlRegex, (url) => {
                     const cleanUrl = url.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold text-amber-300 dark:text-amber-400 hover:text-amber-200 dark:hover:text-amber-300 break-all transition">${cleanUrl}</a>`;
+                    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="${linkClass}">${cleanUrl}</a>`;
                 });
 
                 return safe;

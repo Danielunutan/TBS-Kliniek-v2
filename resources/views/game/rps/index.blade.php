@@ -10,7 +10,7 @@
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Steen, Papier, Schaar</h1>
             <p class="text-slate-500 text-xs sm:text-sm mt-1">Speel tegen het huis. Win verdubbelt je inzet!</p>
         </div>
-        <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black select-none pointer-events-none">
+        <div class="absolute -right-6 -bottom-6 text-slate-100 dark:text-slate-800/40 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-hand-fist"></i>
         </div>
     </div>
@@ -25,25 +25,25 @@
                 <div class="grid grid-cols-3 gap-3">
                     <label class="cursor-pointer">
                         <input type="radio" name="choice" value="steen" class="peer sr-only" required>
-                        <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
-                            <span class="h-10 flex items-center justify-center text-slate-700"><i class="fa-solid fa-hand-back-fist text-3xl"></i></span>
-                            <span class="text-xs font-extrabold text-slate-800 uppercase">Steen</span>
+                        <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 dark:peer-checked:bg-indigo-950/60 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
+                            <span class="h-10 flex items-center justify-center text-slate-700 dark:text-slate-300"><i class="fa-solid fa-hand-back-fist text-3xl"></i></span>
+                            <span class="text-xs font-extrabold text-slate-800 dark:text-white uppercase">Steen</span>
                         </div>
                     </label>
 
                     <label class="cursor-pointer">
                         <input type="radio" name="choice" value="papier" class="peer sr-only" required>
-                        <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
-                            <span class="h-10 flex items-center justify-center text-amber-600"><i class="fa-solid fa-hand text-3xl"></i></span>
-                            <span class="text-xs font-extrabold text-slate-800 uppercase">Papier</span>
+                        <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 dark:peer-checked:bg-indigo-950/60 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
+                            <span class="h-10 flex items-center justify-center text-amber-600 dark:text-amber-400"><i class="fa-solid fa-hand text-3xl"></i></span>
+                            <span class="text-xs font-extrabold text-slate-800 dark:text-white uppercase">Papier</span>
                         </div>
                     </label>
 
                     <label class="cursor-pointer">
                         <input type="radio" name="choice" value="schaar" class="peer sr-only" required>
-                        <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
-                            <span class="h-10 flex items-center justify-center text-purple-600"><i class="fa-solid fa-hand-scissors text-3xl"></i></span>
-                            <span class="text-xs font-extrabold text-slate-800 uppercase">Schaar</span>
+                        <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 dark:peer-checked:bg-indigo-950/60 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
+                            <span class="h-10 flex items-center justify-center text-purple-600 dark:text-purple-400"><i class="fa-solid fa-hand-scissors text-3xl"></i></span>
+                            <span class="text-xs font-extrabold text-slate-800 dark:text-white uppercase">Schaar</span>
                         </div>
                     </label>
                 </div>
@@ -70,7 +70,7 @@
 
             <button type="submit"
                     {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
-                    class="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm text-white transition shadow-sm {{ $character->isImprisoned() || $character->cash < 50 ? 'bg-slate-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99]' }}">
+                    class="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm transition shadow-sm {{ $character->isImprisoned() || $character->cash < 50 ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-[0.99]' }}">
                 <i class="fa-solid fa-gamepad mr-2"></i> Spelen
             </button>
         </form>

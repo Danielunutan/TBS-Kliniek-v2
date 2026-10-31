@@ -9,7 +9,7 @@
                     <span>Vorige</span>
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" data-turbo="false" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-300 shadow-2xs transition active:scale-95">
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" data-turbo="false" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-purple-400 dark:hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-300 shadow-2xs transition active:scale-95">
                     <i class="fa-solid fa-chevron-left text-[10px]"></i>
                     <span>Vorige</span>
                 </a>
@@ -23,7 +23,7 @@
             </span>
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" data-turbo="false" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-300 shadow-2xs transition active:scale-95">
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" data-turbo="false" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-purple-400 dark:hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-300 shadow-2xs transition active:scale-95">
                     <span>Volgende</span>
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                 </a>
@@ -60,7 +60,7 @@
                         <i class="fa-solid fa-chevron-left text-[10px]"></i>
                     </span>
                 @else
-                    <a href="{{ $paginator->previousPageUrl() }}" rel="prev" data-turbo="false" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-300 flex items-center justify-center text-xs transition shadow-2xs active:scale-95" aria-label="Vorige pagina">
+                    <a href="{{ $paginator->previousPageUrl() }}" rel="prev" data-turbo="false" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-purple-400 dark:hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-300 flex items-center justify-center text-xs transition shadow-2xs active:scale-95" aria-label="Vorige pagina">
                         <i class="fa-solid fa-chevron-left text-[10px]"></i>
                     </a>
                 @endif
@@ -80,7 +80,7 @@
                                     {{ $page }}
                                 </span>
                             @else
-                                <a href="{{ $url }}" data-turbo="false" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-300 font-mono font-bold text-xs flex items-center justify-center transition shadow-2xs active:scale-95">
+                                <a href="{{ $url }}" data-turbo="false" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-purple-400 dark:hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-300 font-mono font-bold text-xs flex items-center justify-center transition shadow-2xs active:scale-95">
                                     {{ $page }}
                                 </a>
                             @endif
@@ -90,7 +90,7 @@
 
                 {{-- Next Page Link --}}
                 @if ($paginator->hasMorePages())
-                    <a href="{{ $paginator->nextPageUrl() }}" rel="next" data-turbo="false" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-300 flex items-center justify-center text-xs transition shadow-2xs active:scale-95" aria-label="Volgende pagina">
+                    <a href="{{ $paginator->nextPageUrl() }}" rel="next" data-turbo="false" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-purple-400 dark:hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-300 flex items-center justify-center text-xs transition shadow-2xs active:scale-95" aria-label="Volgende pagina">
                         <i class="fa-solid fa-chevron-right text-[10px]"></i>
                     </a>
                 @else

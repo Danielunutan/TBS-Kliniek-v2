@@ -224,7 +224,7 @@
                 energy:        { icon: 'fa-bolt',             label: 'Energie',    prefix: '+', cls: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30' },
                 health:        { icon: 'fa-heart-pulse',      label: 'HP',         prefix: '+', cls: 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30' },
             };
-            return map[key] || { icon: 'fa-gift', label: key, prefix: '', cls: 'bg-purple-500/15 text-purple-300 border-purple-500/30' };
+            return map[key] || { icon: 'fa-gift', label: key, prefix: '', cls: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30' };
         },
         fireConfetti(mode = 'normal') {
             if (typeof window.tbsFireConfetti === 'function') {

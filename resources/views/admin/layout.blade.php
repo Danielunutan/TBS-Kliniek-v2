@@ -63,7 +63,7 @@
                     $unmatchedBmcCount = \Illuminate\Support\Facades\Schema::hasTable('buymeacoffee_orders') ? \App\Models\BuyMeACoffeeOrder::where('status', 'unmatched')->count() : 0;
                 @endphp
                 @if($unmatchedBmcCount > 0)
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.buymeacoffee*') ? 'bg-white text-amber-700' : 'bg-amber-500 text-white animate-pulse' }}">
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('admin.buymeacoffee*') ? 'bg-white dark:bg-white/20 text-amber-700 dark:text-white' : 'bg-amber-500 text-white animate-pulse' }}">
                     {{ $unmatchedBmcCount }} nieuw
                 </span>
                 @endif
@@ -79,7 +79,7 @@
                     $pendingAdminTicketsCount = \App\Models\SupportTicket::whereIn('status', ['open', 'in_behandeling'])->count();
                 @endphp
                 @if($pendingAdminTicketsCount > 0)
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.tickets.*') ? 'bg-white text-purple-700' : 'bg-rose-500 text-white' }}">
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('admin.tickets.*') ? 'bg-white dark:bg-white/20 text-purple-700 dark:text-white' : 'bg-rose-500 text-white' }}">
                     {{ $pendingAdminTicketsCount }}
                 </span>
                 @endif
@@ -90,12 +90,12 @@
             </a>
             <a href="{{ route('admin.moderation.index') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.moderation.*') ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
-                <i class="fa-solid fa-gavel text-rose-500 {{ request()->routeIs('admin.moderation.*') ? 'text-white' : '' }}"></i> Moderatie & Sancties
+                <i class="fa-solid fa-gavel {{ request()->routeIs('admin.moderation.*') ? 'text-white' : 'text-rose-500' }}"></i> Moderatie & Sancties
                 @php
                     $pendingReportsBadge = \App\Models\Report::where('status', 'pending')->count();
                 @endphp
                 @if($pendingReportsBadge > 0)
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.moderation.*') ? 'bg-white text-rose-700' : 'bg-rose-500 text-white animate-pulse' }}">
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('admin.moderation.*') ? 'bg-white dark:bg-white/20 text-rose-700 dark:text-white' : 'bg-rose-500 text-white animate-pulse' }}">
                     {{ $pendingReportsBadge }} nieuw
                 </span>
                 @endif
@@ -107,7 +107,7 @@
                     $highRiskCountBadge = \App\Models\AuditLog::where('risk_level', 'hoog')->count();
                 @endphp
                 @if($highRiskCountBadge > 0)
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.audit_log.*') ? 'bg-white text-rose-700' : 'bg-rose-600 text-white animate-pulse' }}">
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('admin.audit_log.*') ? 'bg-white dark:bg-white/20 text-rose-700 dark:text-white' : 'bg-rose-600 text-white animate-pulse' }}">
                     {{ $highRiskCountBadge }} alert
                 </span>
                 @endif

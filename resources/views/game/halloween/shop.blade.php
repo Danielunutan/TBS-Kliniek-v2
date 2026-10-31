@@ -171,7 +171,7 @@
                                         @if(!$canAfford) disabled @endif
                                         class="w-full py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60' }}">
                                     <span>Koop voor</span>
-                                    <span class="font-mono font-black text-xs text-amber-400">{{ $border['price_seeds'] }}</span>
+                                    <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-400' : 'text-amber-600 dark:text-amber-400' }}">{{ $border['price_seeds'] }}</span>
                                     <span>🎃</span>
                                 </button>
                             </form>
@@ -237,7 +237,7 @@
                                     @if(!$canAfford) disabled @endif
                                     class="w-full py-2.5 rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60' }}">
                                 <span>Koop Item voor</span>
-                                <span class="font-mono font-black text-xs text-amber-400">{{ $item['price_seeds'] }}</span>
+                                <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-400' : 'text-amber-600 dark:text-amber-400' }}">{{ $item['price_seeds'] }}</span>
                                 <span>🎃</span>
                             </button>
                         </form>
@@ -303,7 +303,7 @@
                                     @if(!$canAfford) disabled @endif
                                     class="w-full py-2.5 rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60' }}">
                                 <span>Koop Boost voor</span>
-                                <span class="font-mono font-black text-xs text-amber-400">{{ $boost['price_seeds'] }}</span>
+                                <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-400' : 'text-amber-600 dark:text-amber-400' }}">{{ $boost['price_seeds'] }}</span>
                                 <span>🎃</span>
                             </button>
                         </form>

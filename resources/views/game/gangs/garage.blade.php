@@ -33,7 +33,7 @@
                 <i class="fa-solid fa-building"></i>
                 <span>Bende Panden</span>
             </a>
-            <a href="{{ route('garage.index') }}" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-black uppercase tracking-wider transition flex items-center gap-2 shadow-xs">
+            <a href="{{ route('garage.index') }}" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black uppercase tracking-wider transition flex items-center gap-2 shadow-xs">
                 <i class="fa-solid fa-car"></i>
                 <span>Smokkel Showroom</span>
             </a>

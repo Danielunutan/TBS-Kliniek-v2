@@ -427,7 +427,7 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
         <!-- ============================================== -->
         <!-- 1. LEFT SIDEBAR: Mailboxes & Folders           -->
         <!-- ============================================== -->
-        <aside class="w-full md:w-64 lg:w-72 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-3.5 flex flex-col justify-between overflow-y-auto"
+        <aside class="mail-sidebar w-full md:w-64 lg:w-72 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-3.5 flex flex-col justify-between overflow-y-auto"
                :class="mobileView === 'folders' ? 'flex' : 'hidden md:flex'">
             
             <div class="space-y-5">
@@ -458,7 +458,7 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
                                 <span class="truncate">{{ $box['name'] }}</span>
                             </span>
                             @if($key !== 'all')
-                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-md {{ $box['badge'] }}">
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md {{ $box['badge'] }}">
                                 {{ $key }}
                             </span>
                             @endif
@@ -800,7 +800,7 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
                     <div>
                         <label class="block text-[10px] uppercase font-black tracking-wider text-slate-500 mb-1">Verzenden Vanaf:</label>
-                        <select x-model="compose.mailbox" class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white py-2 px-3">
+                        <select x-model="compose.mailbox" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white py-2 px-3">
                             <option value="vragen">Vragen &amp; Helpdesk &lt;vragen@tbs-kliniek.nl&gt;</option>
                             <option value="privacy">Privacy &amp; AVG &lt;privacy@tbs-kliniek.nl&gt;</option>
                             <option value="daniel">Daniël (Eigenaar) &lt;daniel@tbs-kliniek.nl&gt;</option>
@@ -825,7 +825,7 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
                         
                         <div class="flex items-center gap-1.5">
                             <span class="text-[10px] text-slate-400">Kies speler:</span>
-                            <select @change="selectPlayer($event)" class="text-[11px] font-bold rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-1 px-2">
+                            <select @change="selectPlayer($event)" class="text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-1 px-2">
                                 <option value="">-- Zoek speler --</option>
                                 @foreach($players as $p)
                                 <option value="{{ $p->email }}">{{ $p->name }} ({{ $p->email }})</option>
@@ -836,9 +836,9 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <input type="email" x-model="compose.to" required placeholder="bijv. speler@example.com"
-                               class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-bold">
+                               class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-bold">
                         <input type="text" x-model="compose.cc" placeholder="CC: optioneel adres"
-                               class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-mono text-[11px]">
+                               class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-mono text-[11px]">
                     </div>
                 </div>
 
@@ -846,14 +846,14 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
                 <div class="space-y-1">
                     <label class="block text-[10px] uppercase font-black tracking-wider text-slate-500">Onderwerp *</label>
                     <input type="text" x-model="compose.subject" required placeholder="Onderwerp van het bericht..."
-                           class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-bold">
+                           class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-bold">
                 </div>
 
                 <!-- Body -->
                 <div class="space-y-1">
                     <label class="block text-[10px] uppercase font-black tracking-wider text-slate-500">Berichttekst *</label>
                     <textarea x-model="compose.body" required rows="9" placeholder="Typ hier jouw bericht..."
-                              class="w-full rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3.5 leading-relaxed font-sans"></textarea>
+                              class="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3.5 leading-relaxed font-sans"></textarea>
                 </div>
 
                 <!-- Modal Actions -->

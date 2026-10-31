@@ -118,9 +118,9 @@
                     <input type="hidden" name="locker_id" value="{{ $locker['id'] }}">
                     <button type="submit"
                             :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
-                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 cursor-pointer'"
+                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer'"
                             {{ $isDisabled ? 'disabled' : '' }}
-                            class="px-4 py-2 rounded-lg text-xs font-extrabold text-white transition shadow-xs {{ $isDisabled ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 cursor-pointer' }}">
+                            class="px-4 py-2 rounded-lg text-xs font-extrabold transition shadow-xs">
                         <i class="fa-solid fa-key mr-1"></i> Kraken
                     </button>
                 </form>

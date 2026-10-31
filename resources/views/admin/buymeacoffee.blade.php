@@ -145,7 +145,7 @@
                class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {{ $filter === 'unmatched' ? 'bg-amber-500 text-white' : 'text-amber-700 bg-amber-50 hover:bg-amber-100' }}">
                 <span>Ongekoppeld</span>
                 @if($unmatchedCount > 0)
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $filter === 'unmatched' ? 'bg-white text-amber-600' : 'bg-amber-500 text-white' }}">
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $filter === 'unmatched' ? 'bg-white dark:bg-white/20 text-amber-600 dark:text-white' : 'bg-amber-500 text-white' }}">
                     {{ $unmatchedCount }}
                 </span>
                 @endif
@@ -344,7 +344,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-8 text-center text-slate-400 text-xs">
+                        <td colspan="9" class="py-8 text-center text-slate-400 text-xs">
                             Geen Buy Me a Coffee registraties gevonden.
                         </td>
                     </tr>

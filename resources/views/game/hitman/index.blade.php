@@ -779,7 +779,7 @@
 
             @if(empty($enrichedIntelOps))
                 <div class="p-8 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
-                    <i class="fa-solid fa-folder-Closed text-2xl text-slate-400"></i>
+                    <i class="fa-solid fa-folder-closed text-2xl text-slate-400"></i>
                     <div class="text-sm font-extrabold text-slate-800">Geen lopende Schaduw-Inlichtingen</div>
                     <p class="text-xs text-slate-500 max-w-md mx-auto">
                         Start hierboven een 15-minuten Camera-Schaduwing om te achterhalen op welke kliniek-afdeling je doelwit rondloopt.

@@ -10,24 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome Free 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- Tailwind Play CDN for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        heading: ['Outfit', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         [x-cloak] { display: none !important; }
@@ -48,7 +31,7 @@
     <div class="fixed -top-32 -left-32 w-96 h-96 bg-indigo-950/20 rounded-full blur-[100px] pointer-events-none"></div>
 
     <!-- Top Simple Bar -->
-    <header class="relative z-10 w-full max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+    <header class="relative z-10 w-full max-w-5xl mx-auto px-6 py-6 flex items-center justify-between dark:bg-transparent">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center text-lg font-black shadow-lg shadow-purple-600/30">
                 <i class="fa-solid fa-hospital"></i>
@@ -168,7 +151,7 @@
     </main>
 
     <!-- Footer with Secret Bypass Link for Daniel -->
-    <footer class="relative z-10 w-full max-w-5xl mx-auto px-6 py-6 text-center text-xs text-slate-500">
+    <footer class="relative z-10 w-full max-w-5xl mx-auto px-6 py-6 text-center text-xs text-slate-500 dark:bg-transparent">
         <div>
             &copy; {{ date('Y') }} TBS Kliniek (FPC De Balk). Alle rechten voorbehouden.
         </div>

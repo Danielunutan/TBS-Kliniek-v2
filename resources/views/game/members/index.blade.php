@@ -218,9 +218,9 @@
 
                 <button type="button"
                         @click="filter = 'vip'"
-                        :class="filter === 'vip' ? 'bg-amber-500 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                        :class="filter === 'vip' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
                         class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
-                    <i class="fa-solid fa-crown text-[10px] text-amber-300"></i>
+                    <i class="fa-solid fa-crown text-[10px]" :class="filter === 'vip' ? 'text-slate-950' : 'text-amber-500 dark:text-amber-300'"></i>
                     <span>VIP</span>
                 </button>
             </div>

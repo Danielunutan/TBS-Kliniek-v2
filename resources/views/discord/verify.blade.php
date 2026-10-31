@@ -8,7 +8,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        (function() {
+            const saved = localStorage.getItem('tbs_theme');
+            if (saved === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -192,7 +201,7 @@
                             <div class="cf-turnstile" 
                                  data-sitekey="{{ $turnstileSiteKey }}" 
                                  data-callback="onTurnstileSuccess"
-                                 data-theme="light"></div>
+                                 data-theme="auto"></div>
                             <span class="text-[10px] text-slate-400 mt-2 flex items-center gap-1 font-semibold">
                                 <i class="fa-solid fa-shield-check text-[10px] text-purple-600"></i> Beveiligd met Cloudflare Turnstile
                             </span>
@@ -380,10 +389,10 @@
                             @forelse($members as $m)
                                 @php
                                     $statusColor = match($m['status'] ?? 'online') {
-                                        'online' => 'bg-emerald-500 ring-white',
-                                        'idle' => 'bg-amber-400 ring-white',
-                                        'dnd' => 'bg-rose-500 ring-white',
-                                        default => 'bg-slate-400 ring-white',
+                                        'online' => 'bg-emerald-500 ring-white dark:ring-slate-900',
+                                        'idle' => 'bg-amber-400 ring-white dark:ring-slate-900',
+                                        'dnd' => 'bg-rose-500 ring-white dark:ring-slate-900',
+                                        default => 'bg-slate-400 ring-white dark:ring-slate-900',
                                     };
                                     $game = $m['game']['name'] ?? null;
                                     $isBot = ($m['bot'] ?? false) || in_array(strtolower($m['username']), ['counting', 'craig', 'disboard', 'flavibot', 'truth or dare', 'guess the song', 'dank memer', 'tbs kliniek']);
@@ -394,7 +403,7 @@
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <div class="relative shrink-0">
                                             <img src="{{ $m['avatar_url'] }}" alt="{{ $m['username'] }}" class="w-7 h-7 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-2xs">
-                                            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ring-1 {{ $statusColor }}"></span>
+                                            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 ring-1 {{ $statusColor }}"></span>
                                         </div>
                                         <div class="min-w-0">
                                             <div class="flex items-center gap-1.5">
@@ -402,7 +411,7 @@
                                                     {{ $m['username'] }}
                                                 </span>
                                                 @if($isBot)
-                                                    <span class="text-[8px] font-black uppercase px-1 py-0.2 bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 rounded font-mono">BOT</span>
+                                                    <span class="text-[8px] font-black uppercase px-1 py-0.5 bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 rounded font-mono">BOT</span>
                                                 @endif
                                             </div>
                                             @if($game)

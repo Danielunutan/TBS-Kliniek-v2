@@ -3,12 +3,15 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../../app/**/*.php';
 @source '../views/**/*.blade.php';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+    --breakpoint-xs: 22.5rem;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 [x-cloak] {
@@ -33,48 +36,110 @@ html.dark, html.dark body {
     color: #e2e8f0 !important;
 }
 
-html.dark .bg-white {
+html.dark .bg-white:not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]):not(.theme-toggle-knob) {
     background-color: #111827 !important;
 }
 
-html.dark .bg-slate-50 {
+html.dark :is(.bg-slate-50, .bg-gray-50):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
     background-color: #0f172a !important;
 }
 
-html.dark .bg-slate-100 {
+html.dark :is(.bg-slate-100, .bg-slate-200, .bg-gray-100, .bg-gray-200):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
     background-color: #1e293b !important;
 }
 
-html.dark .bg-slate-200 {
-    background-color: #1e293b !important;
-}
-
-html.dark .bg-slate-300 {
+html.dark :is(.bg-slate-300, .bg-gray-300):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
     background-color: #334155 !important;
 }
 
-/* Fix semi-transparent grey washes in darkmode */
-html.dark [class*="bg-slate-50/"],
-html.dark [class*="bg-slate-100/"] {
-    background-color: rgba(15, 23, 42, 0.6) !important;
+/* Semi-transparent neutral washes in dark mode (leading space prevents matching hover:bg-*) */
+html.dark :is(
+    [class^="bg-white/4"], [class*=" bg-white/4"],
+    [class^="bg-white/5"], [class*=" bg-white/5"],
+    [class^="bg-white/6"], [class*=" bg-white/6"],
+    [class^="bg-white/7"], [class*=" bg-white/7"],
+    [class^="bg-white/8"], [class*=" bg-white/8"],
+    [class^="bg-white/9"], [class*=" bg-white/9"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(17, 24, 39, 0.85) !important;
 }
 
-html.dark [class*="bg-slate-200/"],
-html.dark [class*="bg-slate-300/"] {
-    background-color: rgba(30, 41, 59, 0.6) !important;
+html.dark :is(
+    [class^="bg-slate-50/"], [class*=" bg-slate-50/"],
+    [class^="bg-slate-100/"], [class*=" bg-slate-100/"],
+    [class^="bg-gray-50/"], [class*=" bg-gray-50/"],
+    [class^="bg-gray-100/"], [class*=" bg-gray-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(15, 23, 42, 0.65) !important;
 }
 
-html.dark .border-slate-300,
-html.dark .border-slate-200,
-html.dark .border-slate-100,
-html.dark [class*="border-slate-100/"],
-html.dark [class*="border-slate-200/"] {
+html.dark :is(
+    [class^="bg-slate-200/"], [class*=" bg-slate-200/"],
+    [class^="bg-slate-300/"], [class*=" bg-slate-300/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(30, 41, 59, 0.65) !important;
+}
+
+/* Convert light-only pastel gradient surfaces (50/100/white) without dark:from- into sleek dark surfaces */
+html.dark :is(
+    [class^="from-white"], [class*=" from-white"],
+    [class^="from-slate-50"], [class*=" from-slate-50"],
+    [class^="from-slate-100"], [class*=" from-slate-100"],
+    [class^="from-gray-50"], [class*=" from-gray-50"],
+    [class^="from-purple-50"], [class*=" from-purple-50"],
+    [class^="from-purple-100"], [class*=" from-purple-100"],
+    [class^="from-amber-50"], [class*=" from-amber-50"],
+    [class^="from-amber-100"], [class*=" from-amber-100"],
+    [class^="from-yellow-50"], [class*=" from-yellow-50"],
+    [class^="from-yellow-100"], [class*=" from-yellow-100"],
+    [class^="from-indigo-50"], [class*=" from-indigo-50"],
+    [class^="from-indigo-100"], [class*=" from-indigo-100"],
+    [class^="from-emerald-50"], [class*=" from-emerald-50"],
+    [class^="from-emerald-100"], [class*=" from-emerald-100"],
+    [class^="from-green-50"], [class*=" from-green-50"],
+    [class^="from-rose-50"], [class*=" from-rose-50"],
+    [class^="from-rose-100"], [class*=" from-rose-100"],
+    [class^="from-red-50"], [class*=" from-red-50"],
+    [class^="from-blue-50"], [class*=" from-blue-50"],
+    [class^="from-blue-100"], [class*=" from-blue-100"],
+    [class^="from-sky-50"], [class*=" from-sky-50"],
+    [class^="from-sky-100"], [class*=" from-sky-100"],
+    [class^="from-cyan-50"], [class*=" from-cyan-50"],
+    [class^="from-cyan-100"], [class*=" from-cyan-100"],
+    [class^="from-teal-50"], [class*=" from-teal-50"],
+    [class^="from-orange-50"], [class*=" from-orange-50"],
+    [class^="from-orange-100"], [class*=" from-orange-100"],
+    [class^="from-pink-50"], [class*=" from-pink-50"],
+    [class^="from-fuchsia-50"], [class*=" from-fuchsia-50"],
+    [class^="from-violet-50"], [class*=" from-violet-50"]
+):not([class*="dark:from-"]):not([class*="bg-clip-text"]) {
+    background-image: none !important;
+    background-color: rgba(17, 24, 39, 0.85) !important;
+}
+
+/* Neutral Borders & Dividers in Dark Mode */
+html.dark :is(
+    .border-slate-300, .border-slate-200, .border-slate-100, .border-slate-50,
+    .border-gray-300, .border-gray-200, .border-gray-100,
+    [class^="border-slate-100/"], [class*=" border-slate-100/"],
+    [class^="border-slate-200/"], [class*=" border-slate-200/"],
+    [class^="border-slate-300/"], [class*=" border-slate-300/"]
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
     border-color: #1e293b !important;
 }
 
-/* 100% Borderless & Seamless Sidebar Navigation */
-aside nav a,
-aside nav button,
+html.dark .divide-slate-100:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-100:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-200:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]),
+html.dark [class*="divide-slate-100/"]:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]),
+html.dark [class*="divide-slate-200/"]:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b !important;
+}
+
+/* 100% Borderless & Seamless Sidebar Navigation (excludes favorites grid, spotlight button, and mail sidebar) */
+aside:not(.mail-sidebar) nav a:not([data-favorites-grid] a),
+aside:not(.mail-sidebar) nav button:not([data-spotlight-btn]),
 .mobile-drawer-nav a,
 .mobile-drawer-nav button {
     border: none !important;
@@ -82,130 +147,363 @@ aside nav button,
     box-shadow: none !important;
 }
 
-aside nav button,
-aside nav a:not(.nav-item-active):not(:hover) {
+aside:not(.mail-sidebar) nav button:not([data-spotlight-btn]):not(:hover),
+aside:not(.mail-sidebar) nav a:not([data-favorites-grid] a):not(.nav-item-active):not(:hover) {
     background-color: transparent !important;
     border: none !important;
 }
 
-html.dark aside nav button,
-html.dark aside nav a:not(.nav-item-active):not(:hover) {
+html.dark aside:not(.mail-sidebar) nav button:not([data-spotlight-btn]):not(:hover),
+html.dark aside:not(.mail-sidebar) nav a:not([data-favorites-grid] a):not(.nav-item-active):not(:hover) {
     background-color: transparent !important;
     border: none !important;
 }
 
-html.dark header,
-html.dark nav,
-html.dark aside {
+html.dark header:not([class*="dark:bg-"]),
+html.dark aside:not([class*="dark:bg-"]) {
     background-color: #0d131f !important;
     border-color: #1e293b !important;
 }
 
-html.dark footer {
+html.dark footer:not([class*="dark:bg-"]) {
     background-color: #090d16 !important;
     border-color: #1e293b !important;
 }
 
-html.dark .text-slate-950,
-html.dark .text-purple-950,
-html.dark .text-slate-900,
-html.dark .text-slate-800 {
+/* Neutral Text Hierarchy in Dark Mode (preserves dark text on bright amber/yellow/emerald badges & buttons) */
+html.dark :is(.text-slate-950, .text-purple-950, .text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800):not([class*="dark:text-"]):not([class*="peer-checked:text-"]):not([class*="bg-amber-3"]):not([class*="bg-amber-4"]):not([class*="bg-amber-5"]):not([class*="bg-yellow-3"]):not([class*="bg-yellow-4"]):not([class*="bg-yellow-5"]):not([class*="bg-emerald-4"]):not([class*="bg-emerald-5"]):not([class*="bg-orange-4"]):not([class*="bg-orange-5"]) {
     color: #f8fafc !important;
 }
 
-html.dark .text-slate-700 {
+html.dark :is(.text-slate-700, .text-gray-700):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #e2e8f0 !important;
 }
 
-html.dark .text-slate-600,
-html.dark .text-slate-500 {
+html.dark :is(.text-slate-600, .text-slate-500, .text-gray-600, .text-gray-500):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #94a3b8 !important;
 }
 
-html.dark .text-slate-400 {
+html.dark :is(.text-slate-400, .text-gray-400):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #64748b !important;
 }
 
 /* Enhanced Contrast for Colored Text in Dark Mode */
-html.dark .text-purple-900,
-html.dark .text-purple-800,
-html.dark .text-purple-700 {
+html.dark :is(.text-purple-900, .text-purple-800, .text-purple-700):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #c084fc !important;
 }
-
-html.dark .text-purple-600 {
+html.dark .text-purple-600:not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #d8b4fe !important;
 }
 
-html.dark .text-amber-900,
-html.dark .text-amber-800,
-html.dark .text-amber-700 {
-    color: #fbbf24 !important;
+html.dark :is(.text-violet-950, .text-violet-900, .text-violet-800, .text-violet-700, .text-violet-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #c4b5fd !important;
 }
 
-html.dark .text-amber-600,
-html.dark .text-amber-500 {
+html.dark :is(.text-fuchsia-950, .text-fuchsia-900, .text-fuchsia-800, .text-fuchsia-700, .text-fuchsia-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #f0abfc !important;
+}
+
+html.dark :is(.text-pink-950, .text-pink-900, .text-pink-800, .text-pink-700, .text-pink-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #f9a8d4 !important;
+}
+
+html.dark :is(.text-amber-950, .text-amber-900, .text-amber-800, .text-amber-700):not([class*="dark:text-"]):not([class*="peer-checked:text-"]):not([class*="bg-amber-3"]):not([class*="bg-amber-4"]):not([class*="bg-amber-5"]):not([class*="bg-yellow-"]) {
+    color: #fbbf24 !important;
+}
+html.dark :is(.text-amber-600, .text-amber-500):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #fcd34d !important;
 }
 
-html.dark .text-indigo-900,
-html.dark .text-indigo-800,
-html.dark .text-indigo-700 {
-    color: #a5b4fc !important;
+html.dark :is(.text-yellow-950, .text-yellow-900, .text-yellow-800, .text-yellow-700, .text-yellow-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]):not([class*="bg-yellow-"]):not([class*="bg-amber-"]) {
+    color: #fde047 !important;
 }
 
-html.dark .text-indigo-600 {
+html.dark :is(.text-orange-950, .text-orange-900, .text-orange-800, .text-orange-700, .text-orange-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #fdba74 !important;
+}
+
+html.dark :is(.text-indigo-950, .text-indigo-900, .text-indigo-800, .text-indigo-700):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #a5b4fc !important;
+}
+html.dark .text-indigo-600:not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #c7d2fe !important;
 }
 
-html.dark .text-emerald-900,
-html.dark .text-emerald-800,
-html.dark .text-emerald-700 {
-    color: #6ee7b7 !important;
+html.dark :is(.text-blue-950, .text-blue-900, .text-blue-800, .text-blue-700, .text-blue-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #93c5fd !important;
 }
 
-html.dark .text-emerald-600 {
+html.dark :is(.text-sky-950, .text-sky-900, .text-sky-800, .text-sky-700, .text-sky-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #7dd3fc !important;
+}
+
+html.dark :is(.text-cyan-950, .text-cyan-900, .text-cyan-800, .text-cyan-700, .text-cyan-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #67e8f9 !important;
+}
+
+html.dark :is(.text-teal-950, .text-teal-900, .text-teal-800, .text-teal-700, .text-teal-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #5eead4 !important;
+}
+
+html.dark :is(.text-emerald-950, .text-emerald-900, .text-emerald-800, .text-emerald-700):not([class*="dark:text-"]):not([class*="peer-checked:text-"]):not([class*="bg-emerald-4"]):not([class*="bg-emerald-5"]) {
+    color: #6ee7b7 !important;
+}
+html.dark .text-emerald-600:not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #a7f3d0 !important;
 }
 
-html.dark .text-rose-900,
-html.dark .text-rose-800,
-html.dark .text-rose-700 {
+html.dark :is(.text-green-950, .text-green-900, .text-green-800, .text-green-700, .text-green-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #86efac !important;
+}
+
+html.dark :is(.text-rose-950, .text-rose-900, .text-rose-800, .text-rose-700, .text-rose-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
     color: #fda4af !important;
 }
 
-/* Background Pastels into Sleek Dark Tints in Dark Mode */
-html.dark .bg-purple-50,
-html.dark .bg-purple-100 {
+html.dark :is(.text-red-950, .text-red-900, .text-red-800, .text-red-700, .text-red-600):not([class*="dark:text-"]):not([class*="peer-checked:text-"]) {
+    color: #fca5a5 !important;
+}
+
+/* Preserve high-contrast dark text on solid bright amber, yellow, and emerald badges/buttons in dark mode */
+html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500):is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950),
+html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500) :is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950) {
+    color: #0f172a !important;
+}
+
+/* Background Pastels & Translucent Washes into Sleek Dark Tints in Dark Mode */
+html.dark :is(
+    .bg-purple-50, .bg-purple-100,
+    [class^="bg-purple-50/"], [class*=" bg-purple-50/"],
+    [class^="bg-purple-100/"], [class*=" bg-purple-100/"],
+    [class^="bg-purple-200/"], [class*=" bg-purple-200/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
     background-color: rgba(168, 85, 247, 0.16) !important;
-    border-color: rgba(168, 85, 247, 0.3) !important;
+    border-color: rgba(168, 85, 247, 0.32) !important;
 }
 
-html.dark .bg-amber-50,
-html.dark .bg-amber-100 {
+html.dark :is(
+    .bg-violet-50, .bg-violet-100,
+    [class^="bg-violet-50/"], [class*=" bg-violet-50/"],
+    [class^="bg-violet-100/"], [class*=" bg-violet-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(139, 92, 246, 0.16) !important;
+    border-color: rgba(139, 92, 246, 0.32) !important;
+}
+
+html.dark :is(
+    .bg-fuchsia-50, .bg-fuchsia-100,
+    [class^="bg-fuchsia-50/"], [class*=" bg-fuchsia-50/"],
+    [class^="bg-fuchsia-100/"], [class*=" bg-fuchsia-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(217, 70, 239, 0.16) !important;
+    border-color: rgba(217, 70, 239, 0.32) !important;
+}
+
+html.dark :is(
+    .bg-pink-50, .bg-pink-100,
+    [class^="bg-pink-50/"], [class*=" bg-pink-50/"],
+    [class^="bg-pink-100/"], [class*=" bg-pink-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(236, 72, 153, 0.16) !important;
+    border-color: rgba(236, 72, 153, 0.32) !important;
+}
+
+html.dark :is(
+    .bg-amber-50, .bg-amber-100,
+    [class^="bg-amber-50/"], [class*=" bg-amber-50/"],
+    [class^="bg-amber-100/"], [class*=" bg-amber-100/"],
+    [class^="bg-amber-200/"], [class*=" bg-amber-200/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
     background-color: rgba(245, 158, 11, 0.16) !important;
-    border-color: rgba(245, 158, 11, 0.3) !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
 }
 
-html.dark .bg-indigo-50,
-html.dark .bg-indigo-100 {
+html.dark :is(
+    .bg-yellow-50, .bg-yellow-100,
+    [class^="bg-yellow-50/"], [class*=" bg-yellow-50/"],
+    [class^="bg-yellow-100/"], [class*=" bg-yellow-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(234, 179, 8, 0.16) !important;
+    border-color: rgba(234, 179, 8, 0.35) !important;
+}
+
+html.dark :is(
+    .bg-orange-50, .bg-orange-100,
+    [class^="bg-orange-50/"], [class*=" bg-orange-50/"],
+    [class^="bg-orange-100/"], [class*=" bg-orange-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(249, 115, 22, 0.16) !important;
+    border-color: rgba(249, 115, 22, 0.35) !important;
+}
+
+html.dark :is(
+    .bg-indigo-50, .bg-indigo-100,
+    [class^="bg-indigo-50/"], [class*=" bg-indigo-50/"],
+    [class^="bg-indigo-100/"], [class*=" bg-indigo-100/"],
+    [class^="bg-indigo-200/"], [class*=" bg-indigo-200/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
     background-color: rgba(99, 102, 241, 0.16) !important;
-    border-color: rgba(99, 102, 241, 0.3) !important;
+    border-color: rgba(99, 102, 241, 0.32) !important;
 }
 
-html.dark .bg-emerald-50,
-html.dark .bg-emerald-100 {
+html.dark :is(
+    .bg-blue-50, .bg-blue-100,
+    [class^="bg-blue-50/"], [class*=" bg-blue-50/"],
+    [class^="bg-blue-100/"], [class*=" bg-blue-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(59, 130, 246, 0.16) !important;
+    border-color: rgba(59, 130, 246, 0.32) !important;
+}
+
+html.dark :is(
+    .bg-sky-50, .bg-sky-100,
+    [class^="bg-sky-50/"], [class*=" bg-sky-50/"],
+    [class^="bg-sky-100/"], [class*=" bg-sky-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(14, 165, 233, 0.16) !important;
+    border-color: rgba(14, 165, 233, 0.32) !important;
+}
+
+html.dark :is(
+    .bg-cyan-50, .bg-cyan-100,
+    [class^="bg-cyan-50/"], [class*=" bg-cyan-50/"],
+    [class^="bg-cyan-100/"], [class*=" bg-cyan-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(6, 182, 212, 0.16) !important;
+    border-color: rgba(6, 182, 212, 0.32) !important;
+}
+
+html.dark :is(
+    .bg-teal-50, .bg-teal-100,
+    [class^="bg-teal-50/"], [class*=" bg-teal-50/"],
+    [class^="bg-teal-100/"], [class*=" bg-teal-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(20, 184, 166, 0.16) !important;
+    border-color: rgba(20, 184, 166, 0.32) !important;
+}
+
+html.dark :is(
+    .bg-emerald-50, .bg-emerald-100,
+    [class^="bg-emerald-50/"], [class*=" bg-emerald-50/"],
+    [class^="bg-emerald-100/"], [class*=" bg-emerald-100/"],
+    [class^="bg-emerald-200/"], [class*=" bg-emerald-200/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
     background-color: rgba(16, 185, 129, 0.16) !important;
-    border-color: rgba(16, 185, 129, 0.3) !important;
+    border-color: rgba(16, 185, 129, 0.32) !important;
 }
 
-html.dark .bg-rose-50,
-html.dark .bg-rose-100 {
+html.dark :is(
+    .bg-green-50, .bg-green-100,
+    [class^="bg-green-50/"], [class*=" bg-green-50/"],
+    [class^="bg-green-100/"], [class*=" bg-green-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(34, 197, 94, 0.16) !important;
+    border-color: rgba(34, 197, 94, 0.32) !important;
+}
+
+html.dark :is(
+    .bg-rose-50, .bg-rose-100,
+    [class^="bg-rose-50/"], [class*=" bg-rose-50/"],
+    [class^="bg-rose-100/"], [class*=" bg-rose-100/"],
+    [class^="bg-rose-200/"], [class*=" bg-rose-200/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
     background-color: rgba(244, 63, 94, 0.16) !important;
-    border-color: rgba(244, 63, 94, 0.3) !important;
+    border-color: rgba(244, 63, 94, 0.32) !important;
 }
 
-html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark :is(
+    .bg-red-50, .bg-red-100,
+    [class^="bg-red-50/"], [class*=" bg-red-50/"],
+    [class^="bg-red-100/"], [class*=" bg-red-100/"]
+):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
+    background-color: rgba(239, 68, 68, 0.16) !important;
+    border-color: rgba(239, 68, 68, 0.32) !important;
+}
+
+/* Standalone Pastel Colored Borders in Dark Mode */
+html.dark :is(
+    .border-purple-100, .border-purple-200, .border-purple-300,
+    [class^="border-purple-100/"], [class*=" border-purple-100/"],
+    [class^="border-purple-200/"], [class*=" border-purple-200/"],
+    [class^="border-purple-300/"], [class*=" border-purple-300/"]
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
+    border-color: rgba(168, 85, 247, 0.32) !important;
+}
+
+html.dark :is(
+    .border-violet-100, .border-violet-200, .border-violet-300,
+    .border-fuchsia-100, .border-fuchsia-200, .border-fuchsia-300,
+    .border-pink-100, .border-pink-200, .border-pink-300
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
+    border-color: rgba(192, 132, 252, 0.32) !important;
+}
+
+html.dark :is(
+    .border-amber-100, .border-amber-200, .border-amber-300,
+    .border-yellow-100, .border-yellow-200, .border-yellow-300,
+    [class^="border-amber-100/"], [class*=" border-amber-100/"],
+    [class^="border-amber-200/"], [class*=" border-amber-200/"],
+    [class^="border-amber-300/"], [class*=" border-amber-300/"]
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
+    border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark :is(
+    .border-orange-100, .border-orange-200, .border-orange-300,
+    [class^="border-orange-100/"], [class*=" border-orange-100/"],
+    [class^="border-orange-200/"], [class*=" border-orange-200/"]
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
+    border-color: rgba(249, 115, 22, 0.35) !important;
+}
+
+html.dark :is(
+    .border-indigo-100, .border-indigo-200, .border-indigo-300,
+    [class^="border-indigo-100/"], [class*=" border-indigo-100/"],
+    [class^="border-indigo-200/"], [class*=" border-indigo-200/"],
+    [class^="border-indigo-300/"], [class*=" border-indigo-300/"]
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
+    border-color: rgba(99, 102, 241, 0.32) !important;
+}
+
+html.dark :is(
+    .border-blue-100, .border-blue-200, .border-blue-300,
+    .border-sky-100, .border-sky-200, .border-sky-300,
+    .border-cyan-100, .border-cyan-200, .border-cyan-300,
+    .border-teal-100, .border-teal-200, .border-teal-300,
+    [class^="border-blue-100/"], [class*=" border-blue-100/"],
+    [class^="border-blue-200/"], [class*=" border-blue-200/"],
+    [class^="border-sky-100/"], [class*=" border-sky-100/"],
+    [class^="border-sky-200/"], [class*=" border-sky-200/"],
+    [class^="border-cyan-100/"], [class*=" border-cyan-100/"],
+    [class^="border-cyan-200/"], [class*=" border-cyan-200/"]
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
+    border-color: rgba(56, 189, 248, 0.32) !important;
+}
+
+html.dark :is(
+    .border-emerald-100, .border-emerald-200, .border-emerald-300,
+    .border-green-100, .border-green-200, .border-green-300,
+    [class^="border-emerald-100/"], [class*=" border-emerald-100/"],
+    [class^="border-emerald-200/"], [class*=" border-emerald-200/"],
+    [class^="border-emerald-300/"], [class*=" border-emerald-300/"]
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
+    border-color: rgba(16, 185, 129, 0.32) !important;
+}
+
+html.dark :is(
+    .border-rose-100, .border-rose-200, .border-rose-300,
+    .border-red-100, .border-red-200, .border-red-300,
+    [class^="border-rose-100/"], [class*=" border-rose-100/"],
+    [class^="border-rose-200/"], [class*=" border-rose-200/"],
+    [class^="border-rose-300/"], [class*=" border-rose-300/"],
+    [class^="border-red-100/"], [class*=" border-red-100/"],
+    [class^="border-red-200/"], [class*=" border-red-200/"]
+):not([class*="dark:border-"]):not([class*="peer-checked:border-"]) {
+    border-color: rgba(244, 63, 94, 0.32) !important;
+}
+
+/* Form Controls in Dark Mode */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html.dark select,
 html.dark textarea {
     background-color: #111827 !important;
@@ -218,42 +516,64 @@ html.dark textarea::placeholder {
     color: #64748b !important;
 }
 
-html.dark [role="dialog"],
+/* Modal Dialog Surfaces in Dark Mode (excludes full-screen fixed backdrop wrappers) */
+html.dark [role="dialog"]:not(.fixed):not(.inset-0),
 html.dark .modal-content {
     background-color: #111827 !important;
     border-color: #1f2937 !important;
     color: #f8fafc !important;
 }
 
-/* Active selectors & Radio cards in Dark Mode */
-html.dark label:has(input[type="radio"]:checked),
-html.dark label:has(input[type="checkbox"]:checked) {
+/* Active selectors & Radio/Checkbox cards in Dark Mode (scoped to bordered card labels) */
+html.dark label[class*="border"]:not([class*="border-transparent"]):has(input[type="radio"]:checked),
+html.dark label[class*="border"]:not([class*="border-transparent"]):has(input[type="checkbox"]:checked) {
     background-color: rgba(147, 51, 234, 0.18) !important;
     border-color: #a855f7 !important;
     box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.4) !important;
 }
-html.dark label:has(input[type="radio"]:checked) span,
-html.dark label:has(input[type="checkbox"]:checked) span {
+html.dark label[class*="border"]:not([class*="border-transparent"]):has(input[type="radio"]:checked) span,
+html.dark label[class*="border"]:not([class*="border-transparent"]):has(input[type="checkbox"]:checked) span {
     color: #f8fafc !important;
 }
 
-/* Prevent ugly white flashes when hovering labels or cards in dark mode */
-html.dark label:hover,
+/* Prevent white flashes when hovering cards, rows, or buttons in dark mode */
+html.dark label[class*="border"]:not([class*="border-transparent"]):hover,
 html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-slate-200:hover,
 html.dark [class*="hover:bg-slate-50"]:hover,
 html.dark [class*="hover:bg-slate-100"]:hover,
+html.dark [class*="hover:bg-slate-200"]:hover,
 html.dark [class*="hover:bg-white"]:hover {
-    background-color: rgba(30, 41, 59, 0.75) !important;
+    background-color: rgba(30, 41, 59, 0.78) !important;
 }
 
-/* Vibrant Action Buttons in Dark Mode (Eliminates dead colorless slate-900 buttons) */
-html.dark button.bg-slate-900,
+html.dark :is([class*="hover:bg-purple-50"], [class*="hover:bg-purple-100"], [class*="hover:bg-indigo-50"], [class*="hover:bg-indigo-100"]):not([class*="dark:hover:bg-"]):hover {
+    background-color: rgba(147, 51, 234, 0.22) !important;
+}
+
+html.dark :is([class*="hover:bg-amber-50"], [class*="hover:bg-amber-100"], [class*="hover:bg-yellow-50"], [class*="hover:bg-yellow-100"], [class*="hover:bg-orange-50"], [class*="hover:bg-orange-100"]):not([class*="dark:hover:bg-"]):hover {
+    background-color: rgba(245, 158, 11, 0.22) !important;
+}
+
+html.dark :is([class*="hover:bg-emerald-50"], [class*="hover:bg-emerald-100"], [class*="hover:bg-green-50"], [class*="hover:bg-green-100"], [class*="hover:bg-teal-50"], [class*="hover:bg-teal-100"]):not([class*="dark:hover:bg-"]):hover {
+    background-color: rgba(16, 185, 129, 0.22) !important;
+}
+
+html.dark :is([class*="hover:bg-rose-50"], [class*="hover:bg-rose-100"], [class*="hover:bg-red-50"], [class*="hover:bg-red-100"]):not([class*="dark:hover:bg-"]):hover {
+    background-color: rgba(244, 63, 94, 0.22) !important;
+}
+
+html.dark :is([class*="hover:bg-blue-50"], [class*="hover:bg-blue-100"], [class*="hover:bg-sky-50"], [class*="hover:bg-sky-100"], [class*="hover:bg-cyan-50"], [class*="hover:bg-cyan-100"]):not([class*="dark:hover:bg-"]):hover {
+    background-color: rgba(14, 165, 233, 0.22) !important;
+}
+
+/* Vibrant Action Buttons in Dark Mode (Eliminates dead colorless slate-900 buttons while respecting explicit dark:bg-*) */
 html.dark a.bg-slate-900:not([href*="tiktok"]):not([class*="dark:bg-"]),
 html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]) {
     background-color: #9333ea !important;
     color: #ffffff !important;
 }
-html.dark button.bg-slate-900:hover,
 html.dark a.bg-slate-900:hover:not([href*="tiktok"]):not([class*="dark:bg-"]),
 html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]):hover {
     background-color: #7e22ce !important;
@@ -566,12 +886,13 @@ html, body, button, a, input, select, textarea {
 /* ======================================================== */
 /* STAR / COOLDOWN SKIP / WIDGET UNLOCK BUTTON STYLING       */
 /* Guaranteed high contrast in both Light & Dark modes      */
+/* (Scoped to 400/500/600 so from-amber-50 cards stay safe) */
 /* ======================================================== */
 .btn-star-gold,
 .btn-skip-cooldown,
 .btn-widget-unlock,
-button[class*="from-amber"],
-a[class*="from-amber"] {
+button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]),
+a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
     color: #0f172a !important;
     font-weight: 900 !important;
@@ -583,19 +904,32 @@ a[class*="from-amber"] {
 .btn-star-gold:hover,
 .btn-skip-cooldown:hover,
 .btn-widget-unlock:hover,
-button[class*="from-amber"]:hover,
-a[class*="from-amber"]:hover {
+button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]):hover,
+a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]):hover {
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
     color: #020617 !important;
     box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5) !important;
+}
+
+.btn-star-gold i,
+.btn-skip-cooldown i,
+.btn-widget-unlock i,
+button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) i,
+a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) i,
+.btn-star-gold span,
+.btn-skip-cooldown span,
+.btn-widget-unlock span,
+button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) span,
+a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) span {
+    color: #0f172a !important;
 }
 
 /* DARK MODE: Vibrant glowing gold with crisp white text & star */
 html.dark .btn-star-gold,
 html.dark .btn-skip-cooldown,
 html.dark .btn-widget-unlock,
-html.dark button[class*="from-amber"],
-html.dark a[class*="from-amber"] {
+html.dark button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]),
+html.dark a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) {
     background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%) !important;
     color: #ffffff !important;
     border: 1px solid #fbbf24 !important;
@@ -606,8 +940,8 @@ html.dark a[class*="from-amber"] {
 html.dark .btn-star-gold:hover,
 html.dark .btn-skip-cooldown:hover,
 html.dark .btn-widget-unlock:hover,
-html.dark button[class*="from-amber"]:hover,
-html.dark a[class*="from-amber"]:hover {
+html.dark button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]):hover,
+html.dark a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]):hover {
     background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%) !important;
     color: #ffffff !important;
     box-shadow: 0 0 22px rgba(245, 158, 11, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
@@ -616,8 +950,8 @@ html.dark a[class*="from-amber"]:hover {
 html.dark .btn-star-gold i,
 html.dark .btn-skip-cooldown i,
 html.dark .btn-widget-unlock i,
-html.dark button[class*="from-amber"] i,
-html.dark a[class*="from-amber"] i {
+html.dark button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) i,
+html.dark a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) i {
     color: #ffffff !important;
     filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6)) !important;
 }
@@ -625,7 +959,7 @@ html.dark a[class*="from-amber"] i {
 html.dark .btn-star-gold span,
 html.dark .btn-skip-cooldown span,
 html.dark .btn-widget-unlock span,
-html.dark button[class*="from-amber"] span,
-html.dark a[class*="from-amber"] span {
+html.dark button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) span,
+html.dark a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) span {
     color: #ffffff !important;
 }

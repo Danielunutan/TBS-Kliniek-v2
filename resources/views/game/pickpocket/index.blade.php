@@ -145,9 +145,9 @@
                     <input type="hidden" name="action_id" value="{{ $action['id'] }}">
                     <button type="submit" 
                             :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
-                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs cursor-pointer'"
+                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs cursor-pointer'"
                             {{ $isDisabled ? 'disabled' : '' }}
-                            class="w-full py-2.5 px-3 rounded-lg text-xs font-bold transition {{ $isDisabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs cursor-pointer' }}">
+                            class="w-full py-2.5 px-3 rounded-lg text-xs font-bold transition">
                         Zakkenrollen
                     </button>
                 </form>

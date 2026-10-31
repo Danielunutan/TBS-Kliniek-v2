@@ -634,7 +634,7 @@
 
         <!-- ACTIEVE EVENT PERKS / ZEGENINGEN -->
         @if($character->hasPerk('magere_hein_zegening'))
-        <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-purple-600/15 to-slate-900/40 border border-amber-400/60 shadow-xs flex items-center justify-between gap-4">
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-purple-600/15 to-amber-500/10 dark:to-slate-900/40 border border-amber-400/60 shadow-xs flex items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-xl shrink-0 shadow-md animate-bounce">
                     <i class="fa-solid fa-skull"></i>
@@ -652,8 +652,8 @@
                 </div>
             </div>
             <div class="text-right shrink-0">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Resterende Duur</span>
-                <span class="text-xs font-black text-amber-500 font-mono">{{ $character->getPerkRemainingHours('magere_hein_zegening') }} uur resterend</span>
+                <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">Resterende Duur</span>
+                <span class="text-xs font-black text-amber-600 dark:text-amber-500 font-mono">{{ $character->getPerkRemainingHours('magere_hein_zegening') }} uur resterend</span>
             </div>
         </div>
         @endif

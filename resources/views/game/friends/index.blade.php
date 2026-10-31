@@ -54,8 +54,8 @@
             @if($bff && $bff->friend)
             <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
                 <a href="{{ route('profile.show', $bff->friend->name) }}" class="relative group shrink-0">
-                    <img src="{{ $bff->friend->avatar_url }}" alt="{{ $bff->friend->name }}" class="w-20 h-20 rounded-2xl object-cover border-2 border-pink-300 shadow-md group-hover:scale-105 transition-transform">
-                    <span class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-white shadow-xs inline-flex items-center gap-1">
+                    <img src="{{ $bff->friend->avatar_url }}" alt="{{ $bff->friend->name }}" class="w-20 h-20 rounded-2xl object-cover border-2 border-pink-300 dark:border-pink-700 shadow-md group-hover:scale-105 transition-transform">
+                    <span class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-white dark:border-slate-900 shadow-xs inline-flex items-center gap-1">
                         <i class="fa-solid fa-heart text-[8px]"></i> <span>BFF</span>
                     </span>
                 </a>
@@ -145,11 +145,11 @@
                     <i class="fa-solid fa-user-clock"></i>
                 </span>
                 <div>
-                    <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <span>Inkomende Vriendschapsverzoeken</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-200 text-purple-900">{{ $pendingRequests->count() }}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-200 dark:bg-purple-900/70 text-purple-900 dark:text-purple-200">{{ $pendingRequests->count() }}</span>
                     </h3>
-                    <p class="text-xs text-slate-600">Deze medepatiënten willen een bondgenootschap met jou sluiten. Accepteer of weiger het verzoek.</p>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Deze medepatiënten willen een bondgenootschap met jou sluiten. Accepteer of weiger het verzoek.</p>
                 </div>
             </div>
         </div>
@@ -288,9 +288,9 @@
                             <div class="flex items-center gap-3">
                                 <div class="relative shrink-0">
                                     <a href="{{ route('profile.show', $f->friend->name) }}">
-                                        <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-2xs hover:scale-105 transition-transform">
+                                        <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs hover:scale-105 transition-transform">
                                     </a>
-                                    <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $f->friend->online_status_label }}"></span>
+                                    <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}" title="{{ $f->friend->online_status_label }}"></span>
                                 </div>
                                 <div>
                                     <a href="{{ route('profile.show', $f->friend->name) }}" class="font-extrabold text-slate-900 hover:text-purple-600 transition block">

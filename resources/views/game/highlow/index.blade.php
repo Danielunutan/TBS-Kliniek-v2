@@ -16,7 +16,7 @@
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Hoger of Lager</h1>
             <p class="text-slate-500 text-xs sm:text-sm mt-1">Raad of de volgende kaart hoger of lager is dan de huidige kaart (Aas is 1, Koning is 13).</p>
         </div>
-        <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black select-none pointer-events-none">
+        <div class="absolute -right-6 -bottom-6 text-slate-100 dark:text-slate-800/40 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-dice"></i>
         </div>
     </div>

@@ -46,9 +46,9 @@ class ArmWrestleController extends Controller
                 'xp' => 15,
                 'respect' => 2,
                 'difficulty' => 'Beginner',
-                'difficulty_color' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'difficulty_color' => 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
                 'icon' => 'fa-broom',
-                'icon_style' => 'bg-emerald-50 text-emerald-600 border-emerald-200',
+                'icon_style' => 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60',
             ],
             'karel' => [
                 'key' => 'karel',
@@ -64,9 +64,9 @@ class ArmWrestleController extends Controller
                 'xp' => 25,
                 'respect' => 5,
                 'difficulty' => 'Gemiddeld',
-                'difficulty_color' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                'difficulty_color' => 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60',
                 'icon' => 'fa-dumbbell',
-                'icon_style' => 'bg-indigo-50 text-indigo-600 border-indigo-200',
+                'icon_style' => 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/60',
             ],
             'bennie' => [
                 'key' => 'bennie',
@@ -82,9 +82,9 @@ class ArmWrestleController extends Controller
                 'xp' => 40,
                 'respect' => 10,
                 'difficulty' => 'Zwaar',
-                'difficulty_color' => 'bg-amber-50 text-amber-700 border-amber-200',
+                'difficulty_color' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
                 'icon' => 'fa-hand-fist',
-                'icon_style' => 'bg-amber-50 text-amber-600 border-amber-200',
+                'icon_style' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/60',
             ],
             'mike' => [
                 'key' => 'mike',
@@ -100,9 +100,9 @@ class ArmWrestleController extends Controller
                 'xp' => 60,
                 'respect' => 20,
                 'difficulty' => 'Eindbaas',
-                'difficulty_color' => 'bg-rose-50 text-rose-700 border-rose-200',
+                'difficulty_color' => 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/60',
                 'icon' => 'fa-skull',
-                'icon_style' => 'bg-rose-50 text-rose-600 border-rose-200',
+                'icon_style' => 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/60',
             ],
         ];
     }

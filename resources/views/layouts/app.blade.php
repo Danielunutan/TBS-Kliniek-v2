@@ -222,257 +222,6 @@
             text-rendering: optimizeLegibility;
         }
 
-        /* Seamless Rich Dark Mode Overrides for TBS Kliniek */
-        html.dark body {
-            background-color: #0b0f19 !important;
-            color: #e2e8f0 !important;
-        }
-        html.dark .bg-white {
-            background-color: #111827 !important;
-        }
-        html.dark .bg-slate-50 {
-            background-color: #0f172a !important;
-        }
-        html.dark .bg-slate-100 {
-            background-color: #1e293b !important;
-        }
-        html.dark .bg-slate-200 {
-            background-color: #1e293b !important;
-        }
-        html.dark .bg-slate-300 {
-            background-color: #334155 !important;
-        }
-        /* Fix ugly semi-transparent grey washes in darkmode */
-        html.dark [class*="bg-slate-50/"],
-        html.dark [class*="bg-slate-100/"] {
-            background-color: rgba(15, 23, 42, 0.6) !important;
-        }
-        html.dark [class*="bg-slate-200/"],
-        html.dark [class*="bg-slate-300/"] {
-            background-color: rgba(30, 41, 59, 0.6) !important;
-        }
-        html.dark .border-slate-100,
-        html.dark .border-slate-200,
-        html.dark [class*="border-slate-100/"],
-        html.dark [class*="border-slate-200/"] {
-            border-color: #1e293b !important;
-        }
-        html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
-        html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
-            border-color: #1e293b !important;
-        }
-        html.dark .text-slate-900,
-        html.dark .text-slate-800 {
-            color: #f8fafc !important;
-        }
-        html.dark .text-slate-700 {
-            color: #e2e8f0 !important;
-        }
-        html.dark .text-slate-600,
-        html.dark .text-slate-500 {
-            color: #94a3b8 !important;
-        }
-        html.dark .text-purple-700 {
-            color: #c084fc !important;
-        }
-        html.dark .text-purple-800,
-        html.dark .text-purple-900 {
-            color: #e9d5ff !important;
-        }
-        html.dark .text-amber-900,
-        html.dark .text-amber-950 {
-            color: #fef3c7 !important;
-        }
-        html.dark .text-amber-800 {
-            color: #fde68a !important;
-        }
-        html.dark .text-amber-700 {
-            color: #fbbf24 !important;
-        }
-        html.dark .text-amber-600,
-        html.dark .text-amber-500 {
-            color: #f59e0b !important;
-        }
-        html.dark .bg-purple-50,
-        html.dark .bg-purple-100,
-        html.dark [class*="bg-purple-50/"],
-        html.dark [class*="bg-purple-100/"] {
-            background-color: rgba(168, 85, 247, 0.12) !important;
-            border-color: rgba(168, 85, 247, 0.25) !important;
-        }
-        /* Remove ugly gradient buttons and banner bars in dark mode */
-        html.dark button[class*="bg-gradient-to-"],
-        html.dark a[class*="bg-gradient-to-"]:not([class*="rounded-full"]) {
-            background-image: none !important;
-        }
-        html.dark div[class*="bg-gradient-to-r"]:not([class*="rounded-full"]),
-        html.dark div[class*="bg-gradient-to-br"]:not([class*="rounded-full"]) {
-            background-image: none !important;
-        }
-        html.dark .bg-amber-50,
-        html.dark .bg-amber-100,
-        html.dark [class*="bg-amber-50/"],
-        html.dark [class*="bg-amber-100/"] {
-            background-color: rgba(245, 158, 11, 0.14) !important;
-            border-color: rgba(245, 158, 11, 0.35) !important;
-        }
-        html.dark .border-amber-100,
-        html.dark .border-amber-200,
-        html.dark [class*="border-amber-100/"],
-        html.dark [class*="border-amber-200/"] {
-            border-color: rgba(245, 158, 11, 0.35) !important;
-        }
-        html.dark .text-yellow-900,
-        html.dark .text-yellow-950 {
-            color: #fef9c3 !important;
-        }
-        html.dark .text-yellow-800 {
-            color: #fef08a !important;
-        }
-        html.dark .bg-yellow-50,
-        html.dark .bg-yellow-100,
-        html.dark [class*="bg-yellow-50/"],
-        html.dark [class*="bg-yellow-100/"] {
-            background-color: rgba(234, 179, 8, 0.14) !important;
-            border-color: rgba(234, 179, 8, 0.35) !important;
-        }
-        html.dark input:not([type="checkbox"]):not([type="radio"]),
-        html.dark select,
-        html.dark textarea {
-            background-color: #111827 !important;
-            border-color: #1e293b !important;
-            color: #f8fafc !important;
-        }
-
-        /* Active selectors & Radio cards in Dark Mode (No more ugly white background!) */
-        html.dark label:has(input[type="radio"]:checked),
-        html.dark label:has(input[type="checkbox"]:checked) {
-            background-color: rgba(147, 51, 234, 0.18) !important;
-            border-color: #a855f7 !important;
-            box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.4) !important;
-        }
-        html.dark label:has(input[type="radio"]:checked) span,
-        html.dark label:has(input[type="checkbox"]:checked) span {
-            color: #f8fafc !important;
-        }
-
-        /* Prevent ugly white flashes when hovering labels or cards in dark mode */
-        html.dark label:hover,
-        html.dark .hover\:bg-slate-50:hover,
-        html.dark [class*="hover:bg-slate-50"]:hover,
-        html.dark [class*="hover:bg-slate-100"]:hover,
-        html.dark [class*="hover:bg-white"]:hover {
-            background-color: rgba(30, 41, 59, 0.75) !important;
-        }
-
-        /* Vibrant Action Buttons in Dark Mode (Eliminates dead colorless slate-900 buttons) */
-        html.dark button.bg-slate-900,
-        html.dark a.bg-slate-900:not([href*="tiktok"]):not([class*="dark:bg-"]),
-        html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]) {
-            background-color: #9333ea !important;
-            color: #ffffff !important;
-        }
-        html.dark button.bg-slate-900:hover,
-        html.dark a.bg-slate-900:hover:not([href*="tiktok"]):not([class*="dark:bg-"]),
-        html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]):hover {
-            background-color: #7e22ce !important;
-            color: #ffffff !important;
-        }
-
-        /* ======================================================== */
-        /* UNIVERSAL SLEEK SCROLLBARS FOR TBS KLINIEK               */
-        /* ======================================================== */
-        /* Standard modern CSS (Firefox & Chromium 121+) */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
-        }
-
-        html.dark * {
-            scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
-        }
-
-        /* WebKit / Chromium (Chrome, Edge, Safari, Brave, Opera) */
-        *::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        *::-webkit-scrollbar-track {
-            background: transparent !important;
-        }
-
-        *::-webkit-scrollbar-thumb {
-            background-color: rgba(148, 163, 184, 0.35);
-            border-radius: 9999px;
-            border: 1px solid transparent;
-        }
-
-        *::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(100, 116, 139, 0.65);
-        }
-
-        *::-webkit-scrollbar-corner {
-            background: transparent !important;
-        }
-
-        /* Dark Mode Scrollbars */
-        html.dark *::-webkit-scrollbar-thumb {
-            background-color: rgba(148, 163, 184, 0.22);
-        }
-
-        html.dark *::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(168, 85, 247, 0.6);
-        }
-
-        /* Thin Scrollbar Utility (for horizontal pills, tabs & dropdowns) */
-        .scrollbar-thin,
-        .custom-scrollbar {
-            scrollbar-width: thin !important;
-            scrollbar-color: rgba(148, 163, 184, 0.3) transparent !important;
-        }
-
-        html.dark .scrollbar-thin,
-        html.dark .custom-scrollbar {
-            scrollbar-color: rgba(168, 85, 247, 0.3) transparent !important;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar,
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px !important;
-            height: 4px !important;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-track,
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent !important;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb,
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(148, 163, 184, 0.35) !important;
-            border-radius: 9999px !important;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover,
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(147, 51, 234, 0.65) !important;
-        }
-
-        /* Hide Scrollbar completely when smooth touch/drag scrolling is preferred */
-        .scrollbar-none,
-        .no-scrollbar {
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
-
-        .scrollbar-none::-webkit-scrollbar,
-        .no-scrollbar::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-        }
-
         /* Prevent mobile swipe/pull-to-refresh reload in all chat stream containers */
         #tbsChatScrollContainer,
         #tbsMiniChatScroll,
@@ -1122,23 +871,21 @@
     <aside class="hidden lg:flex lg:flex-col w-64 bg-white border-r border-slate-200/90 shrink-0 min-h-screen text-slate-700 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
            x-data="window.tbsSidebarController('{{ $activeCategory ?? '' }}')">
         <!-- Logo Header (TBS Kliniek Brand Emblem & Typography) -->
-        <div class="px-5 py-4 flex items-center border-b border-slate-100 bg-white sticky top-0 z-10">
-            <a href="{{ route('dashboard') }}" data-no-fav="1" class="flex items-center gap-3 group" title="TBS Kliniek Dashboard">
-                <div class="w-11 h-11 shrink-0 drop-shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
-                    <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
-                </div>
-                <div class="flex flex-col">
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-sm font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
-                    </div>
-                    <div class="mt-1">
-                        <a href="{{ route('members.index', ['filter' => 'online']) }}" data-no-fav="1" class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 transition cursor-pointer" title="{{ $onlineCount }} patiënten momenteel online in de kliniek (klik voor online lijst)">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>{{ $onlineCount }} Online</span>
-                        </a>
-                    </div>
-                </div>
+        <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-100 bg-white sticky top-0 z-10">
+            <a href="{{ route('dashboard') }}" data-no-fav="1" class="w-11 h-11 shrink-0 drop-shadow-md hover:scale-105 transition-transform flex items-center justify-center" title="TBS Kliniek Dashboard">
+                <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
             </a>
+            <div class="flex flex-col">
+                <a href="{{ route('dashboard') }}" data-no-fav="1" class="flex items-center gap-1.5 hover:opacity-90 transition" title="TBS Kliniek Dashboard">
+                    <span class="text-sm font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
+                </a>
+                <div class="mt-1">
+                    <a href="{{ route('members.index', ['filter' => 'online']) }}" data-no-fav="1" class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 transition cursor-pointer" title="{{ $onlineCount }} patiënten momenteel online in de kliniek (klik voor online lijst)">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>{{ $onlineCount }} Online</span>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Navigation Sections with Collapsible Categories -->
@@ -1147,6 +894,7 @@
             <!-- 🔍 COMMAND PALETTE & DIRECT SEARCH (CTRL + K) -->
             <div class="mb-2.5">
                 <button type="button" 
+                        data-spotlight-btn="1"
                         onclick="if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
                         class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 hover:bg-purple-50/60 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 text-slate-500 hover:text-purple-700 dark:text-purple-300 dark:hover:text-white border border-slate-200/80 dark:border-purple-900/40 transition shadow-2xs group cursor-pointer text-left">
                     <span class="flex items-center gap-2.5">
@@ -1336,7 +1084,7 @@
                                 <i class="fa-solid fa-masks-theater w-4 text-center text-rose-500 dark:text-rose-400"></i>
                                 <span>Bende Heists</span>
                             </div>
-                            <span class="text-[9px] font-black uppercase text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Co-Op</span>
+                            <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">Co-Op</span>
                         </a>
                         <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
@@ -1388,14 +1136,14 @@
                             <i class="fa-solid fa-scroll w-4 text-center text-orange-500"></i>
                             <span>Halloween Quests</span>
                         </div>
-                        <span class="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Quests</span>
+                        <span class="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">Quests</span>
                     </a>
                     <a href="{{ route('halloween.shop') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.shop*') ? 'nav-item-active bg-orange-500/10 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-store w-4 text-center text-purple-500 dark:text-purple-400"></i>
                             <span>Halloween Shop</span>
                         </div>
-                        <span class="text-[9px] font-black text-orange-500">
+                        <span class="text-[9px] font-black text-orange-600 dark:text-orange-400">
                             {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }} 🎃
                         </span>
                     </a>
@@ -1905,8 +1653,8 @@
                 <a href="{{ route('chat.index') }}" class="relative w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" title="Live Chat & DMs" aria-label="Live Chat">
                     <i class="fa-solid fa-comments text-xs"></i>
                     @if($unreadChatCount > 0)
-                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white animate-ping"></span>
-                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#110726] animate-ping"></span>
+                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#110726]"></span>
                     @endif
                 </a>
 
@@ -2379,7 +2127,7 @@
                         </span>
                     </button>
 
-                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
+                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 dark:border dark:border-slate-700 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
                         <i class="fa-brands fa-tiktok text-sm"></i>
                         <span>TikTok</span>
                     </a>
@@ -2430,7 +2178,7 @@
                     <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-[#5865F2] text-white text-xs font-bold text-center flex items-center justify-center gap-1.5">
                         <i class="fa-brands fa-discord"></i> Discord
                     </a>
-                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 dark:border dark:border-slate-700 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5">
                         <i class="fa-brands fa-tiktok"></i> TikTok
                     </a>
                 </div>
@@ -2531,8 +2279,8 @@
                         @csrf
                         <input type="hidden" name="currency" value="stars">
                         <button type="submit" 
-                                class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-95">
-                            <i class="fa-solid fa-star text-amber-200"></i>
+                                class="btn-star-gold w-full sm:w-auto py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-95">
+                            <i class="fa-solid fa-star"></i>
                             <span>{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</span>
                         </button>
                     </form>
@@ -2843,13 +2591,13 @@
         <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-purple-900/50 z-30 flex items-center justify-around py-1.5 px-2 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
             
             <!-- 1. Home / Dashboard -->
-            <a href="{{ route('dashboard') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition">
+            <a href="{{ route('dashboard') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
                 <i class="fa-solid fa-house text-base"></i>
                 <span>Home</span>
             </a>
 
             <!-- 2. Hosselen / Misdaad -->
-            <a href="{{ route('hustle.index') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('hustle.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition">
+            <a href="{{ route('hustle.index') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('hustle.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
                 <i class="fa-solid fa-hand-holding-dollar text-base"></i>
                 <span>Hosselen</span>
             </a>
@@ -2867,13 +2615,13 @@
             </div>
 
             <!-- 4. Bendes -->
-            <a href="{{ route('gangs.index') }}" @click="if(window.tbsVibrate) window.tbsVibrate(10);" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition">
+            <a href="{{ route('gangs.index') }}" @click="if(window.tbsVibrate) window.tbsVibrate(10);" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
                 <i class="fa-solid fa-users text-base"></i>
                 <span>Bendes</span>
             </a>
 
             <!-- 5. Chat / Berichten -->
-            <a href="{{ route('chat.index') }}" @click="if(window.tbsVibrate) window.tbsVibrate(10);" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('chat.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition relative">
+            <a href="{{ route('chat.index') }}" @click="if(window.tbsVibrate) window.tbsVibrate(10);" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('chat.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition relative">
                 <div class="relative">
                     <i class="fa-solid fa-comments text-base"></i>
                     @if(isset($unreadChatCount) && $unreadChatCount > 0)
@@ -2887,9 +2635,7 @@
         <!-- NATIVE SLIDE-UP QUICK ACTIONS BOTTOM SHEET -->
         <div x-show="mobileQuickSheetOpen" 
              x-cloak 
-             class="lg:hidden fixed inset-0 z-50 flex flex-col justify-end" 
-             role="dialog" 
-             aria-modal="true">
+             class="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
             
             <!-- Backdrop -->
             <div x-show="mobileQuickSheetOpen"
@@ -2904,6 +2650,8 @@
 
             <!-- Slide-Up Card -->
             <div x-show="mobileQuickSheetOpen"
+                 role="dialog"
+                 aria-modal="true"
                  x-transition:enter="transition ease-out duration-250 transform-gpu"
                  x-transition:enter-start="translate-y-full"
                  x-transition:enter-end="translate-y-0"
