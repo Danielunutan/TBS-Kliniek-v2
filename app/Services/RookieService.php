@@ -177,7 +177,7 @@ class RookieService
 
                 case 'bank_deposit':
                     $locked->cash += 500;
-                    $locked->respect = max(0, (int) ($locked->respect ?? 0) + 5);
+                    $locked->addRespect(5);
                     $levelService->addXp($locked, 15);
 
                     // The task label promises 5 cigarettes, so put them in the inventory.

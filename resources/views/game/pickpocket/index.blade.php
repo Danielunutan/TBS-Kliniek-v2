@@ -106,7 +106,7 @@
         @php
             $hasMasks = ($character->masks ?? 0) >= 1;
             $hasEnergy = $character->energy >= $action['energy'];
-            $otherBlocked = !$hasMasks || !$hasEnergy || $character->isImprisoned();
+            $otherBlocked = !$hasMasks || !$hasEnergy || $character->isImprisoned() || $character->isComatose();
             $isDisabled = $otherBlocked || $ppCooldown > 0;
         @endphp
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 shadow-xs transition-all duration-200 p-5 flex flex-col justify-between gap-4">

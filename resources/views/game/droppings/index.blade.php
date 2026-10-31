@@ -92,7 +92,7 @@
                 @else
                     <form action="{{ route('droppings.tennisball') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->energy < 15) class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-baseball"></i> Sprint & Vang Tennisbal
                         </button>
                     </form>
@@ -147,7 +147,7 @@
                 @else
                     <form action="{{ route('droppings.drone') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->energy < 25 || $character->cash < 500) class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-paper-plane"></i> Bestel Drone Dropping (€500)
                         </button>
                     </form>

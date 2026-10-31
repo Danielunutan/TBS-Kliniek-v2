@@ -126,8 +126,8 @@
                     <form action="{{ route('perks.buy', $key) }}" method="POST">
                         @csrf
                         <button type="submit" 
-                                @if(! $hasEnough) disabled @endif
-                                class="w-full py-3 px-4 rounded-xl {{ $hasEnough ? 'btn-star-gold cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
+                                @disabled(! $hasEnough || $character->isComatose())
+                                class="w-full py-3 px-4 rounded-xl {{ $hasEnough && ! $character->isComatose() ? 'btn-star-gold cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-bolt"></i>
                             @if($hasEnough)
                                 <span>Activeer 24 Uur ({{ $perk['cost_stars'] }} ⭐)</span>

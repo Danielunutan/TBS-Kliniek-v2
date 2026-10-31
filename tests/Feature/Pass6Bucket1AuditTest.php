@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\CharacterConnectFourStat;
 use App\Models\Friend;
 use App\Models\User;
+use App\Services\CooldownService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -85,5 +86,22 @@ class Pass6Bucket1AuditTest extends TestCase
             'message' => 'Test bericht',
         ]);
         $response->assertSessionHas('error', '⏳ Massabericht naar vrienden kan maar 1x per 24 uur verzonden worden. Wacht nog 24 uur.');
+    }
+
+    public function test_dropping_controller_consumes_energy_atomically_and_sets_cooldown(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'level' => 5,
+            'energy' => 50,
+            'max_energy' => 100,
+            'cash' => 2000,
+        ]);
+
+        $this->actingAs($user)->post(route('droppings.tennisball'))->assertRedirect();
+        $character->refresh();
+        $this->assertSame(35, $character->energy);
+        $this->assertTrue(app(CooldownService::class)->isOnCooldown($character, 'dropping_tennisball'));
     }
 }

@@ -281,15 +281,15 @@
                         <span class="text-slate-400 dark:text-slate-500 font-normal">({{ $gang->members->count() }})</span>
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
                         <button type="button" 
                                 @click="onlyOnline = !onlyOnline" 
                                 :class="onlyOnline ? 'bg-emerald-600 text-white font-black shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold border border-slate-200/80 dark:border-slate-700'"
-                                class="px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5">
+                                class="px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
                             <span class="w-2 h-2 rounded-full" :class="onlyOnline ? 'bg-emerald-100' : 'bg-emerald-500 animate-pulse'"></span>
                             <span>Online ({{ $onlineMembersCount }})</span>
                         </button>
-                        <div class="relative w-44">
+                        <div class="relative flex-1 sm:flex-none sm:w-48">
                             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
                             <input type="text" 
                                    x-model="memberSearch" 

@@ -59,7 +59,7 @@
                                        name="location" 
                                        value="{{ $key }}" 
                                        class="w-4 h-4 text-purple-600 border-slate-300 dark:border-slate-700 focus:ring-purple-500" 
-                                       @disabled($isCurrent)
+                                       @disabled($isCurrent || $character->isImprisoned() || $character->isComatose())
                                        @click="selected = '{{ $key }}'">
                                 <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0">
                                     <i class="fa-solid {{ $loc['icon'] }}"></i>
@@ -77,7 +77,7 @@
                                 </div>
                             </div>
 
-                            <span class="hidden sm:inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 shrink-0 ml-2">
+                            <span class="inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 shrink-0 ml-2">
                                 {{ $loc['badge'] }}
                             </span>
                         </label>
@@ -86,7 +86,7 @@
 
                 <div class="text-center">
                     <button type="submit" 
-                            :disabled="!selected"
+                            :disabled="!selected || @js($character->isImprisoned() || $character->isComatose())"
                             class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer w-full sm:w-auto">
                         <i class="fa-solid fa-person-walking-arrow-right"></i>
                         <span>Verplaatsen naar afdeling</span>

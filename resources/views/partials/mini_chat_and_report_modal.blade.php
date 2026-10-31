@@ -106,7 +106,7 @@
 <style>
     .tbs-mini-chat-btn {
         position: fixed;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
         right: 16px;
         z-index: 9998;
     }
@@ -173,7 +173,7 @@
              :class="toastNotification.type === 'direct' 
                 ? (toastNotification.is_bot ? 'border-amber-300 dark:border-amber-700/80 shadow-amber-900/10' : 'border-purple-300 dark:border-purple-800/80 shadow-purple-900/10') 
                 : 'border-emerald-300 dark:border-emerald-800/80 shadow-emerald-900/10'"
-             class="tbs-mini-chat-toast bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border rounded-2xl p-3.5 shadow-xl flex items-start gap-3.5 cursor-pointer max-w-sm w-[360px] transform hover:-translate-y-0.5 transition-all relative overflow-hidden group">
+             class="tbs-mini-chat-toast bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border rounded-2xl p-3.5 shadow-xl flex items-start gap-3.5 cursor-pointer max-w-[calc(100vw-2rem)] sm:max-w-sm w-[360px] transform hover:-translate-y-0.5 transition-all relative overflow-hidden group">
             
             <!-- Top Accent Gradient Line -->
             <div class="absolute top-0 inset-x-4 h-[2px] rounded-full"
@@ -1554,7 +1554,7 @@
                     links: []
                 }];
             })(),
-            faqKnowledge: {!! json_encode(\App\Http\Controllers\FaqController::getBotKnowledge()) !!},
+            faqKnowledge: @js(\App\Http\Controllers\FaqController::getBotKnowledge()),
 
             getCsrf() {
                 return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';

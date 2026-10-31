@@ -48,6 +48,6 @@ class CharacterMemoryStat extends Model
             return 0;
         }
 
-        return max(0, now()->diffInSeconds($this->cooldown_until));
+        return max(0, (int) ceil(now()->diffInSeconds($this->cooldown_until)));
     }
 }

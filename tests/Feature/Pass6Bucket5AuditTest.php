@@ -65,4 +65,23 @@ class Pass6Bucket5AuditTest extends TestCase
         $response->assertOk();
         $response->assertSee('De Krijgers');
     }
+
+    public function test_armwrestling_and_casino_views_disable_actions_when_comatose(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        Character::factory()->create([
+            'user_id' => $user->id,
+            'cash' => 50000,
+            'health' => 0,
+            'coma_until' => now()->addHours(2),
+        ]);
+
+        $this->actingAs($user)->get(route('armwrestling.index'))
+            ->assertOk()
+            ->assertSee('disabled', false);
+
+        $this->actingAs($user)->get(route('casino.index'))
+            ->assertOk()
+            ->assertSee('Math.min(10000000, Math.max(10, cash))', false);
+    }
 }

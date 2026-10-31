@@ -114,6 +114,7 @@
         @foreach($hustles as $h)
         @php
             $hasEnergy = $character->energy >= $h['cost'];
+            $isBlocked = ! $hasEnergy || $character->isImprisoned() || $character->isComatose();
             $riskBg = match($h['risk_level'] ?? 'medium') {
                 'low' => 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/70',
                 'medium' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/70',
@@ -192,8 +193,8 @@
                 @csrf
                 <input type="hidden" name="hustle_id" value="{{ $h['id'] }}">
                 <button type="submit" 
-                        :disabled="seconds > 0 || {{ $hasEnergy ? 'false' : 'true' }}"
-                        :class="seconds > 0 || !{{ $hasEnergy ? 'true' : 'false' }} ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs'"
+                        :disabled="seconds > 0 || {{ $isBlocked ? 'true' : 'false' }}"
+                        :class="seconds > 0 || {{ $isBlocked ? 'true' : 'false' }} ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs'"
                         class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                     <span class="flex items-center gap-1">
                         <i class="fa-solid fa-bolt text-[10px]"></i> {{ $h['cost'] }} Energie

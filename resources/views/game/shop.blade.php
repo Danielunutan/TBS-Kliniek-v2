@@ -84,7 +84,7 @@
     selectedBundleId: 'afdelingsbaas_deal',
     bundleQty: 1,
     recipientId: '',
-    bundles: {{ json_encode($bundles) }},
+    bundles: @js($bundles),
     @php
         $ownedCountsMap = $inventory->pluck('quantity', 'item_id')->toArray();
         $bivakItem = $items->firstWhere('slug', 'bivakmuts-masker');
@@ -92,7 +92,7 @@
             $ownedCountsMap[$bivakItem->id] = (int) ($character->masks ?? 0);
         }
     @endphp
-    ownedCounts: {{ json_encode($ownedCountsMap) }},
+    ownedCounts: @js($ownedCountsMap),
     totalInvCount: {{ (int) $inventory->sum('quantity') }},
     storageUsed: {{ (int) $character->getStorageUsed() }},
     storageCapacity: {{ (int) $character->getStorageCapacity() }},
@@ -935,7 +935,7 @@
                                 $lastBought = $character->perks[$cooldownKey] ?? null;
                                 $statCooldownUntil = $lastBought ? \Carbon\Carbon::parse($lastBought)->addHours(6) : null;
                                 $isStatOnCooldown = $statCooldownUntil && $statCooldownUntil->isFuture();
-                                $statRemainingMinutes = $isStatOnCooldown ? (int) now()->diffInMinutes($statCooldownUntil) : 0;
+                                $statRemainingMinutes = $isStatOnCooldown ? max(1, (int) ceil(now()->diffInMinutes($statCooldownUntil))) : 0;
                                 $statRemainingHours = intdiv($statRemainingMinutes, 60);
                                 $statRemainingMins = $statRemainingMinutes % 60;
                                 $statRemainingText = $statRemainingHours > 0 ? "{$statRemainingHours}u {$statRemainingMins}m" : "{$statRemainingMins}m";

@@ -123,7 +123,7 @@
                     @endif
                 </div>
 
-                <button type="button" @click="openLinkModal({{ json_encode($unmatched) }})"
+                <button type="button" @click="openLinkModal(@js(['id' => $unmatched->id, 'supporter_name' => $unmatched->supporter_name, 'supporter_email' => $unmatched->supporter_email, 'formatted_amount' => $unmatched->formatted_amount, 'display_tier' => $unmatched->display_tier, 'message' => $unmatched->message]))"
                         class="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-400 active:scale-95 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
                     <i class="fa-solid fa-link"></i> Koppel aan Speler &amp; Activeer VIP
                 </button>
@@ -312,7 +312,7 @@
                         <td class="py-3 px-4 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-1.5">
                                 @if(!$order->character_id || $order->status === 'unmatched')
-                                <button type="button" @click="openLinkModal({{ json_encode($order) }})"
+                                <button type="button" @click="openLinkModal(@js(['id' => $order->id, 'supporter_name' => $order->supporter_name, 'supporter_email' => $order->supporter_email, 'formatted_amount' => $order->formatted_amount, 'display_tier' => $order->display_tier, 'message' => $order->message]))"
                                         class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-400 text-white font-extrabold text-[11px] shadow-2xs transition flex items-center gap-1 cursor-pointer">
                                     <i class="fa-solid fa-link"></i> Koppelen
                                 </button>
@@ -320,7 +320,7 @@
 
                                 @if($order->character_id && $order->status !== 'cancelled')
                                 <form action="{{ route('admin.buymeacoffee.regrant', $order) }}" method="POST"
-                                      onsubmit="return confirm('Weet je zeker dat je de beloningen opnieuw wilt uitkeren aan {{ $order->character?->name }}?');">
+                                      onsubmit="return confirm(@js('Weet je zeker dat je de beloningen opnieuw wilt uitkeren aan '.($order->character?->name ?? 'deze speler').'?'));">
                                     @csrf
                                     <button type="submit" title="Beloningen opnieuw uitkeren aan speler"
                                             class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-extrabold text-[11px] transition flex items-center gap-1 cursor-pointer">

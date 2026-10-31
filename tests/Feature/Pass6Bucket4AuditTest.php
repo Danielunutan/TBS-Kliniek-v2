@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AuditLog;
+use App\Models\BuyMeACoffeeOrder;
 use App\Models\Character;
 use App\Models\User;
 use App\Support\TreatmentCaseCatalog;
@@ -53,5 +54,35 @@ class Pass6Bucket4AuditTest extends TestCase
         } finally {
             Carbon::setTestNow();
         }
+    }
+
+    public function test_admin_buymeacoffee_view_includes_formatted_amount_and_display_tier(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_staff' => true,
+            'is_onboarded' => true,
+        ]);
+        Character::factory()->create([
+            'user_id' => $admin->id,
+            'name' => 'BmacAdmin',
+        ]);
+
+        BuyMeACoffeeOrder::create([
+            'event' => 'donation.created',
+            'external_id' => 'bmac_test_1',
+            'supporter_name' => "Speler O'Connor",
+            'supporter_email' => 'test@example.com',
+            'amount' => 14.00,
+            'currency' => 'EUR',
+            'membership_tier' => 'TBS Gangster Elite',
+            'status' => 'unmatched',
+            'is_membership' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.buymeacoffee.index'));
+        $response->assertOk();
+        $response->assertSee('formatted_amount', false);
+        $response->assertSee('display_tier', false);
     }
 }

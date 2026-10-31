@@ -15,8 +15,8 @@
 @endphp
 
 <div class="space-y-6" x-data="trainingManager({
-    stats: {{ json_encode($initialStats) }},
-    costs: {{ json_encode($initialCosts) }},
+    stats: @js($initialStats),
+    costs: @js($initialCosts),
     maxStat: {{ (int) $maxStatCap }},
     level: {{ (int) $character->level }},
     xp: {{ (int) $character->xp }},
@@ -24,6 +24,7 @@
     cash: {{ (int)$character->cash }},
     energy: {{ (int)$character->energy }},
     isImprisoned: {{ $character->isImprisoned() ? 'true' : 'false' }},
+    isComatose: {{ $character->isComatose() ? 'true' : 'false' }},
     csrfToken: '{{ csrf_token() }}',
     trainUrl: '{{ route('training.train') }}'
 })">
@@ -189,7 +190,7 @@
                     <!-- Standard +1 Train Button -->
                     <button type="button" 
                             @click="train('{{ $key }}', 1, 'stat')" 
-                            :disabled="isTraining || isImprisoned || stats['{{ $key }}'] >= maxStat || cash < costs['{{ $key }}'] || energy < 10" 
+                            :disabled="isTraining || isImprisoned || isComatose || stats['{{ $key }}'] >= maxStat || cash < costs['{{ $key }}'] || energy < 10" 
                             class="flex-1 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-2.5 px-3 rounded-xl text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
                         <i class="fa-solid" :class="stats['{{ $key }}'] >= maxStat ? 'fa-lock text-amber-300' : (isTraining && activeStat === '{{ $key }}' ? 'fa-dumbbell animate-spin' : 'fa-dumbbell')"></i>
                         <span x-text="stats['{{ $key }}'] >= maxStat ? 'Max (Lvl ' + level + ')' : 'Oefening (+1)'">Oefening (+1)</span>
@@ -198,7 +199,7 @@
                     <!-- Batch +5 Train Quick Upgrade -->
                     <button type="button" 
                             @click="train('{{ $key }}', 5, 'stat')" 
-                            :disabled="isTraining || isImprisoned || stats['{{ $key }}'] >= maxStat || cash < (costs['{{ $key }}'] * 5) || energy < 50" 
+                            :disabled="isTraining || isImprisoned || isComatose || stats['{{ $key }}'] >= maxStat || cash < (costs['{{ $key }}'] * 5) || energy < 50" 
                             title="Train tot 5x in 1 klik zonder schermverspringing!"
                             class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-black text-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95">
                         +5x
@@ -208,7 +209,7 @@
                 <!-- Level Focus Button (+50 XP) -->
                 <button type="button"
                         @click="train('{{ $key }}', 1, 'level')"
-                        :disabled="isTraining || isImprisoned || cash < costs['{{ $key }}'] || energy < 10"
+                        :disabled="isTraining || isImprisoned || isComatose || cash < costs['{{ $key }}'] || energy < 10"
                         class="w-full py-2 px-3 rounded-xl text-xs font-black transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95"
                         :class="stats['{{ $key }}'] >= maxStat ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 ring-2 ring-amber-400/50' : 'bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-amber-300 border border-amber-500/30'">
                     <i class="fa-solid fa-angles-up text-[11px]"></i>
@@ -280,6 +281,7 @@ function trainingManager(config) {
         cash: config.cash,
         energy: config.energy,
         isImprisoned: config.isImprisoned,
+        isComatose: config.isComatose,
         isTraining: false,
         activeStat: null,
         flashingStat: null,

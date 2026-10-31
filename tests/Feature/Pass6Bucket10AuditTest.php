@@ -42,7 +42,9 @@ class Pass6Bucket10AuditTest extends TestCase
             'bank' => 100000,
         ]);
 
-        $this->actingAs($user)->get(route('dashboard'))->assertOk();
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('faqKnowledge:', false);
         $this->actingAs($user)->getJson(route('character.realtime-stats'))
             ->assertOk()
             ->assertJsonStructure(['cash', 'bank', 'energy', 'health']);

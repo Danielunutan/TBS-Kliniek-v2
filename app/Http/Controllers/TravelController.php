@@ -8,6 +8,7 @@ use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class TravelController extends Controller
@@ -85,6 +86,12 @@ class TravelController extends Controller
             return redirect()->route('prison')->with('error', 'Je kunt je niet verplaatsen zolang je vastzit in de isoleercel!');
         }
 
+        if ($character->isComatose()) {
+            $mins = max(1, (int) ceil($character->getComaRemainingSeconds() / 60));
+
+            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Je kunt je nu niet verplaatsen.");
+        }
+
         if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand na 10 liquidaties)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe om weer te kunnen bewegen.');
         }
@@ -107,22 +114,39 @@ class TravelController extends Controller
         }
 
         $locData = self::LOCATIONS[$locKey];
-        $currentLoc = $character->current_location ?? 'Paviljoen 1 (Gesloten)';
+        $cost = 0;
 
-        if ($currentLoc === $locData['name']) {
+        $moveStatus = DB::transaction(function () use ($character, $locData, &$cost): string {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->firstOrFail();
+            $currentLoc = $locked->current_location ?? 'Paviljoen 1 (Gesloten)';
+
+            if ($currentLoc === $locData['name']) {
+                return 'same_location';
+            }
+
+            $cost = $this->calculateTravelCost($locked);
+            if ($locked->cash < $cost) {
+                return 'insufficient_cash';
+            }
+
+            $locked->cash -= $cost;
+            $locked->current_location = $locData['name'];
+            $locked->save();
+
+            $character->cash = $locked->cash;
+            $character->current_location = $locked->current_location;
+
+            return 'ok';
+        });
+
+        if ($moveStatus === 'same_location') {
             return back()->with('error', "Je bevindt je momenteel al op {$locData['name']}!");
         }
 
-        $cost = $this->calculateTravelCost($character);
-
-        // Deduct bribe money atomically
-        if (! $this->economy->deductCash($character, $cost)) {
+        if ($moveStatus !== 'ok') {
             return back()->with('error', 'Je hebt niet genoeg contant geld (€'.number_format($cost, 0, ',', '.').') om de bewakers om te kopen!');
         }
-
-        // Update location
-        $character->current_location = $locData['name'];
-        $character->save();
 
         // Award XP
         $xpAward = 35;

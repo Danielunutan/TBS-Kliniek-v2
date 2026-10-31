@@ -113,14 +113,14 @@
                         <span class="font-bold text-slate-700 dark:text-slate-300 font-mono"><i class="fa-solid fa-clock text-[10px] mr-1 text-slate-400"></i>{{ gmdate('i:s', $locker['cooldown']) }}</span>
                     </div>
                 </div>
-                <form action="{{ route('lockers.crack') }}" method="POST">
+                <form action="{{ route('lockers.crack') }}" method="POST" class="w-full sm:w-auto">
                     @csrf
                     <input type="hidden" name="locker_id" value="{{ $locker['id'] }}">
                     <button type="submit"
                             :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
                             :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs'"
                             {{ $isDisabled ? 'disabled' : '' }}
-                            class="px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-150 flex items-center gap-1.5 cursor-pointer">
+                            class="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-150 flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-key text-[11px]"></i>
                         <span>Kraken</span>
                     </button>

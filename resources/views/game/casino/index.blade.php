@@ -82,12 +82,12 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <span class="text-slate-400 dark:text-slate-500 font-extrabold text-xs">€</span>
                     </div>
-                    <input type="number" name="bet" min="10" x-model.number="bet" :max="Math.max(10, cash)" 
+                    <input type="number" name="bet" min="10" x-model.number="bet" :max="Math.min(10000000, Math.max(10, cash))" 
                            class="block w-full pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-500 text-xs font-bold bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition" 
                            placeholder="Inzet...">
                 </div>
             </div>
-            <button type="submit" :disabled="cash < 10 || cash < bet || bet < 10 || flipping" class="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 text-white rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+            <button type="submit" :disabled="cash < 10 || cash < bet || bet < 10 || bet > 10000000 || flipping || @js((bool) ($character?->isImprisoned() || $character?->isComatose()))" class="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 text-white rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-play text-[10px]" :class="flipping ? 'animate-spin' : ''"></i>
                 <span x-text="flipping ? 'Munt draait...' : 'Gooi Munt Op (50% Win Kans)'"></span>
             </button>

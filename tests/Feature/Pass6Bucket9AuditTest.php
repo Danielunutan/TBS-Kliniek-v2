@@ -37,8 +37,12 @@ class Pass6Bucket9AuditTest extends TestCase
         $this->get(route('theft.index'))->assertOk();
         $this->get(route('help.tickets.index'))->assertOk();
         $this->get(route('help.tickets.create'))->assertOk();
-        $this->get(route('training.index'))->assertOk();
-        $this->get(route('travel.index'))->assertOk();
+        $this->get(route('training.index'))
+            ->assertOk()
+            ->assertSee('isComatose: true', false);
+        $this->get(route('travel.index'))
+            ->assertOk()
+            ->assertSee(':disabled="!selected || true"', false);
         $this->get(route('treatment.index'))->assertOk();
         $this->get(route('true_crime.index'))->assertOk();
         $this->get(route('tunnel.index'))->assertOk();

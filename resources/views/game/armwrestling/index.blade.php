@@ -205,7 +205,7 @@
                 <!-- Create Challenge Form -->
                 @php
                     $cashOnHand = (int) ($character->cash ?? 0);
-                    $canCreateAnyChallenge = $cashOnHand >= 2500 && !$character->isImprisoned();
+                    $canCreateAnyChallenge = $cashOnHand >= 2500 && !$character->isImprisoned() && !$character->isComatose();
                 @endphp
                 <form action="{{ route('armwrestling.challenge.create') }}" method="POST" class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
                     @csrf
@@ -213,15 +213,15 @@
                         <h4 class="text-xs font-black text-slate-900 dark:text-white">Zet Jouw Geld op de Tafel</h4>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400">Kies een inzetbedrag (betaald met contant geld op zak) en wacht tot een tegenstander de handschoen oppakt.</p>
                     </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <select name="bet_amount" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="text-xs font-bold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                        <select name="bet_amount" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="w-full sm:w-auto text-xs font-bold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition">
                             @foreach([2500, 5000, 10000, 25000, 50000, 100000] as $betOption)
                                 <option value="{{ $betOption }}" {{ $cashOnHand < $betOption ? 'disabled' : '' }} {{ ($betOption === 10000 && $cashOnHand >= 10000) || ($betOption === 2500 && $cashOnHand < 10000) ? 'selected' : '' }}>
                                     € {{ number_format($betOption, 0, ',', '.') }}{{ $cashOnHand < $betOption ? ' (Te weinig contant)' : '' }}
                                 </option>
                             @endforeach
                         </select>
-                        <button type="submit" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="px-4 py-2 rounded-xl {{ $canCreateAnyChallenge ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-xs font-black transition-all duration-150 shadow-xs shrink-0">
+                        <button type="submit" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="w-full sm:w-auto px-4 py-2 rounded-xl {{ $canCreateAnyChallenge ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-xs font-black transition-all duration-150 shadow-xs shrink-0">
                             {{ $canCreateAnyChallenge ? 'Plaats Uitdaging' : 'Onvoldoende Contant' }}
                         </button>
                     </div>
@@ -235,7 +235,7 @@
                     @php
                         $canAffordChallenge = (int) ($character?->cash ?? 0) >= $open->bet_amount;
                         $hasEnergyForChallenge = (int) ($character?->energy ?? 0) >= 5;
-                        $canAcceptChallenge = $canAffordChallenge && $hasEnergyForChallenge && !($character?->isImprisoned() ?? false);
+                        $canAcceptChallenge = $canAffordChallenge && $hasEnergyForChallenge && !($character?->isImprisoned() ?? false) && !($character?->isComatose() ?? false);
                     @endphp
                     <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3">

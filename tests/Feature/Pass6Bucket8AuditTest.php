@@ -35,5 +35,13 @@ class Pass6Bucket8AuditTest extends TestCase
         $roulette = $this->get(route('roulette.index'));
         $roulette->assertOk();
         $roulette->assertSee('disabled', false);
+
+        $pickpocket = $this->get(route('pickpocket.index'));
+        $pickpocket->assertOk();
+        $pickpocket->assertSee('disabled', false);
+
+        $perks = $this->get(route('perks.index'));
+        $perks->assertOk();
+        $perks->assertSee('disabled', false);
     }
 }

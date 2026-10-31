@@ -63,4 +63,26 @@ class Pass6Bucket2AuditTest extends TestCase
             ->assertJsonPath('action', 'unliked')
             ->assertJsonPath('likes_count', 0);
     }
+
+    public function test_travel_controller_blocks_comatose_character_from_moving(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'current_location' => 'paviljoen_a',
+            'cash' => 1000,
+            'xp' => 0,
+            'health' => 0,
+            'coma_until' => now()->addHours(2),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('travel.move'), [
+            'location' => 'sportzaal',
+        ]);
+
+        $response->assertSessionHas('error');
+        $character->refresh();
+        $this->assertSame('paviljoen_a', $character->current_location);
+        $this->assertSame(0, $character->xp);
+    }
 }

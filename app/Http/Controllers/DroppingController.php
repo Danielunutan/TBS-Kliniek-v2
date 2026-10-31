@@ -79,17 +79,15 @@ class DroppingController extends Controller
         }
 
         $energyCost = 15;
-        if ($character->energy < $energyCost) {
+        if (! $this->energy->consume($character, $energyCost)) {
             return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig om op het juiste moment naar het hek te sprinten!");
         }
 
-        $character->energy -= $energyCost;
-        $character->save();
+        $this->cooldownService->setCooldown($character, 'dropping_tennisball');
 
         // 10% kans dat de bewaarder je pakt
         $caught = mt_rand(1, 100) <= 10;
         if ($caught) {
-            $this->cooldownService->setCooldown($character, 'dropping_tennisball');
             $this->prisonService->jail($character, 5, 'Betrapt bij het oprapen van een met tape verzwaarde tennisbal bij het buitenhek.');
 
             SmuggleDropping::create([
@@ -155,8 +153,6 @@ class DroppingController extends Controller
             'caught' => false,
         ]);
 
-        $this->cooldownService->setCooldown($character, 'dropping_tennisball');
-
         return back()->with('success', "RAAK! Je dook als een snoek naar de heg en griste de opengeknipte tennisbal mee naar binnen. Buit: {$lootStr} (+{$xp} XP)!");
     }
 
@@ -206,10 +202,11 @@ class DroppingController extends Controller
             return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de nachtelijke coördinatie!");
         }
 
+        $this->cooldownService->setCooldown($character, 'dropping_drone');
+
         // 12% kans dat zoeklichten de drone onderscheppen
         $caught = mt_rand(1, 100) <= 12;
         if ($caught) {
-            $this->cooldownService->setCooldown($character, 'dropping_drone');
             SmuggleDropping::create([
                 'character_id' => $character->id,
                 'type' => 'drone',
@@ -275,8 +272,6 @@ class DroppingController extends Controller
             'xp_gained' => $xp,
             'caught' => false,
         ]);
-
-        $this->cooldownService->setCooldown($character, 'dropping_drone');
 
         return back()->with('success', "🎯 PRECISIEDROPPING GESLAAGD! De zwarte drone loste geruisloos zijn waterdichte pakket recht door het luchtrooster van jouw afdeling. Buit: {$lootStr} (+{$xp} XP)!");
     }

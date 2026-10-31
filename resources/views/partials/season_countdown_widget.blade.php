@@ -45,34 +45,34 @@ class="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-white dark:bg-slate-90
         </div>
 
         <!-- Right: 4-Segment Countdown Timer -->
-        <div class="flex items-center gap-2 sm:gap-3 shrink-0 select-none">
+        <div class="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-3 w-full lg:w-auto shrink-0 select-none">
             
             <!-- Days -->
-            <div class="flex flex-col items-center justify-center w-16 sm:w-18 py-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
+            <div class="flex flex-col items-center justify-center flex-1 min-w-0 sm:flex-none sm:w-18 py-2.5 px-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
                 <span class="font-mono text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400" x-text="days">90</span>
                 <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dagen</span>
             </div>
 
-            <span class="text-amber-500 font-black text-lg">:</span>
+            <span class="text-amber-500 font-black text-base sm:text-lg shrink-0">:</span>
 
             <!-- Hours -->
-            <div class="flex flex-col items-center justify-center w-14 sm:w-16 py-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
+            <div class="flex flex-col items-center justify-center flex-1 min-w-0 sm:flex-none sm:w-16 py-2.5 px-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
                 <span class="font-mono text-xl sm:text-2xl font-black text-slate-900 dark:text-white" x-text="String(hours).padStart(2, '0')">00</span>
                 <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Uur</span>
             </div>
 
-            <span class="text-amber-500 font-black text-lg">:</span>
+            <span class="text-amber-500 font-black text-base sm:text-lg shrink-0">:</span>
 
             <!-- Minutes -->
-            <div class="flex flex-col items-center justify-center w-14 sm:w-16 py-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
+            <div class="flex flex-col items-center justify-center flex-1 min-w-0 sm:flex-none sm:w-16 py-2.5 px-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
                 <span class="font-mono text-xl sm:text-2xl font-black text-slate-900 dark:text-white" x-text="String(minutes).padStart(2, '0')">00</span>
                 <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Min</span>
             </div>
 
-            <span class="text-amber-500 font-black text-lg">:</span>
+            <span class="text-amber-500 font-black text-base sm:text-lg shrink-0">:</span>
 
             <!-- Seconds -->
-            <div class="flex flex-col items-center justify-center w-14 sm:w-16 py-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
+            <div class="flex flex-col items-center justify-center flex-1 min-w-0 sm:flex-none sm:w-16 py-2.5 px-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
                 <span class="font-mono text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400" x-text="String(seconds).padStart(2, '0')">00</span>
                 <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sec</span>
             </div>

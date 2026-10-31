@@ -291,7 +291,7 @@
         </div>
 
         <!-- Live Search Box -->
-        <div class="relative sm:w-64 shrink-0">
+        <div class="relative w-full sm:w-64 shrink-0">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-xs"></i>
             <input type="text" 
                    x-model="searchQuery" 

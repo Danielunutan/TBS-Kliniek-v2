@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\CharacterConnectFourStat;
+use App\Models\CharacterMemoryStat;
+use App\Models\CharacterTrueCrimeState;
 use App\Models\User;
 use App\Services\CooldownService;
 use App\Services\LoanService;
+use App\Services\RookieService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -62,5 +65,38 @@ class Pass6Bucket3AuditTest extends TestCase
         $res = $loanService->requestLoan($character, 10000, 'cash');
         $this->assertTrue($res['success']);
         $this->assertSame(20000, $character->fresh()->cash);
+    }
+
+    public function test_memory_and_true_crime_cooldown_ceil_and_rookie_bank_deposit_updates_today_respect(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'bank' => 5000,
+            'respect' => 10,
+            'today_respect' => 0,
+            'today_respect_date' => null,
+            'perks' => [],
+        ]);
+
+        $memStat = CharacterMemoryStat::create([
+            'character_id' => $character->id,
+            'cooldown_until' => now()->addSeconds(30),
+        ]);
+        $this->assertGreaterThan(0, $memStat->getCooldownSecondsRemaining());
+
+        $tcState = CharacterTrueCrimeState::create([
+            'character_id' => $character->id,
+            'cooldown_until' => now()->addSeconds(30),
+        ]);
+        $this->assertGreaterThan(0, $tcState->getCooldownSecondsRemaining());
+
+        $rookieService = app(RookieService::class);
+        $claim = $rookieService->claimTaskReward($character, 'bank_deposit');
+        $this->assertTrue($claim['success']);
+
+        $character->refresh();
+        $this->assertSame(15, $character->respect);
+        $this->assertSame(5.0, (float) $character->today_respect);
     }
 }

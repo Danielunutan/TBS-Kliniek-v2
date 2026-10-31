@@ -40,5 +40,9 @@ class Pass6Bucket7AuditTest extends TestCase
         $highlow->assertOk();
         $highlow->assertSee('value="lager"', false);
         $highlow->assertSee('disabled', false);
+
+        $hustle = $this->get(route('hustle.index'));
+        $hustle->assertOk();
+        $hustle->assertSee(':disabled="seconds > 0 || true"', false);
     }
 }

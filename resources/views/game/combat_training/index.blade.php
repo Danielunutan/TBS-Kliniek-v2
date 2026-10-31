@@ -132,7 +132,7 @@
             $isStatCapped = $currentStatVal >= $maxStatCap;
             $canAfford = $character->cash >= $session['cost'];
             $hasEnergy = $character->energy >= $session['energy'];
-            $baseDisabled = $character->isImprisoned() || ! $hasEnergy || ! $canAfford;
+            $baseDisabled = $character->isImprisoned() || $character->isComatose() || ! $hasEnergy || ! $canAfford;
             $statTrainDisabled = $baseDisabled || $isStatCapped;
         @endphp
         <div class="bg-white dark:bg-slate-900 rounded-2xl border {{ $isStatCapped ? 'border-amber-300/80 dark:border-amber-700/60' : 'border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80' }} shadow-xs transition-all duration-200 p-5 sm:p-6 flex flex-col justify-between gap-4">

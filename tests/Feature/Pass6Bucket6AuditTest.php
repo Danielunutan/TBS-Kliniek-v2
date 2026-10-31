@@ -30,4 +30,25 @@ class Pass6Bucket6AuditTest extends TestCase
         $response->assertOk();
         $response->assertSee('Kliniek Cinema & Watchparties');
     }
+
+    public function test_combat_training_and_droppings_views_disable_buttons_when_comatose(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        Character::factory()->create([
+            'user_id' => $user->id,
+            'level' => 5,
+            'cash' => 10000,
+            'energy' => 100,
+            'health' => 0,
+            'coma_until' => now()->addHours(2),
+        ]);
+
+        $this->actingAs($user)->get(route('combat_training.index'))
+            ->assertOk()
+            ->assertSee('disabled', false);
+
+        $this->actingAs($user)->get(route('droppings.index'))
+            ->assertOk()
+            ->assertSee('disabled', false);
+    }
 }
