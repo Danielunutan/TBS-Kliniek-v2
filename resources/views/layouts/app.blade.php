@@ -573,19 +573,25 @@
                             }
                         }, 550);
                     } else if (itemRow) {
-                        const qtyBadge = itemRow.querySelector('[data-item-qty]');
+                        const itemId = itemRow.getAttribute('data-quick-item-id');
+                        const matchingRows = itemId ? document.querySelectorAll(`[data-quick-item-id="${itemId}"]`) : [itemRow];
                         if (data.remaining_quantity > 0) {
-                            if (qtyBadge) qtyBadge.textContent = 'x' + data.remaining_quantity;
-                            rowButtons.forEach(b => {
-                                b.disabled = false;
-                                b.classList.remove('opacity-50', 'pointer-events-none');
+                            matchingRows.forEach(r => {
+                                const qBadge = r.querySelector('[data-item-qty]');
+                                if (qBadge) qBadge.textContent = 'x' + data.remaining_quantity;
+                                r.querySelectorAll('button').forEach(b => {
+                                    b.disabled = false;
+                                    b.classList.remove('opacity-50', 'pointer-events-none');
+                                });
                             });
                         } else {
-                            itemRow.style.transition = 'all 0.25s ease-out';
-                            itemRow.style.opacity = '0';
-                            itemRow.style.transform = 'scale(0.95)';
+                            matchingRows.forEach(r => {
+                                r.style.transition = 'all 0.25s ease-out';
+                                r.style.opacity = '0';
+                                r.style.transform = 'scale(0.95)';
+                            });
                             setTimeout(() => {
-                                itemRow.remove();
+                                matchingRows.forEach(r => r.remove());
                                 const list = document.querySelector('#quick-eat-items-list');
                                 if (list && list.querySelectorAll('[data-quick-item-id]').length === 0) {
                                     const emptyState = document.querySelector('#quick-eat-empty-state');
@@ -596,8 +602,20 @@
                                         topBadge.textContent = '0';
                                         topBadge.className = 'text-slate-400 dark:text-emerald-400/60 font-semibold text-[10px] leading-none shrink-0';
                                     }
+                                    const mobTopBadge = document.querySelector('#mobile-quick-eat-top-badge');
+                                    if (mobTopBadge) {
+                                        mobTopBadge.textContent = '0';
+                                    }
                                     const headerBadge = document.querySelector('#quick-eat-header-badge');
                                     if (headerBadge) headerBadge.textContent = '0 stuks';
+                                }
+                                const mobList = document.querySelector('#mobile-quick-eat-items-list');
+                                if (mobList && mobList.querySelectorAll('[data-quick-item-id]').length === 0) {
+                                    const mobEmpty = document.querySelector('#mobile-quick-eat-empty-state');
+                                    if (mobEmpty) mobEmpty.classList.remove('hidden');
+                                    mobList.classList.add('hidden');
+                                    const mobHeaderBadge = document.querySelector('#mobile-quick-eat-header-badge');
+                                    if (mobHeaderBadge) mobHeaderBadge.textContent = '0 stuks';
                                 }
                             }, 250);
                         }
@@ -616,8 +634,12 @@
                     if (totalCount > 0) {
                         const topBadge = document.querySelector('#quick-eat-top-badge');
                         if (topBadge) topBadge.textContent = totalCount;
+                        const mobTopBadge = document.querySelector('#mobile-quick-eat-top-badge');
+                        if (mobTopBadge) mobTopBadge.textContent = totalCount;
                         const headerBadge = document.querySelector('#quick-eat-header-badge');
                         if (headerBadge) headerBadge.textContent = totalCount + ' stuks';
+                        const mobHeaderBadge = document.querySelector('#mobile-quick-eat-header-badge');
+                        if (mobHeaderBadge) mobHeaderBadge.textContent = totalCount + ' stuks';
                     }
 
                     // 5. In background refresh to keep server perks in sync
@@ -663,7 +685,7 @@
             }
         };
 
-        window.tbsSidebarController = function(activeCategory) {
+        window.tbsSidebarController = function(activeCategory, defaultExpandAll = false) {
             const defaultFavorites = [
                 { url: '{{ route('hustle.index') }}', label: 'Hosselen', icon: 'fa-solid fa-hand-holding-dollar text-emerald-500' },
                 { url: '{{ route('theft.index') }}', label: 'Diefstal', icon: 'fa-solid fa-briefcase text-blue-500' },
@@ -672,21 +694,24 @@
                 { url: '{{ route('daycare.index') }}', label: 'Werken', icon: 'fa-solid fa-person-digging text-amber-500' },
                 { url: '{{ route('infirmary.index') }}', label: 'Kliniek', icon: 'fa-solid fa-hospital-user text-teal-500' }
             ];
+            const storageKey = defaultExpandAll ? 'tbs_mobile_drawer_open_cats' : 'tbs_sidebar_open_cats';
             return {
                 openCategories: [],
                 favorites: [],
                 allCats: ['algemeen', 'bende', 'event', 'voortgang', 'misdaad', 'bonus', 'specials', 'geweld', 'economie', 'account'],
                 init() {
                     try {
-                        const savedCats = JSON.parse(localStorage.getItem('tbs_sidebar_open_cats') || 'null');
-                        if (Array.isArray(savedCats)) {
+                        const savedCats = JSON.parse(localStorage.getItem(storageKey) || 'null');
+                        if (Array.isArray(savedCats) && savedCats.length > 0) {
                             this.openCategories = savedCats;
+                        } else if (defaultExpandAll) {
+                            this.openCategories = [...this.allCats];
                         } else {
                             const legacy = localStorage.getItem('tbs_sidebar_category');
                             this.openCategories = legacy ? [legacy] : ['misdaad', 'geweld'];
                         }
                     } catch (e) {
-                        this.openCategories = ['misdaad', 'geweld'];
+                        this.openCategories = defaultExpandAll ? [...this.allCats] : ['misdaad', 'geweld'];
                     }
                     if (activeCategory && !this.openCategories.includes(activeCategory)) {
                         this.openCategories.push(activeCategory);
@@ -722,7 +747,7 @@
                 },
                 saveCats() {
                     try {
-                        localStorage.setItem('tbs_sidebar_open_cats', JSON.stringify(this.openCategories));
+                        localStorage.setItem(storageKey, JSON.stringify(this.openCategories));
                     } catch (e) {}
                 },
                 normalizeUrl(u) {
