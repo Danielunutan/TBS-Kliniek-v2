@@ -198,7 +198,7 @@
                     </button>
                 @else
                     <form action="{{ route('admin.moderation.unban', $profileCharacter->user) }}" method="POST" class="inline"
-                          onsubmit="return confirm('Weet je zeker dat je de ban van {{ addslashes($profileCharacter->name) }} wilt opheffen?');">
+                          onsubmit="return confirm(@js('Weet je zeker dat je de ban van '.$profileCharacter->name.' wilt opheffen?'));">
                         @csrf
                         <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer shadow-xs flex items-center gap-1.5">
                             <i class="fa-solid fa-lock-open"></i>
@@ -1395,7 +1395,7 @@
 
     <!-- MODAL 1: Avatar Selector Modal (Diverse Generated Avatars) -->
     @if(Auth::user()->character->id === $profileCharacter->id)
-    <div x-show="avatarModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80"
+    <div x-show="avatarModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80"
          x-data="{ 
              avatarTab: '{{ $profileCharacter->avatar_custom ? 'custom' : 'presets' }}',
              previewUrl: null,
@@ -1410,7 +1410,7 @@
                  }
              }
          }">
-        <div @click.away="avatarModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
+        <div @click.away="avatarModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
             
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
@@ -1536,8 +1536,8 @@
     </div>
 
     <!-- MODAL 2: Bio & Status Editor -->
-    <div x-show="bioModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
-        <div @click.away="bioModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
+    <div x-show="bioModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80">
+        <div @click.away="bioModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
             
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 class="text-base font-bold text-slate-900 dark:text-white">Bio & Status Aanpassen</h3>
@@ -1572,8 +1572,8 @@
     </div>
 
     <!-- MODAL 3: Title Selection Modal -->
-    <div x-show="titleModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
-        <div @click.away="titleModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
+    <div x-show="titleModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80">
+        <div @click.away="titleModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
                     <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -1626,8 +1626,8 @@
 
     @if(Auth::user()->canModerate() && $profileCharacter->id !== Auth::user()->character->id && $profileCharacter->user)
     <!-- STAFF WARN MODAL -->
-    <div x-show="staffWarnModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
-        <div @click.away="staffWarnModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 transform-gpu will-change-transform">
+    <div x-show="staffWarnModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80">
+        <div @click.away="staffWarnModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 transform-gpu will-change-transform">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">
@@ -1661,8 +1661,8 @@
     </div>
 
     <!-- STAFF BAN MODAL -->
-    <div x-show="staffBanModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
-        <div @click.away="staffBanModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 transform-gpu will-change-transform">
+    <div x-show="staffBanModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80">
+        <div @click.away="staffBanModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 transform-gpu will-change-transform">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold">
@@ -1717,10 +1717,10 @@
     <!-- ========================================== -->
     <div x-show="customizeModalOpen" 
          x-cloak 
-         class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 flex items-center justify-center p-4 sm:p-6"
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 flex items-center justify-center p-4 pb-24 sm:p-6 lg:pb-6"
          @keydown.escape.window="customizeModalOpen = false">
         
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden relative transform-gpu will-change-transform"
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[85dvh] overflow-y-auto shadow-2xl relative transform-gpu will-change-transform"
              @click.away="customizeModalOpen = false">
             
             <!-- Modal Header -->

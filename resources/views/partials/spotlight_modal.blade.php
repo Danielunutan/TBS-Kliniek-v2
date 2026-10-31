@@ -13,7 +13,7 @@
          x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 md:p-12 overflow-y-auto bg-slate-950/80"
+         class="fixed inset-0 z-50 flex items-start justify-center p-4 pb-24 sm:p-6 md:p-12 lg:pb-12 overflow-y-auto bg-slate-950/80"
          @click.self="closeModal()">
 
         <!-- Spotlight Dialog Card -->
@@ -114,7 +114,7 @@
                                       class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md"
                                       x-text="item.badge"></span>
                             </template>
-                            <i class="fa-solid fa-arrow-right text-xs opacity-0 group-hover:opacity-100 text-purple-600 dark:text-purple-400 transition-opacity"></i>
+                            <i class="fa-solid fa-arrow-right text-xs opacity-60 sm:opacity-0 sm:group-hover:opacity-100 text-purple-600 dark:text-purple-400 transition-opacity"></i>
                         </div>
                     </div>
                 </template>

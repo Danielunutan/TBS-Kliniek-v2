@@ -23,7 +23,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <button type="button" @click="massMessageOpen = true" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-bullhorn text-amber-300"></i>
                     <span>Massa Bericht</span>
@@ -392,8 +392,8 @@
     </div>
 
     <!-- RESPECT CAPTCHA MODAL -->
-    <div x-show="selectedFriendForRespect !== null" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
-        <div @click.away="selectedFriendForRespect = null" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+    <div x-show="selectedFriendForRespect !== null" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
+        <div @click.away="selectedFriendForRespect = null" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-sm font-black">
@@ -435,12 +435,12 @@
                             Los deze rekensom op om te bewijzen dat je een echte patiënt bent en geen geautomatiseerd script:
                         </p>
                         
-                        <div class="flex items-center gap-3">
-                            <div class="px-4 py-2 bg-purple-900 dark:bg-purple-950 text-white font-mono font-black text-base rounded-xl border border-purple-700 dark:border-purple-800 tracking-wider select-none shadow-xs">
+                        <div class="flex flex-wrap sm:flex-nowrap items-center gap-3">
+                            <div class="px-4 py-2 bg-purple-900 dark:bg-purple-950 text-white font-mono font-black text-base rounded-xl border border-purple-700 dark:border-purple-800 tracking-wider select-none shadow-xs shrink-0">
                                 {{ $numA }} + {{ $numB }} = ?
                             </div>
                             <input type="number" name="captcha_answer" required autofocus placeholder="Antwoord"
-                                   class="flex-1 text-sm font-black bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 focus:border-purple-600 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition">
+                                   class="flex-1 min-w-0 text-sm font-black bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 focus:border-purple-600 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition">
                         </div>
                     </div>
 
@@ -459,8 +459,8 @@
     </div>
 
     <!-- ADD FRIEND MODAL (with Autocomplete Search Dropdown) -->
-    <div x-show="addFriendOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
-        <div @click.away="addFriendOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+    <div x-show="addFriendOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
+        <div @click.away="addFriendOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-user-plus text-purple-600 dark:text-purple-400"></i>
@@ -545,8 +545,8 @@
     </div>
 
     <!-- MASS MESSAGE MODAL -->
-    <div x-show="massMessageOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
-        <div @click.away="massMessageOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+    <div x-show="massMessageOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
+        <div @click.away="massMessageOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-sm font-black">

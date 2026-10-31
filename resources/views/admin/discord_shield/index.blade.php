@@ -367,9 +367,9 @@
                 </p>
             </div>
 
-            <form method="POST" action="{{ route('admin.discord_shield.post_message') }}" class="flex items-center gap-2 w-full md:w-auto">
+            <form method="POST" action="{{ route('admin.discord_shield.post_message') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
                 @csrf
-                <input type="text" name="channel_id" value="{{ $settings['verify_channel_id'] }}" placeholder="Kanaal ID (bijv. 123456789)" class="bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-semibold min-w-[200px] focus:outline-none focus:ring-2 focus:ring-purple-500/20" required>
+                <input type="text" name="channel_id" value="{{ $settings['verify_channel_id'] }}" placeholder="Kanaal ID (bijv. 123456789)" class="bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-semibold w-full sm:w-auto sm:min-w-[200px] focus:outline-none focus:ring-2 focus:ring-purple-500/20" required>
                 <button type="submit" class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black px-4 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 shadow-xs shrink-0 cursor-pointer">
                     <i class="fa-solid fa-paper-plane mr-1"></i> Plaats Bericht
                 </button>

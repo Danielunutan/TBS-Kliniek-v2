@@ -24,8 +24,8 @@
             </div>
 
             <!-- Stats & Spin status -->
-            <div class="flex items-center gap-3 shrink-0">
-                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
+            <div class="grid grid-cols-2 sm:flex items-center gap-3 w-full md:w-auto shrink-0">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-3.5 py-2 text-center sm:min-w-[110px]">
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Draaien Vandaag</span>
                     <span class="text-base font-black text-purple-700 dark:text-purple-400" x-text="availableSpins">
                         {{ $availableSpins }}
@@ -34,7 +34,7 @@
                         {{ $character->isVip() ? 'VIP: 2x per dag' : 'Normaal: 1x per dag' }}
                     </span>
                 </div>
-                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-3.5 py-2 text-center sm:min-w-[110px]">
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Actieve Streak</span>
                     <span class="text-base font-black text-amber-600 dark:text-amber-400">
                         {{ $currentStreak }} {{ $currentStreak === 1 ? 'dag' : 'dagen' }}
@@ -79,7 +79,7 @@
 
                     <!-- Canvas Wheel Outer Container -->
                     <div class="p-2 sm:p-2.5 rounded-full bg-slate-950 shadow-xl border-4 border-slate-800">
-                        <canvas id="dailyWheelCanvas" width="380" height="380" class="max-w-[310px] sm:max-w-[350px] aspect-square rounded-full transition-transform duration-75"></canvas>
+                        <canvas id="dailyWheelCanvas" width="380" height="380" class="w-full max-w-[260px] sm:max-w-[350px] aspect-square rounded-full transition-transform duration-75"></canvas>
                     </div>
 
                     <!-- Center Pin / Logo -->

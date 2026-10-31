@@ -53,7 +53,7 @@
                 <div x-show="openDelete" 
                      @click.away="openDelete = false" 
                      x-cloak 
-                     class="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100 text-left">
+                     class="absolute left-0 sm:left-auto sm:right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100 text-left">
                     <div class="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
                         <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">Berichten Verwijderen</span>
                     </div>
@@ -122,11 +122,11 @@
     <!-- Filter Tabs -->
     <div class="bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/70 flex items-center gap-1.5 overflow-x-auto">
         <a href="{{ route('messages.index', ['filter' => 'all']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs transition {{ $filter === 'all' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
+           class="shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs transition {{ $filter === 'all' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
             <i class="fa-solid fa-inbox mr-1"></i> Alle Berichten
         </a>
         <a href="{{ route('messages.index', ['filter' => 'unread']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 {{ $filter === 'unread' ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
+           class="shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 {{ $filter === 'unread' ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
             <i class="fa-solid fa-bell"></i>
             <span>Ongelezen</span>
             @if($unreadCount > 0)
@@ -134,15 +134,15 @@
             @endif
         </a>
         <a href="{{ route('messages.index', ['filter' => 'theft']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs transition {{ $filter === 'theft' ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
+           class="shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs transition {{ $filter === 'theft' ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
             <i class="fa-solid fa-mask mr-1"></i> Diefstal & Berovingen
         </a>
         <a href="{{ route('messages.index', ['filter' => 'system']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs transition {{ $filter === 'system' ? 'bg-amber-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
+           class="shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs transition {{ $filter === 'system' ? 'bg-amber-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
             <i class="fa-solid fa-building-shield mr-1"></i> Arrestaties & Directie
         </a>
         <a href="{{ route('messages.index', ['filter' => 'player']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs transition {{ $filter === 'player' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
+           class="shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs transition {{ $filter === 'player' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60' }}">
             <i class="fa-solid fa-user-group mr-1"></i> Spelersbrieven
         </a>
     </div>
@@ -281,8 +281,8 @@
     </div>
 
     <!-- COMPOSE MODAL -->
-    <div x-show="composeOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="composeOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+    <div x-show="composeOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-900/60 backdrop-blur-xs">
+        <div @click.away="composeOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-feather text-purple-600 dark:text-purple-400"></i>
@@ -316,10 +316,10 @@
             <form action="{{ route('messages.send') }}" method="POST" class="space-y-3">
                 @csrf
                 <div x-data="{
-                    search: '{{ $initialRecipient }}',
-                    selectedPlayer: '{{ $initialRecipient }}',
+                    search: @js($initialRecipient ?? ''),
+                    selectedPlayer: @js($initialRecipient ?? ''),
                     openDropdown: false,
-                    players: {{ $otherPlayers->map(fn($p) => ['name' => $p->name, 'level' => $p->level, 'avatar' => $p->avatar_url])->toJson() }},
+                    players: @js($otherPlayers->map(fn($p) => ['name' => $p->name, 'level' => $p->level, 'avatar' => $p->avatar_url])->values()),
                     get filteredPlayers() {
                         if (!this.search.trim()) return this.players.slice(0, 25);
                         return this.players.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 25);

@@ -69,15 +69,15 @@
             </div>
 
             <!-- Search Form -->
-            <form action="{{ route('admin.tickets.index') }}" method="GET" class="flex items-center gap-2">
+            <form action="{{ route('admin.tickets.index') }}" method="GET" class="flex items-center gap-2 w-full md:w-auto">
                 <input type="hidden" name="status" value="{{ $currentStatus }}">
-                <div class="relative">
+                <div class="relative flex-1 md:flex-none">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 text-xs"></i>
                     <input type="text" 
                            name="search" 
                            value="{{ request('search') }}" 
                            placeholder="Zoek ticket, speler, email..." 
-                           class="pl-8 pr-3 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none w-56 sm:w-64 transition">
+                           class="pl-8 pr-3 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none w-full md:w-64 transition">
                 </div>
                 <button type="submit" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl border border-slate-200/80 dark:border-slate-700 transition cursor-pointer active:scale-95">
                     Filter

@@ -28,7 +28,7 @@
             </div>
 
             <!-- Mobile Quick Stats Pills -->
-            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
                 <span class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-2.5 sm:px-3 py-1.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800/70 text-[11px] sm:text-xs font-black flex items-center gap-1.5">
                     <i class="fa-solid fa-check text-emerald-600"></i> {{ $character->thefts_succeeded }} Geslaagd
                 </span>

@@ -280,7 +280,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-purple-200/80 dark:border-purple-800/60 inline-flex flex-col items-start gap-2 shadow-xs min-h-[85px] min-w-[310px] relative">
+                <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-purple-200/80 dark:border-purple-800/60 inline-flex flex-col items-start gap-2 shadow-xs min-h-[85px] w-full sm:w-auto sm:min-w-[310px] max-w-full overflow-x-auto relative">
                     <div id="turnstile-skeleton" class="flex items-center gap-2 text-xs text-slate-500 font-semibold py-2">
                         <i class="fa-solid fa-circle-notch fa-spin text-purple-600"></i>
                         <span>Beveiligingscontrole initialiseren...</span>
@@ -309,7 +309,7 @@
 
             <!-- Sortering & Filter Tabs -->
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1 pb-1">
-                <div class="inline-flex items-center p-1 bg-slate-100/90 dark:bg-slate-800/80 rounded-xl gap-1 border border-slate-200/80 dark:border-slate-700/70">
+                <div class="flex flex-wrap sm:inline-flex items-center p-1 bg-slate-100/90 dark:bg-slate-800/80 rounded-xl gap-1 border border-slate-200/80 dark:border-slate-700/70">
                     <a href="{{ route('fight.index', ['sort' => 'cash']) }}" 
                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {{ ($sort ?? 'respect') === 'cash' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs border border-emerald-200 dark:border-emerald-800' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
                         <i class="fa-solid fa-sack-dollar text-emerald-600"></i>

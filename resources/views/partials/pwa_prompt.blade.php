@@ -106,10 +106,10 @@
 
     <!-- APP INSTALL MODAL (INFORMATIVE & STEP-BY-STEP ADVICE) -->
     <div x-show="showModal" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 select-none">
         
         <div @click.away="showModal = false"
-             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
+             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-7 max-w-md w-full max-h-[85dvh] overflow-y-auto shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-150 transform-gpu will-change-transform">
             
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
                 <div class="flex items-center gap-3">

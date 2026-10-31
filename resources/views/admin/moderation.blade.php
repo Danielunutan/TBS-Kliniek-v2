@@ -521,7 +521,7 @@
 
     <!-- QUICK ACTION MODAL (WARN / BAN) -->
     <div x-show="showQuickAction" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
-        <div @click.outside="showQuickAction = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4">
+        <div @click.outside="showQuickAction = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2">
                     <span :class="quickMode === 'ban' ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/70'" class="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold">

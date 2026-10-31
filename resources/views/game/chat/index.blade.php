@@ -1324,7 +1324,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                         <!-- REPORT -->
                                         <template x-if="!msg.is_me">
-                                            <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
+                                            <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
                                                 <i class="fa-solid fa-flag"></i>
                                             </button>
                                         </template>
@@ -1556,7 +1556,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                                 <!-- REPORT -->
                                                 <template x-if="!msg.is_me">
-                                                    <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
+                                                    <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
                                                         <i class="fa-solid fa-flag"></i>
                                                     </button>
                                                 </template>

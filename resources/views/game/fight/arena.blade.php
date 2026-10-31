@@ -63,8 +63,8 @@
      }">
 
     <!-- Top Breadcrumb / Title -->
-    <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-2.5">
             <a href="{{ route('fight.index') }}" class="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition inline-flex items-center gap-1.5">
                 <i class="fa-solid fa-list text-purple-600 dark:text-purple-400"></i> Respectlijst
             </a>

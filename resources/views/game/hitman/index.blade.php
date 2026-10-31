@@ -449,15 +449,18 @@
                             <div class="text-sm font-extrabold text-slate-900 dark:text-white truncate" x-text="selectedTargetName"></div>
                         </div>
 
-                        <div class="shrink-0">
-                            <span x-show="selectedTargetSameWing" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold border border-emerald-200/80 dark:border-emerald-800/70">
-                                <i class="fa-solid fa-check-circle"></i> In dezelfde ruimte ({{ $currentWing }}) — +25% Sluipaanval-bonus actief!
+                        <div class="min-w-0">
+                            <span x-show="selectedTargetSameWing" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold border border-emerald-200/80 dark:border-emerald-800/70">
+                                <i class="fa-solid fa-check-circle shrink-0"></i>
+                                <span>In dezelfde ruimte ({{ $currentWing }}) — +25% Sluipaanval-bonus actief!</span>
                             </span>
-                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-extrabold border border-amber-200/80 dark:border-amber-800/70">
-                                <i class="fa-solid fa-location-dot"></i> Op <span x-text="selectedTargetRevealedWing"></span> — Afstandsschot mogelijk (Reis voor +25% bonus)
+                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-extrabold border border-amber-200/80 dark:border-amber-800/70">
+                                <i class="fa-solid fa-location-dot shrink-0"></i>
+                                <span>Op <span x-text="selectedTargetRevealedWing"></span> — Afstandsschot mogelijk (Reis voor +25% bonus)</span>
                             </span>
-                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-xs font-extrabold border border-indigo-200/80 dark:border-indigo-800/70">
-                                <i class="fa-solid fa-crosshairs"></i> Schot op afstand mogelijk — Start Schaduwing voor locatie &amp; bonus!
+                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-xs font-extrabold border border-indigo-200/80 dark:border-indigo-800/70">
+                                <i class="fa-solid fa-crosshairs shrink-0"></i>
+                                <span>Schot op afstand mogelijk — Start Schaduwing voor locatie &amp; bonus!</span>
                             </span>
                         </div>
                     </div>
