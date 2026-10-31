@@ -114,9 +114,9 @@
                         </div>
 
                         <!-- Target Sequence -->
-                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex items-center justify-between">
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex flex-wrap items-center justify-between gap-2">
                             <div class="text-xs font-bold text-slate-300">VEREISTE SLEUTEL REEKS:</div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                 <template x-for="(code, idx) in p1Target" :key="idx">
                                     <div class="px-3 py-1.5 rounded-lg text-xs font-black font-mono transition-all border"
                                          :class="p1UserStep > idx ? 'bg-emerald-500 text-slate-950 border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : (p1UserStep === idx ? 'bg-amber-500/20 text-amber-300 border-amber-400 animate-pulse' : 'bg-slate-800 text-slate-400 border-slate-700')">

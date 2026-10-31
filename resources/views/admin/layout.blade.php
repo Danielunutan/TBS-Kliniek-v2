@@ -30,8 +30,18 @@
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="flex flex-wrap items-center gap-2 pt-5 mt-5 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
+        <!-- Navigation Tabs (Collapsible on Mobile for Clean UX, Always Visible on sm+) -->
+        <div x-data="{ adminNavOpen: false }" class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+            <button type="button" 
+                    @click="adminNavOpen = !adminNavOpen" 
+                    class="sm:hidden w-full mb-2.5 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 font-black text-xs flex items-center justify-between cursor-pointer active:scale-98 transition">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-purple-600 dark:text-purple-400"></i>
+                    <span>Admin Secties &amp; Navigatie</span>
+                </span>
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" :class="adminNavOpen ? 'rotate-180' : ''"></i>
+            </button>
+            <div :class="adminNavOpen ? 'flex' : 'hidden sm:flex'" class="flex-wrap items-center gap-2 text-xs font-bold">
             <a href="{{ route('admin.dashboard') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.dashboard') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-chart-pie"></i> Overzicht
@@ -118,6 +128,7 @@
                 <i class="fa-solid fa-crown {{ request()->routeIs('admin.mail.*') ? 'text-amber-200' : 'text-amber-500' }}"></i> Mailbox &amp; Brevo E-mail
             </a>
             @endif
+            </div>
         </div>
     </div>
 

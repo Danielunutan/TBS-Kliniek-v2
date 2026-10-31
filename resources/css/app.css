@@ -884,13 +884,41 @@ html, body, button, a, input, select, textarea {
     bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Safe toast container positioning: clear of iPhone notch, dynamic island, and mobile HUD header */
+/* Safe toast container positioning: clear of iPhone notch, dynamic island, and 2-row mobile HUD header */
 .tbs-toast-container {
-    top: calc(env(safe-area-inset-top, 0px) + 3.85rem);
+    top: calc(env(safe-area-inset-top, 0px) + 5.75rem);
 }
-@media (min-width: 640px) {
+@media (min-width: 1024px) {
     .tbs-toast-container {
         top: 1.25rem;
+    }
+}
+
+/* Global Mobile Usability & Ergonomics (< 1024px) */
+@media (max-width: 1023px) {
+    html, body {
+        overflow-x: clip;
+    }
+
+    /* Prevent flex/grid inputs from causing horizontal overflow on 320px-360px screens */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    select,
+    textarea {
+        min-width: 0;
+    }
+
+    /* Keep centered modal dialogs clear of the fixed z-60 mobile bottom dock */
+    .fixed.inset-0.z-50.flex.items-center.justify-center {
+        padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .fixed.inset-0.z-50.flex.items-center.justify-center > div {
+        max-height: calc(100dvh - 6.5rem - env(safe-area-inset-bottom, 0px));
+        overflow-y: auto;
     }
 }
 

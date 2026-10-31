@@ -1717,7 +1717,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                             <!-- Emoji Drawer Popup -->
                             <div x-show="showEmojiPicker" @click.outside="showEmojiPicker = false" x-cloak
-                                 class="absolute bottom-full left-0 mb-3 w-64 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 shadow-2xl z-50 space-y-2.5">
+                                 class="absolute bottom-full left-0 mb-3 w-64 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 shadow-2xl z-50 space-y-2.5">
                                 <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys & Misdaad</span>
                                     <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
@@ -1755,7 +1755,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         <div x-show="showMentionDropdown && mentionUsers.length > 0"
                              @click.away="showMentionDropdown = false"
                              x-cloak
-                             class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+                             class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
                             
                             <div class="px-3.5 py-2 bg-slate-50/90 dark:bg-slate-800/80 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-purple-300 border-b border-slate-100 dark:border-slate-800">
                                 <span class="flex items-center gap-1.5">
