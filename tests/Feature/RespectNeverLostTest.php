@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\User;
 use App\Services\EnergyService;
@@ -183,5 +184,42 @@ class RespectNeverLostTest extends TestCase
         $response->assertSessionHas('success');
         $target->refresh();
         $this->assertEquals(1000, $target->respect);
+    }
+
+    public function test_restore_migration_recovers_lost_respect_and_sends_notification(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = $this->createCharacter($user, [
+            'respect' => 5, // Below starting 10
+            'is_in_prison' => true,
+            'prison_escape_attempted' => true, // +1
+            'treatment_history' => [
+                'notes' => ['Afstand nemend van criminele subculturen en negatieve invloeden.'], // +1
+            ],
+        ]);
+
+        // Add a liquidation notification
+        GameNotification::create([
+            'character_id' => $character->id,
+            'type' => 'skull',
+            'icon' => 'fa-skull',
+            'title' => '🚨 GELIQUIDEERD OP Paviljoen 1',
+            'message' => 'Test liquidation',
+        ]);
+
+        $migration = require database_path('migrations/2026_10_31_173000_restore_lost_respect_to_affected_characters.php');
+        $migration->up();
+
+        $character->refresh();
+
+        // 5 was clamped to 10, then +1 (prison) +1 (treatment) + at least 20 (liquidation)
+        $this->assertGreaterThanOrEqual(32, $character->respect);
+
+        $notification = GameNotification::where('character_id', $character->id)
+            ->where('title', '⭐ Respect Hersteld!')
+            ->first();
+
+        $this->assertNotNull($notification);
+        $this->assertStringContainsString('met terugwerkende kracht', $notification->message);
     }
 }
