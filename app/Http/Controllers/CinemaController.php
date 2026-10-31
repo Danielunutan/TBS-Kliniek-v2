@@ -236,7 +236,7 @@ class CinemaController extends Controller
         try {
             ChatMessage::create([
                 'character_id' => $creator->id,
-                'channel' => 'algemeen',
+                'channel' => 'global',
                 'message' => "🎬 **[OFFICIËLE BIOSCOOP]:** De directie heeft zojuist een officiële bioscoopzaal geopend: **{$room->title}**! Kom gezellig meekijken via: {$actionUrl}",
                 'hearts_count' => 0,
                 'hearts_users' => [],
@@ -244,6 +244,20 @@ class CinemaController extends Controller
         } catch (\Throwable $e) {
             Log::warning('Failed sending public ChatMessage for official cinema room: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Check whether the current player is authorized to access a cinema room.
+     */
+    protected function canAccessRoom(Request $request, CinemaRoom $room, User $user, Character $character): bool
+    {
+        if (! $room->is_private || $room->host_character_id === $character->id || $user->isStaff()) {
+            return true;
+        }
+
+        $providedPass = $request->input('pin', $request->query('pin', session("cinema_pin_{$room->id}")));
+
+        return $providedPass !== null && $providedPass === $room->passcode;
     }
 
     /**
@@ -265,6 +279,7 @@ class CinemaController extends Controller
             if ($providedPass !== $room->passcode) {
                 return redirect()->route('cinema.index')->with('error', 'Deze zaal is privé beveiligd met een toegangscode!');
             }
+            session(["cinema_pin_{$room->id}" => $providedPass]);
         }
 
         if (! $room->video_started_at) {
@@ -359,6 +374,14 @@ class CinemaController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if (! $this->canAccessRoom($request, $room, $user, $character)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Geen toegang tot deze privézaal.'], 403);
+            }
+
+            return redirect()->route('cinema.index')->with('error', 'Deze zaal is privé beveiligd met een toegangscode!');
+        }
 
         $validated = $request->validate([
             'youtube_url' => ['required', 'string'],
@@ -530,6 +553,14 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $this->canAccessRoom($request, $room, $user, $character)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Geen toegang tot deze privézaal.'], 403);
+            }
+
+            return redirect()->route('cinema.index')->with('error', 'Deze zaal is privé beveiligd met een toegangscode!');
+        }
+
         $validated = $request->validate([
             'message' => ['nullable', 'string', 'max:500'],
             'gif_url' => ['nullable', 'url', 'max:500'],
@@ -578,6 +609,14 @@ class CinemaController extends Controller
      */
     public function getMessages(Request $request, CinemaRoom $room): JsonResponse
     {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $this->canAccessRoom($request, $room, $user, $character)) {
+            return response()->json(['success' => false, 'message' => 'Geen toegang tot deze privézaal.'], 403);
+        }
+
         $afterId = (int) $request->query('after_id', 0);
 
         $messages = CinemaMessage::where('room_id', $room->id)

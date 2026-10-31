@@ -654,7 +654,7 @@ class GangController extends Controller
             }
         }
 
-        if ($character->gang_role === 'leader' && $gang) {
+        if (($character->gang_role === 'leader' || ($gang && (int) $gang->leader_character_id === (int) $character->id)) && $gang) {
             $nextMember = $gang->members()->where('id', '!=', $character->id)->first();
             if ($nextMember) {
                 $gang->leader_character_id = $nextMember->id;
@@ -688,7 +688,13 @@ class GangController extends Controller
         $character->gang_id = null;
         $character->gang_role = 'none';
         $character->last_gang_wage_at = null;
+        // Gang members receive no allowance; restart the clock so leaving does not pay a 24-hour backlog.
+        $character->last_allowance_at = now();
         $character->save();
+
+        if ($gang && $gang->exists) {
+            $this->clearAppointedRoles($gang, $character);
+        }
 
         if ($leaveFee > 0) {
             return redirect()->route('gangs.index')->with('success', 'Je hebt de bende verlaten. Er is €'.number_format($leaveFee, 0, ',', '.').' overgemaakt naar de bende kluis als vertrekboete.');
@@ -957,6 +963,14 @@ class GangController extends Controller
         }
 
         if ($actionType === 'leave_fee') {
+            // The leave fee decides whether members can afford to leave, so only the leader may set it.
+            if ($character->gang_role !== 'leader') {
+                return back()
+                    ->with('active_gang_tab', 'instellingen')
+                    ->with('settings_tab', 'toelating')
+                    ->with('error', 'Alleen de Bendeleider kan de verlatingskosten wijzigen!');
+            }
+
             $validated = $request->validate([
                 'leave_fee_multiplier' => ['required', 'integer', 'min:0', 'max:50'],
             ]);
@@ -1060,6 +1074,11 @@ class GangController extends Controller
             return back()->with('error', 'Je kunt de bendeleider niet verwijderen.');
         }
 
+        // A co-leader may not remove another co-leader; only the leader decides about the management team.
+        if ($member->gang_role === 'co_leader' && $character->gang_role !== 'leader') {
+            return back()->with('error', 'Alleen de bendeleider kan een co-leider uit de bende zetten.');
+        }
+
         // Return all gang-stored vehicles owned by the kicked member back to their personal garage
         CharacterVehicle::where('character_id', $member->id)
             ->where('in_gang_garage', true)
@@ -1074,7 +1093,11 @@ class GangController extends Controller
         $member->gang_id = null;
         $member->gang_role = 'none';
         $member->last_gang_wage_at = null;
+        // Gang members receive no allowance; restart the clock so a kick does not pay a 24-hour backlog.
+        $member->last_allowance_at = now();
         $member->save();
+
+        $this->clearAppointedRoles($gang, $member);
 
         GameMessage::create([
             'recipient_id' => $member->id,
@@ -1112,6 +1135,11 @@ class GangController extends Controller
         $role = $request->input('role');
         if (! in_array($role, ['co_leader', 'member', 'leader'], true)) {
             return back()->with('error', 'Ongeldige rol gekozen.');
+        }
+
+        // A leader who demotes himself leaves the gang without any leader, so leadership must be handed over instead.
+        if ((int) $member->id === (int) $character->id) {
+            return back()->with('error', 'Je kunt je eigen leidersrol niet verlagen. Draag eerst het leiderschap over aan een ander lid.');
         }
 
         if ($role === 'leader') {
@@ -1172,15 +1200,19 @@ class GangController extends Controller
             $lockedGang->treasury -= $amount;
             $lockedGang->save();
 
+            // Donations give 1 respect per €2.000. Withdrawing costs the same rate, so donating and withdrawing again is not a free respect loop.
+            $respectPenalty = (int) ceil($amount / 2000);
+
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
             $lockedCharacter->cash += $amount;
+            $lockedCharacter->respect = max(0, $lockedCharacter->respect - $respectPenalty);
             $lockedCharacter->save();
 
             return back()
                 ->with('active_gang_tab', 'beheer')
                 ->with('beheer_tab', 'instellingen')
-                ->with('success', 'Je hebt €'.number_format($amount, 0, ',', '.').' opgenomen uit de bende kas!');
+                ->with('success', 'Je hebt €'.number_format($amount, 0, ',', '.').' opgenomen uit de bende kas! (-'.number_format($respectPenalty, 0, ',', '.').' respect)');
         });
     }
 
@@ -1301,10 +1333,13 @@ class GangController extends Controller
                 'stored_by_character_id' => null,
             ]);
 
-        // Unlink all members
+        // Unlink all members. Restart their allowance clock now: gang members receive no allowance,
+        // and an old timestamp would pay up to 24 hours of backlog on the next page load.
         $gang->members()->update([
             'gang_id' => null,
             'gang_role' => 'none',
+            'last_gang_wage_at' => null,
+            'last_allowance_at' => now(),
         ]);
 
         $gang->delete();
@@ -1343,6 +1378,14 @@ class GangController extends Controller
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            // Upgrades paid from the treasury spend shared gang money, so only officers may buy them.
+            $isTreasuryPurchase = in_array($itemType, ['bling_shops', 'protection', 'power'], true);
+            if ($isTreasuryPurchase && ! $lockedGang->isOfficer($lockedCharacter)) {
+                return back()
+                    ->with('active_gang_tab', 'winkel')
+                    ->with('error', 'Alleen bendebeheerders kunnen upgrades uit de bende kas betalen.');
+            }
 
             switch ($itemType) {
                 case 'gang_chat':
@@ -1907,6 +1950,30 @@ class GangController extends Controller
                 ->with('active_gang_tab', 'oorlog')
                 ->with('error', $summary);
         });
+    }
+
+    /**
+     * Remove a departing member from the appointed shopper and treasurer roles.
+     *
+     * Gang::isOfficer() also trusts these columns, so a stale value would give the member officer rights again after a rejoin.
+     */
+    private function clearAppointedRoles(Gang $gang, Character $departed): void
+    {
+        $changed = false;
+
+        if ((int) $gang->personal_shopper === (int) $departed->id) {
+            $gang->personal_shopper = null;
+            $changed = true;
+        }
+
+        if ((int) $gang->money_magnet === (int) $departed->id) {
+            $gang->money_magnet = null;
+            $changed = true;
+        }
+
+        if ($changed) {
+            $gang->save();
+        }
     }
 
     /**

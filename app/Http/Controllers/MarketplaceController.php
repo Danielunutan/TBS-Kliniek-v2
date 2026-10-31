@@ -192,6 +192,11 @@ class MarketplaceController extends Controller
                         throw new \RuntimeException('Alleen de bendeleider of beheerders kunnen panden verkopen op de marktplaats!');
                     }
 
+                    // Star payments go to the seller personally, so a gang asset sold for stars would move shared value to one officer.
+                    if ($currency !== 'cash') {
+                        throw new \RuntimeException('Bende panden kunnen alleen voor contant geld verkocht worden; de opbrengst gaat naar de bendekas.');
+                    }
+
                     $gangProperty = GangProperty::where('id', $request->input('gang_property_id'))
                         ->where('gang_id', $lockedCharacter->gang_id)
                         ->where('is_for_sale', false)
@@ -284,10 +289,10 @@ class MarketplaceController extends Controller
                         throw new \RuntimeException('Selecteer een geldige kluiscode uit jouw bezit.');
                     }
 
-                    // Transfer code ownership to escrow
+                    // Transfer code ownership to escrow. The title must not contain the code text: listings are public.
                     $vaultCode->character_id = null;
                     $vaultCode->save();
-                    $title = "Geheime Kluiscode Voucher ({$vaultCode->code})";
+                    $title = "Geheime Kluiscode Voucher (#{$vaultCode->id})";
                     $amount = 1;
                     $relatedId = $vaultCode->id;
                 } else {
@@ -456,32 +461,20 @@ class MarketplaceController extends Controller
                 } elseif ($lockedListing->item_type === 'cash') {
                     $lockedBuyer->cash += $lockedListing->amount;
                 } elseif ($lockedListing->item_type === 'vault_codes') {
-                    $code = null;
-                    if ($lockedListing->related_id) {
-                        $code = VaultCode::where('id', $lockedListing->related_id)
+                    // Deliver exactly the listed code. Never fall back to "any ownerless code": that would hand over another seller's escrow.
+                    $code = $lockedListing->related_id
+                        ? VaultCode::where('id', $lockedListing->related_id)
                             ->where('is_redeemed', false)
                             ->lockForUpdate()
-                            ->first();
-                    }
+                            ->first()
+                        : null;
+
                     if (! $code) {
-                        $code = VaultCode::whereNull('character_id')
-                            ->where('is_redeemed', false)
-                            ->lockForUpdate()
-                            ->first();
+                        throw new \RuntimeException('Deze kluiscode is niet meer geldig. De aankoop is geannuleerd en er is niets afgeschreven.');
                     }
-                    if ($code) {
-                        $code->character_id = $lockedBuyer->id;
-                        $code->save();
-                    } else {
-                        VaultCode::create([
-                            'code' => 'KLUIS-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8)),
-                            'reward_cash' => 2500,
-                            'reward_stars' => 1,
-                            'reward_tokens' => 4,
-                            'character_id' => $lockedBuyer->id,
-                            'is_redeemed' => false,
-                        ]);
-                    }
+
+                    $code->character_id = $lockedBuyer->id;
+                    $code->save();
                 }
 
                 $lockedBuyer->save();
@@ -590,19 +583,14 @@ class MarketplaceController extends Controller
                     $lockedCharacter->cash += $lockedListing->amount;
                     $lockedCharacter->save();
                 } elseif ($lockedListing->item_type === 'vault_codes') {
-                    $code = null;
-                    if ($lockedListing->related_id) {
-                        $code = VaultCode::where('id', $lockedListing->related_id)
+                    // Return exactly the listed code; never take an unrelated ownerless code from another seller's escrow.
+                    $code = $lockedListing->related_id
+                        ? VaultCode::where('id', $lockedListing->related_id)
                             ->where('is_redeemed', false)
                             ->lockForUpdate()
-                            ->first();
-                    }
-                    if (! $code) {
-                        $code = VaultCode::whereNull('character_id')
-                            ->where('is_redeemed', false)
-                            ->lockForUpdate()
-                            ->first();
-                    }
+                            ->first()
+                        : null;
+
                     if ($code) {
                         $code->character_id = $lockedCharacter->id;
                         $code->save();

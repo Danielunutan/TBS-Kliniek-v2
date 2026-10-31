@@ -134,7 +134,7 @@
     <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
         <a href="{{ route('marketplace.index', ['type' => 'all']) }}" 
             class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'all' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
-            Alle Aanbiedingen ({{ count($listings) }})
+            Alle Aanbiedingen ({{ $listings->total() }})
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'depot_item']) }}" 
             class="px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'depot_item' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}">
@@ -178,7 +178,7 @@
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h2 class="text-base font-extrabold text-slate-900 dark:text-white">Actuele Aanbiedingen</h2>
-            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">{{ count($listings) }} artikelen te koop</span>
+            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">{{ $listings->total() }} artikelen te koop</span>
         </div>
 
         <div class="overflow-x-auto">

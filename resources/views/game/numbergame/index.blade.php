@@ -8,7 +8,7 @@
                 <i class="fa-solid fa-dice-six text-emerald-600"></i> Casino Nummer Roulette
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Het Nummerspel</h1>
-            <p class="text-slate-500 text-xs sm:text-sm mt-1">Kies een getal tussen 1 en 20. Exact raak = 15x Jackpot! Binnen 2 getallen = 2x troostprijs!</p>
+            <p class="text-slate-500 text-xs sm:text-sm mt-1">Kies een getal tussen 1 en 20. Exact raak = 15x Jackpot! 1 getal ernaast = 2x troostprijs!</p>
         </div>
         <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-arrow-down-1-9"></i>

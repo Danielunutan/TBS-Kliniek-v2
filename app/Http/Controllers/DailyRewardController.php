@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\GameNotification;
+use App\Models\VaultCode;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -122,6 +123,16 @@ class DailyRewardController extends Controller
                     break;
                 case 'vault_code':
                     $locked->vault_tokens = ($locked->vault_tokens ?? 0) + $prize['value'];
+                    for ($i = 0; $i < (int) $prize['value']; $i++) {
+                        VaultCode::create([
+                            'code' => VaultCode::generateUniqueCode('SPIN'),
+                            'reward_cash' => rand(1500, 4000),
+                            'reward_stars' => 0,
+                            'reward_tokens' => 1,
+                            'character_id' => $locked->id,
+                            'is_redeemed' => false,
+                        ]);
+                    }
                     break;
                 case 'stars':
                     $locked->stars = ($locked->stars ?? 0) + $prize['value'];
@@ -247,6 +258,16 @@ class DailyRewardController extends Controller
             }
             if (($reward['vault_codes'] ?? 0) > 0) {
                 $locked->vault_tokens = ($locked->vault_tokens ?? 0) + $reward['vault_codes'];
+                for ($i = 0; $i < (int) $reward['vault_codes']; $i++) {
+                    VaultCode::create([
+                        'code' => VaultCode::generateUniqueCode('STRK'),
+                        'reward_cash' => rand(2000, 5000),
+                        'reward_stars' => 0,
+                        'reward_tokens' => 1,
+                        'character_id' => $locked->id,
+                        'is_redeemed' => false,
+                    ]);
+                }
             }
             if (($reward['stars'] ?? 0) > 0) {
                 $locked->stars = ($locked->stars ?? 0) + $reward['stars'];

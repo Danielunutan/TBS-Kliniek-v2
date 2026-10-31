@@ -141,8 +141,10 @@
                 $hasLevel = $character->level >= $heist->min_level;
                 $hasMasks = ($character->masks ?? 0) >= $heist->required_mask_count;
                 $hasVehicle = !empty($activeVehicle);
+                $hasType = $activeVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $activeVehicle->vehicle->type === $heist->required_vehicle_type);
+                $hasSpeed = $activeVehicle && ($activeVehicle->effective_speed >= $heist->min_speed_required);
                 $hasCondition = $activeVehicle && ($activeVehicle->current_condition >= $heist->min_condition_required);
-                $canLaunch = $hasLevel && $hasMasks && $hasVehicle && $hasCondition && ($character->energy >= $heist->energy_cost);
+                $canLaunch = $hasLevel && $hasMasks && $hasVehicle && $hasType && $hasSpeed && $hasCondition && ($character->energy >= $heist->energy_cost);
 
                 $baseChance = match ($heist->difficulty) {
                     'makkelijk' => 75,
@@ -264,6 +266,12 @@
                            class="w-full py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-warehouse"></i>
                             <span>Koop Vluchtwagen in Garage</span>
+                        </a>
+                    @elseif(! $hasType || ! $hasSpeed)
+                        <a href="{{ route('garage.index') }}" 
+                           class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span>Wagen Vereist &ge;{{ $heist->min_speed_required }} km/u</span>
                         </a>
                     @elseif(! $hasCondition)
                         <a href="{{ route('garage.index') }}" 
@@ -402,6 +410,8 @@
 
                     $effectiveVehicle = $heist->getEffectiveVehicle($character);
                     $hasVehicle = !empty($effectiveVehicle);
+                    $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle->type === $heist->required_vehicle_type);
+                    $hasSpeed = $effectiveVehicle && ($effectiveVehicle->effective_speed >= $heist->min_speed_required);
                     $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= $heist->min_condition_required);
                     $isGangGarageVehicle = $effectiveVehicle && $effectiveVehicle->in_gang_garage;
 
@@ -588,7 +598,13 @@
                                 <i class="fa-solid fa-warehouse"></i>
                                 <span>Koppel Wagen in Bende Garage</span>
                             </a>
-                        @elseif(! $hasCondition)
+                        @elseif(! $hasType || ! $hasSpeed)
+                        <a href="{{ route('garage.index') }}" 
+                           class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span>Wagen Vereist &ge;{{ $heist->min_speed_required }} km/u</span>
+                        </a>
+                    @elseif(! $hasCondition)
                             <a href="{{ route('garage.index') }}" 
                                class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 border border-amber-300 text-amber-800 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-wrench"></i>

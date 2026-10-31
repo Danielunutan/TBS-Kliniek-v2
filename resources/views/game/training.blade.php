@@ -179,7 +179,7 @@
                         <i class="fa-solid fa-coins text-amber-500 text-[10px]"></i>
                         <span x-text="'€' + formatNumber(costs['{{ $key }}'])">€{{ (int) max(20, round(15 + (min($maxStatCap, (int) $character->{$key}) * 3.5))) }}</span>
                     </span>
-                    <span class="text-purple-700 dark:text-purple-300 font-bold" x-text="stats['{{ $key }}'] >= maxStat ? '+50 XP (Focus)' : '+1 {{ $info['name'] }} / +50 XP'">+1 {{ $info['name'] }}</span>
+                    <span class="text-purple-700 dark:text-purple-300 font-bold" x-text="stats['{{ $key }}'] >= maxStat ? '+50 XP (Focus)' : '+1 {{ $info['name'] }} / +12 XP'">+1 {{ $info['name'] }}</span>
                 </div>
             </div>
 

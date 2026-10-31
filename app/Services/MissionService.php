@@ -124,6 +124,19 @@ class MissionService
             ];
         }
 
+        // Check the energy before the scenario: a player without enough energy must get a clear refusal,
+        // not a prison penalty for a wrong answer to a mission he cannot start anyway.
+        $this->energyService->refresh($character);
+        if ($character->energy < $mission->energy_cost) {
+            return [
+                'success' => false,
+                'message' => "Niet genoeg energie! Deze missie vereist {$mission->energy_cost} energie.",
+                'cash_earned' => 0,
+                'xp_earned' => 0,
+                'respect_earned' => 0,
+            ];
+        }
+
         // Check interactive scenario choice if defined
         $scenario = MissionScenarioCatalog::get($mission) ?? (self::SCENARIOS[$mission->id] ?? null);
         if ($scenario) {

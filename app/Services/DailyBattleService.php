@@ -9,6 +9,7 @@ use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\VaultCode;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DailyBattleService
 {
@@ -179,7 +180,16 @@ class DailyBattleService
             ->get();
 
         foreach ($unsettledBattles as $battle) {
-            $this->settleBattle($battle);
+            // Settlement runs every minute from the scheduler and also on page loads. Lock the battle row and
+            // re-check the flag, so two runs at the same moment cannot pay all prizes twice.
+            DB::transaction(function () use ($battle): void {
+                $lockedBattle = DailyBattle::where('id', $battle->id)->lockForUpdate()->first();
+                if (! $lockedBattle || $lockedBattle->is_settled) {
+                    return;
+                }
+
+                $this->settleBattle($lockedBattle);
+            });
         }
     }
 

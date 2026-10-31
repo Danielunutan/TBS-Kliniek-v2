@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
@@ -47,6 +48,10 @@ class LockerController extends Controller
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen kluisjes kraken!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($this->cooldownService->isOnCooldown($character, 'locker')) {

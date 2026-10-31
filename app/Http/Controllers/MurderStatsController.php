@@ -96,7 +96,33 @@ class MurderStatsController extends Controller
                     'is_online' => $char ? $char->isOnline() : false,
                 ];
             });
-            $topGangsWeek = $topGangsToday;
+            $topGangsWeek = DailyBattleScore::with('character.gang')
+                ->where('battle_date', '>=', $sevenDaysAgo)
+                ->where(function ($q) {
+                    $q->where('score_kills', '>', 0)->orWhere('score_slay', '>', 0);
+                })
+                ->get()
+                ->filter(fn ($score) => $score->character?->gang !== null)
+                ->groupBy(fn ($score) => $score->character->gang_id)
+                ->map(function ($scores) {
+                    $gang = $scores->first()->character->gang;
+                    $kills = (int) $scores->sum(fn ($s) => max((int) $s->score_kills, (int) round((int) $s->score_slay / 2)));
+                    $hasOnline = $gang->members()->get()->contains(fn ($m) => $m->isOnline());
+
+                    return (object) [
+                        'name' => $gang->name,
+                        'kills' => $kills,
+                        'is_online' => $hasOnline,
+                    ];
+                })
+                ->filter(fn ($g) => $g->kills > 0)
+                ->sortByDesc('kills')
+                ->take(5)
+                ->values();
+
+            if ($topGangsWeek->isEmpty()) {
+                $topGangsWeek = $topGangsToday;
+            }
         }
 
         $topOnlinePatientsWeek = $topPatientsWeek->filter(fn ($p) => $p->is_online)->values();

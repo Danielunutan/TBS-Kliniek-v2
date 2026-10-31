@@ -321,7 +321,7 @@
                             <span>{{ $m->type === 'npc' ? ($npcs[$m->npc_key]['name'] ?? 'NPC') : ($m->opponent->name ?? 'Tegenstander') }}</span>
                         </div>
                         <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                            <span>Winnaar: <strong class="text-emerald-700 dark:text-emerald-400">{{ $m->winner->name ?? 'Niemand' }}</strong></span>
+                            <span>Winnaar: <strong class="text-emerald-700 dark:text-emerald-400">{{ $m->winner->name ?? ($m->type === 'npc' ? ($npcs[$m->npc_key]['name'] ?? 'NPC') : 'Niemand') }}</strong></span>
                             <span>Inzet: € {{ number_format($m->bet_amount, 0, ',', '.') }}</span>
                         </div>
                     </div>

@@ -243,6 +243,10 @@ class FriendController extends Controller
             return back()->with('error', 'Geen bevoegdheid.');
         }
 
+        if ($friend->status !== 'accepted' || ! $friend->friend) {
+            return back()->with('error', 'Je kunt alleen een geaccepteerde vriend als BFF instellen.');
+        }
+
         if (! $friend->is_bff) {
             // Unset any previous BFF
             Friend::where('character_id', $character->id)->update(['is_bff' => false]);
@@ -291,11 +295,16 @@ class FriendController extends Controller
             return back()->with('error', 'Geen bevoegdheid.');
         }
 
-        // Verify custom captcha
+        // An open request is not a friendship yet; without this check a player could farm XP on anyone he sends a request to.
+        if ($friend->status !== 'accepted' || ! $friend->friend) {
+            return back()->with('error', 'Je kunt alleen respect geven aan geaccepteerde vrienden.');
+        }
+
+        // Verify custom captcha. Fail closed: a request without a captcha from the friends page is rejected.
         $expected = session('friend_captcha_ans');
         $given = (int) $request->input('captcha_answer');
 
-        if ($expected && $given !== $expected) {
+        if (! $expected || $given !== (int) $expected) {
             return back()->with('error', 'Foutief antwoord op de beveiligingsverificatie! Probeer het opnieuw.');
         }
 
@@ -345,7 +354,12 @@ class FriendController extends Controller
             'message' => ['required', 'string', 'max:1000'],
         ]);
 
-        $friends = Friend::with('friend')->where('character_id', $character->id)->get();
+        // Only accepted friendships count: an open request must not let a player message someone who never agreed.
+        $friends = Friend::with('friend')
+            ->where('character_id', $character->id)
+            ->where('status', 'accepted')
+            ->get()
+            ->filter(fn (Friend $f): bool => $f->friend !== null);
 
         if ($friends->isEmpty()) {
             return back()->with('error', 'Je hebt nog geen vrienden in je vriendenlijst om een bericht naar te sturen!');

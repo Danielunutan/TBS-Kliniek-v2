@@ -73,6 +73,10 @@ class TunnelController extends Controller
             return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot je eigen cel en de geheime tunnel!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         /** @var EscapeTunnel $tunnel */
         $tunnel = EscapeTunnel::firstOrCreate(['character_id' => $character->id]);
 
@@ -149,6 +153,10 @@ class TunnelController extends Controller
             return redirect()->route('prison')->with('error', 'In de isoleercel kom je niet op de luchtplaats!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         /** @var EscapeTunnel $tunnel */
         $tunnel = EscapeTunnel::firstOrCreate(['character_id' => $character->id]);
 
@@ -179,6 +187,15 @@ class TunnelController extends Controller
         /** @var Character $character */
         $character = $user->character;
 
+        // Digging needs free movement, so claiming the escape must too.
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot je eigen cel en de geheime tunnel!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         /** @var EscapeTunnel $tunnel */
         $tunnel = EscapeTunnel::firstOrCreate(['character_id' => $character->id]);
 
@@ -198,14 +215,15 @@ class TunnelController extends Controller
         $cashReward = 25000;
         $xpReward = 500;
         $respectReward = 15;
-        $starsReward = 10;
+        $starsReward = 25;
 
         $this->economy->addCash($character, $cashReward);
         $this->level->addXp($character, $xpReward);
         $character->respect += $respectReward;
         $character->stars = ($character->stars ?? 0) + $starsReward;
+        $character->prison_escapes = ($character->prison_escapes ?? 0) + 1;
         $character->save();
 
-        return back()->with('success', '🏆 HET GROTE UITBRAAKCOMPLOT IS VOLTOOID! Midden in de nacht kroop je door de lepel-gegraven tunnel onder de buitenmuur door! Beloning: €'.number_format($cashReward, 0, ',', '.')." buit, +{$xpReward} XP, +{$respectReward} Respect en 10 Sterren ⭐!");
+        return back()->with('success', '🏆 HET GROTE UITBRAAKCOMPLOT IS VOLTOOID! Midden in de nacht kroop je door de lepel-gegraven tunnel onder de buitenmuur door! Beloning: €'.number_format($cashReward, 0, ',', '.')." buit, +{$xpReward} XP, +{$respectReward} Respect en 25 Sterren ⭐!");
     }
 }

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Character;
 use App\Models\CharacterConnectFourStat;
 use App\Models\CharacterMemoryStat;
+use App\Models\CharacterTrueCrimeState;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -45,6 +46,11 @@ class StarCooldownSkipsTest extends TestCase
         $c4Stat = CharacterConnectFourStat::create([
             'character_id' => $character->id,
             'cooldown_until' => now()->addMinutes(15),
+        ]);
+
+        CharacterTrueCrimeState::create([
+            'character_id' => $character->id,
+            'cooldown_until' => now()->addHours(24),
         ]);
 
         return [$user, $character, $memStat, $c4Stat];

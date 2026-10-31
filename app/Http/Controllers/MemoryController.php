@@ -281,6 +281,13 @@ class MemoryController extends Controller
         $livesLeft = (int) $validated['lives_left'];
         $moves = (int) $validated['moves'];
 
+        if ($won && ($moves < 8 || $timeTaken < 3)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ongeldig spelresultaat: voor alle 8 paren zijn minimaal 8 zetten vereist.',
+            ], 422);
+        }
+
         return DB::transaction(function () use ($character, $won, $timeTaken, $livesLeft, $moves) {
             /** @var Character $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
@@ -406,11 +413,21 @@ class MemoryController extends Controller
      */
     public function skipCooldownWithAd(Request $request): RedirectResponse
     {
+        if (! SponsorAdController::areAdsEnabled()) {
+            return redirect()->route('memory.index')
+                ->with('error', 'Sponsor-advertenties zijn momenteel uitgeschakeld. Gebruik Sterren ⭐ om de wachttijd over te slaan.');
+        }
+
         /** @var Character $character */
         $character = Auth::user()->character;
 
         /** @var CharacterMemoryStat $stat */
         $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $character->id]);
+
+        if (! $stat->isOnCooldown()) {
+            return redirect()->route('memory.index')
+                ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+        }
 
         $stat->update([
             'cooldown_until' => null,

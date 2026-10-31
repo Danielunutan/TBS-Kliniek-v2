@@ -54,6 +54,13 @@ class SocialAndGangUpgradesTest extends TestCase
 
         $friendRecord = Friend::where('character_id', $charA->id)->where('friend_id', $charB->id)->first();
 
+        // The request starts as pending; BFF, respect and broadcasts only work once the other player accepts.
+        $this->assertSame('pending', $friendRecord->status);
+        $pendingBffRes = $this->post(route('friends.toggle-bff', $friendRecord));
+        $pendingBffRes->assertSessionHas('error');
+
+        $friendRecord->update(['status' => 'accepted']);
+
         // 3. Toggle BFF
         $bffRes = $this->post(route('friends.toggle-bff', $friendRecord));
         $bffRes->assertSessionHas('success');

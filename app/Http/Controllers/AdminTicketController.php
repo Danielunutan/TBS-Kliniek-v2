@@ -107,7 +107,7 @@ class AdminTicketController extends Controller
             'closed_at' => $validated['status'] === 'gesloten' ? now() : null,
         ]);
 
-        return back()->with('success', 'Reactie succesvol verzonden naar '.$ticket->character->name.' en status geüpdatet naar '.$ticket->status_label.'!');
+        return back()->with('success', 'Reactie succesvol verzonden naar '.($ticket->character?->name ?? 'de speler').' en status geüpdatet naar '.$ticket->status_label.'!');
     }
 
     /**

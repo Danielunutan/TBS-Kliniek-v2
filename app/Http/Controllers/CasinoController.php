@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use Illuminate\Http\Request;
@@ -25,12 +26,21 @@ class CasinoController extends Controller
     {
         $character = Auth::user()->character;
 
-        if ($character->is_jailed || $character->isImprisoned()) {
+        if ($character->isImprisoned()) {
             $msg = 'Vanuit de isoleercel kun je niet gokken!';
 
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 403)
                 : redirect()->route('prison')->with('error', $msg);
+        }
+
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.
+                Character::REVIVE_SERUM_NAME.' toe.';
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
         }
 
         if ($this->cooldownService->isOnCooldown($character, 'casino_dice')) {

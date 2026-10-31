@@ -158,7 +158,7 @@
                             <div>
                                 <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">10x Peuken Rollen</h4>
                                 <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span class="text-emerald-700 dark:text-emerald-400">5⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+25 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 5 min</span>
+                                    <span class="text-emerald-700 dark:text-emerald-400">5⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+35 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 5 min</span>
                                 </span>
                             </div>
                         </div>
@@ -218,9 +218,9 @@
                                 <i class="fa-solid fa-pills"></i>
                             </span>
                             <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">3x Ritalin Strips Onderscheppen</h4>
+                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">5x Ritalin Strips Onderscheppen</h4>
                                 <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span class="text-emerald-700 dark:text-emerald-400">10⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+50 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 10 min</span>
+                                    <span class="text-emerald-700 dark:text-emerald-400">10⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+65 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 10 min</span>
                                 </span>
                             </div>
                         </div>
@@ -282,7 +282,7 @@
                             <div>
                                 <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">1x Mini Telefoon Smokkelen</h4>
                                 <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span class="text-emerald-700 dark:text-emerald-400">20⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+120 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 20 min</span>
+                                    <span class="text-emerald-700 dark:text-emerald-400">20⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+150 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 20 min</span>
                                 </span>
                             </div>
                         </div>

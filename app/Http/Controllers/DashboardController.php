@@ -437,7 +437,8 @@ class DashboardController extends Controller
                 $unlocked = [];
             }
 
-            if (in_array($key, $unlocked, true)) {
+            // Use the alias-aware check so a widget bought under its legacy key is not charged a second time.
+            if (in_array($key, $unlocked, true) || $lockedCharacter->isWidgetUnlocked($key)) {
                 if (! $request->expectsJson() && ! $request->ajax()) {
                     return back()->with('info', 'Deze widget is al ontgrendeld!');
                 }
@@ -502,6 +503,10 @@ class DashboardController extends Controller
         $data = Cache::remember($cacheKey, 3, function () use ($character) {
             $this->energyService->refresh($character);
 
+            // remainingPrisonSeconds() releases an expired sentence, so read it before the prison flag.
+            $prisonSeconds = (int) $character->remainingPrisonSeconds();
+            $isInPrison = $prisonSeconds > 0 && (bool) $character->is_in_prison;
+
             $nextLevelXp = $this->levelService->getXpRequiredForNextLevel($character->level);
             $xpPercentage = min(100, max(0, (int) round(($character->xp / max(1, $nextLevelXp)) * 100)));
 
@@ -536,8 +541,8 @@ class DashboardController extends Controller
                 'xpFormatted' => number_format($character->xp, 0, ',', '.').' / '.number_format($nextLevelXp, 0, ',', '.').' XP',
                 'xp_percentage' => $xpPercentage,
                 'onlineCount' => Character::getOnlineCount(),
-                'is_in_prison' => (bool) $character->is_in_prison,
-                'prison_seconds' => (int) $character->remainingPrisonSeconds(),
+                'is_in_prison' => $isInPrison,
+                'prison_seconds' => $prisonSeconds,
             ];
         });
 
@@ -598,6 +603,15 @@ class DashboardController extends Controller
 
         if ($character->isImprisoned()) {
             $msg = 'In de isoleercel heb je geen toegang tot de Peuken Beurs!';
+
+            return $request->expectsJson() || $request->ajax()
+                ? response()->json(['error' => $msg], 403)
+                : back()->with('error', $msg);
+        }
+
+        // The Peuken Beurs is a paid widget (legacy key peuken_market, now part of the tunnel widget).
+        if (! $character->isWidgetUnlocked('tunnel')) {
+            $msg = 'Ontgrendel eerst de Peuken Beurs widget op je dashboard!';
 
             return $request->expectsJson() || $request->ajax()
                 ? response()->json(['error' => $msg], 403)
@@ -683,7 +697,8 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Geen personage gevonden.'], 404);
         }
 
-        if (! $character->isWidgetUnlocked('security')) {
+        // New purchases store the key 'treatment'; isWidgetUnlocked() maps it to the legacy key 'security'.
+        if (! $character->isWidgetUnlocked('treatment')) {
             $msg = 'Ontgrendel eerst de Bewakingsradar widget voor 20 sterren!';
 
             return $request->expectsJson() || $request->ajax()

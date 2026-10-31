@@ -17,6 +17,16 @@ use Illuminate\View\View;
 
 class TimelineController extends Controller
 {
+    /**
+     * Number of posts per day that give XP.
+     */
+    public const DAILY_XP_POSTS = 10;
+
+    /**
+     * Number of comments per day that give XP.
+     */
+    public const DAILY_XP_COMMENTS = 20;
+
     public function __construct(
         protected EnergyService $energyService,
         protected LevelService $levelService,
@@ -68,6 +78,12 @@ class TimelineController extends Controller
             'content' => trim(strip_tags($validated['content'])),
             'likes_count' => 0,
         ]);
+
+        // Posting costs nothing, so XP is capped per day; otherwise a script could post its way to any level.
+        $postsToday = TimelinePost::where('character_id', $character->id)->where('created_at', '>=', now()->startOfDay())->count();
+        if ($postsToday > self::DAILY_XP_POSTS) {
+            return back()->with('success', 'Je bericht is live geplaatst op de openbare kliniek tijdlijn! (Dagelijkse XP-limiet voor berichten bereikt)');
+        }
 
         $this->levelService->addXp($character, 10);
 
@@ -155,6 +171,11 @@ class TimelineController extends Controller
             'character_id' => $character->id,
             'content' => trim(strip_tags($validated['content'])),
         ]);
+
+        $commentsToday = TimelineComment::where('character_id', $character->id)->where('created_at', '>=', now()->startOfDay())->count();
+        if ($commentsToday > self::DAILY_XP_COMMENTS) {
+            return back()->with('success', 'Je reactie is geplaatst! (Dagelijkse XP-limiet voor reacties bereikt)');
+        }
 
         $this->levelService->addXp($character, 5);
 

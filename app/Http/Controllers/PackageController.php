@@ -57,6 +57,10 @@ class PackageController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen koffers onderscheppen!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($this->cooldownService->isOnCooldown($character, 'package')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'package');
             $mins = ceil($remaining / 60);
@@ -101,7 +105,8 @@ class PackageController extends Controller
 
             $tokensFound = 0;
             if (rand(1, 100) <= $pkg['token_chance']) {
-                $tokensFound = ($validated['package_id'] === 5) ? rand(2, 3) : 1;
+                // Validated input is still a string ("5"), so cast before the strict comparison.
+                $tokensFound = ((int) $validated['package_id'] === 5) ? rand(2, 3) : 1;
                 $character->vault_tokens = ($character->vault_tokens ?? 0) + $tokensFound;
             }
 
@@ -171,12 +176,10 @@ class PackageController extends Controller
                 $character->stars = ($character->stars ?? 0) + $starsFound;
             }
 
-            // Chance for a mask (40% chance, if storage has room)
+            // Chance for a mask (40% chance)
             $maskFound = (rand(1, 100) <= 40);
-            if ($maskFound && $character->getStorageUsed() < $character->getStorageCapacity()) {
+            if ($maskFound) {
                 $character->masks = ($character->masks ?? 0) + 1;
-            } else {
-                $maskFound = false;
             }
 
             // Chance for a secret voucher code
@@ -279,10 +282,6 @@ class PackageController extends Controller
                 }
             }
 
-            // Clamp masks to available storage space
-            $spaceLeft = max(0, $character->getStorageCapacity() - $character->getStorageUsed());
-            $totalMasks = min($totalMasks, $spaceLeft);
-
             $character->unopened_bags -= $totalBags;
             $character->bank += $totalBank;
             $character->stars = ($character->stars ?? 0) + $totalStars;
@@ -382,8 +381,7 @@ class PackageController extends Controller
             $starsFound = rand(2, 4);
             $character->stars = ($character->stars ?? 0) + $starsFound;
 
-            $spaceLeft = max(0, $character->getStorageCapacity() - $character->getStorageUsed());
-            $masksFound = min(rand(5, 12), $spaceLeft);
+            $masksFound = rand(5, 12);
             $character->masks = ($character->masks ?? 0) + $masksFound;
 
             $respectGain = rand(15, 30);

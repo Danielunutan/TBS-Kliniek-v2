@@ -101,7 +101,7 @@
                 <input type="hidden" name="action" value="package">
                 <button type="submit" class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-star text-[11px]"></i>
-                    <span>Omzeilen (10 Sterren)</span>
+                    <span>Omzeilen ({{ $packageSkipCost ?? 10 }} Sterren)</span>
                 </button>
             </form>
         </div>
@@ -206,11 +206,11 @@
                         @if(($character->unopened_bags ?? 0) > 1)
                         <form action="{{ route('packages.sell-bag') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="amount" value="{{ $character->unopened_bags }}">
+                            <input type="hidden" name="amount" value="{{ min(100, $character->unopened_bags) }}">
                             <button type="submit"
                                     class="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-black transition flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-money-bill-transfer"></i>
-                                <span>Verkoop Alle {{ $character->unopened_bags }} Koffers Direct (€{{ number_format($character->unopened_bags * 2500, 0, ',', '.') }} bankgeld)</span>
+                                <span>Verkoop {{ $character->unopened_bags > 100 ? '100 van je ' : 'Alle ' }}{{ min(100, $character->unopened_bags) }} Koffers Direct (€{{ number_format(min(100, $character->unopened_bags) * 2500, 0, ',', '.') }} bankgeld)</span>
                             </button>
                         </form>
                         @endif
@@ -246,7 +246,7 @@
 
                 <div class="p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-amber-200 dark:border-amber-800/60 mb-3.5">
                     <div class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Gigantische buitpot: tot wel <strong class="text-emerald-700 dark:text-emerald-400 font-mono font-black">€75.000 cash</strong> op je bank, <strong class="text-amber-600 dark:text-amber-300 font-mono font-black">25 Sterren</strong>, <strong class="text-purple-600 dark:text-purple-400 font-mono font-black">12 Maskers</strong> én zeldzame kluiscodes!
+                        Gigantische buitpot: tot wel <strong class="text-emerald-700 dark:text-emerald-400 font-mono font-black">€75.000 cash</strong> op je bank, <strong class="text-amber-600 dark:text-amber-300 font-mono font-black">4 Sterren</strong>, <strong class="text-purple-600 dark:text-purple-400 font-mono font-black">12 Maskers</strong> én zeldzame kluiscodes!
                     </div>
                 </div>
 
@@ -286,7 +286,7 @@
                         </h4>
                     </div>
                     <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 font-mono">
-                        <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> 150 Sterren
+                        <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> 100 Sterren
                     </span>
                 </div>
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3.5 leading-relaxed">
@@ -296,7 +296,7 @@
                     @csrf
                     <input type="hidden" name="item_type" value="package_150">
                     <button type="submit" 
-                            @if(($character->stars ?? 0) < 150) disabled @endif
+                            @if(($character->stars ?? 0) < 100) disabled @endif
                             class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2">
                         <i class="fa-solid fa-bolt text-amber-300"></i>
                         <span>Ontgrendel Master Pakket</span>

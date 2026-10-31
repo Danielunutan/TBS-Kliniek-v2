@@ -84,8 +84,15 @@ class ConnectFourController extends Controller
 
         $validated = $request->validate([
             'winner' => ['required', 'string', 'in:player,arjan,draw'],
-            'moves' => ['required', 'integer', 'min:4'],
+            'moves' => ['required', 'integer', 'min:4', 'max:42'],
         ]);
+
+        if ($validated['winner'] === 'player' && (int) $validated['moves'] < 7) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ongeldig aantal zetten voor een overwinning.',
+            ], 422);
+        }
 
         return DB::transaction(function () use ($character, $validated) {
             /** @var Character $lockedCharacter */
@@ -284,11 +291,21 @@ class ConnectFourController extends Controller
      */
     public function skipCooldownWithAd(Request $request): RedirectResponse
     {
+        if (! SponsorAdController::areAdsEnabled()) {
+            return redirect()->route('connect_four.index')
+                ->with('error', 'Sponsor-advertenties zijn momenteel uitgeschakeld. Gebruik Sterren ⭐ om de wachttijd over te slaan.');
+        }
+
         /** @var Character $character */
         $character = Auth::user()->character;
 
         /** @var CharacterConnectFourStat $stat */
         $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $character->id]);
+
+        if (! $stat->isOnCooldown()) {
+            return redirect()->route('connect_four.index')
+                ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+        }
 
         $stat->update([
             'cooldown_until' => null,

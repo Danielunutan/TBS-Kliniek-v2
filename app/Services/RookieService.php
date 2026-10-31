@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Character;
+use App\Models\CharacterItem;
+use App\Models\Item;
 use Illuminate\Support\Facades\DB;
 
 class RookieService
@@ -168,6 +170,17 @@ class RookieService
                     $character->cash += 500;
                     $character->respect = max(0, (int) ($character->respect ?? 0) + 5);
                     $levelService->addXp($character, 15);
+
+                    // The task label promises 5 cigarettes, so put them in the inventory.
+                    $cigarettes = Item::where('slug', 'sigaretten')->first();
+                    if ($cigarettes) {
+                        $inventoryRow = CharacterItem::firstOrCreate(
+                            ['character_id' => $character->id, 'item_id' => $cigarettes->id],
+                            ['quantity' => 0]
+                        );
+                        $inventoryRow->increment('quantity', 5);
+                    }
+
                     $rewardDesc = '€500 contant, 5 Sigaretten en 15 XP';
                     break;
 

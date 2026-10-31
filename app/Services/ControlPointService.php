@@ -29,40 +29,50 @@ class ControlPointService
             ];
         }
 
-        if ($point->current_character_id === $character->id) {
-            $mins = $point->getHeldMinutes();
-
+        if ($character->isComatose()) {
             return [
                 'success' => false,
-                'message' => "Jij bezit dit controlepunt ('{$point->name}') al! Je hebt het punt al {$mins} minuten stevig in handen.",
-            ];
-        }
-
-        if (! $this->energyService->consume($character, $point->energy_cost)) {
-            return [
-                'success' => false,
-                'message' => "Je hebt minimaal {$point->energy_cost} Energie nodig om een controlepunt te veroveren!",
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
             ];
         }
 
         $now = now();
         $payoutData = null;
 
-        DB::transaction(function () use ($character, $point, $now, &$payoutData) {
+        $errorResult = DB::transaction(function () use ($character, $point, $now, &$payoutData): ?array {
             $lockedPoint = ControlPoint::where('id', $point->id)->lockForUpdate()->first();
+
+            if ($lockedPoint->current_character_id === $character->id) {
+                $mins = $lockedPoint->getHeldMinutes();
+
+                return [
+                    'success' => false,
+                    'message' => "Jij bezit dit controlepunt ('{$lockedPoint->name}') al! Je hebt het punt al {$mins} minuten stevig in handen.",
+                ];
+            }
+
+            if (! $this->energyService->consume($character, $lockedPoint->energy_cost)) {
+                return [
+                    'success' => false,
+                    'message' => "Je hebt minimaal {$lockedPoint->energy_cost} Energie nodig om een controlepunt te veroveren!",
+                ];
+            }
+
             $prevHolderId = $lockedPoint->current_character_id;
 
             if ($prevHolderId && $lockedPoint->captured_at) {
-                $heldMinutes = max(1, (int) $lockedPoint->captured_at->diffInMinutes($now));
+                $heldMinutes = max(0, (int) $lockedPoint->captured_at->diffInMinutes($now));
                 $rewardCash = $heldMinutes * $lockedPoint->cash_per_minute;
                 // Cap maximum stars from control points to max 1 star total to preserve star scarcity
                 $rewardStars = ($lockedPoint->stars_per_minute > 0 && $heldMinutes >= 30) ? 1 : 0;
 
                 $prevHolder = Character::where('id', $prevHolderId)->lockForUpdate()->first();
                 if ($prevHolder) {
-                    $prevHolder->cash = ($prevHolder->cash ?? 0) + $rewardCash;
-                    $prevHolder->stars = ($prevHolder->stars ?? 0) + $rewardStars;
-                    $prevHolder->save();
+                    if ($rewardCash > 0 || $rewardStars > 0) {
+                        $prevHolder->cash = ($prevHolder->cash ?? 0) + $rewardCash;
+                        $prevHolder->stars = ($prevHolder->stars ?? 0) + $rewardStars;
+                        $prevHolder->save();
+                    }
 
                     // Log history
                     ControlPointLog::create([
@@ -112,7 +122,13 @@ class ControlPointService
             $lockedPoint->captured_at = $now;
             $lockedPoint->total_captures++;
             $lockedPoint->save();
+
+            return null;
         });
+
+        if ($errorResult !== null) {
+            return $errorResult;
+        }
 
         // Small respect bonus for taking a point
         $character->addRespect(1);

@@ -235,9 +235,9 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Tijdlijn (Twitter van de TBS Kliniek)
     Route::get('/tijdlijn', [TimelineController::class, 'index'])->name('timeline.index');
-    Route::post('/tijdlijn/plaatsen', [TimelineController::class, 'store'])->name('timeline.store');
+    Route::post('/tijdlijn/plaatsen', [TimelineController::class, 'store'])->middleware('throttle:10,1')->name('timeline.store');
     Route::post('/tijdlijn/{post}/like', [TimelineController::class, 'like'])->name('timeline.like');
-    Route::post('/tijdlijn/{post}/reageren', [TimelineController::class, 'comment'])->name('timeline.comment');
+    Route::post('/tijdlijn/{post}/reageren', [TimelineController::class, 'comment'])->middleware('throttle:20,1')->name('timeline.comment');
     Route::delete('/tijdlijn/reactie/{comment}', [TimelineController::class, 'destroyComment'])->name('timeline.comment.destroy');
     Route::delete('/tijdlijn/{post}', [TimelineController::class, 'destroy'])->name('timeline.destroy');
 

@@ -72,6 +72,6 @@ class ControlPoint extends Model
      */
     public function getPendingStars(): int
     {
-        return $this->getHeldMinutes() * $this->stars_per_minute;
+        return ($this->stars_per_minute > 0 && $this->getHeldMinutes() >= 30) ? 1 : 0;
     }
 }

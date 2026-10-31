@@ -630,19 +630,28 @@ class ShopController extends Controller
 
             // 5. IJzerzaagje (Strafvermindering cel)
             if ($item->slug === 'ijzerzaagje') {
-                if ($lockedCharacter->is_in_prison && $lockedCharacter->prison_until) {
-                    $newPrisonUntil = $lockedCharacter->prison_until->copy()->subMinutes(30 * $consumeQty);
-                    if ($newPrisonUntil->isPast()) {
-                        $lockedCharacter->is_in_prison = false;
-                        $lockedCharacter->prison_until = null;
-                        $lockedCharacter->prison_reason = null;
-                        $customFeedback[] = 'Tralies doorgezaagd! Je bent direct ontsnapt uit de cel! 🔓';
-                    } else {
-                        $lockedCharacter->prison_until = $newPrisonUntil;
-                        $customFeedback[] = (30 * $consumeQty).' minuten straftijd afgezagen van je celstraf! ⏳';
+                if (! $lockedCharacter->isImprisoned() || ! $lockedCharacter->prison_until) {
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Je zit momenteel niet in de isoleercel! Bewaar je ijzerzaagje voor een uitbraak.',
+                        ], 422);
                     }
+
+                    return back()
+                        ->with('shop_tab', 'inventaris')
+                        ->with('error', 'Je zit momenteel niet in de isoleercel! Bewaar je ijzerzaagje voor een uitbraak.');
+                }
+
+                $newPrisonUntil = $lockedCharacter->prison_until->copy()->subMinutes(30 * $consumeQty);
+                if ($newPrisonUntil->isPast()) {
+                    $lockedCharacter->is_in_prison = false;
+                    $lockedCharacter->prison_until = null;
+                    $lockedCharacter->prison_reason = null;
+                    $customFeedback[] = 'Tralies doorgezaagd! Je bent direct ontsnapt uit de cel! 🔓';
                 } else {
-                    $customFeedback[] = 'Zaagje bewaard en getest! Klaar voor je volgende uitbraak! ⏳';
+                    $lockedCharacter->prison_until = $newPrisonUntil;
+                    $customFeedback[] = (30 * $consumeQty).' minuten straftijd afgezagen van je celstraf! ⏳';
                 }
             }
 
@@ -743,7 +752,7 @@ class ShopController extends Controller
             }
 
             if ($validated['item_type'] === 'prison_escape') {
-                if (! $lockedCharacter->is_in_prison && ! $lockedCharacter->prison_until) {
+                if (! $lockedCharacter->isImprisoned()) {
                     return back()->with('shop_tab', 'sterren')->with('error', 'Je zit momenteel niet in de isoleercel of gevangenis!');
                 }
                 $lockedCharacter->stars -= $cfg['cost'];
@@ -803,6 +812,9 @@ class ShopController extends Controller
                 $lockedCharacter->bullets = ($lockedCharacter->bullets ?? 0) + 250;
                 $currentVest = $lockedCharacter->vest_until && now()->lt($lockedCharacter->vest_until) ? $lockedCharacter->vest_until : now();
                 $lockedCharacter->vest_until = $currentVest->copy()->addHours(24);
+                $perks = $lockedCharacter->perks ?? [];
+                $perks['vest_tier'] = 'kevlar_24h';
+                $lockedCharacter->perks = $perks;
                 $lockedCharacter->save();
 
                 return back()
@@ -822,6 +834,9 @@ class ShopController extends Controller
             if ($validated['item_type'] === 'bulletproof_vest') {
                 $currentVest = $lockedCharacter->vest_until && now()->lt($lockedCharacter->vest_until) ? $lockedCharacter->vest_until : now();
                 $lockedCharacter->vest_until = $currentVest->copy()->addHours(12);
+                $perks = $lockedCharacter->perks ?? [];
+                $perks['vest_tier'] = 'titanium_12h';
+                $lockedCharacter->perks = $perks;
                 $lockedCharacter->save();
 
                 return back()
@@ -830,7 +845,7 @@ class ShopController extends Controller
             }
 
             if ($validated['item_type'] === 'vault_code') {
-                $codeStr = 'SHOP-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8));
+                $codeStr = VaultCode::generateUniqueCode('SHOP');
                 VaultCode::create([
                     'code' => $codeStr,
                     'reward_cash' => rand(15000, 35000),
@@ -884,7 +899,7 @@ class ShopController extends Controller
 
                 for ($i = 0; $i < 5; $i++) {
                     VaultCode::create([
-                        'code' => 'MSTR-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 7)),
+                        'code' => VaultCode::generateUniqueCode('MSTR'),
                         'reward_cash' => rand(5000, 10000),
                         'reward_stars' => rand(1, 2),
                         'reward_tokens' => 3,
@@ -983,8 +998,8 @@ class ShopController extends Controller
             $target->masks = ($target->masks ?? 0) + $totalMasks;
 
             // Generate vault voucher codes for recipient
-            for ($i = 0; $i < min(25, $totalCodes); $i++) {
-                $codeStr = 'BDL-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 7));
+            for ($i = 0; $i < $totalCodes; $i++) {
+                $codeStr = VaultCode::generateUniqueCode('BDL');
                 VaultCode::create([
                     'code' => $codeStr,
                     'reward_cash' => rand(2500, 7500),

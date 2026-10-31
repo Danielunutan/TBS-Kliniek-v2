@@ -79,7 +79,7 @@
                 <input type="hidden" name="action" value="extort">
                 <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-star text-[11px]"></i>
-                    <span>Omzeilen (10 Sterren)</span>
+                    <span>Omzeilen ({{ $extortSkipCost ?? 10 }} Sterren)</span>
                 </button>
             </form>
         </div>

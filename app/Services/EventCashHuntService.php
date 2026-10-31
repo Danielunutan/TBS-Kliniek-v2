@@ -177,6 +177,12 @@ class EventCashHuntService
         $start = Carbon::parse(self::EVENT_START);
         $end = Carbon::parse(self::EVENT_END);
 
+        // The command runs every night, but the event ran only once. Pay the prize once, after the event has ended.
+        // Without this check the same winner received 750 stars every night.
+        if (! self::hasEnded() || GameNotification::where('type', 'event_winner')->where('created_at', '>=', $end)->exists()) {
+            return null;
+        }
+
         $topEarner = EventCashEarning::select('character_id', DB::raw('SUM(amount) as total_earned'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<', $end)

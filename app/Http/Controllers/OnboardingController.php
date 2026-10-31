@@ -195,7 +195,7 @@ class OnboardingController extends Controller
                 'regex:/^[a-zA-Z0-9_\-]+$/',
                 'unique:characters,username,'.$character->id,
             ],
-            'display_name' => ['required', 'string', 'min:2', 'max:30'],
+            'display_name' => ['required', 'string', 'min:2', 'max:30', 'unique:characters,name,'.$character->id],
             'birthdate' => [
                 'required',
                 'date',

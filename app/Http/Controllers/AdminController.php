@@ -149,13 +149,13 @@ class AdminController extends Controller
             $newRole = (string) $validated['role'];
             $targetUser = $character->user;
 
-            // Only owner can assign owner role or change an existing owner's role
-            if ($newRole === 'owner' && ! $currentUser->isOwner()) {
-                return back()->with('error', 'Alleen de eigenaar kan de Eigenaar-rol toekennen.');
+            // Only the owner can grant or remove staff power above moderator, so a moderator cannot promote anyone (or himself) to admin.
+            if (in_array($newRole, ['owner', 'admin'], true) && ! $currentUser->isOwner()) {
+                return back()->with('error', 'Alleen de eigenaar kan de Admin- of Eigenaar-rol toekennen.');
             }
 
-            if ($targetUser->isOwner() && ! $currentUser->isOwner()) {
-                return back()->with('error', 'Je hebt geen bevoegdheid om de rol van een Eigenaar te wijzigen.');
+            if (($targetUser->isOwner() || $targetUser->role === 'admin') && ! $currentUser->isOwner()) {
+                return back()->with('error', 'Je hebt geen bevoegdheid om de rol van een Admin of Eigenaar te wijzigen.');
             }
 
             $oldRole = $targetUser->role;
@@ -466,7 +466,8 @@ class AdminController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if (! $user->isOwner() && $user->role !== 'admin' && ! $user->is_staff) {
+        // Migrations change the schema of the live database, so moderators must not run them.
+        if (! $user->isAdmin()) {
             return back()->with('error', 'Geen bevoegdheid.');
         }
 
@@ -500,7 +501,8 @@ class AdminController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if (! $user->isOwner() && $user->role !== 'admin' && ! $user->is_staff) {
+        // Migrations change the schema of the live database, so moderators must not run them.
+        if (! $user->isAdmin()) {
             return back()->with('error', 'Geen bevoegdheid.');
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Services\EconomyService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;

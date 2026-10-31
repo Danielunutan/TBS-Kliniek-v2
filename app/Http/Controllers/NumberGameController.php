@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\LevelService;
@@ -31,6 +32,11 @@ class NumberGameController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je niet gokken!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.
+                Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($this->cooldownService->isOnCooldown($character, 'casino_numbergame')) {
@@ -64,8 +70,8 @@ class NumberGameController extends Controller
             return back()->with('success', "🎯 JACKPOT! Getrokken nummer: {$drawn}! Je raadde het precies! Je wint €".number_format($payout, 0, ',', '.').' (15x)! +50 XP, +5 Respect!');
         }
 
-        if (abs($guess - $drawn) <= 2) {
-            // Near miss: 2x multiplier
+        if (abs($guess - $drawn) <= 1) {
+            // Near miss (1 number off): 2x multiplier
             $payout = $bet * 2;
             $this->economy->addCash($character, $payout);
             $this->level->addXp($character, 20);

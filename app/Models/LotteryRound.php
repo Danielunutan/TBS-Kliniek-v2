@@ -125,7 +125,7 @@ class LotteryRound extends Model
                 return $existingActive;
             }
 
-            $allTickets = $round->tickets()->get();
+            $allTickets = $round->tickets()->whereHas('character')->get();
 
             if ($allTickets->isEmpty()) {
                 $nextRound = self::create([

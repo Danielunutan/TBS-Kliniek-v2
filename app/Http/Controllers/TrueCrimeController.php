@@ -59,8 +59,8 @@ class TrueCrimeController extends Controller
 
         $activeCase = null;
         if (! $state->isOnCooldown()) {
-            // Prefer current unsolved case
-            if ($state->current_case_id) {
+            // Prefer current unsolved case that has not been attempted yet
+            if ($state->current_case_id && ! in_array($state->current_case_id, $allAttempted)) {
                 $activeCase = TrueCrimeCase::find($state->current_case_id);
             }
             if (! $activeCase) {
@@ -129,6 +129,13 @@ class TrueCrimeController extends Controller
                 ], 422);
             }
 
+            if ($state->current_case_id !== null && (int) $validated['case_id'] !== (int) $state->current_case_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dit dossier is momenteel niet jouw actieve onderzoek!',
+                ], 422);
+            }
+
             /** @var TrueCrimeCase $case */
             $case = TrueCrimeCase::findOrFail($validated['case_id']);
 
@@ -182,10 +189,10 @@ class TrueCrimeController extends Controller
 
             $state->solved_case_ids = $solvedIds;
             $state->failed_case_ids = $failedIds;
-            // 24 hour cooldown
+            // 24 hour cooldown (keep current_case_id so review screen renders solved case during cooldown)
             $state->cooldown_until = now()->addHours(self::COOLDOWN_HOURS);
             $state->cooldown_ads_watched = 0;
-            $state->current_case_id = null; // will pick next case on reset
+            $state->current_case_id = $case->id;
             $state->save();
 
             return response()->json([
@@ -216,7 +223,14 @@ class TrueCrimeController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
             /** @var CharacterTrueCrimeState $state */
-            $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $lockedCharacter->id]);
+            $state = CharacterTrueCrimeState::where('character_id', $lockedCharacter->id)
+                ->lockForUpdate()
+                ->firstOrCreate(['character_id' => $lockedCharacter->id]);
+
+            if (! $state->isOnCooldown()) {
+                return redirect()->route('true_crime.index')
+                    ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+            }
 
             if (($lockedCharacter->stars ?? 0) < 15) {
                 return back()->with('error', 'Je hebt minimaal 15 Sterren nodig om Caroline\'s wachttijd over te slaan!');
@@ -240,11 +254,21 @@ class TrueCrimeController extends Controller
      */
     public function skipCooldownWithAd(Request $request): RedirectResponse
     {
+        if (! SponsorAdController::areAdsEnabled()) {
+            return redirect()->route('true_crime.index')
+                ->with('error', 'Sponsor-advertenties zijn momenteel uitgeschakeld. Gebruik Sterren ⭐ om de wachttijd over te slaan.');
+        }
+
         /** @var Character $character */
         $character = Auth::user()->character;
 
         /** @var CharacterTrueCrimeState $state */
         $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $character->id]);
+
+        if (! $state->isOnCooldown()) {
+            return redirect()->route('true_crime.index')
+                ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+        }
 
         $current = ($state->cooldown_ads_watched ?? 0) + 1;
         if ($current >= 5) {

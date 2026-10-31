@@ -28,7 +28,7 @@
                         </span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
-                        Verover strategische hotspots binnen de TBS Kliniek en blijf de baas! Zolang jij een controlepunt bezit, bouwt jouw buit elke minuut automatisch op met <strong class="text-emerald-600 dark:text-emerald-400 font-black">+€50</strong> en <strong class="text-amber-500 font-black">+1 Ster ⭐</strong>. Zodra een rivaal jou van de troon stoot, wordt de volledige opgebouwde buit direct op jouw saldo bijgeschreven!
+                        Verover strategische hotspots binnen de TBS Kliniek en blijf de baas! Zolang jij een controlepunt bezit, bouwt jouw buit elke minuut automatisch op met <strong class="text-emerald-600 dark:text-emerald-400 font-black">+€50</strong> (en <strong class="text-amber-500 font-black">+1 Ster ⭐</strong> bij minimaal 30 min. bezit). Zodra een rivaal jou van de troon stoot, wordt de volledige opgebouwde buit direct op jouw saldo bijgeschreven!
                     </p>
                 </div>
             </div>
@@ -44,7 +44,7 @@
                 <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-center">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Tarief / Minuut</span>
                     <span class="text-xs font-black text-amber-500">
-                        +€50 & +1 ⭐
+                        +€50 (+1 ⭐ na 30m)
                     </span>
                 </div>
                 <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-center col-span-2 sm:col-span-1">
@@ -286,7 +286,7 @@
                 <p class="mt-0.5 text-amber-800 dark:text-amber-300 leading-relaxed">
                     1. Klik op <strong>Opeisen/Overnemen</strong> om de controle over een plek te grijpen (kost 2⚡ energie).<br>
                     2. Jij behoudt het controlepunt <em>totdat een andere speler het van jou afpakt</em>.<br>
-                    3. Elke minuut telt mee: <strong>1 minuut = +€50 en +1 ⭐</strong> (10 min = €500 + 10⭐, 60 min = €3.000 + 60⭐, etc.).<br>
+                    3. Elke minuut telt mee: <strong>1 minuut = +€50</strong> en vanaf 30 minuten bezit ontvang je tevens <strong>+1 ⭐</strong> bonus.<br>
                     4. De buit stopt met tellen zodra iemand anders het overneemt. Op dat exacte moment word je <strong>direct uitbetaald</strong> en ontvang je een notificatie én postbericht!
                 </p>
             </div>

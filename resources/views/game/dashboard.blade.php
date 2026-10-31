@@ -1182,9 +1182,9 @@
                                 <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-300 block">Fase</span>
                                 <span class="text-sm font-black text-slate-900 dark:text-white">{{ $tunnel->stage }} / 5</span>
                             </div>
-                            <div class="p-2 rounded-xl border {{ $tunnel->sand_in_socks >= 5 ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/60' }}">
-                                <span class="text-[9px] font-black uppercase {{ $tunnel->sand_in_socks >= 5 ? 'text-rose-600' : 'text-slate-500' }} block">Zandsokken</span>
-                                <span class="text-sm font-black {{ $tunnel->sand_in_socks >= 5 ? 'text-rose-600' : 'text-slate-900 dark:text-white' }}">{{ $tunnel->sand_in_socks }} / 5</span>
+                            <div class="p-2 rounded-xl border {{ $tunnel->sand_in_socks >= 100 ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/60' }}">
+                                <span class="text-[9px] font-black uppercase {{ $tunnel->sand_in_socks >= 100 ? 'text-rose-600' : 'text-slate-500' }} block">Zandsokken</span>
+                                <span class="text-sm font-black {{ $tunnel->sand_in_socks >= 100 ? 'text-rose-600' : 'text-slate-900 dark:text-white' }}">{{ $tunnel->sand_in_socks }} / 100</span>
                             </div>
                             <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
                                 <span class="text-[9px] font-black uppercase text-slate-500 dark:text-slate-400 block">Lepels</span>
@@ -1206,7 +1206,7 @@
                                         <i class="fa-solid fa-clock text-amber-500"></i>
                                         <span>Graven over {{ ceil($tunnelDigCooldown / 60) }}m</span>
                                     </div>
-                                @elseif($tunnel->sand_in_socks >= 5)
+                                @elseif($tunnel->sand_in_socks >= 100)
                                     <div class="py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 font-bold text-[11px] text-center flex items-center justify-center gap-1.5 border border-rose-200 dark:border-rose-800">
                                         <i class="fa-solid fa-triangle-exclamation"></i>
                                         <span>Sokken vol! Dump zand</span>
@@ -1216,7 +1216,7 @@
                                         @csrf
                                         <button type="submit" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[11px] transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
                                             <i class="fa-solid fa-spoon"></i>
-                                            <span>Graaf 1 Meter (5 E)</span>
+                                            <span>Graaf 1 Meter (20 E)</span>
                                         </button>
                                     </form>
                                 @endif
@@ -1299,7 +1299,7 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 Op Verlof (nog {{ $leaveRemainingMinutes }}m)
                             </span>
-                        @elseif($treatmentScore >= 70)
+                        @elseif($treatmentScore >= 60)
                             <span class="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 Positief Advies
@@ -1322,12 +1322,12 @@
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between text-xs font-bold">
                                 <span class="text-slate-600 dark:text-slate-400 text-[11px]">Behandelscore & Ziekte-inzicht</span>
-                                <span class="font-mono font-black {{ $treatmentScore >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ($treatmentScore >= 35 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
+                                <span class="font-mono font-black {{ $treatmentScore >= 60 ? 'text-emerald-600 dark:text-emerald-400' : ($treatmentScore >= 35 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
                                     {{ $treatmentScore }}/100
                                 </span>
                             </div>
                             <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
-                                <div class="h-full rounded-full transition-all duration-500 {{ $treatmentScore >= 70 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : ($treatmentScore >= 35 ? 'bg-gradient-to-r from-amber-500 to-yellow-500' : 'bg-gradient-to-r from-rose-500 to-red-500') }}" style="width: {{ min(100, max(5, $treatmentScore)) }}%"></div>
+                                <div class="h-full rounded-full transition-all duration-500 {{ $treatmentScore >= 60 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : ($treatmentScore >= 35 ? 'bg-gradient-to-r from-amber-500 to-yellow-500' : 'bg-gradient-to-r from-rose-500 to-red-500') }}" style="width: {{ min(100, max(5, $treatmentScore)) }}%"></div>
                             </div>
                         </div>
 

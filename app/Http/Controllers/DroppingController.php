@@ -68,6 +68,10 @@ class DroppingController extends Controller
             return redirect()->route('prison')->with('error', 'Je zit in de isoleercel en kunt niet op de luchtplaats komen!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($this->cooldownService->isOnCooldown($character, 'dropping_tennisball')) {
             $remaining = ceil($this->cooldownService->getRemainingSeconds($character, 'dropping_tennisball') / 60).' minuten';
 
@@ -170,6 +174,10 @@ class DroppingController extends Controller
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Je zit in de isoleercel en kunt niet bij het dakraam komen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($this->cooldownService->isOnCooldown($character, 'dropping_drone')) {

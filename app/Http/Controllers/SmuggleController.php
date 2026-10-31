@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\CharacterItem;
 use App\Models\Item;
 use App\Models\User;
@@ -62,6 +63,10 @@ class SmuggleController extends Controller
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot de productiekelder!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $type = $request->input('type') ?? $request->input('item_type');
@@ -126,6 +131,10 @@ class SmuggleController extends Controller
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Je zit in de isoleercel en kunt niet handelen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $validated = $request->validate([

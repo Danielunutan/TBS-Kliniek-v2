@@ -123,7 +123,8 @@ class AccountSettingsController extends Controller
         }
 
         $rules = [
-            'display_name' => ['required', 'string', 'min:2', 'max:30'],
+            // characters.name has a unique index, so a taken name must fail validation instead of crashing with a database error.
+            'display_name' => ['required', 'string', 'min:2', 'max:30', 'unique:characters,name,'.$character->id],
             'profile_color' => ['nullable', 'string', 'in:purple,rose,emerald,amber,blue,indigo,dark'],
         ];
 
@@ -150,6 +151,7 @@ class AccountSettingsController extends Controller
         $validated = $request->validate($rules, [
             'username.regex' => 'Gebruikersnaam mag GEEN spaties of vreemde tekens bevatten (alleen letters a-z, cijfers 0-9, underscores _ en streepjes -).',
             'display_name.required' => 'Vul een weergavenaam in.',
+            'display_name.unique' => 'Deze weergavenaam is al in gebruik door een andere patiënt.',
         ]);
 
         $displayName = trim($validated['display_name']);

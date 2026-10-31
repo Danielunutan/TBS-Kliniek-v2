@@ -204,6 +204,11 @@ class GarageController extends Controller
         $rotation = $this->getRotatingShowroom();
         $matchedListing = collect($rotation['listings'])->firstWhere('token', $listingToken);
 
+        // A showroom token only discounts the vehicle it was issued for; otherwise a cheap scooter token would buy a supercar.
+        if ($matchedListing && (int) ($matchedListing['vehicle']['id'] ?? 0) !== (int) $vehicle->id) {
+            $matchedListing = null;
+        }
+
         $finalPriceCash = $matchedListing ? $matchedListing['price_cash'] : $vehicle->price_cash;
         $finalPriceStars = $matchedListing ? $matchedListing['price_stars'] : $vehicle->price_stars;
         $initialCondition = $matchedListing ? $matchedListing['condition'] : 100;

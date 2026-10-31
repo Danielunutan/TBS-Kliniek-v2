@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\CharacterVehicle;
+use App\Models\Gang;
 use App\Models\Heist;
 use App\Models\HeistLog;
 use App\Models\User;
@@ -13,9 +14,11 @@ use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\EventCashHuntService;
 use App\Services\LevelService;
+use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class HeistController extends Controller
@@ -83,6 +86,10 @@ class HeistController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Je zit in de isoleercel en kunt geen Heist organiseren!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($character->level < $heist->min_level) {
@@ -224,11 +231,12 @@ class HeistController extends Controller
                 $gangPayout = (int) round(($totalPayout * $gangSharePct) / 100);
                 $playerPayout = $totalPayout - $gangPayout;
 
-                $gang->treasury += $gangPayout;
+                // Atomic increments: two members can finish a gang heist at the same moment, and a read-modify-save
+                // would let the second save overwrite the first payout.
+                Gang::where('id', $gang->id)->increment('treasury', $gangPayout);
                 if ($heist->gang_respect_reward > 0) {
-                    $gang->respect = ($gang->respect ?? 0) + $heist->gang_respect_reward;
+                    Gang::where('id', $gang->id)->increment('respect', $heist->gang_respect_reward);
                 }
-                $gang->save();
 
                 $character->cash += $playerPayout;
                 $character->respect += $heist->respect_reward;
@@ -247,10 +255,7 @@ class HeistController extends Controller
 
             // Vehicle wear & tear (5% to 15% condition lost)
             $conditionLoss = mt_rand(6, 16);
-            $newCondition = max(0, $charVehicle->current_condition - $conditionLoss);
-            $charVehicle->current_condition = $newCondition;
-            $charVehicle->total_heists_done++;
-            $charVehicle->save();
+            $newCondition = $this->applyVehicleWear($charVehicle, $conditionLoss, true);
 
             // Record Daily Battle
             app(DailyBattleService::class)->record($character, 'crimes', 1);
@@ -260,7 +265,7 @@ class HeistController extends Controller
             if (mt_rand(1, 100) <= 20) {
                 VaultCode::create([
                     'character_id' => $character->id,
-                    'code' => strtoupper(substr(md5(uniqid()), 0, 8)),
+                    'code' => VaultCode::generateUniqueCode('HEIST'),
                     'is_redeemed' => false,
                 ]);
                 $bonusMsg = ' 🗝️ EXTRA: Je vond een zeldzame Kluiscode in de vluchtbuit!';
@@ -289,16 +294,11 @@ class HeistController extends Controller
         } else {
             // Failure: Heavy vehicle damage and isolation imprisonment
             $conditionLoss = mt_rand(20, 35);
-            $newCondition = max(0, $charVehicle->current_condition - $conditionLoss);
-            $charVehicle->current_condition = $newCondition;
-            $charVehicle->save();
+            $newCondition = $this->applyVehicleWear($charVehicle, $conditionLoss, false);
 
+            // Use the prison service so perks (advocaat), the sentence counter and the notification all apply.
             $prisonMinutes = $heist->isolation_risk_minutes;
-            $character->is_in_prison = true;
-            $character->prison_until = now()->addMinutes($prisonMinutes);
-            $character->prison_reason = "Betrapt tijdens {$heist->name}! Klemgereden door arrestatieteam.";
-            $character->prison_escape_attempted = false;
-            $character->save();
+            app(PrisonService::class)->jail($character, $prisonMinutes, "Betrapt tijdens {$heist->name}! Klemgereden door arrestatieteam.");
 
             HeistLog::create([
                 'character_id' => $character->id,
@@ -314,5 +314,28 @@ class HeistController extends Controller
 
             return redirect()->route('prison')->with('error', "🚨 HEIST MISLUKT! Het alarm ging af en de politie ramde je {$charVehicle->vehicle->name} van de weg (-{$conditionLoss}% conditie). Je bent overgebracht naar de isoleercel voor {$prisonMinutes} minuten!");
         }
+    }
+
+    /**
+     * Apply heist wear to a vehicle under a row lock and return the new condition.
+     *
+     * Gang vehicles are shared, so two members can use the same car at once; the lock stops one wear update from erasing the other.
+     */
+    private function applyVehicleWear(CharacterVehicle $vehicle, int $conditionLoss, bool $countHeist): int
+    {
+        return DB::transaction(function () use ($vehicle, $conditionLoss, $countHeist): int {
+            /** @var CharacterVehicle $locked */
+            $locked = CharacterVehicle::where('id', $vehicle->id)->lockForUpdate()->first();
+            $locked->current_condition = max(0, (int) $locked->current_condition - $conditionLoss);
+            if ($countHeist) {
+                $locked->total_heists_done = (int) $locked->total_heists_done + 1;
+            }
+            $locked->save();
+
+            $vehicle->current_condition = $locked->current_condition;
+            $vehicle->total_heists_done = $locked->total_heists_done;
+
+            return (int) $locked->current_condition;
+        });
     }
 }

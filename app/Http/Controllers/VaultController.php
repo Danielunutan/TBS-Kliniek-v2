@@ -90,6 +90,32 @@ class VaultController extends Controller
         protected PrisonService $prison,
     ) {}
 
+    /**
+     * Map an alias season code to the code that owns its claim key.
+     */
+    public static function canonicalSeasonCode(string $code): string
+    {
+        return match ($code) {
+            'SEIZOEN2' => 'SEIZOEN1',
+            'TBSKLINIEK2' => 'TBSKLINIEK1',
+            default => $code,
+        };
+    }
+
+    /**
+     * Return the target number of the current vault round, and create one when the session has none yet.
+     *
+     * Without this, guess() and buyCode() each invented their own random target, so a bought code could be wrong.
+     */
+    private function vaultTarget(): int
+    {
+        if (! session()->has('vault_target')) {
+            session(['vault_target' => rand(1, 10)]);
+        }
+
+        return (int) session('vault_target');
+    }
+
     public function index(Request $request): View
     {
         $character = Auth::user()->character;
@@ -101,7 +127,7 @@ class VaultController extends Controller
 
         foreach (self::LEVEL_REWARDS as $lvl => $rew) {
             if ($character->level >= $lvl && ! in_array($lvl, $claimed, true)) {
-                $uniqueCode = 'KLUIS-L'.$lvl.'-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+                $uniqueCode = VaultCode::generateUniqueCode('KLUIS-L'.$lvl);
 
                 VaultCode::create([
                     'code' => $uniqueCode,
@@ -180,6 +206,10 @@ class VaultController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen kluizen kraken!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'guess' => ['required', 'integer', 'between:1,10'],
         ]);
@@ -189,7 +219,7 @@ class VaultController extends Controller
             return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor een gok!");
         }
 
-        $target = session('vault_target', rand(1, 10));
+        $target = $this->vaultTarget();
         $attemptsLeft = session('vault_attempts', 3) - 1;
         $guess = (int) $validated['guess'];
 
@@ -276,13 +306,6 @@ class VaultController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            // Storage capacity check: prevent overflowing inventory
-            $currentUsed = $lockedCharacter->getStorageUsed();
-            $capacity = $lockedCharacter->getStorageCapacity();
-            if ($currentUsed >= $capacity) {
-                return back()->with('error', "⚠️ Je opbergplaats zit vol ({$currentUsed}/{$capacity} plaatsen bezet)! Je kunt pas weer kluizen kraken zodra je ruimte vrijmaakt door overtollige spullen of maskers te verkopen in je Depot.");
-            }
-
             $claimedRewards = $lockedCharacter->claimed_level_rewards ?? [];
             if (! is_array($claimedRewards)) {
                 $claimedRewards = [];
@@ -291,10 +314,17 @@ class VaultController extends Controller
             $seasonRewardsFound = [];
             foreach ($cleanCodes as $candidateCode) {
                 if (isset(self::SEASON_CODES[$candidateCode])) {
-                    $key = 'season2_code_'.$candidateCode;
-                    if (! in_array($key, $claimedRewards, true)) {
+                    // Aliases share one claim: SEIZOEN1 and SEIZOEN2 pay the same reward only once.
+                    // Older claims were stored under the alias text, so every alias key counts as claimed.
+                    $canonical = self::canonicalSeasonCode($candidateCode);
+                    $aliasKeys = array_map(
+                        fn (string $code): string => 'season2_code_'.$code,
+                        array_filter(array_keys(self::SEASON_CODES), fn (string $code): bool => self::canonicalSeasonCode($code) === $canonical)
+                    );
+
+                    if (empty(array_intersect($aliasKeys, $claimedRewards))) {
                         $seasonRewardsFound[$candidateCode] = self::SEASON_CODES[$candidateCode];
-                        $claimedRewards[] = $key;
+                        $claimedRewards[] = 'season2_code_'.$canonical;
                     }
                 }
             }
@@ -312,9 +342,12 @@ class VaultController extends Controller
                     ->take(100)
                     ->get();
             } else {
+                // Only codes in the player's own possession can be redeemed. A code in marketplace escrow
+                // (owner null) or in another player's inbox must not be redeemable by typing its text.
                 $nonSeasonCodes = array_diff($cleanCodes, array_keys(self::SEASON_CODES));
                 $codesToRedeem = ! empty($nonSeasonCodes)
                     ? VaultCode::whereIn('code', $nonSeasonCodes)
+                        ->where('character_id', $lockedCharacter->id)
                         ->where('is_redeemed', false)
                         ->lockForUpdate()
                         ->get()
@@ -324,8 +357,6 @@ class VaultController extends Controller
             if ($codesToRedeem->isEmpty() && empty($seasonRewardsFound)) {
                 return back()->with('error', 'Geen geldige of ongebruikte kluiscodes gevonden om te kraken.');
             }
-
-            $spaceLeft = max(0, $capacity - $currentUsed);
 
             $redeemedCount = 0;
             $totalCash = 0;
@@ -356,7 +387,8 @@ class VaultController extends Controller
                 $vaultCode->save();
             }
 
-            $masksGranted = min($totalMasks, $spaceLeft);
+            // Masks live in the characters.masks column and use no depot slot, so every earned mask is granted.
+            $masksGranted = $totalMasks;
 
             $lockedCharacter->bank += $totalCash;
             $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $totalStars;
@@ -372,12 +404,7 @@ class VaultController extends Controller
             $msg = "🎉 {$redeemedCount} kluiscode(s) succesvol gekraakt in de Suikerkluis!\n";
             $msg .= '• +€'.number_format($totalCash, 0, ',', '.')." wit geld op je Bankrekening 🏦\n";
             $msg .= "• +{$totalStars} Exclusieve Sterren ⭐\n";
-            if ($masksGranted < $totalMasks) {
-                $dropped = $totalMasks - $masksGranted;
-                $msg .= "• +{$masksGranted} Maskers 🎭 (Let op: {$dropped} maskers pasten niet in je volle depot en zijn achtergelaten)\n";
-            } else {
-                $msg .= "• +{$masksGranted} Maskers 🎭 (voor zakkenrollen)\n";
-            }
+            $msg .= "• +{$masksGranted} Maskers 🎭 (voor zakkenrollen)\n";
             $msg .= "• +{$totalRespect} Respect 🔥\n";
             $msg .= "• 🎃 Halloween Quest: +{$redeemedCount} kluis voortgang geregistreerd!";
 
@@ -397,7 +424,7 @@ class VaultController extends Controller
             return back()->with('error', "Je hebt minimaal {$cost} KluisMunten nodig om de exacte kluiscode te decoderen!");
         }
 
-        $target = session('vault_target', rand(1, 10));
+        $target = $this->vaultTarget();
         $character->vault_tokens -= $cost;
         $character->save();
 
@@ -418,7 +445,7 @@ class VaultController extends Controller
             return back()->with('error', "Je hebt minimaal {$cost} KluisMunt nodig voor een tip!");
         }
 
-        $target = session('vault_target', rand(1, 10));
+        $target = $this->vaultTarget();
         $character->vault_tokens -= $cost;
         $character->save();
 

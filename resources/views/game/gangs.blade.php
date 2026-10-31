@@ -3744,7 +3744,7 @@
 
                         <!-- Verlatingskosten -->
                         <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4" 
-                             x-data="{ multiplier: {{ min(50, (int) ($myGang->leave_fee_multiplier ?? 48)) }}, hourly: {{ $hourlyWage ?? 0 }} }">
+                             x-data="{ multiplier: {{ min(50, (int) ($myGang->leave_fee_multiplier ?? 0)) }}, hourly: {{ $hourlyWage ?? 0 }} }">
                             <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
                                 <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                                     <i class="fa-solid fa-door-open text-purple-600 dark:text-purple-400"></i>
