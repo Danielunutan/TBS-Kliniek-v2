@@ -22,7 +22,7 @@
 }" 
 x-show="open" 
 x-cloak
-class="fixed inset-0 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+class="fixed inset-0 flex items-center justify-center p-3 pb-24 sm:p-4 lg:pb-4 overflow-y-auto"
 style="display: none; z-index: 9999;">
     
     <!-- Backdrop -->
@@ -31,7 +31,7 @@ style="display: none; z-index: 9999;">
          style="background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"></div>
 
     <!-- Solid Modal Box -->
-    <div class="relative w-full max-w-xl rounded-2xl p-6 sm:p-8 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-2xl overflow-hidden">
+    <div class="relative w-full max-w-xl rounded-2xl max-h-[85dvh] overflow-y-auto p-6 sm:p-8 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-2xl">
         
         <!-- Header -->
         <div class="relative text-center space-y-2">

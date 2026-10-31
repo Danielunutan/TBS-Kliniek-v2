@@ -312,7 +312,7 @@
     <!-- Inspector JSON Modal -->
     <div x-show="detailModalOpen" 
          x-transition.opacity
-         class="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4" 
+         class="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 pb-24 lg:pb-4" 
          style="display: none;">
         <div @click.away="detailModalOpen = false" 
              class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 max-h-[85vh] flex flex-col">

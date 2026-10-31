@@ -385,7 +385,7 @@
 
     <!-- WIN MODAL (SUCCESS DIALOG) -->
     <div x-show="showWinModal" x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-sm"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -393,7 +393,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div class="bg-slate-900 border-2 border-emerald-400 text-white rounded-3xl max-w-md w-full p-6 text-center space-y-5 shadow-[0_0_50px_rgba(16,185,129,0.4)] relative font-mono">
+        <div class="bg-slate-900 border-2 border-emerald-400 text-white rounded-3xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 text-center space-y-5 shadow-[0_0_50px_rgba(16,185,129,0.4)] relative font-mono">
             <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-500 text-slate-950 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(16,185,129,0.6)]">
                 <i class="fa-solid fa-trophy"></i>
             </div>

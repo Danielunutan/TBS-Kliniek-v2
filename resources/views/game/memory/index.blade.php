@@ -283,8 +283,8 @@
 
     <!-- 5. VICTORY MODAL -->
     <template x-if="gameResult === 'won'">
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
-            <div class="bg-white dark:bg-slate-900 border border-emerald-500/80 dark:border-emerald-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative overflow-hidden">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
+            <div class="bg-white dark:bg-slate-900 border border-emerald-500/80 dark:border-emerald-500 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 sm:p-8 text-center space-y-5 shadow-2xl relative overflow-hidden">
                 <div class="w-20 h-20 mx-auto rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center justify-center text-4xl shadow-xs animate-bounce">
                     <i class="fa-solid fa-trophy"></i>
                 </div>
@@ -334,8 +334,8 @@
 
     <!-- 6. GAME OVER MODAL -->
     <template x-if="gameResult === 'lost'">
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
-            <div class="bg-white dark:bg-slate-900 border border-rose-500/80 dark:border-rose-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl relative overflow-hidden">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
+            <div class="bg-white dark:bg-slate-900 border border-rose-500/80 dark:border-rose-500 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 sm:p-8 text-center space-y-5 shadow-2xl relative overflow-hidden">
                 <div class="w-20 h-20 mx-auto rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-4xl shadow-xs animate-pulse">
                     <i class="fa-solid fa-skull"></i>
                 </div>

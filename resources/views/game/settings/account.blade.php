@@ -361,8 +361,8 @@
     <!-- ======================================================== -->
     <!-- INTERACTIEVE CROP MODAL MET RASTER VOOR PROFIELFOTO      -->
     <!-- ======================================================== -->
-    <div x-show="cropModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-        <div @click.away="closeCropModal()" class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4">
+    <div x-show="cropModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+        <div @click.away="closeCropModal()" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4">
             
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <div class="flex items-center gap-2">

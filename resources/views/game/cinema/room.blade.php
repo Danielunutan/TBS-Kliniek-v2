@@ -314,9 +314,9 @@
 
     <!-- ADD TO QUEUE MODAL -->
     <div x-show="showAddQueueModal" x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/75 backdrop-blur-xs">
         <div @click.away="showAddQueueModal = false; showQueueDropdown = false;"
-             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl space-y-4">
             
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
                 <h3 class="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
@@ -391,9 +391,9 @@
 
     <!-- CHANGE VIDEO MODAL (Host only) -->
     <div x-show="showChangeVideoModal" x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/75 backdrop-blur-xs">
         <div @click.away="showChangeVideoModal = false; showQueueDropdown = false;"
-             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl space-y-4">
             
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
                 <h3 class="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
@@ -456,9 +456,9 @@
 
     <!-- CLOSE ROOM CONFIRMATION MODAL (Host & Staff only) -->
     <div x-show="showCloseModal" x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-xs">
         <div @click.away="showCloseModal = false"
-             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+             class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl space-y-4">
             
             <div class="flex items-center gap-3 text-rose-600">
                 <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-xl shrink-0">

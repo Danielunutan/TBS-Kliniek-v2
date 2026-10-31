@@ -362,9 +362,9 @@
 
     <!-- MODAL: KOPPELEN AAN SPELER -->
     <div x-show="linkModalOpen" style="display: none;" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs"
          @keydown.escape.window="linkModalOpen = false">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4"
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4"
              @click.away="linkModalOpen = false">
             
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -458,9 +458,9 @@
 
     <!-- MODAL: HANDMATIGE DONATIE INVOEREN -->
     <div x-show="manualModalOpen" style="display: none;" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs"
          @keydown.escape.window="manualModalOpen = false">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4"
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4"
              @click.away="manualModalOpen = false">
             
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">

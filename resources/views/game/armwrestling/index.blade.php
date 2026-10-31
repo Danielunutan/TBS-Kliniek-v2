@@ -353,9 +353,9 @@
     <div x-show="isMatchActive || isSubmitting || matchResult !== null" x-cloak
          @keydown.window="handleKeydown($event)"
          @keyup.window="handleKeyup($event)"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs select-none">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-xs select-none">
         
-        <div class="bg-white dark:bg-slate-900 border-2 border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 border-2 border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 sm:p-8 shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden">
             
             <!-- Top Match Status Header -->
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">

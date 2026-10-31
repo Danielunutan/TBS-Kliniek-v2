@@ -7,8 +7,8 @@
     
     <div class="fixed inset-0 bg-black/80 transition-opacity" @click="close()"></div>
 
-    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="relative transform-gpu will-change-transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6">
+    <div class="flex min-h-screen items-center justify-center p-4 pb-24 text-center sm:p-0 lg:pb-0">
+        <div role="dialog" aria-modal="true" aria-labelledby="modal-title" class="relative transform-gpu will-change-transform rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md max-h-[85dvh] overflow-y-auto p-6">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-base">

@@ -73,7 +73,7 @@
     <template x-teleport="body">
         <div x-show="isOpen" 
              x-cloak 
-             class="fixed inset-0 flex items-center justify-center p-4 sm:p-6 select-none"
+             class="fixed inset-0 flex items-center justify-center p-4 pb-24 sm:p-6 lg:pb-6 select-none"
              style="z-index: 999999 !important;">
 
             <!-- Solid Dark Backdrop -->
@@ -91,7 +91,7 @@
             <!-- Completely Opaque Modal Box (Unified Design Standard) -->
             <div role="dialog"
                  aria-modal="true"
-                 class="relative w-full max-w-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transition-all p-6 sm:p-7 text-left"
+                 class="relative w-full max-w-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 max-h-[85dvh] overflow-y-auto transition-all p-6 sm:p-7 text-left"
                  style="z-index: 1000000 !important;"
                  x-show="isOpen"
                  x-transition:enter="ease-out duration-250"

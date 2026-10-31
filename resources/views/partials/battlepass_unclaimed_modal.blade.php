@@ -40,7 +40,7 @@
      x-show="open"
      x-cloak
      style="display: none; z-index: 9995;"
-     class="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
+     class="fixed inset-0 flex items-center justify-center p-4 pb-24 lg:pb-4 overflow-y-auto">
 
     <!-- Dark Blurred Backdrop -->
     <div class="fixed inset-0 transition-opacity"
@@ -48,7 +48,7 @@
          style="background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);"></div>
 
     <!-- Modal Card (TBS Kliniek Battle Pass Stijl) -->
-    <div class="relative w-full max-w-md rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-2xl modal-accelerated">
+    <div class="relative w-full max-w-md rounded-2xl max-h-[85dvh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-2xl modal-accelerated">
 
         <!-- Artwork Header -->
         <div class="relative h-32 overflow-hidden bg-slate-950 flex flex-col justify-between p-4 border-b border-purple-500/30">

@@ -315,9 +315,9 @@
 
             <!-- MODAL VOOR MASKERS VERKOPEN -->
             <div x-show="showSellModal" x-cloak
-                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/70 backdrop-blur-xs">
                 <div @click.away="showSellModal = false"
-                     class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl">
+                     class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl">
                     <div class="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800">
                         <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center">
@@ -901,10 +901,10 @@
     <!-- SELL CONFIRMATION MODAL -->
     <div x-show="sellModalItem" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 pb-24 lg:pb-4 backdrop-blur-xs"
          @click.self="sellModalItem = null">
         
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 max-w-sm w-full p-6 shadow-xl space-y-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 max-w-sm w-full max-h-[85dvh] overflow-y-auto p-6 shadow-xl space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-coins text-amber-500"></i>

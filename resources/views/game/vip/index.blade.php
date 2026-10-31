@@ -854,8 +854,8 @@
     <div x-show="showDonateModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="showDonateModal = false"></div>
 
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg p-6 sm:p-8 space-y-6">
+        <div class="flex min-h-full items-center justify-center p-4 pb-24 text-center sm:p-0 lg:pb-0">
+            <div class="relative transform rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg max-h-[85dvh] overflow-y-auto p-6 sm:p-8 space-y-6">
                 
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">

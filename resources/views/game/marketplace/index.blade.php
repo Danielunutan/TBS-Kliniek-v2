@@ -313,8 +313,8 @@
     </div>
 
     <!-- CREATE LISTING MODAL -->
-    <div x-show="createModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="createModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5">
+    <div x-show="createModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-900/60 backdrop-blur-xs">
+        <div @click.away="createModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 sm:p-7 space-y-5">
             <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3">
                 <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-plus-circle text-purple-600"></i>

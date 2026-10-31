@@ -95,10 +95,10 @@
 
         <!-- COOKIE PREFERENCES MODAL -->
         <div x-show="showModal" x-cloak
-             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none backdrop-blur-xs">
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 select-none backdrop-blur-xs">
             
             <div @click.away="showModal = false"
-                 class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 transform-gpu will-change-transform">
+                 class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 transform-gpu will-change-transform">
                 
                 <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2.5">

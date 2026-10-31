@@ -480,8 +480,8 @@ body.dark .board-socket:hover,
     </div>
 
     <!-- MATCH OVER MODAL -->
-    <div id="match-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 max-w-sm w-full p-6 text-center rounded-2xl shadow-xl relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
+    <div id="match-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 pb-24 lg:pb-4 hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 max-w-sm w-full max-h-[85dvh] overflow-y-auto p-6 text-center rounded-2xl shadow-xl relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div id="match-modal-icon" class="text-5xl">🏆</div>
             <div>
                 <h3 id="match-modal-title" class="text-xl font-black text-slate-900 dark:text-white">Gefeliciteerd!</h3>
@@ -500,8 +500,8 @@ body.dark .board-socket:hover,
     </div>
 
     <!-- TOURNAMENT SUMMARY MODAL (5 MATCHES FINISHED) -->
-    <div id="tournament-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+    <div id="tournament-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 pb-24 lg:pb-4 hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 sm:p-8 shadow-xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
             <div id="tourney-icon" class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-3xl shadow-xs bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 border border-emerald-200/80 dark:border-emerald-800/70">
                 <i class="fa-solid fa-trophy"></i>
             </div>

@@ -2000,7 +2000,7 @@ function tbsDashboardCustomizer() {
          x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 select-none"
          style="display: none;">
         
         <div @click.outside="showCustomizer = false"
@@ -2247,9 +2247,9 @@ function tbsDashboardCustomizer() {
     <!-- Woonplaats Kiezer Modal (Echt opslaan!) -->
     <div x-show="showCityModal" 
          x-cloak 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80"
          @keydown.escape.window="showCityModal = false">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 transform-gpu will-change-transform" @click.outside="showCityModal = false">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl space-y-4 transform-gpu will-change-transform" @click.outside="showCityModal = false">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm">

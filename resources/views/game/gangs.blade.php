@@ -4322,8 +4322,8 @@
     </div>
 
     <!-- CREATE GANG MODAL (25 STARS OF €50.000 CASH) -->
-    <div x-show="showCreateModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;" @keydown.escape.window="showCreateModal = false">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full text-slate-900 dark:text-white shadow-xl space-y-4" @click.outside="showCreateModal = false" x-data="{ paymentMethod: '{{ ($character->stars ?? 0) >= 25 ? 'stars' : 'cash' }}' }">
+    <div x-show="showCreateModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 pb-24 lg:pb-4" style="display: none;" @keydown.escape.window="showCreateModal = false">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full max-h-[85dvh] overflow-y-auto text-slate-900 dark:text-white shadow-xl space-y-4" @click.outside="showCreateModal = false" x-data="{ paymentMethod: '{{ ($character->stars ?? 0) >= 25 ? 'stars' : 'cash' }}' }">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-crown text-amber-500"></i>
