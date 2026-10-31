@@ -357,7 +357,7 @@ class AuthController extends Controller
         $request->merge(['username' => $username, 'name' => $username]);
 
         $validated = $request->validate([
-            'username' => ['required', 'string', 'min:3', 'max:25', 'unique:characters,name'],
+            'username' => ['required', 'string', 'min:3', 'max:25', 'unique:characters,name', 'unique:users,name'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'gender' => ['nullable', 'string', 'in:male,female'],

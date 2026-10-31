@@ -334,7 +334,7 @@
                         <div class="flex items-center gap-2">
                             <!-- Copy Invite Link Button -->
                             <button type="button" 
-                                    @click="navigator.clipboard.writeText('{{ $instantInvite }}'); copiedInvite = true; setTimeout(() => copiedInvite = false, 2000)" 
+                                    @click="navigator.clipboard.writeText(@js($instantInvite)); copiedInvite = true; setTimeout(() => copiedInvite = false, 2000)" 
                                     title="Kopieer server invite link"
                                     class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition cursor-pointer active:scale-95 shadow-2xs">
                                 <template x-if="!copiedInvite">

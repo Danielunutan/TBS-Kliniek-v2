@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BankTransaction;
+use App\Models\Character;
 use App\Models\Loan;
 use App\Models\LotteryRound;
 use App\Models\User;
@@ -101,6 +102,11 @@ class BankController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
+        if ($this->isAtmLocked($character)) {
+            return redirect()->route('bank.index', ['tab' => 'vault'])
+                ->with('error', 'Voer eerst je 4-cijferige pincode in om toegang te krijgen tot de Geldmaat.');
+        }
+
         if ($this->economyService->deposit($character, $validated['amount'])) {
             $formatted = number_format($validated['amount'], 0, ',', '.');
 
@@ -131,6 +137,11 @@ class BankController extends Controller
 
         if ($character->isComatose()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        if ($this->isAtmLocked($character)) {
+            return redirect()->route('bank.index', ['tab' => 'vault'])
+                ->with('error', 'Voer eerst je 4-cijferige pincode in om toegang te krijgen tot de Geldmaat.');
         }
 
         $amount = (int) $validated['amount'];
@@ -179,6 +190,11 @@ class BankController extends Controller
 
         if ($character->isComatose()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        if ($this->isAtmLocked($character)) {
+            return redirect()->route('bank.index', ['tab' => 'vault'])
+                ->with('error', 'Voer eerst je 4-cijferige pincode in om toegang te krijgen tot de Geldmaat.');
         }
 
         $depositTo = $validated['deposit_to'] ?? 'cash';
@@ -336,5 +352,13 @@ class BankController extends Controller
 
         return redirect()->route('bank.index', ['tab' => 'vault'])
             ->with('info', 'Betaalpas uitgeworpen. Tot ziens!');
+    }
+
+    /**
+     * Check if the Geldmaat ATM is currently locked by a security PIN.
+     */
+    protected function isAtmLocked(Character $character): bool
+    {
+        return $character->hasBankPin() && ! session('atm_unlocked_'.$character->id, false);
     }
 }

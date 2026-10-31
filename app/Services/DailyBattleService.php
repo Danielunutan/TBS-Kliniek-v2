@@ -276,7 +276,7 @@ class DailyBattleService
         } elseif ($type === 'vault_codes') {
             for ($i = 0; $i < $amount; $i++) {
                 VaultCode::create([
-                    'code' => 'BATTLE-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6)),
+                    'code' => VaultCode::generateUniqueCode('BATTLE'),
                     'reward_cash' => rand(2500, 7500),
                     'reward_stars' => (rand(1, 100) <= 25 ? 1 : 0),
                     'reward_tokens' => 3,

@@ -67,7 +67,7 @@
     </div>
 
     <!-- Live Warehouse Inventory Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Sigaretten Stock -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group">
             <div class="flex items-center gap-3.5">
@@ -99,6 +99,23 @@
             </div>
             <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300">
                 {{ $ritalin > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
+            </span>
+        </div>
+
+        <!-- Nederwiet Stock -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700/80 transition-all duration-200 group">
+            <div class="flex items-center gap-3.5">
+                <span class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl border border-emerald-200/80 dark:border-emerald-800/70 shrink-0 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-cannabis"></i>
+                </span>
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Nederwiet Teelt</span>
+                    <span class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($weed ?? 0, 0, ',', '.') }}</span>
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">toppen voorraad</span>
+                </div>
+            </div>
+            <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300">
+                {{ ($weed ?? 0) > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
             </span>
         </div>
 
@@ -326,6 +343,68 @@
                                             class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Nederwiet Toppen (15 min cooldown) -->
+                    @php
+                        $wietCooldown = $character->cooldownRemaining('produce_wiet');
+                    @endphp
+                    <div class="p-4 border border-slate-200/80 dark:border-slate-700/70 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-300 dark:hover:border-emerald-700/80 transition-all duration-200">
+                        <div class="flex items-center gap-3">
+                            <span class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center justify-center text-base shrink-0 font-bold">
+                                <i class="fa-solid fa-cannabis"></i>
+                            </span>
+                            <div>
+                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">8x Nederwiet Toppen Kweken</h4>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
+                                    <span class="text-emerald-700 dark:text-emerald-400">15⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+95 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 15 min</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0" x-data="{
+                            cd: {{ (int) $wietCooldown }},
+                            format(s) {
+                                if (s <= 0) return '00:00';
+                                const m = Math.floor(s / 60);
+                                const sec = Math.floor(s % 60);
+                                return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+                            },
+                            init() {
+                                if (this.cd > 0) {
+                                    const timer = setInterval(() => {
+                                        if (this.cd > 0) this.cd--;
+                                        if (this.cd <= 0) clearInterval(timer);
+                                    }, 1000);
+                                }
+                            }
+                        }">
+                            <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $wietCooldown > 0 ? '' : 'display: none;' }}">
+                                <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
+                                    <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $wietCooldown) }}</span>
+                                </span>
+                                <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
+                                    @csrf
+                                    <input type="hidden" name="action" value="produce_wiet">
+                                    <button type="submit" title="Omzeil cooldown met 40 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5">
+                                        <i class="fa-solid fa-star text-[11px]"></i>
+                                        <span>Omzeilen (40 ⭐)</span>
+                                    </button>
+                                </form>
+                            </div>
+                            <div x-show="cd <= 0" style="{{ $wietCooldown <= 0 ? '' : 'display: none;' }}">
+                                <form action="{{ route('smuggle.produce') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="type" value="wiet">
+                                    <button type="submit" 
+                                            @if($character->energy < 15) disabled @endif
+                                            class="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-cannabis text-[11px]"></i>
+                                        <span>Kweken</span>
                                     </button>
                                 </form>
                             </div>

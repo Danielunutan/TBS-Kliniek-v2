@@ -200,7 +200,7 @@
 
                     <!-- Bende Verlaten Knop (Discreet & Beveiligd) -->
                     <form action="{{ route('gangs.leave') }}" method="POST"
-                          onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
+                          onsubmit="return confirm(@js($character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten?')));">
                         @csrf
                         <button type="submit" 
                                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-transparent hover:border-rose-200 dark:hover:border-rose-900 transition cursor-pointer"
@@ -1169,10 +1169,11 @@
                             </div>
 
                             <form action="{{ route('gangs.leave') }}" method="POST"
-                                  onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? Er wordt een vertrekboete van €' . number_format($myLeaveFee, 0, ',', '.') . ' overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
+                                  onsubmit="return confirm(@js($character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten? Er wordt een vertrekboete van €' . number_format($myLeaveFee, 0, ',', '.') . ' overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten?')));">
                                 @csrf
                                 <button type="submit" 
-                                        class="w-full py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-2">
+                                        @if($character->gang_role !== 'leader' && ! $hasEnoughCashToLeave) disabled @endif
+                                        class="w-full py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                                     <span>Bende Verlaten</span>
                                 </button>
@@ -4178,7 +4179,8 @@
                                     $isAlly = $myGang->alliances()->where('ally_gang_id', $rg->id)->exists();
                                     $hasShield = $rg->isUnderShield();
                                     $onCooldown = $myGang->attackCooldownRemaining() > 0;
-                                    $canAttack = $myGang->isOfficer($character) && ! $isAlly && ! $hasShield && ! $onCooldown;
+                                    $isBlockedByState = $character->isImprisoned() || $character->isComatose();
+                                    $canAttack = $myGang->isOfficer($character) && ! $isAlly && ! $hasShield && ! $onCooldown && ! $isBlockedByState;
                                 @endphp
                                 <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition hover:border-purple-300 dark:hover:border-purple-700/80">
                                     <div class="flex items-center gap-3.5 min-w-0">
@@ -4225,7 +4227,7 @@
                                             @csrf
                                             <input type="hidden" name="target_gang_id" value="{{ $rg->id }}">
                                             @php
-                                                $otherAttackBlocked = ! $myGang->isOfficer($character) || $isAlly || $hasShield;
+                                                $otherAttackBlocked = ! $myGang->isOfficer($character) || $isAlly || $hasShield || $isBlockedByState;
                                             @endphp
                                             <button type="submit" 
                                                     :disabled="attackCooldown > 0 || {{ $otherAttackBlocked ? 'true' : 'false' }}"

@@ -3,7 +3,7 @@
 @section('title', $room->title . ' - TBS Cinema Watchparty')
 
 @section('content')
-<div class="space-y-6" x-data="cinemaTheater({{ $room->id }}, '{{ $room->slug }}', '{{ $room->youtube_video_id }}', {{ $initialPlaybackSeconds ?? 0 }}, {{ $messages->last()?->id ?? 0 }}, @js($queue ?? []), {{ ($room->host_character_id === $character->id || Auth::user()->isStaff()) ? 'true' : 'false' }})">
+<div class="space-y-6" x-data="cinemaTheater({{ $room->id }}, @js($room->slug), @js($room->youtube_video_id), {{ (int) ($initialPlaybackSeconds ?? 0) }}, {{ (int) ($messages->last()?->id ?? 0) }}, @js($queue ?? []), {{ (($character && $room->host_character_id === $character->id) || Auth::user()?->isStaff()) ? 'true' : 'false' }})">
 
     <!-- Top Cinema Header & Navigation -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -56,7 +56,7 @@
                 <span x-text="copiedLink ? 'Gekopieerd!' : 'Delen'">Delen</span>
             </button>
 
-            @if($room->host_character_id === $character->id || Auth::user()->isStaff())
+            @if(($character && $room->host_character_id === $character->id) || Auth::user()?->isStaff())
             <button type="button" @click="showChangeVideoModal = true"
                     class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
                 <i class="fa-solid fa-film"></i>
@@ -103,7 +103,7 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        @if($room->host_character_id === $character->id || Auth::user()->isStaff())
+                        @if(($character && $room->host_character_id === $character->id) || Auth::user()?->isStaff())
                         <template x-if="queue.length > 0">
                             <button type="button" @click="playNextFromQueue"
                                     class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
@@ -151,7 +151,7 @@
 
                             <!-- Actions -->
                             <div class="flex items-center gap-2 shrink-0">
-                                @if($room->host_character_id === $character->id || Auth::user()->isStaff())
+                                @if(($character && $room->host_character_id === $character->id) || Auth::user()?->isStaff())
                                 <button type="button" @click="playQueueItem(item.id)"
                                         class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
                                         title="Speel deze video nu direct af voor iedereen">
@@ -794,9 +794,9 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
                 text: text,
                 gif_url: null,
                 sticker_key: null,
-                character_name: @js($character->name),
-                avatar: @js(asset($character->avatar ?? 'characters/avatar-default.png')),
-                is_staff: {{ Auth::user()->isStaff() ? 'true' : 'false' }},
+                character_name: @js($character?->name ?? 'Gast'),
+                avatar: @js(asset($character?->avatar ?? 'characters/avatar-default.png')),
+                is_staff: {{ Auth::user()?->isStaff() ? 'true' : 'false' }},
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 pending: true,
             };

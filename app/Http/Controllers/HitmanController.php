@@ -24,6 +24,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class HitmanController extends Controller
@@ -766,6 +767,11 @@ class HitmanController extends Controller
                     $attacker->coma_until = null;
                     $attacker->protection_until = now()->addMinutes(15);
                     $attacker->save();
+                } else {
+                    $attacker->health = 0;
+                    $attacker->coma_until = now()->addHours(6);
+                    $attacker->protection_until = now()->addMinutes(30);
+                    $attacker->save();
                 }
 
                 $defender->addRespect(25);
@@ -893,7 +899,7 @@ class HitmanController extends Controller
                     ]);
                     $baseRespect += 50;
                     $attacker->cash += 25000;
-                    if ($attacker->gang) {
+                    if ($attacker->gang && Schema::hasColumn('gangs', 'respect')) {
                         $attacker->gang->increment('respect', 150);
                     }
 

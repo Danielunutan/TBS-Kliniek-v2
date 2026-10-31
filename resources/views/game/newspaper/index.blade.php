@@ -23,7 +23,7 @@
         <!-- Mini Ticker Strip -->
         <div class="border-t border-slate-200 dark:border-slate-800 pt-2 flex flex-wrap items-center justify-between gap-3 text-[11px] font-bold text-slate-600 dark:text-slate-300">
             <span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-                <i class="fa-solid fa-crown text-amber-500"></i> Loterij Jackpot: <strong>€{{ number_format($lotteryRound->jackpot, 0, ',', '.') }}</strong>
+                <i class="fa-solid fa-crown text-amber-500"></i> Loterij Jackpot: <strong>€{{ number_format($lotteryRound?->jackpot ?? 0, 0, ',', '.') }}</strong>
             </span>
             <span class="inline-flex items-center gap-1.5">
                 <i class="fa-solid fa-fire text-rose-500"></i> Luchtplaats status: <strong>Verhoogde waakzaamheid</strong>

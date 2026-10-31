@@ -55,10 +55,11 @@
             this.isOpen = false;
             this.tourCompleted = true;
             localStorage.setItem('tbs_tour_dismissed', '1');
-            if (window.tbsShowToast) {
-                window.tbsShowToast(data.message, 'success');
+            const toastFn = window.tbsToast || window.tbsShowToast;
+            if (toastFn) {
+                toastFn(data.message || 'Rondleiding voltooid! Beloning ontvangen!', 'success');
             } else {
-                alert(data.message);
+                alert(data.message || 'Rondleiding voltooid! Beloning ontvangen!');
             }
             setTimeout(() => window.location.reload(), 600);
         } catch(e) {

@@ -89,7 +89,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($targets as $target)
         @php
-            $otherBlocked = $character->isImprisoned() || $character->energy < $target['energy'];
+            $otherBlocked = $character->isImprisoned() || $character->isComatose() || $character->energy < $target['energy'];
             $isDisabled = $otherBlocked || $extortCooldown > 0;
         @endphp
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 shadow-xs transition-all duration-200 p-5 sm:p-6 flex flex-col justify-between gap-4">

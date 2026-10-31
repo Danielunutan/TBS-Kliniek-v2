@@ -66,7 +66,7 @@
                 <input type="hidden" name="action" value="dagbesteding">
                 <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-star text-[11px]"></i>
-                    <span>Omzeilen (10 Sterren)</span>
+                    <span>Omzeilen ({{ $daycareSkipCost ?? 10 }} Sterren)</span>
                 </button>
             </form>
         </div>
@@ -118,8 +118,8 @@
                 @csrf
                 <input type="hidden" name="job_id" value="{{ $job['id'] }}">
                 <button type="submit" 
-                        {{ $activeCooldown > 0 || $character->energy < $job['energy'] ? 'disabled' : '' }}
-                        class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $activeCooldown > 0 || $character->energy < $job['energy'] ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }}">
+                        {{ $activeCooldown > 0 || $character->energy < $job['energy'] || $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                        class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $activeCooldown > 0 || $character->energy < $job['energy'] || $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }}">
                     <i class="fa-solid fa-play text-[10px]"></i>
                     <span>Dienst Draaien (-{{ $job['energy'] }} EN)</span>
                 </button>

@@ -8,6 +8,7 @@ use App\Models\Gang;
 use App\Models\GangNpc;
 use App\Models\GangProperty;
 use App\Models\User;
+use App\Services\EventDrugsProductionService;
 use App\Support\GangPropertyCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -472,6 +473,17 @@ class GangPropertyController extends Controller
 
         if (! $claimed) {
             return back()->with('error', 'De productiecyclus is nog niet afgerond of is al geclaimd.');
+        }
+
+        $drugUnits = match ($property->property_key) {
+            'wietkwekerij' => 50,
+            'sigaretten_fabriek' => 60,
+            'chemisch_lab' => 80,
+            'synthese_complex' => 150,
+            default => 0,
+        };
+        if ($drugUnits > 0) {
+            EventDrugsProductionService::record($character, $drugUnits, $property->property_key);
         }
 
         $formattedCash = number_format($cash, 0, ',', '.');

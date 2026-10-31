@@ -110,12 +110,18 @@
 
                     <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1">
                         <span class="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 block">Link naar Externe Game/Gang</span>
-                        @if(!empty($ticket->metadata['external_gang_link']))
-                        <a href="{{ $ticket->metadata['external_gang_link'] }}" target="_blank" rel="noopener noreferrer" 
+                        @php
+                            $extLink = (string) ($ticket->metadata['external_gang_link'] ?? '');
+                            $isSafeHttpLink = (bool) preg_match('~^https?://~i', $extLink);
+                        @endphp
+                        @if(!empty($extLink) && $isSafeHttpLink)
+                        <a href="{{ $extLink }}" target="_blank" rel="noopener noreferrer" 
                            class="font-bold text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 hover:underline flex items-center gap-1.5 truncate">
                             <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                            <span class="truncate">{{ $ticket->metadata['external_gang_link'] }}</span>
+                            <span class="truncate">{{ $extLink }}</span>
                         </a>
+                        @elseif(!empty($extLink))
+                        <span class="text-slate-500 dark:text-slate-400 font-mono truncate block" title="Onveilige URL">{{ $extLink }}</span>
                         @else
                         <span class="text-slate-400 dark:text-slate-500 italic">Geen link opgegeven</span>
                         @endif

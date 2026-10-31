@@ -89,7 +89,7 @@
                     <!-- COUNTDOWN TIMER BOX -->
                     <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 rounded-xl p-3 text-xs space-y-1"
                          x-data="{
-                             left: {{ $secondsLeft }},
+                             left: {{ (int) $secondsLeft }},
                              format() {
                                  if (this.left <= 0) return 'Zojuist verlopen (ververs pagina)';
                                  const total = Math.floor(this.left);

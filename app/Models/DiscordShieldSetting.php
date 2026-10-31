@@ -23,13 +23,13 @@ class DiscordShieldSetting extends Model
 
         // Standard defaults
         $defaults = [
-            'bot_token' => env('DISCORD_BOT_TOKEN', ''),
-            'client_id' => env('DISCORD_CLIENT_ID', '1558628995439005748'),
-            'client_secret' => env('DISCORD_CLIENT_SECRET', ''),
-            'guild_id' => env('DISCORD_GUILD_ID', ''),
-            'verified_role_id' => env('DISCORD_VERIFIED_ROLE_ID', ''),
-            'unverified_role_id' => env('DISCORD_UNVERIFIED_ROLE_ID', ''),
-            'log_channel_id' => env('DISCORD_LOG_CHANNEL_ID', ''),
+            'bot_token' => config('services.discord_shield.bot_token') ?? env('DISCORD_BOT_TOKEN', ''),
+            'client_id' => config('services.discord_shield.client_id') ?? env('DISCORD_CLIENT_ID', '1558628995439005748'),
+            'client_secret' => config('services.discord_shield.client_secret') ?? env('DISCORD_CLIENT_SECRET', ''),
+            'guild_id' => config('services.discord_shield.guild_id') ?? env('DISCORD_GUILD_ID', ''),
+            'verified_role_id' => config('services.discord_shield.verified_role_id') ?? env('DISCORD_VERIFIED_ROLE_ID', ''),
+            'unverified_role_id' => config('services.discord_shield.unverified_role_id') ?? env('DISCORD_UNVERIFIED_ROLE_ID', ''),
+            'log_channel_id' => config('services.discord_shield.log_channel_id') ?? env('DISCORD_LOG_CHANNEL_ID', ''),
             'block_vpns' => '1',
             'block_alts' => '1',
             'auto_kick_alts' => '1',

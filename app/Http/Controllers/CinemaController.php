@@ -187,7 +187,7 @@ class CinemaController extends Controller
 
         $isPrivate = ! empty($validated['is_private']);
         $passcode = $isPrivate ? ($validated['passcode'] ?? null) : null;
-        $isOfficial = $user->isStaff() && $request->boolean('is_official');
+        $isOfficial = $user->isAdmin() && $request->boolean('is_official');
 
         $room = CinemaRoom::create([
             'title' => $validated['title'],

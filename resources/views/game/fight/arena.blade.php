@@ -276,7 +276,7 @@
                         <input type="hidden" name="opponent_id" value="{{ $defender->id }}">
                         <input type="hidden" name="from_profile" value="1">
                         <button type="submit" 
-                                {{ $attacker->energy < 20 || $arenaBattle['left_today'] <= 0 ? 'disabled' : '' }}
+                                {{ $attacker->energy < 20 || $arenaBattle['left_today'] <= 0 || $attacker->isImprisoned() || $attacker->isComatose() ? 'disabled' : '' }}
                                 class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 text-center shadow-xs cursor-pointer">
                             <i class="fa-solid fa-sack-dollar mr-1.5"></i> Opnieuw geld stelen (20 energie)
                         </button>

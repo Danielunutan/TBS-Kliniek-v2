@@ -23,7 +23,7 @@
         <div>
             <span class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full border border-purple-200/80 dark:border-purple-800/70 shadow-xs">
                 <i class="fa-solid fa-envelope text-purple-500 text-xs"></i>
-                {{ auth()->user()->email ?? $user->email }}
+                {{ auth()->user()?->email ?? ($user->email ?? '') }}
             </span>
         </div>
     </div>

@@ -550,12 +550,21 @@
                             selectedId: '',
                             selectedName: '',
                             openDropdown: false,
-                            patients: [
-                                { id: '', name: 'Mijn eigen account ({{ $character->name }})', level: {{ $character->level }}, respect: {{ $character->respect }}, isSelf: true },
-                                @foreach($otherPatients as $p)
-                                { id: '{{ $p->id }}', name: '{{ addslashes($p->name) }}', level: {{ $p->level }}, respect: {{ $p->respect }}, isSelf: false },
-                                @endforeach
-                            ],
+                            patients: @js(array_merge([
+                                [
+                                    'id' => '',
+                                    'name' => 'Mijn eigen account (' . $character->name . ')',
+                                    'level' => (int) $character->level,
+                                    'respect' => (int) $character->respect,
+                                    'isSelf' => true,
+                                ],
+                            ], collect($otherPatients)->map(fn($p) => [
+                                'id' => (string) $p->id,
+                                'name' => $p->name,
+                                'level' => (int) $p->level,
+                                'respect' => (int) $p->respect,
+                                'isSelf' => false,
+                            ])->values()->all())),
                             get filtered() {
                                 if (!this.search.trim()) return this.patients.slice(0, 25);
                                 return this.patients.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 25);

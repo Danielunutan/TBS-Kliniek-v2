@@ -114,7 +114,7 @@
                             {{ $bounty->created_at->diffForHumans() }}
                         </span>
 
-                        @if(Auth::user()->character->id === $bounty->target_character_id)
+                        @if((Auth::user()?->character?->id ?? null) === $bounty->target_character_id)
                             <span class="text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-3 py-1.5 rounded-xl border border-rose-200/80 dark:border-rose-800/70">
                                 Dit ben jij!
                             </span>
@@ -154,16 +154,12 @@
                     search: '',
                     selectedId: '',
                     openDropdown: false,
-                    targets: [
-                        @foreach($potentialTargets as $pt)
-                        {
-                            id: '{{ $pt->id }}',
-                            name: '{{ addslashes($pt->name) }}',
-                            level: {{ $pt->level }},
-                            avatar: '{{ $pt->avatar_url }}'
-                        },
-                        @endforeach
-                    ],
+                    targets: @js(collect($potentialTargets ?? [])->map(fn($pt) => [
+                        'id' => (string) $pt->id,
+                        'name' => (string) $pt->name,
+                        'level' => (int) $pt->level,
+                        'avatar' => (string) ($pt->avatar_url ?? ''),
+                    ])->values()),
                     get filtered() {
                         if (!this.search.trim()) return this.targets.slice(0, 10);
                         return this.targets.filter(t => t.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 10);

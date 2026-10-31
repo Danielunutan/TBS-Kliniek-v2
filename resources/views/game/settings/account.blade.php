@@ -84,7 +84,7 @@
                         @if($canChangeUsername)
                             Min 3, max 20 tekens. Alleen letters (a-z), cijfers (0-9), underscores (_) en streepjes (-). <strong>Geen spaties of rare tekens</strong>.
                         @else
-                            Deze systeemnaam staat vast tot {{ $character->username_changed_at->addMonths(6)->format('d-m-Y') }}.
+                            Deze systeemnaam staat vast tot {{ $character->username_changed_at->copy()->addMonths(6)->format('d-m-Y') }}.
                         @endif
                     </span>
                 </div>

@@ -382,7 +382,8 @@
                             <input type="hidden" name="cf-turnstile-response" class="turnstile-token-input" value="">
 
                             <button type="submit"
-                                    :disabled="globalCd > 0"
+                                    :disabled="globalCd > 0 || {{ ($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) ? 'true' : 'false' }}"
+                                    @if($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                     class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-1.5">
                                 <template x-if="globalCd <= 0">
                                     <span class="inline-flex items-center gap-1">
@@ -486,7 +487,8 @@
                                     <input type="hidden" name="cf-turnstile-response" class="turnstile-token-input" value="">
 
                                     <button type="submit"
-                                            :disabled="globalCd > 0"
+                                            :disabled="globalCd > 0 || {{ ($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) ? 'true' : 'false' }}"
+                                            @if($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                             title="Steel geld van {{ $opp->name }} (20 energie)"
                                             class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer inline-flex items-center gap-1.5">
                                         <template x-if="globalCd <= 0">

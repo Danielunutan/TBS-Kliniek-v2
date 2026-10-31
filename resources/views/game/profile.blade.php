@@ -424,7 +424,7 @@
 
                         <!-- Report Profile Button -->
                         <button type="button" 
-                                @click="window.tbsOpenReportModal({ type: 'character', id: {{ $profileCharacter->id }}, name: '{{ addslashes($profileCharacter->name) }}' })"
+                                @click="window.tbsOpenReportModal({ type: 'character', id: {{ $profileCharacter->id }}, name: @js($profileCharacter->name) })"
                                 class="px-3.5 py-2 text-xs font-bold bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl border border-slate-200 hover:border-rose-300 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                                 title="Rapporteer deze speler bij de moderatie">
                             <i class="fa-solid fa-flag text-rose-500"></i>
@@ -716,6 +716,7 @@
             @else
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 @foreach($friends->take(6) as $f)
+                @if($f->friend)
                 <a href="{{ route('profile.show', $f->friend->name) }}" class="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition flex flex-col items-center text-center group">
                     <div class="relative mb-2">
                         <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs group-hover:scale-105 transition-transform">
@@ -731,6 +732,7 @@
                     </span>
                     <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-0.5">Lvl {{ $f->friend->level }}</span>
                 </a>
+                @endif
                 @endforeach
             </div>
             @endif

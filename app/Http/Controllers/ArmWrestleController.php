@@ -296,9 +296,27 @@ class ArmWrestleController extends Controller
             $durationMs = max(200, $rawDurationMs);
             $clicks = max(0, (int) $validated['clicks']);
 
-            // Honor client win whenever the player actively pushed for a valid duel duration
+            // Validate minimum required clicks and duration based on NPC tier and player strength ratio
+            $playerStrength = max(1, (int) ($lockedCharacter->strength ?? 10));
+            $npcStrength = max(1, (int) ($npc['npc_strength'] ?? 12));
+            $isOverpoweredPlayer = $playerStrength >= ($npcStrength * 2);
+
+            $minClicks = $isOverpoweredPlayer ? 4 : match ($npc['key']) {
+                'mike' => 15,
+                'bennie' => 12,
+                'karel' => 8,
+                default => 5,
+            };
+            $minDuration = $isOverpoweredPlayer ? 500 : match ($npc['key']) {
+                'mike' => 2000,
+                'bennie' => 1500,
+                'karel' => 1000,
+                default => 800,
+            };
+
+            // Honor client win only when click count and duration satisfy anti-exploit thresholds
             $clientWon = (bool) $validated['won'];
-            $isWon = $clientWon && $rawDurationMs >= 500 && $clicks >= 3;
+            $isWon = $clientWon && $rawDurationMs >= $minDuration && $clicks >= $minClicks;
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);

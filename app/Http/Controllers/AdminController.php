@@ -131,6 +131,22 @@ class AdminController extends Controller
             return back()->with('error', 'Alleen de eigenaar kan het profiel of de status van een Admin of Eigenaar wijzigen.');
         }
 
+        if (! $currentUser->isAdmin()) {
+            if ($request->filled('role') && $request->input('role') !== $character->user?->role) {
+                return back()->with('error', 'Alleen administrators kunnen gebruikersrollen toewijzen of wijzigen.');
+            }
+            if (
+                $validated['cash'] !== $character->cash ||
+                $validated['bank'] !== $character->bank ||
+                $validated['stars'] !== $character->stars ||
+                $validated['respect'] !== $character->respect ||
+                $validated['vip_points'] !== $character->vip_points ||
+                ($request->has('vip_action') && $request->input('vip_action') !== 'no_change')
+            ) {
+                return back()->with('error', 'Alleen administrators kunnen economische tegoeden en VIP status handmatig wijzigen.');
+            }
+        }
+
         // Moderatie: Update login gebruikersnaam (User name)
         if ($request->filled('username') && $character->user) {
             $character->user->name = trim((string) $validated['username']);

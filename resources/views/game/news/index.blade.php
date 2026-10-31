@@ -160,7 +160,7 @@
          x-data="{ 
              copied: false,
              copyLink() {
-                 navigator.clipboard.writeText('{{ $referralStats['link'] }}');
+                 navigator.clipboard.writeText(@js($referralStats['link']));
                  this.copied = true;
                  setTimeout(() => this.copied = false, 2500);
              }

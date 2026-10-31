@@ -1416,7 +1416,12 @@
                                 class="px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 text-[9px] font-black font-mono tabular-nums shrink-0 flex items-center gap-1"
                                 title="Beveiliging actief">
                                 <i class="fa-solid fa-shield-halved text-[8px]"></i>
-                                <span x-text="format(left)">{{ gmdate('H:i', $character->getProtectionRemainingSeconds()) }}</span>
+                                @php
+                                    $appProtSecs = (int) $character->getProtectionRemainingSeconds();
+                                    $appProtH = (int) floor($appProtSecs / 3600);
+                                    $appProtM = (int) floor(($appProtSecs % 3600) / 60);
+                                @endphp
+                                <span x-text="format(left)">{{ $appProtH > 0 ? "{$appProtH}u {$appProtM}m" : "{$appProtM}m" }}</span>
                             </span>
                         @endif
                     </a>
@@ -1508,7 +1513,7 @@
                         <span class="font-extrabold">VIP Shop & Punten</span>
                     </div>
                 </a>
-                <a href="{{ route('shop.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') || request()->routeIs('vip.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
+                <a href="{{ route('shop.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-crown w-4 text-center text-amber-500"></i>
                         <span class="font-extrabold">VIP & Donaties</span>
@@ -3377,12 +3382,21 @@
                      if (oldest && oldest.timer) clearTimeout(oldest.timer);
                  }
 
+                 let safeUrl = null;
+                 if (url && typeof url === 'string') {
+                     const lower = url.trim().toLowerCase();
+                     if (!lower.startsWith('javascript:') && !lower.startsWith('data:')) {
+                         safeUrl = url.trim();
+                     }
+                 }
+
                  const id = 'toast_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
                  const toastObj = {
                      id: id,
                      msg: trimmed,
                      type: type,
                      duration: duration,
+                     url: safeUrl,
                      timer: null
                  };
                  toastObj.timer = setTimeout(() => {
@@ -3397,6 +3411,7 @@
          }"
          x-init="
              window.tbsToast = (msg, type, duration, url) => addToast(msg, type, duration, url);
+             window.tbsShowToast = window.tbsToast;
               @auth
               try {
                   const articleSeenKey = 'tbs_article_seen_14';

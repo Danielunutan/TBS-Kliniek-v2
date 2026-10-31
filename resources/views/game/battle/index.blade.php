@@ -68,7 +68,7 @@
             <!-- Header with Category Title & Clickable Arrow -->
             <div>
                 <button type="button" 
-                        @click="openCategoryDetails('{{ $catKey }}', '{{ $cat['title'] }}')"
+                        @click="openCategoryDetails(@js($catKey), @js($cat['title']))"
                         class="w-full flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 text-left group cursor-pointer">
                     <span class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition flex items-center gap-2">
                         <i class="fa-solid {{ $cat['icon'] }} text-purple-600 dark:text-purple-400"></i>
@@ -125,7 +125,7 @@
                         Huidige Top 3:
                     </span>
                     <button type="button" 
-                            @click="openCategoryDetails('{{ $catKey }}', '{{ $cat['title'] }}')"
+                            @click="openCategoryDetails(@js($catKey), @js($cat['title']))"
                             class="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition cursor-pointer">
                         Bekijk alle &rarr;
                     </button>

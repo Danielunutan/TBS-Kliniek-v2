@@ -97,6 +97,10 @@
                     @if($article->slug === 'de-grote-geldjacht-750-sterren' || str_contains($article->content, '[cash_event_leaderboard]'))
                         @include('game.news.partials.cash_hunt_leaderboard')
                     @endif
+
+                    @if($article->slug === 'de-grote-drugsproductie-5m-en-1000-sterren' || $article->slug === 'de-grote-drugsproductie' || str_contains($article->content, '[drug_event_leaderboard]'))
+                        @include('game.news.partials.drugs_production_leaderboard')
+                    @endif
                 </div>
             </div>
         </div>

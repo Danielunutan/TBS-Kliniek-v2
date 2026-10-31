@@ -10,6 +10,7 @@ use App\Services\CooldownService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\EventDrugsProductionService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,11 +40,13 @@ class SmuggleController extends Controller
         $cigarettes = $this->getItemQuantity($character->id, 'sigaretten');
         $ritalin = $this->getItemQuantity($character->id, 'ritalin');
         $phones = $this->getItemQuantity($character->id, 'telefoon');
+        $weed = $this->getItemQuantity($character->id, 'wiet');
 
         $stock = [
             'sigaretten' => $cigarettes,
             'ritalin' => $ritalin,
             'telefoon' => $phones,
+            'wiet' => $weed,
         ];
 
         $rawOrders = $this->getActiveOrders($character->id);
@@ -53,7 +56,7 @@ class SmuggleController extends Controller
             $orders[$key] = $ord;
         }
 
-        return view('game.smuggle.index', compact('character', 'cigarettes', 'ritalin', 'phones', 'orders'));
+        return view('game.smuggle.index', compact('character', 'cigarettes', 'ritalin', 'phones', 'weed', 'orders'));
     }
 
     public function produce(Request $request): RedirectResponse
@@ -77,10 +80,13 @@ class SmuggleController extends Controller
         if ($type === 'phone') {
             $type = 'telefoon';
         }
+        if ($type === 'weed') {
+            $type = 'wiet';
+        }
         $request->merge(['type' => $type]);
 
         $validated = $request->validate([
-            'type' => ['required', 'string', 'in:sigaretten,ritalin,telefoon'],
+            'type' => ['required', 'string', 'in:sigaretten,ritalin,telefoon,wiet'],
         ]);
 
         $actionName = 'produce_'.$validated['type'];
@@ -97,6 +103,7 @@ class SmuggleController extends Controller
             'sigaretten' => ['cost' => 5, 'quantity' => 10, 'xp' => 35, 'name' => '10x Sigaretten'],
             'ritalin' => ['cost' => 10, 'quantity' => 5, 'xp' => 65, 'name' => '5x Ritalin Strips'],
             'telefoon' => ['cost' => 20, 'quantity' => 1, 'xp' => 150, 'name' => '1x Gesmokkelde Telefoon'],
+            'wiet' => ['cost' => 15, 'quantity' => 8, 'xp' => 95, 'name' => '8x Nederwiet Toppen'],
         ];
 
         $cfg = $configs[$validated['type']];
@@ -117,6 +124,7 @@ class SmuggleController extends Controller
         $this->level->addXp($character, $cfg['xp']);
 
         app(DailyBattleService::class)->record($character, 'drugs_made', $cfg['quantity']);
+        EventDrugsProductionService::record($character, $cfg['quantity'], $validated['type']);
 
         // Set difficulty-scaled production cooldown
         $this->cooldownService->setCooldown($character, $actionName);
@@ -278,6 +286,7 @@ class SmuggleController extends Controller
             ['slug' => 'sigaretten', 'name' => 'Sigaretten', 'amount' => rand(4, 8), 'rate' => 350, 'respect' => rand(2, 5)],
             ['slug' => 'ritalin', 'name' => 'Ritalin Strips', 'amount' => rand(2, 5), 'rate' => 1200, 'respect' => rand(4, 8)],
             ['slug' => 'telefoon', 'name' => 'Gesmokkelde Telefoon', 'amount' => 1, 'rate' => 8500, 'respect' => rand(10, 18)],
+            ['slug' => 'wiet', 'name' => 'Nederwiet Toppen', 'amount' => rand(3, 7), 'rate' => 1800, 'respect' => rand(6, 12)],
         ];
 
         $itemConfig = $itemsPool[array_rand($itemsPool)];
@@ -330,6 +339,18 @@ class SmuggleController extends Controller
             'price_kc' => 500,
             'energy_restore' => 50,
             'health_restore' => 25,
+            'is_buyable' => false,
+        ]);
+
+        Item::firstOrCreate(['slug' => 'wiet'], [
+            'name' => 'Nederwiet Toppen',
+            'description' => 'Geurige toppen gekweekt in de geheime kweekruimte van de kliniek.',
+            'category' => 'contraband',
+            'rarity' => 'rare',
+            'icon' => 'fa-cannabis',
+            'price_kc' => 150,
+            'energy_restore' => 30,
+            'health_restore' => 20,
             'is_buyable' => false,
         ]);
     }

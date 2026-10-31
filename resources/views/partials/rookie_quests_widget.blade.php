@@ -17,8 +17,9 @@
             });
             const data = await res.json();
             if (data.success) {
-                if (window.tbsShowToast) {
-                    window.tbsShowToast(data.message, 'success');
+                const toastFn = window.tbsToast || window.tbsShowToast;
+                if (toastFn) {
+                    toastFn(data.message, 'success');
                 } else {
                     alert(data.message);
                 }

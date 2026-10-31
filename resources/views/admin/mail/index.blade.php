@@ -905,7 +905,7 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
                 <div class="p-3 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1">
                     <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block">Account &amp; Wachtwoord</span>
                     <p class="font-mono font-bold text-purple-700 dark:text-purple-400">daniel@tbs-kliniek.nl</p>
-                    <p class="font-mono text-slate-600 dark:text-slate-300 font-bold select-all">TBSKliniek2026!Mail#Dan</p>
+                    <p class="font-mono text-slate-600 dark:text-slate-300 font-bold">•••••••• <span class="text-[10px] text-slate-400 font-normal">(geconfigureerd in .env: MAIL_PASSWORD)</span></p>
                 </div>
             </div>
 

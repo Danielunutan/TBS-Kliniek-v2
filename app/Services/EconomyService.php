@@ -88,7 +88,7 @@ class EconomyService
      */
     public function withdrawWithTax(Character $character, int $totalDebit, int $netCashToAdd, int $taxAmount): bool
     {
-        if ($totalDebit <= 0 || $character->bank < $totalDebit) {
+        if ($totalDebit <= 0 || $netCashToAdd < 0 || $taxAmount < 0 || $totalDebit !== ($netCashToAdd + $taxAmount) || $character->bank < $totalDebit) {
             return false;
         }
 

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\CooldownService;
 use App\Services\DailyBattleService;
 use App\Services\EnergyService;
+use App\Services\EventDrugsProductionService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
@@ -166,6 +167,7 @@ class InfirmaryController extends Controller
             $character->save();
 
             app(DailyBattleService::class)->record($character, 'drugs_made', 1);
+            EventDrugsProductionService::record($character, 1, $pillSlug);
 
             return back()->with('success', "💊 Meesterlijke goocheltruc! Terwijl Ingrid haar stempel zette, hield jij de pil behendig onder je tong. 1x {$pillItem->name} veilig in je zak gestoken (+50 XP, +4 respect)!");
         }

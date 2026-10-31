@@ -25,7 +25,7 @@
         flipping: false,
         resultMsg: '',
         isWin: false,
-        cash: {{ $character->cash }},
+        cash: {{ (int) ($character?->cash ?? 0) }},
         async playCoinflip() {
             if (this.flipping) return;
             if (this.bet < 10 || this.cash < this.bet) {

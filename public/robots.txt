@@ -3,6 +3,9 @@ Allow: /
 
 User-agent: Googlebot
 Allow: /
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /instellingen/
 
 User-agent: *
 Allow: /

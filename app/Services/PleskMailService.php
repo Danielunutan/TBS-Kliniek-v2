@@ -15,7 +15,7 @@ class PleskMailService
 
     public const PRIMARY_ACCOUNT = 'daniel@tbs-kliniek.nl';
 
-    public const PRIMARY_PASSWORD = 'TBSKliniek2026!Mail#Dan';
+    public const PRIMARY_PASSWORD = '';
 
     public const MAILBOXES = [
         'all' => [
@@ -53,6 +53,14 @@ class PleskMailService
     ];
 
     /**
+     * Get the primary IMAP account password from configuration or environment.
+     */
+    public function getPrimaryPassword(): string
+    {
+        return (string) (config('services.plesk.imap_password') ?? env('PLESK_IMAP_PASSWORD', ''));
+    }
+
+    /**
      * Open an IMAP connection to Dovecot on 127.0.0.1
      *
      * @return resource|false
@@ -70,7 +78,9 @@ class PleskMailService
         imap_timeout(IMAP_OPENTIMEOUT, 4);
         imap_timeout(IMAP_READTIMEOUT, 4);
 
-        $conn = @imap_open($mailboxSpec, self::PRIMARY_ACCOUNT, self::PRIMARY_PASSWORD, 0, 1, [
+        $password = $this->getPrimaryPassword();
+
+        $conn = @imap_open($mailboxSpec, self::PRIMARY_ACCOUNT, $password, 0, 1, [
             'DISABLE_AUTHENTICATOR' => 'GSSAPI',
         ]);
 

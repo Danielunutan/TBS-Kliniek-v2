@@ -354,7 +354,7 @@
                 @foreach($categories as $catKey => $category)
                     @foreach($category['questions'] as $qIndex => $item)
                     @php $uniqueKey = 'search_' . $catKey . '_' . $qIndex; @endphp
-                    <div x-show="matchesSearch('{{ addslashes($item['q']) }}', '{{ addslashes($item['a']) }}')"
+                    <div x-show="matchesSearch('{{ addcslashes(str_replace(["\r", "\n"], ' ', $item['q']), "'\\") }}', '{{ addcslashes(str_replace(["\r", "\n"], ' ', $item['a']), "'\\") }}')"
                          class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs transition-all">
                         
                         <div class="flex items-center gap-2 mb-2">

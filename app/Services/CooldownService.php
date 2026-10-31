@@ -12,9 +12,10 @@ class CooldownService
      * Cooldown durations in seconds.
      */
     public const DURATIONS = [
-        // Production: higher difficulty = longer cooldown (5 min, 10 min, 20 min)
+        // Production: higher difficulty = longer cooldown (5 min, 10 min, 15 min, 20 min)
         'produce_sigaretten' => 300,
         'produce_ritalin' => 600,
+        'produce_wiet' => 900,
         'produce_telefoon' => 1200,
 
         // Hosselen: 3 minutes (180s)
@@ -66,6 +67,7 @@ class CooldownService
         'extort' => 20,
         'produce_sigaretten' => 20,
         'produce_ritalin' => 35,
+        'produce_wiet' => 40,
         'treatment_session' => 35,
         'dropping_drone' => 40,
         'produce_telefoon' => 50,

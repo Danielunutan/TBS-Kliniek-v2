@@ -170,11 +170,11 @@ body.dark .board-socket:hover,
             <div class="flex flex-wrap items-center gap-2 text-xs font-bold shrink-0">
                 <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3.5 py-2 rounded-xl border border-purple-200/80 dark:border-purple-800/70 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-trophy text-purple-600 dark:text-purple-400"></i>
-                    <span>{{ $stat->total_tournaments_won }} Toernooien Gewonnen</span>
+                    <span>{{ $stat?->total_tournaments_won ?? 0 }} Toernooien Gewonnen</span>
                 </span>
                 <span class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-3.5 py-2 rounded-xl border border-emerald-200/80 dark:border-emerald-800/70 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-sack-dollar text-emerald-600 dark:text-emerald-400"></i>
-                    <span>€ {{ number_format($stat->total_cash_won, 0, ',', '.') }} Gewonnen</span>
+                    <span>€ {{ number_format($stat?->total_cash_won ?? 0, 0, ',', '.') }} Gewonnen</span>
                 </span>
             </div>
         </div>
@@ -413,7 +413,7 @@ body.dark .board-socket:hover,
                 <div class="p-3 rounded-xl bg-purple-50/80 dark:bg-slate-800/80 border border-purple-200/80 dark:border-purple-800/60 relative">
                     <div class="absolute -top-2 left-6 w-3 h-3 bg-purple-50 dark:bg-slate-800 border-t border-l border-purple-200/80 dark:border-purple-800/60 rotate-45"></div>
                     <p id="arjan-speech" class="text-xs text-purple-950 dark:text-purple-200 font-medium leading-relaxed italic">
-                        &ldquo;{{ $quotes['intro'] }}&rdquo;
+                        &ldquo;{{ $quotes['intro'] ?? 'Laat zien wat je kunt!' }}&rdquo;
                     </p>
                 </div>
 

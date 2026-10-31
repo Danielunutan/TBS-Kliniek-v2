@@ -109,7 +109,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             @foreach($officialRooms as $room)
-            <div x-show="matchesFilter(true, {{ $room->host_character_id === $character->id ? 'true' : 'false' }}, @js($room->title), @js($room->host?->name ?? ''))"
+            <div x-show="matchesFilter(true, {{ ($character && $room->host_character_id === $character->id) ? 'true' : 'false' }}, @js($room->title), @js($room->host?->name ?? ''))"
                  class="bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/60 rounded-2xl overflow-hidden shadow-xs hover:border-amber-400 dark:hover:border-amber-400 transition-all duration-200 flex flex-col justify-between group">
                 
                 <!-- Video Thumbnail Banner with Play Overlay -->
@@ -176,7 +176,7 @@
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
-                            @if($room->host_character_id === $character->id || Auth::user()->isStaff())
+                            @if(($character && $room->host_character_id === $character->id) || Auth::user()?->isStaff())
                             <form action="{{ route('cinema.close', $room->slug) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze zaal wilt sluiten?');">
                                 @csrf
                                 <button type="submit" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 dark:text-rose-300 font-bold text-xs transition border border-rose-200/80 dark:border-rose-800/70 cursor-pointer" title="Zaal Sluiten">
@@ -227,7 +227,7 @@
         @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($patientRooms as $pRoom)
-            <div x-show="matchesFilter(false, {{ $pRoom->host_character_id === $character->id ? 'true' : 'false' }}, @js($pRoom->title), @js($pRoom->host?->name ?? ''))"
+            <div x-show="matchesFilter(false, {{ ($character && $pRoom->host_character_id === $character->id) ? 'true' : 'false' }}, @js($pRoom->title), @js($pRoom->host?->name ?? ''))"
                  class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 flex flex-col justify-between group">
                 
                 <!-- Video Thumbnail Banner -->
@@ -288,7 +288,7 @@
                         </div>
 
                         <div class="flex items-center gap-1.5 shrink-0">
-                            @if($pRoom->host_character_id === $character->id || Auth::user()->isStaff())
+                            @if(($character && $pRoom->host_character_id === $character->id) || Auth::user()?->isStaff())
                             <form action="{{ route('cinema.close', $pRoom->slug) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze zaal wilt sluiten?');">
                                 @csrf
                                 <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 dark:text-rose-300 font-bold text-xs transition border border-rose-200/80 dark:border-rose-800/70 cursor-pointer" title="Zaal Sluiten">
@@ -501,7 +501,7 @@
                     </div>
                 </div>
 
-                @if(Auth::user()->isStaff())
+                @if(Auth::user()?->isStaff())
                 <div class="p-4 rounded-xl bg-amber-50/80 dark:bg-slate-800/60 border border-amber-200/80 dark:border-amber-800/60 space-y-2">
                     <label class="flex items-start gap-2.5 cursor-pointer">
                         <input type="checkbox" name="is_official" value="1" class="rounded text-amber-500 focus:ring-amber-400 mt-0.5">

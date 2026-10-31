@@ -1012,6 +1012,10 @@ class ShopController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = $lockedChars->get($character->id);
 
+            if ($isGift && ! $lockedChars->has((int) $recipientId)) {
+                return back()->with('error', 'De gekozen ontvanger bestaat niet.');
+            }
+
             if (($lockedCharacter->stars ?? 0) < $totalCost) {
                 return back()->with('error', "Niet genoeg sterren! Deze bundel kost {$totalCost} Sterren ⭐ (Je hebt er {$lockedCharacter->stars}).");
             }

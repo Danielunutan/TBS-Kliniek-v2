@@ -5,10 +5,15 @@
 @section('meta_keywords', 'TBS Kliniek, boeven spel, gevangenis browsergame, misdaad rpg nederland, tekstbased rpg, gratis browsergame spelen')
 
 @section('content')
+@php
+    $safeGender = in_array(old('gender'), ['male', 'female'], true) ? old('gender') : 'male';
+    $safeAvatar = preg_match('~^assets/characters/avatar_(fe)?male_[1-5]\.jpg$~', (string) old('avatar')) ? old('avatar') : 'assets/characters/avatar_male_1.jpg';
+    $defaultTab = (request()->routeIs('register') || request('tab') === 'register' || $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || old('username') || request()->has('ref') || session()->has('referral_name')) ? 'register' : 'login';
+@endphp
 <div class="max-w-6xl xl:max-w-7xl mx-auto space-y-6" x-data="{ 
-    tab: '{{ request()->routeIs('register') || request('tab') === 'register' || $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || old('username') || request()->has('ref') || session()->has('referral_name') ? 'register' : 'login' }}', 
-    regGender: '{{ old('gender', 'male') }}', 
-    regAvatar: '{{ old('avatar', 'assets/characters/avatar_male_1.jpg') }}' 
+    tab: @js($defaultTab), 
+    regGender: @js($safeGender), 
+    regAvatar: @js($safeAvatar) 
 }">
 
     <!-- MAIN LOGIN / REGISTER CARD (EXPANSIVE CLEAN SHOWCASE) -->
@@ -311,7 +316,7 @@
                             <label class="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600 dark:text-slate-400 group select-none">
                                 <input type="checkbox" name="terms" value="1" required class="w-4 h-4 mt-0.5 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-purple-600 focus:ring-purple-500 cursor-pointer">
                                 <span class="leading-snug group-hover:text-slate-900 dark:group-hover:text-slate-200 transition text-[11px] sm:text-xs">
-                                    Ik ga akkoord met de <a href="{{ route('legal.terms') }}" target="_blank" class="text-purple-600 dark:text-purple-400 font-extrabold hover:underline">algemene voorwaarden</a> en het <a href="{{ route('legal.privacy') }}" target="_blank" class="text-purple-600 dark:text-purple-400 font-extrabold hover:underline">privacybeleid</a>.
+                                    Ik ga akkoord met de <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 font-extrabold hover:underline">algemene voorwaarden</a> en het <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 font-extrabold hover:underline">privacybeleid</a>.
                                 </span>
                             </label>
                         </div>

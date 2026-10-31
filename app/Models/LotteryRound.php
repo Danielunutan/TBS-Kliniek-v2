@@ -210,9 +210,10 @@ class LotteryRound extends Model
         $formattedPayout = '€'.number_format($payout, 0, ',', '.');
         $formattedBank = '€'.number_format($bankPayout, 0, ',', '.');
         $formattedCash = '€'.number_format($cashPayout, 0, ',', '.');
-        $winnerName = $winner ? $winner->name : 'Onbekend';
-        $winnerAvatar = $winner ? $winner->avatar_url : asset('assets/characters/avatar_male_1.jpg');
-        $winnerProfileUrl = $winner ? url('/speler/'.urlencode($winner->name)) : '#';
+        $winnerName = e($winner ? $winner->name : 'Onbekend');
+        $winnerAvatar = e($winner ? $winner->avatar_url : asset('assets/characters/avatar_male_1.jpg'));
+        $winnerProfileUrl = e($winner ? url('/speler/'.urlencode($winner->name)) : '#');
+        $winningTicketNumber = e((string) $winningTicket->ticket_number);
         $lotteryUrl = route('lottery.index');
 
         $html = <<<HTML
@@ -240,7 +241,7 @@ class LotteryRound extends Model
                     </a>
                 </h3>
                 <div class="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                    Winnend Lotnummer: <span class="font-mono font-black text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded">{$winningTicket->ticket_number}</span>
+                    Winnend Lotnummer: <span class="font-mono font-black text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded">{$winningTicketNumber}</span>
                 </div>
                 <div class="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs">
                     <span class="px-3 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 font-extrabold border border-emerald-300 dark:border-emerald-700">

@@ -147,10 +147,10 @@
 
             <div x-show="matches({
                     id: {{ $m->id }},
-                    title: '{{ addslashes($m->title) }}',
-                    giver: '{{ addslashes($m->giver_name) }}',
-                    location: '{{ addslashes($m->location_name) }}',
-                    level: {{ $m->required_level }},
+                    title: @js($m->title),
+                    giver: @js($m->giver_name),
+                    location: @js($m->location_name),
+                    level: {{ (int) $m->required_level }},
                     isUnlocked: {{ $isUnlocked ? 'true' : 'false' }},
                     isCompleted: {{ $isCompleted ? 'true' : 'false' }}
                 })"

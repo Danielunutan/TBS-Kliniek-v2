@@ -19,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class HeistController extends Controller
@@ -170,11 +171,6 @@ class HeistController extends Controller
             }
         } else {
             // Solo Heist: Personal masks & Personal garage vehicle
-            $currentMasks = $character->masks ?? 0;
-            if ($currentMasks < $heist->required_mask_count) {
-                return back()->with('error', "Onvoldoende maskers! Voor de {$heist->name} heb je minimaal {$heist->required_mask_count} Bivakmutsen/Maskers 🎭 nodig om je identiteit te verbergen. Koop maskers in de Kliniek Winkel!");
-            }
-
             $charVehicle = $heist->getEffectiveVehicle($character);
 
             if (! $charVehicle) {
@@ -193,14 +189,26 @@ class HeistController extends Controller
                 return back()->with('error', "De conditie van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
             }
 
+            if ($heist->required_mask_count > 0) {
+                $deducted = Character::where('id', $character->id)
+                    ->where('masks', '>=', $heist->required_mask_count)
+                    ->decrement('masks', $heist->required_mask_count);
+
+                if (! $deducted) {
+                    return back()->with('error', "Onvoldoende maskers! Voor de {$heist->name} heb je minimaal {$heist->required_mask_count} Bivakmutsen/Maskers 🎭 nodig om je identiteit te verbergen. Koop maskers in de Kliniek Winkel!");
+                }
+            }
+
             // Energy requirement checked after all solo prerequisites pass
             if (! $this->energyService->consume($character, $heist->energy_cost)) {
+                if ($heist->required_mask_count > 0) {
+                    Character::where('id', $character->id)->increment('masks', $heist->required_mask_count);
+                }
+
                 return back()->with('error', "Niet genoeg energie! Deze operatie kost {$heist->energy_cost} Energie.");
             }
 
-            // Deduct personal masks
-            $character->masks -= $heist->required_mask_count;
-            $character->save();
+            $character->refresh();
         }
 
         // Calculate Success Chance
@@ -249,7 +257,7 @@ class HeistController extends Controller
                 // Atomic increments: two members can finish a gang heist at the same moment, and a read-modify-save
                 // would let the second save overwrite the first payout.
                 Gang::where('id', $gang->id)->increment('treasury', $gangPayout);
-                if ($heist->gang_respect_reward > 0) {
+                if ($heist->gang_respect_reward > 0 && Schema::hasColumn('gangs', 'respect')) {
                     Gang::where('id', $gang->id)->increment('respect', $heist->gang_respect_reward);
                 }
 

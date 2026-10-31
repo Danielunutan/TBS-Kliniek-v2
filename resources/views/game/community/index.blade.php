@@ -153,7 +153,7 @@
                     <form id="claim-form-{{ $key }}" action="{{ route('community.claim', $key) }}" method="POST" class="w-full">
                         @csrf
                         <button type="button" 
-                                @click="claimPlatform('{{ $key }}', '{{ $p['url'] }}', 'claim-form-{{ $key }}')"
+                                @click="claimPlatform(@js($key), @js($p['url']), @js('claim-form-' . $key))"
                                 :disabled="claiming === '{{ $key }}'"
                                 class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
                             <span x-show="claiming !== '{{ $key }}'" class="flex items-center gap-2">

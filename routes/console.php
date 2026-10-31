@@ -55,9 +55,10 @@ Artisan::command('chat:directie-tiktok-announcement', function () {
     $this->info("TikTok Directie announcement verstuurd naar Plein Chat (ID: {$chatMessage->id})");
 })->purpose('Send TikTok promotion announcement to global chat as Kliniek Directie');
 
-Schedule::command('gang:pay-wages')->everyMinute();
-Schedule::command('battle:settle')->everyMinute();
-Schedule::command('patients:pay-allowances')->everyFifteenMinutes();
-Schedule::command('vault:evening-drop')->dailyAt('22:00')->timezone('Europe/Amsterdam');
-Schedule::command('event:resolve-cash-hunt')->dailyAt('00:00')->timezone('Europe/Amsterdam');
-Schedule::command('lottery:draw')->everyMinute();
+Schedule::command('gang:pay-wages')->everyMinute()->withoutOverlapping();
+Schedule::command('battle:settle')->everyMinute()->withoutOverlapping();
+Schedule::command('patients:pay-allowances')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('vault:evening-drop')->dailyAt('22:00')->timezone('Europe/Amsterdam')->withoutOverlapping();
+Schedule::command('event:resolve-cash-hunt')->dailyAt('00:00')->timezone('Europe/Amsterdam')->withoutOverlapping();
+Schedule::command('event:resolve-drugs-production')->everyMinute()->withoutOverlapping();
+Schedule::command('lottery:draw')->everyMinute()->withoutOverlapping();

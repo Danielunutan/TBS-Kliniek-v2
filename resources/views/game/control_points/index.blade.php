@@ -171,6 +171,12 @@
                             <i class="fa-solid fa-lock"></i>
                             <span>Isoleercel</span>
                         </button>
+                    @elseif($character && $character->isComatose())
+                        <button disabled 
+                                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                            <span>Code Blauw</span>
+                        </button>
                     @elseif($character && $character->energy < $point->energy_cost)
                         <button disabled 
                                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">

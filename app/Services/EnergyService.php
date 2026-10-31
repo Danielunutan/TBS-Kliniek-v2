@@ -44,7 +44,13 @@ class EnergyService
         $now = now();
         $lastRefill = $character->last_energy_refill_at ?? $character->created_at ?? $now;
 
-        $secondsElapsed = $now->diffInSeconds($lastRefill);
+        if ($lastRefill->isAfter($now)) {
+            $secondsElapsed = 0;
+            $character->last_energy_refill_at = $now;
+            $character->save();
+        } else {
+            $secondsElapsed = $now->diffInSeconds($lastRefill);
+        }
 
         $regenInterval = match ($character->getSupporterTier()) {
             4 => 120, // Tier 4 / Lifetime: 2 min per punt (60% sneller)

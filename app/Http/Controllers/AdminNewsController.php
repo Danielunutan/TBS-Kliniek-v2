@@ -130,6 +130,12 @@ class AdminNewsController extends Controller
      */
     public function destroy(NewsArticle $article): RedirectResponse
     {
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        if (! $currentUser || ! $currentUser->isAdmin()) {
+            return back()->with('error', 'Alleen administrators kunnen nieuwsberichten verwijderen.');
+        }
+
         $article->delete();
 
         return redirect()->route('admin.news.index')->with('success', 'Nieuwsartikel is definitief verwijderd.');

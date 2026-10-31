@@ -560,7 +560,12 @@
                                 class="px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 text-[9px] font-black font-mono tabular-nums shrink-0 flex items-center gap-1"
                                 title="Beveiliging actief">
                                 <i class="fa-solid fa-shield-halved text-[8px]"></i>
-                                <span x-text="format(left)">{{ gmdate('H:i', $character->getProtectionRemainingSeconds()) }}</span>
+                                @php
+                                    $drawerProtSecs = (int) $character->getProtectionRemainingSeconds();
+                                    $drawerProtH = (int) floor($drawerProtSecs / 3600);
+                                    $drawerProtM = (int) floor(($drawerProtSecs % 3600) / 60);
+                                @endphp
+                                <span x-text="format(left)">{{ $drawerProtH > 0 ? "{$drawerProtH}u {$drawerProtM}m" : "{$drawerProtM}m" }}</span>
                             </span>
                         @endif
                     </a>
@@ -664,7 +669,7 @@
                             <span class="font-extrabold">VIP Shop & Punten</span>
                         </div>
                     </a>
-                    <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') || request()->routeIs('vip.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
+                    <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-crown w-4 text-center text-amber-500"></i>
                             <span class="font-extrabold">VIP & Donaties</span>

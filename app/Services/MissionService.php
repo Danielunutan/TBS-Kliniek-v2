@@ -114,16 +114,6 @@ class MissionService
             ];
         }
 
-        if ($character->isImprisoned()) {
-            return [
-                'success' => false,
-                'message' => 'Je zit in de isoleercel en kunt geen missies uitvoeren!',
-                'cash_earned' => 0,
-                'xp_earned' => 0,
-                'respect_earned' => 0,
-            ];
-        }
-
         if ($character->hasCompletedMission($mission)) {
             return [
                 'success' => false,

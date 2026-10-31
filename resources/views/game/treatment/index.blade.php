@@ -280,7 +280,7 @@
                                 @csrf
                                 <input type="hidden" name="action_id" value="{{ $actionId }}">
                                 <button type="submit" 
-                                        :disabled="{{ $isLeaveActionOnCooldown ? 'true' : 'false' }}"
+                                        @disabled($isLeaveActionOnCooldown)
                                         class="px-3 py-1.5 rounded-xl text-xs font-black text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-play text-[10px]"></i>
                                     <span>Uitvoeren</span>
@@ -313,7 +313,7 @@
                 @if(! empty($character->treatment_history))
                 <div class="space-y-2">
                     <div class="flex items-center justify-between text-xs font-bold">
-                        <span class="{{ $character->treatment_history['outcome'] === 'positive' ? 'text-emerald-700 dark:text-emerald-400' : ($character->treatment_history['outcome'] === 'neutral' ? 'text-amber-700 dark:text-amber-400' : 'text-rose-700 dark:text-rose-400') }}">
+                        <span class="{{ ($character->treatment_history['outcome'] ?? '') === 'positive' ? 'text-emerald-700 dark:text-emerald-400' : (($character->treatment_history['outcome'] ?? '') === 'neutral' ? 'text-amber-700 dark:text-amber-400' : 'text-rose-700 dark:text-rose-400') }}">
                             {{ $character->treatment_history['title'] ?? 'Evaluatie' }}
                         </span>
                         <span class="text-slate-400 dark:text-slate-500 text-[10px] font-mono">

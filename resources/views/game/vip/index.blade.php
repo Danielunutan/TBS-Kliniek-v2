@@ -5,12 +5,15 @@
     $vipColorCatalog = \App\Models\Character::nameColorCatalog();
     $vipGradientCatalog = \App\Models\Character::nameGradientCatalog();
     $vipGlowCatalog = \App\Models\Character::nameGlowCatalog();
+    $validVipTabs = ['pakketten', 'koffie', 'styling', 'uitgeven'];
+    $requestedVipTab = (string) session('vip_tab', request('tab', 'pakketten'));
+    $activeVipTab = in_array($requestedVipTab, $validVipTabs, true) ? $requestedVipTab : 'pakketten';
 @endphp
 <div class="space-y-6" x-data="{ 
-    activeTab: '{{ session('vip_tab', request('tab', 'pakketten')) }}',
-    selectedColor: '{{ old('custom_name_color', $character->getCustomNameColor() ?: '') }}',
-    selectedGradient: '{{ old('custom_name_gradient', $character->getCustomNameGradient() ?: 'none') }}',
-    selectedGlow: '{{ old('custom_name_glow', $character->getCustomNameGlow() ?: 'none') }}',
+    activeTab: {{ Js::from($activeVipTab) }},
+    selectedColor: {{ Js::from(old('custom_name_color', $character->getCustomNameColor() ?: '')) }},
+    selectedGradient: {{ Js::from(old('custom_name_gradient', $character->getCustomNameGradient() ?: 'none')) }},
+    selectedGlow: {{ Js::from(old('custom_name_glow', $character->getCustomNameGlow() ?: 'none')) }},
     sparkleEnabled: {{ $character->isSparkleActive() ? 'true' : 'false' }},
     gradientMap: {{ Js::from(collect($vipGradientCatalog)->map(fn($g) => ['css' => $g['css'], 'glow' => $g['glow']])) }},
     colorGlowMap: {{ Js::from(collect($vipColorCatalog)->map(fn($c) => $c['glow'])) }},
@@ -25,7 +28,7 @@
         this.showDonateModal = true;
     },
     copyName() {
-        navigator.clipboard.writeText('{{ $character->name }}');
+        navigator.clipboard.writeText({{ Js::from($character->name) }});
         this.copiedName = true;
         setTimeout(() => { this.copiedName = false; }, 3000);
     },
@@ -810,7 +813,13 @@
                                                     class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center gap-1.5">
                                                     <i class="fa-solid fa-clock animate-pulse"></i>
                                                     <span>Actief:</span>
-                                                    <span class="font-mono tabular-nums" x-text="format(left)">{{ gmdate('H:i:s', $character->getCashProtectionRemainingSeconds()) }}</span>
+                                                    @php
+                                                        $vipCashProtSecs = (int) $character->getCashProtectionRemainingSeconds();
+                                                        $vipCashProtH = (int) floor($vipCashProtSecs / 3600);
+                                                        $vipCashProtM = (int) floor(($vipCashProtSecs % 3600) / 60);
+                                                        $vipCashProtS = (int) ($vipCashProtSecs % 60);
+                                                    @endphp
+                                                    <span class="font-mono tabular-nums" x-text="format(left)">{{ sprintf('%02d:%02d:%02d (%du %dm)', $vipCashProtH, $vipCashProtM, $vipCashProtS, $vipCashProtH, $vipCashProtM) }}</span>
                                                     <span class="opacity-75">(tot {{ $character->cash_protection_until->format('d-m H:i') }})</span>
                                                 </span>
                                             @endif

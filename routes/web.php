@@ -421,6 +421,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     // Realtime Character Stats API
     Route::get('/api/character/realtime-stats', [DashboardController::class, 'realtimeStats'])->name('character.realtime-stats');
     Route::get('/api/event/cash-hunt/leaderboard', [EventController::class, 'cashHuntLeaderboard'])->name('api.event.cash_hunt_leaderboard');
+    Route::get('/api/event/drugs-production/leaderboard', [EventController::class, 'drugsProductionLeaderboard'])->name('api.event.drugs_production_leaderboard');
 
     // Travel (Reizen / Verplaatsen)
     Route::get('/essentials/verplaatsen', [TravelController::class, 'index'])->name('travel.index');

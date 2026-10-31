@@ -1,12 +1,24 @@
 <?php
 /**
- * TBS Kliniek - One-Click Database & Production Setup Script for Plesk
- * Beveiligd met geheime sleutel: ?key=tbs2026
+ * TBS Kliniek - One-Click Database & Production Setup Script
+ * Beveiligd met geheime omgevingssleutel (DB_SETUP_KEY).
  */
-$secretKey = 'tbs2026';
-$providedKey = $_GET['key'] ?? $_POST['key'] ?? '';
 
-if ($providedKey !== $secretKey) {
+// Bootstrap Laravel and environment
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+
+$kernel = $app->make(Kernel::class);
+$kernel->bootstrap();
+
+$secretKey = (string) (env('DB_SETUP_KEY') ?? getenv('DB_SETUP_KEY') ?? '');
+$providedKey = (string) ($_GET['key'] ?? $_POST['key'] ?? '');
+
+if (empty($secretKey) || ! hash_equals($secretKey, $providedKey)) {
     http_response_code(403);
     ?>
     <!DOCTYPE html>
@@ -24,24 +36,19 @@ if ($providedKey !== $secretKey) {
     </head>
     <body>
         <div class="box">
-            <h1>🔒 Beveiligde Installatie</h1>
-            <p>Dit script is beveiligd. Voeg de geheime sleutel toe aan de URL:</p>
-            <p><code>/migrate-db.php?key=tbs2026</code></p>
+            <h1>🔒 Toegang Geweigerd</h1>
+            <?php if (empty($secretKey)) { ?>
+                <p>De web-installer is uitgeschakeld. Configureer een veilige <code>DB_SETUP_KEY</code> in uw <code>.env</code> bestand of voer migraties uit via het commandline interface (CLI).</p>
+            <?php } else { ?>
+                <p>Dit script is beveiligd met een geautoriseerde sleutel. Geef de sleutel op via de URL parameter:</p>
+                <p><code>/migrate-db.php?key=[uw_geheime_sleutel]</code></p>
+            <?php } ?>
         </div>
     </body>
     </html>
     <?php
     exit;
 }
-
-// Bootstrap Laravel
-require __DIR__.'/../vendor/autoload.php';
-$app = require_once __DIR__.'/../bootstrap/app.php';
-$kernel = $app->make(Kernel::class);
-
-use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 
 $action = $_POST['action'] ?? '';
 $outputLog = '';
@@ -51,9 +58,13 @@ $dbError = null;
 // Test DB Connection
 try {
     DB::connection()->getPdo();
-    $dbStatus = 'OK ('.DB::connection()->getDatabaseName().' op '.config('database.connections.'.config('database.default').'.host').')';
+    $isLocal = app()->environment('local');
+    $dbName = htmlspecialchars(DB::connection()->getDatabaseName() ?? '');
+    $dbStatus = $isLocal
+        ? 'OK ('.$dbName.' op '.htmlspecialchars((string) config('database.connections.'.config('database.default').'.host', 'localhost')).')'
+        : 'OK ('.$dbName.')';
 } catch (Throwable $e) {
-    $dbError = $e->getMessage();
+    $dbError = app()->environment('local') ? $e->getMessage() : 'Kan geen verbinding maken met de database. Controleer de configuratie in .env.';
 }
 
 // Handle Self-Delete
@@ -104,7 +115,8 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
         @Artisan::call('view:clear');
         $outputLog .= "=== SYSTEEM OPTIMALISATIE ===\nStorage linked & cache ververst!\n";
     } catch (Throwable $e) {
-        $outputLog .= "\nFOUT TIJDENS UITVOERING:\n".$e->getMessage()."\n".$e->getTraceAsString();
+        $msg = app()->environment('local') ? $e->getMessage()."\n".$e->getTraceAsString() : $e->getMessage();
+        $outputLog .= "\nFOUT TIJDENS UITVOERING:\n".$msg;
     }
 }
 ?>

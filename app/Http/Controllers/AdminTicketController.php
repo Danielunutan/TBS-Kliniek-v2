@@ -7,6 +7,7 @@ use App\Models\CharacterVehicle;
 use App\Models\Gang;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -134,6 +135,12 @@ class AdminTicketController extends Controller
      */
     public function approveGangTransfer(Request $request, SupportTicket $ticket): RedirectResponse
     {
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        if (! $currentUser || ! $currentUser->isAdmin()) {
+            return back()->with('error', 'Alleen beheerders kunnen gang overstap aanvragen goedkeuren.');
+        }
+
         if (! $ticket->isGangTransfer()) {
             return back()->with('error', 'Dit ticket is geen Gang Overstap Bonus aanvraag.');
         }

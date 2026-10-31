@@ -94,10 +94,15 @@
                     <i class="fa-solid fa-lock text-rose-500"></i>
                     <span>Isoleercel</span>
                 </span>
+            @elseif($cpCharacter && $cpCharacter->isComatose())
+                <span class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-1.5 cursor-not-allowed">
+                    <i class="fa-solid fa-heart-pulse text-rose-500"></i>
+                    <span>Code Blauw</span>
+                </span>
             @elseif($cpCharacter && $cpCharacter->energy < $cpPoint->energy_cost)
                 <span class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-1.5 cursor-not-allowed">
                     <i class="fa-solid fa-bolt text-amber-500"></i>
-                    <span>2 Energie Nodig</span>
+                    <span>{{ $cpPoint->energy_cost }} Energie Nodig</span>
                 </span>
             @else
                 <form method="POST" action="{{ route('control-points.capture', $cpPoint) }}" class="inline m-0">
@@ -105,7 +110,7 @@
                     <button type="submit" 
                             class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-flag text-[11px]"></i>
-                        <span>{{ $cpPoint->holder ? 'Controlepunt Overnemen (-2⚡)' : 'Controlepunt Opeisen (-2⚡)' }}</span>
+                        <span>{{ $cpPoint->holder ? 'Controlepunt Overnemen (-' . $cpPoint->energy_cost . '⚡)' : 'Controlepunt Opeisen (-' . $cpPoint->energy_cost . '⚡)' }}</span>
                     </button>
                 </form>
             @endif

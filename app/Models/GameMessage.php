@@ -34,8 +34,12 @@ class GameMessage extends Model
                     ->whereNull('sender_id')
                     ->where('created_at', '>=', now()->subSeconds(3))
                     ->where(function ($q) use ($gameMsg) {
-                        $q->where('metadata->game_message_id', $gameMsg->id)
-                            ->orWhere('message', 'like', '%'.substr($gameMsg->subject ?? '', 0, 15).'%');
+                        $q->where('metadata->game_message_id', $gameMsg->id);
+                        $subjectPrefix = trim(substr($gameMsg->subject ?? '', 0, 15));
+                        if ($subjectPrefix !== '') {
+                            $escapedPrefix = addcslashes($subjectPrefix, '%_\\');
+                            $q->orWhere('message', 'like', '%'.$escapedPrefix.'%');
+                        }
                     })
                     ->exists();
 

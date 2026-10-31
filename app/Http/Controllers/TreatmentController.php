@@ -508,7 +508,7 @@ class TreatmentController extends Controller
 
             // 50% chance for vault code, 50% for unopened bag
             if (rand(1, 100) <= 50) {
-                $codeStr = 'VERLOF-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+                $codeStr = VaultCode::generateUniqueCode('VERLOF');
                 VaultCode::create([
                     'code' => $codeStr,
                     'reward_cash' => rand(3000, 8000),

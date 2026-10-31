@@ -6,6 +6,7 @@ use App\Models\DiscordShieldBan;
 use App\Models\DiscordShieldLog;
 use App\Models\DiscordShieldSetting;
 use App\Models\DiscordVerification;
+use App\Models\User;
 use App\Services\DiscordShieldService;
 use App\Services\VpnDetectionService;
 use Illuminate\Http\JsonResponse;
@@ -475,13 +476,12 @@ class DiscordShieldController extends Controller
             ?? ($discordUser['id'] ?? session('verified_discord_id'));
 
         if (! $discordId) {
-            $ip = $request->header('CF-Connecting-IP') ?? $request->ip();
-            $recentVerif = DiscordVerification::where('ip_address', $ip)->latest()->first();
-            if ($recentVerif) {
-                $discordId = $recentVerif->discord_id;
-            } else {
-                return redirect()->route('discord.redirect');
-            }
+            return redirect()->route('discord.redirect');
+        }
+
+        // Prevent linking if this Discord account is already linked to another player
+        if ($user->discord_id !== $discordId && User::where('discord_id', $discordId)->where('id', '!=', $user->id)->exists()) {
+            return redirect()->route('discord.verify')->with('error', 'Dit Discord account is al gekoppeld aan een ander spelersaccount.');
         }
 
         $user->discord_id = $discordId;

@@ -41,6 +41,15 @@ class CinemaRoom extends Model
     ];
 
     /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'passcode',
+    ];
+
+    /**
      * Get the current synchronized playback position in seconds.
      */
     public function getCurrentPlaybackSeconds(): int

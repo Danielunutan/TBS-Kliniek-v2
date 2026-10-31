@@ -38,15 +38,15 @@
             <div class="flex flex-wrap items-center gap-2 text-xs font-bold shrink-0">
                 <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3.5 py-2 rounded-xl border border-purple-200/80 dark:border-purple-800/70 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-trophy text-purple-600 dark:text-purple-400"></i>
-                    <span>{{ $stat->wins }} Gewonnen</span>
+                    <span>{{ $stat?->wins ?? 0 }} Gewonnen</span>
                 </span>
                 <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3.5 py-2 rounded-xl border border-slate-200/80 dark:border-slate-700 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-skull text-slate-500"></i>
-                    <span>{{ $stat->losses }} Verloren</span>
+                    <span>{{ $stat?->losses ?? 0 }} Verloren</span>
                 </span>
                 <span class="bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-3.5 py-2 rounded-xl border border-amber-200/80 dark:border-amber-800/70 shadow-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-fire text-amber-500"></i>
-                    <span>Reeks: {{ $stat->current_streak }} (Beste: {{ $stat->best_streak }})</span>
+                    <span>Reeks: {{ $stat?->current_streak ?? 0 }} (Beste: {{ $stat?->best_streak ?? 0 }})</span>
                 </span>
             </div>
         </div>
@@ -233,16 +233,16 @@
                     <span class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider block">Beschikbare Uitdagingen op Tafel:</span>
                     @forelse($openChallenges as $open)
                     @php
-                        $canAffordChallenge = (int) ($character->cash ?? 0) >= $open->bet_amount;
-                        $hasEnergyForChallenge = (int) ($character->energy ?? 0) >= 5;
-                        $canAcceptChallenge = $canAffordChallenge && $hasEnergyForChallenge && !$character->isImprisoned();
+                        $canAffordChallenge = (int) ($character?->cash ?? 0) >= $open->bet_amount;
+                        $hasEnergyForChallenge = (int) ($character?->energy ?? 0) >= 5;
+                        $canAcceptChallenge = $canAffordChallenge && $hasEnergyForChallenge && !($character?->isImprisoned() ?? false);
                     @endphp
                     <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
-                            <img src="{{ $open->challenger->avatar_url }}" alt="Avatar" class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
+                            <img src="{{ $open->challenger?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg') }}" alt="Avatar" class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
                             <div>
-                                <h5 class="text-xs font-black text-slate-900 dark:text-white">{{ $open->challenger->name }}</h5>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400">Lvl {{ $open->challenger->level }} &bull; Respect: {{ number_format($open->challenger->respect, 0, ',', '.') }}</p>
+                                <h5 class="text-xs font-black text-slate-900 dark:text-white">{{ $open->challenger?->name ?? 'Patiënt' }}</h5>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400">Lvl {{ $open->challenger?->level ?? 1 }} &bull; Respect: {{ number_format($open->challenger?->respect ?? 0, 0, ',', '.') }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
@@ -316,12 +316,12 @@
                     @forelse($recentMatches as $m)
                     <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-[11px] space-y-1">
                         <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200">
-                            <span>{{ $m->challenger->name ?? 'Patiënt' }}</span>
+                            <span>{{ $m->challenger?->name ?? 'Patiënt' }}</span>
                             <span class="text-slate-400">vs</span>
-                            <span>{{ $m->type === 'npc' ? ($npcs[$m->npc_key]['name'] ?? 'NPC') : ($m->opponent->name ?? 'Tegenstander') }}</span>
+                            <span>{{ $m->type === 'npc' ? ($npcs[$m->npc_key]['name'] ?? 'NPC') : ($m->opponent?->name ?? 'Tegenstander') }}</span>
                         </div>
                         <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                            <span>Winnaar: <strong class="text-emerald-700 dark:text-emerald-400">{{ $m->winner->name ?? ($m->type === 'npc' ? ($npcs[$m->npc_key]['name'] ?? 'NPC') : 'Niemand') }}</strong></span>
+                            <span>Winnaar: <strong class="text-emerald-700 dark:text-emerald-400">{{ $m->winner?->name ?? ($m->type === 'npc' ? ($npcs[$m->npc_key]['name'] ?? 'NPC') : 'Niemand') }}</strong></span>
                             <span>Inzet: € {{ number_format($m->bet_amount, 0, ',', '.') }}</span>
                         </div>
                     </div>

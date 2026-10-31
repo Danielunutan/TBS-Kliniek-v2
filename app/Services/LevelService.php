@@ -26,6 +26,7 @@ class LevelService
      */
     public function addXp(Character $character, int $xpGain): array
     {
+        $xpGain = max(0, $xpGain);
         $oldLevel = $character->level;
         $character->xp += $xpGain;
         $character->total_xp += $xpGain;

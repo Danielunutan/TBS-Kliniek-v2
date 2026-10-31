@@ -177,6 +177,10 @@ class FightController extends Controller
             return $battle;
         }
 
+        if (! empty($battle['attacker_id']) && (int) $battle['attacker_id'] !== (int) $attacker->id) {
+            return null;
+        }
+
         $defender = Character::find($battle['defender_id']);
         if (! $defender) {
             session()->forget(['pending_arena_battle', 'arena_battle']);

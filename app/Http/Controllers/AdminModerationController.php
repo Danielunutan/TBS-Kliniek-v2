@@ -183,6 +183,12 @@ class AdminModerationController extends Controller
      */
     public function deleteWarning(UserWarning $warning): RedirectResponse
     {
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+        if (! $currentUser->isAdmin() && $warning->issuer_id !== $currentUser->id) {
+            return back()->with('error', 'Je kunt alleen waarschuwingen intrekken die je zelf hebt uitgedeeld.');
+        }
+
         $warning->delete();
 
         return back()->with('success', 'Waarschuwing is verwijderd uit het dossier.');

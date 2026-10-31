@@ -688,7 +688,7 @@
                  x-data="{ 
                      copied: false,
                      copyLink() {
-                         navigator.clipboard.writeText('{{ $referralStats['link'] }}');
+                         navigator.clipboard.writeText(@js($referralStats['link']));
                          this.copied = true;
                          setTimeout(() => this.copied = false, 2500);
                      }
@@ -2037,7 +2037,7 @@ function tbsDashboardCustomizer() {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
                 const unlockUrl = '{{ route("dashboard.widgets.unlock", [], false) }}';
 
-                const formData = new FormData(form || undefined);
+                const formData = form ? new FormData(form) : new FormData();
                 formData.set('widget_key', key);
                 formData.set('_token', csrfToken);
 

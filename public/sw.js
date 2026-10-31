@@ -42,13 +42,34 @@ self.addEventListener('push', (event) => {
     );
 });
 
+// Helper: Sanitize notification target URL to prevent open redirects and javascript: URI injection
+function getSafeTargetUrl(rawUrl) {
+    try {
+        if (typeof rawUrl !== 'string' || !rawUrl.trim()) {
+            return '/dashboard';
+        }
+        const trimmed = rawUrl.trim();
+        if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+            return trimmed;
+        }
+        const parsed = new URL(trimmed, self.location.origin);
+        if (parsed.origin === self.location.origin && (parsed.protocol === 'http:' || parsed.protocol === 'https:')) {
+            return parsed.pathname + parsed.search + parsed.hash;
+        }
+    } catch (e) {
+        // Fallback on invalid URL
+    }
+    return '/dashboard';
+}
+
 // 2. Handle Notification Click
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
-    const targetUrl = (event.notification.data && event.notification.data.url) 
+    const rawTarget = (event.notification.data && event.notification.data.url) 
         ? event.notification.data.url 
         : '/dashboard';
+    const targetUrl = getSafeTargetUrl(rawTarget);
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

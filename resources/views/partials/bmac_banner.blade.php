@@ -16,8 +16,9 @@
             document.body.removeChild(textArea);
         }
         this.copiedType = type;
-        if (window.tbsShowToast) {
-            window.tbsShowToast((type === 'name' ? 'Spelersnaam' : 'Koppelcode') + ' gekopieerd!', 'success');
+        const toastFn = window.tbsToast || window.tbsShowToast;
+        if (toastFn) {
+            toastFn((type === 'name' ? 'Spelersnaam' : 'Koppelcode') + ' gekopieerd!', 'success');
         }
         setTimeout(() => { this.copiedType = null; }, 3500);
     }
