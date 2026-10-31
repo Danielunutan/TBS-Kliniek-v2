@@ -1627,24 +1627,48 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     <template x-if="activePartnerId !== null">
                         <div class="space-y-3">
                             <template x-for="dm in directMessagesList" :key="dm.id">
-                                <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                    <img :src="dm.sender_avatar" 
-                                         class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
-                                         onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
-                                    <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                        <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="dm.is_me ? 'justify-end' : ''">
-                                            <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name"></span>
-                                            <span class="text-slate-400 text-[10px]" x-text="dm.created_at"></span>
-                                            <template x-if="canModerate || dm.is_me">
-                                                <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            </template>
+                                <div class="space-y-1.5">
+                                    <!-- Liquidation Incident Report Card -->
+                                    <template x-if="dm.type === 'liquidation'">
+                                        <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 max-w-full">
+                                            <img :src="dm.sender_avatar || '{{ asset('assets/characters/directie-bot.png') }}'" 
+                                                 class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-rose-300 dark:border-rose-900/60 shadow-2xs shrink-0"
+                                                 onerror="this.src='{{ asset('assets/characters/directie-bot.png') }}'">
+                                            <div class="p-3 sm:p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 space-y-1.5 shadow-2xs max-w-lg min-w-0 text-left">
+                                                <div class="flex items-center justify-between gap-2 text-xs font-black uppercase text-rose-600 dark:text-rose-400">
+                                                    <span class="flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-crosshairs"></i>
+                                                        <span x-text="dm.metadata?.title || 'Liquidatie Incidentenrapport'"></span>
+                                                    </span>
+                                                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold font-mono" x-text="dm.time || dm.created_at"></span>
+                                                </div>
+                                                <div class="text-xs sm:text-sm text-slate-800 dark:text-rose-100 leading-relaxed break-words [overflow-wrap:anywhere]" x-html="formatMessage(dm.message, false)"></div>
+                                            </div>
                                         </div>
-                                        <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
-                                             :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'"
-                                             x-html="formatMessage(dm.message, dm.is_me)"></div>
-                                    </div>
+                                    </template>
+
+                                    <!-- Standard Direct Messages -->
+                                    <template x-if="dm.type !== 'liquidation'">
+                                        <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                            <img :src="dm.sender_avatar || (dm.is_me ? (myAvatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}') : (activePartner?.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'))" 
+                                                 class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
+                                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                            <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                                <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="dm.is_me ? 'justify-end' : ''">
+                                                    <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name || (dm.is_me ? myName : (activePartner?.name || 'Inmate'))"></span>
+                                                    <span class="text-slate-400 text-[10px]" x-text="dm.time || dm.created_at"></span>
+                                                    <template x-if="canModerate || dm.is_me">
+                                                        <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                                <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'"
+                                                     x-html="formatMessage(dm.message, dm.is_me)"></div>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
                             </template>
 

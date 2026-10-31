@@ -606,11 +606,12 @@ class ChatController extends Controller
                 return response()->json(['success' => false, 'message' => 'Patiënt niet gevonden.'], 404);
             }
 
-            $query = DirectMessage::where(function ($q) use ($character, $partnerId) {
-                $q->where('sender_id', $character->id)->where('recipient_id', $partnerId);
-            })->orWhere(function ($q) use ($character, $partnerId) {
-                $q->where('sender_id', $partnerId)->where('recipient_id', $character->id);
-            });
+            $query = DirectMessage::with('sender')
+                ->where(function ($q) use ($character, $partnerId) {
+                    $q->where('sender_id', $character->id)->where('recipient_id', $partnerId);
+                })->orWhere(function ($q) use ($character, $partnerId) {
+                    $q->where('sender_id', $partnerId)->where('recipient_id', $character->id);
+                });
 
             if ($afterId > 0) {
                 $messages = $query->where('id', '>', $afterId)->orderBy('id', 'asc')->get();
@@ -640,15 +641,23 @@ class ChatController extends Controller
         }
 
         $formatted = $messages->map(function (DirectMessage $msg) use ($character) {
+            $senderName = $msg->sender_id === null ? '🏥 Kliniek Directie' : ($msg->sender?->name ?? 'Patiënt');
+            $senderAvatar = $msg->sender_id === null
+                ? asset('assets/characters/directie-bot.png')
+                : ($msg->sender?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg'));
+
             return [
                 'id' => $msg->id,
                 'sender_id' => $msg->sender_id,
+                'sender_name' => $senderName,
+                'sender_avatar' => $senderAvatar,
                 'recipient_id' => $msg->recipient_id,
                 'message' => $msg->message,
                 'type' => $msg->type,
                 'metadata' => $msg->metadata,
                 'time' => $msg->created_at->format('H:i'),
                 'date' => $msg->created_at->format('d-m-Y'),
+                'created_at' => $msg->created_at->format('d-m-Y H:i'),
                 'is_me' => $msg->sender_id === $character->id,
                 'is_read' => (bool) $msg->is_read,
                 'read_at' => $msg->read_at ? $msg->read_at->format('H:i') : null,

@@ -1028,8 +1028,22 @@
                                     </div>
                                 </template>
 
+                                <!-- Liquidation Incident Report Card -->
+                                <template x-if="dm.type === 'liquidation'">
+                                    <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-300/80 dark:border-rose-900/60 space-y-1.5 text-slate-900 dark:text-rose-100 min-w-0 max-w-full shadow-2xs">
+                                        <div class="flex items-center justify-between text-[10px] font-black uppercase text-rose-600 dark:text-rose-400">
+                                            <span class="flex items-center gap-1">
+                                                <i class="fa-solid fa-crosshairs text-rose-500"></i>
+                                                <span x-text="dm.metadata?.title || 'Liquidatie Incidentenrapport'"></span>
+                                            </span>
+                                            <span class="text-slate-400 dark:text-slate-500 font-mono text-[9px]" x-text="dm.time"></span>
+                                        </div>
+                                        <div class="text-[11px] leading-relaxed break-words [overflow-wrap:anywhere] text-slate-800 dark:text-slate-200" x-html="formatMessage(dm.message, false)"></div>
+                                    </div>
+                                </template>
+
                                 <!-- Standard & System Notification Bubbles -->
-                                <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up'">
+                                <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up' && dm.type !== 'liquidation'">
                                     <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                         <!-- Avatar Image -->
                                         <template x-if="!dm.is_me">

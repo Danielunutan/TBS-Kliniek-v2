@@ -158,37 +158,41 @@ class LiquidatieDirectMessageNotificationTest extends TestCase
         }
     }
 
-    public function test_migration_deletes_existing_liquidation_messages_from_pleinchat(): void
+    public function test_migration_deletes_existing_liquidation_messages_from_pleinchat_and_preserves_for_involved_parties(): void
     {
-        $character = Character::first();
+        $user1 = User::factory()->create(['email' => 'karel@tbs.test']);
+        $karel = Character::factory()->create(['user_id' => $user1->id, 'name' => 'Karel']);
+
+        $user2 = User::factory()->create(['email' => 'piet@tbs.test']);
+        $piet = Character::factory()->create(['user_id' => $user2->id, 'name' => 'Piet']);
 
         // 1. Insert existing messages into chat_messages
         $msgLiquidation = ChatMessage::create([
-            'character_id' => $character->id,
+            'character_id' => $karel->id,
             'channel' => 'global',
             'message' => '🎯 LIQUIDATIE OP Paviljoen 1: Karel heeft Piet neergeschoten met een salvo!',
         ]);
 
         $msgFeud = ChatMessage::create([
-            'character_id' => $character->id,
+            'character_id' => $karel->id,
             'channel' => 'global',
             'message' => '🩸 BLOEDWRAAK VOLTROKKEN: Karel heeft Piet op Paviljoen 1 geliquideerd en de bende-vete gewroken!',
         ]);
 
         $msgLegacy = ChatMessage::create([
-            'character_id' => $character->id,
+            'character_id' => $karel->id,
             'channel' => 'global',
             'message' => '🚨 NOODGEVAL OP DE AFDELING: Karel heeft Piet zojuist neergeschoten!',
         ]);
 
         $msgNormalPlein = ChatMessage::create([
-            'character_id' => $character->id,
+            'character_id' => $karel->id,
             'channel' => 'global',
             'message' => 'Gezellig op het Kliniekplein vanavond!',
         ]);
 
         $msgGang = ChatMessage::create([
-            'character_id' => $character->id,
+            'character_id' => $karel->id,
             'channel' => 'gang_1',
             'message' => 'Overleg over de bende liquidatie strategie.',
         ]);
@@ -202,7 +206,26 @@ class LiquidatieDirectMessageNotificationTest extends TestCase
         $this->assertDatabaseMissing('chat_messages', ['id' => $msgFeud->id]);
         $this->assertDatabaseMissing('chat_messages', ['id' => $msgLegacy->id]);
 
-        // Normal pleinchat and non-pleinchat messages remain preserved
+        // 4. Assert: Both Karel (attacker) and Piet (defender) can still see the old messages in their private directie box
+        $this->assertTrue(
+            DirectMessage::where('recipient_id', $karel->id)
+                ->whereNull('sender_id')
+                ->where('type', 'liquidation')
+                ->where('message', 'like', '%Karel heeft Piet neergeschoten%')
+                ->exists(),
+            'Karel (schutter) moet het oude liquidatiebericht nog kunnen zien in zijn privégesprek met de Kliniekdirectie.'
+        );
+
+        $this->assertTrue(
+            DirectMessage::where('recipient_id', $piet->id)
+                ->whereNull('sender_id')
+                ->where('type', 'liquidation')
+                ->where('message', 'like', '%Karel heeft Piet neergeschoten%')
+                ->exists(),
+            'Piet (slachtoffer) moet het oude liquidatiebericht nog kunnen zien in zijn privégesprek met de Kliniekdirectie.'
+        );
+
+        // 5. Normal pleinchat and non-pleinchat messages remain preserved
         $this->assertDatabaseHas('chat_messages', ['id' => $msgNormalPlein->id]);
         $this->assertDatabaseHas('chat_messages', ['id' => $msgGang->id]);
     }
