@@ -28,18 +28,18 @@
 <script>
 window.tbsChatConfig = {
     authCharId: {{ (int) ($character->id ?? 0) }},
-    authCharName: {!! json_encode((string) ($character->name ?? "")) !!},
-    initialTab: {!! json_encode((string) ($initialTab ?? "global")) !!},
+    authCharName: @js((string) ($character->name ?? '')),
+    initialTab: @js((string) ($initialTab ?? 'global')),
     initialRecipient: {{ (int) ($initialRecipient ?? 0) }},
     hasGang: {{ ($hasGang ?? false) ? "true" : "false" }},
     gangId: {{ (int) ($gangId ?? 0) }},
-    gangName: {!! json_encode((string) ($gangName ?? "Bende")) !!},
-    gangTag: {!! json_encode((string) ($gangTag ?? "")) !!},
+    gangName: @js((string) ($gangName ?? 'Bende')),
+    gangTag: @js((string) ($gangTag ?? '')),
     gangHasChat: {{ ($gangHasChat ?? false) ? "true" : "false" }},
     gangStars: {{ (int) ($gangStars ?? 0) }},
     characterStars: {{ (int) ($characterStars ?? 0) }},
     canModerate: {{ ($canModerate ?? false) ? "true" : "false" }},
-    characterNames: {!! json_encode($characterNames ?? []) !!}
+    characterNames: @js($characterNames ?? [])
 };
 </script>
 

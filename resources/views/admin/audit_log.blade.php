@@ -269,7 +269,17 @@
                         <!-- Action / Details Button -->
                         <td class="py-3.5 px-4 whitespace-nowrap text-right">
                             <button type="button" 
-                                    @click="openDetail({{ json_encode($log) }})"
+                                    @click="openDetail(@js([
+                                        'id' => $log->id,
+                                        'description' => $log->description,
+                                        'action' => $log->action,
+                                        'category' => $log->category,
+                                        'risk_level' => $log->risk_level,
+                                        'risk_score' => $log->risk_score,
+                                        'ip_address' => $log->ip_address,
+                                        'risk_reason' => $log->risk_reason,
+                                        'details' => $log->details,
+                                    ]))"
                                     class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-purple-950/50 text-slate-700 hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300 border border-slate-200/80 dark:border-slate-700 font-bold transition-all duration-150 active:scale-95 inline-flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-code text-[10px]"></i>
                                 <span>Inspecteer</span>

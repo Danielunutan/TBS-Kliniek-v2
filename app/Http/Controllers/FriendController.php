@@ -61,7 +61,7 @@ class FriendController extends Controller
             $diffHours = $character->last_friends_mass_message_at->diffInHours(now());
             if ($diffHours < 24) {
                 $canMassMessage = false;
-                $massMessageCooldown = 24 - $diffHours;
+                $massMessageCooldown = max(1, (int) ceil(24 - $diffHours));
             }
         }
 
@@ -104,65 +104,71 @@ class FriendController extends Controller
             return back()->with('error', 'Je kunt jezelf niet als vriend toevoegen!');
         }
 
-        $existing = Friend::where('character_id', $character->id)
-            ->where('friend_id', $target->id)
-            ->first();
+        return DB::transaction(function () use ($character, $target): RedirectResponse {
+            Character::where('id', $character->id)->lockForUpdate()->first();
 
-        if ($existing) {
-            if ($existing->status === 'accepted') {
-                return back()->with('info', "{$target->name} staat al in je vriendenlijst.");
+            $existing = Friend::where('character_id', $character->id)
+                ->where('friend_id', $target->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                if ($existing->status === 'accepted') {
+                    return back()->with('info', "{$target->name} staat al in je vriendenlijst.");
+                }
+
+                return back()->with('info', "Je hebt al een openstaand verzoek verzonden naar {$target->name}.");
             }
 
-            return back()->with('info', "Je hebt al een openstaand verzoek verzonden naar {$target->name}.");
-        }
+            // Check if target already sent a pending request to character
+            $reversePending = Friend::where('character_id', $target->id)
+                ->where('friend_id', $character->id)
+                ->where('status', 'pending')
+                ->lockForUpdate()
+                ->first();
 
-        // Check if target already sent a pending request to character
-        $reversePending = Friend::where('character_id', $target->id)
-            ->where('friend_id', $character->id)
-            ->where('status', 'pending')
-            ->first();
+            if ($reversePending) {
+                $reversePending->status = 'accepted';
+                $reversePending->save();
 
-        if ($reversePending) {
-            $reversePending->status = 'accepted';
-            $reversePending->save();
+                Friend::firstOrCreate([
+                    'character_id' => $character->id,
+                    'friend_id' => $target->id,
+                ], [
+                    'is_bff' => false,
+                    'status' => 'accepted',
+                ]);
 
-            Friend::firstOrCreate([
+                GameMessage::create([
+                    'recipient_id' => $target->id,
+                    'sender_id' => $character->id,
+                    'sender_name' => $character->name,
+                    'subject' => "🎉 {$character->name} heeft je vriendschapsverzoek geaccepteerd!",
+                    'content' => "Patiënt {$target->name},\n\nJullie zijn nu officieel vrienden in de TBS Kliniek!",
+                    'type' => 'system',
+                ]);
+
+                return back()->with('success', "{$target->name} had jou ook al een verzoek gestuurd! Jullie zijn nu vrienden!");
+            }
+
+            Friend::create([
                 'character_id' => $character->id,
                 'friend_id' => $target->id,
-            ], [
                 'is_bff' => false,
-                'status' => 'accepted',
+                'status' => 'pending',
             ]);
 
             GameMessage::create([
                 'recipient_id' => $target->id,
                 'sender_id' => $character->id,
                 'sender_name' => $character->name,
-                'subject' => "🎉 {$character->name} heeft je vriendschapsverzoek geaccepteerd!",
-                'content' => "Patiënt {$target->name},\n\nJullie zijn nu officieel vrienden in de TBS Kliniek!",
-                'type' => 'system',
+                'subject' => "🤝 Vriendschapsverzoek van {$character->name}",
+                'content' => "Patiënt {$target->name},\n\n{$character->name} heeft je een vriendschapsverzoek gestuurd in de TBS Kliniek! Bekijk je berichten of vriendenpagina om dit verzoek te accepteren.",
+                'type' => 'friend_request',
             ]);
 
-            return back()->with('success', "{$target->name} had jou ook al een verzoek gestuurd! Jullie zijn nu vrienden!");
-        }
-
-        Friend::create([
-            'character_id' => $character->id,
-            'friend_id' => $target->id,
-            'is_bff' => false,
-            'status' => 'pending',
-        ]);
-
-        GameMessage::create([
-            'recipient_id' => $target->id,
-            'sender_id' => $character->id,
-            'sender_name' => $character->name,
-            'subject' => "🤝 Vriendschapsverzoek van {$character->name}",
-            'content' => "Patiënt {$target->name},\n\n{$character->name} heeft je een vriendschapsverzoek gestuurd in de TBS Kliniek! Bekijk je berichten of vriendenpagina om dit verzoek te accepteren.",
-            'type' => 'friend_request',
-        ]);
-
-        return back()->with('success', "Vriendschapsverzoek succesvol verstuurd naar {$target->name} via een officieel kliniekbericht!");
+            return back()->with('success', "Vriendschapsverzoek succesvol verstuurd naar {$target->name} via een officieel kliniekbericht!");
+        });
     }
 
     /**
@@ -341,7 +347,7 @@ class FriendController extends Controller
             }
 
             if ($lockedFriend->last_respected_at && $lockedFriend->last_respected_at->diffInHours(now()) < 24) {
-                $hoursLeft = 24 - $lockedFriend->last_respected_at->diffInHours(now());
+                $hoursLeft = max(1, (int) ceil(24 - $lockedFriend->last_respected_at->diffInHours(now())));
 
                 return "Je hebt {$target->name} vandaag al respect gegeven! Wacht nog {$hoursLeft} uur.";
             }
@@ -398,7 +404,7 @@ class FriendController extends Controller
         }
 
         if ($character->last_friends_mass_message_at && $character->last_friends_mass_message_at->diffInHours(now()) < 24) {
-            $hoursLeft = 24 - $character->last_friends_mass_message_at->diffInHours(now());
+            $hoursLeft = max(1, (int) ceil(24 - $character->last_friends_mass_message_at->diffInHours(now())));
 
             return back()->with('error', "⏳ Massabericht naar vrienden kan maar 1x per 24 uur verzonden worden. Wacht nog {$hoursLeft} uur.");
         }

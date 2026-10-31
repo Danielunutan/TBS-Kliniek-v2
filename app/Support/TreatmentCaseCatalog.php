@@ -455,15 +455,16 @@ class TreatmentCaseCatalog
         $incident = $special['incident_intro'] ?? $archetype['incident_intro'];
 
         // Format Dutch date label
-        $dateObj = Carbon::create(date('Y'), 1, 1)->addDays($day - 1);
+        $currentYear = now()->year;
+        $dateObj = Carbon::create($currentYear, 1, 1)->addDays($day - 1);
         $monthsNl = [
             1 => 'januari', 2 => 'februari', 3 => 'maart', 4 => 'april',
-            5 => 'mei', 6 => 'juni', 7 => 'juli', 8 => 'augustus',
+            5 => 'mei', 7 => 'juli', 6 => 'juni', 8 => 'augustus',
             9 => 'september', 10 => 'oktober', 11 => 'november', 12 => 'december',
         ];
         $dateLabel = $dateObj->day.' '.$monthsNl[$dateObj->month];
 
-        $caseCode = 'TBS-'.date('Y').'-D'.str_pad((string) $day, 3, '0', STR_PAD_LEFT);
+        $caseCode = 'TBS-'.$currentYear.'-D'.str_pad((string) $day, 3, '0', STR_PAD_LEFT);
 
         return [
             'day_of_year' => $day,

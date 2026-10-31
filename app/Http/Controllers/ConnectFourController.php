@@ -146,7 +146,8 @@ class ConnectFourController extends Controller
                 $stat->total_cash_won += $rewardCash;
             }
             if ($rewardRespect > 0) {
-                $lockedCharacter->increment('respect', $rewardRespect);
+                $lockedCharacter->addRespect($rewardRespect);
+                $lockedCharacter->save();
             }
             if ($rewardXp > 0) {
                 $this->level->addXp($lockedCharacter, $rewardXp);
@@ -204,7 +205,8 @@ class ConnectFourController extends Controller
                     $stat->total_cash_won += $bonusCash;
                 }
                 if ($bonusRespect > 0) {
-                    $lockedCharacter->increment('respect', $bonusRespect);
+                    $lockedCharacter->addRespect($bonusRespect);
+                    $lockedCharacter->save();
                 }
                 if ($bonusXp > 0) {
                     $this->level->addXp($lockedCharacter, $bonusXp);
@@ -324,22 +326,26 @@ class ConnectFourController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        /** @var CharacterConnectFourStat $stat */
-        $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $character->id]);
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var CharacterConnectFourStat $stat */
+            $stat = CharacterConnectFourStat::where('character_id', $character->id)
+                ->lockForUpdate()
+                ->firstOrCreate(['character_id' => $character->id]);
 
-        if (! $stat->isOnCooldown()) {
-            return redirect()->route('connect_four.index')
-                ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
-        }
+            if (! $stat->isOnCooldown()) {
+                return redirect()->route('connect_four.index')
+                    ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+            }
 
-        $stat->update([
-            'cooldown_until' => null,
-            'matches_played' => 0,
-            'current_player_wins' => 0,
-            'current_arjan_wins' => 0,
-            'current_draws' => 0,
-        ]);
+            $stat->update([
+                'cooldown_until' => null,
+                'matches_played' => 0,
+                'current_player_wins' => 0,
+                'current_arjan_wins' => 0,
+                'current_draws' => 0,
+            ]);
 
-        return redirect()->route('connect_four.index')->with('success', 'Dankzij de sponsor-advertentie heeft OOHPA Arjan direct zijn koffie op en staat hij te popelen voor een nieuw 5-potjes toernooi!');
+            return redirect()->route('connect_four.index')->with('success', 'Dankzij de sponsor-advertentie heeft OOHPA Arjan direct zijn koffie op en staat hij te popelen voor een nieuw 5-potjes toernooi!');
+        });
     }
 }

@@ -178,7 +178,7 @@
                 @else
                 <div class="p-3 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
                     <i class="fa-solid fa-check-double text-emerald-600 dark:text-emerald-400 text-base"></i>
-                    <span>Deze bonus is goedgekeurd door <strong>{{ $ticket->metadata['approved_by_name'] ?? 'Staff' }}</strong> op {{ \Carbon\Carbon::parse($ticket->metadata['bonus_approved_at'])->format('d-m-Y H:i') }}. Bende: <strong>{{ $ticket->metadata['created_gang_name'] ?? '' }} [{{ $ticket->metadata['created_gang_tag'] ?? '' }}]</strong>.</span>
+                    <span>Deze bonus is goedgekeurd door <strong>{{ $ticket->metadata['approved_by_name'] ?? 'Staff' }}</strong> op {{ !empty($ticket->metadata['bonus_approved_at']) ? \Carbon\Carbon::parse($ticket->metadata['bonus_approved_at'])->format('d-m-Y H:i') : '-' }}. Bende: <strong>{{ $ticket->metadata['created_gang_name'] ?? '' }} [{{ $ticket->metadata['created_gang_tag'] ?? '' }}]</strong>.</span>
                 </div>
                 @endif
 

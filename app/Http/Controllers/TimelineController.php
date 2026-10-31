@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class TimelineController extends Controller
@@ -78,9 +79,14 @@ class TimelineController extends Controller
             'content' => ['required', 'string', 'min:2', 'max:280'],
         ]);
 
+        $cleanContent = trim(strip_tags($validated['content']));
+        if (mb_strlen($cleanContent) < 2) {
+            return back()->with('error', 'Voer een geldig bericht van minimaal 2 tekens in.');
+        }
+
         TimelinePost::create([
             'character_id' => $character->id,
-            'content' => trim(strip_tags($validated['content'])),
+            'content' => $cleanContent,
             'likes_count' => 0,
         ]);
 
@@ -113,31 +119,38 @@ class TimelineController extends Controller
             $emoji = '❤️';
         }
 
-        $existing = TimelineLike::where('timeline_post_id', $post->id)
-            ->where('character_id', $character->id)
-            ->first();
+        [$action, $count] = DB::transaction(function () use ($post, $character, $emoji): array {
+            TimelinePost::where('id', $post->id)->lockForUpdate()->first();
 
-        $action = 'liked';
-        if ($existing) {
-            if ($existing->emoji === $emoji) {
-                // Toggle unlike
-                $existing->delete();
-                $action = 'unliked';
+            $existing = TimelineLike::where('timeline_post_id', $post->id)
+                ->where('character_id', $character->id)
+                ->lockForUpdate()
+                ->first();
+
+            $action = 'liked';
+            if ($existing) {
+                if ($existing->emoji === $emoji) {
+                    // Toggle unlike
+                    $existing->delete();
+                    $action = 'unliked';
+                } else {
+                    // Change reaction emoji
+                    $existing->update(['emoji' => $emoji]);
+                    $action = 'changed';
+                }
             } else {
-                // Change reaction emoji
-                $existing->update(['emoji' => $emoji]);
-                $action = 'changed';
+                TimelineLike::create([
+                    'timeline_post_id' => $post->id,
+                    'character_id' => $character->id,
+                    'emoji' => $emoji,
+                ]);
             }
-        } else {
-            TimelineLike::create([
-                'timeline_post_id' => $post->id,
-                'character_id' => $character->id,
-                'emoji' => $emoji,
-            ]);
-        }
 
-        $count = $post->likes()->count();
-        $post->update(['likes_count' => $count]);
+            $count = $post->likes()->count();
+            $post->update(['likes_count' => $count]);
+
+            return [$action, $count];
+        });
 
         if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -178,10 +191,15 @@ class TimelineController extends Controller
             'content' => ['required', 'string', 'min:1', 'max:300'],
         ]);
 
+        $cleanComment = trim(strip_tags($validated['content']));
+        if ($cleanComment === '') {
+            return back()->with('error', 'Voer een geldige reactie in.');
+        }
+
         TimelineComment::create([
             'timeline_post_id' => $post->id,
             'character_id' => $character->id,
-            'content' => trim(strip_tags($validated['content'])),
+            'content' => $cleanComment,
         ]);
 
         $xpCommentKey = 'timeline_xp_comments:'.$character->id.':'.now()->toDateString();

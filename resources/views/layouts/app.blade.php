@@ -2653,41 +2653,41 @@
         </footer>
 
         @if(isset($character))
-        <!-- NATIVE MOBILE APP BOTTOM DOCK -->
-        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 z-30 flex items-center justify-around py-1.5 px-1.5 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
+        <!-- NATIVE MOBILE APP BOTTOM DOCK (5 Symmetrical Columns with Center FAB) -->
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 z-60 grid grid-cols-5 items-center py-1.5 px-1 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
             
             <!-- 1. Home / Dashboard -->
-            <a href="{{ route('dashboard') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
+            <a href="{{ route('dashboard') }}" 
+               @click="mobileQuickSheetOpen = false; mobileMenuOpen = false; if(window.tbsVibrate) window.tbsVibrate(10);" 
+               class="flex flex-col items-center justify-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
                 <i class="fa-solid fa-house text-base"></i>
                 <span>Home</span>
             </a>
 
             <!-- 2. Hosselen / Misdaad -->
-            <a href="{{ route('hustle.index') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('hustle.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
+            <a href="{{ route('hustle.index') }}" 
+               @click="mobileQuickSheetOpen = false; mobileMenuOpen = false; if(window.tbsVibrate) window.tbsVibrate(10);" 
+               class="flex flex-col items-center justify-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('hustle.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
                 <i class="fa-solid fa-hand-holding-dollar text-base"></i>
                 <span>Hosselen</span>
             </a>
 
-            <!-- 3. CENTER GLOWING QUICK-ACTION FAB -->
-            <div class="flex-1 flex flex-col items-center justify-center -mt-5">
+            <!-- 3. EXACT CENTER GLOWING QUICK-ACTION FAB -->
+            <div class="flex flex-col items-center justify-center -mt-6">
                 <button type="button" 
-                        @click="mobileQuickSheetOpen = !mobileQuickSheetOpen; if(window.tbsVibrate) window.tbsVibrate(15);"
-                        class="relative w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/40 active:scale-90 transition-transform cursor-pointer border-3 border-white dark:border-slate-900 group"
+                        @click="mobileMenuOpen = false; mobileQuickSheetOpen = !mobileQuickSheetOpen; if(window.tbsVibrate) window.tbsVibrate(15);"
+                        class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/40 active:scale-90 transition-transform cursor-pointer border-4 border-white dark:border-slate-900 group"
                         aria-label="Snelmenu Acties">
-                    <span class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping"></span>
-                    <i class="fa-solid fa-bolt text-base group-hover:scale-110 transition-transform"></i>
+                    <span class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" x-show="!mobileQuickSheetOpen"></span>
+                    <i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform duration-200" :class="mobileQuickSheetOpen ? 'fa-xmark rotate-90' : 'fa-bolt'"></i>
                 </button>
-                <span class="text-[9px] font-black text-purple-600 dark:text-purple-400 mt-0.5 tracking-tight">Acties</span>
+                <span class="text-[10px] font-black text-purple-600 dark:text-purple-400 mt-0.5 tracking-tight" x-text="mobileQuickSheetOpen ? 'Sluiten' : 'Acties'">Acties</span>
             </div>
 
-            <!-- 4. Bendes -->
-            <a href="{{ route('gangs.index') }}" @click="if(window.tbsVibrate) window.tbsVibrate(10);" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
-                <i class="fa-solid fa-users text-base"></i>
-                <span>Bendes</span>
-            </a>
-
-            <!-- 5. Chat / Berichten -->
-            <a href="{{ route('chat.index') }}" @click="if(window.tbsVibrate) window.tbsVibrate(10);" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('chat.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition relative">
+            <!-- 4. Chat / Berichten -->
+            <a href="{{ route('chat.index') }}" 
+               @click="mobileQuickSheetOpen = false; mobileMenuOpen = false; if(window.tbsVibrate) window.tbsVibrate(10);" 
+               class="flex flex-col items-center justify-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('chat.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition relative">
                 <div class="relative">
                     <i class="fa-solid fa-comments text-base"></i>
                     @if(isset($unreadChatCount) && $unreadChatCount > 0)
@@ -2697,14 +2697,14 @@
                 <span>Chat</span>
             </a>
 
-            <!-- 6. Volledig Menu (Grote Menu Drawer) -->
+            <!-- 5. Volledig Menu (Grote Menu Drawer) -->
             <button type="button"
                     @click="mobileQuickSheetOpen = false; mobileMenuOpen = !mobileMenuOpen; if(window.tbsVibrate) window.tbsVibrate(10);"
-                    class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold cursor-pointer active:scale-90 transition"
+                    class="flex flex-col items-center justify-center gap-0.5 py-1 text-[10px] font-bold cursor-pointer active:scale-90 transition"
                     :class="mobileMenuOpen ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
                     aria-label="Open volledig menu">
-                <i class="fa-solid fa-bars text-base"></i>
-                <span>Menu</span>
+                <i class="fa-solid fa-bars text-base transition-transform duration-200" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+                <span x-text="mobileMenuOpen ? 'Sluiten' : 'Menu'">Menu</span>
             </button>
         </nav>
 
@@ -2734,8 +2734,8 @@
                  x-transition:leave="transition ease-in duration-200 transform-gpu"
                  x-transition:leave-start="translate-y-0"
                  x-transition:leave-end="translate-y-full"
-                 class="relative bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl border-t border-slate-200/90 dark:border-slate-800 max-h-[88vh] overflow-y-auto p-4 z-10 flex flex-col gap-3.5 text-slate-800 dark:text-slate-100"
-                 style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));">
+                 class="relative bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl border-t border-slate-200/90 dark:border-slate-800 max-h-[88vh] overflow-y-auto p-4 pb-24 z-10 flex flex-col gap-3.5 text-slate-800 dark:text-slate-100"
+                 style="padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));">
                 
                 <!-- Pull Bar Handle (Tap or Swipe Down to Dismiss) -->
                 <div class="py-2 -my-2 flex justify-center cursor-pointer select-none touch-none"
@@ -2911,77 +2911,77 @@
                 <div>
                     <span class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-2 block">Direct Naar</span>
                     <div class="grid grid-cols-4 gap-2 text-center text-xs font-bold">
-                        <a href="{{ route('hustle.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('gangs.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
-                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                                <i class="fa-solid fa-users"></i>
                             </div>
-                            <span class="text-[9px] truncate w-full">Hosselen</span>
+                            <span class="text-[9px] truncate w-full">Bendes</span>
                         </a>
 
-                        <a href="{{ route('theft.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-blue-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('theft.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-blue-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-briefcase"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Diefstal</span>
                         </a>
 
-                        <a href="{{ route('fight.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-emerald-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('fight.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-emerald-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-hand-fist"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Luchtplaats</span>
                         </a>
 
-                        <a href="{{ route('hitman.index') }}" class="p-2 rounded-2xl bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 border border-rose-200/80 dark:border-rose-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('hitman.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 border border-rose-200/80 dark:border-rose-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-crosshairs"></i>
                             </div>
                             <span class="text-[9px] truncate w-full text-rose-700 dark:text-rose-300 font-black">Liquidatie</span>
                         </a>
 
-                        <a href="{{ route('smuggle.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-teal-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('smuggle.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-teal-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-teal-600/10 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-capsules"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Dealen</span>
                         </a>
 
-                        <a href="{{ route('heists.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-rose-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('heists.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-rose-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-masks-theater"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Grote Heists</span>
                         </a>
 
-                        <a href="{{ route('packages.index') }}" class="p-2 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('packages.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-box-open"></i>
                             </div>
                             <span class="text-[9px] truncate w-full text-amber-800 dark:text-amber-300 font-black">Koffers</span>
                         </a>
 
-                        <a href="{{ route('vault.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-amber-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('vault.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-amber-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-vault"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Kluis</span>
                         </a>
 
-                        <a href="{{ route('bank.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-emerald-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('bank.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-emerald-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-building-columns"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">De Bank</span>
                         </a>
 
-                        <a href="{{ route('marketplace.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('marketplace.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-store"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Marktplaats</span>
                         </a>
 
-                        <a href="{{ route('shop.index') }}" class="p-2 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                        <a href="{{ route('shop.index') }}" @click="mobileQuickSheetOpen = false" class="p-2 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-cart-shopping"></i>
                             </div>

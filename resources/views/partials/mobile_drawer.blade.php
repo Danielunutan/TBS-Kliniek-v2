@@ -764,7 +764,7 @@
         </div>
 
         <!-- Drawer Footer / App Install & Logout (No PWA Mention) -->
-        <div class="p-3 border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900 shrink-0 space-y-2">
+        <div class="p-3 pb-20 border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900 shrink-0 space-y-2" style="padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));">
             <button type="button" @click="mobileMenuOpen = false; if(window.tbsOpenPwaModal){window.tbsOpenPwaModal();}" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 transition-all duration-150 cursor-pointer border border-purple-200/80 dark:border-purple-800/70 active:scale-95 shadow-2xs">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-mobile-screen-button text-purple-600 dark:text-purple-400"></i>

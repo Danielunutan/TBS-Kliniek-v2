@@ -221,21 +221,35 @@ class CooldownService
             ];
         }
 
-        $deducted = DB::transaction(function () use ($character, $action, $cost): bool {
-            /** @var Character $locked */
+        $deducted = DB::transaction(function () use ($character, $action, &$cost): string {
+            /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
-            if (! $locked || ($locked->stars ?? 0) < $cost) {
-                return false;
+            if (! $locked) {
+                return 'insufficient';
+            }
+            if ($this->getRemainingSeconds($locked, $action) <= 0) {
+                return 'expired';
+            }
+            $cost = $this->calculateDynamicSkipCost($locked, $action);
+            if (($locked->stars ?? 0) < $cost) {
+                return 'insufficient';
             }
             $locked->stars -= $cost;
             $locked->save();
             $character->stars = $locked->stars;
             $this->clearCooldown($locked, $action);
 
-            return true;
+            return 'ok';
         });
 
-        if (! $deducted) {
+        if ($deducted === 'expired') {
+            return [
+                'success' => false,
+                'message' => 'Er is momenteel geen actieve cooldown voor deze actie!',
+            ];
+        }
+
+        if ($deducted !== 'ok') {
             return [
                 'success' => false,
                 'message' => "Je hebt {$cost} Sterren ⭐ nodig om deze resterende wachttijd over te slaan! (Je hebt: ".($character->stars ?? 0).')',
