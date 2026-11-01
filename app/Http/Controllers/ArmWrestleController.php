@@ -10,6 +10,7 @@ use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
+use App\Support\ArmWrestleOutcome;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -178,9 +179,9 @@ class ArmWrestleController extends Controller
     }
 
     /**
-     * Resolve an interactive NPC match.
+     * Resolve an interactive NPC match. The server decides the result. The client cannot report a win.
      */
-    public function finishNpc(Request $request): JsonResponse
+    public function finishNpc(Request $request, ArmWrestleOutcome $outcome): JsonResponse
     {
         /** @var Character|null $character */
         $character = Auth::user()?->character;
@@ -237,7 +238,6 @@ class ArmWrestleController extends Controller
 
         $validated = $request->validate([
             'npc_key' => ['required', 'string', 'in:sjonnie,karel,bennie,mike'],
-            'won' => ['required', 'boolean'],
             'clicks' => ['required', 'integer', 'min:0'],
             'duration_ms' => ['nullable', 'integer'],
             'duration_seconds' => ['nullable', 'integer'],
@@ -255,9 +255,18 @@ class ArmWrestleController extends Controller
 
         $bet = (int) $npc['bet'];
 
-        return DB::transaction(function () use ($character, $npc, $validated, $bet) {
+        return DB::transaction(function () use ($character, $npc, $validated, $bet, $outcome) {
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            // Check the cooldown under the row lock. A check before the lock lets two parallel requests both pay.
+            $remainingCooldown = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'arm_wrestling');
+            if ($remainingCooldown > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Je spieren moeten nog even bijkomen van de vorige partij! Wacht nog {$remainingCooldown} seconden.",
+                ], 422);
+            }
 
             if ($lockedCharacter->cash < $bet) {
                 return response()->json([
@@ -306,27 +315,12 @@ class ArmWrestleController extends Controller
             $durationMs = max(200, $rawDurationMs);
             $clicks = max(0, (int) $validated['clicks']);
 
-            // Validate minimum required clicks and duration based on NPC tier and player strength ratio
-            $playerStrength = max(1, (int) ($lockedCharacter->strength ?? 10));
-            $npcStrength = max(1, (int) ($npc['npc_strength'] ?? 12));
-            $isOverpoweredPlayer = $playerStrength >= ($npcStrength * 2);
-
-            $minClicks = $isOverpoweredPlayer ? 4 : match ($npc['key']) {
-                'mike' => 15,
-                'bennie' => 12,
-                'karel' => 8,
-                default => 5,
-            };
-            $minDuration = $isOverpoweredPlayer ? 500 : match ($npc['key']) {
-                'mike' => 2000,
-                'bennie' => 1500,
-                'karel' => 1000,
-                default => 800,
-            };
-
-            // Honor client win only when click count and duration satisfy anti-exploit thresholds
-            $clientWon = (bool) $validated['won'];
-            $isWon = $clientWon && $rawDurationMs >= $minDuration && $clicks >= $minClicks;
+            // The server rolls the result from the character strength and the NPC strength.
+            // Clicks and duration only describe the match in the history, so the client cannot change the result.
+            $isWon = $outcome->isPlayerWinner(
+                (int) $lockedCharacter->getEffectiveStrength(),
+                (int) ($npc['npc_strength'] ?? 12),
+            );
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);
@@ -404,9 +398,7 @@ class ArmWrestleController extends Controller
             // Give consolation 5 XP
             $this->level->addXp($lockedCharacter, 5);
 
-            $reason = ($clientWon && ! $isWon)
-                ? "{$npc['name']} pareerde je aanval op het allerlaatste moment met zijn stalen pols! Je verliest je inzet van €".number_format($npc['bet'], 0, ',', '.').'.'
-                : "{$npc['name']} bleek te sterk en heeft jouw arm tegen het hout gedrukt! Je verliest je inzet van €".number_format($npc['bet'], 0, ',', '.').'. Wel +5 troost-XP.';
+            $reason = "{$npc['name']} bleek te sterk en heeft jouw arm tegen het hout gedrukt! Je verliest je inzet van €".number_format($npc['bet'], 0, ',', '.').'. Wel +5 troost-XP.';
 
             $freshCharacter = $lockedCharacter->fresh();
 

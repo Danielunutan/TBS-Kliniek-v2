@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\ConnectFourController;
 use App\Models\Character;
 use App\Models\CharacterConnectFourStat;
 use App\Models\Friend;
@@ -12,6 +13,7 @@ use App\Models\SmuggleDropping;
 use App\Models\User;
 use App\Services\CooldownService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class Pass6Bucket1AuditTest extends TestCase
@@ -29,12 +31,14 @@ class Pass6Bucket1AuditTest extends TestCase
             'cash' => 1000,
         ]);
 
-        $response = $this->actingAs($user)->postJson(route('connect_four.finish'), [
-            'winner' => 'player',
-            'moves' => 8,
-        ]);
+        // The server owns the board. Seed a board where the next player move wins the match.
+        $board = array_fill(0, 6, array_fill(0, 7, 0));
+        $board[5] = [1, 1, 1, 0, 0, 0, 0];
+        Cache::put(ConnectFourController::matchCacheKey($character->id), ['board' => $board], now()->addHour());
 
-        $response->assertOk()->assertJsonPath('success', true);
+        $response = $this->actingAs($user)->postJson(route('connect_four.move'), ['column' => 3]);
+
+        $response->assertOk()->assertJsonPath('status', 'player');
         $character->refresh();
         $this->assertSame(27, $character->respect);
         $this->assertSame(3.0, (float) $character->today_respect);
@@ -113,6 +117,7 @@ class Pass6Bucket1AuditTest extends TestCase
 
     public function test_arm_wrestling_finish_npc_consumes_energy_and_awards_respect_via_add_respect(): void
     {
+        $this->fixArmWrestleRoll(true);
         $user = User::factory()->create(['is_onboarded' => true]);
         $character = Character::factory()->create([
             'user_id' => $user->id,

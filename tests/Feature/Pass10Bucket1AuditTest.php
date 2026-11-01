@@ -168,7 +168,7 @@ class Pass10Bucket1AuditTest extends TestCase
         $resIndex = $this->get(route('connect_four.index'));
         $resIndex->assertNotFound();
 
-        $resFinish = $this->postJson(route('connect_four.finish'), ['winner' => 'player', 'moves' => 7]);
+        $resFinish = $this->postJson(route('connect_four.move'), ['column' => 3]);
         $resFinish->assertStatus(403);
     }
 

@@ -189,6 +189,9 @@ class ArmWrestleTest extends TestCase
             'energy' => 100,
         ]);
 
+        // Fix the server roll to a loss. The client claim of won: true must not change the result.
+        $this->fixArmWrestleRoll(false);
+
         // Autoclicker sending 0 duration or 0 clicks claiming won: true against Mike
         $cheatAttempt = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
             'npc_key' => 'mike',
@@ -206,6 +209,7 @@ class ArmWrestleTest extends TestCase
 
     public function test_strong_player_fast_legitimate_win_against_mike_is_accepted_and_modal_stays_visible(): void
     {
+        $this->fixArmWrestleRoll(true);
         /** @var User $user */
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [

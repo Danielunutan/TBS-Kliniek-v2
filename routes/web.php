@@ -622,7 +622,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Partner Minigame 1: 4 op 'n Rij met OOHPA Arjan
     Route::get('/vier-op-een-rij', [ConnectFourController::class, 'index'])->name('connect_four.index');
-    Route::post('/vier-op-een-rij/finish', [ConnectFourController::class, 'finishGame'])->middleware('throttle:30,1')->name('connect_four.finish');
+    Route::post('/vier-op-een-rij/potje/starten', [ConnectFourController::class, 'startMatch'])->middleware('throttle:30,1')->name('connect_four.match.start');
+    Route::post('/vier-op-een-rij/zet', [ConnectFourController::class, 'playMove'])->middleware('throttle:60,1')->name('connect_four.move');
     Route::post('/vier-op-een-rij/skip-cooldown-stars', [ConnectFourController::class, 'skipCooldownWithStars'])->name('connect_four.skip_cooldown_stars');
     Route::post('/vier-op-een-rij/skip-cooldown-ad', [ConnectFourController::class, 'skipCooldownWithAd'])->name('connect_four.skip_cooldown_ad');
 

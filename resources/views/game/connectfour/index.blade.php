@@ -579,11 +579,9 @@ body.dark .board-socket:hover,
     // Board & Match State
     let board = Array(ROWS).fill(null).map(() => Array(COLS).fill(EMPTY));
     let currentPlayer = PLAYER;
-    let startingPlayer = PLAYER;
     let isGameOver = false;
     let isAiThinking = false;
     let isDropping = false;
-    let moveCount = 0;
     let soundEnabled = true;
     let turnTimeLeft = TURN_TIME_LIMIT;
     let turnTimerInterval = null;
@@ -817,7 +815,8 @@ body.dark .board-socket:hover,
     }
 
     // Initialize Board
-    function initBoard(starter = startingPlayer) {
+    function initBoard(serverMatch) {
+        const starter = serverMatch.starter === 'player' ? PLAYER : AI;
         stopTurnTimer();
         if (aiMoveTimeout) {
             clearTimeout(aiMoveTimeout);
@@ -829,7 +828,6 @@ body.dark .board-socket:hover,
         isGameOver = false;
         isAiThinking = false;
         isDropping = false;
-        moveCount = 0;
 
         // Clear visual cells
         for (let r = 0; r < ROWS; r++) {
@@ -863,10 +861,39 @@ body.dark .board-socket:hover,
             aiMoveTimeout = setTimeout(() => {
                 aiMoveTimeout = null;
                 if (!isGameOver && !isDropping && currentPlayer === AI) {
-                    makeAiMove();
+                    animateArjanReply(serverMatch.ai, 'ongoing', null, serverMatch);
                 }
             }, 750);
         }
+    }
+
+    // Ask the server to start a match. The server creates the board and decides who opens.
+    function startNewServerMatch() {
+        stopTurnTimer();
+        isDropping = true;
+
+        fetch('{{ route('connect_four.match.start') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                isDropping = false;
+                setArjanSpeech(data.message);
+                return;
+            }
+            initBoard(data);
+        })
+        .catch(() => {
+            isDropping = false;
+            setArjanSpeech('Verbinding weggevallen. Probeer het opnieuw.');
+        });
     }
 
     function getLowestEmptyRow(b, c) {
@@ -879,7 +906,6 @@ body.dark .board-socket:hover,
     // Token Injection with 3D Emboss & Drop Physics
     function dropToken(row, col, player, callback) {
         board[row][col] = player;
-        moveCount++;
         const cell = document.getElementById(`cell-${row}-${col}`);
         if (!cell) return;
 
@@ -934,27 +960,51 @@ body.dark .board-socket:hover,
             return;
         }
 
-        const targetRow = getLowestEmptyRow(board, col);
-        if (targetRow === -1) return; // Column full
-
         stopTurnTimer();
         isDropping = true;
 
-        dropToken(targetRow, col, PLAYER, () => {
-            const winCoords = checkWin(board, targetRow, col, PLAYER);
-            if (winCoords) {
+        // The server validates the column and decides Arjan's reply. The client only animates the result.
+        fetch('{{ route('connect_four.move') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ column: col })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
                 isDropping = false;
-                handleGameOver(PLAYER, winCoords);
+                setArjanSpeech(data.message);
+                startTurnTimer();
+                return;
+            }
+            playServerTurn(data);
+        })
+        .catch(() => {
+            isDropping = false;
+            setArjanSpeech('Verbinding weggevallen. Probeer het opnieuw.');
+            startTurnTimer();
+        });
+    };
+
+    // Animate the player token from the server reply. Arjan's reply and the match result follow.
+    function playServerTurn(data) {
+        dropToken(data.player.row, data.player.col, PLAYER, () => {
+            if (data.status === 'player') {
+                isDropping = false;
+                handleGameOver(PLAYER, data.win_coords, data);
                 return;
             }
 
-            if (isBoardFull(board)) {
+            if (!data.ai) {
                 isDropping = false;
-                handleGameOver(EMPTY, null);
+                handleGameOver(EMPTY, null, data);
                 return;
             }
 
-            // AI Turn
             currentPlayer = AI;
             isAiThinking = true;
             isDropping = false;
@@ -964,75 +1014,23 @@ body.dark .board-socket:hover,
             if (aiMoveTimeout) clearTimeout(aiMoveTimeout);
             aiMoveTimeout = setTimeout(() => {
                 aiMoveTimeout = null;
-                if (!isGameOver && !isDropping && currentPlayer === AI) {
-                    makeAiMove();
-                }
+                animateArjanReply(data.ai, data.status, data.win_coords, data);
             }, 450 + Math.random() * 250);
         });
-    };
+    }
 
-    // Smart Minimax / Heuristic AI Move for OOHPA Arjan
-    function makeAiMove() {
-        if (isGameOver || isDropping || currentPlayer !== AI) return;
+    // Animate Arjan's token from the server. The server status decides what happens after the token lands.
+    function animateArjanReply(ai, status, winCoords, serverData) {
         isDropping = true;
-        isAiThinking = true;
-
-        let chosenCol = -1;
-
-        // 1. Can Arjan win immediately?
-        for (let c = 0; c < COLS; c++) {
-            const r = getLowestEmptyRow(board, c);
-            if (r !== -1) {
-                board[r][c] = AI;
-                if (checkWin(board, r, c, AI)) {
-                    chosenCol = c;
-                    board[r][c] = EMPTY;
-                    break;
-                }
-                board[r][c] = EMPTY;
-            }
-        }
-
-        // 2. Block player immediate win
-        if (chosenCol === -1) {
-            for (let c = 0; c < COLS; c++) {
-                const r = getLowestEmptyRow(board, c);
-                if (r !== -1) {
-                    board[r][c] = PLAYER;
-                    if (checkWin(board, r, c, PLAYER)) {
-                        chosenCol = c;
-                        board[r][c] = EMPTY;
-                        setArjanSpeech(getRandomQuote('aiBlock'));
-                        break;
-                    }
-                    board[r][c] = EMPTY;
-                }
-            }
-        }
-
-        // 3. Minimax lookup (depth 4)
-        if (chosenCol === -1) {
-            chosenCol = getBestMinimaxMove(board, 4);
-        }
-
-        if (chosenCol === -1) chosenCol = getRandomValidMove(board);
-
-        const targetRow = getLowestEmptyRow(board, chosenCol);
-        if (targetRow === -1) {
-            chosenCol = getRandomValidMove(board);
-        }
-
-        const finalRow = getLowestEmptyRow(board, chosenCol);
-        dropToken(finalRow, chosenCol, AI, () => {
+        dropToken(ai.row, ai.col, AI, () => {
             isDropping = false;
-            const winCoords = checkWin(board, finalRow, chosenCol, AI);
-            if (winCoords) {
-                handleGameOver(AI, winCoords);
+
+            if (status === 'arjan') {
+                handleGameOver(AI, winCoords, serverData);
                 return;
             }
-
-            if (isBoardFull(board)) {
-                handleGameOver(EMPTY, null);
+            if (status === 'draw') {
+                handleGameOver(EMPTY, null, serverData);
                 return;
             }
 
@@ -1042,115 +1040,6 @@ body.dark .board-socket:hover,
             startTurnTimer();
             setArjanSpeech(getRandomQuote('aiMove'));
         });
-    }
-
-    function getRandomValidMove(b) {
-        const validCols = [];
-        for (let c = 0; c < COLS; c++) {
-            if (getLowestEmptyRow(b, c) !== -1) validCols.push(c);
-        }
-        if (validCols.includes(3) && Math.random() > 0.4) return 3;
-        return validCols[Math.floor(Math.random() * validCols.length)] ?? 3;
-    }
-
-    function getBestMinimaxMove(b, depth) {
-        let bestScore = -Infinity;
-        let bestCol = 3;
-        const colOrder = [3, 2, 4, 1, 5, 0, 6];
-        const validCols = colOrder.filter(c => getLowestEmptyRow(b, c) !== -1);
-
-        for (let c of validCols) {
-            const r = getLowestEmptyRow(b, c);
-            b[r][c] = AI;
-            let score = minimax(b, depth - 1, false, -Infinity, Infinity);
-            b[r][c] = EMPTY;
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestCol = c;
-            }
-        }
-        return bestCol;
-    }
-
-    function minimax(b, depth, isMaximizing, alpha, beta) {
-        if (depth === 0) return evaluateBoard(b);
-
-        const validCols = [3, 2, 4, 1, 5, 0, 6].filter(c => getLowestEmptyRow(b, c) !== -1);
-        if (validCols.length === 0) return 0;
-
-        if (isMaximizing) {
-            let maxEval = -Infinity;
-            for (let c of validCols) {
-                const r = getLowestEmptyRow(b, c);
-                b[r][c] = AI;
-                if (checkWin(b, r, c, AI)) {
-                    b[r][c] = EMPTY;
-                    return 1000 + depth;
-                }
-                let ev = minimax(b, depth - 1, false, alpha, beta);
-                b[r][c] = EMPTY;
-                maxEval = Math.max(maxEval, ev);
-                alpha = Math.max(alpha, ev);
-                if (beta <= alpha) break;
-            }
-            return maxEval;
-        } else {
-            let minEval = Infinity;
-            for (let c of validCols) {
-                const r = getLowestEmptyRow(b, c);
-                b[r][c] = PLAYER;
-                if (checkWin(b, r, c, PLAYER)) {
-                    b[r][c] = EMPTY;
-                    return -1000 - depth;
-                }
-                let ev = minimax(b, depth - 1, true, alpha, beta);
-                b[r][c] = EMPTY;
-                minEval = Math.min(minEval, ev);
-                beta = Math.min(beta, ev);
-                if (beta <= alpha) break;
-            }
-            return minEval;
-        }
-    }
-
-    function evaluateBoard(b) {
-        let score = 0;
-        for (let r = 0; r < ROWS; r++) {
-            if (b[r][3] === AI) score += 4;
-            if (b[r][3] === PLAYER) score -= 4;
-        }
-        return score;
-    }
-
-    function checkWin(b, row, col, player) {
-        const directions = [
-            [[0, 1], [0, -1]],
-            [[1, 0], [-1, 0]],
-            [[1, 1], [-1, -1]],
-            [[1, -1], [-1, 1]]
-        ];
-
-        for (let dir of directions) {
-            let coords = [[row, col]];
-            for (let [dr, dc] of dir) {
-                let r = row + dr;
-                let c = col + dc;
-                while (r >= 0 && r < ROWS && c >= 0 && c < COLS && b[r][c] === player) {
-                    coords.push([r, c]);
-                    r += dr;
-                    c += dc;
-                }
-            }
-            if (coords.length >= 4) {
-                return coords;
-            }
-        }
-        return null;
-    }
-
-    function isBoardFull(b) {
-        return b[0].every(cell => cell !== EMPTY);
     }
 
     // Handle Game End & Backend Communication
@@ -1176,9 +1065,7 @@ body.dark .board-socket:hover,
         const modalRewards = document.getElementById('match-modal-rewards');
         const modalBtnText = document.getElementById('match-modal-btn-text');
 
-        let winnerKey = 'draw';
         if (winner === PLAYER) {
-            winnerKey = 'player';
             playerWins++;
             playSound('win');
             setArjanSpeech(quotes.playerWin);
@@ -1189,7 +1076,6 @@ body.dark .board-socket:hover,
             modalRewards.innerHTML = '<strong>Beloning:</strong> +€ 5.000 Cash • +10 XP • +3 Respect';
             modalRewards.classList.remove('hidden');
         } else if (winner === AI) {
-            winnerKey = 'arjan';
             arjanWins++;
             playSound('lose');
             setArjanSpeech(quotes.aiWin);
@@ -1200,7 +1086,6 @@ body.dark .board-socket:hover,
             modalRewards.innerHTML = '<strong>Troostprijs:</strong> +5 XP voor de inzet!';
             modalRewards.classList.remove('hidden');
         } else {
-            winnerKey = 'draw';
             draws++;
             setArjanSpeech(quotes.draw);
             modalIcon.innerText = '🤝';
@@ -1214,46 +1099,22 @@ body.dark .board-socket:hover,
         // Update local HUD counters immediately
         updateScoreDisplays();
 
-        // Send outcome to backend
-        fetch('{{ route('connect_four.finish') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                winner: winnerKey,
-                moves: Math.max(4, moveCount)
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                matchesPlayed = data.matches_played;
-                playerWins = data.current_player_wins;
-                arjanWins = data.current_arjan_wins;
-                draws = data.current_draws;
-                updateScoreDisplays();
+        // The server settled this match. Show its tournament counters.
+        matchesPlayed = serverData.matches_played;
+        playerWins = serverData.current_player_wins;
+        arjanWins = serverData.current_arjan_wins;
+        draws = serverData.current_draws;
+        updateScoreDisplays();
 
-                // If tournament completed (5 matches)
-                if (data.tournament_finished && data.tournament_summary) {
-                    showTournamentSummaryModal(data.tournament_summary, data.cooldown);
-                    return;
-                }
-            }
+        if (serverData.tournament_finished && serverData.tournament_summary) {
+            showTournamentSummaryModal(serverData.tournament_summary, serverData.cooldown);
+            return;
+        }
 
-            modalBtnText.innerText = `Potje ${Math.min(5, matchesPlayed + 1)} van 5 Spelen`;
-            setTimeout(() => {
-                document.getElementById('match-modal').classList.remove('hidden');
-            }, 650);
-        })
-        .catch(() => {
-            modalBtnText.innerText = `Volgend Potje`;
-            setTimeout(() => {
-                document.getElementById('match-modal').classList.remove('hidden');
-            }, 650);
-        });
+        modalBtnText.innerText = `Potje ${Math.min(5, matchesPlayed + 1)} van 5 Spelen`;
+        setTimeout(() => {
+            document.getElementById('match-modal').classList.remove('hidden');
+        }, 650);
     }
 
     function updateScoreDisplays() {
@@ -1306,8 +1167,7 @@ body.dark .board-socket:hover,
     // Modal Action Buttons
     window.closeMatchModalAndContinue = function() {
         document.getElementById('match-modal').classList.add('hidden');
-        startingPlayer = startingPlayer === PLAYER ? AI : PLAYER;
-        initBoard(startingPlayer);
+        startNewServerMatch();
     };
 
     window.closeTournamentModal = function() {
@@ -1318,7 +1178,7 @@ body.dark .board-socket:hover,
 
     window.restartMatch = function() {
         if (isDropping) return;
-        initBoard(PLAYER);
+        startNewServerMatch();
     };
 
     window.toggleSound = function() {
@@ -1361,7 +1221,7 @@ body.dark .board-socket:hover,
     if (cooldownRemaining > 0) {
         startCooldownCountdown();
     } else {
-        initBoard(PLAYER);
+        startNewServerMatch();
     }
 
 })();

@@ -345,6 +345,7 @@ class AuditBatch1SecurityAndLogicTest extends TestCase
         $this->actingAs($user);
 
         // Spoofed Mike win claim with only 500ms and 3 clicks must not be honored as a win
+        $this->fixArmWrestleRoll(false);
         $cheatResponse = $this->postJson(route('armwrestling.npc.finish'), [
             'npc_key' => 'mike',
             'won' => true,
@@ -355,7 +356,8 @@ class AuditBatch1SecurityAndLogicTest extends TestCase
         $cheatResponse->assertStatus(200);
         $this->assertFalse($cheatResponse->json('won'));
 
-        // Legitimate duel with sufficient duration and clicks succeeds
+        // Legitimate duel with sufficient duration and clicks succeeds when the server roll is a win
+        $this->fixArmWrestleRoll(true);
         app(CooldownService::class)->clearCooldown($character, 'arm_wrestling');
         $character->cash = 200000;
         $character->energy = 100;

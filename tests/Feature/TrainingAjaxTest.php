@@ -263,6 +263,7 @@ class TrainingAjaxTest extends TestCase
 
     public function test_arm_wrestle_npc_win_is_never_overturned_into_loss(): void
     {
+        $this->fixArmWrestleRoll(true);
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
             'cash' => 5000,
