@@ -81,7 +81,7 @@ class InfirmaryController extends Controller
             return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot de ziekenboeg balie!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -119,7 +119,7 @@ class InfirmaryController extends Controller
             return redirect()->route('prison')->with('error', 'In de isoleercel kun je geen pillen palmen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 

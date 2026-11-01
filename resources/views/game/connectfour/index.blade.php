@@ -206,15 +206,15 @@ body.dark .board-socket:hover,
                     </div>
                     <form action="{{ route('connect_four.skip_cooldown_stars') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                        <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->stars ?? 0) < 10) class="w-full py-3.5 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-star"></i>
                             <span>Overslaan met 10 Sterren ⭐ (Direct Revanche)</span>
                         </button>
                     </form>
                     @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
-                    <button type="button" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button type="button" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->getRemainingAdsToday() <= 0) onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-play"></i>
-                        <span>Overslaan via Sponsor-Ad (Direct Revanche)</span>
+                        <span>Overslaan via Sponsor-Ad (1 Ad &bull; Gratis)</span>
                     </button>
                     @endif
                     <p class="text-[10px] text-slate-400">Sla de wachttijd direct over en start onmiddellijk weer een nieuwe serie van 5 potjes!</p>
@@ -513,16 +513,16 @@ body.dark .board-socket:hover,
 
             <form action="{{ route('connect_four.skip_cooldown_stars') }}" method="POST">
                 @csrf
-                <button type="submit" class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->stars ?? 0) < 10) class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-star"></i>
                     <span>Direct Revanche voor 10 Sterren ⭐</span>
                 </button>
             </form>
 
             @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
-            <button type="button" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="button" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->getRemainingAdsToday() <= 0) onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fa-solid fa-play"></i>
-                <span>Direct Revanche via Sponsor-Ad</span>
+                <span>Direct Revanche via Sponsor-Ad (1 Ad &bull; Gratis)</span>
             </button>
             @endif
 

@@ -27,7 +27,7 @@ use Illuminate\View\View;
 
 class SponsorAdController extends Controller
 {
-    public const ADS_ENABLED = true;
+    public const ADS_ENABLED = false;
 
     public static function areAdsEnabled(): bool
     {
@@ -109,7 +109,7 @@ class SponsorAdController extends Controller
     public function index(): View|RedirectResponse
     {
         if (! self::areAdsEnabled()) {
-            return redirect()->route('shop.index')->with('info', 'De sponsorkamer en advertenties zijn vervangen door de nieuwe TBS Donaties & VIP Winkel!');
+            return redirect()->route('shop.index')->with('info', 'Sponsor-advertenties en beloningen zijn momenteel tijdelijk uitgeschakeld.');
         }
 
         /** @var Character|null $character */
@@ -303,6 +303,7 @@ class SponsorAdController extends Controller
         return response()->json([
             'success' => true,
             'ads_enabled' => self::areAdsEnabled(),
+            'daily_limit' => self::DAILY_LIMIT,
             'ads_today' => $character->getEffectiveAdsWatchedToday(),
             'ads_left_today' => $character->getRemainingAdsToday(),
             'ads_total' => $character->ads_watched_total,
@@ -311,16 +312,20 @@ class SponsorAdController extends Controller
             'ads_until_vip' => $character->getAdsUntilNextVip(),
             'is_in_prison' => $character->isImprisoned(),
             'is_comatose' => $character->isComatose(),
+            'is_in_coma' => $character->isComatose(),
             'needs_revive_serum' => $character->needsReviveSerum(),
             'has_vest' => $character->hasVest(),
             'vest_remaining_seconds' => $character->getVestRemainingSeconds(),
+            'required_prison_ads' => $character->isImprisoned() ? $character->getRequiredPrisonAds() : 1,
+            'remaining_prison_ads' => $character->isImprisoned() ? $character->getRemainingPrisonAds() : 0,
             'ad_bullets_progress' => (int) ($character->ad_bullets_progress ?? 0),
             'ad_vest_progress' => (int) ($character->ad_vest_progress ?? 0),
-            'ad_coma_progress' => (int) ($character->ad_coma_progress ?? 0),
-            'ad_prison_progress' => (int) ($character->ad_prison_progress ?? 0),
+            'ad_coma_progress' => ($character->isComatose() || $character->needsReviveSerum()) ? (int) ($character->ad_coma_progress ?? 0) : 0,
+            'ad_prison_progress' => $character->isImprisoned() ? (int) ($character->ad_prison_progress ?? 0) : 0,
             'ad_mask_progress' => (int) ($character->ad_mask_progress ?? 0),
             'ad_lottery_progress' => (int) ($character->ad_lottery_progress ?? 0),
             'ad_vault_progress' => (int) ($character->ad_vault_progress ?? 0),
+            'ad_true_crime_progress' => (int) (CharacterTrueCrimeState::where('character_id', $character->id)->value('cooldown_ads_watched') ?? 0),
             'daily_data' => $character->getAdDailyData(),
         ]);
     }
@@ -461,7 +466,13 @@ class SponsorAdController extends Controller
             ], 422);
         }
 
-        $rawRewardType = $adSession['reward_type'] ?? $request->input('reward_type') ?? $request->input('type');
+        $sessionRewardType = $adSession['reward_type'] ?? null;
+        $requestRewardType = $request->input('reward_type') ?? $request->input('type');
+        if ($sessionRewardType === 'cash' && ! empty($requestRewardType) && ! $character->isComatose() && ! $character->needsReviveSerum()) {
+            $rawRewardType = $requestRewardType;
+        } else {
+            $rawRewardType = $sessionRewardType ?? $requestRewardType;
+        }
         $rewardType = $this->normalizeRewardType($rawRewardType);
 
         return DB::transaction(function () use ($character, $adSession, $rewardType): JsonResponse {
@@ -832,25 +843,32 @@ class SponsorAdController extends Controller
                         break;
 
                     case 'coma_revive':
-                        $currentProgress = ($lockedCharacter->ad_coma_progress ?? 0) + 1;
-                        $progressRequired = 3;
-                        $progressCurrent = min(3, $currentProgress);
-                        if ($currentProgress >= 3) {
-                            $rewardCompleted = true;
-                            $lockedCharacter->ad_coma_progress = 0;
-                            $lockedCharacter->coma_until = null;
-                            $lockedCharacter->health = max((int) $lockedCharacter->health, 25, (int) ($lockedCharacter->max_health * 0.5));
-                            $perks = $lockedCharacter->perks ?? [];
-                            if (! empty($perks['liquidation_streak_deaths'])) {
-                                $perks['liquidation_streak_deaths'] = 0;
-                                $lockedCharacter->perks = $perks;
+                        if ($lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                            $currentProgress = ($lockedCharacter->ad_coma_progress ?? 0) + 1;
+                            $progressRequired = 3;
+                            $progressCurrent = min(3, $currentProgress);
+                            if ($currentProgress >= 3) {
+                                $rewardCompleted = true;
+                                $lockedCharacter->ad_coma_progress = 0;
+                                $lockedCharacter->coma_until = null;
+                                $lockedCharacter->health = max((int) $lockedCharacter->health, 25, (int) ($lockedCharacter->max_health * 0.5));
+                                $perks = $lockedCharacter->perks ?? [];
+                                if (! empty($perks['liquidation_streak_deaths'])) {
+                                    $perks['liquidation_streak_deaths'] = 0;
+                                    $lockedCharacter->perks = $perks;
+                                }
+                                $rewardDetails = '💉 [3/3 Ads] GEFELICITEERD: Medisch ontwaakt uit Intensive Care Coma! Je bent weer op de been met minimaal 50% HP!';
+                            } else {
+                                $rewardCompleted = false;
+                                $lockedCharacter->ad_coma_progress = $currentProgress;
+                                $left = 3 - $currentProgress;
+                                $rewardDetails = "💉 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om per direct te ontwaken uit Intensive Care Coma.';
                             }
-                            $rewardDetails = '💉 [3/3 Ads] GEFELICITEERD: Medisch ontwaakt uit Intensive Care Coma! Je bent weer op de been met minimaal 50% HP!';
                         } else {
-                            $rewardCompleted = false;
-                            $lockedCharacter->ad_coma_progress = $currentProgress;
-                            $left = 3 - $currentProgress;
-                            $rewardDetails = "💉 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om per direct te ontwaken uit Intensive Care Coma.';
+                            $lockedCharacter->ad_coma_progress = 0;
+                            $lockedCharacter->save();
+                            $this->economy->addCash($lockedCharacter, 2500, 'sponsor_ad');
+                            $rewardDetails = '💵 Je lag niet meer in coma, dus je hebt € 2.500 zakgeld ontvangen!';
                         }
                         break;
 

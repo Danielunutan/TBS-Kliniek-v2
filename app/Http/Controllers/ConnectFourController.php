@@ -269,7 +269,7 @@ class ConnectFourController extends Controller
             return redirect()->route('prison')->with('error', 'Je zit in de isoleercel!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 

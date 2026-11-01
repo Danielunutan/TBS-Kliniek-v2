@@ -15,6 +15,24 @@ class CpaleadPostbackTest extends TestCase
         parent::setUp();
         $this->seed();
         config(['services.cpalead.password' => 'test_cpalead_secret']);
+        config(['services.robinads.enabled' => true]);
+    }
+
+    public function test_postback_rejected_with_403_when_sponsor_ad_system_is_disabled(): void
+    {
+        config(['services.robinads.enabled' => false]);
+        $character = Character::first();
+
+        $response = $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'cash',
+            'lead_id' => 'cpalead_disabled_test_999',
+            'payout' => '0.75',
+        ]));
+
+        $response->assertStatus(403);
+        $response->assertSee('disabled');
     }
 
     public function test_postback_rejects_missing_lead_id_or_subid(): void
@@ -304,6 +322,119 @@ class CpaleadPostbackTest extends TestCase
         $this->assertDatabaseHas('cpalead_conversions', [
             'lead_id' => 'cpalead_prison_fallback_01',
             'reward_granted' => '€2.500 zakgeld (Niet in cel)',
+        ]);
+    }
+
+    public function test_postback_handles_mask_daily_cash_and_vault_code_rewards_with_once_per_day_fallback(): void
+    {
+        $character = Character::first();
+        $character->update([
+            'ad_mask_progress' => 2,
+            'ad_vault_progress' => 2,
+            'ad_daily_data' => null,
+        ]);
+        $initialMasks = $character->masks ?? 0;
+        $initialCash = $character->cash ?? 0;
+
+        // 1. mask increments masks and resets ad_mask_progress
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'mask',
+            'lead_id' => 'cpalead_mask_01',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals($initialMasks + 1, $character->masks);
+        $this->assertEquals(0, $character->ad_mask_progress);
+
+        // 2. daily_cash credits 50,000 once, and a second daily_cash on the same day falls back to 2,500
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'daily_cash',
+            'lead_id' => 'cpalead_daily_cash_01',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals($initialCash + 50000, $character->cash);
+        $this->assertTrue($character->getAdDailyData()['cash_claimed']);
+
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'daily_cash',
+            'lead_id' => 'cpalead_daily_cash_02',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals($initialCash + 52500, $character->cash);
+
+        // 3. vault_code creates SPONSOR VaultCode with 5000 cash, 2 stars, 2 tokens
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'vault_code',
+            'lead_id' => 'cpalead_vault_code_01',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $this->assertDatabaseHas('vault_codes', [
+            'character_id' => $character->id,
+            'reward_cash' => 5000,
+            'reward_stars' => 2,
+            'reward_tokens' => 2,
+            'is_redeemed' => false,
+        ]);
+    }
+
+    public function test_postback_handles_expired_prison_until_fallback_and_partial_sentence_reduction(): void
+    {
+        $this->freezeTime();
+        $character = Character::first();
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->subMinutes(5),
+            'ad_prison_progress' => 2,
+        ]);
+        $initialCash = $character->cash;
+
+        // 1. Expired prison_until falls back to 2500 cash
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'prison',
+            'lead_id' => 'cpalead_expired_prison_01',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals($initialCash + 2500, $character->cash);
+        $this->assertEquals(0, $character->ad_prison_progress);
+
+        // 2. Sentence > 15m reduces by 15 minutes and keeps character in prison
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(45),
+        ]);
+
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'prison',
+            'lead_id' => 'cpalead_partial_prison_02',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertTrue($character->isImprisoned());
+        $this->assertEquals(30 * 60, $character->remainingPrisonSeconds());
+        $this->assertDatabaseHas('cpalead_conversions', [
+            'lead_id' => 'cpalead_partial_prison_02',
+            'reward_granted' => '-15 min straftijd',
         ]);
     }
 }

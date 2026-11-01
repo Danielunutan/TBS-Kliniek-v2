@@ -16,6 +16,9 @@
             totalSeconds: 15,
             watchStartedAtMs: null,
             timerInterval: null,
+            interstitialTimeoutHandle: null,
+            autoCloseTimeout: null,
+            sessionId: 0,
             abortController: null,
             manualFallbackResolver: null,
             lastFailedAction: 'start',
@@ -57,6 +60,14 @@
                 if (this.timerInterval) {
                     clearInterval(this.timerInterval);
                     this.timerInterval = null;
+                }
+                if (this.interstitialTimeoutHandle) {
+                    clearTimeout(this.interstitialTimeoutHandle);
+                    this.interstitialTimeoutHandle = null;
+                }
+                if (this.autoCloseTimeout) {
+                    clearTimeout(this.autoCloseTimeout);
+                    this.autoCloseTimeout = null;
                 }
                 this.watchStartedAtMs = null;
             },
@@ -160,7 +171,9 @@
                     'cooldown:produce_sigaretten': 'Sigaretten Cooldown Wissen ⚡',
                     'cooldown:produce_ritalin': 'Ritalin Cooldown Wissen ⚡',
                     'cooldown:produce_telefoon': 'Telefoon Cooldown Wissen ⚡',
-                    'cooldown:produce_phone': 'Telefoon Cooldown Wissen ⚡'
+                    'cooldown:produce_phone': 'Telefoon Cooldown Wissen ⚡',
+                    'cooldown:infirmary_take': 'Medicatie Doseerschema Reset ⚡',
+                    'cooldown:infirmary_palm': 'Medicatie Palmen Cooldown Reset ⚡'
                 };
                 return titles[type] || 'Sponsor Beloning Claimen';
             },
@@ -172,6 +185,7 @@
 
                 this.clearWatchTimer();
                 this.abortPendingRequest();
+                const currentSessionId = ++this.sessionId;
                 this.rewardType = rewardType || 'cash';
                 this.rewardTitle = this.getRewardTitle(this.rewardType);
                 if (typeof callback === 'function') {
@@ -218,7 +232,7 @@
                     });
                     clearTimeout(abortTimeout);
 
-                    if (!this.isOpen) {
+                    if (!this.isOpen || this.sessionId !== currentSessionId) {
                         return;
                     }
 
@@ -235,13 +249,13 @@
                     this.totalSeconds = Number(data.duration) > 0 ? Number(data.duration) : 15;
                     this.secondsLeft = this.totalSeconds;
 
-                    await this.startWatchFlow(data);
+                    await this.startWatchFlow(data, currentSessionId);
                 } catch (e) {
                     clearTimeout(abortTimeout);
                     if (e && e.name === 'AbortError' && !requestTimedOut) {
                         return;
                     }
-                    if (!this.isOpen) {
+                    if (!this.isOpen || this.sessionId !== currentSessionId) {
                         return;
                     }
                     this.state = 'error';
@@ -249,23 +263,22 @@
                 }
             },
 
-            async startWatchFlow(data) {
-                if (!this.isOpen) {
+            async startWatchFlow(data, currentSessionId = this.sessionId) {
+                if (!this.isOpen || this.sessionId !== currentSessionId) {
                     return;
                 }
                 const robinSdk = await this.ensureRobinAdsSdk();
-                if (!this.isOpen) {
+                if (!this.isOpen || this.sessionId !== currentSessionId) {
                     return;
                 }
 
                 if (robinSdk && typeof robinSdk.showInterstitial === 'function') {
                     this.state = 'watching_interstitial';
                     const watchStartMs = Date.now();
-                    let timeoutHandle = null;
 
                     try {
                         const timeoutPromise = new Promise((resolve) => {
-                            timeoutHandle = setTimeout(() => resolve({ timedOut: true }), 25000);
+                            this.interstitialTimeoutHandle = setTimeout(() => resolve({ timedOut: true }), 25000);
                         });
                         const manualFallbackPromise = new Promise((resolve) => {
                             this.manualFallbackResolver = resolve;
@@ -279,12 +292,13 @@
                             manualFallbackPromise
                         ]);
 
-                        if (timeoutHandle) {
-                            clearTimeout(timeoutHandle);
+                        if (this.interstitialTimeoutHandle) {
+                            clearTimeout(this.interstitialTimeoutHandle);
+                            this.interstitialTimeoutHandle = null;
                         }
                         this.manualFallbackResolver = null;
 
-                        if (!this.isOpen) {
+                        if (!this.isOpen || this.sessionId !== currentSessionId) {
                             return;
                         }
 
@@ -320,15 +334,16 @@
                             return;
                         }
                     } catch (err) {
-                        if (timeoutHandle) {
-                            clearTimeout(timeoutHandle);
+                        if (this.interstitialTimeoutHandle) {
+                            clearTimeout(this.interstitialTimeoutHandle);
+                            this.interstitialTimeoutHandle = null;
                         }
                         this.manualFallbackResolver = null;
                         // Interstitial had no fill or failed to render; proceed to in-screen fallback
                     }
                 }
 
-                if (this.isOpen) {
+                if (this.isOpen && this.sessionId === currentSessionId) {
                     this.startInScreenFallback(data);
                 }
             },
@@ -350,6 +365,7 @@
                 if (!this.isOpen || this.state === 'claiming' || this.state === 'claimed') {
                     return;
                 }
+                const currentSessionId = this.sessionId;
                 this.clearWatchTimer();
                 this.abortPendingRequest();
                 this.state = 'claiming';
@@ -385,12 +401,14 @@
                     });
                     clearTimeout(abortTimeout);
 
-                    if (!this.isOpen) {
+                    if (!this.isOpen || this.sessionId !== currentSessionId) {
                         return;
                     }
 
                     const data = await response.json();
                     if (!response.ok || !data.success) {
+                        this.token = null;
+                        this.lastFailedAction = 'start';
                         this.state = 'error';
                         this.errorMsg = data.message || 'Beloning kon niet worden geclaimd.';
                         return;
@@ -419,8 +437,8 @@
 
                     this.state = 'claimed';
 
-                    setTimeout(() => {
-                        if (!this.isOpen) {
+                    this.autoCloseTimeout = setTimeout(() => {
+                        if (!this.isOpen || this.sessionId !== currentSessionId) {
                             return;
                         }
                         this.finishAndClose();
@@ -430,7 +448,7 @@
                     if (e && e.name === 'AbortError' && !requestTimedOut) {
                         return;
                     }
-                    if (!this.isOpen) {
+                    if (!this.isOpen || this.sessionId !== currentSessionId) {
                         return;
                     }
                     this.state = 'error';
@@ -473,6 +491,7 @@
 
             close(skipRefresh = false) {
                 const shouldRefresh = !skipRefresh && (this.hasPartialProgress || this.state === 'progress_saved' || this.state === 'claimed');
+                this.sessionId++;
                 this.clearWatchTimer();
                 this.abortPendingRequest();
                 this.manualFallbackResolver = null;
@@ -522,6 +541,7 @@
          class="fixed inset-0 z-[80] flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-xs">
 
         <div @click.away="if (canClose && state !== 'watching') close()"
+             aria-live="polite"
              class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-4 text-slate-800 dark:text-slate-100 relative">
 
             <!-- Header -->
@@ -850,7 +870,7 @@
                             <h5 class="font-bold text-slate-900 dark:text-white">Noodzakelijke Cookies</h5>
                             <p class="text-slate-500 dark:text-slate-400 text-[11px]">Vereist voor inloggen, sessiebeheer en CSRF-beveiliging. Kunnen niet worden uitgeschakeld.</p>
                         </div>
-                        <input type="checkbox" checked disabled class="mt-1 rounded border-slate-300 dark:border-slate-600 text-purple-600 bg-slate-200 dark:bg-slate-700 cursor-not-allowed">
+                        <input id="tbs-cookie-necessary" aria-label="Noodzakelijke Cookies" type="checkbox" checked disabled class="mt-1 rounded border-slate-300 dark:border-slate-600 text-purple-600 bg-slate-200 dark:bg-slate-700 cursor-not-allowed">
                     </div>
 
                     <!-- 2. Functioneel -->
@@ -859,7 +879,7 @@
                             <h5 class="font-bold text-slate-900 dark:text-white">Functionele Voorkeuren</h5>
                             <p class="text-slate-500 dark:text-slate-400 text-[11px]">Onthoudt interface-instellingen, sidebar-status en helpbot gesprekken.</p>
                         </div>
-                        <input type="checkbox" x-model="prefs.functional" class="mt-1 rounded border-slate-300 dark:border-slate-600 text-purple-600 focus:ring-purple-500/20 cursor-pointer">
+                        <input id="tbs-cookie-functional" aria-label="Functionele Voorkeuren" type="checkbox" x-model="prefs.functional" class="mt-1 rounded border-slate-300 dark:border-slate-600 text-purple-600 focus:ring-purple-500/20 cursor-pointer">
                     </div>
                 </div>
 

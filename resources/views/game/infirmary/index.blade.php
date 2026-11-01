@@ -87,18 +87,29 @@
                 </div>
 
                 @if($takeCooldown > 0)
-                <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between gap-3 text-xs">
+                <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 flex flex-wrap items-center justify-between gap-3 text-xs">
                     <span class="font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
                         <i class="fa-solid fa-clock text-amber-500"></i> Doseerschema actief: wacht nog {{ $takeCooldown }}s
                     </span>
-                    <form method="POST" action="{{ route('cooldown.skip') }}" class="inline">
-                        @csrf
-                        <input type="hidden" name="action" value="infirmary_take">
-                        <button type="submit" class="btn-star-gold px-3 py-1.5 rounded-xl text-slate-900 dark:text-white font-black text-[11px] transition shrink-0 cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95">
-                            <i class="fa-solid fa-star text-[10px]"></i>
-                            <span>Omzeilen (10 ⭐)</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+                        <button type="button"
+                                @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->getRemainingAdsToday() <= 0)
+                                onclick="window.tbsOpenSponsorAd('cooldown:infirmary_take', () => { window.location.reload(); })"
+                                class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-[11px] transition shrink-0 cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-play text-[10px]"></i>
+                            <span>Gratis via Ad</span>
                         </button>
-                    </form>
+                        @endif
+                        <form method="POST" action="{{ route('cooldown.skip') }}" class="inline">
+                            @csrf
+                            <input type="hidden" name="action" value="infirmary_take">
+                            <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->stars ?? 0) < 10) class="btn-star-gold px-3 py-1.5 rounded-xl text-slate-900 dark:text-white font-black text-[11px] transition shrink-0 cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-star text-[10px]"></i>
+                                <span>Omzeilen (10 ⭐)</span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 @endif
             </div>
@@ -106,8 +117,8 @@
             <form action="{{ route('infirmary.take') }}" method="POST">
                 @csrf
                 <button type="submit" 
-                        {{ $takeCooldown > 0 || $character->health >= $character->max_health || $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
-                        class="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $takeCooldown > 0 || $character->health >= $character->max_health || $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/80 dark:border-slate-700/60' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }}">
+                        {{ $takeCooldown > 0 || $character->health >= $character->max_health || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
+                        class="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $takeCooldown > 0 || $character->health >= $character->max_health || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/80 dark:border-slate-700/60' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }}">
                     <i class="fa-solid fa-pills"></i>
                     <span>{{ $character->health >= $character->max_health ? 'Gezondheid al Maximaal' : 'Neem Medicijn In (+45 HP)' }}</span>
                 </button>
@@ -161,11 +172,20 @@
                     <span class="font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
                         <i class="fa-solid fa-eye text-amber-500"></i> Ingrid let scherp op: wacht nog {{ $palmCooldown }}s
                     </span>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+                        <button type="button"
+                                @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->getRemainingAdsToday() <= 0)
+                                onclick="window.tbsOpenSponsorAd('cooldown:infirmary_palm', () => { window.location.reload(); })"
+                                class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition shrink-0 cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-play text-[10px]"></i>
+                            <span>Gratis via Ad</span>
+                        </button>
+                        @endif
                         <form method="POST" action="{{ route('cooldown.skip') }}" class="inline">
                             @csrf
                             <input type="hidden" name="action" value="infirmary_palm">
-                            <button type="submit" class="btn-star-gold px-3 py-1.5 rounded-xl text-slate-900 dark:text-white font-black text-xs transition shrink-0 cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95">
+                            <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->stars ?? 0) < 10) class="btn-star-gold px-3 py-1.5 rounded-xl text-slate-900 dark:text-white font-black text-xs transition shrink-0 cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-star text-[10px]"></i>
                                 <span>Omzeilen (10 ⭐)</span>
                             </button>
@@ -178,8 +198,8 @@
             <form action="{{ route('infirmary.palm') }}" method="POST">
                 @csrf
                 <button type="submit" 
-                        {{ $palmCooldown > 0 || $character->energy < 10 || $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
-                        class="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $palmCooldown > 0 || $character->energy < 10 || $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/80 dark:border-slate-700/60' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }}">
+                        {{ $palmCooldown > 0 || $character->energy < 10 || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
+                        class="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $palmCooldown > 0 || $character->energy < 10 || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/80 dark:border-slate-700/60' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }}">
                     <i class="fa-solid fa-hand-holding-hand"></i>
                     <span>Pil Stiekem Palmen (-10 Energie)</span>
                 </button>

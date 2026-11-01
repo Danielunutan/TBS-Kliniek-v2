@@ -307,7 +307,7 @@
                 </div>
 
                 <!-- DIRECTE ONTSNAPPING, VRIJKOOP MET STERREN & SPONSORVIDEO -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                <div class="grid grid-cols-1 {{ \App\Http\Controllers\SponsorAdController::areAdsEnabled() ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-3.5">
                     <!-- Optie 1: Luchtschacht Ontsnapping -->
                     <div class="rounded-xl bg-[#0b0f19] border border-white/10 p-3.5 flex flex-col justify-between gap-3">
                         <div>
@@ -350,6 +350,7 @@
                         </form>
                     </div>
 
+                    @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
                     <!-- Optie 3: Sponsoruitzending -->
                     <div class="rounded-xl bg-[#0b0f19] border border-emerald-500/30 p-3.5 flex flex-col justify-between gap-3">
                         <div>
@@ -377,6 +378,7 @@
                             <span x-text="watchingAd ? 'Uitzending Laden...' : 'Video Bekijken (Gratis Vrij)'"></span>
                         </button>
                     </div>
+                    @endif
                 </div>
             </div>
 

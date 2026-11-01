@@ -13,6 +13,35 @@ class TrueCrimeCooldownAdTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['services.robinads.enabled' => true]);
+    }
+
+    public function test_true_crime_cooldown_ad_claim_blocked_when_ads_disabled(): void
+    {
+        config(['services.robinads.enabled' => false]);
+        $user = User::factory()->create();
+        Character::create([
+            'user_id' => $user->id,
+            'name' => 'DetectiveBlocked',
+            'level' => 1,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'cash' => 1000,
+            'stars' => 0,
+            'respect' => 0,
+            'is_onboarded' => true,
+        ]);
+
+        $this->actingAs($user)->post(route('true_crime.skip_cooldown_ad'))
+            ->assertRedirect(route('true_crime.index'))
+            ->assertSessionHas('error');
+    }
+
     public function test_user_requires_5_ads_to_bypass_true_crime_cooldown(): void
     {
         $user = User::factory()->create();

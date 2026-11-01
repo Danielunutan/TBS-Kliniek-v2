@@ -463,7 +463,6 @@
                     const now = Date.now();
                     const lastGlobal = window._tbsLastStatsFetchAt || 0;
                     if (!force && (now - Math.max(this.lastRefreshTime, lastGlobal) < 8000)) return;
-                    if (force && (now - lastGlobal < 1200)) return;
                     if (this.isRefreshing || window._tbsStatsFetchInFlight) return;
                     this.isRefreshing = true;
                     window._tbsStatsFetchInFlight = true;
@@ -2354,6 +2353,10 @@
             @endphp
             <div x-data="{ 
                     sec: {{ $character->remainingPrisonSeconds() }},
+                    currentAds: {{ $topCurrPrisonAds }},
+                    requiredAds: {{ $topReqPrisonAds }},
+                    timerInterval: null,
+                    expiredHandled: false,
                     formatTime(s) {
                         if (s <= 0) return '00:00';
                         const m = Math.floor(s / 60);
@@ -2361,7 +2364,13 @@
                         return (m < 10 ? '0' : '') + m + ':' + (remainder < 10 ? '0' : '') + remainder;
                     },
                     onTimeExpired() {
+                        if (this.timerInterval) {
+                            clearInterval(this.timerInterval);
+                            this.timerInterval = null;
+                        }
                         this.sec = 0;
+                        if (this.expiredHandled) return;
+                        this.expiredHandled = true;
                         if (typeof window.tbsRefreshStats === 'function') {
                             window.tbsRefreshStats(true);
                         }
@@ -2371,10 +2380,9 @@
                     },
                     init() {
                         if (this.sec > 0) {
-                            const timer = setInterval(() => {
+                            this.timerInterval = setInterval(() => {
                                 this.sec--;
                                 if (this.sec <= 0) {
-                                    clearInterval(timer);
                                     this.onTimeExpired();
                                 }
                             }, 1000);
@@ -2382,7 +2390,7 @@
                     }
                  }" 
                  x-show="sec > 0"
-                 @tbs-ad-claimed.window="if ($event.detail && $event.detail.reward_type === 'prison') { sec = Math.max(0, sec - 180); if (sec <= 0) onTimeExpired(); }"
+                 @tbs-ad-claimed.window="if ($event.detail && $event.detail.reward_type === 'prison') { currentAds = Number($event.detail.progress_current) || currentAds; requiredAds = Number($event.detail.progress_required) || requiredAds; if ($event.detail.reward_completed) { onTimeExpired(); } else { sec = Math.max(0, sec - 180); if (sec <= 0) onTimeExpired(); } }"
                  class="mb-6 bg-white dark:bg-slate-900 border-2 border-rose-400 dark:border-rose-600/80 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4 relative z-20">
                 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2422,7 +2430,7 @@
                             <i class="fa-solid fa-play text-xs"></i>
                             <span>Sponsor-Ad (-3m)</span>
                         </div>
-                        <span class="px-2 py-0.5 rounded-md bg-rose-900/80 text-[10px] font-black text-rose-100">{{ $topCurrPrisonAds }}/{{ $topReqPrisonAds }} Ads</span>
+                        <span class="px-2 py-0.5 rounded-md bg-rose-900/80 text-[10px] font-black text-rose-100" x-text="currentAds + '/' + requiredAds + ' Ads'">{{ $topCurrPrisonAds }}/{{ $topReqPrisonAds }} Ads</span>
                     </button>
                     @endif
                     <form action="{{ route('shop.buy-star-item') }}" method="POST" class="w-full">

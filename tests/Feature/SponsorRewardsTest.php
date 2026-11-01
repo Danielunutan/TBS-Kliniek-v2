@@ -776,4 +776,96 @@ class SponsorRewardsTest extends TestCase
         $this->assertNull($state->cooldown_until);
         $this->assertEquals($activeCaseId, $state->current_case_id);
     }
+
+    public function test_minigame_cooldown_ad_controllers_enforce_prison_code_blauw_and_active_cooldown_guards(): void
+    {
+        [$user, $character] = $this->createTestUser();
+
+        $c4Stat = CharacterConnectFourStat::create([
+            'character_id' => $character->id,
+            'matches_played' => 5,
+            'cooldown_until' => now()->addMinutes(10),
+        ]);
+        $memStat = CharacterMemoryStat::create([
+            'character_id' => $character->id,
+            'cooldown_until' => now()->addMinutes(10),
+        ]);
+        $tcState = CharacterTrueCrimeState::create([
+            'character_id' => $character->id,
+            'cooldown_until' => now()->addHours(24),
+            'cooldown_ads_watched' => 0,
+        ]);
+
+        // 1. Prison guard redirects to prison route
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(5),
+        ]);
+        $user->unsetRelation('character');
+
+        $this->actingAs($user)->post(route('connect_four.skip_cooldown_ad'))
+            ->assertRedirect(route('prison'));
+        $this->actingAs($user)->post(route('memory.skip_cooldown_ad'))
+            ->assertRedirect(route('prison'));
+        $this->actingAs($user)->post(route('true_crime.skip_cooldown_ad'))
+            ->assertRedirect(route('prison'));
+
+        // 2. Code Blauw guard blocks both ad and star skips
+        $character->update([
+            'is_in_prison' => false,
+            'prison_until' => null,
+            'health' => 0,
+            'perks' => ['liquidation_streak_deaths' => 10],
+            'stars' => 50,
+        ]);
+        $user->unsetRelation('character');
+
+        $this->actingAs($user)->post(route('connect_four.skip_cooldown_ad'))->assertSessionHas('error');
+        $this->actingAs($user)->post(route('memory.skip_cooldown_ad'))->assertSessionHas('error');
+        $this->actingAs($user)->post(route('true_crime.skip_cooldown_ad'))->assertSessionHas('error');
+        $this->actingAs($user)->post(route('connect_four.skip_cooldown_stars'))->assertSessionHas('error');
+        $this->actingAs($user)->post(route('memory.skip_cooldown_stars'))->assertSessionHas('error');
+        $this->actingAs($user)->post(route('true_crime.skip_cooldown_stars'))->assertSessionHas('error');
+
+        // 3. Verified ad session started with default 'cash' still skips minigame cooldown via controller route
+        $character->update([
+            'health' => 100,
+            'perks' => ['liquidation_streak_deaths' => 0],
+        ]);
+        $user->unsetRelation('character');
+
+        $token = Str::random(32);
+        $adData = [
+            'token' => $token,
+            'started_at' => now()->subSeconds(20)->timestamp,
+            'character_id' => $character->id,
+            'reward_type' => 'cash',
+            'robin_reward_id' => null,
+        ];
+        Cache::put("tbs_ad_token_{$token}", $adData, now()->addMinutes(30));
+
+        $this->actingAs($user)->post(route('connect_four.skip_cooldown_ad'), ['token' => $token])
+            ->assertRedirect(route('connect_four.index'))
+            ->assertSessionHas('success');
+        $this->assertFalse($c4Stat->fresh()->isOnCooldown());
+    }
+
+    public function test_coma_revive_claim_falls_back_to_cash_when_coma_expired_during_ad_watch(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $character->update([
+            'health' => 100,
+            'coma_until' => now()->subMinute(),
+            'ad_coma_progress' => 2,
+        ]);
+        $initialCash = $character->cash;
+
+        $response = $this->simulateAdWatch($user, $character, 'coma_revive');
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $character->refresh();
+        $this->assertEquals(0, $character->ad_coma_progress);
+        $this->assertEquals($initialCash + 2500, $character->cash);
+    }
 }

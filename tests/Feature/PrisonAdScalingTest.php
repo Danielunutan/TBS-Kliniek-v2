@@ -75,5 +75,38 @@ class PrisonAdScalingTest extends TestCase
         $char->refresh();
         $this->assertFalse($char->isImprisoned());
         $this->assertEquals(0, $char->ad_prison_progress);
+        $this->assertEquals(0, $char->getRemainingPrisonAds());
+    }
+
+    public function test_prison_ad_scaling_tier_thresholds_and_5_ad_cap(): void
+    {
+        $this->freezeTime();
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'is_in_prison' => false,
+            'prison_until' => null,
+            'ad_prison_progress' => 0,
+        ]);
+
+        $this->assertEquals(0, $char->getRemainingPrisonAds());
+
+        $tiers = [
+            60 => 1,
+            180 => 2,
+            400 => 3,
+            600 => 4,
+            1200 => 5,
+        ];
+
+        foreach ($tiers as $seconds => $expectedAds) {
+            $char->update([
+                'is_in_prison' => true,
+                'prison_until' => now()->addSeconds($seconds),
+                'ad_prison_progress' => 0,
+            ]);
+            $this->assertEquals($expectedAds, $char->getRequiredPrisonAds());
+            $this->assertEquals($expectedAds, $char->getRemainingPrisonAds());
+        }
     }
 }

@@ -370,4 +370,36 @@ class SponsorAdAndLegalTest extends TestCase
         $this->assertEquals(15000, $code->reward_cash);
         $this->assertEquals(3, $code->reward_stars);
     }
+
+    public function test_sponsorkamer_and_ad_endpoints_are_fully_disabled_when_ads_disabled(): void
+    {
+        config(['services.robinads.enabled' => false]);
+        $user = User::factory()->create();
+        $this->createCharacter($user);
+
+        // 1. Sponsorkamer index redirects to shop with disabled message
+        $this->actingAs($user)->get(route('sponsor.index'))
+            ->assertRedirect(route('shop.index'))
+            ->assertSessionHas('info');
+
+        // 2. Start ad returns 403
+        $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'cash'])
+            ->assertStatus(403)
+            ->assertJson(['success' => false]);
+
+        // 3. Claim ad returns 403
+        $this->actingAs($user)->postJson(route('sponsor.claim'), ['token' => 'dummy_token'])
+            ->assertStatus(403)
+            ->assertJson(['success' => false]);
+
+        // 4. Redirect route returns to dashboard
+        $this->actingAs($user)->get(route('sponsor.redirect'))
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('info');
+
+        // 5. Status endpoint reports ads_enabled as false
+        $this->actingAs($user)->getJson(route('sponsor.status'))
+            ->assertOk()
+            ->assertJson(['ads_enabled' => false]);
+    }
 }

@@ -48,7 +48,12 @@ class CpaleadPostbackController extends Controller
             return response('Error: Invalid postback password', 403);
         }
 
-        // 2. Validate essential parameters
+        // 2. Enforce sponsor ad and reward system availability
+        if (! SponsorAdController::areAdsEnabled()) {
+            return response('Error: Sponsor ad and reward system is temporarily disabled', 403);
+        }
+
+        // 3. Validate essential parameters
         $leadId = trim((string) $request->input('lead_id'));
         $subid = trim((string) $request->input('subid'));
         $subid2 = strtolower(trim((string) $request->input('subid2', 'cash')));
@@ -261,32 +266,53 @@ class CpaleadPostbackController extends Controller
 
                 case 'daily_stars':
                     $dailyData = $lockedCharacter->getAdDailyData();
-                    $dailyData['stars_claimed'] = true;
-                    $dailyData['stars_progress'] = 2;
-                    $lockedCharacter->ad_daily_data = $dailyData;
-                    $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + 5;
-                    $rewardGranted = '+5 Sterren Dagelijkse Bonus ⭐';
+                    if (! empty($dailyData['stars_claimed'])) {
+                        $lockedCharacter->save();
+                        $this->economy->addCash($lockedCharacter, 2500, 'sponsor_ad');
+                        $alreadySavedByEconomy = true;
+                        $rewardGranted = '€2.500 zakgeld (Dagelijkse bonus al geclaimd)';
+                    } else {
+                        $dailyData['stars_claimed'] = true;
+                        $dailyData['stars_progress'] = 2;
+                        $lockedCharacter->ad_daily_data = $dailyData;
+                        $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + 5;
+                        $rewardGranted = '+5 Sterren Dagelijkse Bonus ⭐';
+                    }
                     break;
 
                 case 'daily_xp':
                 case 'xp':
                     $dailyData = $lockedCharacter->getAdDailyData();
-                    $dailyData['xp_claimed'] = true;
-                    $dailyData['xp_progress'] = 3;
-                    $lockedCharacter->ad_daily_data = $dailyData;
-                    $this->levelService->addXp($lockedCharacter, 50);
-                    $rewardGranted = '+50 XP Boost ⚡';
+                    if (! empty($dailyData['xp_claimed'])) {
+                        $lockedCharacter->save();
+                        $this->economy->addCash($lockedCharacter, 2500, 'sponsor_ad');
+                        $alreadySavedByEconomy = true;
+                        $rewardGranted = '€2.500 zakgeld (Dagelijkse bonus al geclaimd)';
+                    } else {
+                        $dailyData['xp_claimed'] = true;
+                        $dailyData['xp_progress'] = 3;
+                        $lockedCharacter->ad_daily_data = $dailyData;
+                        $this->levelService->addXp($lockedCharacter, 50);
+                        $rewardGranted = '+50 XP Boost ⚡';
+                    }
                     break;
 
                 case 'daily_cash':
                     $dailyData = $lockedCharacter->getAdDailyData();
-                    $dailyData['cash_claimed'] = true;
-                    $dailyData['cash_progress'] = 3;
-                    $lockedCharacter->ad_daily_data = $dailyData;
-                    $lockedCharacter->save();
-                    $this->economy->addCash($lockedCharacter, 50000, 'sponsor_ad');
-                    $alreadySavedByEconomy = true;
-                    $rewardGranted = '€50.000 Dagelijkse Bonus 💶';
+                    if (! empty($dailyData['cash_claimed'])) {
+                        $lockedCharacter->save();
+                        $this->economy->addCash($lockedCharacter, 2500, 'sponsor_ad');
+                        $alreadySavedByEconomy = true;
+                        $rewardGranted = '€2.500 zakgeld (Dagelijkse bonus al geclaimd)';
+                    } else {
+                        $dailyData['cash_claimed'] = true;
+                        $dailyData['cash_progress'] = 3;
+                        $lockedCharacter->ad_daily_data = $dailyData;
+                        $lockedCharacter->save();
+                        $this->economy->addCash($lockedCharacter, 50000, 'sponsor_ad');
+                        $alreadySavedByEconomy = true;
+                        $rewardGranted = '€50.000 Dagelijkse Bonus 💶';
+                    }
                     break;
 
                 case 'vault_code':
