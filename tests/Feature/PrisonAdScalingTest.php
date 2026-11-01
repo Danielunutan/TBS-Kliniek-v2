@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class PrisonAdScalingTest extends TestCase
@@ -15,7 +16,17 @@ class PrisonAdScalingTest extends TestCase
     {
         parent::setUp();
         $this->seed();
-        config(['services.robinads.enabled' => true]);
+        config([
+            'services.robinads.enabled' => true,
+            'services.robinads.api_key' => 'robinads-test-key',
+        ]);
+
+        // A claim counts only when Robins Ads reports the reward as verified. The fake answers that server check.
+        Http::fake([
+            'robinsads.com/api/v1/rewards' => Http::response(['id' => 'rwd_prison_test', 'popup_url' => 'https://robinsads.com/popup/test']),
+            'robinsads.com/api/v1/rewards/*' => Http::response(['status' => 'verified']),
+            'robinsads.com/api/ads/reward/verify' => Http::response([]),
+        ]);
     }
 
     public function test_prison_ad_scaling_and_progressive_release(): void
@@ -42,6 +53,7 @@ class PrisonAdScalingTest extends TestCase
             'type' => 'prison',
             'token' => $start1['token'],
             'robin_token' => 'verified_test',
+            'robin_reward_id' => 'rwd_prison_test',
         ]);
         $resp1->assertJson(['success' => true]);
 
@@ -56,6 +68,7 @@ class PrisonAdScalingTest extends TestCase
             'type' => 'prison',
             'token' => $start2['token'],
             'robin_token' => 'verified_test',
+            'robin_reward_id' => 'rwd_prison_test',
         ]);
         $resp2->assertJson(['success' => true]);
 
@@ -69,6 +82,7 @@ class PrisonAdScalingTest extends TestCase
             'type' => 'prison',
             'token' => $start3['token'],
             'robin_token' => 'verified_test',
+            'robin_reward_id' => 'rwd_prison_test',
         ]);
         $resp3->assertJson(['success' => true]);
 

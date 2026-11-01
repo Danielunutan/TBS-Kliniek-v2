@@ -128,6 +128,16 @@ class AuthController extends Controller
     }
 
     /**
+     * Check and consume the Discord login state that this browser session stored.
+     */
+    private function isValidLoginState(Request $request, string $state): bool
+    {
+        $expectedState = (string) $request->session()->pull('oauth2state', '');
+
+        return $expectedState !== '' && hash_equals($expectedState, $state);
+    }
+
+    /**
      * Discord OAuth callback handler.
      */
     public function discordCallback(Request $request): Response|RedirectResponse
@@ -136,6 +146,13 @@ class AuthController extends Controller
         $clientSecret = DiscordShieldSetting::get('client_secret') ?: config('services.discord.client_secret');
         $code = $request->query('code');
         $redirectUri = 'https://tbs-kliniek.nl/discord/callback';
+
+        // The state must match the value stored for this browser session. Without this check, an attacker can
+        // send a victim a link that logs the victim into the attacker's Discord account (login CSRF).
+        $state = (string) $request->query('state');
+        if (! str_starts_with($state, 'shield_') && ! $this->isValidLoginState($request, $state)) {
+            return redirect()->route('login')->withErrors(['email' => 'Beveiligingsfout: Ongeldige sessie state. Probeer het opnieuw.']);
+        }
 
         if ($clientId && $clientSecret && $code) {
             try {
@@ -173,7 +190,10 @@ class AuthController extends Controller
                                 return redirect()->route('discord.verify')->with('success', 'Discord account gekoppeld! Voltooi nu de korte beveiligingscheck.');
                             }
 
-                            $email = $discordUser['email'] ?? ($discordUser['username'].'@discord.tbskliniek.nl');
+                            // Only a verified Discord email may match an existing account. An unverified address
+                            // could belong to someone else, so it falls back to the Discord-based address.
+                            $discordEmail = ($discordUser['verified'] ?? false) === true ? ($discordUser['email'] ?? null) : null;
+                            $email = $discordEmail ?? ($discordUser['username'].'@discord.tbskliniek.nl');
                             $rawName = $discordUser['global_name'] ?? $discordUser['username'] ?? 'Discord Speler';
                             $cleanUsername = strtolower((string) preg_replace('/[^a-zA-Z0-9_-]/', '', (string) ($discordUser['username'] ?? 'inmate')));
                             if (strlen($cleanUsername) < 3) {

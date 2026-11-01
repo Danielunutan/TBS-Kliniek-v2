@@ -571,7 +571,8 @@ class ShopController extends Controller
 
             // Bereken hoeveel stuks geconsumeerd worden (optie voor enkel, specifiek aantal of tot 100% vol)
             $requestedQty = max(1, (int) $request->input('quantity', 1));
-            if ($request->boolean('fill_max')) {
+            // Cooldown items must not use "fill to max". Otherwise a player could stockpile them and bypass the 6-hour cooldown.
+            if ($request->boolean('fill_max') && ! in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus'], true)) {
                 $energyDeficit = max(0, $lockedCharacter->max_energy - $lockedCharacter->energy);
                 $healthDeficit = max(0, $lockedCharacter->max_health - $lockedCharacter->health);
 

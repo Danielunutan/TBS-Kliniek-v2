@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -222,12 +223,12 @@ class SponsorAdController extends Controller
         $popupUrl = null;
         $robinRewardId = null;
 
-        $apiKey = config('services.robinads.api_key', 'rbads_live_7c596edc4ee5a05b9ca3a7e17a060143aa5c2a67');
+        $apiKey = config('services.robinads.api_key');
         $websiteId = config('services.robinads.website_id', '6ad2b8e95f70fee0a42a5496');
 
         if ($apiKey && $websiteId) {
             try {
-                $response = Http::withoutVerifying()->withToken($apiKey)->connectTimeout(2)->timeout(2)->post('https://robinsads.com/api/v1/rewards', [
+                $response = Http::withToken($apiKey)->connectTimeout(2)->timeout(2)->post('https://robinsads.com/api/v1/rewards', [
                     'website_id' => $websiteId,
                     'metadata' => [
                         'character_id' => (string) $character->id,
@@ -415,33 +416,30 @@ class SponsorAdController extends Controller
             ], 403);
         }
 
-        $apiKey = config('services.robinads.api_key', 'rbads_live_7c596edc4ee5a05b9ca3a7e17a060143aa5c2a67');
+        $apiKey = config('services.robinads.api_key');
         $robinToken = $request->input('robin_token');
         $robinRewardId = $request->input('robin_reward_id') ?? ($adSession['robin_reward_id'] ?? null);
 
         // Verification logic:
-        // 1. If Robins Ads granted completion token on client side (in-screen interstitial full watch), view is completed!
+        // 1. A client-side Robins Ads token is not proof of a completed view. The ping only registers the impression.
+        //    The server status check below decides whether the view counts.
         $isVerified = false;
 
-        if ($robinToken) {
-            $isVerified = true;
-
-            // Optional verification ping to register impression on Robins Ads
-            if ($apiKey && $robinRewardId) {
-                try {
-                    Http::withoutVerifying()->withToken($apiKey)->connectTimeout(2)->timeout(2)->post('https://robinsads.com/api/ads/reward/verify', [
-                        'impressionId' => $robinRewardId,
-                        'token' => $robinToken,
-                    ]);
-                } catch (\Throwable $e) {
-                }
+        if ($robinToken && $apiKey && $robinRewardId) {
+            try {
+                Http::withToken($apiKey)->connectTimeout(2)->timeout(2)->post('https://robinsads.com/api/ads/reward/verify', [
+                    'impressionId' => $robinRewardId,
+                    'token' => $robinToken,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Robins Ads impression ping failed.', ['reward_id' => $robinRewardId, 'error' => $e->getMessage()]);
             }
         }
 
         // 2. If a Robins Ads reward ID exists, strictly verify with Robins Ads server whether the ad has been fully watched
         if (! $isVerified && $apiKey && $robinRewardId) {
             try {
-                $statusRes = Http::withoutVerifying()->withToken($apiKey)->connectTimeout(2)->timeout(2)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
+                $statusRes = Http::withToken($apiKey)->connectTimeout(2)->timeout(2)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
                 if ($statusRes->successful() && $statusRes->json('status') === 'verified') {
                     $isVerified = true;
                 }

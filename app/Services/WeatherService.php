@@ -40,8 +40,7 @@ class WeatherService
         }
 
         try {
-            $resp = Http::withoutVerifying()
-                ->timeout(4)
+            $resp = Http::timeout(4)
                 ->get('https://geocoding-api.open-meteo.com/v1/search', [
                     'name' => $city,
                     'count' => 1,
@@ -101,8 +100,7 @@ class WeatherService
             $cityName = $customCity ?: ($isGps ? $this->resolveCityName($lat, $lon) : self::DEFAULT_LOCATION);
 
             try {
-                $response = Http::withoutVerifying()
-                    ->timeout(4)
+                $response = Http::timeout(4)
                     ->get('https://api.open-meteo.com/v1/forecast', [
                         'latitude' => $lat,
                         'longitude' => $lon,
@@ -191,8 +189,7 @@ class WeatherService
     protected function resolveCityName(float $lat, float $lon): string
     {
         try {
-            $resp = Http::withoutVerifying()
-                ->timeout(3)
+            $resp = Http::timeout(3)
                 ->get('https://api.bigdatacloud.net/data/reverse-geocode-client', [
                     'latitude' => $lat,
                     'longitude' => $lon,

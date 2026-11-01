@@ -53,9 +53,9 @@ class BuyMeACoffeeWebhookController extends Controller
         }
 
         $payload = $request->all();
+        // Log only the event name. Headers carry the signature, and the payload carries personal data.
         Log::info('BuyMeACoffee Webhook received', [
-            'headers' => $request->headers->all(),
-            'payload' => $payload,
+            'event' => $payload['event'] ?? $payload['type'] ?? 'unknown',
         ]);
 
         $event = $payload['event'] ?? $payload['type'] ?? 'unknown';

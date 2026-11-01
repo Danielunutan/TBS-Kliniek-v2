@@ -56,7 +56,7 @@ class DiscordShieldAdminController extends Controller
             'auto_ban_evaders' => DiscordShieldSetting::get('auto_ban_evaders', '0'),
             'turnstile_enabled' => DiscordShieldSetting::get('turnstile_enabled', '1'),
             'turnstile_site_key' => DiscordShieldSetting::get('turnstile_site_key', env('TURNSTILE_SITE_KEY', '0x4AAAAAAFTb6Vv0yuFCIDYU')),
-            'turnstile_secret_key' => DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY', '0x4AAAAAAFTb6acMyf3-LP-CdIYqWEH_Lo0')),
+            'turnstile_secret_key' => DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY')),
         ];
 
         return view('admin.discord_shield.index', compact(

@@ -5,11 +5,44 @@ namespace Tests\Feature;
 use App\Models\Character;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class DashboardWidgetAndWeatherTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Fake the Open-Meteo geocoding and forecast endpoints so the tests do not depend on the network.
+     * Certificate checks stay on, so the tests need no live TLS connection.
+     */
+    private function fakeOpenMeteoResponses(string $cityName, float $latitude, float $longitude): void
+    {
+        Http::fake([
+            'geocoding-api.open-meteo.com/*' => Http::response([
+                'results' => [
+                    ['name' => $cityName, 'latitude' => $latitude, 'longitude' => $longitude],
+                ],
+            ]),
+            'api.open-meteo.com/*' => Http::response([
+                'current' => [
+                    'temperature_2m' => 12.3,
+                    'relative_humidity_2m' => 71,
+                    'apparent_temperature' => 10.9,
+                    'precipitation' => 0.0,
+                    'rain' => 0.0,
+                    'showers' => 0.0,
+                    'weather_code' => 3,
+                    'wind_speed_10m' => 14.2,
+                ],
+                'hourly' => [
+                    'time' => [],
+                    'precipitation_probability' => [],
+                    'precipitation' => [],
+                ],
+            ]),
+        ]);
+    }
 
     protected function setUp(): void
     {
@@ -115,6 +148,7 @@ class DashboardWidgetAndWeatherTest extends TestCase
     {
         $user = User::factory()->create();
         $character = $this->createCharacter($user);
+        $this->fakeOpenMeteoResponses('Eindhoven', 51.44, 5.48);
 
         $response = $this->actingAs($user)->getJson(route('dashboard.weather.coords', [
             'city' => 'Eindhoven',
@@ -172,6 +206,7 @@ class DashboardWidgetAndWeatherTest extends TestCase
     {
         $user = User::factory()->create();
         $this->createCharacter($user);
+        $this->fakeOpenMeteoResponses('Rotterdam', 51.92, 4.48);
 
         $response = $this->actingAs($user)->getJson(route('dashboard.weather.coords', [
             'city' => 'Rotterdam',

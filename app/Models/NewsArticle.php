@@ -53,7 +53,20 @@ class NewsArticle extends Model
     }
 
     /**
-     * Sanitize HTML by stripping unsafe tags, event handlers, and dangerous URL schemes.
+     * Tags that survive sanitization. Every other tag loses its markup but keeps its text.
+     */
+    private const SANITIZE_ALLOWED_TAGS = '<p><br><h2><h3><h4><h5><h6><strong><b><em><i><u><s><del><ul><ol><li><blockquote><code><pre><hr><a><img><div><span><table><thead><tbody><tr><th><td>';
+
+    /**
+     * Attributes that survive sanitization. Every other attribute, including all on* event handlers, is removed.
+     */
+    private const SANITIZE_ALLOWED_ATTRIBUTES = ['href', 'src', 'alt', 'title', 'colspan', 'rowspan'];
+
+    /**
+     * Sanitize HTML with an allow-list of tags, attributes, and URL schemes.
+     *
+     * A blocklist fails on encoded input, such as "&#106;avascript:", because browsers decode entities after
+     * the server checks the text. The DOM parser decodes entities first, so the checks see the same value as the browser.
      */
     public static function sanitizeHtml(?string $html): string
     {
@@ -61,19 +74,66 @@ class NewsArticle extends Model
             return '';
         }
 
-        $stripped = strip_tags(
-            $html,
-            '<p><br><h2><h3><h4><h5><h6><strong><b><em><i><u><s><del><ul><ol><li><blockquote><code><pre><hr><a><img><div><span><table><thead><tbody><tr><th><td>'
-        );
+        $stripped = strip_tags($html, self::SANITIZE_ALLOWED_TAGS);
 
-        // Strip inline event handler attributes (e.g. onload, onerror, onclick)
-        $cleaned = preg_replace('/\s+on[a-z0-9_-]+\s*=\s*(?:["\'][^"\']*["\']|[^\s>]+)/i', '', $stripped);
+        $document = new \DOMDocument('1.0', 'UTF-8');
+        $previousErrorSetting = libxml_use_internal_errors(true);
+        // The wrapper div gives one known root. Parser warnings are ignored because the output is re-serialized.
+        $document->loadHTML('<meta charset="UTF-8"><div>'.$stripped.'</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousErrorSetting);
 
-        // Neutralize dangerous schemes (javascript:, data:, vbscript:) in href and src attributes
-        $cleaned = preg_replace('/\s+(href|src)\s*=\s*(["\'])\s*(?:javascript|vbscript|data):[^"\']*\2/i', ' $1="#"', $cleaned);
-        $cleaned = preg_replace('/\s+(href|src)\s*=\s*(?:javascript|vbscript|data):[^\s>]*/i', ' $1="#"', $cleaned);
+        $container = $document->getElementsByTagName('div')->item(0);
+        if (! $container) {
+            return '';
+        }
 
-        return $cleaned;
+        foreach ($container->getElementsByTagName('*') as $element) {
+            self::sanitizeElementAttributes($element);
+        }
+
+        $sanitized = '';
+        foreach ($container->childNodes as $child) {
+            $sanitized .= $document->saveHTML($child);
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Remove attributes that are not allowed and neutralize unsafe URLs on one element.
+     */
+    private static function sanitizeElementAttributes(\DOMElement $element): void
+    {
+        $attributeNames = [];
+        foreach ($element->attributes as $attribute) {
+            $attributeNames[] = $attribute->name;
+        }
+
+        foreach ($attributeNames as $attributeName) {
+            $normalizedName = strtolower($attributeName);
+
+            if (! in_array($normalizedName, self::SANITIZE_ALLOWED_ATTRIBUTES, true)) {
+                $element->removeAttribute($attributeName);
+
+                continue;
+            }
+
+            if (in_array($normalizedName, ['href', 'src'], true) && ! self::isSafeUrl($element->getAttribute($attributeName))) {
+                $element->setAttribute($attributeName, '#');
+            }
+        }
+    }
+
+    /**
+     * Check whether a URL uses an allowed scheme. Browsers ignore control characters and spaces inside a scheme,
+     * so those are removed before the check.
+     */
+    private static function isSafeUrl(string $url): bool
+    {
+        $normalizedUrl = strtolower((string) preg_replace('/[\x00-\x20]+/', '', $url));
+
+        return (bool) preg_match('~^(https?://|mailto:|/|#)~', $normalizedUrl);
     }
 
     /**

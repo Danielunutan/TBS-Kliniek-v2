@@ -274,7 +274,9 @@ class ProfileController extends Controller
             ]);
 
             $file = $request->file('custom_avatar');
-            $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+            // Use the extension of the detected content type, not the client file name. The mimes rule checks content,
+            // so a file named *.html with image bytes would otherwise be stored and served as HTML.
+            $ext = strtolower($file->guessExtension() ?: 'jpg');
             $filename = 'avatar_user_'.$user->id.'_'.time().'_'.Str::random(6).'.'.$ext;
             $uploadDir = public_path('uploads/avatars');
 

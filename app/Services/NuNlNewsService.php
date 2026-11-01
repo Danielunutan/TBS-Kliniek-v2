@@ -20,7 +20,7 @@ class NuNlNewsService
     {
         return Cache::remember('tbs_nunl_latest_news_'.$limit, 900, function () use ($limit): array {
             try {
-                $response = Http::withoutVerifying()->timeout(5)->get(self::RSS_URL);
+                $response = Http::timeout(5)->get(self::RSS_URL);
 
                 if (! $response->successful()) {
                     return $this->getFallbackNews();

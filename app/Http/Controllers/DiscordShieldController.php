@@ -114,7 +114,8 @@ class DiscordShieldController extends Controller
         $code = $request->query('code');
 
         // Check if this was a game web login from the homepage/web auth
-        if ($state && ($state === session('oauth2state') || ! str_starts_with($state, 'shield_'))) {
+        // Only shield states stay in this flow. Every other state goes to the login flow, which checks it.
+        if ($state !== '' && ! str_starts_with($state, 'shield_')) {
             return app(AuthController::class)->discordCallback($request);
         }
 
@@ -197,7 +198,7 @@ class DiscordShieldController extends Controller
         $turnstileEnabled = DiscordShieldSetting::get('turnstile_enabled', '1') === '1';
         if ($turnstileEnabled) {
             $turnstileResponse = $request->input('turnstile_token');
-            $turnstileSecret = DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY', '0x4AAAAAAFTb6acMyf3-LP-CdIYqWEH_Lo0'));
+            $turnstileSecret = DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY'));
 
             if (! $turnstileResponse) {
                 return response()->json([
