@@ -122,8 +122,12 @@ class FaqController extends Controller
                         'a' => 'Als een illegale actie (zoals diefstal, afpersen, pillen palmen of een kluiskraak) mislukt, betrapt de zaalwacht je en vlieg je direct de isoleercel in voor een straftijd (in seconden). Terwijl je vastzit kun je geen misdaden plegen of vechten op de luchtplaats.',
                     ],
                     [
-                        'q' => 'Hoe kom ik sneller vrij uit de Isoleercel?',
-                        'a' => "Je hebt 3 opties om weer op vrije voeten te komen:\n1. ⏱️ Uitzitten - Wacht rustig tot de straftimer afloopt.\n2. 🚪 Celdeur forceren - Vraag een vriend of ganggenoot om jouw celdeur open te breken vanaf de gevangenispagina.\n3. ⭐ Vrijkopen met Sterren - Gebruik 10 Gouden Sterren in de isoleercel om Zaalwacht Arjan om te kopen en per direct vrijgelaten te worden.",
+                        'q' => 'Hoe breek ik mezelf uit de Isoleercel of kom ik sneller vrij?',
+                        'a' => "Zit je vast in Sector Z-04 (Isoleercel)? Ga in het hoofdmenu naar 'Isoleercel' of klik in de rode melding bovenaan op 'Naar Isoleercel & Uitbreken'. Daar vind je 5 manieren om vrij te komen:\n\n1. 🏃 Luchtschacht-Uitbraak (Zelf Uitbreken) - Waag één keer per celstraf een directe ontsnappingspoging (20 Energie). Bij succes ben je DIRECT VRIJ (+15 Respect, +35 XP). Bij betrapping: +90 sec celstraf.\n2. 🧺 Stoomwasserij-Dienst - Draai een zware ploegendienst tussen de hete stoompersen om je straftijd met 45 seconden in te korten (10 Energie).\n3. 💰 Nachtcipier Omkopen - Schuif €2.500 zwijggeld onder de celdeur door voor 75% kans op 90 seconden strafvermindering.\n4. ⭐ Directe Vrijkoopakte of Video - Koop de sluis direct vrij met 25 Sterren ⭐ of bekijk een sponsorvideo via Sponsor-Amnestie.\n5. 🤝 Externe Hulp - Een medepatiënt die vrij rondloopt kan jouw celdeur forceren via een Stille Sluipuitbraak of Breekijzer.",
+                    ],
+                    [
+                        'q' => 'Waarom kan ik nergens klikken in de isolatievleugel (Actieve Celdossiers)?',
+                        'a' => "Dat hangt af van je actuele status:\n\n• 🟢 Ben je op vrije voeten? Dan hoef je jezelf NIET uit te breken (je celdeur staat immers open!). De dossiers onderaan zijn om ingesloten medepatiënten te bevrijden.\n• 🔴 Zit je zélf in de isoleercel? Dan zijn de knoppen bij medepatiënten vergrendeld ('Je Zit Zelf Vast'), omdat je vanuit je eigen cel geen andere deuren kunt forceren. Om jezelf uit te breken gebruik je het bovenste paneel op de pagina: druk op 'Luchtschacht-Uitbraak' (20 Energie), werk in de stoomwasserij (-45s) of koop je vrij.",
                     ],
                     [
                         'q' => 'Wat is de Uitbraaktunnel onder mijn cel?',
