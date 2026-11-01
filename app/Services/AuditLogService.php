@@ -6,11 +6,32 @@ use App\Models\AuditLog;
 use App\Models\Character;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Schema;
 
 class AuditLogService
 {
+    /**
+     * Actions where the logged user/character is the target of an admin, system, or webhook action rather than the HTTP request actor.
+     *
+     * @var list<string>
+     */
+    protected const TARGET_OR_EXTERNAL_ACTIONS = [
+        'user_ban',
+        'user_unban',
+        'user_warning',
+        'warning_deleted',
+        'discord_shield_manual_approval',
+        'buymeacoffee_manual_link',
+        'buymeacoffee_regrant',
+        'buymeacoffee_donation',
+        'buymeacoffee_membership',
+        'buymeacoffee_membership_cancelled',
+        'buymeacoffee_extra',
+    ];
+
     /**
      * Log an action with automatic risk assessment.
      *
@@ -29,8 +50,27 @@ class AuditLogService
         ?Carbon $createdAt = null,
         ?string $ipAddress = null
     ): AuditLog {
-        $user = $user ?? $character?->user;
-        $ip = $ipAddress ?? (Request::hasSession() ? Request::ip() : null);
+        if ($character !== null && ($user === null || (int) $character->user_id !== (int) $user->id)) {
+            $user = $character->user ?? $user;
+        }
+
+        $isAuthenticatedActor = Request::hasSession()
+            && Auth::check()
+            && $user !== null
+            && (int) Auth::id() === (int) $user->id
+            && $createdAt === null
+            && empty($details['backfilled'])
+            && ! self::isPassiveOrExternalEvent($action, $description);
+
+        $ip = $ipAddress ?? ($isAuthenticatedActor ? Request::ip() : null);
+
+        if ($isAuthenticatedActor && ! empty($ip) && $user !== null && $user->last_login_ip !== $ip) {
+            try {
+                $user->forceFill(['last_login_ip' => $ip])->saveQuietly();
+            } catch (\Throwable) {
+                // Ignore if user model cannot be updated during read-only context
+            }
+        }
 
         [$riskLevel, $riskScore, $riskReason, $riskFlags] = self::assessRisk(
             $action,
@@ -68,6 +108,22 @@ class AuditLogService
     }
 
     /**
+     * Check whether an audit event is passive, target-oriented, or webhook-driven so the current request IP must not be attached.
+     */
+    public static function isPassiveOrExternalEvent(string $action, string $description): bool
+    {
+        if (in_array($action, self::TARGET_OR_EXTERNAL_ACTIONS, true)) {
+            return true;
+        }
+
+        if (str_starts_with($description, 'Bank geplunderd bij liquidatie')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Determine risk score, level, and reasons.
      *
      * @param  array<string, mixed>  $details
@@ -102,24 +158,29 @@ class AuditLogService
 
         // 1. Evaluate money transfers, transactions, negative values, and integer overflows
         if ($amount !== null) {
-            if ($amount < 0) {
+            $txType = (string) ($details['type'] ?? '');
+            $isLegitimateDebit = $action === 'bank_transaction'
+                && in_array($txType, ['withdraw', 'withdrawal', 'loan_repayment'], true);
+            $evaluatedAmount = $isLegitimateDebit ? abs($amount) : $amount;
+
+            if ($evaluatedAmount < 0) {
                 $score += 90;
                 $flags[] = 'Negatief bedrag (€'.number_format($amount, 0, ',', '.').') - Mogelijke exploit poging';
-            } elseif ($amount >= 2_000_000_000) {
+            } elseif ($evaluatedAmount >= 2_000_000_000) {
                 $score += 85;
-                $flags[] = 'Uitzonderlijk bedrag dichtbij integer limiet (€'.number_format($amount, 0, ',', '.').')';
-            } elseif ($amount >= 10_000_000) {
+                $flags[] = 'Uitzonderlijk bedrag dichtbij integer limiet (€'.number_format($evaluatedAmount, 0, ',', '.').')';
+            } elseif ($evaluatedAmount >= 10_000_000) {
                 $score += 75;
-                $flags[] = 'Extreem hoog geldbedrag (€'.number_format($amount, 0, ',', '.').')';
-            } elseif ($amount >= 2_500_000) {
+                $flags[] = 'Extreem hoog geldbedrag (€'.number_format($evaluatedAmount, 0, ',', '.').')';
+            } elseif ($evaluatedAmount >= 2_500_000) {
                 $score += 45;
-                $flags[] = 'Aanzienlijk geldbedrag (€'.number_format($amount, 0, ',', '.').')';
-            } elseif ($amount >= 1_000_000) {
+                $flags[] = 'Aanzienlijk geldbedrag (€'.number_format($evaluatedAmount, 0, ',', '.').')';
+            } elseif ($evaluatedAmount >= 1_000_000) {
                 $score += 25;
-                $flags[] = 'Groot geldbedrag (€'.number_format($amount, 0, ',', '.').')';
+                $flags[] = 'Groot geldbedrag (€'.number_format($evaluatedAmount, 0, ',', '.').')';
             }
 
-            if ($character && $character->level < 10 && $amount >= 1_000_000) {
+            if ($character && $character->level < 10 && $evaluatedAmount >= 1_000_000) {
                 $score += 40;
                 $flags[] = "Lage level speler (lvl {$character->level}) handelt met hoog bedrag";
             }
@@ -286,12 +347,254 @@ class AuditLogService
     }
 
     /**
+     * Sanitize existing audit log records where a foreign session IP (from backfill, liquidation victim, or admin action) was previously attached.
+     */
+    public static function sanitizeContaminatedIps(): int
+    {
+        try {
+            $rows = DB::table('audit_logs')
+                ->whereNotNull('ip_address')
+                ->where('ip_address', '!=', '')
+                ->orderBy('id', 'asc')
+                ->get(['id', 'user_id', 'character_id', 'action', 'description', 'ip_address', 'details', 'created_at']);
+        } catch (\Throwable) {
+            return 0;
+        }
+
+        if ($rows->isEmpty()) {
+            return 0;
+        }
+
+        $cleaned = 0;
+
+        // 1. Ensure character_id and user_id on audit_logs always belong to the same account.
+        if (Schema::hasTable('characters')) {
+            $charToUser = DB::table('characters')->pluck('user_id', 'id')->all();
+            $userToChar = DB::table('characters')->pluck('id', 'user_id')->all();
+
+            foreach ($rows as $row) {
+                if (! $row->user_id || ! $row->character_id) {
+                    continue;
+                }
+                $expectedUserId = $charToUser[$row->character_id] ?? null;
+                if ($expectedUserId !== null && (int) $expectedUserId !== (int) $row->user_id) {
+                    if (in_array($row->action, ['report_resolved', 'report_dismissed', 'admin_run_migrations', 'admin_run_normalization', 'discord_shield_ban_add', 'discord_shield_ban_remove'], true)) {
+                        $actorCharId = $userToChar[$row->user_id] ?? null;
+                        DB::table('audit_logs')->where('id', $row->id)->update(['character_id' => $actorCharId]);
+                        $row->character_id = $actorCharId;
+                    } else {
+                        DB::table('audit_logs')->where('id', $row->id)->update([
+                            'user_id' => (int) $expectedUserId,
+                            'ip_address' => null,
+                        ]);
+                        $row->user_id = (int) $expectedUserId;
+                        $cleaned++;
+                    }
+                }
+            }
+        }
+
+        // 2. Build map of verified user IPs from users, sessions, discord_verifications, and strictly first-party actions.
+        $authVerifiedUserIps = [];
+        $verifiedUserIps = [];
+
+        if (Schema::hasTable('users')) {
+            $hasRegIp = Schema::hasColumn('users', 'registration_ip');
+            $hasLoginIp = Schema::hasColumn('users', 'last_login_ip');
+            if ($hasRegIp || $hasLoginIp) {
+                $cols = ['id'];
+                if ($hasRegIp) {
+                    $cols[] = 'registration_ip';
+                }
+                if ($hasLoginIp) {
+                    $cols[] = 'last_login_ip';
+                }
+                foreach (DB::table('users')->get($cols) as $u) {
+                    $uid = (int) $u->id;
+                    if ($hasRegIp && ! empty($u->registration_ip)) {
+                        $ip = trim((string) $u->registration_ip);
+                        $authVerifiedUserIps[$uid][$ip] = true;
+                        $verifiedUserIps[$uid][$ip] = true;
+                    }
+                    if ($hasLoginIp && ! empty($u->last_login_ip)) {
+                        $ip = trim((string) $u->last_login_ip);
+                        $authVerifiedUserIps[$uid][$ip] = true;
+                        $verifiedUserIps[$uid][$ip] = true;
+                    }
+                }
+            }
+        }
+
+        if (Schema::hasTable('sessions')) {
+            try {
+                $sessions = DB::table('sessions')
+                    ->whereNotNull('user_id')
+                    ->whereNotNull('ip_address')
+                    ->where('ip_address', '!=', '')
+                    ->get(['user_id', 'ip_address']);
+                foreach ($sessions as $s) {
+                    $uid = (int) $s->user_id;
+                    $ip = trim((string) $s->ip_address);
+                    $authVerifiedUserIps[$uid][$ip] = true;
+                    $verifiedUserIps[$uid][$ip] = true;
+                }
+            } catch (\Throwable) {
+                // Ignore if sessions table cannot be queried
+            }
+        }
+
+        if (Schema::hasTable('discord_verifications')) {
+            try {
+                $verifications = DB::table('discord_verifications')
+                    ->whereNotNull('user_id')
+                    ->whereNotNull('ip_address')
+                    ->where('ip_address', '!=', '')
+                    ->get(['user_id', 'ip_address']);
+                foreach ($verifications as $v) {
+                    $uid = (int) $v->user_id;
+                    $ip = trim((string) $v->ip_address);
+                    $authVerifiedUserIps[$uid][$ip] = true;
+                    $verifiedUserIps[$uid][$ip] = true;
+                }
+            } catch (\Throwable) {
+                // Ignore if discord_verifications table cannot be queried
+            }
+        }
+
+        // First pass: collect strictly first-party real-time logs (no source_key, no passive/target actions) as verified user IPs
+        foreach ($rows as $row) {
+            if (! $row->user_id) {
+                continue;
+            }
+            $uid = (int) $row->user_id;
+            $ip = trim((string) $row->ip_address);
+            $action = (string) ($row->action ?? '');
+            $desc = (string) ($row->description ?? '');
+            $details = is_string($row->details) ? (json_decode($row->details, true) ?: []) : (array) $row->details;
+
+            if (
+                empty($details['source_key'])
+                && empty($details['backfilled'])
+                && ! self::isPassiveOrExternalEvent($action, $desc)
+                && ! str_starts_with($desc, 'TBS Patiënten Uitkering')
+                && ! ($action === 'arm_wrestle' && str_starts_with($desc, 'PvP armdrukken duel beslecht'))
+            ) {
+                // Only add if user has no conflicting auth-verified IPs or already owns this IP
+                if (empty($authVerifiedUserIps[$uid]) || ! empty($authVerifiedUserIps[$uid][$ip])) {
+                    $verifiedUserIps[$uid][$ip] = true;
+                }
+            }
+        }
+
+        // Second pass: detect contaminated rows
+        $idsToClear = [];
+        $maxCreatedAtTs = 0;
+        $maxSourceIdByPrefix = [
+            'bank_tx_' => 0,
+            'theft_' => 0,
+        ];
+
+        $rowList = $rows->values()->all();
+        $count = count($rowList);
+
+        for ($i = 0; $i < $count; $i++) {
+            $row = $rowList[$i];
+            $uid = $row->user_id ? (int) $row->user_id : null;
+            $ip = trim((string) $row->ip_address);
+            $action = (string) ($row->action ?? '');
+            $desc = (string) ($row->description ?? '');
+            $details = is_string($row->details) ? (json_decode($row->details, true) ?: []) : (array) $row->details;
+            $sourceKey = isset($details['source_key']) && is_string($details['source_key']) ? $details['source_key'] : null;
+            $hasSourceKey = $sourceKey !== null && $sourceKey !== '';
+            $ts = $row->created_at ? Carbon::parse($row->created_at)->getTimestamp() : 0;
+
+            $isContaminated = false;
+
+            // A. Passive victim, moderation target, or external webhook actions
+            if (self::isPassiveOrExternalEvent($action, $desc)) {
+                $isContaminated = true;
+            } elseif ($action === 'arm_wrestle' && str_starts_with($desc, 'PvP armdrukken duel beslecht')) {
+                if (isset($details['challenger_id']) && (int) $details['challenger_id'] === (int) $row->character_id) {
+                    $isContaminated = true;
+                }
+            }
+
+            // B. Backfilled records or backfill-only source_key actions
+            if (! empty($details['backfilled'])) {
+                $isContaminated = true;
+            } elseif ($hasSourceKey && in_array($action, ['gang_donation', 'arm_wrestle', 'user_ban', 'user_warning'], true)) {
+                $isContaminated = true;
+            }
+
+            // C. Source key ID monotonicity and chronological order check for backfillHistory() batches
+            if ($hasSourceKey && $sourceKey !== null) {
+                foreach (['bank_tx_', 'theft_'] as $prefix) {
+                    if (str_starts_with($sourceKey, $prefix)) {
+                        $numId = (int) substr($sourceKey, strlen($prefix));
+                        if ($numId > 0) {
+                            if ($numId < $maxSourceIdByPrefix[$prefix]) {
+                                $isContaminated = true;
+                            }
+                            // Check if next row with same prefix has a smaller source ID (first row of descending backfill batch)
+                            for ($j = $i + 1; $j < min($count, $i + 5); $j++) {
+                                $nextDetails = is_string($rowList[$j]->details) ? (json_decode($rowList[$j]->details, true) ?: []) : (array) $rowList[$j]->details;
+                                $nextKey = isset($nextDetails['source_key']) && is_string($nextDetails['source_key']) ? $nextDetails['source_key'] : '';
+                                if (str_starts_with($nextKey, $prefix)) {
+                                    $nextNumId = (int) substr($nextKey, strlen($prefix));
+                                    if ($nextNumId > 0 && $nextNumId < $numId) {
+                                        $isContaminated = true;
+                                    }
+                                    break;
+                                }
+                            }
+                            $maxSourceIdByPrefix[$prefix] = max($maxSourceIdByPrefix[$prefix], $numId);
+                        }
+                    }
+                }
+
+                if ($ts > 0 && $maxCreatedAtTs > 0 && $ts < ($maxCreatedAtTs - 2)) {
+                    $isContaminated = true;
+                }
+            }
+
+            // D. Source key or allowance row where IP does not match user's verified IPs
+            if ($hasSourceKey || str_starts_with($desc, 'TBS Patiënten Uitkering')) {
+                if ($uid === null || empty($verifiedUserIps[$uid][$ip])) {
+                    $isContaminated = true;
+                } elseif (! empty($authVerifiedUserIps[$uid]) && empty($authVerifiedUserIps[$uid][$ip])) {
+                    $isContaminated = true;
+                }
+            }
+
+            if ($ts > 0) {
+                $maxCreatedAtTs = max($maxCreatedAtTs, $ts);
+            }
+
+            if ($isContaminated) {
+                $idsToClear[] = (int) $row->id;
+            }
+        }
+
+        if (! empty($idsToClear)) {
+            foreach (array_chunk(array_unique($idsToClear), 500) as $chunk) {
+                $cleaned += DB::table('audit_logs')
+                    ->whereIn('id', $chunk)
+                    ->update(['ip_address' => null]);
+            }
+        }
+
+        return $cleaned;
+    }
+
+    /**
      * Backfill historical events from core game log tables.
      *
      * @return array{total_synced: int, high_risk: int, suspicious: int}
      */
     public static function backfillHistory(int $limitPerSource = 1500): array
     {
+        self::sanitizeContaminatedIps();
+
         $synced = 0;
         $highRisk = 0;
         $suspicious = 0;
@@ -329,11 +632,13 @@ class AuditLogService
                 amount: $amount,
                 details: [
                     'source_key' => $sourceKey,
+                    'backfilled' => true,
                     'type' => $tx->type,
                     'source' => $tx->source,
                     'balance_after' => $tx->balance_after,
                 ],
-                createdAt: Carbon::parse($tx->created_at)
+                createdAt: Carbon::parse($tx->created_at),
+                ipAddress: null
             );
 
             $synced++;
@@ -385,13 +690,15 @@ class AuditLogService
                 amount: $stolen,
                 details: [
                     'source_key' => $sourceKey,
+                    'backfilled' => true,
                     'success' => (bool) $th->success,
                     'cash_stolen' => $stolen,
                     'victim_id' => $th->victim_id,
                     'victim_name' => $victim?->name,
                     'jailed' => (bool) $th->jailed,
                 ],
-                createdAt: Carbon::parse($th->created_at)
+                createdAt: Carbon::parse($th->created_at),
+                ipAddress: null
             );
 
             $synced++;
@@ -435,9 +742,11 @@ class AuditLogService
                 amount: $amount,
                 details: [
                     'source_key' => $sourceKey,
+                    'backfilled' => true,
                     'gang_id' => $don->gang_id,
                 ],
-                createdAt: Carbon::parse($don->created_at)
+                createdAt: Carbon::parse($don->created_at),
+                ipAddress: null
             );
 
             $synced++;
@@ -484,13 +793,15 @@ class AuditLogService
                 amount: $bet,
                 details: [
                     'source_key' => $sourceKey,
+                    'backfilled' => true,
                     'bet_amount' => $bet,
                     'duration_ms' => $duration,
                     'clicks' => $clicks,
                     'challenger_id' => $match->challenger_id,
                     'opponent_id' => $match->opponent_id,
                 ],
-                createdAt: Carbon::parse($match->created_at)
+                createdAt: Carbon::parse($match->created_at),
+                ipAddress: null
             );
 
             $synced++;
@@ -533,6 +844,7 @@ class AuditLogService
                 user: $user,
                 details: [
                     'source_key' => $sourceKey,
+                    'backfilled' => true,
                     'reason' => $ban->reason,
                     'banned_by_id' => $ban->banned_by_id,
                     'banned_until' => $ban->banned_until,
@@ -540,7 +852,8 @@ class AuditLogService
                 ],
                 customRisk: 'hoog',
                 customReason: "Account verbannen: {$ban->reason}",
-                createdAt: Carbon::parse($ban->created_at)
+                createdAt: Carbon::parse($ban->created_at),
+                ipAddress: null
             );
 
             $synced++;
@@ -578,12 +891,14 @@ class AuditLogService
                 user: $user,
                 details: [
                     'source_key' => $sourceKey,
+                    'backfilled' => true,
                     'reason' => $warn->reason,
                     'issuer_id' => $warn->issuer_id,
                 ],
                 customRisk: 'verdacht',
                 customReason: "Waarschuwing opgelegd: {$warn->reason}",
-                createdAt: Carbon::parse($warn->created_at)
+                createdAt: Carbon::parse($warn->created_at),
+                ipAddress: null
             );
 
             $synced++;

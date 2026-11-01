@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AuditLog;
+use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\User;
 use App\Services\AuditLogService;
@@ -454,5 +455,157 @@ class AdminAuditLogTest extends TestCase
         $statsSecond = AuditLogService::backfillHistory(50);
         $this->assertSame(0, $statsSecond['total_synced']);
         $this->assertSame($countAfterFirst, AuditLog::count());
+    }
+
+    public function test_cross_player_actions_and_sync_never_contaminate_victim_or_backfill_ip_addresses(): void
+    {
+        $adminUser = User::factory()->create([
+            'role' => 'admin',
+            'is_staff' => true,
+            'registration_ip' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789',
+            'last_login_ip' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789',
+        ]);
+        $adminChar = Character::factory()->create(['user_id' => $adminUser->id, 'name' => 'Daniël']);
+
+        $attackerUser = User::factory()->create([
+            'name' => 'Whoopsie',
+            'registration_ip' => '77.168.13.203',
+            'last_login_ip' => '77.168.13.203',
+        ]);
+        $attackerChar = Character::factory()->create(['user_id' => $attackerUser->id, 'name' => 'Whoopsie']);
+
+        $victimUser = User::factory()->create([
+            'name' => 'Dave',
+            'registration_ip' => '84.10.20.30',
+            'last_login_ip' => '84.10.20.30',
+        ]);
+        $victimChar = Character::factory()->create(['user_id' => $victimUser->id, 'name' => 'Dave']);
+
+        // 1. Simulate Attacker (Whoopsie) liquidating Victim (Dave) during Attacker's HTTP session
+        $this->actingAs($attackerUser)
+            ->withServerVariables(['REMOTE_ADDR' => '77.168.13.203']);
+
+        BankTransaction::record(
+            $victimChar,
+            'withdrawal',
+            'bank',
+            250000,
+            1000000,
+            "Bank geplunderd bij liquidatie door {$attackerChar->name}"
+        );
+
+        $victimLog = AuditLog::where('character_id', $victimChar->id)->first();
+        $this->assertNotNull($victimLog);
+        $this->assertNull($victimLog->ip_address, 'Victim audit log must never inherit attacker request IP');
+
+        // 2. Simulate Admin running backfill sync over HTTP session
+        DB::table('bank_transactions')->insert([
+            'character_id' => $victimChar->id,
+            'type' => 'deposit',
+            'source' => 'bank',
+            'amount' => 100000,
+            'balance_after' => 1100000,
+            'description' => 'Eigen storting van Dave',
+            'created_at' => now()->subHour(),
+            'updated_at' => now()->subHour(),
+        ]);
+
+        $this->actingAs($adminUser)
+            ->withServerVariables(['REMOTE_ADDR' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789'])
+            ->post(route('admin.audit_log.sync'));
+
+        $backfilledVictimLogs = AuditLog::where('character_id', $victimChar->id)->get();
+        foreach ($backfilledVictimLogs as $log) {
+            $this->assertNull($log->ip_address, 'Backfilled logs must never inherit the admin session IP');
+        }
+    }
+
+    public function test_sanitize_contaminated_ips_cleans_legacy_backfill_and_liquidation_false_positives(): void
+    {
+        $adminUser = User::factory()->create([
+            'role' => 'admin',
+            'is_staff' => true,
+            'registration_ip' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789',
+            'last_login_ip' => '2a02:a452:62dc:0:bc2e:f0fc:a789',
+        ]);
+        $adminChar = Character::factory()->create(['user_id' => $adminUser->id, 'name' => 'Daniël']);
+
+        $playerAUser = User::factory()->create([
+            'registration_ip' => '77.168.13.203',
+            'last_login_ip' => '77.168.13.203',
+        ]);
+        $playerAChar = Character::factory()->create(['user_id' => $playerAUser->id, 'name' => 'Whoopsie']);
+
+        $playerBUser = User::factory()->create([
+            'registration_ip' => '84.100.200.50',
+            'last_login_ip' => '84.100.200.50',
+        ]);
+        $playerBChar = Character::factory()->create(['user_id' => $playerBUser->id, 'name' => 'Zwartwit1911']);
+
+        // Legacy contaminated rows in audit_logs (from before the fix):
+        // 1. Liquidation bank plunder on Zwartwit1911 stamped with Whoopsie's IP
+        $contaminatedLiquidation = AuditLog::create([
+            'user_id' => $playerBUser->id,
+            'character_id' => $playerBChar->id,
+            'action' => 'bank_transaction',
+            'category' => 'economy',
+            'description' => 'Bank geplunderd bij liquidatie door Whoopsie',
+            'amount' => 500000,
+            'risk_level' => 'normaal',
+            'risk_score' => 5,
+            'ip_address' => '77.168.13.203',
+            'details' => ['source_key' => 'bank_tx_901', 'type' => 'withdrawal'],
+        ]);
+
+        // 2. Backfilled bank transaction on Whoopsie stamped with Admin's IPv6
+        $contaminatedBackfill1 = AuditLog::create([
+            'user_id' => $playerAUser->id,
+            'character_id' => $playerAChar->id,
+            'action' => 'bank_transaction',
+            'category' => 'economy',
+            'description' => 'Contant gestort op bankrekening (+€50.000)',
+            'amount' => 50000,
+            'risk_level' => 'normaal',
+            'risk_score' => 5,
+            'ip_address' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789',
+            'details' => ['source_key' => 'bank_tx_500', 'type' => 'deposit'],
+        ]);
+
+        // 3. Backfilled gang donation on Zwartwit1911 stamped with Admin's IPv6
+        $contaminatedBackfill2 = AuditLog::create([
+            'user_id' => $playerBUser->id,
+            'character_id' => $playerBChar->id,
+            'action' => 'gang_donation',
+            'category' => 'gang',
+            'description' => 'Donatie van €100.000 aan bende #1',
+            'amount' => 100000,
+            'risk_level' => 'normaal',
+            'risk_score' => 5,
+            'ip_address' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789',
+            'details' => ['source_key' => 'gang_don_12', 'gang_id' => 1],
+        ]);
+
+        // 4. Genuine first-party log of Whoopsie on his own IP
+        $genuineLog = AuditLog::create([
+            'user_id' => $playerAUser->id,
+            'character_id' => $playerAChar->id,
+            'action' => 'shop_buy',
+            'category' => 'shop',
+            'description' => 'Winkelaankoop: 1x Kogelvrij Vest',
+            'amount' => 25000,
+            'risk_level' => 'normaal',
+            'risk_score' => 5,
+            'ip_address' => '77.168.13.203',
+        ]);
+
+        $response = $this->actingAs($adminUser)->get(route('admin.audit_log.index'));
+        $response->assertOk();
+
+        $this->assertNull($contaminatedLiquidation->fresh()->ip_address);
+        $this->assertNull($contaminatedBackfill1->fresh()->ip_address);
+        $this->assertNull($contaminatedBackfill2->fresh()->ip_address);
+        $this->assertSame('77.168.13.203', $genuineLog->fresh()->ip_address);
+
+        $response->assertSee('Geen verdachte gedeelde IP clusters');
     }
 }

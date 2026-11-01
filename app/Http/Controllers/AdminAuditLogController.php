@@ -20,6 +20,8 @@ class AdminAuditLogController extends Controller
      */
     public function index(Request $request): View
     {
+        AuditLogService::sanitizeContaminatedIps();
+
         $risk = $request->input('risk', 'all');
         $category = $request->input('category', 'all');
         $search = $request->input('search');
@@ -91,6 +93,8 @@ class AdminAuditLogController extends Controller
         $sharedIps = AuditLog::query()
             ->whereNotNull('ip_address')
             ->where('ip_address', '!=', '')
+            ->whereNotNull('user_id')
+            ->whereNotNull('character_id')
             ->select('ip_address')
             ->selectRaw("
                 COUNT(DISTINCT user_id) as user_count,
@@ -110,6 +114,7 @@ class AdminAuditLogController extends Controller
         $sharedIpCharacters = ! empty($sharedIpAddresses)
             ? AuditLog::query()
                 ->whereIn('ip_address', $sharedIpAddresses)
+                ->whereNotNull('user_id')
                 ->whereNotNull('character_id')
                 ->with('character:id,name,level')
                 ->select('ip_address', 'character_id')
@@ -151,6 +156,8 @@ class AdminAuditLogController extends Controller
      */
     public function export(Request $request): StreamedResponse
     {
+        AuditLogService::sanitizeContaminatedIps();
+
         $query = $this->buildFilteredQuery($request);
 
         $filename = 'audit-logs-export-'.Carbon::now()->format('Y-m-d-His').'.csv';
