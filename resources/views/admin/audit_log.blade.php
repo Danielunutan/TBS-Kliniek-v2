@@ -119,7 +119,7 @@
         <a href="{{ route('admin.audit_log.index', ['risk' => 'normaal']) }}" 
            class="bg-white dark:bg-slate-900 border {{ $risk === 'normaal' ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-900/50' : 'border-slate-200/90 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/80' }} rounded-2xl p-4 shadow-xs flex items-center gap-3.5 transition">
             <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center justify-center text-lg shrink-0">
-                <i class="fa-solid fa-shield-check"></i>
+                <i class="fa-solid fa-shield-halved"></i>
             </div>
             <div>
                 <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Regulier &amp; Veilig</span>
@@ -193,7 +193,7 @@
                     </div>
                     @empty
                     <div class="py-6 text-center text-slate-400 dark:text-slate-500 space-y-1">
-                        <i class="fa-solid fa-shield-check text-base text-emerald-500"></i>
+                        <i class="fa-solid fa-shield-halved text-base text-emerald-500"></i>
                         <p class="text-xs font-bold">Geen verdachte gedeelde IP clusters</p>
                         <p class="text-[10px]">Geen multi-account activiteit gedetecteerd in actieve logs.</p>
                     </div>

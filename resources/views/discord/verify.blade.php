@@ -203,7 +203,7 @@
                                  data-callback="onTurnstileSuccess"
                                  data-theme="auto"></div>
                             <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-2 flex items-center gap-1 font-semibold">
-                                <i class="fa-solid fa-shield-check text-[10px] text-purple-600 dark:text-purple-400"></i> Beveiligd met Cloudflare Turnstile
+                                <i class="fa-solid fa-shield-halved text-[10px] text-purple-600 dark:text-purple-400"></i> Beveiligd met Cloudflare Turnstile
                             </span>
                         </div>
 
@@ -284,7 +284,7 @@
                                 </template>
                                 <template x-if="!isLoading && cooldown <= 0">
                                     <span class="inline-flex items-center gap-2">
-                                        <i class="fa-solid fa-shield-check"></i>
+                                        <i class="fa-solid fa-shield-halved"></i>
                                         <span>Verificatie afronden & toegang krijgen</span>
                                     </span>
                                 </template>

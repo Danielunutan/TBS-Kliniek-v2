@@ -1020,3 +1020,14 @@ html.dark button:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="f
 html.dark a:is([class*="from-amber-4"], [class*="from-amber-5"], [class*="from-amber-6"]) span {
     color: #ffffff !important;
 }
+
+/* ======================================================== */
+/* FONTAWESOME PRO ICON FALLBACKS (FREE EDITION)            */
+/* ======================================================== */
+.fa-shield-check {
+    --fa: "\f3ed";
+}
+.fa-shield-check::before {
+    content: var(--fa, "\f3ed") !important;
+}
+

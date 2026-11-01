@@ -208,7 +208,7 @@
                         @empty
                         <tr>
                             <td colspan="6" class="py-8 text-center text-slate-400 dark:text-slate-500 text-xs">
-                                <i class="fa-solid fa-shield-check text-emerald-500 text-xl block mb-1"></i>
+                                <i class="fa-solid fa-shield-halved text-emerald-500 text-xl block mb-1"></i>
                                 Er zijn momenteel geen actieve verbanningen op TBS Kliniek.
                             </td>
                         </tr>

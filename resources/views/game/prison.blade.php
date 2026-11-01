@@ -298,7 +298,7 @@ window.prisonPageController = function prisonPageController(config) {
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-start gap-3.5">
                         <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
-                            <i class="fa-solid fa-shield-check text-xl"></i>
+                            <i class="fa-solid fa-shield-halved text-xl"></i>
                         </div>
                         <div>
                             <div class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400">

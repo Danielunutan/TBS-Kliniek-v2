@@ -66,7 +66,7 @@
                 <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-shield-check text-emerald-600 dark:text-emerald-400"></i> Strikt Noodzakelijke Cookies
+                            <i class="fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400"></i> Strikt Noodzakelijke Cookies
                         </span>
                         <span class="text-[10px] font-black uppercase bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 px-2 py-0.5 rounded-full">Altijd Actief</span>
                     </div>
