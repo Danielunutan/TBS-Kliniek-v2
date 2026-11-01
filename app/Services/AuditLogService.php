@@ -72,6 +72,10 @@ class AuditLogService
             }
         }
 
+        if ($isAuthenticatedActor && empty($details['same_ip_transfer']) && self::detectSameIpTransfer($action, $character, $user, $ip, $details)) {
+            $details['same_ip_transfer'] = true;
+        }
+
         [$riskLevel, $riskScore, $riskReason, $riskFlags] = self::assessRisk(
             $action,
             $category,
@@ -121,6 +125,73 @@ class AuditLogService
         }
 
         return false;
+    }
+
+    /**
+     * Check whether two distinct users share at least one verified first-party IP address.
+     */
+    public static function usersShareVerifiedIp(?User $userA, ?User $userB, ?string $actorIp = null): bool
+    {
+        if ($userA === null || $userB === null || (int) $userA->id === (int) $userB->id) {
+            return false;
+        }
+
+        $ipsA = array_values(array_unique(array_filter(array_map(
+            static fn ($ip) => is_string($ip) ? trim($ip) : '',
+            [$actorIp, $userA->last_login_ip ?? null, $userA->registration_ip ?? null]
+        ))));
+
+        $ipsB = array_values(array_unique(array_filter(array_map(
+            static fn ($ip) => is_string($ip) ? trim($ip) : '',
+            [$userB->last_login_ip ?? null, $userB->registration_ip ?? null]
+        ))));
+
+        if (empty($ipsA) || empty($ipsB)) {
+            return false;
+        }
+
+        return ! empty(array_intersect($ipsA, $ipsB));
+    }
+
+    /**
+     * Detect whether a real-time player-to-player transaction occurs between two accounts on the same verified IP address.
+     *
+     * @param  array<string, mixed>  $details
+     */
+    public static function detectSameIpTransfer(
+        string $action,
+        ?Character $actorCharacter,
+        ?User $actorUser,
+        ?string $actorIp,
+        array $details
+    ): bool {
+        if ($actorCharacter === null || $actorUser === null) {
+            return false;
+        }
+
+        $counterpartyCharacterId = null;
+
+        if ($action === 'marketplace_buy' && ! empty($details['seller_id'])) {
+            $counterpartyCharacterId = (int) $details['seller_id'];
+        } elseif ($action === 'theft' && ! empty($details['victim_id']) && (int) ($details['cash_stolen'] ?? 0) > 0) {
+            $counterpartyCharacterId = (int) $details['victim_id'];
+        } elseif ($action === 'arm_wrestle' && (int) ($details['bet_amount'] ?? 0) > 0 && ! empty($details['challenger_id']) && ! empty($details['opponent_id'])) {
+            $challengerId = (int) $details['challenger_id'];
+            $opponentId = (int) $details['opponent_id'];
+            $counterpartyCharacterId = ((int) $actorCharacter->id === $challengerId) ? $opponentId : $challengerId;
+        }
+
+        if ($counterpartyCharacterId === null || $counterpartyCharacterId <= 0 || $counterpartyCharacterId === (int) $actorCharacter->id) {
+            return false;
+        }
+
+        try {
+            $counterparty = Character::with('user')->find($counterpartyCharacterId);
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return self::usersShareVerifiedIp($actorUser, $counterparty?->user, $actorIp);
     }
 
     /**
@@ -394,20 +465,25 @@ class AuditLogService
             }
         }
 
-        // 2. Build map of verified user IPs from users, sessions, discord_verifications, and strictly first-party actions.
+        // 2. Build map of verified user IPs from users, sessions, discord_verifications, social_reward_claims, and strictly first-party actions.
         $authVerifiedUserIps = [];
         $verifiedUserIps = [];
+        $discordIdToUserId = [];
 
         if (Schema::hasTable('users')) {
             $hasRegIp = Schema::hasColumn('users', 'registration_ip');
             $hasLoginIp = Schema::hasColumn('users', 'last_login_ip');
-            if ($hasRegIp || $hasLoginIp) {
+            $hasDiscordId = Schema::hasColumn('users', 'discord_id');
+            if ($hasRegIp || $hasLoginIp || $hasDiscordId) {
                 $cols = ['id'];
                 if ($hasRegIp) {
                     $cols[] = 'registration_ip';
                 }
                 if ($hasLoginIp) {
                     $cols[] = 'last_login_ip';
+                }
+                if ($hasDiscordId) {
+                    $cols[] = 'discord_id';
                 }
                 foreach (DB::table('users')->get($cols) as $u) {
                     $uid = (int) $u->id;
@@ -420,6 +496,9 @@ class AuditLogService
                         $ip = trim((string) $u->last_login_ip);
                         $authVerifiedUserIps[$uid][$ip] = true;
                         $verifiedUserIps[$uid][$ip] = true;
+                    }
+                    if ($hasDiscordId && ! empty($u->discord_id)) {
+                        $discordIdToUserId[trim((string) $u->discord_id)] = $uid;
                     }
                 }
             }
@@ -446,22 +525,43 @@ class AuditLogService
         if (Schema::hasTable('discord_verifications')) {
             try {
                 $verifications = DB::table('discord_verifications')
-                    ->whereNotNull('user_id')
                     ->whereNotNull('ip_address')
                     ->where('ip_address', '!=', '')
-                    ->get(['user_id', 'ip_address']);
+                    ->get(['user_id', 'discord_id', 'ip_address']);
                 foreach ($verifications as $v) {
-                    $uid = (int) $v->user_id;
-                    $ip = trim((string) $v->ip_address);
-                    $authVerifiedUserIps[$uid][$ip] = true;
-                    $verifiedUserIps[$uid][$ip] = true;
+                    $uid = $v->user_id
+                        ? (int) $v->user_id
+                        : ($discordIdToUserId[trim((string) ($v->discord_id ?? ''))] ?? null);
+                    if ($uid) {
+                        $ip = trim((string) $v->ip_address);
+                        $authVerifiedUserIps[$uid][$ip] = true;
+                        $verifiedUserIps[$uid][$ip] = true;
+                    }
                 }
             } catch (\Throwable) {
                 // Ignore if discord_verifications table cannot be queried
             }
         }
 
-        // First pass: collect strictly first-party real-time logs (no source_key, no passive/target actions) as verified user IPs
+        if (Schema::hasTable('social_reward_claims')) {
+            try {
+                $claims = DB::table('social_reward_claims')
+                    ->whereNotNull('user_id')
+                    ->whereNotNull('ip_address')
+                    ->where('ip_address', '!=', '')
+                    ->get(['user_id', 'ip_address']);
+                foreach ($claims as $claim) {
+                    $uid = (int) $claim->user_id;
+                    $ip = trim((string) $claim->ip_address);
+                    $authVerifiedUserIps[$uid][$ip] = true;
+                    $verifiedUserIps[$uid][$ip] = true;
+                }
+            } catch (\Throwable) {
+                // Ignore if social_reward_claims table cannot be queried
+            }
+        }
+
+        // First pass: collect strictly first-party real-time logs as verified user IPs
         foreach ($rows as $row) {
             if (! $row->user_id) {
                 continue;
@@ -471,9 +571,11 @@ class AuditLogService
             $action = (string) ($row->action ?? '');
             $desc = (string) ($row->description ?? '');
             $details = is_string($row->details) ? (json_decode($row->details, true) ?: []) : (array) $row->details;
+            $isRealTimeGangDonation = $action === 'gang_donation' && ! empty($details['gang_name']);
+            $isRealTimeNpcArmWrestle = $action === 'arm_wrestle' && ! empty($details['npc_key']);
 
             if (
-                empty($details['source_key'])
+                (empty($details['source_key']) || $isRealTimeGangDonation || $isRealTimeNpcArmWrestle)
                 && empty($details['backfilled'])
                 && ! self::isPassiveOrExternalEvent($action, $desc)
                 && ! str_starts_with($desc, 'TBS Patiënten Uitkering')
@@ -492,6 +594,8 @@ class AuditLogService
         $maxSourceIdByPrefix = [
             'bank_tx_' => 0,
             'theft_' => 0,
+            'gang_don_' => 0,
+            'arm_' => 0,
         ];
 
         $rowList = $rows->values()->all();
@@ -522,13 +626,17 @@ class AuditLogService
             // B. Backfilled records or backfill-only source_key actions
             if (! empty($details['backfilled'])) {
                 $isContaminated = true;
-            } elseif ($hasSourceKey && in_array($action, ['gang_donation', 'arm_wrestle', 'user_ban', 'user_warning'], true)) {
+            } elseif ($hasSourceKey && in_array($action, ['user_ban', 'user_warning'], true)) {
+                $isContaminated = true;
+            } elseif ($hasSourceKey && $action === 'gang_donation' && empty($details['gang_name'])) {
+                $isContaminated = true;
+            } elseif ($hasSourceKey && $action === 'arm_wrestle' && empty($details['npc_key']) && empty($details['pot'])) {
                 $isContaminated = true;
             }
 
             // C. Source key ID monotonicity and chronological order check for backfillHistory() batches
             if ($hasSourceKey && $sourceKey !== null) {
-                foreach (['bank_tx_', 'theft_'] as $prefix) {
+                foreach (['bank_tx_', 'theft_', 'gang_don_', 'arm_'] as $prefix) {
                     if (str_starts_with($sourceKey, $prefix)) {
                         $numId = (int) substr($sourceKey, strlen($prefix));
                         if ($numId > 0) {
@@ -584,6 +692,94 @@ class AuditLogService
         }
 
         return $cleaned;
+    }
+
+    /**
+     * Sanitize Discord Shield verifications and security logs so admin actions never stamp the admin IP onto verified users.
+     */
+    public static function sanitizeDiscordShieldLogs(): int
+    {
+        $updated = 0;
+
+        try {
+            if (Schema::hasTable('discord_verifications') && Schema::hasTable('users')) {
+                $missingLinkRows = DB::table('discord_verifications')
+                    ->whereNotNull('discord_id')
+                    ->where(function ($q): void {
+                        $q->whereNull('user_id')->orWhereNull('character_id');
+                    })
+                    ->get(['id', 'discord_id', 'user_id', 'character_id']);
+
+                if ($missingLinkRows->isNotEmpty()) {
+                    $discordIds = $missingLinkRows->pluck('discord_id')->filter()->unique()->values()->all();
+                    $usersByDiscordId = DB::table('users')
+                        ->whereIn('discord_id', $discordIds)
+                        ->pluck('id', 'discord_id')
+                        ->all();
+                    $charsByUserId = Schema::hasTable('characters') && ! empty($usersByDiscordId)
+                        ? DB::table('characters')
+                            ->whereIn('user_id', array_values($usersByDiscordId))
+                            ->pluck('id', 'user_id')
+                            ->all()
+                        : [];
+
+                    foreach ($missingLinkRows as $row) {
+                        $resolvedUserId = $row->user_id ? (int) $row->user_id : ($usersByDiscordId[$row->discord_id] ?? null);
+                        if ($resolvedUserId) {
+                            $resolvedCharId = $row->character_id ? (int) $row->character_id : ($charsByUserId[$resolvedUserId] ?? null);
+                            if ((int) ($row->user_id ?? 0) !== (int) $resolvedUserId || (int) ($row->character_id ?? 0) !== (int) ($resolvedCharId ?? 0)) {
+                                DB::table('discord_verifications')
+                                    ->where('id', $row->id)
+                                    ->update([
+                                        'user_id' => $resolvedUserId,
+                                        'character_id' => $resolvedCharId,
+                                    ]);
+                                $updated++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (Schema::hasTable('discord_shield_logs')) {
+                $approvalLogs = DB::table('discord_shield_logs')
+                    ->where('event', 'manual_approval')
+                    ->get(['id', 'discord_id', 'ip_address', 'fingerprint_hash']);
+
+                if ($approvalLogs->isNotEmpty() && Schema::hasTable('discord_verifications')) {
+                    $discordIds = $approvalLogs->pluck('discord_id')->filter()->unique()->values()->all();
+                    $verificationsByDiscordId = DB::table('discord_verifications')
+                        ->whereIn('discord_id', $discordIds)
+                        ->get(['discord_id', 'ip_address', 'fingerprint_hash'])
+                        ->keyBy('discord_id');
+
+                    foreach ($approvalLogs as $log) {
+                        $v = $log->discord_id ? $verificationsByDiscordId->get($log->discord_id) : null;
+                        $expectedIp = $v?->ip_address;
+                        $expectedFp = $v?->fingerprint_hash ?? $log->fingerprint_hash;
+
+                        if ($log->ip_address !== $expectedIp || $log->fingerprint_hash !== $expectedFp) {
+                            DB::table('discord_shield_logs')
+                                ->where('id', $log->id)
+                                ->update([
+                                    'ip_address' => $expectedIp,
+                                    'fingerprint_hash' => $expectedFp,
+                                ]);
+                            $updated++;
+                        }
+                    }
+                }
+
+                $updated += DB::table('discord_shield_logs')
+                    ->whereIn('event', ['settings_updated', 'manual_unban'])
+                    ->whereNotNull('ip_address')
+                    ->update(['ip_address' => null]);
+            }
+        } catch (\Throwable) {
+            return $updated;
+        }
+
+        return $updated;
     }
 
     /**

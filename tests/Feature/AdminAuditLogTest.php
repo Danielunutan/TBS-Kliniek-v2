@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\AuditLog;
 use App\Models\BankTransaction;
 use App\Models\Character;
+use App\Models\DiscordShieldLog;
+use App\Models\DiscordVerification;
 use App\Models\User;
 use App\Services\AuditLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -607,5 +609,136 @@ class AdminAuditLogTest extends TestCase
         $this->assertSame('77.168.13.203', $genuineLog->fresh()->ip_address);
 
         $response->assertSee('Geen verdachte gedeelde IP clusters');
+    }
+
+    public function test_realtime_gang_donation_and_arm_wrestle_preserve_verified_actor_ip_and_same_ip_transfers_are_flagged(): void
+    {
+        $adminUser = User::factory()->create(['role' => 'admin', 'is_staff' => true]);
+        Character::factory()->create(['user_id' => $adminUser->id, 'name' => 'AdminMod']);
+
+        $user1 = User::factory()->create([
+            'registration_ip' => '198.51.100.77',
+            'last_login_ip' => '198.51.100.77',
+        ]);
+        $char1 = Character::factory()->create(['user_id' => $user1->id, 'name' => 'SpelerEen']);
+
+        $user2 = User::factory()->create([
+            'registration_ip' => '198.51.100.77',
+            'last_login_ip' => '198.51.100.77',
+        ]);
+        $char2 = Character::factory()->create(['user_id' => $user2->id, 'name' => 'SpelerTwee']);
+
+        $user3 = User::factory()->create([
+            'registration_ip' => '203.0.113.50',
+            'last_login_ip' => '203.0.113.50',
+        ]);
+        $char3 = Character::factory()->create(['user_id' => $user3->id, 'name' => 'SpelerDrie']);
+
+        // Real-time gang donation with gang_name and source_key preserves actor IP
+        $realtimeDonation = AuditLog::create([
+            'user_id' => $user1->id,
+            'character_id' => $char1->id,
+            'action' => 'gang_donation',
+            'category' => 'gang',
+            'description' => 'Donatie van €50.000 aan bende De Kliniek (#1)',
+            'amount' => 50000,
+            'risk_level' => 'normaal',
+            'risk_score' => 5,
+            'ip_address' => '198.51.100.77',
+            'details' => [
+                'source_key' => 'gang_don_101',
+                'gang_id' => 1,
+                'gang_name' => 'De Kliniek',
+            ],
+        ]);
+
+        // Real-time NPC arm wrestle with npc_key and source_key preserves actor IP
+        $realtimeArmWrestle = AuditLog::create([
+            'user_id' => $user1->id,
+            'character_id' => $char1->id,
+            'action' => 'arm_wrestle',
+            'category' => 'casino',
+            'description' => 'Armdrukken gewonnen tegen Bouncer (Inzet: €10.000)',
+            'amount' => 20000,
+            'risk_level' => 'normaal',
+            'risk_score' => 5,
+            'ip_address' => '198.51.100.77',
+            'details' => [
+                'source_key' => 'arm_201',
+                'npc_key' => 'bouncer',
+                'bet_amount' => 10000,
+            ],
+        ]);
+
+        AuditLogService::sanitizeContaminatedIps();
+
+        $this->assertSame('198.51.100.77', $realtimeDonation->fresh()->ip_address);
+        $this->assertSame('198.51.100.77', $realtimeArmWrestle->fresh()->ip_address);
+
+        // Same-IP marketplace purchase between SpelerEen and SpelerTwee is automatically flagged as hoog risk
+        $this->assertTrue(AuditLogService::detectSameIpTransfer('marketplace_buy', $char1, $user1, '198.51.100.77', [
+            'seller_id' => $char2->id,
+            'buyer_id' => $char1->id,
+        ]));
+
+        // Different-IP marketplace purchase between SpelerEen and SpelerDrie is NOT flagged
+        $this->assertFalse(AuditLogService::detectSameIpTransfer('marketplace_buy', $char1, $user1, '198.51.100.77', [
+            'seller_id' => $char3->id,
+            'buyer_id' => $char1->id,
+        ]));
+    }
+
+    public function test_discord_shield_manual_approval_never_stamps_admin_ip_on_verified_user(): void
+    {
+        $adminUser = User::factory()->create([
+            'role' => 'admin',
+            'is_staff' => true,
+            'name' => 'AdminDaniël',
+            'registration_ip' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789',
+            'last_login_ip' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789',
+        ]);
+        Character::factory()->create(['user_id' => $adminUser->id, 'name' => 'Daniël']);
+
+        $playerUser = User::factory()->create([
+            'name' => 'DiscordSpeler',
+            'discord_id' => '998877665544332211',
+            'registration_ip' => '84.55.66.77',
+            'last_login_ip' => '84.55.66.77',
+        ]);
+        $playerChar = Character::factory()->create(['user_id' => $playerUser->id, 'name' => 'DiscordSpeler']);
+
+        $verification = DiscordVerification::create([
+            'discord_id' => '998877665544332211',
+            'username' => 'DiscordSpeler',
+            'user_id' => null,
+            'character_id' => null,
+            'ip_address' => '84.55.66.77',
+            'fingerprint_hash' => 'fp_hash_player_84',
+            'status' => 'alt_detected',
+            'risk_score' => 95,
+        ]);
+
+        $this->actingAs($adminUser)
+            ->withServerVariables(['REMOTE_ADDR' => '2a02:a452:62dc:0:bc2e:f42a:f0fc:a789'])
+            ->post(route('admin.discord_shield.approve', $verification->id))
+            ->assertRedirect();
+
+        $shieldLog = DiscordShieldLog::where('event', 'manual_approval')->latest('id')->first();
+        $this->assertNotNull($shieldLog);
+        $this->assertSame('84.55.66.77', $shieldLog->ip_address);
+        $this->assertSame('fp_hash_player_84', $shieldLog->fingerprint_hash);
+
+        $auditLog = AuditLog::where('action', 'discord_shield_manual_approval')->latest('id')->first();
+        $this->assertNotNull($auditLog);
+        $this->assertNull($auditLog->ip_address);
+
+        // Visiting the Discord Shield index also links user_id & character_id from users.discord_id
+        $this->actingAs($adminUser)
+            ->get(route('admin.discord_shield.index'))
+            ->assertOk();
+
+        $verification->refresh();
+        $this->assertSame($playerUser->id, $verification->user_id);
+        $this->assertSame($playerChar->id, $verification->character_id);
     }
 }

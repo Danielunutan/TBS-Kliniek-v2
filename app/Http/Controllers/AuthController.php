@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\DiscordShieldSetting;
+use App\Models\DiscordVerification;
 use App\Models\GameMessage;
 use App\Models\User;
 use App\Services\DiscordShieldService;
@@ -495,6 +496,11 @@ class AuthController extends Controller
         if ($verifiedDiscordId && ! User::where('discord_id', $verifiedDiscordId)->exists()) {
             $user->discord_id = $verifiedDiscordId;
             $user->save();
+            DiscordVerification::where('discord_id', $verifiedDiscordId)
+                ->update([
+                    'user_id' => $user->id,
+                    'character_id' => $character->id,
+                ]);
             $character->claimDiscordReward();
             $request->session()->forget(['verified_discord_id', 'verified_discord_username']);
 

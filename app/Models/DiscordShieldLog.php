@@ -26,12 +26,17 @@ class DiscordShieldLog extends Model
      */
     public static function log(string $event, string $description, array $data = []): static
     {
+        $isStaffAction = in_array($event, ['manual_approval', 'manual_ban', 'manual_unban', 'settings_updated'], true);
+        $ipAddress = array_key_exists('ip_address', $data)
+            ? $data['ip_address']
+            : ($isStaffAction ? null : request()->ip());
+
         return static::create([
             'event' => $event,
             'description' => $description,
             'discord_id' => $data['discord_id'] ?? null,
             'username' => $data['username'] ?? null,
-            'ip_address' => $data['ip_address'] ?? request()->ip(),
+            'ip_address' => $ipAddress,
             'fingerprint_hash' => $data['fingerprint_hash'] ?? null,
             'severity' => $data['severity'] ?? 'info',
             'metadata' => $data['metadata'] ?? null,

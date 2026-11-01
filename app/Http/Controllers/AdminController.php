@@ -67,7 +67,9 @@ class AdminController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($uq) use ($search) {
                         $uq->where('email', 'like', "%{$search}%")
-                            ->orWhere('name', 'like', "%{$search}%");
+                            ->orWhere('name', 'like', "%{$search}%")
+                            ->orWhere('registration_ip', 'like', "%{$search}%")
+                            ->orWhere('last_login_ip', 'like', "%{$search}%");
                     });
             });
         }

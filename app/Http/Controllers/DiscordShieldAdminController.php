@@ -25,6 +25,8 @@ class DiscordShieldAdminController extends Controller
      */
     public function index(): View
     {
+        AuditLogService::sanitizeDiscordShieldLogs();
+
         $totalVerified = DiscordVerification::where('status', 'verified')->count();
         $totalAltsCaught = DiscordShieldLog::where('event', 'alt_detected')->count();
         $totalVpnBlocked = DiscordShieldLog::where('event', 'vpn_blocked')->count();
@@ -180,6 +182,9 @@ class DiscordShieldAdminController extends Controller
         }
 
         DiscordShieldLog::log('manual_ban', "Handmatige ban toegevoegd voor {$request->type}: {$request->value}", [
+            'discord_id' => $request->type === 'discord_id' ? trim((string) $request->value) : null,
+            'ip_address' => $request->type === 'ip_address' ? trim((string) $request->value) : null,
+            'fingerprint_hash' => $request->type === 'fingerprint' ? trim((string) $request->value) : null,
             'severity' => 'warning',
         ]);
 
@@ -214,10 +219,14 @@ class DiscordShieldAdminController extends Controller
         }
 
         $ban = DiscordShieldBan::findOrFail($id);
+        $banType = $ban->type;
         $val = $ban->value;
         $ban->delete();
 
         DiscordShieldLog::log('manual_unban', "Ban verwijderd voor {$val}", [
+            'discord_id' => $banType === 'discord_id' ? $val : null,
+            'ip_address' => $banType === 'ip_address' ? $val : null,
+            'fingerprint_hash' => $banType === 'fingerprint' ? $val : null,
             'severity' => 'info',
         ]);
 
@@ -267,6 +276,8 @@ class DiscordShieldAdminController extends Controller
         DiscordShieldLog::log('manual_approval', "Gebruiker {$verification->username} ({$verification->discord_id}) handmatig goedgekeurd door ".Auth::user()->name, [
             'discord_id' => $verification->discord_id,
             'username' => $verification->username,
+            'ip_address' => $verification->ip_address,
+            'fingerprint_hash' => $verification->fingerprint_hash,
             'severity' => 'success',
         ]);
 
