@@ -1677,7 +1677,6 @@ function tbsDashboardCustomizer() {
                     <div class="p-4 text-center text-xs text-slate-400">Tunnelgegevens niet beschikbaar.</div>
                     @endif
                 </div>
-                </div>
 
             </div>
 

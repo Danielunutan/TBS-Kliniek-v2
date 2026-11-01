@@ -321,4 +321,30 @@ class Pass10Bucket1AuditTest extends TestCase
         $res = $this->get(route('admin.dashboard'));
         $res->assertOk();
     }
+
+    public function test_dashboard_blade_keeps_customizer_and_city_modals_inside_alpine_root_scope(): void
+    {
+        $blade = file_get_contents(resource_path('views/game/dashboard.blade.php'));
+        $this->assertNotFalse($blade);
+
+        $openDivs = preg_match_all('/<div\b/i', $blade);
+        $closeDivs = preg_match_all('/<\/div>/i', $blade);
+        $this->assertSame($openDivs, $closeDivs, 'Dashboard Blade must have balanced <div> and </div> tags.');
+
+        $rootPos = strpos($blade, '<div x-data="window.tbsDashboardCustomizer()"');
+        $customizerPos = strpos($blade, 'x-show="showCustomizer"');
+        $cityModalPos = strpos($blade, 'x-show="showCityModal"');
+
+        $this->assertNotFalse($rootPos);
+        $this->assertNotFalse($customizerPos);
+        $this->assertNotFalse($cityModalPos);
+
+        $sliceToCustomizer = substr($blade, $rootPos, $customizerPos - $rootPos);
+        $depthAtCustomizer = preg_match_all('/<div\b/i', $sliceToCustomizer) - preg_match_all('/<\/div>/i', $sliceToCustomizer);
+        $this->assertGreaterThanOrEqual(1, $depthAtCustomizer, 'Customizer modal must be nested inside x-data="window.tbsDashboardCustomizer()".');
+
+        $sliceToCityModal = substr($blade, $rootPos, $cityModalPos - $rootPos);
+        $depthAtCityModal = preg_match_all('/<div\b/i', $sliceToCityModal) - preg_match_all('/<\/div>/i', $sliceToCityModal);
+        $this->assertGreaterThanOrEqual(1, $depthAtCityModal, 'City modal must be nested inside x-data="window.tbsDashboardCustomizer()".');
+    }
 }
