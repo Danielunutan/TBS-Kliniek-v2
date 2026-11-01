@@ -526,4 +526,99 @@ class SponsorRewardsTest extends TestCase
 
         $res->assertStatus(403);
     }
+
+    public function test_vest_reward_extends_existing_active_vest_duration_and_formats_hours_above_24(): void
+    {
+        $this->freezeTime();
+        [$user, $character] = $this->createTestUser();
+        $character->update([
+            'vest_until' => now()->addHours(18),
+            'ad_vest_progress' => 2,
+        ]);
+
+        $this->simulateAdWatch($user, $character, 'vest')->assertStatus(200);
+        $character->refresh();
+        $user->unsetRelation('character');
+
+        $this->assertEquals(0, $character->ad_vest_progress);
+        $this->assertEquals(30 * 3600, $character->getVestRemainingSeconds());
+
+        $indexResponse = $this->actingAs($user)->get(route('sponsor.index'));
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee('Actief (30:00u)');
+    }
+
+    public function test_coma_revive_clears_code_blauw_liquidation_streak_and_revives(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $character->update([
+            'health' => 0,
+            'coma_until' => null,
+            'perks' => ['liquidation_streak_deaths' => 10],
+            'ad_coma_progress' => 2,
+        ]);
+
+        $this->assertTrue($character->needsReviveSerum());
+
+        // Starting a non-coma ad while in Code Blauw must be rejected
+        $blockedStart = $this->actingAs($user)->postJson(route('sponsor.start'), [
+            'reward_type' => 'cash',
+        ]);
+        $blockedStart->assertStatus(422);
+
+        // Starting coma_revive while in Code Blauw must succeed
+        $allowedStart = $this->actingAs($user)->postJson(route('sponsor.start'), [
+            'reward_type' => 'coma_revive',
+        ]);
+        $allowedStart->assertStatus(200);
+
+        // Completing the 3rd coma_revive ad clears Code Blauw and restores 50% HP
+        $this->simulateAdWatch($user, $character, 'coma_revive')->assertStatus(200);
+        $character->refresh();
+
+        $this->assertFalse($character->isComatose());
+        $this->assertFalse($character->needsReviveSerum());
+        $this->assertEquals(0, $character->getLiquidationStreakDeaths());
+        $this->assertEquals(50, $character->health);
+    }
+
+    public function test_claim_rejects_mismatched_explicit_token(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $activeToken = Str::random(32);
+        $adData = [
+            'token' => $activeToken,
+            'started_at' => now()->subSeconds(20)->timestamp,
+            'character_id' => $character->id,
+            'reward_type' => 'cash',
+            'robin_reward_id' => null,
+        ];
+
+        Cache::put("tbs_ad_token_{$activeToken}", $adData, now()->addMinutes(30));
+        Cache::put("tbs_ad_char_{$character->id}", $adData, now()->addMinutes(30));
+
+        // Claiming with a stale/different explicit token must fail and preserve the active session
+        $badResponse = $this->actingAs($user)->postJson(route('sponsor.claim'), [
+            'token' => 'stale_or_invalid_token_12345',
+        ]);
+        $badResponse->assertStatus(422);
+
+        // Claiming with the valid active token succeeds
+        $goodResponse = $this->actingAs($user)->postJson(route('sponsor.claim'), [
+            'token' => $activeToken,
+        ]);
+        $goodResponse->assertStatus(200);
+    }
+
+    public function test_sponsor_modal_renders_robinsads_sdk_and_interstitial_without_redirect_clobber(): void
+    {
+        [$user, $character] = $this->createTestUser();
+
+        $response = $this->actingAs($user)->get(route('sponsor.index'));
+        $response->assertStatus(200);
+        $response->assertSee('https://robinsads.com/ads.js', false);
+        $response->assertDontSee('https://robinsads.com/sdk/robinads.min.js', false);
+        $response->assertSee('robinSdk.showInterstitial', false);
+        $response->assertDontSee("window.location.href = '".route('sponsor.index')."'", false);
+    }
 }

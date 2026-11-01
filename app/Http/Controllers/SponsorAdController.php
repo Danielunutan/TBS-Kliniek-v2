@@ -167,13 +167,13 @@ class SponsorAdController extends Controller
         $dailyData = $character->getAdDailyData();
 
         if ($rewardType === 'coma_revive') {
-            if (! $character->isComatose()) {
+            if (! $character->isComatose() && ! $character->needsReviveSerum()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Je ligt momenteel niet in de Intensive Care Coma.',
                 ], 422);
             }
-        } elseif ($character->isComatose()) {
+        } elseif ($character->isComatose() || $character->needsReviveSerum()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Gebruik eerst de IC Reanimatie of een '.Character::REVIVE_SERUM_NAME.'.',
@@ -298,6 +298,10 @@ class SponsorAdController extends Controller
             'vip_progress' => $character->getVipAdMilestoneProgress(),
             'ads_until_vip' => $character->getAdsUntilNextVip(),
             'is_in_prison' => $character->isImprisoned(),
+            'is_comatose' => $character->isComatose(),
+            'needs_revive_serum' => $character->needsReviveSerum(),
+            'has_vest' => $character->hasVest(),
+            'vest_remaining_seconds' => $character->getVestRemainingSeconds(),
             'daily_data' => $character->getAdDailyData(),
         ]);
     }
@@ -339,7 +343,8 @@ class SponsorAdController extends Controller
      */
     protected function processClaim(Request $request, Character $character): JsonResponse
     {
-        $requestToken = $request->input('token') ?: $request->input('robin_token');
+        $explicitToken = $request->input('token');
+        $requestToken = $explicitToken ?: $request->input('robin_token');
 
         // Resolve ad session: 1) from Cache by token, 2) from Cache by character id, 3) from Session
         $adSession = null;
@@ -350,14 +355,18 @@ class SponsorAdController extends Controller
         if (! $adSession) {
             $charSession = Cache::get("tbs_ad_char_{$character->id}");
             if ($charSession && is_array($charSession)) {
-                $adSession = $charSession;
+                if (! $explicitToken || ($charSession['token'] ?? null) === $explicitToken) {
+                    $adSession = $charSession;
+                }
             }
         }
 
         if (! $adSession) {
             $sessionAd = session()->get('tbs_ad_session');
             if ($sessionAd && is_array($sessionAd)) {
-                $adSession = $sessionAd;
+                if (! $explicitToken || ($sessionAd['token'] ?? null) === $explicitToken) {
+                    $adSession = $sessionAd;
+                }
             }
         }
 
@@ -536,13 +545,19 @@ class SponsorAdController extends Controller
 
                     case 'cooldown_connect_four':
                         $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $lockedCharacter->id]);
-                        $stat->update([
-                            'cooldown_until' => null,
-                            'matches_played' => 0,
-                            'current_player_wins' => 0,
-                            'current_arjan_wins' => 0,
-                            'current_draws' => 0,
-                        ]);
+                        if ($stat->isOnCooldown() || ($stat->matches_played ?? 0) >= 5) {
+                            $stat->update([
+                                'cooldown_until' => null,
+                                'matches_played' => 0,
+                                'current_player_wins' => 0,
+                                'current_arjan_wins' => 0,
+                                'current_draws' => 0,
+                            ]);
+                        } else {
+                            $stat->update([
+                                'cooldown_until' => null,
+                            ]);
+                        }
                         $rewardDetails = '⚡ Sponsor-Ad bekeken! De OOHPA Arjan wachttijd is gereset. Je kunt direct een nieuw 5-potjes toernooi starten!';
                         break;
 
@@ -729,8 +744,11 @@ class SponsorAdController extends Controller
                         $currentProgress = ($lockedCharacter->ad_vest_progress ?? 0) + 1;
                         if ($currentProgress >= 3) {
                             $lockedCharacter->ad_vest_progress = 0;
-                            $lockedCharacter->vest_until = now()->addHours(12);
-                            $rewardDetails = '🛡️ [3/3 Ads] GEFELICITEERD: Kogelwerend Vest geactiveerd voor 12 uur! Je bent zwaar beschermd tegen schutters en vijanden riskeren backfire!';
+                            $currentVest = ($lockedCharacter->vest_until && $lockedCharacter->vest_until->isFuture())
+                                ? $lockedCharacter->vest_until->copy()
+                                : now();
+                            $lockedCharacter->vest_until = $currentVest->addHours(12);
+                            $rewardDetails = '🛡️ [3/3 Ads] GEFELICITEERD: Kogelwerend Vest geactiveerd voor +12 uur! Je bent zwaar beschermd tegen schutters en vijanden riskeren backfire!';
                         } else {
                             $lockedCharacter->ad_vest_progress = $currentProgress;
                             $left = 3 - $currentProgress;
@@ -743,8 +761,13 @@ class SponsorAdController extends Controller
                         if ($currentProgress >= 3) {
                             $lockedCharacter->ad_coma_progress = 0;
                             $lockedCharacter->coma_until = null;
-                            $lockedCharacter->health = max(25, (int) ($lockedCharacter->max_health * 0.5));
-                            $rewardDetails = '💉 [3/3 Ads] GEFELICITEERD: Medisch ontwaakt uit Intensive Care Coma! Je bent weer op de been met 50% HP!';
+                            $lockedCharacter->health = max((int) $lockedCharacter->health, 25, (int) ($lockedCharacter->max_health * 0.5));
+                            $perks = $lockedCharacter->perks ?? [];
+                            if (! empty($perks['liquidation_streak_deaths'])) {
+                                $perks['liquidation_streak_deaths'] = 0;
+                                $lockedCharacter->perks = $perks;
+                            }
+                            $rewardDetails = '💉 [3/3 Ads] GEFELICITEERD: Medisch ontwaakt uit Intensive Care Coma! Je bent weer op de been met minimaal 50% HP!';
                         } else {
                             $lockedCharacter->ad_coma_progress = $currentProgress;
                             $left = 3 - $currentProgress;

@@ -165,7 +165,10 @@ class CpaleadPostbackController extends Controller
                 case 'kogel_vest':
                 case 'armor':
                 case 'armour':
-                    $lockedCharacter->vest_until = now()->addHours(12);
+                    $currentVest = ($lockedCharacter->vest_until && $lockedCharacter->vest_until->isFuture())
+                        ? $lockedCharacter->vest_until->copy()
+                        : now();
+                    $lockedCharacter->vest_until = $currentVest->addHours(12);
                     $rewardGranted = '12u Kogelwerend Vest 🛡️';
                     break;
 
@@ -176,7 +179,12 @@ class CpaleadPostbackController extends Controller
                 case 'revive':
                     $lockedCharacter->ad_coma_progress = 0;
                     $lockedCharacter->coma_until = null;
-                    $lockedCharacter->health = max(25, (int) ($lockedCharacter->max_health * 0.5));
+                    $lockedCharacter->health = max((int) $lockedCharacter->health, 25, (int) ($lockedCharacter->max_health * 0.5));
+                    $perks = $lockedCharacter->perks ?? [];
+                    if (! empty($perks['liquidation_streak_deaths'])) {
+                        $perks['liquidation_streak_deaths'] = 0;
+                        $lockedCharacter->perks = $perks;
+                    }
                     $rewardGranted = 'Ontwaakt uit Intensive Care Coma 💉';
                     break;
 

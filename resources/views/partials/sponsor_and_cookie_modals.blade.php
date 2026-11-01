@@ -1,13 +1,329 @@
     @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
     <!-- ROBINADS REWARDED AD MODAL (DESKTOP & MOBILE) -->
-    <script src="https://robinsads.com/sdk/robinads.min.js" async onerror="window.__tbsRobinSdkBlocked = true;"></script>
+    <script src="https://robinsads.com/ads.js" data-automatic="false" data-popunder="false" data-interstitial="false" async onerror="window.__tbsRobinSdkBlocked = true;"></script>
+    <script>
+    window.tbsSponsorAdModal = function() {
+        return {
+            isOpen: false,
+            state: 'idle',
+            rewardType: 'cash',
+            rewardTitle: '€ 2.500 Zakgeld',
+            token: null,
+            robinToken: null,
+            robinRewardId: null,
+            popupUrl: null,
+            secondsLeft: 15,
+            totalSeconds: 15,
+            watchStartedAtMs: null,
+            timerInterval: null,
+            errorMsg: '',
+            successMsg: '',
+            onCompleteCallback: null,
+
+            init() {
+                window.__tbsSponsorAdModalInstance = this;
+                window.tbsOpenSponsorAd = (rewardType = 'cash', callback = null) => {
+                    this.open(rewardType, callback);
+                };
+            },
+
+            getCsrfToken() {
+                const meta = document.querySelector('meta[name="csrf-token"]');
+                return (meta && meta.getAttribute('content')) ? meta.getAttribute('content') : '{{ csrf_token() }}';
+            },
+
+            clearWatchTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+                this.watchStartedAtMs = null;
+            },
+
+            syncWallClockTimer() {
+                if (this.state !== 'watching' || !this.watchStartedAtMs) {
+                    return;
+                }
+                const elapsedSeconds = Math.floor((Date.now() - this.watchStartedAtMs) / 1000);
+                const remaining = Math.max(0, this.totalSeconds - elapsedSeconds);
+                this.secondsLeft = remaining;
+
+                if (remaining <= 0) {
+                    this.clearWatchTimer();
+                    if (this.state === 'watching') {
+                        this.state = 'ready';
+                        this.claim();
+                    }
+                }
+            },
+
+            async ensureRobinAdsSdk() {
+                if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
+                    return window.RobinAds;
+                }
+                if (window.__tbsRobinSdkBlocked) {
+                    return null;
+                }
+
+                let scriptEl = document.querySelector('script[src*="robinsads.com/ads.js"]');
+                if (!scriptEl) {
+                    scriptEl = document.createElement('script');
+                    scriptEl.src = 'https://robinsads.com/ads.js';
+                    scriptEl.async = true;
+                    scriptEl.setAttribute('data-automatic', 'false');
+                    scriptEl.setAttribute('data-popunder', 'false');
+                    scriptEl.setAttribute('data-interstitial', 'false');
+                    scriptEl.onerror = () => {
+                        window.__tbsRobinSdkBlocked = true;
+                    };
+                    document.head.appendChild(scriptEl);
+                }
+
+                const startWait = Date.now();
+                while (Date.now() - startWait < 3500) {
+                    if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
+                        return window.RobinAds;
+                    }
+                    if (window.__tbsRobinSdkBlocked) {
+                        return null;
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 120));
+                }
+
+                return (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function')
+                    ? window.RobinAds
+                    : null;
+            },
+
+            getRewardTitle(type) {
+                const titles = {
+                    'cash': '€ 2.500 Contant Zakgeld',
+                    'daily_stars': 'Dagelijkse +5 Sterren ⭐',
+                    'daily_cash': 'Dagelijkse € 50.000 Cash',
+                    'daily_xp': 'Dagelijkse +50 XP Boost',
+                    'prison': 'Isoleercel Strafvermindering & Vrijlating',
+                    'bullets': '+50 Scherpe Kogels 💣',
+                    'bullets_50': '+50 Scherpe Kogels 💣',
+                    'kogels': '+50 Scherpe Kogels 💣',
+                    'vest': '12 Uur Kogelwerend Vest 🛡️',
+                    'vest_12h': '12 Uur Kogelwerend Vest 🛡️',
+                    'kogelvest': '12 Uur Kogelwerend Vest 🛡️',
+                    'coma_revive': 'IC Coma Ontwaken 💉',
+                    'coma': 'IC Coma Ontwaken 💉',
+                    'ic': 'IC Coma Ontwaken 💉',
+                    'respect': '+1 Kliniek Respect 🔥',
+                    'lottery_ticket': '14-Daagse Loterij Ticket 🎟️',
+                    'mask': '+1 Bivakmuts / Masker 🎭',
+                    'vault_code': 'Geheime Kluiscode Voucher 🔐',
+                    'true_crime': 'True Crime Dossier Wachttijd',
+                    'cooldown_true_crime': 'True Crime Dossier Wachttijd',
+                    'cooldown:true_crime': 'True Crime Dossier Wachttijd',
+                    'cooldown_connect_four': 'Vier op een Rij Wachttijd Reset',
+                    'cooldown:connect_four': 'Vier op een Rij Wachttijd Reset',
+                    'cooldown_memory': 'Memory Wachttijd Reset',
+                    'cooldown:memory': 'Memory Wachttijd Reset',
+                    'cooldown': 'Alle Cooldowns Wissen ⚡',
+                    'cooldown:produce_sigaretten': 'Sigaretten Cooldown Wissen ⚡',
+                    'cooldown:produce_ritalin': 'Ritalin Cooldown Wissen ⚡',
+                    'cooldown:produce_telefoon': 'Telefoon Cooldown Wissen ⚡',
+                    'cooldown:produce_phone': 'Telefoon Cooldown Wissen ⚡'
+                };
+                return titles[type] || 'Sponsor Beloning Claimen';
+            },
+
+            async open(rewardType = 'cash', callback = null) {
+                this.clearWatchTimer();
+                this.rewardType = rewardType || 'cash';
+                this.rewardTitle = this.getRewardTitle(this.rewardType);
+                this.onCompleteCallback = typeof callback === 'function' ? callback : null;
+                this.isOpen = true;
+                this.state = 'starting';
+                this.errorMsg = '';
+                this.successMsg = '';
+                this.token = null;
+                this.robinToken = null;
+                this.robinRewardId = null;
+                this.popupUrl = null;
+                this.totalSeconds = 15;
+                this.secondsLeft = 15;
+
+                try {
+                    const response = await fetch('{{ route("sponsor.start") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken(),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ reward_type: this.rewardType })
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok || !data.success) {
+                        this.state = 'error';
+                        this.errorMsg = data.message || 'Kon de sponsor-sessie niet starten.';
+                        return;
+                    }
+
+                    this.token = data.token;
+                    this.robinRewardId = data.robin_reward_id || null;
+                    this.popupUrl = data.popup_url || null;
+                    this.totalSeconds = Number(data.duration) > 0 ? Number(data.duration) : 15;
+                    this.secondsLeft = this.totalSeconds;
+
+                    await this.startWatchFlow(data);
+                } catch (e) {
+                    this.state = 'error';
+                    this.errorMsg = 'Netwerkfout bij het verbinden met de Sponsorkamer. Controleer je verbinding en probeer het opnieuw.';
+                }
+            },
+
+            async startWatchFlow(data) {
+                const robinSdk = await this.ensureRobinAdsSdk();
+
+                if (robinSdk && typeof robinSdk.showInterstitial === 'function') {
+                    this.state = 'watching_interstitial';
+                    const watchStartMs = Date.now();
+
+                    try {
+                        const result = await robinSdk.showInterstitial({
+                            websiteId: '{{ config("services.robinads.website_id", "6ad2b8e95f70fee0a42a5496") }}'
+                        });
+                        const elapsedSec = (Date.now() - watchStartMs) / 1000;
+
+                        if (result && (result.rewardGranted || (result.fallback && elapsedSec >= 12))) {
+                            this.robinToken = result.token || this.token;
+                            if (result.rewardId || result.impressionId) {
+                                this.robinRewardId = result.rewardId || result.impressionId;
+                            }
+                            this.secondsLeft = 0;
+                            this.state = 'ready';
+                            await this.claim();
+                            return;
+                        }
+
+                        if (result && result.closed && !result.rewardGranted && elapsedSec < 12) {
+                            this.state = 'error';
+                            this.errorMsg = 'De advertentie is voortijdig gesloten. Bekijk de video volledig tot het einde om je beloning te ontvangen.';
+                            return;
+                        }
+
+                        if (elapsedSec >= 12) {
+                            this.secondsLeft = 0;
+                            this.state = 'ready';
+                            await this.claim();
+                            return;
+                        }
+                    } catch (err) {
+                        // Interstitial had no fill or failed to render; proceed to in-screen fallback
+                    }
+                }
+
+                this.startInScreenFallback(data);
+            },
+
+            startInScreenFallback(data) {
+                if (!this.isOpen) {
+                    return;
+                }
+                this.state = 'watching';
+                this.clearWatchTimer();
+                this.watchStartedAtMs = Date.now();
+
+                this.timerInterval = setInterval(() => {
+                    this.syncWallClockTimer();
+                }, 250);
+            },
+
+            async claim() {
+                if (this.state === 'claiming' || this.state === 'claimed') {
+                    return;
+                }
+                this.clearWatchTimer();
+                this.state = 'claiming';
+
+                try {
+                    const response = await fetch('{{ route("sponsor.claim") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken(),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            token: this.token,
+                            robin_token: this.robinToken,
+                            robin_reward_id: this.robinRewardId,
+                            reward_type: this.rewardType
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok || !data.success) {
+                        this.state = 'error';
+                        this.errorMsg = data.message || 'Beloning kon niet worden geclaimd.';
+                        return;
+                    }
+
+                    this.state = 'claimed';
+                    this.successMsg = data.reward_details || data.message || 'Beloning succesvol ontvangen!';
+
+                    if (typeof window.tbsToast === 'function') {
+                        window.tbsToast(this.successMsg, 'success');
+                    }
+                    if (typeof window.tbsRefreshStats === 'function') {
+                        window.tbsRefreshStats(true);
+                    }
+
+                    setTimeout(() => {
+                        const cb = this.onCompleteCallback;
+                        this.close();
+                        if (typeof cb === 'function') {
+                            cb(data);
+                        } else if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                            window.Turbo.visit(window.location.href, { action: 'replace' });
+                        } else {
+                            window.location.reload();
+                        }
+                    }, 1000);
+                } catch (e) {
+                    this.state = 'error';
+                    this.errorMsg = 'Er trad een verbindingsfout op bij het claimen. Probeer het opnieuw.';
+                }
+            },
+
+            close() {
+                this.clearWatchTimer();
+                this.isOpen = false;
+                this.state = 'idle';
+                this.popupUrl = null;
+            }
+        };
+    };
+
+    window.tbsOpenSponsorAd = function(rewardType = 'cash', callback = null) {
+        if (window.__tbsSponsorAdModalInstance && typeof window.__tbsSponsorAdModalInstance.open === 'function') {
+            window.__tbsSponsorAdModalInstance.open(rewardType, callback);
+            return;
+        }
+        window.dispatchEvent(new CustomEvent('tbs-open-sponsor-ad', {
+            detail: { rewardType, callback }
+        }));
+    };
+    </script>
+
     <div x-data="tbsSponsorAdModal()"
          x-show="isOpen"
          x-cloak
-         @keydown.escape.window="if (isOpen && state !== 'claiming') close()"
+         @tbs-open-sponsor-ad.window="open($event.detail.rewardType, $event.detail.callback)"
+         @visibilitychange.window="syncWallClockTimer()"
+         @focus.window="syncWallClockTimer()"
+         @keydown.escape.window="if (isOpen && state !== 'claiming' && state !== 'watching_interstitial') close()"
          class="fixed inset-0 z-[80] flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-xs select-none">
 
-        <div @click.away="if (state !== 'watching' && state !== 'claiming') close()"
+        <div @click.away="if (state !== 'watching' && state !== 'watching_interstitial' && state !== 'claiming') close()"
              class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-4 text-slate-800 dark:text-slate-100 relative">
 
             <!-- Header -->
@@ -36,11 +352,37 @@
                     <i class="fa-solid fa-circle-notch fa-spin"></i>
                 </div>
                 <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Sponsor-sessie wordt voorbereid...</p>
-                <p class="text-[11px] text-slate-400 dark:text-slate-500">Even geduld, je beloning wordt gekoppeld aan je karakter.</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500">Even geduld, je advertentie en beloning worden geladen.</p>
             </div>
 
-            <!-- State: Watching (15s Countdown + Sponsor Showcase) -->
+            <!-- State: Watching Fullscreen Interstitial -->
+            <div x-show="state === 'watching_interstitial'" class="py-6 text-center space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl mx-auto">
+                    <i class="fa-solid fa-film fa-beat-fade"></i>
+                </div>
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Fullscreen Sponsor-Advertentie Actief</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Bekijk de advertentie volledig tot de teller rechtsboven op 0 staat. Daarna wordt je beloning direct uitgekeerd!
+                </p>
+            </div>
+
+            <!-- State: Watching In-Screen Fallback (15s Countdown + Embedded Ad / Showcase) -->
             <div x-show="state === 'watching'" class="space-y-4 py-2">
+                <template x-if="popupUrl">
+                    <div class="relative w-full h-56 sm:h-64 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-950 shadow-inner">
+                        <iframe :src="popupUrl"
+                                class="w-full h-full border-0"
+                                allow="autoplay; fullscreen; encrypted-media"
+                                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        <a :href="popupUrl" target="_blank" rel="noopener noreferrer"
+                           class="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-slate-900/85 hover:bg-slate-900 text-white text-[10px] font-bold border border-white/15 backdrop-blur-xs flex items-center gap-1 shadow-xs transition">
+                            <i class="fa-solid fa-up-right-from-square text-[9px]"></i>
+                            <span>Open in nieuw tabblad</span>
+                        </a>
+                    </div>
+                </template>
+
                 <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-3">
                     <div class="w-14 h-14 mx-auto rounded-2xl bg-purple-600/10 dark:bg-purple-500/20 border border-purple-300/80 dark:border-purple-700 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xl font-mono font-black shadow-2xs">
                         <span x-text="secondsLeft + 's'">15s</span>
@@ -53,7 +395,7 @@
                     </div>
                     <!-- Progress Bar -->
                     <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden p-0.5">
-                        <div class="bg-gradient-to-r from-purple-600 to-amber-500 h-full rounded-full transition-all duration-1000 ease-linear"
+                        <div class="bg-gradient-to-r from-purple-600 to-amber-500 h-full rounded-full transition-all duration-300 ease-linear"
                              :style="'width: ' + Math.min(100, Math.max(0, ((totalSeconds - secondsLeft) / totalSeconds) * 100)) + '%'"></div>
                     </div>
                 </div>
@@ -104,6 +446,11 @@
                 <p class="text-xs font-bold text-rose-600 dark:text-rose-400 leading-relaxed" x-text="errorMsg"></p>
                 <div class="flex items-center justify-center gap-2 pt-1">
                     <button type="button"
+                            @click="open(rewardType, onCompleteCallback)"
+                            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black transition cursor-pointer">
+                        Opnieuw Proberen
+                    </button>
+                    <button type="button"
                             @click="close()"
                             class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition cursor-pointer">
                         Sluiten
@@ -113,242 +460,6 @@
 
         </div>
     </div>
-
-    <script>
-    window.tbsSponsorAdModal = function() {
-        return {
-            isOpen: false,
-            state: 'idle',
-            rewardType: 'cash',
-            rewardTitle: '€ 2.500 Zakgeld',
-            token: null,
-            robinToken: null,
-            robinRewardId: null,
-            secondsLeft: 15,
-            totalSeconds: 15,
-            timerInterval: null,
-            errorMsg: '',
-            successMsg: '',
-            onCompleteCallback: null,
-
-            init() {
-                window.tbsOpenSponsorAd = (rewardType = 'cash', callback = null) => {
-                    this.open(rewardType, callback);
-                };
-
-                try {
-                    if (window.RobinAds && typeof window.RobinAds.init === 'function') {
-                        window.RobinAds.init({
-                            websiteId: '{{ config("services.robinads.website_id", "6ad2b8e95f70fee0a42a5496") }}'
-                        });
-                    }
-                } catch (e) {}
-            },
-
-            clearWatchTimer() {
-                if (this.timerInterval) {
-                    clearInterval(this.timerInterval);
-                    this.timerInterval = null;
-                }
-            },
-
-            getRewardTitle(type) {
-                const titles = {
-                    'cash': '€ 2.500 Contant Zakgeld',
-                    'daily_stars': 'Dagelijkse +5 Sterren ⭐',
-                    'daily_cash': 'Dagelijkse € 50.000 Cash',
-                    'daily_xp': 'Dagelijkse +50 XP Boost',
-                    'prison': 'Isoleercel Strafvermindering & Vrijlating',
-                    'bullets': '+50 Scherpe Kogels 💣',
-                    'bullets_50': '+50 Scherpe Kogels 💣',
-                    'vest': '12 Uur Kogelwerend Vest 🛡️',
-                    'vest_12h': '12 Uur Kogelwerend Vest 🛡️',
-                    'coma_revive': 'IC Coma Ontwaken 💉',
-                    'coma': 'IC Coma Ontwaken 💉',
-                    'respect': '+1 Kliniek Respect 🔥',
-                    'lottery_ticket': '14-Daagse Loterij Ticket 🎟️',
-                    'mask': '+1 Bivakmuts / Masker 🎭',
-                    'vault_code': 'Geheime Kluiscode Voucher 🔐',
-                    'true_crime': 'True Crime Dossier Wachttijd',
-                    'cooldown_true_crime': 'True Crime Dossier Wachttijd',
-                    'cooldown:true_crime': 'True Crime Dossier Wachttijd',
-                    'cooldown_connect_four': 'Vier op een Rij Wachttijd Reset',
-                    'cooldown:connect_four': 'Vier op een Rij Wachttijd Reset',
-                    'cooldown_memory': 'Memory Wachttijd Reset',
-                    'cooldown:memory': 'Memory Wachttijd Reset',
-                    'cooldown': 'Alle Cooldowns Wissen ⚡',
-                    'cooldown:produce_sigaretten': 'Sigaretten Cooldown Wissen ⚡',
-                    'cooldown:produce_ritalin': 'Ritalin Cooldown Wissen ⚡',
-                    'cooldown:produce_telefoon': 'Telefoon Cooldown Wissen ⚡',
-                    'cooldown:produce_phone': 'Telefoon Cooldown Wissen ⚡'
-                };
-                return titles[type] || 'Sponsor Beloning Claimen';
-            },
-
-            async open(rewardType = 'cash', callback = null) {
-                this.clearWatchTimer();
-                this.rewardType = rewardType || 'cash';
-                this.rewardTitle = this.getRewardTitle(this.rewardType);
-                this.onCompleteCallback = typeof callback === 'function' ? callback : null;
-                this.isOpen = true;
-                this.state = 'starting';
-                this.errorMsg = '';
-                this.successMsg = '';
-                this.token = null;
-                this.robinToken = null;
-                this.robinRewardId = null;
-                this.totalSeconds = 15;
-                this.secondsLeft = 15;
-
-                try {
-                    const response = await fetch('{{ route("sponsor.start") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({ reward_type: this.rewardType })
-                    });
-
-                    const data = await response.json();
-                    if (!response.ok || !data.success) {
-                        this.state = 'error';
-                        this.errorMsg = data.message || 'Kon de sponsor-sessie niet starten.';
-                        return;
-                    }
-
-                    this.token = data.token;
-                    this.robinRewardId = data.robin_reward_id || null;
-                    this.totalSeconds = Number(data.duration) > 0 ? Number(data.duration) : 15;
-                    this.secondsLeft = this.totalSeconds;
-
-                    this.startWatchFlow();
-                } catch (e) {
-                    this.state = 'error';
-                    this.errorMsg = 'Netwerkfout bij het verbinden met de Sponsorkamer. Controleer je verbinding en probeer het opnieuw.';
-                }
-            },
-
-            startWatchFlow() {
-                this.state = 'watching';
-                this.clearWatchTimer();
-
-                // Start the 15-second countdown timer so mobile and desktop users are never stuck if external SDK has no fill
-                this.timerInterval = setInterval(() => {
-                    if (this.secondsLeft > 0) {
-                        this.secondsLeft--;
-                    }
-                    if (this.secondsLeft <= 0) {
-                        this.clearWatchTimer();
-                        if (this.state === 'watching') {
-                            this.state = 'ready';
-                            this.claim();
-                        }
-                    }
-                }, 1000);
-
-                // Attempt RobinAds interstitial overlay if loaded
-                try {
-                    if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
-                        window.RobinAds.showInterstitial({
-                            websiteId: '{{ config("services.robinads.website_id", "6ad2b8e95f70fee0a42a5496") }}',
-                            rewardId: this.robinRewardId,
-                            onComplete: (adResult) => {
-                                this.robinToken = adResult && adResult.token ? adResult.token : this.token;
-                                if (adResult && adResult.impressionId) {
-                                    this.robinRewardId = adResult.impressionId;
-                                }
-                                this.clearWatchTimer();
-                                this.secondsLeft = 0;
-                                if (this.state === 'watching') {
-                                    this.state = 'ready';
-                                    this.claim();
-                                }
-                            },
-                            onNoFill: () => {
-                                // Keep the 15-second fallback countdown running seamlessly
-                            },
-                            onError: () => {
-                                // Keep the 15-second fallback countdown running seamlessly
-                            }
-                        });
-                    }
-                } catch (e) {
-                    // Fallback countdown is already running
-                }
-            },
-
-            async claim() {
-                if (this.state === 'claiming' || this.state === 'claimed') {
-                    return;
-                }
-                this.clearWatchTimer();
-                this.state = 'claiming';
-
-                try {
-                    const response = await fetch('{{ route("sponsor.claim") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            token: this.token,
-                            robin_token: this.robinToken,
-                            robin_reward_id: this.robinRewardId,
-                            reward_type: this.rewardType
-                        })
-                    });
-
-                    const data = await response.json();
-                    if (!response.ok || !data.success) {
-                        this.state = 'error';
-                        this.errorMsg = data.message || 'Beloning kon niet worden geclaimd.';
-                        return;
-                    }
-
-                    this.state = 'claimed';
-                    this.successMsg = data.reward_details || data.message || 'Beloning succesvol ontvangen!';
-
-                    if (typeof window.tbsToast === 'function') {
-                        window.tbsToast(this.successMsg, 'success');
-                    }
-                    if (typeof window.tbsRefreshStats === 'function') {
-                        window.tbsRefreshStats(true);
-                    }
-
-                    setTimeout(() => {
-                        const cb = this.onCompleteCallback;
-                        this.close();
-                        if (typeof cb === 'function') {
-                            cb(data);
-                        } else if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                            window.Turbo.visit(window.location.href, { action: 'replace' });
-                        } else {
-                            window.location.reload();
-                        }
-                    }, 1000);
-                } catch (e) {
-                    this.state = 'error';
-                    this.errorMsg = 'Er trad een verbindingsfout op bij het claimen. Probeer het opnieuw.';
-                }
-            },
-
-            close() {
-                this.clearWatchTimer();
-                this.isOpen = false;
-                this.state = 'idle';
-            }
-        };
-    };
-    window.tbsOpenSponsorAd = function(rewardType = 'cash', callback = null) {
-        window.location.href = '{{ route("sponsor.index") }}';
-    };
-    </script>
     @else
     <!-- SPONSOR ADS DISABLED - SAFE REDIRECT TO SHOP -->
     <script>

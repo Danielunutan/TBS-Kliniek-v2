@@ -313,8 +313,12 @@
                         <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ (int)($character->ad_vest_progress ?? 0) }}/3] &bull; 12 Uur</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 transition">Kogelwerend Vest 🛡️</h3>
+                    @php
+                        $vestSecs = $character->getVestRemainingSeconds();
+                        $vestFormatted = sprintf('%02d:%02d', intdiv($vestSecs, 3600), intdiv($vestSecs % 3600, 60));
+                    @endphp
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Verhoogt je verdediging met +150% en zorgt voor 45% ricochet-backfire gevaar voor schutters! Status: <strong class="{{ $character->hasVest() ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400' }}">{{ $character->hasVest() ? 'Actief (' . gmdate('H:i', $character->getVestRemainingSeconds()) . 'u)' : 'Niet actief' }}</strong>.
+                        Verhoogt je verdediging met +150% en zorgt voor 45% ricochet-backfire gevaar voor schutters! Status: <strong class="{{ $character->hasVest() ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400' }}">{{ $character->hasVest() ? 'Actief (' . $vestFormatted . 'u)' : 'Niet actief' }}</strong>.
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -340,14 +344,14 @@
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                    @if($character->isComatose())
+                    @if($character->isComatose() || $character->needsReviveSerum())
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full">
                                 @csrf
                                 <input type="hidden" name="action" value="coma">
                                 <button type="submit" class="btn-star-gold w-full h-11 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
                                     <i class="fa-solid fa-star text-xs"></i>
-                                    <span>Ontwaken (15 ⭐)</span>
+                                    <span>Ontwaken ({{ \App\Models\Character::REVIVE_SERUM_STARS }} ⭐)</span>
                                 </button>
                             </form>
                             <button type="button" onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full h-11 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">

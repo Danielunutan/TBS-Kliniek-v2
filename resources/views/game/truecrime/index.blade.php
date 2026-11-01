@@ -321,7 +321,7 @@
                 @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
                 <button type="button" onclick="window.tbsOpenSponsorAd('cooldown_true_crime')" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-folder-open"></i>
-                    <span>Direct Nieuw Dossier Openen via Sponsor-Ad</span>
+                    <span>Wachttijd Verkorten via Sponsor-Ad (5 Ads)</span>
                 </button>
                 @endif
 
