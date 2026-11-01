@@ -23,6 +23,11 @@
                 this.data = await res.json();
                 const now = new Date();
                 this.lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                if (this.data.has_ended) {
+                    this.timerDisplay = '00:00:00';
+                    if (this.pollInterval) { clearInterval(this.pollInterval); this.pollInterval = null; }
+                    if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
+                }
             }
         } catch (e) {
             console.error('Fout bij ophalen ranglijst:', e);

@@ -25,6 +25,11 @@
                 this.data = await res.json();
                 const now = new Date();
                 this.lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                if (this.data.has_ended) {
+                    this.timerDisplay = '00:00:00';
+                    if (this.pollInterval) { clearInterval(this.pollInterval); this.pollInterval = null; }
+                    if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
+                }
             }
         } catch (e) {
             console.error('Fout bij ophalen ranglijst drugsproductie:', e);
@@ -85,9 +90,9 @@
                 <span x-text="timerDisplay"></span>
             </div>
             <div class="flex items-center gap-2 text-[10px] text-slate-400 dark:text-purple-300/70">
-                <span>Auto-update elke 15s</span>
-                <span x-show="lastUpdated" x-text="'(' + lastUpdated + ')'"></span>
-                <button type="button" @click="fetchLeaderboard()" class="text-purple-600 dark:text-purple-300 hover:underline font-bold cursor-pointer inline-flex items-center gap-1" title="Nu handmatig vernieuwen">
+                <span x-text="data.has_ended ? 'Definitieve eindstand (gesloten)' : 'Auto-update elke 15s'"></span>
+                <span x-show="lastUpdated && !data.has_ended" x-text="'(' + lastUpdated + ')'"></span>
+                <button x-show="!data.has_ended" type="button" @click="fetchLeaderboard()" class="text-purple-600 dark:text-purple-300 hover:underline font-bold cursor-pointer inline-flex items-center gap-1" title="Nu handmatig vernieuwen">
                     <i class="fa-solid fa-arrows-rotate" :class="{ 'fa-spin': loading }"></i>
                     <span>Ververs</span>
                 </button>
