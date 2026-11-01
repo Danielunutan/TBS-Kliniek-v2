@@ -34,7 +34,7 @@ class EventVaultCrackingService
         $start = Carbon::parse(self::EVENT_START);
         $end = Carbon::parse(self::EVENT_END);
 
-        return $now->greaterThanOrEqualTo($start) && $now->lessThanOrEqualTo($end);
+        return $now->greaterThanOrEqualTo($start) && $now->lessThan($end);
     }
 
     /**
@@ -42,7 +42,7 @@ class EventVaultCrackingService
      */
     public static function hasEnded(): bool
     {
-        return now()->greaterThan(Carbon::parse(self::EVENT_END));
+        return now()->greaterThanOrEqualTo(Carbon::parse(self::EVENT_END));
     }
 
     /**
