@@ -1376,27 +1376,82 @@
 
         <!-- 3. TAB: AI KENNISBANK & HELPBOT -->
         <div x-show="activeTab === 'help'" class="flex-1 flex flex-col min-h-0">
+            <!-- Zaalwacht Arjan Sub-Header -->
+            <div class="p-2 sm:p-2.5 bg-white dark:bg-slate-900 border-b border-slate-200/90 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 shadow-2xs">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <div class="relative shrink-0">
+                        <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}"
+                             alt="Zaalwacht Arjan"
+                             class="w-7 h-7 rounded-lg object-cover bg-purple-950 border border-amber-400/80 dark:border-amber-600/70 shrink-0 shadow-2xs"
+                             onerror="this.src='{{ asset('assets/logo.png') }}'">
+                        <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="text-xs font-black text-amber-600 dark:text-amber-400 truncate">Zaalwacht Arjan</span>
+                            <span class="px-1 py-0.5 leading-none rounded bg-amber-500 text-slate-950 text-[7.5px] font-black uppercase shrink-0">Hulp AI</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">24/7 Kliniek Kennisbank & Assistent</span>
+                    </div>
+                </div>
+                <a href="{{ route('faq.index') }}" class="px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[10px] font-black shrink-0 transition flex items-center gap-1">
+                    <i class="fa-solid fa-book-open text-[9px]"></i>
+                    <span>Gids</span>
+                </a>
+            </div>
+
             <div x-ref="helpBox" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs bg-slate-50/70 dark:bg-slate-950/50">
                 <template x-for="(msg, i) in helpMessages" :key="i">
-                    <div :class="msg.from === 'bot' ? 'flex flex-col items-start' : 'flex flex-col items-end'">
+                    <div class="flex items-start gap-2 min-w-0 max-w-full" :class="msg.from !== 'bot' ? 'flex-row-reverse' : ''">
+                        <!-- Avatar Image -->
                         <template x-if="msg.from === 'bot'">
-                            <div class="flex items-center gap-1.5 text-[10px] font-black text-amber-600 dark:text-amber-400 mb-0.5">
-                                <i class="fa-solid fa-shield-halved text-[9px]"></i>
-                                <span>Zaalwacht Arjan</span>
+                            <div class="relative shrink-0">
+                                <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}"
+                                     alt="Zaalwacht Arjan"
+                                     class="w-7 h-7 rounded-lg object-cover bg-purple-950 border border-amber-400/80 dark:border-amber-600/70 shrink-0 shadow-2xs"
+                                     onerror="this.src='{{ asset('assets/logo.png') }}'">
+                                <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
                             </div>
                         </template>
-                        <div :class="msg.from === 'bot' ? 'bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 text-slate-800 dark:text-slate-100 rounded-tl-xs' : 'bg-purple-600 text-white font-medium rounded-tr-xs'"
-                             class="rounded-xl px-2.5 py-2 max-w-[88%] space-y-1.5 shadow-2xs break-words min-w-0">
-                            <p class="whitespace-pre-line leading-snug break-words" x-text="msg.text"></p>
-                            <template x-if="msg.links && msg.links.length > 0">
-                                <div class="pt-1 flex flex-wrap gap-1 border-t border-slate-100 dark:border-slate-700/60">
-                                    <template x-for="lnk in msg.links">
-                                        <a :href="lnk.url" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold border border-purple-200/80 dark:border-purple-800/70 transition">
-                                            <span x-text="lnk.text"></span> &raquo;
-                                        </a>
-                                    </template>
-                                </div>
-                            </template>
+                        <template x-if="msg.from !== 'bot'">
+                            <img :src="myAvatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'"
+                                 :alt="myName || 'Speler'"
+                                 class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60 shrink-0 shadow-2xs"
+                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                        </template>
+
+                        <!-- Message Column -->
+                        <div class="max-w-[88%] min-w-0 space-y-0.5" :class="msg.from !== 'bot' ? 'text-right' : 'text-left'">
+                            <!-- Sender Meta -->
+                            <div class="flex items-center gap-1.5 text-[10px] leading-tight font-bold flex-wrap mb-0.5 min-w-0 max-w-full" :class="msg.from !== 'bot' ? 'justify-end' : ''">
+                                <template x-if="msg.from === 'bot'">
+                                    <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-extrabold">
+                                        <i class="fa-solid fa-shield-halved text-[9px] text-amber-500"></i>
+                                        <span>Zaalwacht Arjan</span>
+                                    </span>
+                                </template>
+                                <template x-if="msg.from === 'bot'">
+                                    <span class="px-1 py-0.5 leading-none rounded bg-amber-500 text-slate-950 text-[7.5px] font-black uppercase shrink-0">Hulp AI</span>
+                                </template>
+                                <template x-if="msg.from !== 'bot'">
+                                    <span class="font-extrabold text-slate-900 dark:text-white" x-text="myName || 'Jij'"></span>
+                                </template>
+                            </div>
+
+                            <!-- Bubble -->
+                            <div :class="msg.from === 'bot' ? 'bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 text-slate-800 dark:text-slate-100 rounded-tl-xs text-left' : 'bg-purple-600 text-white font-medium rounded-tr-xs text-left'"
+                                 class="inline-block rounded-xl px-2.5 py-2 max-w-full space-y-1.5 shadow-2xs break-words min-w-0">
+                                <p class="whitespace-pre-line leading-snug break-words" x-text="msg.text"></p>
+                                <template x-if="msg.links && msg.links.length > 0">
+                                    <div class="pt-1 flex flex-wrap gap-1 border-t border-slate-100 dark:border-slate-700/60">
+                                        <template x-for="lnk in msg.links">
+                                            <a :href="lnk.url" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold border border-purple-200/80 dark:border-purple-800/70 transition">
+                                                <span x-text="lnk.text"></span> &raquo;
+                                            </a>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </template>

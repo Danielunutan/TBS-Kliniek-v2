@@ -277,5 +277,6 @@ class Pass10Bucket15AuditTest extends TestCase
 
         $this->assertStringContainsString('registerCharacterNames(messages)', $fullChatSource);
         $this->assertStringContainsString('toggleDirectHeart(dm)', $fullChatSource);
+        $this->assertStringContainsString('assets/characters/oohpa_arjan_transparent.png', $miniChatSource);
     }
 }

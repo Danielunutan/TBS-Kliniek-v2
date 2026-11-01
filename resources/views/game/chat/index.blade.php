@@ -367,6 +367,16 @@ function tbsLiveMessenger(config) {
         },
 
         selectPartner(partnerId, partnerName = '') {
+            if (this.activePartnerId === null || Number(this.activePartnerId) !== Number(partnerId)) {
+                this.directMessagesList = [];
+                this.activePartner = {
+                    id: partnerId,
+                    name: partnerName || (Number(partnerId) === 0 ? 'Kliniek Directie' : 'Inmate'),
+                    avatar: '{{ asset('assets/characters/avatar_male_1.jpg') }}',
+                    is_bot: Number(partnerId) === 0,
+                    status_label: Number(partnerId) === 0 ? 'Officiële Berichten' : 'Selecteer een gesprek uit de lijst'
+                };
+            }
             this.activePartnerId = partnerId;
             this.mobileView = 'chat';
             this.replyingTo = null;
@@ -380,22 +390,26 @@ function tbsLiveMessenger(config) {
                 if (data.success) {
                     this.registerCharacterNames(data.messages);
                     if (this.publicMessagesList.length === 0) {
-                        this.publicMessagesList = data.messages;
+                        this.publicMessagesList = data.messages || [];
                     } else {
                         const existingMap = new Map();
-                        data.messages.forEach(m => existingMap.set(m.id, m));
+                        (data.messages || []).forEach(m => existingMap.set(Number(m.id), m));
                         this.publicMessagesList.forEach(m => {
-                            if (!existingMap.has(m.id)) {
-                                existingMap.set(m.id, m);
+                            if (!existingMap.has(Number(m.id))) {
+                                existingMap.set(Number(m.id), m);
                             }
                         });
                         const merged = Array.from(existingMap.values());
-                        merged.sort((a, b) => a.id - b.id);
+                        merged.sort((a, b) => Number(a.id) - Number(b.id));
                         this.publicMessagesList = merged;
+                    }
+                    if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                        const delSet = new Set(data.deleted_ids.map(Number));
+                        this.publicMessagesList = this.publicMessagesList.filter(m => !delSet.has(Number(m.id)));
                     }
                     this.lastPublicId = Math.max(this.lastPublicId, data.last_id || 0);
                     if (this.publicMessagesList.length > 0) {
-                        const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
+                        const maxId = Math.max(...this.publicMessagesList.map(m => Number(m.id)));
                         if (maxId > this.lastPublicId) this.lastPublicId = maxId;
                     }
                     this.scrollToBottom();
@@ -411,22 +425,26 @@ function tbsLiveMessenger(config) {
                 if (data.success) {
                     this.registerCharacterNames(data.messages);
                     if (this.gangMessagesList.length === 0) {
-                        this.gangMessagesList = data.messages;
+                        this.gangMessagesList = data.messages || [];
                     } else {
                         const existingMap = new Map();
-                        data.messages.forEach(m => existingMap.set(m.id, m));
+                        (data.messages || []).forEach(m => existingMap.set(Number(m.id), m));
                         this.gangMessagesList.forEach(m => {
-                            if (!existingMap.has(m.id)) {
-                                existingMap.set(m.id, m);
+                            if (!existingMap.has(Number(m.id))) {
+                                existingMap.set(Number(m.id), m);
                             }
                         });
                         const merged = Array.from(existingMap.values());
-                        merged.sort((a, b) => a.id - b.id);
+                        merged.sort((a, b) => Number(a.id) - Number(b.id));
                         this.gangMessagesList = merged;
+                    }
+                    if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                        const delSet = new Set(data.deleted_ids.map(Number));
+                        this.gangMessagesList = this.gangMessagesList.filter(m => !delSet.has(Number(m.id)));
                     }
                     this.lastGangId = Math.max(this.lastGangId, data.last_id || 0);
                     if (this.gangMessagesList.length > 0) {
-                        const maxId = Math.max(...this.gangMessagesList.map(m => m.id));
+                        const maxId = Math.max(...this.gangMessagesList.map(m => Number(m.id)));
                         if (maxId > this.lastGangId) this.lastGangId = maxId;
                     }
                     this.scrollToBottom();
@@ -452,28 +470,23 @@ function tbsLiveMessenger(config) {
             try {
                 const res = await fetch(`/chat/prive/${partnerId}`);
                 const data = await res.json();
+                if (Number(this.activePartnerId) !== Number(partnerId)) {
+                    return;
+                }
                 if (data.success) {
                     this.activePartner = data.partner;
                     if (data.partner && data.partner.name) {
                         this.registerCharacterNames([{ name: data.partner.name }]);
                     }
                     this.registerCharacterNames(data.messages);
-                    if (this.directMessagesList.length === 0) {
-                        this.directMessagesList = data.messages;
-                    } else {
-                        const existingMap = new Map();
-                        data.messages.forEach(m => existingMap.set(m.id, m));
-                        this.directMessagesList.forEach(m => {
-                            if (!existingMap.has(m.id)) {
-                                existingMap.set(m.id, m);
-                            }
-                        });
-                        const merged = Array.from(existingMap.values());
-                        merged.sort((a, b) => ((a.timestamp || 0) - (b.timestamp || 0)) || (a.id - b.id));
-                        this.directMessagesList = merged;
+                    let msgs = Array.isArray(data.messages) ? data.messages : [];
+                    if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                        const delSet = new Set(data.deleted_ids.map(Number));
+                        msgs = msgs.filter(m => !delSet.has(Number(m.id)));
                     }
+                    this.directMessagesList = msgs;
                     this.scrollToBottom();
-                    const conv = this.conversationsList.find(c => c.partner_id === partnerId);
+                    const conv = this.conversationsList.find(c => Number(c.partner_id) === Number(partnerId));
                     if (conv) conv.unread_count = 0;
                 }
             } catch(e) {}
@@ -495,8 +508,8 @@ function tbsLiveMessenger(config) {
                     const data = await res.json();
                     if (data.success) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
-                            const delSet = new Set(data.deleted_ids);
-                            this.publicMessagesList = this.publicMessagesList.filter(m => !delSet.has(m.id));
+                            const delSet = new Set(data.deleted_ids.map(Number));
+                            this.publicMessagesList = this.publicMessagesList.filter(m => !delSet.has(Number(m.id)));
                         }
                         if (data.messages && data.messages.length > 0) {
                             this.registerCharacterNames(data.messages);
@@ -511,8 +524,8 @@ function tbsLiveMessenger(config) {
                                 if (notifyMsg) this.playChime();
                             }
 
-                            const existingIds = new Set(this.publicMessagesList.map(m => m.id));
-                            const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                            const existingIds = new Set(this.publicMessagesList.map(m => Number(m.id)));
+                            const toAdd = data.messages.filter(m => !existingIds.has(Number(m.id)));
                             if (toAdd.length > 0) {
                                 this.publicMessagesList = [...this.publicMessagesList, ...toAdd];
                                 this.scrollToBottom();
@@ -521,7 +534,7 @@ function tbsLiveMessenger(config) {
                                 this.lastPublicId = data.last_id;
                             }
                             if (this.publicMessagesList.length > 0) {
-                                const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
+                                const maxId = Math.max(...this.publicMessagesList.map(m => Number(m.id)));
                                 if (maxId > this.lastPublicId) this.lastPublicId = maxId;
                             }
                         }
@@ -531,8 +544,8 @@ function tbsLiveMessenger(config) {
                     const data = await res.json();
                     if (data.success) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
-                            const delSet = new Set(data.deleted_ids);
-                            this.gangMessagesList = this.gangMessagesList.filter(m => !delSet.has(m.id));
+                            const delSet = new Set(data.deleted_ids.map(Number));
+                            this.gangMessagesList = this.gangMessagesList.filter(m => !delSet.has(Number(m.id)));
                         }
                         if (data.messages && data.messages.length > 0) {
                             this.registerCharacterNames(data.messages);
@@ -547,8 +560,8 @@ function tbsLiveMessenger(config) {
                                 if (notifyMsg) this.playChime();
                             }
 
-                            const existingIds = new Set(this.gangMessagesList.map(m => m.id));
-                            const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                            const existingIds = new Set(this.gangMessagesList.map(m => Number(m.id)));
+                            const toAdd = data.messages.filter(m => !existingIds.has(Number(m.id)));
                             if (toAdd.length > 0) {
                                 this.gangMessagesList = [...this.gangMessagesList, ...toAdd];
                                 this.scrollToBottom();
@@ -557,7 +570,7 @@ function tbsLiveMessenger(config) {
                                 this.lastGangId = data.last_id;
                             }
                             if (this.gangMessagesList.length > 0) {
-                                const maxId = Math.max(...this.gangMessagesList.map(m => m.id));
+                                const maxId = Math.max(...this.gangMessagesList.map(m => Number(m.id)));
                                 if (maxId > this.lastGangId) this.lastGangId = maxId;
                             }
                         }
@@ -566,24 +579,27 @@ function tbsLiveMessenger(config) {
                     if (this.activePartnerId === null || this.activePartnerId === undefined) {
                         return;
                     }
+                    const currentPartnerId = this.activePartnerId;
                     let maxDmId = 0;
                     if (this.directMessagesList.length > 0) {
                         for (const m of this.directMessagesList) {
-                            if (m.id && m.id > maxDmId) maxDmId = m.id;
+                            const mId = Number(m.id);
+                            if (mId > maxDmId) maxDmId = mId;
                         }
                     }
-                    const url = `/chat/prive/${this.activePartnerId}` + (maxDmId > 0 ? `?after_id=${maxDmId}` : '');
+                    const url = `/chat/prive/${currentPartnerId}` + (maxDmId > 0 ? `?after_id=${maxDmId}` : '');
                     const res = await fetch(url);
                     const data = await res.json();
+                    if (Number(this.activePartnerId) !== Number(currentPartnerId)) return;
                     if (data.success) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
-                            const delSet = new Set(data.deleted_ids);
-                            this.directMessagesList = this.directMessagesList.filter(m => !delSet.has(m.id));
+                            const delSet = new Set(data.deleted_ids.map(Number));
+                            this.directMessagesList = this.directMessagesList.filter(m => !delSet.has(Number(m.id)));
                         }
                         if (data.messages) {
                             this.registerCharacterNames(data.messages);
-                            const existingIds = new Set(this.directMessagesList.map(m => m.id));
-                            const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                            const existingIds = new Set(this.directMessagesList.map(m => Number(m.id)));
+                            const toAdd = data.messages.filter(m => !existingIds.has(Number(m.id)));
                             if (toAdd.length > 0) {
                                 if (toAdd.some(m => !m.is_me)) this.playChime();
                                 this.directMessagesList = [...this.directMessagesList, ...toAdd];
@@ -626,21 +642,28 @@ function tbsLiveMessenger(config) {
                     const data = await res.json();
                     if (data.success) {
                         if (this.activeTab === 'global') {
-                            if (!this.publicMessagesList.some(m => m.id === data.message.id)) {
+                            if (!this.publicMessagesList.some(m => Number(m.id) === Number(data.message.id))) {
                                 this.publicMessagesList.push(data.message);
                             }
-                            this.lastPublicId = Math.max(this.lastPublicId, data.message.id);
+                            this.lastPublicId = Math.max(this.lastPublicId, Number(data.message.id));
                         } else {
-                            if (!this.gangMessagesList.some(m => m.id === data.message.id)) {
+                            if (!this.gangMessagesList.some(m => Number(m.id) === Number(data.message.id))) {
                                 this.gangMessagesList.push(data.message);
                             }
-                            this.lastGangId = Math.max(this.lastGangId, data.message.id);
+                            this.lastGangId = Math.max(this.lastGangId, Number(data.message.id));
                         }
                         this.messageInput = '';
                         this.replyingTo = null;
                         this.scrollToBottom();
                     } else {
-                        alert(data.message || 'Kon bericht niet versturen.');
+                        const errMsg = data.message || 'Kon bericht niet versturen.';
+                        if (window.tbsToast) {
+                            window.tbsToast(errMsg, 'error');
+                        } else if (window.tbsAlert) {
+                            window.tbsAlert(errMsg);
+                        } else {
+                            alert(errMsg);
+                        }
                     }
                 } else {
                     if (this.activePartnerId === null || this.activePartnerId === undefined) return;
@@ -658,7 +681,7 @@ function tbsLiveMessenger(config) {
                     });
                     const data = await res.json();
                     if (data.success) {
-                        if (!this.directMessagesList.some(m => m.id === data.message.id)) {
+                        if (!this.directMessagesList.some(m => Number(m.id) === Number(data.message.id))) {
                             this.directMessagesList.push(data.message);
                         }
                         this.messageInput = '';
@@ -666,11 +689,25 @@ function tbsLiveMessenger(config) {
                         this.scrollToBottom();
                         this.loadConversations();
                     } else {
-                        alert(data.message || 'Kon bericht niet versturen.');
+                        const errMsg = data.message || 'Kon bericht niet versturen.';
+                        if (window.tbsToast) {
+                            window.tbsToast(errMsg, 'error');
+                        } else if (window.tbsAlert) {
+                            window.tbsAlert(errMsg);
+                        } else {
+                            alert(errMsg);
+                        }
                     }
                 }
             } catch(e) {
-                alert('Netwerkfout bij verzenden.');
+                const errMsg = 'Netwerkfout bij verzenden.';
+                if (window.tbsToast) {
+                    window.tbsToast(errMsg, 'error');
+                } else if (window.tbsAlert) {
+                    window.tbsAlert(errMsg);
+                } else {
+                    alert(errMsg);
+                }
             } finally {
                 this.isSending = false;
             }
@@ -711,42 +748,113 @@ function tbsLiveMessenger(config) {
         },
 
         async deleteDirectMessage(dmId) {
-            if (!confirm('Weet je zeker dat je dit privébericht wilt verwijderen?')) return;
-            try {
-                const res = await fetch(`/chat/prive-bericht/${dmId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': this.getCsrf(),
-                        'Accept': 'application/json',
+            const doDelete = async () => {
+                try {
+                    const res = await fetch(`/chat/prive-bericht/${dmId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': this.getCsrf(),
+                            'Accept': 'application/json',
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.directMessagesList = this.directMessagesList.filter(m => Number(m.id) !== Number(dmId));
+                        if (this.replyingTo && Number(this.replyingTo.id) === Number(dmId)) {
+                            this.replyingTo = null;
+                        }
+                        this.loadConversations();
+                        if (window.tbsToast) {
+                            window.tbsToast('Bericht verwijderd.', 'info');
+                        }
+                    } else {
+                        const errMsg = data.message || 'Kon privébericht niet verwijderen.';
+                        if (window.tbsToast) {
+                            window.tbsToast(errMsg, 'error');
+                        } else if (window.tbsAlert) {
+                            window.tbsAlert(errMsg);
+                        } else {
+                            alert(errMsg);
+                        }
                     }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    this.directMessagesList = this.directMessagesList.filter(m => m.id !== dmId);
-                } else {
-                    alert(data.message || 'Kon privébericht niet verwijderen.');
+                } catch(e) {
+                    const errMsg = 'Netwerkfout bij verwijderen.';
+                    if (window.tbsToast) {
+                        window.tbsToast(errMsg, 'error');
+                    } else if (window.tbsAlert) {
+                        window.tbsAlert(errMsg);
+                    }
                 }
-            } catch(e) {}
+            };
+
+            if (window.tbsConfirm) {
+                window.tbsConfirm({
+                    title: 'Privébericht verwijderen',
+                    message: 'Weet je zeker dat je dit privébericht wilt verwijderen?',
+                    confirmBtn: 'Verwijderen',
+                    cancelBtn: 'Annuleren',
+                    type: 'danger',
+                    icon: 'fa-trash-can',
+                    onConfirm: doDelete
+                });
+            } else if (confirm('Weet je zeker dat je dit privébericht wilt verwijderen?')) {
+                await doDelete();
+            }
         },
 
         async deletePublicMessage(msgId) {
-            if (!confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) return;
-            try {
-                const res = await fetch(`/chat/openbaar/${msgId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': this.getCsrf(),
-                        'Accept': 'application/json',
+            const doDelete = async () => {
+                try {
+                    const res = await fetch(`/chat/openbaar/${msgId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': this.getCsrf(),
+                            'Accept': 'application/json',
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.publicMessagesList = this.publicMessagesList.filter(m => Number(m.id) !== Number(msgId));
+                        this.gangMessagesList = this.gangMessagesList.filter(m => Number(m.id) !== Number(msgId));
+                        if (this.replyingTo && Number(this.replyingTo.id) === Number(msgId)) {
+                            this.replyingTo = null;
+                        }
+                        if (window.tbsToast) {
+                            window.tbsToast('Bericht verwijderd.', 'info');
+                        }
+                    } else {
+                        const errMsg = data.message || 'Kon bericht niet verwijderen.';
+                        if (window.tbsToast) {
+                            window.tbsToast(errMsg, 'error');
+                        } else if (window.tbsAlert) {
+                            window.tbsAlert(errMsg);
+                        } else {
+                            alert(errMsg);
+                        }
                     }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    this.publicMessagesList = this.publicMessagesList.filter(m => m.id !== msgId);
-                    this.gangMessagesList = this.gangMessagesList.filter(m => m.id !== msgId);
-                } else {
-                    alert(data.message || 'Kon bericht niet verwijderen.');
+                } catch(e) {
+                    const errMsg = 'Netwerkfout bij verwijderen.';
+                    if (window.tbsToast) {
+                        window.tbsToast(errMsg, 'error');
+                    } else if (window.tbsAlert) {
+                        window.tbsAlert(errMsg);
+                    }
                 }
-            } catch(e) {}
+            };
+
+            if (window.tbsConfirm) {
+                window.tbsConfirm({
+                    title: 'Bericht verwijderen',
+                    message: 'Weet je zeker dat je dit bericht wilt verwijderen?',
+                    confirmBtn: 'Verwijderen',
+                    cancelBtn: 'Annuleren',
+                    type: 'danger',
+                    icon: 'fa-trash-can',
+                    onConfirm: doDelete
+                });
+            } else if (confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) {
+                await doDelete();
+            }
         },
 
         async refreshActiveChat() {
