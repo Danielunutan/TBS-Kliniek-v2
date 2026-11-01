@@ -6,10 +6,12 @@ use App\Models\Character;
 use App\Models\EventVaultCracking;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
+use App\Models\NewsArticle;
 use App\Models\VaultCode;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class EventVaultCrackingService
 {
@@ -297,5 +299,106 @@ class EventVaultCrackingService
                 'total_cracked' => $totalCracked,
             ];
         });
+    }
+
+    /**
+     * Synchronize the challenge explanation news article and its game links.
+     */
+    public static function syncChallengeArticle(): ?NewsArticle
+    {
+        if (! Schema::hasTable('news_articles')) {
+            return null;
+        }
+
+        $authorChar = null;
+        if (Schema::hasTable('characters')) {
+            $authorChar = Character::where('name', 'Daniël')
+                ->orWhere('name', 'Daniel')
+                ->orWhere('name', 'like', '%daniel%')
+                ->orWhere('name', 'like', '%daniël%')
+                ->orWhere('name', 'like', '%directie%')
+                ->orWhereHas('user', function ($q) {
+                    $q->where('email', 'danielunutan@icloud.com')
+                        ->orWhere('email', 'like', '%daniel%')
+                        ->orWhereIn('role', ['owner', 'admin']);
+                })
+                ->first() ?? Character::first();
+        }
+
+        $publishDate = Carbon::parse('2026-11-02 00:00:00', 'Europe/Amsterdam');
+        $challengeTitle = 'Nieuwe Challenge: De Grote Kluiscode Jacht — Win 2.500 Sterren & 100 Kluiscodes!';
+        $challengeSlug = self::EVENT_SLUG;
+
+        $challengeContent = <<<'MARKDOWN'
+Beste patiënten, bendeleden en meesterkrakers van de TBS Kliniek,
+
+Het slot van de beveiligde kluisdeuren rammelt en het kraakalarm staat op scherp! Direct na het afronden van het weekendevent starten we per **maandag 2 november 2026 om 00:00 uur** met een gloednieuwe, zenuwslopende competitie: **De Grote Kluiscode Challenge**! 🔐⚡
+
+Er zijn de afgelopen weken honderden geheime codes, vouchers en kluiscombinaties verspreid door het complex. Wie bezit de vaardigheid, het geduld en de brute kracht om de meeste codes te kraken en er met de megabuit vandoor te gaan?
+
+---
+
+### ⏱️ Looptijd van de Challenge
+- **Start:** Maandag 2 november 2026 om 00:00 uur stipt (per direct live!)
+- **Eindtijd:** **Woensdag 4 november 2026 om 23:59:59 uur**
+- **Belangrijke voorwaarde:** Alleen kluiscodes die **binnen deze looptijd** zijn gekraakt, tellen mee voor het klassement!
+
+---
+
+### 🏆 De Prijzenpot
+Voor de absolute nummer 1 van de kliniek ligt er een ongeëvenaard prijzenpakket klaar:
+- ⭐ **2.500 Exclusieve Sterren** (direct bijgeschreven op je profiel!)
+- 🔐 **100 Geheime Kluiscodes** (direct toegevoegd aan je kluisinventaris vol met cash, sterren en tokens!)
+- 👑 **De officiële eretitel 'Meesterkraker van de Kliniek'**
+
+[quote]💡 Let op: Gebruik de bestaande prijzenpot van 2.500 sterren en 100 kluiscodes optimaal om je machtspositie in de kliniek definitief te vestigen![/quote]
+
+---
+
+### 🎯 Het Doel: Zoveel Mogelijk Kluiscodes Kraken!
+Het doel van deze challenge is simpel maar genadeloos: **kraak zoveel mogelijk kluiscodes** tussen maandag 00:00 uur en woensdag 23:59 uur.
+
+Hoe doe je mee en waar haal je kluiscodes vandaan?
+- 🔑 **1. Codes Inwisselen & Kantoorkluis Kraken:** Ga naar [url=/kluis-kraak]Kluis Kraak[/url] en voer je kluiscodes in bij de **Kluiscode Decoder Terminal**, of raad de cijfercode van de zware kantoorkluis. Elke succesvol gekraakte code telt direct voor **+1 punt** op de ranglijst!
+- 📦 **2. Koffers & Sporttassen Openen:** Breek onderschepte sporttassen en XXL koffers open bij [url=/pakketjes]Koffers & Pakketjes[/url] om extra kluiscodes buit te maken!
+- 💻 **3. Cyber Hacking, Heists & Rad van Fortuin:** Verdien extra kluiscodes door de terminal te kraken bij [url=/hacking]Cyber Hacking[/url], overvallen te plegen bij [url=/heists]Grote Heists[/url], te draaien aan het [url=/rad-van-fortuin]Rad van Fortuin[/url] of op verlof te gaan bij [url=/behandeling]Behandeling & Verlof[/url].
+- 🛒 **4. Winkel & Marktplaats:** Koop extra kluiscodes en bundels in de [url=/winkel]Kliniek Winkel[/url], rechtstreeks in [url=/kluis-kraak]Kluis Kraak[/url] of van medepatiënten op de [url=/marktplaats]Marktplaats[/url]!
+
+---
+
+### 📊 Live Ranglijst & Klassement
+Hieronder zie je het realtime rankingboard van de challenge. De ranglijst wordt tijdens de hele challengeperiode **automatisch elke 15 seconden bijgewerkt**. Per speler zie je de actuele positie, spelersnaam en het totale aantal gekraakte kluiscodes, gerangschikt van hoog naar laag.
+
+[vault_challenge_leaderboard]
+
+---
+
+Pak je koevoet, verzamel al je vouchers en kraak jezelf naar de top van de TBS Kliniek!
+
+Veel succes aan alle deelnemers!
+
+*Met criminele groet,*  
+**Daniël**  
+*Directie TBS Kliniek*
+MARKDOWN;
+
+        NewsArticle::where('is_pinned', true)
+            ->where('slug', '!=', $challengeSlug)
+            ->update(['is_pinned' => false]);
+
+        return NewsArticle::updateOrCreate(
+            ['slug' => $challengeSlug],
+            [
+                'character_id' => $authorChar?->id,
+                'title' => $challengeTitle,
+                'emoji' => '🔐',
+                'image_url' => null,
+                'content' => $challengeContent,
+                'is_pinned' => true,
+                'is_published' => true,
+                'comments_enabled' => true,
+                'published_at' => $publishDate,
+            ]
+        );
     }
 }

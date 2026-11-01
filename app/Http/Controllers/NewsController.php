@@ -102,6 +102,26 @@ class NewsController extends Controller
                 EventDrugsProductionService::resolveWinner();
             }
 
+            $winnerArticle = NewsArticle::where('slug', EventDrugsProductionService::WINNER_ARTICLE_SLUG)->first(['id', 'title', 'content']);
+            if (
+                ! $winnerArticle
+                || str_contains($winnerArticle->content, '<div')
+                || str_contains($winnerArticle->content, 'ds. Fabian van Salmen')
+                || str_starts_with($winnerArticle->title, '🏆')
+            ) {
+                EventDrugsProductionService::syncWinnerArticle();
+            }
+
+            $challengeArticle = NewsArticle::where('slug', EventVaultCrackingService::EVENT_SLUG)->first(['id', 'title', 'content']);
+            if (
+                ! $challengeArticle
+                || str_contains($challengeArticle->content, '/kluis]')
+                || str_contains($challengeArticle->content, '/koffers]')
+                || str_starts_with($challengeArticle->title, '🔐')
+            ) {
+                EventVaultCrackingService::syncChallengeArticle();
+            }
+
             if (EventVaultCrackingService::hasEnded() && ! GameNotification::where('type', EventVaultCrackingService::NOTIFICATION_TYPE)->exists()) {
                 EventVaultCrackingService::resolveWinner();
             }

@@ -330,6 +330,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Packages (Pakketjes)
     Route::get('/pakketjes', [PackageController::class, 'index'])->name('packages.index');
+    Route::get('/koffers', fn () => redirect()->route('packages.index'));
     Route::post('/pakketjes/onderscheppen', [PackageController::class, 'intercept'])->name('packages.intercept')->middleware('throttle:30,1');
     Route::post('/pakketjes/tas-openen', [PackageController::class, 'openBag'])->name('packages.open-bag')->middleware('throttle:30,1');
     Route::post('/pakketjes/alle-tassen-openen', [PackageController::class, 'openBagAll'])->name('packages.open-bag-all')->middleware('throttle:10,1');
@@ -355,6 +356,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Vault (Kluis Kraak & Codes)
     Route::get('/kluis-kraak', [VaultController::class, 'index'])->name('vault.index');
+    Route::get('/kluis', fn () => redirect()->route('vault.index'));
     Route::post('/kluis-kraak/raden', [VaultController::class, 'guess'])->name('vault.guess')->middleware('throttle:30,1');
     Route::post('/kluis-kraak/koop-code', [VaultController::class, 'buyCode'])->name('vault.buy-code')->middleware('throttle:30,1');
     Route::post('/kluis-kraak/koop-hint', [VaultController::class, 'buyHint'])->name('vault.buy-hint')->middleware('throttle:30,1');

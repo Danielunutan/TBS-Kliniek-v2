@@ -346,7 +346,7 @@ class EventDrugsProductionService
             ->first() ?? Character::first();
 
         $publishDate = Carbon::parse('2026-11-02 00:00:00', 'Europe/Amsterdam');
-        $winnerTitle = "🏆 Winnaar Bekend: De Grote Drugsproductie - {$winnerName} Kroont Zich Tot Drugslord!";
+        $winnerTitle = "Winnaar Bekend: De Grote Drugsproductie — {$winnerName} Kroont Zich Tot Drugslord!";
 
         $winnerContent = <<<MARKDOWN
 Beste patiënten, bendeleden en kliniekbewoners,
@@ -381,7 +381,7 @@ In totaal hebben alle deelnemers gezamenlijk **{$totalUnitsFormatted} eenheden c
 
 Treur niet als je net naast het podium bent geëindigd, want de kliniekleiding zit niet stil. Direct per maandag 2 november 00:00 uur staat er een gloednieuwe uitdaging live: [url=/nieuws/de-grote-kluiscode-challenge-2500-sterren-en-100-codes]De Grote Kluiscode Challenge[/url]!
 
-Pak je gereedschap, plunder de kluizen en strijd mee voor **2.500 Sterren en 100 Kluiscodes**!
+Ga direct naar [url=/kluis-kraak]Kluis Kraak[/url], wissel je kluiscodes in en strijd mee voor **2.500 Sterren en 100 Kluiscodes**!
 
 Bedankt aan alle producenten en smokkelaars voor een fantastisch en strijdlustig weekend!
 

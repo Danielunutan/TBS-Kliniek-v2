@@ -55,12 +55,14 @@ class VaultChallengeEventTest extends TestCase
         $this->assertStringContainsString('5.000.000', $article->content);
         $this->assertStringContainsString('1.000 Sterren', $article->content);
 
-        // Ensure formatted HTML parses Markdown headers, lists, and winner card cleanly
+        // Ensure formatted HTML parses Markdown headers, horizontal rules, lists, and winner card cleanly
         $formatted = $article->formatted_content;
         $this->assertStringContainsString('<h3', $formatted);
+        $this->assertStringContainsString('<hr', $formatted);
         $this->assertStringContainsString('<ul', $formatted);
         $this->assertStringContainsString('Officiële Kampioen', $formatted);
         $this->assertStringNotContainsString('###', $formatted);
+        $this->assertStringNotContainsString('---', $formatted);
         $this->assertStringNotContainsString('[winner=', $formatted);
     }
 
@@ -80,8 +82,19 @@ class VaultChallengeEventTest extends TestCase
 
         $formatted = $article->formatted_content;
         $this->assertStringContainsString('<h3', $formatted);
+        $this->assertStringContainsString('<hr', $formatted);
         $this->assertStringContainsString('<ul', $formatted);
+        $this->assertStringContainsString('href="/kluis-kraak"', $formatted);
+        $this->assertStringContainsString('href="/pakketjes"', $formatted);
+        $this->assertStringContainsString('href="/hacking"', $formatted);
+        $this->assertStringContainsString('href="/heists"', $formatted);
+        $this->assertStringContainsString('href="/rad-van-fortuin"', $formatted);
+        $this->assertStringContainsString('href="/winkel"', $formatted);
+        $this->assertStringContainsString('href="/marktplaats"', $formatted);
+        $this->assertStringNotContainsString('href="/kluis"', $formatted);
+        $this->assertStringNotContainsString('href="/koffers"', $formatted);
         $this->assertStringNotContainsString('###', $formatted);
+        $this->assertStringNotContainsString('---', $formatted);
         $this->assertStringNotContainsString('[vault_challenge_leaderboard]', $formatted);
 
         // Advance time to Monday 2 November 00:00:00
