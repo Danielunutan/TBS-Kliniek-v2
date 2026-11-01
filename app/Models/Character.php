@@ -294,7 +294,18 @@ class Character extends Model
             return $default;
         }
 
-        return array_merge($default, $data);
+        $merged = array_merge($default, $data);
+
+        return [
+            'date' => (string) ($merged['date'] ?? $today),
+            'prison_released' => (bool) ($merged['prison_released'] ?? false),
+            'xp_progress' => (int) ($merged['xp_progress'] ?? 0),
+            'xp_claimed' => (bool) ($merged['xp_claimed'] ?? false),
+            'cash_progress' => (int) ($merged['cash_progress'] ?? 0),
+            'cash_claimed' => (bool) ($merged['cash_claimed'] ?? false),
+            'stars_progress' => (int) ($merged['stars_progress'] ?? 0),
+            'stars_claimed' => (bool) ($merged['stars_claimed'] ?? false),
+        ];
     }
 
     /**
@@ -694,6 +705,21 @@ class Character extends Model
         }
 
         return true;
+    }
+
+    /**
+     * Reset daily ad counters in memory when the date has rolled over.
+     */
+    public function resetDailyAdsIfNeeded(): self
+    {
+        $today = now()->toDateString();
+        if ($this->last_ad_date !== $today) {
+            $this->ads_watched_today = 0;
+            $this->last_ad_date = $today;
+            $this->ad_daily_data = $this->getAdDailyData();
+        }
+
+        return $this;
     }
 
     /**
@@ -1767,6 +1793,10 @@ class Character extends Model
      */
     public function getRemainingPrisonAds(): int
     {
+        if (! $this->isImprisoned()) {
+            return 0;
+        }
+
         $required = $this->getRequiredPrisonAds();
         $progress = (int) ($this->ad_prison_progress ?? 0);
 
@@ -2946,6 +2976,14 @@ class Character extends Model
     public function isComatose(): bool
     {
         return $this->coma_until !== null && $this->coma_until->isFuture();
+    }
+
+    /**
+     * Alias for isComatose().
+     */
+    public function isInComa(): bool
+    {
+        return $this->isComatose();
     }
 
     /**

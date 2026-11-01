@@ -369,8 +369,8 @@
                                 </button>
                                 <div x-show="itemToast[{{ $dailyDealItem->id }}]" x-cloak
                                      class="mt-1.5 text-[11px] font-bold text-right"
-                                     :class="itemToast[{{ $dailyDealItem->id }}]?.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
-                                     x-text="itemToast[{{ $dailyDealItem->id }}]?.msg"></div>
+                                     :class="itemToast[{{ $dailyDealItem->id }}]?.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+                                     x-text="itemToast[{{ $dailyDealItem->id }}]?.text"></div>
                             </form>
                         </div>
                     </div>
@@ -632,46 +632,67 @@
                                     @if($item->strength_bonus > 0 || $item->slug === 'eiwitshake-bodybuilder')
                                         @php
                                             $strDelta = $item->slug === 'eiwitshake-bodybuilder' ? 1 : (int) $item->strength_bonus;
-                                            $newStr = $ownedCount > 0 && $item->category === 'equipment' ? $playerStats['strength'] : ($playerStats['strength'] + $strDelta);
+                                            $isAlreadyEquipped = $ownedCount > 0 && $item->category === 'equipment';
+                                            $newStr = $isAlreadyEquipped
+                                                ? $playerStats['strength']
+                                                : ($item->slug === 'eiwitshake-bodybuilder'
+                                                    ? min($playerStats['stat_cap'], $playerStats['strength'] + $strDelta)
+                                                    : ($playerStats['strength'] + $strDelta));
                                         @endphp
                                         <div class="flex items-center justify-between font-bold text-purple-700 dark:text-purple-300">
                                             <span><i class="fa-solid fa-hand-fist mr-1"></i>Kracht</span>
-                                            <span class="font-mono">{{ $playerStats['strength'] }} &rarr; {{ $newStr }} (+{{ $strDelta }})</span>
+                                            <span class="font-mono">{{ $isAlreadyEquipped ? $playerStats['strength'].' (Actief +'.$strDelta.')' : $playerStats['strength'].' → '.$newStr.' (+'.($newStr - $playerStats['strength']).')' }}</span>
                                         </div>
                                     @endif
 
                                     @if($item->defense_bonus > 0)
                                         @php
-                                            $newDef = $ownedCount > 0 && $item->category === 'equipment' ? $playerStats['defense'] : ($playerStats['defense'] + (int) $item->defense_bonus);
+                                            $isDefEquipped = $ownedCount > 0 && $item->category === 'equipment';
+                                            $newDef = $isDefEquipped ? $playerStats['defense'] : ($playerStats['defense'] + (int) $item->defense_bonus);
                                         @endphp
                                         <div class="flex items-center justify-between font-bold text-blue-700 dark:text-blue-300">
                                             <span><i class="fa-solid fa-shield-halved mr-1"></i>Verdediging</span>
-                                            <span class="font-mono">{{ $playerStats['defense'] }} &rarr; {{ $newDef }} (+{{ $item->defense_bonus }})</span>
+                                            <span class="font-mono">{{ $isDefEquipped ? $playerStats['defense'].' (Actief +'.$item->defense_bonus.')' : $playerStats['defense'].' → '.$newDef.' (+'.$item->defense_bonus.')' }}</span>
                                         </div>
                                     @endif
 
                                     @if($item->stamina_bonus > 0 || $item->slug === 'multivitaminen-focus')
                                         @php
                                             $staDelta = $item->slug === 'multivitaminen-focus' ? 1 : (int) $item->stamina_bonus;
-                                            $newSta = $ownedCount > 0 && $item->category === 'equipment' ? $playerStats['stamina'] : ($playerStats['stamina'] + $staDelta);
+                                            $isStaEquipped = $ownedCount > 0 && $item->category === 'equipment';
+                                            $newSta = $isStaEquipped
+                                                ? $playerStats['stamina']
+                                                : ($item->slug === 'multivitaminen-focus'
+                                                    ? min($playerStats['stat_cap'], $playerStats['stamina'] + $staDelta)
+                                                    : ($playerStats['stamina'] + $staDelta));
                                         @endphp
                                         <div class="flex items-center justify-between font-bold text-amber-700 dark:text-amber-300">
                                             <span><i class="fa-solid fa-person-running mr-1"></i>Conditie</span>
-                                            <span class="font-mono">{{ $playerStats['stamina'] }} &rarr; {{ $newSta }} (+{{ $staDelta }})</span>
+                                            <span class="font-mono">{{ $isStaEquipped ? $playerStats['stamina'].' (Actief +'.$staDelta.')' : $playerStats['stamina'].' → '.$newSta.' (+'.($newSta - $playerStats['stamina']).')' }}</span>
                                         </div>
                                     @endif
 
                                     @if(($item->intelligence_bonus ?? 0) > 0)
+                                        @php
+                                            $isIntEquipped = $ownedCount > 0 && $item->category === 'equipment';
+                                            $intDelta = (int) $item->intelligence_bonus;
+                                            $newInt = $isIntEquipped ? $playerStats['intelligence'] : ($playerStats['intelligence'] + $intDelta);
+                                        @endphp
                                         <div class="flex items-center justify-between font-bold text-indigo-700 dark:text-indigo-300">
                                             <span><i class="fa-solid fa-brain mr-1"></i>Intelligentie</span>
-                                            <span class="font-mono">{{ $playerStats['intelligence'] }} &rarr; {{ $playerStats['intelligence'] + (int) $item->intelligence_bonus }} (+{{ $item->intelligence_bonus }})</span>
+                                            <span class="font-mono">{{ $isIntEquipped ? $playerStats['intelligence'].' (Actief +'.$intDelta.')' : $playerStats['intelligence'].' → '.$newInt.' (+'.$intDelta.')' }}</span>
                                         </div>
                                     @endif
 
                                     @if(($item->charisma_bonus ?? 0) > 0)
+                                        @php
+                                            $isChaEquipped = $ownedCount > 0 && $item->category === 'equipment';
+                                            $chaDelta = (int) $item->charisma_bonus;
+                                            $newCha = $isChaEquipped ? $playerStats['charisma'] : ($playerStats['charisma'] + $chaDelta);
+                                        @endphp
                                         <div class="flex items-center justify-between font-bold text-pink-700 dark:text-pink-300">
                                             <span><i class="fa-solid fa-comments mr-1"></i>Charisma</span>
-                                            <span class="font-mono">{{ $playerStats['charisma'] }} &rarr; {{ $playerStats['charisma'] + (int) $item->charisma_bonus }} (+{{ $item->charisma_bonus }})</span>
+                                            <span class="font-mono">{{ $isChaEquipped ? $playerStats['charisma'].' (Actief +'.$chaDelta.')' : $playerStats['charisma'].' → '.$newCha.' (+'.$chaDelta.')' }}</span>
                                         </div>
                                     @endif
 
@@ -1272,8 +1293,9 @@
                             <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Gepantserd Kevlar Vest (12u)</h4>
                             <p class="text-xs text-slate-500 dark:text-slate-400">12 uur ballistische bescherming met 45% terugslagkans op schutters.</p>
                             @if($character->hasVest())
+                                @php $vestSecs = max(0, (int) $character->getVestRemainingSeconds()); @endphp
                                 <div data-testid="shop-vest-countdown" class="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 text-[11px] font-bold text-purple-800 dark:text-purple-300">
-                                    Pantser actief: {{ gmdate('H:i:s', $character->getVestRemainingSeconds()) }}
+                                    Pantser actief: {{ sprintf('%02d:%02d:%02d', intdiv($vestSecs, 3600), intdiv($vestSecs % 3600, 60), $vestSecs % 60) }}
                                 </div>
                             @endif
                         </div>
@@ -1311,8 +1333,9 @@
                             <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">24-Uurs Paviljoenimmuniteit</h4>
                             <p class="text-xs text-slate-500 dark:text-slate-400">Volledige 24-uurs afscherming tegen vijandige aanvallen en liquidaties.</p>
                             @if($character->hasIsolationProtection())
+                                @php $protSecs = max(0, (int) $character->getIsolationProtectionRemainingSeconds()); @endphp
                                 <div data-testid="shop-protection-countdown" class="p-2.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200/80 text-[11px] font-bold text-cyan-800 dark:text-cyan-300">
-                                    Schild actief: {{ gmdate('H:i:s', $character->getIsolationProtectionRemainingSeconds()) }}
+                                    Schild actief: {{ sprintf('%02d:%02d:%02d', intdiv($protSecs, 3600), intdiv($protSecs % 3600, 60), $protSecs % 60) }}
                                 </div>
                             @endif
                         </div>

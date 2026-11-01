@@ -185,27 +185,33 @@ class NewsArticle extends Model
             </div>';
         }, $text);
 
+        // Inline code `code`
+        $text = preg_replace(
+            '/`([^`\n]+)`/',
+            '<code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-mono text-xs">$1</code>',
+            $text
+        );
+
         // Horizontal Rule
-        $text = preg_replace('/^---$/m', '<hr class="my-3 border-slate-200 dark:border-slate-800" />', $text);
+        $text = preg_replace('/^---$/m', "\n\n".'<hr class="my-3 border-slate-200 dark:border-slate-800" />'."\n\n", $text);
 
         // Unordered list items
         $text = preg_replace('/^-\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 dark:text-slate-300 font-medium leading-relaxed">$1</li>', $text);
 
         // Group consecutive <li> elements into a <ul>
         $text = preg_replace_callback('~((?:<li[^>]*>.*?</li>\s*)+)~s', function ($m) {
-            return '<ul class="my-2 space-y-0.5">'.$m[1].'</ul>';
+            $cleanItems = preg_replace('~</li>\s+<li~', '</li><li', trim($m[1]));
+
+            return "\n\n".'<ul class="my-2 space-y-0.5">'.$cleanItems.'</ul>'."\n\n";
         }, $text);
+
+        // Ensure block-level headers and quotes have paragraph boundaries
+        $text = preg_replace('~(<(?:h[1-6]|blockquote)[^>]*>.*?</(?:h[1-6]|blockquote)>)~is', "\n\n$1\n\n", $text);
 
         // Normalise multiple blank lines to exactly two newlines
         $text = preg_replace("/\n{2,}/", "\n\n", $text);
 
-        // Remove newlines immediately before opening block-level tags
-        $text = preg_replace('~\n(<(?:h[1-6]|hr|ul|ol|li|div|blockquote|p)[\s>])~i', '$1', $text);
-
-        // Remove newlines immediately after closing block-level tags
-        $text = preg_replace('~(</(?:h[1-6]|hr|ul|ol|li|div|blockquote|p)>)\n~i', '$1', $text);
-
-        // Split on remaining double newlines and wrap plain-text segments in <p>
+        // Split on double newlines and wrap plain-text segments in <p>
         $segments = preg_split("/\n\n/", $text);
         $segments = array_map(function ($seg) {
             $trimmed = trim($seg);

@@ -451,7 +451,9 @@ class DailyBattleService
             $focusKey = $this->getCharacterFocus($character, $todayBattle);
             if ($focusKey === $canonicalKey) {
                 $multiplier = $this->isRushHour($now) ? 2.0 : 1.5;
-                $effectiveAmount = (int) ceil($amount * $multiplier);
+                $effectiveAmount = ($amount === 1 && $multiplier >= 2.0)
+                    ? 3
+                    : (int) ceil($amount * $multiplier);
             }
         }
 

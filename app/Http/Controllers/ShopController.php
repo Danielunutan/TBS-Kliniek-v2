@@ -30,7 +30,6 @@ class ShopController extends Controller
     public const DAILY_DEAL_CANDIDATES = [
         'kapsalon-paviljoen-7',
         'energy-drink-xxl',
-        'strip-oxazepam',
         'portie-bitterballen',
         'bami-schijf-speciaal',
         'saucijzenbroodje',
@@ -1066,11 +1065,12 @@ class ShopController extends Controller
         $recipientId = $validated['recipient_id'] ?? null;
         if (empty($recipientId) && ! empty($validated['recipient_name'])) {
             $nameClean = trim($validated['recipient_name']);
-            if (! str_contains(strtolower($nameClean), 'eigen account')) {
+            if ($nameClean !== '' && ! str_contains(strtolower($nameClean), 'eigen account')) {
                 $foundChar = Character::where('name', $nameClean)->first();
-                if ($foundChar) {
-                    $recipientId = $foundChar->id;
+                if (! $foundChar) {
+                    return back()->with('shop_tab', 'pakketten')->with('error', 'De opgegeven ontvanger kon niet worden gevonden.');
                 }
+                $recipientId = $foundChar->id;
             }
         }
 
@@ -1088,11 +1088,11 @@ class ShopController extends Controller
             $lockedCharacter = $lockedChars->get($character->id);
 
             if ($isGift && ! $lockedChars->has((int) $recipientId)) {
-                return back()->with('error', 'De gekozen ontvanger bestaat niet.');
+                return back()->with('shop_tab', 'pakketten')->with('error', 'De gekozen ontvanger bestaat niet.');
             }
 
             if (($lockedCharacter->stars ?? 0) < $totalCost) {
-                return back()->with('error', "Sterrentegoed ontoereikend! Voor dit pakket zijn {$totalCost} Sterren ⭐ vereist (huidig saldo: {$lockedCharacter->stars}).");
+                return back()->with('shop_tab', 'pakketten')->with('error', "Sterrentegoed ontoereikend! Voor dit pakket zijn {$totalCost} Sterren ⭐ vereist (huidig saldo: {$lockedCharacter->stars}).");
             }
 
             $lockedCharacter->stars -= $totalCost;

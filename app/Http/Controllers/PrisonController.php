@@ -378,17 +378,17 @@ class PrisonController extends Controller
 
             $reduceSeconds = $actionMeta['reduce_seconds'];
             $released = false;
+            $processed = false;
 
-            DB::transaction(function () use ($character, $reduceSeconds, &$released): void {
-                /** @var Character $locked */
+            DB::transaction(function () use ($character, $reduceSeconds, &$released, &$processed): void {
+                /** @var Character|null $locked */
                 $locked = Character::where('id', $character->id)->lockForUpdate()->first();
                 if (! $locked || ! $locked->isImprisoned()) {
                     return;
                 }
 
+                $processed = true;
                 $lockedPerks = is_array($locked->perks) ? $locked->perks : [];
-                $lockedPerks['prison_action_cooldown_until'] = now()->addSeconds(self::REDUCE_COOLDOWN_SECONDS)->timestamp;
-                $locked->perks = $lockedPerks;
 
                 $currentUntil = $locked->prison_until ? $locked->prison_until->copy() : now();
                 $newUntil = $currentUntil->subSeconds($reduceSeconds);
@@ -399,13 +399,20 @@ class PrisonController extends Controller
                     $locked->prison_reason = null;
                     $locked->prison_escape_attempted = false;
                     $locked->ad_prison_progress = 0;
+                    unset($lockedPerks['prison_action_cooldown_until']);
                     $released = true;
                 } else {
                     $locked->prison_until = $newUntil;
+                    $lockedPerks['prison_action_cooldown_until'] = now()->addSeconds(self::REDUCE_COOLDOWN_SECONDS)->timestamp;
                 }
 
+                $locked->perks = $lockedPerks;
                 $locked->save();
             });
+
+            if (! $processed) {
+                return redirect()->route('prison')->with('info', 'Je zit momenteel niet in de isoleercel!');
+            }
 
             $this->levelService->addXp($character, 15);
 
@@ -440,7 +447,6 @@ class PrisonController extends Controller
 
             $lockedPerks = is_array($locked->perks) ? $locked->perks : [];
             $lockedPerks['prison_action_cooldown_until'] = now()->addSeconds(self::REDUCE_COOLDOWN_SECONDS)->timestamp;
-            $locked->perks = $lockedPerks;
 
             $roll = random_int(1, 100);
             $currentUntil = $locked->prison_until ? $locked->prison_until->copy() : now();
@@ -456,11 +462,13 @@ class PrisonController extends Controller
                     $locked->prison_reason = null;
                     $locked->prison_escape_attempted = false;
                     $locked->ad_prison_progress = 0;
+                    unset($lockedPerks['prison_action_cooldown_until']);
                     $released = true;
                 } else {
                     $locked->prison_until = $newUntil;
                 }
 
+                $locked->perks = $lockedPerks;
                 $locked->addRespect(1);
                 $locked->save();
 
@@ -470,6 +478,8 @@ class PrisonController extends Controller
                     'seconds' => $reduceSecs,
                 ];
             }
+
+            $locked->perks = $lockedPerks;
 
             $penaltySecs = 30;
             $locked->prison_until = $currentUntil->addSeconds($penaltySecs);
