@@ -192,13 +192,13 @@ class EventDrugsProductionService
     /**
      * Resolve the event and reward the #1 winner with €5,000,000 cash and 1,000 stars.
      */
-    public static function resolveWinner(): ?array
+    public static function resolveWinner(bool $force = false): ?array
     {
         $start = Carbon::parse(self::EVENT_START);
         $end = Carbon::parse(self::EVENT_END);
 
         // Guard against premature runs or double payouts
-        if (! self::hasEnded() || GameNotification::where('type', self::NOTIFICATION_TYPE)->exists()) {
+        if ((! $force && ! self::hasEnded()) || GameNotification::where('type', self::NOTIFICATION_TYPE)->exists()) {
             return null;
         }
 
@@ -220,16 +220,16 @@ class EventDrugsProductionService
 
         $totalProduced = (int) $topProducer->total_produced;
 
-        return DB::transaction(function () use ($winner, $totalProduced): array {
-            // Re-check under transaction to ensure concurrency safety
-            if (GameNotification::where('type', self::NOTIFICATION_TYPE)->exists()) {
-                return [];
-            }
-
-            /** @var Character $lockedWinner */
+        return DB::transaction(function () use ($winner, $totalProduced): ?array {
+            /** @var Character|null $lockedWinner */
             $lockedWinner = Character::where('id', $winner->id)->lockForUpdate()->first();
             if (! $lockedWinner) {
-                return [];
+                return null;
+            }
+
+            // Re-check under row lock to ensure concurrency safety
+            if (GameNotification::where('type', self::NOTIFICATION_TYPE)->exists()) {
+                return null;
             }
 
             $lockedWinner->cash = ($lockedWinner->cash ?? 0) + self::PRIZE_CASH;

@@ -379,8 +379,12 @@ class TheftService
             // Take the cash from the victim under a row lock and cap it by the fresh balance.
             // Two thieves who hit the same victim at once can then never take more than the victim owns.
             $cashStolen = DB::transaction(function () use ($victim, $cashStolen): int {
-                /** @var Character $lockedVictim */
+                /** @var Character|null $lockedVictim */
                 $lockedVictim = Character::where('id', $victim->id)->lockForUpdate()->first();
+                if (! $lockedVictim || $lockedVictim->hasCashProtection()) {
+                    return 0;
+                }
+
                 $available = max(0, (int) $lockedVictim->cash);
                 $taken = min($cashStolen, $available);
 

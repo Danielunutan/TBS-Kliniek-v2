@@ -141,7 +141,9 @@ class AdminController extends Controller
                 (int) $validated['stars'] !== (int) $character->stars ||
                 (float) $validated['respect'] !== (float) $character->respect ||
                 (int) $validated['vip_points'] !== (int) $character->vip_points ||
-                ($request->has('vip_action') && $request->input('vip_action') !== 'no_change')
+                ($request->has('vip_action') && $request->input('vip_action') !== 'no_change') ||
+                ($request->has('is_vip') && $request->boolean('is_vip') !== (bool) $character->is_vip) ||
+                ($request->filled('vip_tier') && (int) $request->input('vip_tier') !== $character->getSupporterTier())
             ) {
                 return back()->with('error', 'Alleen administrators kunnen economische tegoeden en VIP status handmatig wijzigen.');
             }
@@ -206,87 +208,89 @@ class AdminController extends Controller
         $character->respect = $validated['respect'];
         $character->vip_points = $validated['vip_points'];
         $character->health = $validated['health'];
-        $character->energy = $validated['energy'];
+        $character->energy = min(100, (int) $validated['energy']);
 
-        // VIP beheer & handmatige toekenning
-        $vipAction = $request->input('vip_action', 'no_change');
-        $vipTier = (int) $request->input('vip_tier', ($character->getSupporterTier() ?: 1));
-        $perks = $character->perks ?? [];
-        $wasVip = $character->isVip();
+        // VIP beheer & handmatige toekenning (alleen voor administrators/eigenaar)
+        if ($currentUser->isAdmin()) {
+            $vipAction = $request->input('vip_action', 'no_change');
+            $vipTier = (int) $request->input('vip_tier', ($character->getSupporterTier() ?: 1));
+            $perks = $character->perks ?? [];
+            $wasVip = $character->isVip();
 
-        if ($vipAction === 'revoke' || (! $request->boolean('is_vip') && in_array($vipAction, ['no_change', 'revoke'], true))) {
-            $character->is_vip = false;
-            $character->vip_expires_at = null;
-            $perks['supporter_tier'] = 0;
-            $perks['has_custom_name_color'] = false;
-            $perks['has_sparkle_effect'] = false;
-        } else {
-            $character->is_vip = true;
-            $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
-                ? $character->vip_expires_at
-                : now();
+            if ($vipAction === 'revoke' || (! $request->boolean('is_vip') && in_array($vipAction, ['no_change', 'revoke'], true))) {
+                $character->is_vip = false;
+                $character->vip_expires_at = null;
+                $perks['supporter_tier'] = 0;
+                $perks['has_custom_name_color'] = false;
+                $perks['has_sparkle_effect'] = false;
+            } else {
+                $character->is_vip = true;
+                $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
+                    ? $character->vip_expires_at
+                    : now();
 
-            $daysToAdd = (int) ($request->input('custom_vip_days') ?: ($request->input('vip_days') ?: 30));
+                $daysToAdd = (int) ($request->input('custom_vip_days') ?: ($request->input('vip_days') ?: 30));
 
-            if ($vipAction === 'lifetime' || $vipTier === 4) {
-                $character->vip_expires_at = now()->addYears(99);
-                if ($vipTier < 4) {
-                    $vipTier = 4;
+                if ($vipAction === 'lifetime' || $vipTier === 4) {
+                    $character->vip_expires_at = now()->addYears(99);
+                    if ($vipTier < 4) {
+                        $vipTier = 4;
+                    }
+                } elseif ($vipAction === 'add_days') {
+                    $character->vip_expires_at = $currentExpiry->copy()->addDays($daysToAdd);
+                } elseif ($vipAction === 'set_days') {
+                    $character->vip_expires_at = now()->addDays($daysToAdd);
+                } elseif ((! $wasVip && ! $character->vip_expires_at) || ($character->vip_expires_at && $character->vip_expires_at->isPast())) {
+                    $character->vip_expires_at = now()->addDays($daysToAdd > 0 ? $daysToAdd : 30);
                 }
-            } elseif ($vipAction === 'add_days') {
-                $character->vip_expires_at = $currentExpiry->copy()->addDays($daysToAdd);
-            } elseif ($vipAction === 'set_days') {
-                $character->vip_expires_at = now()->addDays($daysToAdd);
-            } elseif (! $character->vip_expires_at || $character->vip_expires_at->isPast()) {
-                $character->vip_expires_at = now()->addDays($daysToAdd > 0 ? $daysToAdd : 30);
-            }
 
-            $perks['supporter_tier'] = max(1, $vipTier);
-            $perks['hourly_cash_bonus'] = match ($perks['supporter_tier']) {
-                4 => 50000,
-                3 => 20000,
-                2 => 7500,
-                default => 2500,
-            };
-
-            // Custom perks toggles
-            if ($request->has('has_custom_name_color')) {
-                $perks['has_custom_name_color'] = $request->boolean('has_custom_name_color');
-            } elseif ($vipTier >= 2) {
-                $perks['has_custom_name_color'] = true;
-            }
-
-            if ($request->has('has_sparkle_effect')) {
-                $perks['has_sparkle_effect'] = $request->boolean('has_sparkle_effect');
-                $perks['sparkle_enabled'] = $request->boolean('has_sparkle_effect');
-            } elseif ($vipTier >= 3) {
-                $perks['has_sparkle_effect'] = true;
-                $perks['sparkle_enabled'] = true;
-            }
-
-            if ($request->filled('custom_name_color')) {
-                $perks['custom_name_color'] = (string) $request->input('custom_name_color');
-            }
-
-            if (! $wasVip || $vipAction !== 'no_change') {
-                $tierTitle = match ($perks['supporter_tier']) {
-                    4 => 'Lifetime V.I.P.',
-                    3 => 'Kliniek Baas V.I.P. (Tier 3)',
-                    2 => 'Gangster Elite V.I.P. (Tier 2)',
-                    default => 'TBS V.I.P. Lid (Tier 1)',
+                $perks['supporter_tier'] = max(1, $vipTier);
+                $perks['hourly_cash_bonus'] = match ($perks['supporter_tier']) {
+                    4 => 50000,
+                    3 => 20000,
+                    2 => 7500,
+                    default => 2500,
                 };
-                GameNotification::create([
-                    'character_id' => $character->id,
-                    'type' => 'vip_granted',
-                    'icon' => 'fa-crown',
-                    'title' => 'VIP Status Toegekend!',
-                    'message' => "Gefeliciteerd! De administratie heeft je {$tierTitle} status toegekend.",
-                    'is_read' => false,
-                ]);
-            }
-        }
 
-        $character->perks = $perks;
+                // Custom perks toggles
+                if ($request->has('has_custom_name_color')) {
+                    $perks['has_custom_name_color'] = $request->boolean('has_custom_name_color');
+                } elseif ($vipTier >= 2) {
+                    $perks['has_custom_name_color'] = true;
+                }
+
+                if ($request->has('has_sparkle_effect')) {
+                    $perks['has_sparkle_effect'] = $request->boolean('has_sparkle_effect');
+                    $perks['sparkle_enabled'] = $request->boolean('has_sparkle_effect');
+                } elseif ($vipTier >= 3) {
+                    $perks['has_sparkle_effect'] = true;
+                    $perks['sparkle_enabled'] = true;
+                }
+
+                if ($request->filled('custom_name_color')) {
+                    $perks['custom_name_color'] = (string) $request->input('custom_name_color');
+                }
+
+                if (! $wasVip || $vipAction !== 'no_change') {
+                    $tierTitle = match ($perks['supporter_tier']) {
+                        4 => 'Lifetime V.I.P.',
+                        3 => 'Kliniek Baas V.I.P. (Tier 3)',
+                        2 => 'Gangster Elite V.I.P. (Tier 2)',
+                        default => 'TBS V.I.P. Lid (Tier 1)',
+                    };
+                    GameNotification::create([
+                        'character_id' => $character->id,
+                        'type' => 'vip_granted',
+                        'icon' => 'fa-crown',
+                        'title' => 'VIP Status Toegekend!',
+                        'message' => "Gefeliciteerd! De administratie heeft je {$tierTitle} status toegekend.",
+                        'is_read' => false,
+                    ]);
+                }
+            }
+
+            $character->perks = $perks;
+        }
 
         // Release from prison if requested
         if ($request->boolean('release_prison')) {

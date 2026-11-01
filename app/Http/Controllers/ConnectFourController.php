@@ -104,6 +104,30 @@ class ConnectFourController extends Controller
                 return $this->cooldownResponse();
             }
 
+            $existingMatch = Cache::get(self::matchCacheKey($lockedCharacter->id));
+            if (is_array($existingMatch) && isset($existingMatch['board']) && is_array($existingMatch['board'])) {
+                $hasPlayerMoves = false;
+                foreach ($existingMatch['board'] as $row) {
+                    if (is_array($row) && in_array(ConnectFourEngine::PLAYER, $row, true)) {
+                        $hasPlayerMoves = true;
+                        break;
+                    }
+                }
+                if ($hasPlayerMoves) {
+                    return response()->json([
+                        'success' => true,
+                        'resumed' => true,
+                        'starter' => 'player',
+                        'board' => $existingMatch['board'],
+                        'ai' => null,
+                        'matches_played' => $stat->matches_played,
+                        'current_player_wins' => $stat->current_player_wins,
+                        'current_arjan_wins' => $stat->current_arjan_wins,
+                        'current_draws' => $stat->current_draws,
+                    ]);
+                }
+            }
+
             $board = ConnectFourEngine::emptyBoard();
             $starter = $this->takeStarter($lockedCharacter->id);
             $arjanTurn = $starter === ConnectFourEngine::ARJAN ? $this->playArjanTurn($board) : null;
@@ -444,7 +468,7 @@ class ConnectFourController extends Controller
         /** @var Character|null $character */
         $character = Auth::user()?->character;
         if (! $character) {
-            return redirect()->route('onboarding.show');
+            return redirect()->route('onboarding.index');
         }
 
         if ($character->isImprisoned()) {
@@ -500,7 +524,7 @@ class ConnectFourController extends Controller
         /** @var Character|null $character */
         $character = Auth::user()?->character;
         if (! $character) {
-            return redirect()->route('onboarding.show');
+            return redirect()->route('onboarding.index');
         }
 
         if ($character->isImprisoned()) {

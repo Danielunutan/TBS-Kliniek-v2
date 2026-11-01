@@ -41,9 +41,13 @@ class DiscordShieldAdminController extends Controller
         // Active Bans
         $bans = DiscordShieldBan::latest()->get();
 
-        // Current Settings
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        $canManageSettings = $currentUser && ($currentUser->isOwner() || $currentUser->isAdmin());
+
+        // Current Settings (mask secrets for moderators who cannot edit system settings)
         $settings = [
-            'bot_token' => DiscordShieldSetting::get('bot_token', ''),
+            'bot_token' => $canManageSettings ? DiscordShieldSetting::get('bot_token', '') : '',
             'client_id' => DiscordShieldSetting::get('client_id', config('services.discord.client_id', '1558628995439005748')),
             'guild_id' => DiscordShieldSetting::get('guild_id', ''),
             'verified_role_id' => DiscordShieldSetting::get('verified_role_id', ''),
@@ -56,7 +60,7 @@ class DiscordShieldAdminController extends Controller
             'auto_ban_evaders' => DiscordShieldSetting::get('auto_ban_evaders', '0'),
             'turnstile_enabled' => DiscordShieldSetting::get('turnstile_enabled', '1'),
             'turnstile_site_key' => DiscordShieldSetting::get('turnstile_site_key', env('TURNSTILE_SITE_KEY', '0x4AAAAAAFTb6Vv0yuFCIDYU')),
-            'turnstile_secret_key' => DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY')),
+            'turnstile_secret_key' => $canManageSettings ? DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY')) : '',
         ];
 
         return view('admin.discord_shield.index', compact(
@@ -122,6 +126,12 @@ class DiscordShieldAdminController extends Controller
      */
     public function postVerificationMessage(Request $request): RedirectResponse
     {
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        if (! $currentUser || (! $currentUser->isOwner() && ! $currentUser->isAdmin())) {
+            return back()->with('error', 'Alleen de eigenaar of een beheerder kan het verificatiebericht plaatsen.');
+        }
+
         $channelId = $request->input('channel_id') ?? DiscordShieldSetting::get('verify_channel_id');
         if (empty($channelId)) {
             return back()->with('error', 'Vul eerst een geldig Verificatie Kanaal ID in.');
@@ -140,6 +150,12 @@ class DiscordShieldAdminController extends Controller
      */
     public function ban(Request $request): RedirectResponse
     {
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        if (! $currentUser || (! $currentUser->isOwner() && ! $currentUser->isAdmin())) {
+            return back()->with('error', 'Alleen de eigenaar of een beheerder kan een Discord Shield ban toevoegen.');
+        }
+
         $request->validate([
             'type' => 'required|in:discord_id,fingerprint,ip_address',
             'value' => 'required|string',
@@ -174,6 +190,12 @@ class DiscordShieldAdminController extends Controller
      */
     public function unban(int $id): RedirectResponse
     {
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        if (! $currentUser || (! $currentUser->isOwner() && ! $currentUser->isAdmin())) {
+            return back()->with('error', 'Alleen de eigenaar of een beheerder kan een Discord Shield ban opheffen.');
+        }
+
         $ban = DiscordShieldBan::findOrFail($id);
         $val = $ban->value;
         $ban->delete();
@@ -190,6 +212,12 @@ class DiscordShieldAdminController extends Controller
      */
     public function approve(int $id): RedirectResponse
     {
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        if (! $currentUser || (! $currentUser->isOwner() && ! $currentUser->isAdmin())) {
+            return back()->with('error', 'Alleen de eigenaar of een beheerder kan een Discord Shield verificatie goedkeuren.');
+        }
+
         $verification = DiscordVerification::findOrFail($id);
         $verification->update([
             'status' => 'verified',

@@ -607,24 +607,79 @@ class GangPropertyController extends Controller
 
         $npcId = $validated['npc_id'] ?? null;
 
-        if ($npcId) {
-            $npc = GangNpc::where('id', $npcId)->where('gang_id', $gang->id)->first();
-            if (! $npc) {
-                return back()->with('error', 'Ongeldig NPC bendelid.');
-            }
+        try {
+            $successMessage = DB::transaction(function () use ($gang, $property, $npcId): string {
+                /** @var GangProperty|null $lockedProperty */
+                $lockedProperty = GangProperty::where('id', $property->id)
+                    ->where('gang_id', $gang->id)
+                    ->lockForUpdate()
+                    ->first();
 
-            // Unassign from any previous property
-            GangNpc::where('gang_id', $gang->id)->where('assigned_property_id', $property->id)->update(['assigned_property_id' => null]);
-            $npc->update(['assigned_property_id' => $property->id]);
-            $property->update(['assigned_npc_key' => $npc->npc_key]);
+                if (! $lockedProperty) {
+                    throw new \RuntimeException('Ongeldig bendepand.');
+                }
 
-            return back()->with('success', "✅ {$npc->name} is succesvol gestationeerd in '{$property->name}'!");
+                if (in_array($lockedProperty->production_status, ['producing', 'ready'], true)) {
+                    throw new \RuntimeException('Je kunt geen NPC bendelid wisselen of terugtrekken terwijl een productiebatch actief of klaar voor incasso is!');
+                }
+
+                if ($npcId) {
+                    /** @var GangNpc|null $npc */
+                    $npc = GangNpc::where('id', $npcId)
+                        ->where('gang_id', $gang->id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $npc) {
+                        throw new \RuntimeException('Ongeldig NPC bendelid.');
+                    }
+
+                    if ($npc->assigned_property_id && (int) $npc->assigned_property_id !== (int) $lockedProperty->id) {
+                        /** @var GangProperty|null $prevProperty */
+                        $prevProperty = GangProperty::where('id', $npc->assigned_property_id)
+                            ->where('gang_id', $gang->id)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($prevProperty && in_array($prevProperty->production_status, ['producing', 'ready'], true)) {
+                            throw new \RuntimeException("{$npc->name} draait momenteel nog een actieve productiebatch in '{$prevProperty->name}'!");
+                        }
+
+                        if ($prevProperty) {
+                            $prevProperty->update(['assigned_npc_key' => null]);
+                        }
+                    }
+
+                    // Clear any other property in this gang that still references this NPC key
+                    GangProperty::where('gang_id', $gang->id)
+                        ->where('id', '!=', $lockedProperty->id)
+                        ->where('assigned_npc_key', $npc->npc_key)
+                        ->update(['assigned_npc_key' => null]);
+
+                    // Unassign any previous NPC from the target property
+                    GangNpc::where('gang_id', $gang->id)
+                        ->where('assigned_property_id', $lockedProperty->id)
+                        ->where('id', '!=', $npc->id)
+                        ->update(['assigned_property_id' => null]);
+
+                    $npc->update(['assigned_property_id' => $lockedProperty->id]);
+                    $lockedProperty->update(['assigned_npc_key' => $npc->npc_key]);
+
+                    return "✅ {$npc->name} is succesvol gestationeerd in '{$lockedProperty->name}'!";
+                }
+
+                // Unassign
+                GangNpc::where('gang_id', $gang->id)
+                    ->where('assigned_property_id', $lockedProperty->id)
+                    ->update(['assigned_property_id' => null]);
+                $lockedProperty->update(['assigned_npc_key' => null]);
+
+                return "De NPC is teruggetrokken uit '{$lockedProperty->name}'.";
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        // Unassign
-        GangNpc::where('gang_id', $gang->id)->where('assigned_property_id', $property->id)->update(['assigned_property_id' => null]);
-        $property->update(['assigned_npc_key' => null]);
-
-        return back()->with('success', "De NPC is teruggetrokken uit '{$property->name}'.");
+        return back()->with('success', $successMessage);
     }
 }

@@ -396,9 +396,9 @@ class CpaleadPostbackController extends Controller
                 GameNotification::create([
                     'character_id' => $lockedCharacter->id,
                     'type' => 'ad_reward',
+                    'icon' => 'fa-coins',
                     'title' => '🎉 Sponsorkamer Beloning Ontvangen!',
                     'message' => "Je hebt een CPAlead sponsoropdracht voltooid ({$campaignName}). Jouw beloning: {$rewardGranted}!{$vipNotice}",
-                    'link' => route('sponsor.index'),
                     'is_read' => false,
                 ]);
             } catch (\Exception $e) {

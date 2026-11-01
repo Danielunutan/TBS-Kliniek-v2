@@ -219,6 +219,29 @@ class OnboardingController extends Controller
         $cleanUsername = strtolower(trim($validated['username']));
         $displayName = trim($validated['display_name']);
 
+        $avatarInput = trim($validated['avatar']);
+        $allowedPresetAvatars = [
+            'assets/characters/avatar_male_1.jpg',
+            'assets/characters/avatar_male_2.jpg',
+            'assets/characters/avatar_male_3.jpg',
+            'assets/characters/avatar_male_4.jpg',
+            'assets/characters/avatar_female_1.jpg',
+            'assets/characters/avatar_female_2.jpg',
+            'assets/characters/avatar_female_3.jpg',
+            'assets/characters/henkie.jpg',
+            'assets/characters/barry.jpg',
+            'assets/characters/ricardo.jpg',
+        ];
+        for ($i = 1; $i <= 20; $i++) {
+            $allowedPresetAvatars[] = "assets/characters/avatar_{$i}.jpg";
+        }
+        $isOwnUploadedAvatar = (bool) preg_match('/^uploads\/avatars\/avatar_user_'.$user->id.'_\d+_[a-zA-Z0-9]+\.(jpg|png|webp)$/', $avatarInput)
+            && file_exists(public_path($avatarInput));
+
+        if (! in_array($avatarInput, $allowedPresetAvatars, true) && ! $isOwnUploadedAvatar) {
+            return back()->withErrors(['avatar' => 'Kies een geldige profielfoto.'])->withInput();
+        }
+
         // Update character
         $character->username = $cleanUsername;
         $character->display_name = $displayName;
@@ -226,7 +249,7 @@ class OnboardingController extends Controller
         $character->birthdate = $validated['birthdate'];
         $character->profile_color = $validated['profile_color'];
         $character->bio = ($validated['bio'] ?? null) ?: 'Nieuwe patiënt binnengebracht op afdeling TBS.';
-        $character->avatar = $validated['avatar'];
+        $character->avatar = $avatarInput;
         $character->is_onboarded = true;
 
         // Apply starting specialty bonus

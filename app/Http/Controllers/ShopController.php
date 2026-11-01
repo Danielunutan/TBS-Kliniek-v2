@@ -1027,11 +1027,15 @@ class ShopController extends Controller
             }
 
             if ($validated['item_type'] === 'vip_week') {
+                $hasPermanentVip = ($lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null)
+                    || $lockedCharacter->getVipTier() === 4;
                 $lockedCharacter->is_vip = true;
-                $currentExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
-                    ? $lockedCharacter->vip_expires_at
-                    : now();
-                $lockedCharacter->vip_expires_at = $currentExpiry->copy()->addDays(7);
+                if (! $hasPermanentVip) {
+                    $currentExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                        ? $lockedCharacter->vip_expires_at
+                        : now();
+                    $lockedCharacter->vip_expires_at = $currentExpiry->copy()->addDays(7);
+                }
                 $lockedCharacter->save();
 
                 return back()

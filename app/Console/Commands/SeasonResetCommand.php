@@ -139,11 +139,14 @@ class SeasonResetCommand extends Command
                 'character_items',
                 'character_vehicles',
                 'character_heists',
+                'heist_logs',
                 'character_true_crime_states',
                 'character_memory_stats',
+                'character_connect_four_stats',
                 'fights',
                 'attacks',
                 'daily_battles',
+                'daily_battle_scores',
                 'loans',
                 'bank_transactions',
                 'xxl_cases',
@@ -152,10 +155,14 @@ class SeasonResetCommand extends Command
                 'marketplace_listings',
                 'halloween_quest_progress',
                 'arm_wrestling_matches',
+                'bounties',
+                'blood_feuds',
                 'gang_items',
                 'gang_properties',
                 'gang_npcs',
                 'gang_attacks',
+                'gang_donations',
+                'control_point_logs',
             ];
 
             $this->info('2. Seizoenstabellen en voortgang leegmaken...');
@@ -190,7 +197,10 @@ class SeasonResetCommand extends Command
             // 4. Reset Control Points (bendes kunnen ze opnieuw veroveren)
             if (Schema::hasTable('control_points')) {
                 $cpUpdates = [
+                    'current_character_id' => null,
                     'current_gang_id' => null,
+                    'captured_at' => null,
+                    'total_captures' => 0,
                     'gang_id' => null,
                     'control_level' => 0,
                     'last_contested_at' => null,

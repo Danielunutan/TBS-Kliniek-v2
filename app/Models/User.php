@@ -16,8 +16,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Mail;
 
-#[Fillable(['name', 'email', 'email_verified_at', 'registration_ip', 'last_login_ip', 'ip_limit_exempt', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled', 'birthdate', 'is_onboarded', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_id', 'banned_at', 'email_verification_code', 'email_verification_code_expires_at'])]
-#[Hidden(['password', 'remember_token', 'two_factor_secret', 'email_verification_code'])]
+#[Fillable(['name', 'email', 'email_verified_at', 'email_verification_code', 'email_verification_code_expires_at', 'registration_ip', 'last_login_ip', 'password', 'google_id', 'discord_id', 'birthdate', 'is_onboarded', 'is_staff', 'role', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_user_id', 'two_factor_enabled', 'two_factor_secret'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'email_verification_code', 'email_verification_code_expires_at', 'registration_ip', 'last_login_ip', 'google_id', 'discord_id'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */

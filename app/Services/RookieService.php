@@ -155,8 +155,12 @@ class RookieService
         }
 
         return DB::transaction(function () use ($character, $taskKey) {
-            /** @var Character $locked */
+            /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked || ! $this->isTaskConditionMet($locked, $taskKey)) {
+                return ['success' => false, 'message' => 'Je hebt deze taak nog niet voltooid.', 'reward' => ''];
+            }
+
             $perks = $locked->perks ?? [];
             $claimed = $perks['rookie_rewards_claimed'] ?? [];
 
@@ -208,11 +212,15 @@ class RookieService
                     break;
 
                 case 'sponsor_vip':
-                    $currentExpiry = $locked->vip_expires_at && $locked->vip_expires_at->isFuture()
-                        ? $locked->vip_expires_at->copy()
-                        : now();
+                    $hasPermanentVip = ($locked->is_vip && $locked->vip_expires_at === null)
+                        || $locked->getVipTier() === 4;
                     $locked->is_vip = true;
-                    $locked->vip_expires_at = $currentExpiry->addDay();
+                    if (! $hasPermanentVip) {
+                        $currentExpiry = $locked->vip_expires_at && $locked->vip_expires_at->isFuture()
+                            ? $locked->vip_expires_at->copy()
+                            : now();
+                        $locked->vip_expires_at = $currentExpiry->addDay();
+                    }
                     $levelService->addXp($locked, 25);
                     $rewardDesc = '1 Dag Gratis VIP status en 25 XP';
                     break;

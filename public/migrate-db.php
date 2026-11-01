@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 $kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-$secretKey = (string) (env('DB_SETUP_KEY') ?? getenv('DB_SETUP_KEY') ?? '');
+$secretKey = (string) (config('services.db_setup.key') ?: (env('DB_SETUP_KEY') ?? getenv('DB_SETUP_KEY') ?? ''));
 $providedKey = (string) ($_GET['key'] ?? $_POST['key'] ?? '');
 
 if (empty($secretKey) || ! hash_equals($secretKey, $providedKey)) {

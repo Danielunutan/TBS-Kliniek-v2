@@ -10,14 +10,16 @@ class HackingLog extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'character_id',
+        'reward_id',
+        'reward_label',
+        'vip_bonus_applied',
+        'vip_bonus_label',
+    ];
 
     protected $casts = [
         'vip_bonus_applied' => 'boolean',
-        'success' => 'boolean',
-        'cash_earned' => 'integer',
-        'xp_earned' => 'integer',
-        'ports_scanned' => 'integer',
     ];
 
     public function character(): BelongsTo

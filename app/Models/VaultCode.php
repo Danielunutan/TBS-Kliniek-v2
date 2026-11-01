@@ -11,7 +11,15 @@ class VaultCode extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'character_id',
+        'code',
+        'reward_cash',
+        'reward_stars',
+        'reward_tokens',
+        'is_redeemed',
+        'redeemed_by_id',
+    ];
 
     protected $casts = [
         'reward_cash' => 'integer',

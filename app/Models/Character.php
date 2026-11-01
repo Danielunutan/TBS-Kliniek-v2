@@ -76,6 +76,19 @@ class Character extends Model
     protected $guarded = ['id'];
 
     /**
+     * @var list<string>
+     */
+    protected $hidden = [
+        'perks',
+        'weather_lat',
+        'weather_lon',
+        'birthdate',
+        'ad_daily_data',
+        'treatment_history',
+        'claimed_level_rewards',
+    ];
+
+    /**
      * The model's default values for attributes.
      *
      * @var array<string, mixed>
@@ -683,7 +696,7 @@ class Character extends Model
             } elseif ($diffDays === 1) {
                 return ($currentStreak % 7) + 1;
             } else {
-                return max(1, $currentStreak % 7);
+                return $currentStreak > 0 ? (($currentStreak - 1) % 7) + 1 : 1;
             }
         }
 
@@ -801,7 +814,7 @@ class Character extends Model
         });
 
         static::saving(function (Character $character) {
-            if ($character->isDirty('respect') && ! $character->isDirty('today_respect')) {
+            if ($character->isDirty('respect') && ! $character->isDirty('today_respect') && ! $character->isDirty('today_respect_date')) {
                 $oldRespect = (float) ($character->getOriginal('respect') ?? 0);
                 $newRespect = (float) ($character->respect ?? 0);
                 $diff = $newRespect - $oldRespect;
@@ -855,6 +868,14 @@ class Character extends Model
         }
 
         return (int) ($this->perks['supporter_tier'] ?? 1);
+    }
+
+    /**
+     * Return the active VIP supporter tier for this character.
+     */
+    public function getVipTier(): int
+    {
+        return $this->getSupporterTier();
     }
 
     /**
@@ -1087,7 +1108,10 @@ class Character extends Model
             return null;
         }
 
-        return $this->perks['custom_name_color'] ?? null;
+        $color = $this->perks['custom_name_color'] ?? null;
+        $catalog = self::nameColorCatalog();
+
+        return (is_string($color) && isset($catalog[$color])) ? $color : null;
     }
 
     /**
@@ -1237,12 +1261,16 @@ class Character extends Model
                 return false;
             }
 
+            $hasPermanentVip = ($locked->is_vip && $locked->vip_expires_at === null)
+                || $locked->getVipTier() === 4;
             $locked->cash += 2500;
             $locked->is_vip = true;
-            $currentExpiry = ($locked->vip_expires_at && $locked->vip_expires_at->isFuture())
-                ? $locked->vip_expires_at->copy()
-                : now();
-            $locked->vip_expires_at = $currentExpiry->addDays(3);
+            if (! $hasPermanentVip) {
+                $currentExpiry = ($locked->vip_expires_at && $locked->vip_expires_at->isFuture())
+                    ? $locked->vip_expires_at->copy()
+                    : now();
+                $locked->vip_expires_at = $currentExpiry->addDays(3);
+            }
             $locked->discord_reward_claimed_at = now();
             $locked->save();
 
@@ -1582,7 +1610,9 @@ class Character extends Model
             $dirty = true;
         }
 
-        $hasActiveVip = $this->vip_expires_at !== null && $this->vip_expires_at->isFuture();
+        $hasPermanentVip = ((bool) $this->is_vip && $this->vip_expires_at === null)
+            || ((bool) $this->is_vip && (int) ($this->perks['supporter_tier'] ?? 0) === 4);
+        $hasActiveVip = $hasPermanentVip || ($this->vip_expires_at !== null && $this->vip_expires_at->isFuture());
         if ((bool) $this->is_vip !== $hasActiveVip) {
             $this->is_vip = $hasActiveVip;
             $dirty = true;
@@ -1667,7 +1697,7 @@ class Character extends Model
             $dirty = true;
         }
 
-        $maxDailySpins = $hasActiveVip ? 2 : 1;
+        $maxDailySpins = ($hasActiveVip || $this->isVip()) ? 2 : 1;
         $spunToday = $this->last_daily_spin_at !== null && $this->last_daily_spin_at->isToday();
         $expectedSpins = $spunToday ? max(0, min($maxDailySpins, (int) ($this->daily_spins_today ?? 0))) : 0;
         if ((int) ($this->daily_spins_today ?? 0) !== $expectedSpins) {
@@ -3221,6 +3251,21 @@ class Character extends Model
 
         $catalog = self::vestCatalog();
         $tier = ($this->perks ?? [])['vest_tier'] ?? 'tactical_3h';
+
+        if ($tier === 'kevlar_24h') {
+            return [
+                'id' => 'kevlar_24h',
+                'name' => 'Munitiedepot Kevlar-Pantser (24u)',
+                'subtitle' => '24 uur versterkt Kevlar-pantser uit het Sterren Munitiedepot',
+                'hours' => 24,
+                'cost_cash' => 0,
+                'cost_stars' => 0,
+                'defense_bonus' => 350,
+                'backfire_chance' => 55,
+                'badge' => '24 Uur • 55% Backfire',
+                'icon' => 'fa-solid fa-shield-halved',
+            ];
+        }
 
         return $catalog[$tier] ?? $catalog['tactical_3h'];
     }

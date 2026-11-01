@@ -60,7 +60,7 @@ class NewsArticle extends Model
     /**
      * Attributes that survive sanitization. Every other attribute, including all on* event handlers, is removed.
      */
-    private const SANITIZE_ALLOWED_ATTRIBUTES = ['href', 'src', 'alt', 'title', 'colspan', 'rowspan'];
+    private const SANITIZE_ALLOWED_ATTRIBUTES = ['href', 'src', 'alt', 'title', 'colspan', 'rowspan', 'class', 'target', 'rel'];
 
     /**
      * Sanitize HTML with an allow-list of tags, attributes, and URL schemes.
@@ -74,7 +74,8 @@ class NewsArticle extends Model
             return '';
         }
 
-        $stripped = strip_tags($html, self::SANITIZE_ALLOWED_TAGS);
+        $withoutExecutableBlocks = (string) preg_replace('~<(script|style)\b[^>]*>.*?</\1>~is', '', $html);
+        $stripped = strip_tags($withoutExecutableBlocks, self::SANITIZE_ALLOWED_TAGS);
 
         $document = new \DOMDocument('1.0', 'UTF-8');
         $previousErrorSetting = libxml_use_internal_errors(true);
@@ -133,7 +134,7 @@ class NewsArticle extends Model
     {
         $normalizedUrl = strtolower((string) preg_replace('/[\x00-\x20]+/', '', $url));
 
-        return (bool) preg_match('~^(https?://|mailto:|/|#)~', $normalizedUrl);
+        return (bool) preg_match('~^(https?://|mailto:|/(?!/)|#)~', $normalizedUrl);
     }
 
     /**
@@ -150,24 +151,24 @@ class NewsArticle extends Model
 
         // [img]url[/img] and ![alt](url) - support both https?:// and root-relative /assets/...
         $text = preg_replace(
-            '/\[img\]((?:https?:\/\/|\/)[^\s<"\']+)\[\/img\]/i',
+            '/\[img\]((?:https?:\/\/|\/(?!\/))[^\s<"\']+)\[\/img\]/i',
             '<div class="my-4"><img src="$1" alt="Nieuws Afbeelding" class="rounded-2xl max-w-full max-h-96 object-contain border border-slate-200/80 dark:border-slate-800 shadow-xs" loading="lazy" onerror="this.style.display=\'none\'" /></div>',
             $text
         );
         $text = preg_replace(
-            '/!\[([^\]]*)\]\(((?:https?:\/\/|\/)[^\s<"\']+)\)/i',
+            '/!\[([^\]]*)\]\(((?:https?:\/\/|\/(?!\/))[^\s<"\']+)\)/i',
             '<div class="my-4"><img src="$2" alt="$1" class="rounded-2xl max-w-full max-h-96 object-contain border border-slate-200/80 dark:border-slate-800 shadow-xs" loading="lazy" onerror="this.style.display=\'none\'" /></div>',
             $text
         );
 
         // [link=url]label[/link] or [url=url]label[/url] - support both https?:// and /relative
         $text = preg_replace(
-            '/\[(?:link|url)=((?:https?:\/\/|\/)[^\s<"\']+)\](.*?)\[\/(?:link|url)\]/i',
+            '/\[(?:link|url)=((?:https?:\/\/|\/(?!\/))[^\s<"\']+)\](.*?)\[\/(?:link|url)\]/i',
             '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-extrabold underline decoration-purple-300 dark:decoration-purple-700 hover:decoration-purple-600 transition inline-flex items-center gap-1">$2 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>',
             $text
         );
         $text = preg_replace(
-            '/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s<"\']+)\)/i',
+            '/\[([^\]]+)\]\(((?:https?:\/\/|\/(?!\/))[^\s<"\']+)\)/i',
             '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-extrabold underline decoration-purple-300 dark:decoration-purple-700 hover:decoration-purple-600 transition inline-flex items-center gap-1">$1 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>',
             $text
         );
@@ -226,7 +227,7 @@ class NewsArticle extends Model
         $text = preg_replace_callback('/\[credit=([a-zA-Z0-9_\-\s]+)\](.*?)\[\/credit\]/is', function ($m) {
             $username = trim($m[1]);
             $msg = trim($m[2]);
-            $profileUrl = "/speler/{$username}";
+            $profileUrl = '/speler/'.rawurlencode($username);
 
             return '<div class="my-4 p-4 rounded-2xl bg-purple-50/70 dark:bg-slate-800 border border-purple-200 dark:border-purple-800/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                 <div class="flex items-start sm:items-center gap-3">

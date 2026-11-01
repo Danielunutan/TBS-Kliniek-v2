@@ -165,7 +165,7 @@ class GangWageService
             : $now->copy()->startOfHour();
 
         $secondsElapsed = ($lastPayout >= $now) ? 0 : (int) $lastPayout->diffInSeconds($now);
-        $pendingHours = (int) floor($secondsElapsed / self::WAGE_INTERVAL_SECONDS);
+        $pendingHours = min(168, (int) floor($secondsElapsed / self::WAGE_INTERVAL_SECONDS));
         $pendingAmount = $pendingHours * $hourlyWage;
 
         return [

@@ -34,10 +34,10 @@ class ResolveOpenTicketsCommand extends Command
             return self::FAILURE;
         }
 
-        // 1. Compensate RW24: +75 VIP points, +50 stars, activate 24h protection
+        // 1. Compensate RW24: +75 VIP points, +50 stars, activate 24h cash protection
         $rw24->vip_points = ($rw24->vip_points ?? 0) + 75;
         $rw24->stars = ($rw24->stars ?? 0) + 50;
-        $rw24->protection_until = now()->addHours(24);
+        $rw24->cash_protection_until = now()->addHours(24);
         $rw24->save();
 
         GameNotification::create([

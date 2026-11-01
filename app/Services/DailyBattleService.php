@@ -497,11 +497,17 @@ class DailyBattleService
 
         $battle = DailyBattle::whereDate('battle_date', $today)->first();
         if (! $battle) {
-            $battle = DailyBattle::create([
-                'battle_date' => $today,
-                'title' => 'Etmaal-Escalatie Protocol ⚡',
-                'is_settled' => false,
-            ]);
+            try {
+                $battle = DailyBattle::firstOrCreate(
+                    ['battle_date' => $today],
+                    [
+                        'title' => 'Etmaal-Escalatie Protocol ⚡',
+                        'is_settled' => false,
+                    ]
+                );
+            } catch (QueryException) {
+                $battle = DailyBattle::whereDate('battle_date', $today)->firstOrFail();
+            }
         }
 
         return $battle;

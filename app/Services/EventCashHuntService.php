@@ -173,14 +173,14 @@ class EventCashHuntService
     /**
      * Resolve the event and reward the #1 winner with 750 stars.
      */
-    public static function resolveWinner(): ?array
+    public static function resolveWinner(bool $force = false): ?array
     {
         $start = Carbon::parse(self::EVENT_START);
         $end = Carbon::parse(self::EVENT_END);
 
         // The command runs every night, but the event ran only once. Pay the prize once, after the event has ended.
         // Without this check the same winner received 750 stars every night.
-        if (! self::hasEnded() || GameNotification::where('type', 'event_winner')->where('created_at', '>=', $end)->exists()) {
+        if ((! $force && ! self::hasEnded()) || GameNotification::where('type', 'event_winner')->where('created_at', '>=', $end)->exists()) {
             return null;
         }
 
@@ -202,8 +202,16 @@ class EventCashHuntService
 
         $totalEarned = (int) $topEarner->total_earned;
 
-        return DB::transaction(function () use ($winner, $totalEarned): array {
+        return DB::transaction(function () use ($winner, $totalEarned, $end): ?array {
             $lockedWinner = Character::where('id', $winner->id)->lockForUpdate()->first();
+            if (! $lockedWinner) {
+                return null;
+            }
+
+            if (GameNotification::where('type', 'event_winner')->where('created_at', '>=', $end)->exists()) {
+                return null;
+            }
+
             $lockedWinner->stars = ($lockedWinner->stars ?? 0) + self::PRIZE_STARS;
             $lockedWinner->save();
 

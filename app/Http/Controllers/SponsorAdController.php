@@ -116,7 +116,7 @@ class SponsorAdController extends Controller
         /** @var Character|null $character */
         $character = Auth::user()?->character;
         if (! $character) {
-            return redirect()->route('onboarding.show');
+            return redirect()->route('onboarding.index');
         }
         $this->energy->refresh($character);
 

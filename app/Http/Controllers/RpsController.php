@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Character;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
+use App\Services\EventCashHuntService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -71,14 +72,15 @@ class RpsController extends Controller
             $labels = ['steen' => '🪨 Steen', 'papier' => '📄 Papier', 'schaar' => '✂️ Schaar'];
 
             if ($playerChoice === $houseChoice) {
-                $this->economy->addCash($character, $bet);
+                $this->economy->addCash($character, $bet, 'rps_refund', false);
 
                 return back()->with('success', "Gelijkspel! Jij koos {$labels[$playerChoice]}, huis koos {$labels[$houseChoice]}. Inzet terug.");
             }
 
             if ($wins[$playerChoice] === $houseChoice) {
                 $payout = $bet * 2;
-                $this->economy->addCash($character, $payout);
+                $this->economy->addCash($character, $payout, 'rps', false);
+                EventCashHuntService::record($character, $bet, 'rps');
                 $this->level->addXp($character, 15);
 
                 return back()->with('success', "Gewonnen! Jij: {$labels[$playerChoice]} vs Huis: {$labels[$houseChoice]}. Je wint €".number_format($bet, 0, ',', '.').'! +15 XP.');

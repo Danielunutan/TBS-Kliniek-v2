@@ -179,10 +179,14 @@ class VipController extends Controller
                     $locked->addRespect(50);
                     break;
                 case 'week_vip_stars':
+                    $hasPermanentVip = ($locked->is_vip && $locked->vip_expires_at === null)
+                        || $locked->getVipTier() === 4;
                     $locked->is_vip = true;
-                    $locked->vip_expires_at = ($locked->vip_expires_at && $locked->vip_expires_at->isFuture())
-                        ? $locked->vip_expires_at->copy()->addDays(7)
-                        : now()->addDays(7);
+                    if (! $hasPermanentVip) {
+                        $locked->vip_expires_at = ($locked->vip_expires_at && $locked->vip_expires_at->isFuture())
+                            ? $locked->vip_expires_at->copy()->addDays(7)
+                            : now()->addDays(7);
+                    }
                     break;
                 case 'vip_lootbag':
                     $locked->xxl_cases = ($locked->xxl_cases ?? 0) + 2;

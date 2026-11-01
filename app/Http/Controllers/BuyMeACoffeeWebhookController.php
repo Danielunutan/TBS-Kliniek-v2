@@ -80,8 +80,18 @@ class BuyMeACoffeeWebhookController extends Controller
 
         if ($isCancelled) {
             $existingOrder = ! empty($externalId) ? BuyMeACoffeeOrder::where('external_id', $externalId)->first() : null;
-            if (! $character && $existingOrder && $existingOrder->character) {
+            if ($existingOrder && $existingOrder->character) {
                 $character = $existingOrder->character;
+            } elseif ($existingOrder && ! $existingOrder->character) {
+                $character = null;
+            } elseif ($character) {
+                $hasActiveMembershipOrder = BuyMeACoffeeOrder::where('character_id', $character->id)
+                    ->where('is_membership', true)
+                    ->where('membership_status', 'active')
+                    ->exists();
+                if (! $hasActiveMembershipOrder) {
+                    $character = null;
+                }
             }
 
             if ($character) {
@@ -340,6 +350,10 @@ class BuyMeACoffeeWebhookController extends Controller
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
             if (! $locked) {
+                return;
+            }
+
+            if (($locked->is_vip && $locked->vip_expires_at === null) || $locked->getVipTier() === 4) {
                 return;
             }
 

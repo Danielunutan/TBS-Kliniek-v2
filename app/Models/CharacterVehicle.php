@@ -46,7 +46,7 @@ class CharacterVehicle extends Model
     public function heistLogs(): HasMany
     {
         return $this->hasMany(HeistLog::class, 'vehicle_id', 'vehicle_id')
-            ->where('character_id', $this->character_id);
+            ->when($this->character_id !== null, fn ($q) => $q->where('character_id', $this->character_id));
     }
 
     public function getEffectiveSpeedAttribute(): int

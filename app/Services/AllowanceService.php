@@ -146,7 +146,7 @@ class AllowanceService
         $baseAmount = self::ALLOWANCE_AMOUNT;
         $vipBonus = max(0, $amountPerQuarter - $baseAmount);
 
-        $pendingCycles = (int) floor($secondsElapsed / self::ALLOWANCE_INTERVAL_SECONDS);
+        $pendingCycles = min(96, (int) floor($secondsElapsed / self::ALLOWANCE_INTERVAL_SECONDS));
         $pendingAmount = $pendingCycles * $amountPerQuarter;
 
         $secondsUntilNext = self::ALLOWANCE_INTERVAL_SECONDS - ($secondsElapsed % self::ALLOWANCE_INTERVAL_SECONDS);

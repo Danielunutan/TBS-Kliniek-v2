@@ -25,7 +25,14 @@ class GameNotification extends Model
     /**
      * @var list<string>
      */
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'character_id',
+        'type',
+        'icon',
+        'title',
+        'message',
+        'is_read',
+    ];
 
     /**
      * @var array<string, string>

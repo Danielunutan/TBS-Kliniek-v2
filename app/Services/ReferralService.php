@@ -92,12 +92,16 @@ class ReferralService
                     ]);
                 }
 
-                // Extend or activate VIP for 1 week (7 days)
-                if ($lockedReferrer->isVip() && $lockedReferrer->vip_expires_at && $lockedReferrer->vip_expires_at->isFuture()) {
-                    $lockedReferrer->vip_expires_at = $lockedReferrer->vip_expires_at->copy()->addDays(7);
-                } else {
-                    $lockedReferrer->is_vip = true;
-                    $lockedReferrer->vip_expires_at = now()->addDays(7);
+                // Extend or activate VIP for 1 week (7 days), preserving permanent VIP
+                $hasPermanentVip = ($lockedReferrer->is_vip && $lockedReferrer->vip_expires_at === null)
+                    || $lockedReferrer->getVipTier() === 4;
+                $lockedReferrer->is_vip = true;
+                if (! $hasPermanentVip) {
+                    if ($lockedReferrer->vip_expires_at && $lockedReferrer->vip_expires_at->isFuture()) {
+                        $lockedReferrer->vip_expires_at = $lockedReferrer->vip_expires_at->copy()->addDays(7);
+                    } else {
+                        $lockedReferrer->vip_expires_at = now()->addDays(7);
+                    }
                 }
                 $lockedReferrer->save();
                 $referrer->is_vip = $lockedReferrer->is_vip;

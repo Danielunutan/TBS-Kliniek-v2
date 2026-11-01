@@ -600,6 +600,9 @@ class MarketplaceController extends Controller
                         }
                         $charItem->quantity = 1;
                     } else {
+                        if (! $lockedCharacter->canAddStorageItem((int) $lockedListing->amount)) {
+                            throw new \RuntimeException('Je persoonlijke depot zit vol! Maak eerst ruimte vrij voordat je dit artikel terugtrekt.');
+                        }
                         $charItem->quantity += $lockedListing->amount;
                     }
                     $charItem->save();

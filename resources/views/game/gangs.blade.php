@@ -2981,7 +2981,7 @@
                                                         <i class="fa-solid fa-clock-rotate-left text-[10px]"></i> In Behandeling
                                                     </span>
                                                 @elseif($g['is_open'])
-                                                    <form action="{{ route('gangs.request-join', $g['model']) }}" method="POST" class="inline">
+                                                    <form action="{{ route('gangs.request-join', $g['id']) }}" method="POST" class="inline">
                                                         @csrf
                                                         <button type="submit" 
                                                                 @if($character->isImprisoned() || $character->isComatose()) disabled @endif

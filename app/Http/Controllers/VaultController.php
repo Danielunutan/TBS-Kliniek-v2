@@ -121,47 +121,56 @@ class VaultController extends Controller
         $character = Auth::user()->character;
         $this->energy->refresh($character);
 
-        // Auto-dispatch any unissued milestone codes via GameMessage
-        $claimed = $character->claimed_level_rewards ?? [];
-        $newlyIssued = false;
-
-        foreach (self::LEVEL_REWARDS as $lvl => $rew) {
-            if ($character->level >= $lvl && ! in_array($lvl, $claimed, true)) {
-                $uniqueCode = VaultCode::generateUniqueCode('KLUIS-L'.$lvl);
-
-                VaultCode::create([
-                    'code' => $uniqueCode,
-                    'reward_cash' => $rew['cash'],
-                    'reward_stars' => $rew['stars'],
-                    'reward_tokens' => $rew['tokens'],
-                    'character_id' => $character->id,
-                    'is_redeemed' => false,
-                ]);
-
-                app(ChatBotService::class)->sendVaultCode(
-                    $character,
-                    $uniqueCode,
-                    "Level {$lvl} Mijlpaal: {$rew['name']}",
-                    '€'.number_format($rew['cash'], 0, ',', '.')." bankgeld + {$rew['stars']} Sterren ⭐"
-                );
-
-                GameMessage::create([
-                    'recipient_id' => $character->id,
-                    'sender_name' => 'Directie Kluisbeheer',
-                    'subject' => "🔐 Jouw Geheime Kluiscode voor Level {$lvl}!",
-                    'content' => "Beste {$character->name},\n\nGefeliciteerd met het bereiken van Level {$lvl}! Beloningen hoef je in de TBS Kliniek niet meer handmatig op te halen; ze worden nu automatisch naar je postvak gestuurd.\n\nHier is jouw exclusieve kluiscode voucher:\n\n👉 **{$uniqueCode}**\n\nInhoud bij inwisselen:\n• €".number_format($rew['cash'], 0, ',', '.')." wit geld (direct op je bankrekening)\n• {$rew['stars']}x Exclusieve Sterren ⭐\n• {$rew['tokens']}x KluisMunten 🔑\n\nVoer deze code in bij 'Kluiscode Inwisselen' of bied hem te koop aan op de Marktplaats!",
-                    'type' => 'reward',
-                ]);
-
-                $claimed[] = $lvl;
-                $newlyIssued = true;
+        // Auto-dispatch any unissued milestone codes via GameMessage under row lock
+        DB::transaction(function () use ($character): void {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return;
             }
-        }
 
-        if ($newlyIssued) {
-            $character->claimed_level_rewards = $claimed;
-            $character->save();
-        }
+            $claimed = $locked->claimed_level_rewards ?? [];
+            $newlyIssued = false;
+
+            foreach (self::LEVEL_REWARDS as $lvl => $rew) {
+                if ($locked->level >= $lvl && ! in_array($lvl, $claimed, true)) {
+                    $uniqueCode = VaultCode::generateUniqueCode('KLUIS-L'.$lvl);
+
+                    VaultCode::create([
+                        'code' => $uniqueCode,
+                        'reward_cash' => $rew['cash'],
+                        'reward_stars' => $rew['stars'],
+                        'reward_tokens' => $rew['tokens'],
+                        'character_id' => $locked->id,
+                        'is_redeemed' => false,
+                    ]);
+
+                    app(ChatBotService::class)->sendVaultCode(
+                        $locked,
+                        $uniqueCode,
+                        "Level {$lvl} Mijlpaal: {$rew['name']}",
+                        '€'.number_format($rew['cash'], 0, ',', '.')." bankgeld + {$rew['stars']} Sterren ⭐"
+                    );
+
+                    GameMessage::create([
+                        'recipient_id' => $locked->id,
+                        'sender_name' => 'Directie Kluisbeheer',
+                        'subject' => "🔐 Jouw Geheime Kluiscode voor Level {$lvl}!",
+                        'content' => "Beste {$locked->name},\n\nGefeliciteerd met het bereiken van Level {$lvl}! Beloningen hoef je in de TBS Kliniek niet meer handmatig op te halen; ze worden nu automatisch naar je postvak gestuurd.\n\nHier is jouw exclusieve kluiscode voucher:\n\n👉 **{$uniqueCode}**\n\nInhoud bij inwisselen:\n• €".number_format($rew['cash'], 0, ',', '.')." wit geld (direct op je bankrekening)\n• {$rew['stars']}x Exclusieve Sterren ⭐\n• {$rew['tokens']}x KluisMunten 🔑\n\nVoer deze code in bij 'Kluiscode Inwisselen' of bied hem te koop aan op de Marktplaats!",
+                        'type' => 'reward',
+                    ]);
+
+                    $claimed[] = $lvl;
+                    $newlyIssued = true;
+                }
+            }
+
+            if ($newlyIssued) {
+                $locked->claimed_level_rewards = $claimed;
+                $locked->save();
+                $character->claimed_level_rewards = $claimed;
+            }
+        });
 
         // Generate a session target number if not set
         if (! session()->has('vault_target')) {

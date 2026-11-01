@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BankController extends Controller
@@ -332,7 +333,39 @@ class BankController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $character->setBankPin($validated['pin']);
+        $isAtmUnlocked = (bool) session('atm_unlocked_'.$character->id);
+        $currentPin = (string) $request->input('current_pin', '');
+
+        $pinUpdated = DB::transaction(function () use ($character, $validated, $isAtmUnlocked, $currentPin): bool {
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCharacter) {
+                return false;
+            }
+
+            if ($lockedCharacter->hasBankPin() && ! $isAtmUnlocked) {
+                if ($currentPin === '' || ! $lockedCharacter->verifyBankPin($currentPin)) {
+                    return false;
+                }
+            }
+
+            $lockedCharacter->setBankPin($validated['pin']);
+
+            return true;
+        });
+
+        if (! $pinUpdated) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ontgrendel eerst de Geldmaat met je huidige pincode om een nieuwe pincode in te stellen.',
+                ], 422);
+            }
+
+            return redirect()->route('bank.index', ['tab' => 'vault'])
+                ->with('error', 'Ontgrendel eerst de Geldmaat met je huidige pincode om een nieuwe pincode in te stellen.');
+        }
+
         session(['atm_unlocked_'.$character->id => true]);
 
         if ($request->expectsJson() || $request->ajax()) {

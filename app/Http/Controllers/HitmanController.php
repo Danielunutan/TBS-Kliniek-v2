@@ -170,11 +170,9 @@ class HitmanController extends Controller
         $intelMap = collect($character->getActiveIntelOps())->keyBy('target_id');
         $attackerWing = $character->current_location ?? 'Paviljoen 1 (Gesloten)';
 
+        $escapedQ = addcslashes(strtolower($q), '%_\\');
         $targets = Character::where('id', '!=', $character->id)
-            ->where(function ($query) use ($q) {
-                $query->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($q).'%'])
-                    ->orWhere('name', 'LIKE', "%{$q}%");
-            })
+            ->whereRaw("LOWER(name) LIKE ? ESCAPE '\\\\'", ['%'.$escapedQ.'%'])
             ->orderBy('name')
             ->limit(20)
             ->get()
@@ -236,9 +234,7 @@ class HitmanController extends Controller
 
         if (! $request->filled('target_id') && $request->filled('target_name')) {
             $nameInput = trim((string) $request->input('target_name'));
-            $found = Character::whereRaw('LOWER(name) = ?', [strtolower($nameInput)])
-                ->orWhere('name', 'LIKE', $nameInput)
-                ->first();
+            $found = Character::whereRaw('LOWER(name) = ?', [strtolower($nameInput)])->first();
             if ($found) {
                 $request->merge(['target_id' => $found->id]);
             }
@@ -534,9 +530,7 @@ class HitmanController extends Controller
 
         if (! $request->filled('target_id') && $request->filled('target_name')) {
             $nameInput = trim((string) $request->input('target_name'));
-            $found = Character::whereRaw('LOWER(name) = ?', [strtolower($nameInput)])
-                ->orWhere('name', 'LIKE', $nameInput)
-                ->first();
+            $found = Character::whereRaw('LOWER(name) = ?', [strtolower($nameInput)])->first();
             if ($found) {
                 $request->merge(['target_id' => $found->id]);
             }
@@ -582,40 +576,81 @@ class HitmanController extends Controller
             return back()->with('error', 'Dit contract kost €'.number_format($contract['cost'], 0, ',', '.').'. Je hebt onvoldoende geld.');
         }
 
-        if (! $this->energy->consume($character, $contract['energy'])) {
-            return back()->with('error', "Je hebt minimaal {$contract['energy']} energie nodig voor dit contract!");
-        }
+        return Cache::lock('character_action_'.$target->user_id, 10)->block(5, function () use ($character, $target, $contract, $bloodFeud): RedirectResponse {
+            return DB::transaction(function () use ($character, $target, $contract, $bloodFeud): RedirectResponse {
+                $firstId = min($character->id, $target->id);
+                $secondId = max($character->id, $target->id);
+                $lockedPair = Character::whereIn('id', [$firstId, $secondId])
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
 
-        $character->breakProtection();
-        $this->deductCashOrBank($character, $contract['cost']);
+                /** @var Character|null $lockedAttacker */
+                $lockedAttacker = $lockedPair->get($character->id);
+                /** @var Character|null $lockedTarget */
+                $lockedTarget = $lockedPair->get($target->id);
 
-        $roll = rand(1, 100);
-        if ($roll <= $contract['rate']) {
-            $target->health = max(5, $target->health - $contract['damage']);
-            $target->save();
+                if (! $lockedAttacker || ! $lockedTarget) {
+                    return back()->with('error', 'Doelwit kon niet worden gevonden.');
+                }
 
-            $this->level->addXp($character, $contract['xp']);
-            $character->addRespect(5);
-            $character->save();
+                if ($lockedTarget->isImprisoned()) {
+                    return back()->with('error', 'Dit doelwit zit in de isoleercel en kan niet worden aangevallen.');
+                }
 
-            GameNotification::create([
-                'character_id' => $target->id,
-                'type' => 'attack',
-                'icon' => 'fa-skull-crossbones',
-                'title' => 'Je bent aangevallen!',
-                'message' => "Een onbekende heeft een onderwereld-contract op je uitgevoerd ({$contract['label']}). Je verloor {$contract['damage']} HP.",
-            ]);
+                if ($lockedTarget->needsReviveSerum()) {
+                    return back()->with('error', "{$lockedTarget->name} ligt al in Code Blauw (Hartstilstand na 10 liquidaties)!");
+                }
 
-            return back()->with('success', "Contract succesvol uitgevoerd! {$target->name} verliest {$contract['damage']} HP. +{$contract['xp']} XP, +5 Respect.");
-        }
+                if ($lockedTarget->hasIsolationProtection()) {
+                    return back()->with('error', "{$lockedTarget->name} heeft actieve bescherming en kan niet worden aangevallen.");
+                }
 
-        if (rand(1, 100) <= 35) {
-            $this->prison->jail($character, 15, 'Betrapt bij het uitvoeren van een liquidatieopdracht.');
+                if (! $bloodFeud && ($lockedAttacker->level - $lockedTarget->level > 15)) {
+                    return back()->with('error', "{$lockedTarget->name} is te laag in level (maximaal 15 levels verschil). Zoek een tegenstander van jouw niveau!");
+                }
 
-            return redirect()->route('prison')->with('error', 'Contract mislukt! Jij bent opgepakt door de bewaking. 15 minuten isoleercel.');
-        }
+                if (($lockedAttacker->cash + $lockedAttacker->bank) < $contract['cost']) {
+                    return back()->with('error', 'Dit contract kost €'.number_format($contract['cost'], 0, ',', '.').'. Je hebt onvoldoende geld.');
+                }
 
-        return back()->with('error', 'Contract mislukt! Je handlanger botste op de bewaking en is gevlucht.');
+                if (! $this->energy->consume($lockedAttacker, $contract['energy'])) {
+                    return back()->with('error', "Je hebt minimaal {$contract['energy']} energie nodig voor dit contract!");
+                }
+
+                $lockedAttacker->breakProtection();
+                $this->deductCashOrBank($lockedAttacker, $contract['cost']);
+
+                $roll = rand(1, 100);
+                if ($roll <= $contract['rate']) {
+                    $lockedTarget->health = max(5, $lockedTarget->health - $contract['damage']);
+                    $lockedTarget->save();
+
+                    $this->level->addXp($lockedAttacker, $contract['xp']);
+                    $lockedAttacker->addRespect(5);
+                    $lockedAttacker->save();
+
+                    GameNotification::create([
+                        'character_id' => $lockedTarget->id,
+                        'type' => 'attack',
+                        'icon' => 'fa-skull-crossbones',
+                        'title' => 'Je bent aangevallen!',
+                        'message' => "Een onbekende heeft een onderwereld-contract op je uitgevoerd ({$contract['label']}). Je verloor {$contract['damage']} HP.",
+                    ]);
+
+                    return back()->with('success', "Contract succesvol uitgevoerd! {$lockedTarget->name} verliest {$contract['damage']} HP. +{$contract['xp']} XP, +5 Respect.");
+                }
+
+                if (rand(1, 100) <= 35) {
+                    $this->prison->jail($lockedAttacker, 15, 'Betrapt bij het uitvoeren van een liquidatieopdracht.');
+
+                    return redirect()->route('prison')->with('error', 'Contract mislukt! Jij bent opgepakt door de bewaking. 15 minuten isoleercel.');
+                }
+
+                return back()->with('error', 'Contract mislukt! Je handlanger botste op de bewaking en is gevlucht.');
+            });
+        });
     }
 
     /**
@@ -648,9 +683,7 @@ class HitmanController extends Controller
 
         if (! $request->filled('target_id') && $request->filled('target_name')) {
             $nameInput = trim((string) $request->input('target_name'));
-            $found = Character::whereRaw('LOWER(name) = ?', [strtolower($nameInput)])
-                ->orWhere('name', 'LIKE', $nameInput)
-                ->first();
+            $found = Character::whereRaw('LOWER(name) = ?', [strtolower($nameInput)])->first();
             if ($found) {
                 $request->merge(['target_id' => $found->id]);
             }

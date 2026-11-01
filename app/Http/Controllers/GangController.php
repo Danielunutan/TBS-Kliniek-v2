@@ -104,7 +104,6 @@ class GangController extends Controller
                 'has_pending_request' => isset($pendingGangRequestIds[$g->id]),
                 'profile_url' => route('gangs.show', $g->tag ?? $g->id),
                 'description' => $g->description,
-                'model' => $g,
             ]);
         }
 
@@ -419,11 +418,22 @@ class GangController extends Controller
                 $lockedCharacter->gang_id = $newGang->id;
                 $lockedCharacter->gang_role = 'leader';
                 $lockedCharacter->last_gang_wage_at = now()->startOfHour();
-                $lockedCharacter->is_vip = true;
-                $currentExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
-                    ? $lockedCharacter->vip_expires_at
-                    : now();
-                $lockedCharacter->vip_expires_at = $currentExpiry->copy()->addDays(3);
+
+                $perks = is_array($lockedCharacter->perks) ? $lockedCharacter->perks : [];
+                if (empty($perks['gang_welcome_vip_claimed'])) {
+                    $hasPermanentVip = ($lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null)
+                        || $lockedCharacter->getVipTier() === 4;
+                    $lockedCharacter->is_vip = true;
+                    if (! $hasPermanentVip) {
+                        $currentExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                            ? $lockedCharacter->vip_expires_at
+                            : now();
+                        $lockedCharacter->vip_expires_at = $currentExpiry->copy()->addDays(3);
+                    }
+                    $perks['gang_welcome_vip_claimed'] = true;
+                    $lockedCharacter->perks = $perks;
+                }
+
                 $lockedCharacter->save();
 
                 return $newGang;
@@ -608,11 +618,15 @@ class GangController extends Controller
                 $candidatePerks = is_array($candidate->perks) ? $candidate->perks : [];
                 $grantedWelcomeVip = empty($candidatePerks['gang_welcome_vip_claimed']);
                 if ($grantedWelcomeVip) {
+                    $hasPermanentVip = ($candidate->is_vip && $candidate->vip_expires_at === null)
+                        || $candidate->getVipTier() === 4;
                     $candidate->is_vip = true;
-                    $currentExpiry = ($candidate->vip_expires_at && $candidate->vip_expires_at->isFuture())
-                        ? $candidate->vip_expires_at
-                        : now();
-                    $candidate->vip_expires_at = $currentExpiry->copy()->addDays(3);
+                    if (! $hasPermanentVip) {
+                        $currentExpiry = ($candidate->vip_expires_at && $candidate->vip_expires_at->isFuture())
+                            ? $candidate->vip_expires_at
+                            : now();
+                        $candidate->vip_expires_at = $currentExpiry->copy()->addDays(3);
+                    }
                     $candidatePerks['gang_welcome_vip_claimed'] = true;
                     $candidate->perks = $candidatePerks;
                 }
@@ -977,54 +991,52 @@ class GangController extends Controller
                 'money_magnet_id' => ['nullable', Rule::exists('characters', 'id')->where('gang_id', $gang->id)],
             ]);
 
-            $newLeaderId = (int) ($validated['leader_id'] ?? $validated['boss_babe_id'] ?? $gang->leader_character_id);
-            if ($newLeaderId && $newLeaderId !== (int) $gang->leader_character_id) {
-                $newLeader = Character::where('id', $newLeaderId)->where('gang_id', $gang->id)->first();
-                if ($newLeader) {
-                    $character->gang_role = 'co_leader';
-                    $character->save();
-                    $newLeader->gang_role = 'leader';
-                    $newLeader->save();
-                    $gang->leader_character_id = $newLeader->id;
-                }
-            }
+            DB::transaction(function () use ($gang, $character, $validated): void {
+                $oldLeaderId = (int) $gang->leader_character_id;
+                $newLeaderId = (int) ($validated['leader_id'] ?? $validated['boss_babe_id'] ?? $gang->leader_character_id);
+                $handoverOutgoingLeaderId = null;
 
-            $oldShopperId = (int) $gang->personal_shopper;
-            $oldMagnetId = (int) $gang->money_magnet;
-
-            $newShopperId = ! empty($validated['personal_shopper_id']) ? (int) $validated['personal_shopper_id'] : null;
-            $newMagnetId = ! empty($validated['money_magnet_id']) ? (int) $validated['money_magnet_id'] : null;
-            $newCoLeaderId = ! empty($validated['co_leader_id']) ? (int) $validated['co_leader_id'] : null;
-
-            $gang->personal_shopper = $newShopperId;
-            $gang->money_magnet = $newMagnetId;
-            $gang->save();
-
-            // All members assigned to key roles must be co_leader (unless they are the gang leader)
-            $targetCoLeaderIds = array_filter(
-                [$newCoLeaderId, $newShopperId, $newMagnetId],
-                fn ($id) => ! empty($id) && (int) $id !== (int) $gang->leader_character_id
-            );
-
-            foreach ($targetCoLeaderIds as $cid) {
-                $c = Character::where('id', $cid)->where('gang_id', $gang->id)->first();
-                if ($c && $c->gang_role !== 'leader') {
-                    $c->gang_role = 'co_leader';
-                    $c->save();
-                }
-            }
-
-            // Demote previously appointed role holders if they are no longer in any key role
-            $prevKeyOfficers = array_unique(array_filter([$oldShopperId, $oldMagnetId]));
-            foreach ($prevKeyOfficers as $pid) {
-                if (! in_array($pid, $targetCoLeaderIds, true) && (int) $pid !== (int) $gang->leader_character_id) {
-                    $prevChar = Character::where('id', $pid)->where('gang_id', $gang->id)->first();
-                    if ($prevChar && $prevChar->gang_role === 'co_leader') {
-                        $prevChar->gang_role = 'member';
-                        $prevChar->save();
+                if ($newLeaderId && $newLeaderId !== $oldLeaderId) {
+                    $newLeader = Character::where('id', $newLeaderId)->where('gang_id', $gang->id)->lockForUpdate()->first();
+                    if ($newLeader) {
+                        $character->gang_role = 'co_leader';
+                        $character->save();
+                        $newLeader->gang_role = 'leader';
+                        $newLeader->save();
+                        $gang->leader_character_id = $newLeader->id;
+                        $handoverOutgoingLeaderId = (int) $character->id;
                     }
                 }
-            }
+
+                $newShopperId = ! empty($validated['personal_shopper_id']) ? (int) $validated['personal_shopper_id'] : null;
+                $newMagnetId = ! empty($validated['money_magnet_id']) ? (int) $validated['money_magnet_id'] : null;
+                $newCoLeaderId = ! empty($validated['co_leader_id']) ? (int) $validated['co_leader_id'] : null;
+
+                $gang->personal_shopper = $newShopperId;
+                $gang->money_magnet = $newMagnetId;
+                $gang->save();
+
+                // All members assigned to key roles must be co_leader (unless they are the gang leader)
+                $targetCoLeaderIds = array_values(array_unique(array_filter(
+                    [$newCoLeaderId, $newShopperId, $newMagnetId, $handoverOutgoingLeaderId],
+                    fn ($id) => ! empty($id) && (int) $id !== (int) $gang->leader_character_id
+                )));
+
+                foreach ($targetCoLeaderIds as $cid) {
+                    $c = Character::where('id', $cid)->where('gang_id', $gang->id)->lockForUpdate()->first();
+                    if ($c && $c->gang_role !== 'leader') {
+                        $c->gang_role = 'co_leader';
+                        $c->save();
+                    }
+                }
+
+                // Demote previously appointed co-leaders who are no longer in any key role
+                Character::where('gang_id', $gang->id)
+                    ->where('gang_role', 'co_leader')
+                    ->where('id', '!=', (int) $gang->leader_character_id)
+                    ->when(! empty($targetCoLeaderIds), fn ($q) => $q->whereNotIn('id', $targetCoLeaderIds))
+                    ->update(['gang_role' => 'member']);
+            });
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
@@ -1398,33 +1410,49 @@ class GangController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        $gang = $character->gang;
-        if (! $gang || $character->gang_role !== 'leader') {
+        $gangName = DB::transaction(function () use ($character): ?string {
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCharacter || ! $lockedCharacter->gang_id || $lockedCharacter->gang_role !== 'leader') {
+                return null;
+            }
+
+            /** @var Gang|null $lockedGang */
+            $lockedGang = Gang::where('id', $lockedCharacter->gang_id)->lockForUpdate()->first();
+            if (! $lockedGang) {
+                return null;
+            }
+
+            // Return all vehicles stored in the disbanding gang garage back to their owners
+            CharacterVehicle::where('gang_id', $lockedGang->id)
+                ->where('in_gang_garage', true)
+                ->update([
+                    'in_gang_garage' => false,
+                    'gang_id' => null,
+                    'stored_at' => null,
+                    'stored_by_character_id' => null,
+                ]);
+
+            // Unlink all members. Restart their allowance clock now: gang members receive no allowance,
+            // and an old timestamp would pay up to 24 hours of backlog on the next page load.
+            $lockedGang->members()->update([
+                'gang_id' => null,
+                'gang_role' => 'none',
+                'last_gang_wage_at' => null,
+                'last_allowance_at' => now(),
+            ]);
+
+            $name = $lockedGang->name;
+            $lockedGang->delete();
+
+            return $name;
+        });
+
+        if ($gangName === null) {
             return back()->with('error', 'Alleen de oprichter/leider kan de bende definitief opheffen!');
         }
 
-        // Return all vehicles stored in the disbanding gang garage back to their owners
-        CharacterVehicle::where('gang_id', $gang->id)
-            ->where('in_gang_garage', true)
-            ->update([
-                'in_gang_garage' => false,
-                'gang_id' => null,
-                'stored_at' => null,
-                'stored_by_character_id' => null,
-            ]);
-
-        // Unlink all members. Restart their allowance clock now: gang members receive no allowance,
-        // and an old timestamp would pay up to 24 hours of backlog on the next page load.
-        $gang->members()->update([
-            'gang_id' => null,
-            'gang_role' => 'none',
-            'last_gang_wage_at' => null,
-            'last_allowance_at' => now(),
-        ]);
-
-        $gang->delete();
-
-        return back()->with('success', "Bende '{$gang->name}' is definitief opgeheven.");
+        return back()->with('success', "Bende '{$gangName}' is definitief opgeheven.");
     }
 
     /**
@@ -2068,9 +2096,9 @@ class GangController extends Controller
                 'summary' => $summary,
             ]);
 
-            if ($targetGang->leader_id) {
+            if ($targetGang->leader_character_id) {
                 /** @var Character|null $lockedLeader */
-                $lockedLeader = Character::where('id', $targetGang->leader_id)->lockForUpdate()->first();
+                $lockedLeader = Character::where('id', $targetGang->leader_character_id)->lockForUpdate()->first();
                 if ($lockedLeader) {
                     $lockedLeader->addRespect(2.0);
                     $lockedLeader->save();

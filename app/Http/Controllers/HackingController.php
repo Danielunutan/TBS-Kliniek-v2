@@ -241,13 +241,12 @@ class HackingController extends Controller
                 'vault_code' => VaultCode::create([
                     'character_id' => $lockedCharacter->id,
                     'code' => VaultCode::generateUniqueCode('HACK'),
-                    'source' => 'hack_spinner',
                     'reward_cash' => 2500,
                     'reward_stars' => 1,
                     'reward_tokens' => 3,
                     'is_redeemed' => false,
                 ]),
-                'item' => $this->awardItem($lockedCharacter->id, $sector['slug'], $sector['value']),
+                'item' => $this->awardItem($lockedCharacter, $sector['slug'], (int) $sector['value']),
                 default => null,
             };
 
@@ -301,21 +300,32 @@ class HackingController extends Controller
     }
 
     /**
-     * Award an inventory item to character.
+     * Award an inventory item to character, respecting personal depot capacity.
      */
-    protected function awardItem(int $characterId, string $slug, int $amount): void
+    protected function awardItem(Character $character, string $slug, int $amount): void
     {
         $item = Item::where('slug', $slug)->first();
-        if (! $item) {
+        if (! $item || $amount <= 0) {
             return;
         }
 
-        $charItem = CharacterItem::firstOrCreate(
-            ['character_id' => $characterId, 'item_id' => $item->id],
-            ['quantity' => 0]
-        );
+        $freeSpace = $character->getRemainingStorageSpace();
+        $toStore = min($amount, $freeSpace);
+        $overflow = $amount - $toStore;
 
-        $charItem->quantity += $amount;
-        $charItem->save();
+        if ($toStore > 0) {
+            $charItem = CharacterItem::firstOrCreate(
+                ['character_id' => $character->id, 'item_id' => $item->id],
+                ['quantity' => 0]
+            );
+
+            $charItem->quantity += $toStore;
+            $charItem->save();
+        }
+
+        if ($overflow > 0) {
+            $unitValue = max(100, (int) round(($item->price ?? 500) * 0.5));
+            $this->economyService->addCash($character, $overflow * $unitValue, 'hacking');
+        }
     }
 }

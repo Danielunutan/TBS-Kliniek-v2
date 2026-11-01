@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class CinemaController extends Controller
@@ -770,7 +771,7 @@ class CinemaController extends Controller
 
         $validated = $request->validate([
             'message' => ['nullable', 'string', 'max:500'],
-            'gif_url' => ['nullable', 'url', 'max:500'],
+            'gif_url' => ['nullable', 'url', 'max:500', Rule::in(array_column(self::GIF_GALLERY, 'url'))],
             'sticker_key' => ['nullable', 'string', 'max:64'],
         ]);
 

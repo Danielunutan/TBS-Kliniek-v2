@@ -103,7 +103,7 @@ class HighLowController extends Controller
                 $totalPayout = (int) round($bet * $multiplier);
                 $profit = max(0, $totalPayout - $bet);
 
-                $this->economy->addCash($lockedCharacter, $totalPayout);
+                $this->economy->addCash($lockedCharacter, $totalPayout, 'highlow', false);
                 $this->level->addXp($lockedCharacter, 15);
                 EventCashHuntService::record($lockedCharacter, $profit, 'highlow');
 

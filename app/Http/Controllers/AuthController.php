@@ -150,7 +150,12 @@ class AuthController extends Controller
         // The state must match the value stored for this browser session. Without this check, an attacker can
         // send a victim a link that logs the victim into the attacker's Discord account (login CSRF).
         $state = (string) $request->query('state');
-        if (! str_starts_with($state, 'shield_') && ! $this->isValidLoginState($request, $state)) {
+        if (str_starts_with($state, 'shield_')) {
+            $expectedShieldState = (string) $request->session()->pull('discord_shield_state', '');
+            if ($expectedShieldState === '' || ! hash_equals($expectedShieldState, $state)) {
+                return redirect()->route('discord.verify')->with('error', 'Beveiligingsfout: Ongeldige sessie state. Probeer het opnieuw.');
+            }
+        } elseif (! $this->isValidLoginState($request, $state)) {
             return redirect()->route('login')->withErrors(['email' => 'Beveiligingsfout: Ongeldige sessie state. Probeer het opnieuw.']);
         }
 
@@ -487,7 +492,7 @@ class AuthController extends Controller
 
         // Auto-link verified Discord and award Starter Bonus (€2.500 Cash + 3 Days VIP + Roles)
         $verifiedDiscordId = $request->session()->get('verified_discord_id');
-        if ($verifiedDiscordId) {
+        if ($verifiedDiscordId && ! User::where('discord_id', $verifiedDiscordId)->exists()) {
             $user->discord_id = $verifiedDiscordId;
             $user->save();
             $character->claimDiscordReward();
@@ -498,6 +503,9 @@ class AuthController extends Controller
             if (! empty($guildId)) {
                 $shieldService->syncGameRoles($guildId, $verifiedDiscordId, $character);
             }
+        } elseif ($verifiedDiscordId) {
+            $request->session()->forget(['verified_discord_id', 'verified_discord_username']);
+            $verifiedDiscordId = null;
         }
 
         Auth::login($user, true);
@@ -656,9 +664,12 @@ class AuthController extends Controller
      */
     public function verifyEmail(Request $request, string $id, string $hash): RedirectResponse
     {
-        $user = User::findOrFail($id);
+        $user = $request->user();
+        if (! $user || (int) $user->id !== (int) $id) {
+            return redirect()->route('login')->with('error', 'Ongeldige verificatielink.');
+        }
 
-        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        if (! $request->hasValidSignature() || ! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
             return redirect()->route('login')->with('error', 'Ongeldige verificatielink.');
         }
 
@@ -696,6 +707,11 @@ class AuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+        if ($user?->character && $request->session()->has('pending_arena_battle')) {
+            app(FightController::class)->commitPendingBattle($user->character);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

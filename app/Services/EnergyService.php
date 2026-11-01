@@ -104,6 +104,10 @@ class EnergyService
 
             if ($locked->energy < $amount) {
                 $character->energy = $locked->energy;
+                $character->health = $locked->health;
+                $character->bank = $locked->bank;
+                $character->last_energy_refill_at = $locked->last_energy_refill_at;
+                $character->last_allowance_at = $locked->last_allowance_at;
 
                 return false;
             }
@@ -113,7 +117,9 @@ class EnergyService
 
             $character->energy = $locked->energy;
             $character->health = $locked->health;
+            $character->bank = $locked->bank;
             $character->last_energy_refill_at = $locked->last_energy_refill_at;
+            $character->last_allowance_at = $locked->last_allowance_at;
 
             return true;
         });

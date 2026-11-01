@@ -12,7 +12,6 @@ use App\Models\VaultCode;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
-use App\Services\EventCashHuntService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
@@ -261,7 +260,7 @@ class HeistController extends Controller
                     Gang::where('id', $gang->id)->increment('respect', $heist->gang_respect_reward);
                 }
 
-                $this->economyService->addCash($character, $playerPayout);
+                $this->economyService->addCash($character, $playerPayout, 'heist');
                 $character->addRespect($heist->respect_reward);
                 $this->levelService->addXp($character, $heist->xp_reward);
 
@@ -269,12 +268,10 @@ class HeistController extends Controller
                 $gangMsg = " Bende Buit: +€{$formattedGangCash} & +{$heist->gang_respect_reward} Gang Respect direct bijgeschreven in de bendekas van [{$gang->name}]!";
             } else {
                 $playerPayout = $totalPayout;
-                $this->economyService->addCash($character, $playerPayout);
+                $this->economyService->addCash($character, $playerPayout, 'heist');
                 $character->addRespect($heist->respect_reward);
                 $this->levelService->addXp($character, $heist->xp_reward);
             }
-
-            EventCashHuntService::record($character, $playerPayout, 'heist');
 
             // Vehicle wear & tear (5% to 15% condition lost)
             $conditionLoss = mt_rand(6, 16);

@@ -69,4 +69,12 @@ return [
     'buymeacoffee' => [
         'webhook_secret' => env('BUYMEACOFFEE_WEBHOOK_SECRET'),
     ],
+
+    'plesk' => [
+        'imap_password' => env('PLESK_IMAP_PASSWORD', ''),
+    ],
+
+    'db_setup' => [
+        'key' => env('DB_SETUP_KEY', ''),
+    ],
 ];

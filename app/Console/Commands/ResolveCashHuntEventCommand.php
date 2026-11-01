@@ -33,7 +33,7 @@ class ResolveCashHuntEventCommand extends Command
         }
 
         $this->info('Resolving De Grote Geldjacht event...');
-        $result = EventCashHuntService::resolveWinner();
+        $result = EventCashHuntService::resolveWinner((bool) $this->option('force'));
 
         if (! $result) {
             $this->warn('No earnings found during the event period.');

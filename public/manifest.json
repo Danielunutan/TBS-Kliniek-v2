@@ -50,7 +50,7 @@
       "name": "Luchtplaats (Vechten)",
       "short_name": "Luchtplaats",
       "description": "Vecht voor respect op de luchtplaats",
-      "url": "/vechten",
+      "url": "/luchtplaats",
       "icons": [{ "src": "/assets/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {

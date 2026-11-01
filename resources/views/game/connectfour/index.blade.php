@@ -163,7 +163,7 @@ body.dark .board-socket:hover,
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-start sm:items-center gap-4">
                 <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-purple-300 dark:border-purple-700 shadow-md shrink-0 bg-purple-50 dark:bg-purple-950/70">
-                    <img src="{{ asset('assets/characters/oohpa_arjan.jpg') }}?v=2" alt="OOHPA Arjan" class="w-full h-full object-cover">
+                    <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}?v=2" alt="OOHPA Arjan" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -286,7 +286,7 @@ body.dark .board-socket:hover,
                         <div id="player2-card" class="w-full sm:w-auto flex-1 flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 opacity-75 transition-all duration-200">
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <div class="relative shrink-0">
-                                    <img src="{{ asset('assets/characters/oohpa_arjan.jpg') }}?v=2" alt="OOHPA Arjan" class="w-9 h-9 rounded-lg object-cover border border-emerald-300">
+                                    <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}?v=2" alt="OOHPA Arjan" class="w-9 h-9 rounded-lg object-cover border border-emerald-300">
                                     <span id="turn-dot-player2" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full animate-ping"></span>
                                 </div>
                                 <div class="min-w-0">
@@ -829,11 +829,28 @@ body.dark .board-socket:hover,
         isAiThinking = false;
         isDropping = false;
 
-        // Clear visual cells
+        // Clear visual cells and restore any in-progress server board
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 const cell = document.getElementById(`cell-${r}-${c}`);
                 if (cell) cell.innerHTML = '';
+                if (serverMatch.resumed && Array.isArray(serverMatch.board) && serverMatch.board[r] && serverMatch.board[r][c] !== EMPTY) {
+                    const cellOwner = serverMatch.board[r][c];
+                    board[r][c] = cellOwner;
+                    if (cell) {
+                        const token = document.createElement('div');
+                        token.className = `token-base ${cellOwner === PLAYER ? 'token-player1' : 'token-player2'}`;
+                        const inner = document.createElement('div');
+                        inner.className = 'token-inner';
+                        const img = document.createElement('img');
+                        img.src = cellOwner === PLAYER ? tbsLogoUrl : oohpaLogoUrl;
+                        img.alt = cellOwner === PLAYER ? 'TBS' : 'OOHPA';
+                        img.className = 'w-4 h-4 sm:w-5 sm:h-5 object-contain pointer-events-none drop-shadow-sm';
+                        inner.appendChild(img);
+                        token.appendChild(inner);
+                        cell.appendChild(token);
+                    }
+                }
             }
         }
 
@@ -1043,7 +1060,7 @@ body.dark .board-socket:hover,
     }
 
     // Handle Game End & Backend Communication
-    function handleGameOver(winner, winCoords) {
+    function handleGameOver(winner, winCoords, serverData = {}) {
         isGameOver = true;
         isAiThinking = false;
         stopTurnTimer();

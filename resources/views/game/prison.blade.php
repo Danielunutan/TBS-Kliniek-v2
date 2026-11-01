@@ -24,7 +24,7 @@
     <!-- BOVENSTE TELEMETRIE BANNER -->
     <div class="relative rounded-2xl overflow-hidden border border-red-500/30 bg-[#0d111a] shadow-2xl">
         <div class="relative min-h-[210px] md:min-h-[240px] flex items-end p-5 md:p-7">
-            <img src="{{ asset('images/headers/gevangenis_header.png') }}"
+            <img src="{{ asset('assets/illustrations/banner_prison.jpg') }}"
                  alt="Celblok & Isolatievleugel"
                  class="absolute inset-0 w-full h-full object-cover object-center opacity-35">
             <div class="absolute inset-0 bg-gradient-to-r from-[#080b11] via-[#080b11]/85 to-transparent"></div>

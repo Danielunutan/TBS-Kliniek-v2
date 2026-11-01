@@ -22,7 +22,7 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-start sm:items-center gap-4">
                 <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-purple-300 dark:border-purple-700 shadow-md shrink-0 bg-purple-50 dark:bg-purple-950/70">
-                    <img src="{{ asset('assets/characters/caroline.jpg') }}?v=2" alt="Caroline" class="w-full h-full object-cover">
+                    <img src="{{ asset('assets/characters/caroline_transparent.png') }}?v=2" alt="Caroline" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <div class="flex flex-wrap items-center gap-2">

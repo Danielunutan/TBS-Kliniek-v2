@@ -498,6 +498,8 @@ class GangPropertyCatalog
                 ];
             }
 
+            mt_srand();
+
             return $items;
         });
 
@@ -703,6 +705,8 @@ class GangPropertyCatalog
                     'npc' => $npc,
                 ];
             }
+
+            mt_srand();
 
             return $items;
         });

@@ -112,22 +112,41 @@ class LaunchSeasonOneCommand extends Command
         }
 
         $this->info('=== 3. BENDE STATS, UURLOON EN AANVAL/VERDEDIGING RESETTEN ===');
-        DB::table('gangs')->update([
-            'bling_shops' => 0,
-            'protection_points' => 1000,
-            'attack_power' => 500,
-            'treasury' => 0,
-            'respect' => 0,
-            'masks' => 0,
-            'gang_stars' => 0,
-            'shield_until' => null,
-            'last_attack_at' => null,
-            'vip_boost_until' => null,
-            'personal_shopper' => null,
-            'money_magnet' => null,
-            'leave_fee_multiplier' => 0,
-            'min_respect' => 0,
-        ]);
+        if (Schema::hasTable('gangs')) {
+            $gangUpdate = [
+                'bling_shops' => 0,
+                'protection_points' => 1000,
+                'attack_power' => 500,
+                'treasury' => 0,
+                'respect' => 0,
+                'masks' => 0,
+                'gang_stars' => 0,
+                'shield_until' => null,
+                'last_attack_at' => null,
+                'vip_boost_until' => null,
+                'personal_shopper' => null,
+                'money_magnet' => null,
+                'leave_fee_multiplier' => 0,
+                'min_respect' => 0,
+            ];
+            $gangColumns = Schema::getColumnListing('gangs');
+            $filteredGangUpdates = array_intersect_key($gangUpdate, array_flip($gangColumns));
+            if (! empty($filteredGangUpdates)) {
+                DB::table('gangs')->update($filteredGangUpdates);
+            }
+        }
+        if (Schema::hasTable('control_points')) {
+            $cpColumns = Schema::getColumnListing('control_points');
+            $cpUpdates = array_intersect_key([
+                'current_character_id' => null,
+                'current_gang_id' => null,
+                'captured_at' => null,
+                'total_captures' => 0,
+            ], array_flip($cpColumns));
+            if (! empty($cpUpdates)) {
+                DB::table('control_points')->update($cpUpdates);
+            }
+        }
 
         // Wis alle bende gevechten, logs, donaties en bende inventaris
         DB::table('gang_attacks')->truncate();

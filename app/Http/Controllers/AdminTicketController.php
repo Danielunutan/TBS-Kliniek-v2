@@ -275,11 +275,15 @@ class AdminTicketController extends Controller
             $lockedCharacter->gang_id = $newGang->id;
             $lockedCharacter->gang_role = 'leader';
             $lockedCharacter->last_gang_wage_at = now()->startOfHour();
+            $leaderHasPermanentVip = ($lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null)
+                || $lockedCharacter->getVipTier() === 4;
             $lockedCharacter->is_vip = true;
-            $leaderBaseExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
-                ? $lockedCharacter->vip_expires_at->copy()
-                : now();
-            $lockedCharacter->vip_expires_at = $leaderBaseExpiry->addDays($vipDays);
+            if (! $leaderHasPermanentVip) {
+                $leaderBaseExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                    ? $lockedCharacter->vip_expires_at->copy()
+                    : now();
+                $lockedCharacter->vip_expires_at = $leaderBaseExpiry->addDays($vipDays);
+            }
             $lockedCharacter->save();
 
             // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
@@ -289,11 +293,15 @@ class AdminTicketController extends Controller
                 if (! empty($names)) {
                     $matchedChars = Character::whereIn('name', $names)->get();
                     foreach ($matchedChars as $mc) {
+                        $mcHasPermanentVip = ($mc->is_vip && $mc->vip_expires_at === null)
+                            || $mc->getVipTier() === 4;
                         $mc->is_vip = true;
-                        $mcBaseExpiry = ($mc->vip_expires_at && $mc->vip_expires_at->isFuture())
-                            ? $mc->vip_expires_at->copy()
-                            : now();
-                        $mc->vip_expires_at = $mcBaseExpiry->addDays($vipDays);
+                        if (! $mcHasPermanentVip) {
+                            $mcBaseExpiry = ($mc->vip_expires_at && $mc->vip_expires_at->isFuture())
+                                ? $mc->vip_expires_at->copy()
+                                : now();
+                            $mc->vip_expires_at = $mcBaseExpiry->addDays($vipDays);
+                        }
                         if (! $mc->gang_id) {
                             $mc->gang_id = $newGang->id;
                             $mc->gang_role = 'member';

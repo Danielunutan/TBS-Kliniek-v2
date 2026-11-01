@@ -101,7 +101,14 @@ class ChatController extends Controller
             return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
         }
 
-        $channel = $request->query('channel', 'global');
+        $channel = (string) $request->query('channel', 'global');
+        if ($channel !== 'global' && ! preg_match('/^gang_\d+$/', $channel)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ongeldig chatkanaal.',
+            ], 422);
+        }
+
         $afterId = (int) $request->query('after_id', 0);
 
         if (str_starts_with($channel, 'gang_')) {
@@ -368,7 +375,13 @@ class ChatController extends Controller
             return $spamError;
         }
 
-        $channel = $request->input('channel', 'global');
+        $channel = (string) $request->input('channel', 'global');
+        if ($channel !== 'global' && ! preg_match('/^gang_\d+$/', $channel)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ongeldig chatkanaal.',
+            ], 422);
+        }
 
         if (str_starts_with($channel, 'gang_')) {
             $gangId = (int) str_replace('gang_', '', $channel);

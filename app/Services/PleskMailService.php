@@ -139,10 +139,13 @@ class PleskMailService
 
         $searchCriteria = [];
 
-        // Text search
+        // Text search (strip control characters and quotes to prevent IMAP search syntax injection)
         if (! empty(trim((string) $search))) {
-            $term = addslashes(trim($search));
-            $searchCriteria[] = "TEXT \"{$term}\"";
+            $sanitizedSearch = preg_replace('/[\r\n"\\\\]+/', ' ', trim((string) $search));
+            $term = trim((string) $sanitizedSearch);
+            if ($term !== '') {
+                $searchCriteria[] = "TEXT \"{$term}\"";
+            }
         }
 
         // Mailbox recipient filter
@@ -269,7 +272,9 @@ class PleskMailService
 
         $msgNo = @imap_msgno($conn, $uid);
         if (! $msgNo) {
-            $msgNo = $uid;
+            @imap_close($conn);
+
+            return null;
         }
 
         $header = @imap_headerinfo($conn, $msgNo);
@@ -455,7 +460,9 @@ class PleskMailService
 
         $msgNo = @imap_msgno($conn, $uid);
         if (! $msgNo) {
-            $msgNo = $uid;
+            @imap_close($conn);
+
+            return false;
         }
 
         if ($folder !== 'Trash' && $folder !== 'INBOX.Trash') {
@@ -482,7 +489,9 @@ class PleskMailService
 
         $msgNo = @imap_msgno($conn, $uid);
         if (! $msgNo) {
-            $msgNo = $uid;
+            @imap_close($conn);
+
+            return false;
         }
 
         @imap_mail_move($conn, (string) $msgNo, 'INBOX.Spam');
@@ -504,7 +513,9 @@ class PleskMailService
 
         $msgNo = @imap_msgno($conn, $uid);
         if (! $msgNo) {
-            $msgNo = $uid;
+            @imap_close($conn);
+
+            return false;
         }
 
         $targetSafe = $this->sanitizeFolder($toFolder);
@@ -527,7 +538,9 @@ class PleskMailService
 
         $msgNo = @imap_msgno($conn, $uid);
         if (! $msgNo) {
-            $msgNo = $uid;
+            @imap_close($conn);
+
+            return false;
         }
 
         if ($seen) {
