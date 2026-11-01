@@ -12,6 +12,7 @@ use App\Models\Item;
 use App\Models\MarketplaceListing;
 use App\Models\User;
 use App\Models\VaultCode;
+use App\Services\AuditLogService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
@@ -314,7 +315,7 @@ class MarketplaceController extends Controller
                     throw new \RuntimeException('Ongeldig item type.');
                 }
 
-                MarketplaceListing::create([
+                $listing = MarketplaceListing::create([
                     'seller_id' => $lockedCharacter->id,
                     'item_type' => $itemType,
                     'related_id' => $relatedId,
@@ -325,6 +326,22 @@ class MarketplaceController extends Controller
                     'metadata' => $metadata,
                     'is_sold' => false,
                 ]);
+
+                AuditLogService::log(
+                    action: 'marketplace_list',
+                    category: 'marketplace',
+                    description: "Marktplaats aanbod geplaatst: '{$title}' voor ".($currency === 'stars' ? "{$price} Sterren ⭐" : '€'.number_format($price, 0, ',', '.')),
+                    character: $lockedCharacter,
+                    user: $lockedCharacter->user,
+                    amount: $currency === 'cash' ? $price : null,
+                    details: [
+                        'listing_id' => $listing->id,
+                        'item_type' => $itemType,
+                        'amount' => $amount,
+                        'price' => $price,
+                        'currency' => $currency,
+                    ]
+                );
             });
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
@@ -524,6 +541,25 @@ class MarketplaceController extends Controller
                 $lockedListing->is_sold = true;
                 $lockedListing->buyer_id = $lockedBuyer->id;
                 $lockedListing->save();
+
+                AuditLogService::log(
+                    action: 'marketplace_buy',
+                    category: 'marketplace',
+                    description: "Marktplaats aankoop: '{$lockedListing->title}' gekocht van ".($lockedSeller?->name ?? 'Onbekend').' voor '.($lockedListing->currency === 'stars' ? "{$lockedListing->price} Sterren ⭐" : '€'.number_format($lockedListing->price, 0, ',', '.')),
+                    character: $lockedBuyer,
+                    user: $lockedBuyer->user,
+                    amount: $lockedListing->currency === 'cash' ? $lockedListing->price : null,
+                    details: [
+                        'listing_id' => $lockedListing->id,
+                        'seller_id' => $lockedListing->seller_id,
+                        'seller_name' => $lockedSeller?->name,
+                        'buyer_id' => $lockedBuyer->id,
+                        'item_type' => $lockedListing->item_type,
+                        'amount' => $lockedListing->amount,
+                        'price' => $lockedListing->price,
+                        'currency' => $lockedListing->currency,
+                    ]
+                );
 
                 if ($lockedSeller) {
                     $currName = $lockedListing->currency === 'stars' ? "{$lockedListing->price} Sterren ⭐" : '€'.number_format($lockedListing->price, 0, ',', '.').' (wit op de bank)';

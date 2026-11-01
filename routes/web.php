@@ -699,6 +699,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
         // Audit Log & Automatische Risico Detectie
         Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('audit_log.index');
+        Route::get('/audit-log/export', [AdminAuditLogController::class, 'export'])->name('audit_log.export');
         Route::post('/audit-log/sync', [AdminAuditLogController::class, 'sync'])->name('audit_log.sync');
 
         // Eigenaar Mailbox & Brevo E-mail (Strikt voorbehouden aan Eigenaar)

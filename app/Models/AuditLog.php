@@ -86,6 +86,60 @@ class AuditLog extends Model
         });
     }
 
+    public function scopePlayer(Builder $query, int|string|Character|User|null $player): Builder
+    {
+        if (! $player) {
+            return $query;
+        }
+
+        if ($player instanceof Character) {
+            return $query->where('character_id', $player->id);
+        }
+
+        if ($player instanceof User) {
+            return $query->where('user_id', $player->id);
+        }
+
+        $id = (int) $player;
+
+        return $query->where(function (Builder $q) use ($id) {
+            $q->where('character_id', $id)
+                ->orWhere('user_id', $id);
+        });
+    }
+
+    public function scopeIp(Builder $query, ?string $ip): Builder
+    {
+        if (! $ip) {
+            return $query;
+        }
+
+        return $query->where('ip_address', trim($ip));
+    }
+
+    public function scopeMinScore(Builder $query, ?int $minScore): Builder
+    {
+        if ($minScore === null || $minScore <= 0) {
+            return $query;
+        }
+
+        return $query->where('risk_score', '>=', $minScore);
+    }
+
+    public function scopeAction(Builder $query, ?string $action): Builder
+    {
+        if (! $action || $action === 'all') {
+            return $query;
+        }
+
+        return $query->where('action', $action);
+    }
+
+    public function scopeHighestRisk(Builder $query): Builder
+    {
+        return $query->orderByDesc('risk_score')->orderByDesc('id');
+    }
+
     public function getRiskBadgeClass(): string
     {
         return match ($this->risk_level) {
@@ -115,7 +169,38 @@ class AuditLog extends Model
             'combat' => 'fa-solid fa-hand-fist text-red-500',
             'moderation' => 'fa-solid fa-gavel text-rose-600',
             'admin' => 'fa-solid fa-crown text-amber-500',
+            'vip' => 'fa-solid fa-gem text-amber-400',
+            'system' => 'fa-solid fa-server text-blue-500',
+            'security' => 'fa-solid fa-shield-halved text-rose-500',
+            'casino' => 'fa-solid fa-dice text-amber-500',
+            'marketplace' => 'fa-solid fa-scale-balanced text-teal-500',
+            'heist' => 'fa-solid fa-vault text-orange-500',
+            'hacking' => 'fa-solid fa-terminal text-emerald-400',
+            'bounty' => 'fa-solid fa-crosshairs text-rose-400',
             default => 'fa-solid fa-list-check text-slate-500',
+        };
+    }
+
+    public function getCategoryLabel(): string
+    {
+        return match ($this->category) {
+            'economy' => 'Economie & Bank',
+            'shop' => 'Winkel & Kantine',
+            'crime' => 'Misdaad & Diefstal',
+            'gang' => 'Bendes & Allianties',
+            'combat' => 'Gevechten & Kracht',
+            'training' => 'Training & Gym',
+            'moderation' => 'Moderatie & Sancties',
+            'admin' => 'Beheer & Admin',
+            'vip' => 'VIP & Donaties',
+            'system' => 'Systeem & Onderhoud',
+            'security' => 'Beveiliging & Fraude',
+            'casino' => 'Casino & Kansspel',
+            'marketplace' => 'Marktplaats & Handel',
+            'heist' => 'Overvallen & Heists',
+            'hacking' => 'Hacking & Data',
+            'bounty' => 'Bounty & Premies',
+            default => ucfirst($this->category ?: 'Overig'),
         };
     }
 }

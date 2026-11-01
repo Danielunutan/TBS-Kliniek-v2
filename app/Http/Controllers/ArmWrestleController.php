@@ -6,6 +6,7 @@ use App\Models\ArmWrestleMatch;
 use App\Models\Character;
 use App\Models\CharacterArmWrestleStat;
 use App\Models\GameNotification;
+use App\Services\AuditLogService;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
@@ -347,7 +348,7 @@ class ArmWrestleController extends Controller
                 $stat->total_profit += $profit;
                 $stat->save();
 
-                ArmWrestleMatch::create([
+                $match = ArmWrestleMatch::create([
                     'challenger_id' => $lockedCharacter->id,
                     'type' => 'npc',
                     'npc_key' => $npc['key'],
@@ -359,6 +360,24 @@ class ArmWrestleController extends Controller
                     'challenger_clicks' => $clicks,
                     'match_duration_ms' => $durationMs,
                 ]);
+
+                AuditLogService::log(
+                    action: 'arm_wrestle',
+                    category: 'combat',
+                    description: "Armdrukken NPC ({$npc['name']}) gewonnen door {$lockedCharacter->name} (inzet €".number_format($npc['bet'], 0, ',', '.').", duur {$durationMs}ms, clicks: {$clicks})",
+                    character: $lockedCharacter,
+                    user: $lockedCharacter->user,
+                    amount: $npc['bet'],
+                    details: [
+                        'source_key' => "arm_{$match->id}",
+                        'bet_amount' => $npc['bet'],
+                        'duration_ms' => $durationMs,
+                        'clicks' => $clicks,
+                        'challenger_id' => $lockedCharacter->id,
+                        'npc_key' => $npc['key'],
+                        'profit' => $profit,
+                    ]
+                );
 
                 $freshCharacter = $lockedCharacter->fresh();
 
@@ -629,6 +648,23 @@ class ArmWrestleController extends Controller
                 'xp_earned' => 50,
                 'respect_earned' => 15,
             ]);
+
+            AuditLogService::log(
+                action: 'arm_wrestle',
+                category: 'combat',
+                description: "PvP armdrukken duel beslecht tussen {$challenger->name} en {$lockedOpponent->name}. Winnaar: {$winner->name} (inzet €".number_format($match->bet_amount, 0, ',', '.').', pot €'.number_format($pot, 0, ',', '.').')',
+                character: $winner,
+                user: $winner->user,
+                amount: (int) $match->bet_amount,
+                details: [
+                    'source_key' => "arm_{$match->id}",
+                    'bet_amount' => (int) $match->bet_amount,
+                    'pot' => $pot,
+                    'challenger_id' => $challenger->id,
+                    'opponent_id' => $lockedOpponent->id,
+                    'winner_id' => $winner->id,
+                ]
+            );
 
             // Notify challenger
             GameNotification::create([

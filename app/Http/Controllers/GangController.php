@@ -14,6 +14,7 @@ use App\Models\GangDonation;
 use App\Models\GangItem;
 use App\Models\GangRequest;
 use App\Models\User;
+use App\Services\AuditLogService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\GangWageService;
@@ -837,11 +838,26 @@ class GangController extends Controller
             $lockedGang->treasury += $amount;
             $lockedGang->save();
 
-            GangDonation::create([
+            $donation = GangDonation::create([
                 'gang_id' => $lockedGang->id,
                 'character_id' => $lockedCharacter->id,
                 'amount' => $amount,
             ]);
+
+            AuditLogService::log(
+                action: 'gang_donation',
+                category: 'gang',
+                description: 'Donatie van €'.number_format($amount, 0, ',', '.')." aan bende {$lockedGang->name} (#{$lockedGang->id})",
+                character: $lockedCharacter,
+                user: $lockedCharacter->user,
+                amount: $amount,
+                details: [
+                    'source_key' => "gang_don_{$donation->id}",
+                    'gang_id' => $lockedGang->id,
+                    'gang_name' => $lockedGang->name,
+                    'respect_gained' => $respectGained,
+                ]
+            );
 
             return back()
                 ->with('active_gang_tab', 'doneren')
@@ -1301,6 +1317,21 @@ class GangController extends Controller
             $lockedCharacter->cash += $amount;
             $lockedCharacter->save();
 
+            AuditLogService::log(
+                action: 'gang_withdrawal',
+                category: 'gang',
+                description: 'Opname van €'.number_format($amount, 0, ',', '.')." uit bende kas van {$lockedGang->name} (#{$lockedGang->id})",
+                character: $lockedCharacter,
+                user: $lockedCharacter->user,
+                amount: $amount,
+                details: [
+                    'gang_id' => $lockedGang->id,
+                    'gang_name' => $lockedGang->name,
+                    'treasury_after' => $lockedGang->treasury,
+                    'role' => $lockedCharacter->gang_role,
+                ]
+            );
+
             return back()
                 ->with('active_gang_tab', 'beheer')
                 ->with('beheer_tab', 'instellingen')
@@ -1443,7 +1474,25 @@ class GangController extends Controller
             ]);
 
             $name = $lockedGang->name;
+            $gangId = $lockedGang->id;
+            $treasuryLost = (int) $lockedGang->treasury;
             $lockedGang->delete();
+
+            AuditLogService::log(
+                action: 'gang_disband',
+                category: 'gang',
+                description: "Bende '{$name}' (#{$gangId}) definitief opgeheven door leider {$lockedCharacter->name}",
+                character: $lockedCharacter,
+                user: $lockedCharacter->user,
+                amount: $treasuryLost > 0 ? $treasuryLost : null,
+                details: [
+                    'gang_id' => $gangId,
+                    'gang_name' => $name,
+                    'treasury_lost' => $treasuryLost,
+                ],
+                customRisk: $treasuryLost >= 2_500_000 ? 'hoog' : 'verdacht',
+                customReason: 'Bende definitief ontbonden door bendeleider'
+            );
 
             return $name;
         });

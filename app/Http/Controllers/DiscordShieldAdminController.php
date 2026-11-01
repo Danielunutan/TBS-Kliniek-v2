@@ -7,6 +7,7 @@ use App\Models\DiscordShieldLog;
 use App\Models\DiscordShieldSetting;
 use App\Models\DiscordVerification;
 use App\Models\User;
+use App\Services\AuditLogService;
 use App\Services\DiscordShieldService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -182,6 +183,22 @@ class DiscordShieldAdminController extends Controller
             'severity' => 'warning',
         ]);
 
+        AuditLogService::log(
+            action: 'discord_shield_ban_add',
+            category: 'moderation',
+            description: "Discord Shield ban toegevoegd voor {$request->type}: {$request->value} door {$currentUser->name}",
+            character: $currentUser->character,
+            user: $currentUser,
+            details: [
+                'type' => $request->type,
+                'value' => trim($request->value),
+                'reason' => $request->reason ?? 'Handmatige ban via staff dashboard',
+                'banned_by' => $currentUser->name,
+            ],
+            customRisk: 'hoog',
+            customReason: "Discord Shield zwarte lijst toevoeging ({$request->type})"
+        );
+
         return back()->with('success', 'Zwarte lijst ban is succesvol toegevoegd.');
     }
 
@@ -203,6 +220,21 @@ class DiscordShieldAdminController extends Controller
         DiscordShieldLog::log('manual_unban', "Ban verwijderd voor {$val}", [
             'severity' => 'info',
         ]);
+
+        AuditLogService::log(
+            action: 'discord_shield_ban_remove',
+            category: 'moderation',
+            description: "Discord Shield ban opgeheven voor {$val} door {$currentUser->name}",
+            character: $currentUser->character,
+            user: $currentUser,
+            details: [
+                'ban_id' => $id,
+                'value' => $val,
+                'unbanned_by' => $currentUser->name,
+            ],
+            customRisk: 'verdacht',
+            customReason: 'Discord Shield zwarte lijst ban verwijderd'
+        );
 
         return back()->with('success', "Ban voor {$val} is opgeheven.");
     }
@@ -237,6 +269,22 @@ class DiscordShieldAdminController extends Controller
             'username' => $verification->username,
             'severity' => 'success',
         ]);
+
+        AuditLogService::log(
+            action: 'discord_shield_manual_approval',
+            category: 'moderation',
+            description: "Discord verificatie voor {$verification->username} ({$verification->discord_id}) handmatig goedgekeurd door {$currentUser->name}",
+            character: $verification->character,
+            user: $verification->user,
+            details: [
+                'verification_id' => $verification->id,
+                'discord_id' => $verification->discord_id,
+                'username' => $verification->username,
+                'approved_by' => $currentUser->name,
+            ],
+            customRisk: 'verdacht',
+            customReason: 'Handmatige goedkeuring van Discord verificatie'
+        );
 
         return back()->with('success', "Gebruiker {$verification->username} is handmatig goedgekeurd en heeft de Discord rol ontvangen!");
     }
