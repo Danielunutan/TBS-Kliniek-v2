@@ -263,6 +263,32 @@ class NewsArticle extends Model
             </div>';
         }, $text);
 
+        // Event Winner Card: [winner=Name|Score|Prize1|Prize2]
+        $text = preg_replace_callback('/\[winner=([^\]|]+)\|([^\]|]+)\|([^\]|]+)\|([^\]]+)\]/is', function ($m) {
+            $name = trim($m[1]);
+            $score = trim($m[2]);
+            $prize1 = trim($m[3]);
+            $prize2 = trim($m[4]);
+            $rawName = html_entity_decode($name, ENT_QUOTES, 'UTF-8');
+            $profileUrl = '/speler/'.rawurlencode($rawName);
+
+            return "\n\n".'<div class="my-4 p-5 rounded-2xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">'
+                .'<div class="flex items-center gap-3.5">'
+                .'<div class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-2xl shrink-0 shadow-xs font-black">🏆</div>'
+                .'<div>'
+                .'<div class="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">Officiële Kampioen</div>'
+                .'<a href="'.$profileUrl.'" class="text-base sm:text-lg font-black text-slate-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition leading-tight block">'.$name.'</a>'
+                .'<div class="text-xs text-slate-600 dark:text-slate-300 font-bold mt-0.5">Definitieve score: <span class="font-mono text-emerald-600 dark:text-emerald-400 font-black">'.$score.'</span></div>'
+                .'</div>'
+                .'</div>'
+                .'<div class="text-left sm:text-right self-start sm:self-center">'
+                .'<span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Uitgekeerd Prijzenpakket</span>'
+                .'<span class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">'.$prize1.'</span>'
+                .'<span class="text-xs font-black text-amber-500 font-mono block">+ '.$prize2.'</span>'
+                .'</div>'
+                .'</div>'."\n\n";
+        }, $text);
+
         // Inline code `code`
         $text = preg_replace(
             '/`([^`\n]+)`/',

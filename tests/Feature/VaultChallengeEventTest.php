@@ -54,6 +54,14 @@ class VaultChallengeEventTest extends TestCase
         $this->assertStringContainsString('De Grote Drugsproductie', $article->title);
         $this->assertStringContainsString('5.000.000', $article->content);
         $this->assertStringContainsString('1.000 Sterren', $article->content);
+
+        // Ensure formatted HTML parses Markdown headers, lists, and winner card cleanly
+        $formatted = $article->formatted_content;
+        $this->assertStringContainsString('<h3', $formatted);
+        $this->assertStringContainsString('<ul', $formatted);
+        $this->assertStringContainsString('Officiële Kampioen', $formatted);
+        $this->assertStringNotContainsString('###', $formatted);
+        $this->assertStringNotContainsString('[winner=', $formatted);
     }
 
     public function test_new_challenge_news_article_exists_and_displays_leaderboard_partial(): void
@@ -69,6 +77,12 @@ class VaultChallengeEventTest extends TestCase
         $this->assertEquals('2026-11-02 00:00:00', $article->published_at->format('Y-m-d H:i:s'));
         $this->assertStringContainsString('2.500 Sterren', $article->title);
         $this->assertStringContainsString('100 Kluiscodes', $article->title);
+
+        $formatted = $article->formatted_content;
+        $this->assertStringContainsString('<h3', $formatted);
+        $this->assertStringContainsString('<ul', $formatted);
+        $this->assertStringNotContainsString('###', $formatted);
+        $this->assertStringNotContainsString('[vault_challenge_leaderboard]', $formatted);
 
         // Advance time to Monday 2 November 00:00:00
         Carbon::setTestNow(Carbon::parse('2026-11-02 00:00:00'));

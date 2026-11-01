@@ -66,7 +66,7 @@
                                 </span>
                             @endif
                             <div class="text-[10px] text-slate-400 font-semibold mt-1.5">
-                                {{ $article->created_at?->diffForHumans() }}
+                                {{ ($article->published_at ?? $article->created_at)?->diffForHumans() }}
                             </div>
                         </div>
                     @else
@@ -76,7 +76,7 @@
                         <div>
                             <span class="text-xs font-black text-slate-900 dark:text-white block">Directie Kliniek</span>
                             <span class="text-[10px] text-slate-400 font-semibold block mt-1">
-                                {{ $article->created_at?->diffForHumans() }}
+                                {{ ($article->published_at ?? $article->created_at)?->diffForHumans() }}
                             </span>
                         </div>
                     @endif
@@ -112,7 +112,7 @@
         <!-- Article Footer Bar -->
         <div class="px-6 sm:px-8 py-4 bg-slate-50/90 dark:bg-slate-800/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold">
             <div class="flex items-center gap-3">
-                <span><i class="fa-solid fa-clock mr-1 text-slate-400"></i>{{ $article->created_at?->translatedFormat('d F Y, H:i') }}</span>
+                <span><i class="fa-solid fa-clock mr-1 text-slate-400"></i>{{ ($article->published_at ?? $article->created_at)?->translatedFormat('d F Y, H:i') }}</span>
             </div>
             <div class="flex items-center gap-3">
                 <span class="flex items-center gap-1 text-purple-700 dark:text-purple-300">

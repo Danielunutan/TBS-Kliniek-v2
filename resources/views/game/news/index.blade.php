@@ -49,7 +49,7 @@
                             <i class="fa-solid fa-star text-amber-600 dark:text-amber-400 text-[9px]"></i> Belangrijk
                         </span>
                         <span class="text-[11px] font-semibold text-slate-400">
-                            {{ $pinned->created_at->diffForHumans() }}
+                            {{ ($pinned->published_at ?? $pinned->created_at)?->diffForHumans() }}
                         </span>
                     </div>
                     <div class="flex items-start gap-3">
@@ -117,7 +117,7 @@
                             </span>
                         </div>
                         <span class="text-[11px] font-semibold text-slate-400">
-                            {{ $article->created_at->diffForHumans() }}
+                            {{ ($article->published_at ?? $article->created_at)?->diffForHumans() }}
                         </span>
                     </div>
                     <div class="min-w-0">

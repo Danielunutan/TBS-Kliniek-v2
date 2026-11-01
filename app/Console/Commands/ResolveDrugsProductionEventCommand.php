@@ -34,6 +34,7 @@ class ResolveDrugsProductionEventCommand extends Command
 
         $this->info('Resolving De Grote Drugsproductie event...');
         $result = EventDrugsProductionService::resolveWinner((bool) $this->option('force'));
+        EventDrugsProductionService::syncWinnerArticle();
 
         if (! $result) {
             $this->warn('No production found or event already resolved.');

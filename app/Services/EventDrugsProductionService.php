@@ -6,9 +6,11 @@ use App\Models\Character;
 use App\Models\EventDrugProduction;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
+use App\Models\NewsArticle;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class EventDrugsProductionService
 {
@@ -23,6 +25,8 @@ class EventDrugsProductionService
     public const NOTIFICATION_TYPE = 'event_winner_drugs_production';
 
     public const EVENT_SLUG = 'de-grote-drugsproductie-5m-en-1000-sterren';
+
+    public const WINNER_ARTICLE_SLUG = 'winnaar-bekend-de-grote-drugsproductie';
 
     /**
      * Check whether the drugs production event is currently active.
@@ -265,10 +269,140 @@ class EventDrugsProductionService
                 Log::warning('EventDrugsProductionService broadcast failed: '.$e->getMessage());
             }
 
+            try {
+                self::syncWinnerArticle();
+            } catch (\Throwable $e) {
+                Log::warning('EventDrugsProductionService winner article sync failed: '.$e->getMessage());
+            }
+
             return [
                 'winner' => $lockedWinner,
                 'total_produced' => $totalProduced,
             ];
         });
+    }
+
+    /**
+     * Synchronize the winner announcement news article with the definitive leaderboard results.
+     */
+    public static function syncWinnerArticle(): ?NewsArticle
+    {
+        if (! Schema::hasTable('news_articles') || ! Schema::hasTable('event_drug_productions')) {
+            return null;
+        }
+
+        $start = Carbon::parse(self::EVENT_START);
+        $end = Carbon::parse(self::EVENT_END);
+
+        $rows = EventDrugProduction::select('character_id', DB::raw('SUM(amount) as total_produced'))
+            ->where('created_at', '>=', $start)
+            ->where('created_at', '<=', $end)
+            ->groupBy('character_id')
+            ->orderByDesc('total_produced')
+            ->get();
+
+        $charIds = $rows->pluck('character_id')->all();
+        $characters = Character::whereIn('id', $charIds)->get(['id', 'name'])->keyBy('id');
+
+        $ranked = [];
+        foreach ($rows as $row) {
+            $char = $characters->get($row->character_id);
+            if ($char) {
+                $ranked[] = [
+                    'name' => $char->name,
+                    'produced' => (int) $row->total_produced,
+                    'produced_formatted' => number_format((int) $row->total_produced, 0, ',', '.'),
+                ];
+            }
+        }
+
+        $winnerName = $ranked[0]['name'] ?? 'Jan Molenaar';
+        $winnerProduced = $ranked[0]['produced_formatted'] ?? '5.420';
+        $totalUnits = (int) $rows->sum('total_produced');
+        $totalUnitsFormatted = $totalUnits > 0 ? number_format($totalUnits, 0, ',', '.') : $winnerProduced;
+
+        $podiumLines = [];
+        $podiumLines[] = "- 🥇 **#1 {$winnerName}** — {$winnerProduced} eenheden *(Winnaar van € 5.000.000 cash + 1.000 Sterren ⭐)*";
+
+        if (isset($ranked[1])) {
+            $podiumLines[] = "- 🥈 **#2 {$ranked[1]['name']}** — {$ranked[1]['produced_formatted']} eenheden *(Zilveren podiumplaats)*";
+        }
+        if (isset($ranked[2])) {
+            $podiumLines[] = "- 🥉 **#3 {$ranked[2]['name']}** — {$ranked[2]['produced_formatted']} eenheden *(Bronzen podiumplaats)*";
+        }
+
+        $podiumMarkdown = implode("\n", $podiumLines);
+
+        $authorChar = Character::where('name', 'Daniël')
+            ->orWhere('name', 'Daniel')
+            ->orWhere('name', 'like', '%daniel%')
+            ->orWhere('name', 'like', '%daniël%')
+            ->orWhere('name', 'like', '%directie%')
+            ->orWhereHas('user', function ($q) {
+                $q->where('email', 'danielunutan@icloud.com')
+                    ->orWhere('email', 'like', '%daniel%')
+                    ->orWhereIn('role', ['owner', 'admin']);
+            })
+            ->first() ?? Character::first();
+
+        $publishDate = Carbon::parse('2026-11-02 00:00:00', 'Europe/Amsterdam');
+        $winnerTitle = "🏆 Winnaar Bekend: De Grote Drugsproductie - {$winnerName} Kroont Zich Tot Drugslord!";
+
+        $winnerContent = <<<MARKDOWN
+Beste patiënten, bendeleden en kliniekbewoners,
+
+Het allereerste grote weekendevent van de vernieuwde kliniek — **De Grote Drugsproductie** — is zondagavond om **23:59:59 uur** officieel tot een zinderend einde gekomen! 🌿💊
+
+Twee dagen lang draaiden de illegale plantages, geheime stokerijen en pillenlijnen op de afdelingen dag en nacht overuren. Er is massaal gesmokkeld, geritseld en geproduceerd om de begeerde titel van Drugslord te veroveren. De directie heeft de administratie van alle partijen en leveringen definitief gesloten en gecontroleerd.
+
+---
+
+### 👑 De Officiële Winnaar & Drugslord
+
+De absolute nummer 1 van de kliniek op basis van de definitieve resultaten is geworden:
+
+[winner={$winnerName}|{$winnerProduced} stuks|€ 5.000.000 Cash|1.000 Sterren ⭐]
+
+Van harte gefeliciteerd, **{$winnerName}**! De hoofdprijs van **€ 5.000.000 contant geld** én **1.000 Sterren ⭐** is direct bijgeschreven op jouw account en staat klaar in je voorraad!
+
+---
+
+### 📊 De Definitieve Eindstand & Podium
+
+Hieronder vind je de officiële topklassering van de definitieve resultaten:
+
+{$podiumMarkdown}
+
+In totaal hebben alle deelnemers gezamenlijk **{$totalUnitsFormatted} eenheden contrabande** geproduceerd en door de beveiligingssluizen weten te loodsen!
+
+---
+
+### 🚀 Geen Tijd Te Verliezen: Direct Een Nieuwe Challenge!
+
+Treur niet als je net naast het podium bent geëindigd, want de kliniekleiding zit niet stil. Direct per maandag 2 november 00:00 uur staat er een gloednieuwe uitdaging live: [url=/nieuws/de-grote-kluiscode-challenge-2500-sterren-en-100-codes]De Grote Kluiscode Challenge[/url]!
+
+Pak je gereedschap, plunder de kluizen en strijd mee voor **2.500 Sterren en 100 Kluiscodes**!
+
+Bedankt aan alle producenten en smokkelaars voor een fantastisch en strijdlustig weekend!
+
+*Met criminele groet,*  
+**Daniël**  
+*Directie TBS Kliniek*
+MARKDOWN;
+
+        return NewsArticle::updateOrCreate(
+            ['slug' => self::WINNER_ARTICLE_SLUG],
+            [
+                'character_id' => $authorChar?->id,
+                'title' => $winnerTitle,
+                'emoji' => '🏆',
+                'image_url' => null,
+                'content' => $winnerContent,
+                'is_pinned' => false,
+                'is_published' => true,
+                'comments_enabled' => true,
+                'published_at' => $publishDate,
+            ]
+        );
     }
 }

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\GameNotification;
 use App\Models\NewsArticle;
 use App\Models\NewsComment;
 use App\Models\User;
 use App\Services\EnergyService;
+use App\Services\EventDrugsProductionService;
+use App\Services\EventVaultCrackingService;
 use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,18 +32,22 @@ class NewsController extends Controller
         $character = $user->character;
         $this->energyService->refresh($character);
 
+        $this->ensureEndedEventsResolved();
+
         $pinnedArticles = NewsArticle::with(['author.gang', 'author.user'])
             ->withCount('comments')
             ->published()
             ->where('is_pinned', true)
-            ->latest()
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
+            ->orderByDesc('id')
             ->get();
 
         $articles = NewsArticle::with(['author.gang', 'author.user'])
             ->withCount('comments')
             ->published()
             ->orderByDesc('is_pinned')
-            ->latest()
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
+            ->orderByDesc('id')
             ->paginate(10);
 
         $referralService = app(ReferralService::class);
@@ -59,6 +66,8 @@ class NewsController extends Controller
         $character = $user->character;
         $this->energyService->refresh($character);
 
+        $this->ensureEndedEventsResolved();
+
         $isStaff = $user->isStaff() || $user->isAdmin();
         $article = NewsArticle::with(['author.gang', 'author.user'])
             ->withCount('comments')
@@ -75,11 +84,30 @@ class NewsController extends Controller
 
         $otherNews = NewsArticle::where('id', '!=', $article->id)
             ->published()
-            ->latest()
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
+            ->orderByDesc('id')
             ->take(5)
             ->get();
 
         return view('game.news.show', compact('character', 'article', 'comments', 'otherNews'));
+    }
+
+    /**
+     * Ensure completed events have resolved their winners and synced winner announcements.
+     */
+    protected function ensureEndedEventsResolved(): void
+    {
+        try {
+            if (EventDrugsProductionService::hasEnded() && ! GameNotification::where('type', EventDrugsProductionService::NOTIFICATION_TYPE)->exists()) {
+                EventDrugsProductionService::resolveWinner();
+            }
+
+            if (EventVaultCrackingService::hasEnded() && ! GameNotification::where('type', EventVaultCrackingService::NOTIFICATION_TYPE)->exists()) {
+                EventVaultCrackingService::resolveWinner();
+            }
+        } catch (\Throwable) {
+            // Do not interrupt page rendering if event resolution fails
+        }
     }
 
     /**
