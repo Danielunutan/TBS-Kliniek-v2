@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Celblok & Isolatievleugel - TBS Kliniek')
+@section('title', 'Gevangenis (Isoleercel) & Uitbreken - TBS Kliniek')
 
 @section('content')
 @php
@@ -11,6 +11,67 @@
     $adsProgress = min($adsRequired, (int) ($character->ad_prison_progress ?? 0));
     $adPct = $adsRequired > 0 ? min(100, round(($adsProgress / $adsRequired) * 100)) : 100;
 @endphp
+
+<script>
+window.prisonPageController = function prisonPageController(config) {
+    return {
+        isImprisoned: config.isImprisoned,
+        remainingSecs: config.remainingSecs,
+        adsProgress: config.adsProgress,
+        adsRequired: config.adsRequired,
+        escapeAttempted: config.escapeAttempted,
+        reduceCooldownSecs: config.reduceCooldownSecs || 0,
+        watchingAd: false,
+        timerInterval: null,
+
+        startCountdown() {
+            this.timerInterval = setInterval(() => {
+                if (this.reduceCooldownSecs > 0) {
+                    this.reduceCooldownSecs--;
+                }
+                if (this.isImprisoned && this.remainingSecs > 0) {
+                    this.remainingSecs--;
+                    if (this.remainingSecs <= 0) {
+                        this.isImprisoned = false;
+                        window.location.reload();
+                    }
+                }
+                document.querySelectorAll('[data-inmate-timer]').forEach((el) => {
+                    let s = parseInt(el.getAttribute('data-inmate-timer') || '0', 10);
+                    if (s > 0) {
+                        s--;
+                        el.setAttribute('data-inmate-timer', String(s));
+                        el.innerHTML = '<i class="fa-regular fa-clock mr-1"></i>' + this.formatTime(s);
+                    }
+                });
+            }, 1000);
+        },
+
+        formatTime(secs) {
+            const s = Math.max(0, parseInt(secs || 0, 10));
+            const m = Math.floor(s / 60);
+            const rem = s % 60;
+            return String(m).padStart(2, '0') + ':' + String(rem).padStart(2, '0');
+        },
+
+        watchAdForFreedom() {
+            if (typeof window.tbsOpenSponsorAd === 'function') {
+                this.watchingAd = true;
+                window.tbsOpenSponsorAd('prison', () => {
+                    window.location.reload();
+                });
+            } else if (typeof window.openSponsorVideoModal === 'function') {
+                this.watchingAd = true;
+                window.openSponsorVideoModal('prison', () => {
+                    window.location.reload();
+                });
+            } else {
+                window.location.reload();
+            }
+        }
+    };
+};
+</script>
 
 <div class="space-y-6" x-data="prisonPageController({
     isImprisoned: {{ $isImprisoned ? 'true' : 'false' }},
@@ -25,7 +86,7 @@
     <div class="relative rounded-2xl overflow-hidden border border-red-500/30 bg-[#0d111a] shadow-2xl">
         <div class="relative min-h-[210px] md:min-h-[240px] flex items-end p-5 md:p-7">
             <img src="{{ asset('assets/illustrations/banner_prison.jpg') }}"
-                 alt="Celblok & Isolatievleugel"
+                 alt="Gevangenis & Uitbreken"
                  class="absolute inset-0 w-full h-full object-cover object-center opacity-35">
             <div class="absolute inset-0 bg-gradient-to-r from-[#080b11] via-[#080b11]/85 to-transparent"></div>
             <div class="absolute inset-0 bg-gradient-to-t from-[#0d111a] via-transparent to-black/40"></div>
@@ -33,13 +94,13 @@
             <div class="relative z-10 w-full flex flex-col lg:flex-row lg:items-end justify-between gap-5">
                 <div class="max-w-2xl">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/40 text-red-400 text-[11px] font-black uppercase tracking-widest mb-2.5">
-                        <i class="fa-solid fa-dungeon animate-pulse"></i> Gesloten Forensisch Celblok • Sector Z-04
+                        <i class="fa-solid fa-dungeon animate-pulse"></i> Gevangenis (Isoleercel) • Sector Z-04
                     </div>
                     <h1 class="text-2xl md:text-4xl font-black text-white tracking-tight uppercase drop-shadow">
-                        Isolatievleugel & <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-300 to-amber-400">Tactische Celkraak</span>
+                        Gevangenis &amp; <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-300 to-amber-400">Uitbreken</span>
                     </h1>
                     <p class="text-xs md:text-sm text-gray-300 mt-1.5 leading-relaxed">
-                        Wie door het interventieteam wordt overmeesterd, belandt achter de gepantserde deuren van Sector Z-04. Verkort je eigen straftijd via de stoomwasserij of omkoping, of bevrijd ingesloten medepatiënten via een <strong class="text-cyan-300">Stille Sluipuitbraak</strong> of <strong class="text-amber-300">Breekijzer & Forceerwerk</strong>.
+                        Hier kun je <strong class="text-white">gevangenen uitbreken</strong> uit hun cel (voor +140/+210 XP, +2/+4 Respect &amp; 24u Battle punten) óf <strong class="text-amber-300">jezelf uitbreken</strong> wanneer je vastzit via de luchtschacht, stoomwasserij of omkoping.
                     </p>
                 </div>
 
@@ -67,6 +128,24 @@
                             {{ $isImprisoned ? 'Ingesloten' : 'Vrije Voeten' }}
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SNELLE UITLEGBALK: HOE WERKT UITBREKEN UIT DE GEVANGENIS? -->
+        <div class="border-t border-white/10 bg-[#090d16]/95 px-5 py-3.5 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div class="flex items-start gap-2.5">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 flex items-center justify-center font-black shrink-0 mt-0.5">1</span>
+                <div>
+                    <span class="font-black text-cyan-300 uppercase tracking-wide">Gevangenen Uitbreken (Als je vrij bent • 15 ⚡):</span>
+                    <span class="text-gray-300 block mt-0.5">Kies hieronder een gedetineerde in het celblok, selecteer <strong>Stil</strong> of <strong>Geweld</strong> en klik op <strong>Gevangene Uitbreken</strong> voor XP, Respect en 24u Battle punten.</span>
+                </div>
+            </div>
+            <div class="flex items-start gap-2.5">
+                <span class="w-6 h-6 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 flex items-center justify-center font-black shrink-0 mt-0.5">2</span>
+                <div>
+                    <span class="font-black text-amber-300 uppercase tracking-wide">Zelf Uitbreken (Als je zelf vastzit • 20 ⚡):</span>
+                    <span class="text-gray-300 block mt-0.5">Zit je zelf in de isoleercel? Dan verschijnt bovenaan direct het rode <strong>Zelf Uitbreken &amp; Ontsnappen</strong> paneel (Luchtschacht-Uitbraak, Stoomwasserij of Omkopen).</span>
                 </div>
             </div>
         </div>
@@ -315,14 +394,14 @@
                                     <span class="{{ ($character->energy ?? 0) >= 20 ? 'text-emerald-400' : 'text-red-400' }}">{{ $character->energy ?? 0 }} / 20 Energie</span>
                                 </div>
                             </div>
-                            <form action="{{ route('prison.escape') }}" method="POST" @submit.prevent="attemptEscapeAjax($event)">
+                            <form action="{{ route('prison.escape') }}" method="POST">
                                 @csrf
                                 <button type="submit"
                                         :disabled="escapeAttempted || {{ $character->isComatose() ? 'true' : 'false' }}"
                                         :class="(escapeAttempted || {{ $character->isComatose() ? 'true' : 'false' }}) ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-lg cursor-pointer active:scale-95'"
                                         class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5">
                                     <i class="fa-solid" :class="escapeAttempted ? 'fa-ban' : 'fa-bolt'"></i>
-                                    <span x-text="escapeAttempted ? 'Poging Al Verbruikt Deze Straf' : 'Nu Zelf Uitbreken (20 ⚡)'"></span>
+                                    <span x-text="escapeAttempted ? 'Poging Al Verbruikt Deze Straf' : 'Nu Zelf Uitbreken (20 ⚡)'">Nu Zelf Uitbreken (20 ⚡)</span>
                                 </button>
                                 <template x-if="escapeAttempted">
                                     <p class="text-[10px] text-amber-400/90 text-center mt-1.5 font-medium">
@@ -460,13 +539,13 @@
                             <i class="fa-solid fa-border-all text-sm"></i>
                         </div>
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h2 class="text-sm font-black uppercase tracking-wider text-white">Actieve Celdossiers in Sector Z-04</h2>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h2 class="text-sm font-black uppercase tracking-wider text-white">Gevangenen Uitbreken — Celdossiers Sector Z-04</h2>
                                 <span class="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-500/40 text-[10px] font-black text-blue-300 uppercase">
-                                    Medepatiënten Bevrijden
+                                    Uitbreken (15 ⚡)
                                 </span>
                             </div>
-                            <p class="text-[11px] text-gray-400">Kies per ingesloten medepatiënt een tactische kraakmethode (15 Energie per poging)</p>
+                            <p class="text-[11px] text-gray-400">Kies hieronder een gevangene en klik op <strong>Gevangene Uitbreken</strong> (Stil of Geweld)</p>
                         </div>
                     </div>
                     <span class="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-black">
@@ -533,14 +612,17 @@
                                                         <a href="{{ route('profile.show', $rpModel->name) }}" class="font-black text-sm hover:underline truncate block {{ $rpModel->isVip() && !$rpModel->getCustomNameColor() ? 'text-amber-300' : 'text-white' }}" @if($rpModel->getCustomNameColor()) style="color: {{ $rpModel->getCustomNameColor() }}" @endif>
                                                             {{ $inmate['name'] }}
                                                         </a>
-                                                        <span class="text-[11px] text-gray-400 block truncate">
-                                                            Cel #Z-{{ str_pad((string) $inmate['id'], 3, '0', STR_PAD_LEFT) }}
+                                                        <span class="text-[11px] text-emerald-400 font-semibold block truncate">
+                                                            {{ $inmate['cell_label'] ?? ('Cel #Z-' . str_pad((string) $inmate['id'], 3, '0', STR_PAD_LEFT)) }}
                                                         </span>
                                                     </div>
                                                 @else
                                                     <img src="{{ $inmate['avatar'] }}" alt="{{ $inmate['name'] }}" class="w-11 h-11 rounded-full object-cover border border-white/15 shrink-0">
                                                     <div class="min-w-0">
                                                         <span class="font-black text-sm text-white truncate block">{{ $inmate['name'] }}</span>
+                                                        <span class="text-[11px] text-gray-400 block truncate">
+                                                            {{ $inmate['cell_label'] ?? 'Kliniek-Gedetineerde' }}
+                                                        </span>
                                                     </div>
                                                 @endif
                                             </div>
@@ -611,10 +693,10 @@
                                                 class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ ($isImprisoned || $character->isComatose()) ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' : 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white shadow-lg cursor-pointer active:scale-95' }}">
                                             <i class="fa-solid {{ $isImprisoned ? 'fa-lock' : 'fa-unlock' }}"></i>
                                             @if($isImprisoned)
-                                                <span>Je Zit Zelf Vast (Geen Celkraak Mogelijk)</span>
+                                                <span>Je Zit Zelf Vast (Breek Eerst Jezelf Uit)</span>
                                             @else
-                                                <span x-text="selectedMethod === 'stil' ? 'Stille Sluipuitbraak (15 Energie)' : 'Breekijzer & Forceerwerk (15 Energie)'">
-                                                    Stille Sluipuitbraak (15 Energie)
+                                                <span x-text="selectedMethod === 'stil' ? 'Uitbreken: Stille Sluipuitbraak (15 ⚡)' : 'Uitbreken: Breekijzer & Geweld (15 ⚡)'">
+                                                    Uitbreken: Stille Sluipuitbraak (15 ⚡)
                                                 </span>
                                             @endif
                                         </button>
@@ -666,69 +748,4 @@
         </div>
     </div>
 </div>
-
-<script>
-window.prisonPageController = function prisonPageController(config) {
-    return {
-        isImprisoned: config.isImprisoned,
-        remainingSecs: config.remainingSecs,
-        adsProgress: config.adsProgress,
-        adsRequired: config.adsRequired,
-        escapeAttempted: config.escapeAttempted,
-        reduceCooldownSecs: config.reduceCooldownSecs || 0,
-        watchingAd: false,
-        timerInterval: null,
-
-        startCountdown() {
-            this.timerInterval = setInterval(() => {
-                if (this.reduceCooldownSecs > 0) {
-                    this.reduceCooldownSecs--;
-                }
-                if (this.isImprisoned && this.remainingSecs > 0) {
-                    this.remainingSecs--;
-                    if (this.remainingSecs <= 0) {
-                        this.isImprisoned = false;
-                        window.location.reload();
-                    }
-                }
-                document.querySelectorAll('[data-inmate-timer]').forEach((el) => {
-                    let s = parseInt(el.getAttribute('data-inmate-timer') || '0', 10);
-                    if (s > 0) {
-                        s--;
-                        el.setAttribute('data-inmate-timer', String(s));
-                        el.innerHTML = '<i class="fa-regular fa-clock mr-1"></i>' + this.formatTime(s);
-                    }
-                });
-            }, 1000);
-        },
-
-        formatTime(secs) {
-            const s = Math.max(0, parseInt(secs || 0, 10));
-            const m = Math.floor(s / 60);
-            const rem = s % 60;
-            return String(m).padStart(2, '0') + ':' + String(rem).padStart(2, '0');
-        },
-
-        async attemptEscapeAjax(event) {
-            event.target.submit();
-        },
-
-        watchAdForFreedom() {
-            if (typeof window.tbsOpenSponsorAd === 'function') {
-                this.watchingAd = true;
-                window.tbsOpenSponsorAd('prison', () => {
-                    window.location.reload();
-                });
-            } else if (typeof window.openSponsorVideoModal === 'function') {
-                this.watchingAd = true;
-                window.openSponsorVideoModal('prison', () => {
-                    window.location.reload();
-                });
-            } else {
-                window.location.reload();
-            }
-        }
-    };
-};
-</script>
 @endsection

@@ -228,4 +228,34 @@ class PrisonIsolationTest extends TestCase
 
         $this->assertTrue($succeeded, 'Should have achieved at least one successful breakout');
     }
+
+    public function test_prison_page_always_lists_simulated_inmates_and_clear_breakout_navigation(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $character = $user->character;
+
+        Character::query()->update([
+            'is_in_prison' => false,
+            'prison_until' => null,
+            'prison_reason' => null,
+        ]);
+
+        $this->actingAs($user);
+
+        $prisonResponse = $this->get(route('prison'));
+        $prisonResponse->assertOk();
+        $prisonResponse->assertSee('Gevangenis &amp; Uitbreken', false);
+        $prisonResponse->assertSee('Kliniek Patiënt met schulden');
+        $prisonResponse->assertSee('Roxy Deluxe');
+        $prisonResponse->assertSee('Amber Savage');
+        $prisonResponse->assertSee('Uitbreken: Stille Sluipuitbraak (15 ⚡)');
+
+        $tunnelResponse = $this->get(route('tunnel.index'));
+        $tunnelResponse->assertOk();
+        $tunnelResponse->assertSee('Naar Gevangenis &amp; Uitbreken', false);
+
+        $battleResponse = $this->get(route('battle.index'));
+        $battleResponse->assertOk();
+        $battleResponse->assertSee('Naar Gevangenis &amp; Uitbreken', false);
+    }
 }

@@ -360,7 +360,14 @@
                             @endif
                         </div>
 
-                        <div class="flex items-center gap-2 shrink-0">
+                        <div class="flex items-center gap-2 flex-wrap shrink-0">
+                            @if($catKey === 'breakouts')
+                                <a href="{{ route('prison') }}"
+                                   class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold transition inline-flex items-center gap-1.5 shadow-2xs">
+                                    <i class="fa-solid fa-dungeon"></i>
+                                    <span>Naar Gevangenis &amp; Uitbreken &rarr;</span>
+                                </a>
+                            @endif
                             <span class="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
                                 Berekening: {{ $formulaText }}
                             </span>

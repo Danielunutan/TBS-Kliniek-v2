@@ -107,6 +107,45 @@ class PrisonController extends Controller
 
     public const REDUCE_COOLDOWN_SECONDS = 90;
 
+    /**
+     * Permanent simulated clinic inmates available for breakout attempts when cells are otherwise empty.
+     *
+     * @var array<string, array{
+     *     id: string,
+     *     name: string,
+     *     cell_label: string,
+     *     reason: string,
+     *     remaining_seconds: int,
+     *     avatar: string
+     * }>
+     */
+    public const SIMULATED_INMATES = [
+        'sim_1' => [
+            'id' => 'sim_1',
+            'name' => 'Kliniek Patiënt met schulden',
+            'cell_label' => 'Cel #Z-101 • Kliniek-Gedetineerde',
+            'reason' => 'Schulden en diefstal in de kliniek',
+            'remaining_seconds' => 125,
+            'avatar' => 'assets/characters/avatar_female_1.jpg',
+        ],
+        'sim_2' => [
+            'id' => 'sim_2',
+            'name' => 'Roxy Deluxe',
+            'cell_label' => 'Cel #Z-102 • Kliniek-Gedetineerde',
+            'reason' => 'Contrabande gesmokkeld tijdens bezoekuur',
+            'remaining_seconds' => 149,
+            'avatar' => 'assets/characters/avatar_female_2.jpg',
+        ],
+        'sim_3' => [
+            'id' => 'sim_3',
+            'name' => 'Amber Savage',
+            'cell_label' => 'Cel #Z-103 • Kliniek-Gedetineerde',
+            'reason' => 'Betrapt bij kantoorkluis kraak in Sector B',
+            'remaining_seconds' => 238,
+            'avatar' => 'assets/characters/avatar_female_3.jpg',
+        ],
+    ];
+
     public function __construct(
         protected PrisonService $prisonService,
         protected EnergyService $energyService,
@@ -156,6 +195,9 @@ class PrisonController extends Controller
 
         $jailList = collect();
         $baseBonus = (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveStrength()) / 20);
+        $baseChance = min(35, max(8, 8 + $baseBonus));
+        $chanceStil = min(45, max(10, $baseChance + self::BREAKOUT_METHODS['stil']['chance_mod']));
+        $chanceGeweld = min(35, max(5, $baseChance + self::BREAKOUT_METHODS['geweld']['chance_mod']));
 
         foreach ($realPrisoners as $rp) {
             $remSecs = max(0, (int) ceil(now()->diffInSeconds($rp->prison_until, false)));
@@ -169,13 +211,10 @@ class PrisonController extends Controller
                 continue;
             }
 
-            $baseChance = min(35, max(8, 8 + $baseBonus));
-            $chanceStil = min(45, max(10, $baseChance + self::BREAKOUT_METHODS['stil']['chance_mod']));
-            $chanceGeweld = min(35, max(5, $baseChance + self::BREAKOUT_METHODS['geweld']['chance_mod']));
-
             $jailList->push([
                 'id' => $rp->id,
                 'name' => $rp->name,
+                'cell_label' => 'Cel #Z-'.str_pad((string) $rp->id, 3, '0', STR_PAD_LEFT).' • Medepatiënt',
                 'reason' => $rp->prison_reason ?: 'Overtreding van het huisreglement',
                 'time' => gmdate('i:s', $remSecs),
                 'remaining_seconds' => $remSecs,
@@ -183,7 +222,25 @@ class PrisonController extends Controller
                 'chance_stil' => $chanceStil,
                 'chance_geweld' => $chanceGeweld,
                 'avatar' => $rp->avatar_url,
+                'is_simulated' => false,
                 'model' => $rp,
+            ]);
+        }
+
+        foreach (self::SIMULATED_INMATES as $simInmate) {
+            $jailList->push([
+                'id' => $simInmate['id'],
+                'name' => $simInmate['name'],
+                'cell_label' => $simInmate['cell_label'],
+                'reason' => $simInmate['reason'],
+                'time' => gmdate('i:s', $simInmate['remaining_seconds']),
+                'remaining_seconds' => $simInmate['remaining_seconds'],
+                'chance' => $chanceStil,
+                'chance_stil' => $chanceStil,
+                'chance_geweld' => $chanceGeweld,
+                'avatar' => asset($simInmate['avatar']),
+                'is_simulated' => true,
+                'model' => null,
             ]);
         }
 
@@ -538,13 +595,15 @@ class PrisonController extends Controller
         $methodMeta = self::BREAKOUT_METHODS[$methodKey];
 
         // Validate the target before energy is spent so an invalid attempt costs nothing.
-        $isSimulatedTarget = in_array($id, ['sim_1', 'sim_2', 'sim_3'], true);
+        $isSimulatedTarget = array_key_exists($id, self::SIMULATED_INMATES);
         if (! $isSimulatedTarget && ! is_numeric($id)) {
             return back()->with('error', 'Ongeldig celdossier geselecteerd voor deze bevrijdingsactie.');
         }
 
         $targetInmate = is_numeric($id) ? Character::find($id) : null;
-        $targetName = $targetInmate ? $targetInmate->name : 'deze patiënt';
+        $targetName = $targetInmate
+            ? $targetInmate->name
+            : ($isSimulatedTarget ? self::SIMULATED_INMATES[$id]['name'] : 'deze patiënt');
 
         if (is_numeric($id) && (! $targetInmate || ! $targetInmate->isImprisoned())) {
             return back()->with('info', 'Deze patiënt is inmiddels al vrijgelaten uit het celblok!');

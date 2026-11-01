@@ -1037,7 +1037,7 @@
                     </a>
                     <a href="{{ route('prison') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('prison') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-dungeon w-4 text-center text-rose-500 dark:text-rose-400"></i>
-                        <span>Isoleercel</span>
+                        <span>Gevangenis (Isoleercel)</span>
                     </a>
                     @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
                     <a href="{{ route('sponsor.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
@@ -1276,6 +1276,17 @@
                     <a href="{{ route('droppings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('droppings.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-plane-arrival w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>Tennisbal & Drones</span>
+                    </a>
+                    <a href="{{ route('prison') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('prison') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-dungeon w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                            <span>Gevangenis &amp; Uitbreken</span>
+                        </div>
+                        @if($character && $character->isImprisoned())
+                        <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
+                            Vast
+                        </span>
+                        @endif
                     </a>
                     <a href="{{ route('tunnel.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('tunnel.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-person-digging w-4 text-center text-amber-500 dark:text-amber-400"></i>
@@ -2419,7 +2430,22 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 {{ \App\Http\Controllers\SponsorAdController::areAdsEnabled() ? 'sm:grid-cols-3' : 'sm:grid-cols-2' }} gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40">
+                <div class="grid grid-cols-1 {{ \App\Http\Controllers\SponsorAdController::areAdsEnabled() ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3' }} gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40">
+                    @if(!($character->prison_escape_attempted ?? false))
+                    <form action="{{ route('prison.escape') }}" method="POST" class="w-full">
+                        @csrf
+                        <button type="submit"
+                                @disabled($character->isComatose() || $character->needsReviveSerum())
+                                class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Probeer direct zelf uit te breken via de luchtschacht (20 Energie)">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-person-running text-xs"></i>
+                                <span>Nu Zelf Uitbreken</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-md bg-slate-950/20 text-[10px] font-black text-slate-950">20 ⚡</span>
+                        </button>
+                    </form>
+                    @endif
                     @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
                     <button type="button"
                             @disabled($character->isComatose() || $character->needsReviveSerum())
@@ -2447,8 +2473,8 @@
                         </button>
                     </form>
                     <a href="{{ route('prison') }}" class="w-full py-2.5 px-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-xs transition text-center shadow-xs flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-building-shield"></i>
-                        <span>Naar Isoleercel & Uitbreken</span>
+                        <i class="fa-solid fa-dungeon"></i>
+                        <span>Gevangenis &amp; Alle Opties</span>
                     </a>
                 </div>
             </div>

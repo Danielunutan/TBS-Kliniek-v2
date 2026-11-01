@@ -15,6 +15,23 @@
     </div>
     @endif
 
+    <!-- Verwijzing naar Gevangenis (Isoleercel) & Uitbreken -->
+    <div class="bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/70 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <div class="flex items-start sm:items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-dungeon"></i>
+            </div>
+            <div class="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">
+                <strong class="font-black text-rose-700 dark:text-rose-300">Zoek je waar je gevangenen of jezelf kunt uitbreken uit de gevangenis?</strong>
+                <span class="block sm:inline sm:ml-1">Deze pagina is je 5-etappe graaftunnel. Voor <strong>celbevrijdingen (24u Battle)</strong> of <strong>zelf uitbreken uit de isoleercel</strong> ga je naar de Gevangenis.</span>
+            </div>
+        </div>
+        <a href="{{ route('prison') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider shrink-0 transition shadow-xs">
+            <i class="fa-solid fa-unlock-keyhole"></i>
+            <span>Naar Gevangenis &amp; Uitbreken &rarr;</span>
+        </a>
+    </div>
+
     <!-- Top Header Banner (TBS Kliniek Website Styling) -->
     <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
