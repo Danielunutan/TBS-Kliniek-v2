@@ -1609,10 +1609,17 @@ function tbsDashboardCustomizer() {
                         <!-- Directe Actieknoppen -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                             @if($tunnel->is_completed)
-                                <a href="{{ route('tunnel.index') }}" class="col-span-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-95 text-white font-black text-xs transition text-center shadow-md flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-person-running"></i>
-                                    <span>Tunnel Voltooid &bull; Uitbreken!</span>
-                                </a>
+                                @if($tunnel->isFugitive())
+                                    <a href="{{ route('tunnel.index') }}" class="col-span-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-rose-600 hover:from-purple-500 hover:to-rose-500 active:scale-95 text-white font-black text-xs transition text-center shadow-md flex items-center justify-center gap-2 animate-pulse">
+                                        <i class="fa-solid fa-mask"></i>
+                                        <span>🚨 Voortvluchtig &bull; Voer Heists Uit!</span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('tunnel.index') }}" class="col-span-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-95 text-white font-black text-xs transition text-center shadow-md flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                        <span>Tunnel Voltooid &bull; Start Nieuwe Tunnel</span>
+                                    </a>
+                                @endif
                             @elseif($character->isImprisoned())
                                 <div class="col-span-1 sm:col-span-2 py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 font-bold text-[11px] text-center border border-rose-200 dark:border-rose-800">
                                     <i class="fa-solid fa-lock mr-1"></i> In isoleercel &bull; Graven geblokkeerd

@@ -52,13 +52,21 @@ class TunnelController extends Controller
         $stages = EscapeTunnel::STAGES;
         $currentStageInfo = $stages[$tunnel->stage] ?? $stages[1];
 
+        $heists = EscapeTunnel::ESCAPE_HEISTS;
+        $heistCooldowns = [];
+        foreach ($heists as $id => $h) {
+            $heistCooldowns[$id] = $this->cooldownService->getRemainingSeconds($character, 'tunnel_heist_'.$id);
+        }
+
         return view('game.tunnel.index', compact(
             'character',
             'tunnel',
             'digCooldown',
             'dumpCooldown',
             'stages',
-            'currentStageInfo'
+            'currentStageInfo',
+            'heists',
+            'heistCooldowns'
         ));
     }
 
@@ -82,7 +90,7 @@ class TunnelController extends Controller
         $tunnel = EscapeTunnel::firstOrCreate(['character_id' => $character->id]);
 
         if ($tunnel->is_completed) {
-            return back()->with('info', 'Je hebt de legendarische ontsnappingstunnel al voltooid! De bewaking heeft het gat inmiddels dichtgestort met snelbeton.');
+            return back()->with('info', 'Je hebt de legendarische ontsnappingstunnel al voltooid! Reset je tunnel om opnieuw te kunnen graven.');
         }
 
         if ($tunnel->sand_in_socks >= 100) {
@@ -216,6 +224,8 @@ class TunnelController extends Controller
 
             $tunnel->is_completed = true;
             $tunnel->escaped_at = now();
+            $tunnel->fugitive_until = now()->addHours(3);
+            $tunnel->times_escaped = ($tunnel->times_escaped ?? 0) + 1;
             $tunnel->save();
 
             $this->economy->addCash($lockedCharacter, $cashReward);
@@ -238,6 +248,114 @@ class TunnelController extends Controller
             return back()->with('info', 'Je hebt de ontsnapping al eens voltooid.');
         }
 
-        return back()->with('success', '🏆 HET GROTE UITBRAAKCOMPLOT IS VOLTOOID! Midden in de nacht kroop je door de lepel-gegraven tunnel onder de buitenmuur door! Beloning: €'.number_format($cashReward, 0, ',', '.')." buit, +{$xpReward} XP, +{$respectReward} Respect en 25 Sterren ⭐!");
+        return back()->with('success', '🏆 HET GROTE UITBRAAKCOMPLOT IS VOLTOOID! Midden in de nacht kroop je door de lepel-gegraven tunnel onder de buitenmuur door! Beloning: €'.number_format($cashReward, 0, ',', '.')." buit, +{$xpReward} XP, +{$respectReward} Respect en 25 Sterren ⭐! Je bent nu 3 UUR VOORTVLUCHTIG buiten de hekken met toegang tot exclusieve uitbraak-heists!");
+    }
+
+    public function resetTunnel(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        /** @var Character $character */
+        $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'In de isoleercel kun je geen nieuwe uitbraaktunnel plannen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        /** @var EscapeTunnel $tunnel */
+        $tunnel = EscapeTunnel::firstOrCreate(['character_id' => $character->id]);
+
+        if (! $tunnel->is_completed) {
+            return back()->with('error', 'Je kunt de tunnel pas resetten zodra je de huidige uitbraak hebt voltooid!');
+        }
+
+        $tunnel->stage = 1;
+        $tunnel->progress_pct = 0;
+        $tunnel->sand_in_socks = 0;
+        $tunnel->is_completed = false;
+        $tunnel->fugitive_until = null;
+        $tunnel->save();
+
+        return redirect()->route('tunnel.index')->with('success', '⛏️ NIEUWE UITBRAAKTUNNEL GESTART! Je bent stilletjes teruggekeerd naar je cel en hebt een nieuwe poster opgehangen. Je kunt nu weer vanaf etappe 1 beginnen met graven!');
+    }
+
+    public function doHeist(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        /** @var Character $character */
+        $character = $user->character;
+        $this->energy->refresh($character);
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot de buitenwereld!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        /** @var EscapeTunnel $tunnel */
+        $tunnel = EscapeTunnel::firstOrCreate(['character_id' => $character->id]);
+
+        if (! $tunnel->isFugitive()) {
+            return back()->with('error', 'Je bent momenteel niet voortvluchtig! Voltooi eerst een uitbraak via de tunnel om buiten te komen.');
+        }
+
+        $validated = $request->validate([
+            'heist_id' => ['required', 'string', 'in:'.implode(',', array_keys(EscapeTunnel::ESCAPE_HEISTS))],
+        ]);
+
+        $heist = EscapeTunnel::ESCAPE_HEISTS[$validated['heist_id']];
+        $cooldownKey = 'tunnel_heist_'.$heist['id'];
+
+        if ($this->cooldownService->isOnCooldown($character, $cooldownKey)) {
+            $remaining = ceil($this->cooldownService->getRemainingSeconds($character, $cooldownKey) / 60).' minuten';
+
+            return back()->with('error', "De politie surveilleert nog in dit gebied! Wacht nog {$remaining}.");
+        }
+
+        if (! $this->energy->consume($character, $heist['energy'])) {
+            return back()->with('error', "Je bent uitgeput! Je hebt minimaal {$heist['energy']} energie nodig voor deze uitbraak-heist.");
+        }
+
+        $this->cooldownService->setCooldown($character, $cooldownKey, $heist['cooldown']);
+
+        $cash = mt_rand($heist['min_cash'], $heist['max_cash']);
+        $xp = $heist['xp'];
+        $respect = $heist['respect'];
+        $stars = 0;
+        if (($heist['max_stars'] ?? 0) > 0 && mt_rand(1, 100) <= 40) {
+            $stars = mt_rand($heist['min_stars'] ?? 1, $heist['max_stars']);
+        }
+
+        $this->economy->addCash($character, $cash);
+        $this->level->addXp($character, $xp);
+        $character->addRespect($respect);
+        if ($stars > 0) {
+            $character->stars = ($character->stars ?? 0) + $stars;
+        }
+
+        $extraLoot = [];
+        if (mt_rand(1, 100) <= 25) {
+            $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
+            $extraLoot[] = '1x Smokkelkoffer 🧳';
+        }
+
+        $character->save();
+
+        $lootSummary = '€'.number_format($cash, 0, ',', '.')." contanten, +{$xp} XP, +{$respect} Respect";
+        if ($stars > 0) {
+            $lootSummary .= ", +{$stars} Sterren ⭐";
+        }
+        if (! empty($extraLoot)) {
+            $lootSummary .= ', '.implode(', ', $extraLoot);
+        }
+
+        return back()->with('success', "🚨 OVERVAL GESLAAGD! Je sloeg toe bij {$heist['name']} en ontkwam aan de bewaking! Buit: {$lootSummary}!");
     }
 }

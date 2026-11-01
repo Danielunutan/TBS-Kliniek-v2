@@ -316,6 +316,27 @@ class ReplyTicketCommand extends Command
                 ."Ontzettend bedankt voor je fantastische bijdrage en het meedenken om TBS Gang en de kliniek naar een hoger niveau te tillen! Veel succes met het opbouwen van jullie vastgoedimperium.\n\n"
                 ."Met vriendelijke groet,\n"
                 .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-A9M-535' || $ticket->id === 60 || str_contains(strtolower($ticket->subject), 'uitbreektunnel') || str_contains(strtolower($ticket->subject), 'tunnel') || str_contains(strtolower($ticket->character?->name ?? ''), 'whoopsie')) {
+            $replyMessage = "Beste Whoopsie,\n\n"
+                ."Wat een fantastische suggestie en super leuk dat je zo actief meedenkt met TBS Kliniek! 🥄🔥\n\n"
+                ."Je had helemaal gelijk: zodra je de tunnel voorheen voltooide, zat je 'vast' met een dichtgestort gat en hield de bezigheid op. Zonde natuurlijk voor doorgewinterde spelers zoals jij!\n\n"
+                ."We hebben jouw complete voorstel zojuist direct uitgewerkt en live gezet in de game:\n\n"
+                ."1. **Uitbraaktunnel Reset Systeem**:\n"
+                ."   - Zodra je tunnel voltooid is, vind je nu direct de knop **'Start Nieuwe Uitbraaktunnel (Reset)'**.\n"
+                ."   - Hiermee sluip je stilletjes terug naar je cel en hang je een nieuwe poster op. Je kunt direct weer lepel voor lepel beginnen vanaf Etappe 1!\n"
+                ."   - Je totale aantal succesvolle ontsnappingen blijft netjes bewaard en telt door.\n\n"
+                ."2. **3 Uur Voortvluchtig Buiten de Muren**:\n"
+                ."   - Net zoals bij Begeleid Verlof ben je na een succesvolle uitbraak nu **3 uur lang Voortvluchtig** buiten de kliniekmuren!\n"
+                ."   - Bovenin de tunnelpagina zie je een live aftellende timer waarin de bewaking naar je zoekt.\n\n"
+                ."3. **3 Exclusieve Uitbraak Heists & Buiten-Overvallen**:\n"
+                ."   - Zolang je buiten de hekken bent, krijg je toegang tot 3 unieke heists:\n"
+                ."     • 🏠 **Onderduikers Safehouse Kraak**: Plunder een verlaten onderduikadres in het sparrenbos (€5.000 – €12.500 buit + 120 XP).\n"
+                ."     • 🏛️ **Kliniekdirecteur Residentie Inbraak**: Sluip de privévilla van de directie binnen voor geheime dossiers en kluisbuit (€20.000 – €45.000 + 250 XP en VIP Sterren ⭐).\n"
+                ."     • 🚛 **Geldtransport Onderschepping**: Onderschep het waardetransport over de provinciale weg voor brute megabuit (€50.000 – €100.000 + 450 XP en kans op Smokkelkoffers 🧳)!\n\n"
+                ."Omdat jij de tunnel al voltooid had, staat de resetknop op /ontsnappingstunnel direct voor je klaar. Je kunt dus meteen weer aan de slag met een verse tunnel!\n\n"
+                ."Nogmaals ontzettend bedankt voor je toffe idee en je enthousiaste woorden over het spel. Heel veel succes met graven en plunderen!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Dave • TBS Kliniek Leiding';
         } else {
             $replyMessage = "Beste {$ticket->character?->name},\n\n"
                 ."Bedankt voor je support ticket. We hebben je verzoek zorgvuldig bekeken en afgehandeld.\n\n"

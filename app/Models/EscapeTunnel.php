@@ -20,6 +20,56 @@ class EscapeTunnel extends Model
         'wood_planks' => 'integer',
         'is_completed' => 'boolean',
         'escaped_at' => 'datetime',
+        'fugitive_until' => 'datetime',
+        'times_escaped' => 'integer',
+    ];
+
+    public const ESCAPE_HEISTS = [
+        'safehouse' => [
+            'id' => 'safehouse',
+            'name' => 'Onderduikers Safehouse Kraak',
+            'desc' => 'Breek in bij een verlaten onderduikadres in het sparrenbos en verzamel cash en proviand.',
+            'energy' => 15,
+            'cooldown' => 600,
+            'min_cash' => 5000,
+            'max_cash' => 12500,
+            'xp' => 120,
+            'respect' => 5,
+            'min_stars' => 0,
+            'max_stars' => 1,
+            'icon' => 'fa-house-chimney-crack',
+            'color' => 'amber',
+        ],
+        'villa' => [
+            'id' => 'villa',
+            'name' => 'Kliniekdirecteur Residentie Inbraak',
+            'desc' => 'Sluip de directiewoning binnen en kraak de kluis in het privékantoor voor dossiers en buit.',
+            'energy' => 25,
+            'cooldown' => 1200,
+            'min_cash' => 20000,
+            'max_cash' => 45000,
+            'xp' => 250,
+            'respect' => 10,
+            'min_stars' => 1,
+            'max_stars' => 2,
+            'icon' => 'fa-building-shield',
+            'color' => 'purple',
+        ],
+        'transport' => [
+            'id' => 'transport',
+            'name' => 'Geldtransport Onderschepping',
+            'desc' => 'Onderschep een waardetransport over de provinciale bosweg voor maximale buit!',
+            'energy' => 40,
+            'cooldown' => 1800,
+            'min_cash' => 50000,
+            'max_cash' => 100000,
+            'xp' => 450,
+            'respect' => 20,
+            'min_stars' => 2,
+            'max_stars' => 5,
+            'icon' => 'fa-truck-fast',
+            'color' => 'emerald',
+        ],
     ];
 
     public const STAGES = [
@@ -49,6 +99,20 @@ class EscapeTunnel extends Model
             'target_progress' => 100,
         ],
     ];
+
+    public function isFugitive(): bool
+    {
+        return $this->fugitive_until !== null && $this->fugitive_until->isFuture();
+    }
+
+    public function remainingFugitiveSeconds(): int
+    {
+        if (! $this->isFugitive()) {
+            return 0;
+        }
+
+        return (int) now()->diffInSeconds($this->fugitive_until, false);
+    }
 
     public function character(): BelongsTo
     {

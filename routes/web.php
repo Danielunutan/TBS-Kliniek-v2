@@ -299,6 +299,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/ontsnappingstunnel/graven', [TunnelController::class, 'dig'])->name('tunnel.dig');
     Route::post('/ontsnappingstunnel/zand-dumpen', [TunnelController::class, 'dumpSand'])->name('tunnel.dump');
     Route::post('/ontsnappingstunnel/uitbreken', [TunnelController::class, 'escape'])->name('tunnel.escape');
+    Route::post('/ontsnappingstunnel/reset', [TunnelController::class, 'resetTunnel'])->name('tunnel.reset');
+    Route::post('/ontsnappingstunnel/heist', [TunnelController::class, 'doHeist'])->name('tunnel.heist');
 
     // Grote Heists & Kraak Missies
     Route::get('/heists', [HeistController::class, 'index'])->name('heists.index');
