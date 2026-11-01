@@ -19,7 +19,7 @@
             <a href="{{ route('admin.news.create') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95">
                 <i class="fa-solid fa-plus text-amber-300"></i> Nieuw Artikel Aanmaken
             </a>
-            <a href="{{ route('news.index') }}" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition border border-slate-200/80 dark:border-slate-700 flex items-center gap-1.5 cursor-pointer active:scale-95">
+            <a href="{{ route('news.index') }}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition border border-slate-200/80 dark:border-slate-700 flex items-center gap-1.5 cursor-pointer active:scale-95">
                 <i class="fa-solid fa-external-link text-slate-400 dark:text-slate-500"></i> Openbare Feed
             </a>
         </div>
@@ -47,7 +47,7 @@
                             <div class="flex items-center gap-3">
                                 <span class="text-2xl shrink-0">{{ $art->emoji }}</span>
                                 <div class="min-w-0">
-                                    <a href="{{ route('news.show', $art->slug) }}" target="_blank" class="font-extrabold text-slate-900 dark:text-white text-xs hover:text-purple-600 dark:hover:text-purple-400 transition block truncate">
+                                    <a href="{{ route('news.show', $art->slug) }}" target="_blank" rel="noopener noreferrer" class="font-extrabold text-slate-900 dark:text-white text-xs hover:text-purple-600 dark:hover:text-purple-400 transition block truncate">
                                         {{ $art->title }}
                                     </a>
                                     <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">/nieuws/{{ $art->slug }}</span>
@@ -86,7 +86,7 @@
                         </td>
                         <td class="py-3.5 px-4 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                <a href="{{ route('news.show', $art->slug) }}" target="_blank" class="p-1.5 rounded-lg text-slate-400 dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Bekijk artikel">
+                                <a href="{{ route('news.show', $art->slug) }}" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-lg text-slate-400 dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Bekijk artikel">
                                     <i class="fa-solid fa-eye text-xs"></i>
                                 </a>
                                 <a href="{{ route('admin.news.edit', $art) }}" class="p-1.5 rounded-lg text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition font-bold" title="Bewerken">

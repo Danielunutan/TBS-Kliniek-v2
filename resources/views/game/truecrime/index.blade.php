@@ -5,7 +5,17 @@
 @section('content')
 <div class="space-y-6" x-data="tbsTrueCrime({{ (int) ($cooldownRemaining ?? 0) }}, {{ $character->isImprisoned() ? 'true' : 'false' }}, {{ ($character->isComatose() || $character->needsReviveSerum()) ? 'true' : 'false' }})">
 
-    
+    @if($character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>
+        <span>Je zit momenteel in de isoleercel. Je hebt geen toegang tot het archief van Caroline.</span>
+    </div>
+    @elseif($character->isComatose() || $character->needsReviveSerum())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-rose-500 text-base shrink-0"></i>
+        <span>Je ligt momenteel op de Intensive Care en kunt geen dossiers onderzoeken.</span>
+    </div>
+    @endif
 
     <!-- Header Banner -->
     <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/90 dark:border-slate-800 relative overflow-hidden">
@@ -89,7 +99,8 @@
                     <form action="{{ route('true_crime.skip_cooldown_stars') }}" method="POST" class="w-full">
                         @csrf
                         <button type="submit" 
-                                class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                                @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->stars ?? 0) < 15)
+                                class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-star text-[12px]"></i>
                             <span>Wachttijd Direct Overslaan (15 Sterren ⭐)</span>
                         </button>

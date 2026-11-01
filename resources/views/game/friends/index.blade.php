@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $pendingRequests = $pendingRequests ?? collect();
+    $sentRequests = $sentRequests ?? collect();
+    $friends = $friends ?? collect();
+    $canMassMessage = $canMassMessage ?? true;
+    $massMessageCooldown = $massMessageCooldown ?? 0;
+    $numA = $numA ?? 3;
+    $numB = $numB ?? 5;
+@endphp
 <div class="space-y-6" x-data="{ addFriendOpen: false, massMessageOpen: false, selectedFriendForRespect: null }">
 
     <!-- Clean TBS Kliniek Page Title Bar -->
@@ -35,6 +44,20 @@
             </div>
         </div>
     </div>
+
+    @if($character->isImprisoned())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-lock text-base text-rose-600 shrink-0"></i>
+        <span>Je zit in de isoleercel en kunt op dit moment geen respect uitdelen of massa-berichten versturen.</span>
+    </div>
+    @endif
+
+    @if($character->isComatose())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-bed-pulse text-base text-rose-600 shrink-0"></i>
+        <span>Je ligt in het ziekenhuis/coma en kunt op dit moment geen respect uitdelen of massa-berichten versturen.</span>
+    </div>
+    @endif
 
     <!-- Spotlight Row: BFF & Mass Message Status -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -409,7 +432,7 @@
             </div>
 
             <template x-if="selectedFriendForRespect">
-                <form :action="'{{ url('/vrienden') }}/' + selectedFriendForRespect.id + '/respect'" method="POST" class="space-y-4">
+                <form :action="'{{ route('friends.respect', ':id') }}'.replace(':id', selectedFriendForRespect.id)" method="POST" class="space-y-4">
                     @csrf
                     
                     <div class="p-4 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-800/60 text-xs text-purple-900 dark:text-purple-200 space-y-2">
@@ -448,7 +471,7 @@
                         <button type="button" @click="selectedFriendForRespect = null" class="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 transition cursor-pointer">
                             Annuleren
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
+                        <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-fire text-amber-300"></i>
                             <span>Respect Bevestigen</span>
                         </button>
@@ -477,7 +500,7 @@
                     search: '',
                     selectedName: '',
                     openDropdown: false,
-                    patients: @js($availablePatients->map(fn($p) => ['name' => $p->name, 'level' => $p->level, 'avatar' => $p->avatar_url])),
+                    patients: @js(($availablePatients ?? collect())->map(fn($p) => ['name' => $p->name, 'level' => $p->level, 'avatar' => $p->avatar_url])),
                     get filtered() {
                         if (!this.search.trim()) return this.patients.slice(0, 20);
                         return this.patients.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 20);
@@ -591,7 +614,7 @@
                         <button type="button" @click="massMessageOpen = false" class="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 transition cursor-pointer">
                             Sluiten
                         </button>
-                        <button type="submit" @disabled(! $canMassMessage || $friends->isEmpty()) 
+                        <button type="submit" @disabled(! $canMassMessage || $friends->isEmpty() || $character->isImprisoned() || $character->isComatose()) 
                                 class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl transition shadow-xs cursor-pointer">
                             Verzenden
                         </button>

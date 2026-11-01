@@ -3,7 +3,17 @@
 @section('content')
 <div class="space-y-6 mt-4">
 
-    
+    @if($character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>
+        <span>Je zit momenteel in de isoleercel. Verplaatsen naar andere afdelingen is geblokkeerd.</span>
+    </div>
+    @elseif($character->isComatose() || $character->needsReviveSerum())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-rose-500 text-base shrink-0"></i>
+        <span>Je ligt momenteel op de Intensive Care en kunt niet reizen.</span>
+    </div>
+    @endif
 
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
         <div class="bg-slate-50/90 dark:bg-slate-800/60 p-5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
@@ -86,6 +96,7 @@
 
                 <div class="text-center">
                     <button type="submit" 
+                            @disabled($character->isImprisoned() || $character->isComatose())
                             :disabled="!selected || @js($character->isImprisoned() || $character->isComatose())"
                             class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer w-full sm:w-auto">
                         <i class="fa-solid fa-person-walking-arrow-right"></i>

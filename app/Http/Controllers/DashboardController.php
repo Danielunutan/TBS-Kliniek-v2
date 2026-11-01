@@ -749,37 +749,69 @@ class DashboardController extends Controller
                 : back()->with('error', $msg);
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'radar_sweep')) {
-            $rem = $this->cooldownService->getRemainingSeconds($character, 'radar_sweep');
-            $mins = ceil($rem / 60);
-            $msg = "⏳ Radar scanner herlaadt zijn frequenties. Wacht nog {$rem}s (~{$mins} min)!";
+        $sweepResult = DB::transaction(function () use ($character) {
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return ['error' => 'Geen personage gevonden.', 'code' => 404];
+            }
+
+            if ($this->cooldownService->isOnCooldown($locked, 'radar_sweep')) {
+                $rem = $this->cooldownService->getRemainingSeconds($locked, 'radar_sweep');
+                $mins = ceil($rem / 60);
+
+                return [
+                    'error' => "⏳ Radar scanner herlaadt zijn frequenties. Wacht nog {$rem}s (~{$mins} min)!",
+                    'code' => 400,
+                    'rem' => $rem,
+                ];
+            }
+
+            // Radar sweep success!
+            $cashFound = mt_rand(180, 480);
+            $peukenFound = mt_rand(1, 3);
+            $xpGain = 30;
+
+            $this->cooldownService->setCooldown($locked, 'radar_sweep', 1800);
+
+            $this->economyService->addCash($locked, $cashFound);
+            $this->levelService->addXp($locked, $xpGain);
+            $locked->addRespect(1);
+            $locked->save();
+
+            // Add cigarettes to stash
+            $sigItem = Item::where('slug', 'sigaretten')->first();
+            if ($sigItem) {
+                $ci = CharacterItem::firstOrCreate(
+                    ['character_id' => $locked->id, 'item_id' => $sigItem->id],
+                    ['quantity' => 0]
+                );
+                $ci->increment('quantity', $peukenFound);
+            }
+
+            return [
+                'cashFound' => $cashFound,
+                'peukenFound' => $peukenFound,
+                'xpGain' => $xpGain,
+                'cash' => (int) $locked->cash,
+            ];
+        });
+
+        if (isset($sweepResult['error'])) {
+            $rem = $sweepResult['rem'] ?? null;
+            $data = ['error' => $sweepResult['error']];
+            if ($rem !== null) {
+                $data['remaining_seconds'] = $rem;
+            }
 
             return $request->expectsJson() || $request->ajax()
-                ? response()->json(['error' => $msg, 'remaining_seconds' => $rem], 400)
-                : back()->with('error', $msg);
+                ? response()->json($data, $sweepResult['code'])
+                : back()->with('error', $sweepResult['error']);
         }
 
-        // Radar sweep success!
-        $cashFound = mt_rand(180, 480);
-        $peukenFound = mt_rand(1, 3);
-        $xpGain = 30;
-
-        $this->cooldownService->setCooldown($character, 'radar_sweep', 1800);
-
-        $this->economyService->addCash($character, $cashFound);
-        $this->levelService->addXp($character, $xpGain);
-        $character->addRespect(1);
-        $character->save();
-
-        // Add cigarettes to stash
-        $sigItem = Item::where('slug', 'sigaretten')->first();
-        if ($sigItem) {
-            $ci = CharacterItem::firstOrCreate(
-                ['character_id' => $character->id, 'item_id' => $sigItem->id],
-                ['quantity' => 0]
-            );
-            $ci->increment('quantity', $peukenFound);
-        }
+        $cashFound = $sweepResult['cashFound'];
+        $peukenFound = $sweepResult['peukenFound'];
+        $xpGain = $sweepResult['xpGain'];
+        $currentCash = $sweepResult['cash'];
 
         $msg = '📡 RADAR SWEEP SUCCES! Dode hoek gescand bij container 4. Buit: €'.number_format($cashFound, 0, ',', '.')." contant en {$peukenFound}x Sigaretten meegesmokkeld (+{$xpGain} XP)!";
 
@@ -787,8 +819,8 @@ class DashboardController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $msg,
-                'cash' => (int) $character->cash,
-                'cash_formatted' => '€'.number_format($character->cash, 0, ',', '.'),
+                'cash' => $currentCash,
+                'cash_formatted' => '€'.number_format($currentCash, 0, ',', '.'),
                 'cash_found' => $cashFound,
                 'peuken_found' => $peukenFound,
                 'cooldown_seconds' => 1800,

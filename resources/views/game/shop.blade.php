@@ -1017,7 +1017,7 @@
                                         'respect' => (int) $character->respect,
                                         'isSelf' => true,
                                     ],
-                                ], collect($otherPatients)->map(fn($p) => [
+                                ], collect($otherPatients ?? [])->map(fn($p) => [
                                     'id' => (string) $p->id,
                                     'name' => $p->name,
                                     'level' => (int) $p->level,
@@ -1163,7 +1163,7 @@
                                         <div class="flex items-center gap-2">
                                             <form action="{{ route('shop.consume', $inv->id) }}" method="POST" class="flex-1">
                                                 @csrf
-                                                <button type="submit" class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer">
+                                                <button type="submit" @disabled($character->isComatose()) class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                                     1x Innemen
                                                 </button>
                                             </form>
@@ -1171,7 +1171,7 @@
                                             <form action="{{ route('shop.consume', $inv->id) }}" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="fill_max" value="1">
-                                                <button type="submit" class="py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer">
+                                                <button type="submit" @disabled($character->isComatose()) class="py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                                     Vol
                                                 </button>
                                             </form>
@@ -1204,7 +1204,7 @@
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="full_restore">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs cursor-pointer">Direct Resetten (5 ⭐)</button>
+                            <button type="submit" @disabled($character->isComatose() || ($character->stars ?? 0) < 5) class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Direct Resetten (5 ⭐)</button>
                         </form>
                     </div>
 
@@ -1221,7 +1221,7 @@
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="prison_escape">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs cursor-pointer">Vrijlating Kopen (10 ⭐)</button>
+                            <button type="submit" @disabled(! $character->isImprisoned() || ($character->stars ?? 0) < 10) class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Vrijlating Kopen (10 ⭐)</button>
                         </form>
                     </div>
 
@@ -1239,12 +1239,12 @@
                             <form action="{{ route('hitman.revive_serum') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="currency" value="cash">
-                                <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-emerald-600 text-white font-black text-xs cursor-pointer">€1.500.000</button>
+                                <button type="submit" @disabled(($character->cash ?? 0) < 1500000 || !($character->isComatose() || $character->needsReviveSerum())) class="w-full py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">€1.500.000</button>
                             </form>
                             <form action="{{ route('hitman.revive_serum') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="currency" value="stars">
-                                <button type="submit" class="btn-star-gold w-full py-2.5 px-2 rounded-xl font-black text-xs cursor-pointer">{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</button>
+                                <button type="submit" @disabled(($character->stars ?? 0) < \App\Models\Character::REVIVE_SERUM_STARS || !($character->isComatose() || $character->needsReviveSerum())) class="btn-star-gold w-full py-2.5 px-2 rounded-xl font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</button>
                             </form>
                         </div>
                     </div>
@@ -1262,7 +1262,7 @@
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="mask_5">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-black text-xs cursor-pointer">5x Maskers (15 ⭐)</button>
+                            <button type="submit" @disabled(($character->stars ?? 0) < 15) class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">5x Maskers (15 ⭐)</button>
                         </form>
                     </div>
 
@@ -1279,7 +1279,7 @@
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="bullets_50">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs cursor-pointer">50 Kogels (50 ⭐)</button>
+                            <button type="submit" @disabled(($character->stars ?? 0) < 50) class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">50 Kogels (50 ⭐)</button>
                         </form>
                     </div>
 
@@ -1302,7 +1302,7 @@
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="bulletproof_vest">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-black text-xs cursor-pointer">Pantser Activeren (150 ⭐)</button>
+                            <button type="submit" @disabled(($character->stars ?? 0) < 150) class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Pantser Activeren (150 ⭐)</button>
                         </form>
                     </div>
 
@@ -1319,7 +1319,7 @@
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="vault_code">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs cursor-pointer">Voucher Kopen (25 ⭐)</button>
+                            <button type="submit" @disabled(($character->stars ?? 0) < 25) class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Voucher Kopen (25 ⭐)</button>
                         </form>
                     </div>
 
@@ -1342,7 +1342,7 @@
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="protection_24h">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 text-white font-black text-xs cursor-pointer">Immuniteit (30 ⭐)</button>
+                            <button type="submit" @disabled(($character->stars ?? 0) < 30) class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Immuniteit (30 ⭐)</button>
                         </form>
                     </div>
 
@@ -1359,7 +1359,7 @@
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="xxl_cases_3">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-black text-xs cursor-pointer">3x Koffers (35 ⭐)</button>
+                            <button type="submit" @disabled(($character->stars ?? 0) < 35) class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">3x Koffers (35 ⭐)</button>
                         </form>
                     </div>
                 </div>

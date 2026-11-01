@@ -40,7 +40,7 @@
 
         <!-- Card Container -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-5">
-            @if($errors->any())
+            @if(isset($errors) && $errors->any())
                 <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-xs font-bold space-y-1">
                     @foreach($errors->all() as $err)
                         <div class="flex items-center gap-2">
@@ -53,7 +53,7 @@
 
             <form action="{{ route('password.update') }}" method="POST" class="space-y-4">
                 @csrf
-                <input type="hidden" name="token" value="{{ $token }}">
+                <input type="hidden" name="token" value="{{ $token ?? '' }}">
 
                 <div>
                     <label class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block mb-1.5">
@@ -63,7 +63,7 @@
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                             <i class="fa-solid fa-envelope text-xs"></i>
                         </span>
-                        <input type="email" name="email" value="{{ old('email', $email) }}" required
+                        <input type="email" name="email" value="{{ old('email', $email ?? request('email', '')) }}" required
                                class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     </div>
                 </div>

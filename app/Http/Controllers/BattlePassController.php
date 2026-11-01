@@ -487,8 +487,12 @@ class BattlePassController extends Controller
      */
     public function index(): View
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
+
         $this->energyService->refresh($character);
 
         $config = self::getPassConfig();
@@ -510,8 +514,12 @@ class BattlePassController extends Controller
             'track' => 'required|string|in:free,vip1,vip2,vip3',
         ]);
 
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return $this->respondBp($request, false, 'Geen personage gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             return $this->respondBp($request, false, 'Vanuit de isoleercel kun je geen Battle Pass beloningen claimen!');
@@ -602,8 +610,12 @@ class BattlePassController extends Controller
      */
     public function claimAll(Request $request): RedirectResponse|JsonResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return $this->respondBp($request, false, 'Geen personage gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             return $this->respondBp($request, false, 'Vanuit de isoleercel kun je geen Battle Pass beloningen claimen!');
@@ -698,8 +710,12 @@ class BattlePassController extends Controller
      */
     protected function respondBp(Request $request, bool $success, string $message, string $type = 'error', array $claims = []): RedirectResponse|JsonResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character->fresh();
+        /** @var Character|null $character */
+        $character = Auth::user()?->character?->fresh();
+
+        if (! $character) {
+            return back()->with($type, $message);
+        }
 
         if ($request->hasHeader('X-BP-Fast')) {
             return response()->json([

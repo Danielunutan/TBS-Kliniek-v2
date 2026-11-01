@@ -24,7 +24,11 @@ class CombatTrainingController extends Controller
 
     public function index(): View
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
+
         $this->energy->refresh($character);
         $character->syncStatsWithLevelCap();
 
@@ -40,7 +44,10 @@ class CombatTrainingController extends Controller
 
     public function train(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet trainen!');

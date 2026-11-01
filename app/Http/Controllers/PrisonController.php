@@ -133,6 +133,8 @@ class PrisonController extends Controller
                 'is_in_prison' => false,
                 'prison_until' => null,
                 'prison_reason' => null,
+                'prison_escape_attempted' => false,
+                'ad_prison_progress' => 0,
             ]);
 
         $character->refresh();

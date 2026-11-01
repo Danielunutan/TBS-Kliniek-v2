@@ -3,6 +3,7 @@
      x-show="isOpen" 
      x-cloak 
      style="display: none;" 
+     @keydown.escape.window="close()"
      class="fixed inset-0 z-[99999] overflow-y-auto">
     
     <div class="fixed inset-0 bg-black/80 transition-opacity" @click="close()"></div>
@@ -38,7 +39,7 @@
 
                 <div>
                     <label class="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">Reden van de melding *</label>
-                    <select x-model="reason" required class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <select x-model="reason" required class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 text-base sm:text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <option value="">-- Kies een reden --</option>
                         <option value="Belediging / Schelden">Belediging / Schelden</option>
                         <option value="Ongepaste of kwetsende naam">Ongepaste of kwetsende naam</option>
@@ -52,7 +53,7 @@
 
                 <div>
                     <label class="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">Toelichting (optioneel)</label>
-                    <textarea x-model="details" rows="3" placeholder="Wat is er gebeurd? Extra details helpen de moderatoren..." class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 text-xs focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition"></textarea>
+                    <textarea x-model="details" rows="3" placeholder="Wat is er gebeurd? Extra details helpen de moderatoren..." class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 text-base sm:text-xs focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
@@ -99,7 +100,8 @@
     gangStars: {{ $gangStars }},
     myAvatar: @js($authCharacter?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg')),
     level: {{ (int) ($authCharacter?->level ?? 1) }},
-    isInPrison: @js((bool) ($authCharacter?->is_in_prison ?? false)),
+    isInPrison: @js((bool) ($authCharacter?->isImprisoned() ?? false)),
+    isComatose: @js((bool) ($authCharacter?->isComatose() ?? false)),
     cash: {{ (int) ($authCharacter?->cash ?? 0) }},
 })" x-effect="document.body.classList.toggle('tbs-chat-open', isOpen)" class="z-[9990]">
 
@@ -590,14 +592,16 @@
                         <input type="text" x-ref="publicInputField" x-model="inputMessage" 
                                @input="onChatInput($event, 'global')"
                                @keydown="onChatKeydown($event, 'global')"
-                               placeholder="Typ @naam of een bericht... (Enter)" maxlength="250"
-                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                               :placeholder="isInPrison ? 'Je zit in de isoleercel en kunt niet chatten...' : (isComatose ? 'Je ligt in coma in de ziekenboeg...' : 'Typ @naam of een bericht... (Enter)')"
+                               :disabled="isInPrison || isComatose"
+                               maxlength="250"
+                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed">
                         <span x-show="inputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
                               :class="inputMessage.length >= 240 ? 'text-rose-500 font-black' : (inputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
                               x-text="inputMessage.length + '/250'"></span>
                     </div>
-                    <button type="submit" :disabled="isSending || !inputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
+                    <button type="submit" :disabled="isSending || !inputMessage.trim() || isInPrison || isComatose" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </form>
@@ -865,14 +869,16 @@
                         <input type="text" x-ref="gangInputField" x-model="gangInputMessage" 
                                @input="onChatInput($event, 'gang')"
                                @keydown="onChatKeydown($event, 'gang')"
-                               placeholder="Typ @naam of een bendebericht... (Enter)" maxlength="250"
-                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                               :placeholder="isInPrison ? 'Je zit in de isoleercel en kunt niet chatten...' : (isComatose ? 'Je ligt in coma in de ziekenboeg...' : 'Typ @naam of een bendebericht... (Enter)')"
+                               :disabled="isInPrison || isComatose"
+                               maxlength="250"
+                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed">
                         <span x-show="gangInputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
                               :class="gangInputMessage.length >= 240 ? 'text-rose-500 font-black' : (gangInputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
                               x-text="gangInputMessage.length + '/250'"></span>
                     </div>
-                            <button type="submit" :disabled="isSendingGang || !gangInputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
+                            <button type="submit" :disabled="isSendingGang || !gangInputMessage.trim() || isInPrison || isComatose" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
                                 <i class="fa-solid fa-paper-plane"></i>
                             </button>
                         </form>
@@ -1262,14 +1268,16 @@
                                     <input type="text" x-ref="directInputField" x-model="directInput" 
                                            @input="onChatInput($event, 'direct')"
                                            @keydown="onChatKeydown($event, 'direct')"
-                                           placeholder="Typ @naam of een privébericht... (Enter)" maxlength="500"
-                                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 pr-14 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                                           :placeholder="isInPrison ? 'Je zit in de isoleercel en kunt geen privéberichten sturen...' : (isComatose ? 'Je ligt in coma in de ziekenboeg...' : 'Typ @naam of een privébericht... (Enter)')"
+                                           :disabled="isInPrison || isComatose"
+                                           maxlength="500"
+                                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 pr-14 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed">
                                     <span x-show="directInput.length > 350" x-cloak
                                           class="absolute right-2 text-[10px] font-mono pointer-events-none"
                                           :class="directInput.length >= 500 ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
                                           x-text="directInput.length + '/500'"></span>
                                 </div>
-                                <button type="submit" :disabled="isSendingDirect || !directInput.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
+                                <button type="submit" :disabled="isSendingDirect || !directInput.trim() || isInPrison || isComatose" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
                                     <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                 </button>
                             </form>
@@ -1505,6 +1513,8 @@
             gangHasChat: cfg.gangHasChat || false,
             characterStars: cfg.characterStars || 0,
             gangStars: cfg.gangStars || 0,
+            isInPrison: cfg.isInPrison || false,
+            isComatose: cfg.isComatose || false,
 
             isOpen: false,
             activeTab: 'global',
@@ -1554,6 +1564,15 @@
             // Helpbot state
             helpInput: '',
             helpMessages: (function() {
+                if (cfg.isComatose) {
+                    return [{
+                        from: 'bot',
+                        text: '🚑 Zaalwacht Arjan: Je ligt momenteel in coma in de Ziekenboeg!\n\nJe gezondheid is 0%. Laat je verzorgen in de ziekenboeg of gebruik direct een herstel-item om weer op de been te komen.',
+                        links: [
+                            { text: '🏥 Naar de Ziekenboeg', url: '{{ route('infirmary.index') }}' }
+                        ]
+                    }];
+                }
                 if (cfg.isInPrison) {
                     return [{
                         from: 'bot',
@@ -2296,7 +2315,7 @@
 
             async sendPublicMessage() {
                 const text = this.inputMessage.trim();
-                if (!text || this.isSending) return;
+                if (!text || this.isSending || this.isInPrison || this.isComatose) return;
                 this.isSending = true;
                 const replyId = this.replyingTo ? this.replyingTo.id : null;
                 try {
@@ -2334,7 +2353,7 @@
 
             async sendGangMessage() {
                 const text = this.gangInputMessage.trim();
-                if (!text || this.isSendingGang) return;
+                if (!text || this.isSendingGang || this.isInPrison || this.isComatose) return;
                 this.isSendingGang = true;
                 const replyId = this.replyingTo ? this.replyingTo.id : null;
                 try {
@@ -2475,7 +2494,7 @@
             async sendDirectMessage() {
                 if (!this.activeDirectPartner) return;
                 const text = this.directInput.trim();
-                if (!text || this.isSendingDirect) return;
+                if (!text || this.isSendingDirect || this.isInPrison || this.isComatose) return;
                 const pId = this.activeDirectPartner.partner_id !== undefined ? this.activeDirectPartner.partner_id : this.activeDirectPartner.id;
                 this.isSendingDirect = true;
                 const replyId = this.directReplyingTo ? this.directReplyingTo.id : null;

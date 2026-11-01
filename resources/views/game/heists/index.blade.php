@@ -690,7 +690,7 @@
                             &bull; <span class="font-normal text-slate-600 dark:text-slate-300">{{ $log->heist?->name ?? 'Onbekende Kraak' }}</span>
                         </div>
                         <div class="text-[11px] text-slate-500 dark:text-slate-400">
-                            {{ $log->created_at->diffForHumans() }} &bull; {{ $log->vehicle?->name ?? 'Onbekend voertuig' }}
+                            {{ $log->created_at?->diffForHumans() ?? 'Zojuist' }} &bull; {{ $log->vehicle?->name ?? 'Onbekend voertuig' }}
                         </div>
                     </div>
                 </div>

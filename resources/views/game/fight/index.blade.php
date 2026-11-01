@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $attacksToday = $attacksToday ?? 0;
+    $maxDailyAttacks = $maxDailyAttacks ?? 100;
+    $attacksRemaining = $attacksRemaining ?? max(0, $maxDailyAttacks - $attacksToday);
+    $cooldownSeconds = $cooldownSeconds ?? 0;
+    $isCaptchaRequired = $isCaptchaRequired ?? false;
+@endphp
 <div class="space-y-4 sm:space-y-6" x-data="{
     searchQuery: '',
     isolationModalOpen: false,
@@ -30,6 +37,20 @@
     }
 }">
 
+    @if($character->isImprisoned())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-lock text-base text-rose-600 shrink-0"></i>
+        <span>Je zit in de isoleercel en kunt op dit moment niemand op de luchtplaats beroven of aanvallen.</span>
+    </div>
+    @endif
+
+    @if($character->isComatose())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-bed-pulse text-base text-rose-600 shrink-0"></i>
+        <span>Je ligt in het ziekenhuis/coma en kunt op dit moment niemand op de luchtplaats beroven of aanvallen.</span>
+    </div>
+    @endif
+
     @if($character->hasIsolationProtection())
     <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/70 flex items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3">
@@ -39,10 +60,10 @@
             <div>
                 <div class="text-xs font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider flex items-center gap-1.5">
                     <span>Vrijwillige Isolatie Actief</span>
-                    <span class="px-2 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 text-[10px]">100% Beschermd</span>
+                    <span class="px-2 py-2 rounded-full bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 text-[10px]">100% Beschermd</span>
                 </div>
                 <p class="text-xs text-amber-900 dark:text-amber-300 mt-0.5">
-                    Je cel is vergrendeld tot <strong>{{ $character->protection_until->format('d-m H:i') }}</strong>. Als je iemand berooft, vraagt het spel eerst een bevestiging en vervalt je isolatie.
+                    Je cel is vergrendeld tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>. Als je iemand berooft, vraagt het spel eerst een bevestiging en vervalt je isolatie.
                 </p>
             </div>
         </div>
@@ -390,7 +411,7 @@
             <!-- MOBILE TOUCH CARDS (block on mobile, hidden on md+) -->
             <div class="block md:hidden space-y-2.5">
                 @forelse($opponents as $index => $opp)
-                <div x-show="!searchQuery || @js(strtolower($opp->name)).includes(searchQuery.toLowerCase())"
+                <div x-show="!searchQuery || @js(strtolower($opp->name ?? '')).includes(searchQuery.toLowerCase())"
                      class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 p-3 space-y-2.5 shadow-xs">
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2.5 min-w-0">
@@ -428,7 +449,7 @@
 
                         <form action="{{ route('fight.attack') }}" method="POST"
                               @submit="
-                                if (!handleAttack($event, '{{ addslashes($opp->name) }}')) return;
+                                if (!handleAttack($event, @js($opp->name))) return;
                                 if(globalCd > 0) { $event.preventDefault(); return false; }
                                 const token = window.tbsTurnstileToken 
                                     || (document.querySelector('.cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('.cf-turnstile [name=cf-turnstile-response]').value : '')
@@ -482,7 +503,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
                         @forelse($opponents as $index => $opp)
-                        <tr x-show="!searchQuery || @js(strtolower($opp->name)).includes(searchQuery.toLowerCase())"
+                        <tr x-show="!searchQuery || @js(strtolower($opp->name ?? '')).includes(searchQuery.toLowerCase())"
                             class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                             
                             <!-- Rank Number -->
@@ -534,7 +555,7 @@
                             <td class="py-3.5 px-3 text-right">
                                 <form action="{{ route('fight.attack') }}" method="POST" class="inline-block"
                                       @submit="
-                                        if (!handleAttack($event, '{{ addslashes($opp->name) }}')) return;
+                                        if (!handleAttack($event, @js($opp->name))) return;
                                         if(globalCd > 0) { $event.preventDefault(); return false; }
                                         const token = window.tbsTurnstileToken 
                                             || (document.querySelector('.cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('.cf-turnstile [name=cf-turnstile-response]').value : '')
@@ -579,10 +600,12 @@
                 </table>
             </div>
 
+            @if(method_exists($opponents, 'links'))
             <!-- Pagination Bar -->
             <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                 {{ $opponents->links() }}
             </div>
+            @endif
         </div>
 
     </div>

@@ -30,7 +30,12 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
+
         $this->energyService->refresh($character);
 
         $initialTab = $request->query('tab', 'global');
@@ -90,7 +95,11 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
 
         $channel = $request->query('channel', 'global');
         $afterId = (int) $request->query('after_id', 0);
@@ -303,12 +312,16 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
 
         if ($character->isImprisoned()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Vanuit de isoleercel kun je niet meepraten in de recreatieruimte! Kijk een ad om direct vrij te komen.',
+                'message' => 'Vanuit de isoleercel kun je niet meepraten in de recreatieruimte!',
             ], 422);
         }
 
@@ -698,7 +711,11 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
 
         if ($partnerId === 0) {
             return response()->json([
@@ -710,7 +727,7 @@ class ChatController extends Controller
         if ($character->isImprisoned()) {
             return response()->json([
                 'success' => false,
-                'message' => 'In de isoleercel kun je geen privégesprekken voeren! Kijk een ad om direct vrij te komen.',
+                'message' => 'In de isoleercel kun je geen privégesprekken voeren!',
             ], 422);
         }
 

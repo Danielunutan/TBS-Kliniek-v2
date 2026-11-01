@@ -12,6 +12,7 @@ use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DaycareController extends Controller
@@ -125,12 +126,6 @@ class DaycareController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'dagbesteding')) {
-            $seconds = $this->cooldownService->getRemainingSeconds($character, 'dagbesteding');
-
-            return back()->with('error', "⏳ Werkpauze actief! De zaalwacht stuurt je even terug naar de koffietafel. Wacht nog {$seconds}s of reset direct via een sponsor advertentie.");
-        }
-
         $jobId = (int) $request->input('job_id');
         $jobs = [
             1 => ['energy' => 3,  'min' => 150,  'max' => 350,  'xp' => 15,  'stat' => 'discipline', 'cooldown' => 60],
@@ -146,51 +141,62 @@ class DaycareController extends Controller
 
         $cfg = $jobs[$jobId];
 
-        if (! $this->energyService->consume($character, $cfg['energy'])) {
-            return back()->with('error', "Niet genoeg energie! Je hebt minstens {$cfg['energy']} energie nodig om deze taak uit te voeren.");
-        }
+        return DB::transaction(function () use ($character, $jobId, $cfg): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        // Set cooldown for dagbesteding
-        $this->cooldownService->setCooldown($character, 'dagbesteding', $cfg['cooldown']);
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'dagbesteding')) {
+                $seconds = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'dagbesteding');
 
-        // Earn money and stats
-        $cashEarned = rand($cfg['min'], $cfg['max']);
-        $this->economyService->addCash($character, $cashEarned);
-        $this->levelService->addXp($character, $cfg['xp']);
-
-        // Track stats
-        $character->dagbesteding_shifts_completed = ($character->dagbesteding_shifts_completed ?? 0) + 1;
-        $character->dagbesteding_earned_total = ($character->dagbesteding_earned_total ?? 0) + $cashEarned;
-
-        $extraMessage = '';
-
-        // Stat gain chance (50% on organic job, capped by level)
-        if (rand(1, 100) <= 50) {
-            $statName = $cfg['stat'];
-            $maxStat = $character->getMaxStatForLevel();
-            if (($character->$statName ?? 10) < $maxStat) {
-                $character->$statName = ($character->$statName ?? 10) + 1;
-                $extraMessage .= ' 💪 Jouw toewijding werpt vruchten af! +1 '.ucfirst($statName).'!';
+                return back()->with('error', "⏳ Werkpauze actief! De zaalwacht stuurt je even terug naar de koffietafel. Wacht nog {$seconds}s of reset direct via een sponsor advertentie.");
             }
-        }
 
-        // Job 4 bonus chance: Found a locker code
-        if ($jobId === 4 && rand(1, 100) <= 20) {
-            $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
-            $extraMessage .= ' 🔑 Tussen het zaagsel vond je een achtergelaten kluiscode (+1 Kluiscode)!';
-        }
+            if (! $this->energyService->consume($lockedCharacter, $cfg['energy'])) {
+                return back()->with('error', "Niet genoeg energie! Je hebt minstens {$cfg['energy']} energie nodig om deze taak uit te voeren.");
+            }
 
-        // Job 5 bonus chance: Found extra cash in bushes
-        if ($jobId === 5 && rand(1, 100) <= 25) {
-            $bonusCash = rand(500, 1500);
-            $this->economyService->addCash($character, $bonusCash);
-            $extraMessage .= ' 🍂 In de struiken vond je een weggewaaid briefje van €'.number_format($bonusCash, 0, ',', '.').'!';
-        }
+            // Set cooldown for dagbesteding
+            $this->cooldownService->setCooldown($lockedCharacter, 'dagbesteding', $cfg['cooldown']);
 
-        $character->save();
+            // Earn money and stats
+            $cashEarned = rand($cfg['min'], $cfg['max']);
+            $this->economyService->addCash($lockedCharacter, $cashEarned);
+            $this->levelService->addXp($lockedCharacter, $cfg['xp']);
 
-        app(DailyBattleService::class)->record($character, 'hustles', 1);
+            // Track stats
+            $lockedCharacter->dagbesteding_shifts_completed = ($lockedCharacter->dagbesteding_shifts_completed ?? 0) + 1;
+            $lockedCharacter->dagbesteding_earned_total = ($lockedCharacter->dagbesteding_earned_total ?? 0) + $cashEarned;
 
-        return back()->with('success', 'Taak succesvol afgerond! Je ontving €'.number_format($cashEarned, 0, ',', '.')." loon en +{$cfg['xp']} XP.{$extraMessage}");
+            $extraMessage = '';
+
+            // Stat gain chance (50% on organic job, capped by level)
+            if (rand(1, 100) <= 50) {
+                $statName = $cfg['stat'];
+                $maxStat = $lockedCharacter->getMaxStatForLevel();
+                if (($lockedCharacter->$statName ?? 10) < $maxStat) {
+                    $lockedCharacter->$statName = ($lockedCharacter->$statName ?? 10) + 1;
+                    $extraMessage .= ' 💪 Jouw toewijding werpt vruchten af! +1 '.ucfirst($statName).'!';
+                }
+            }
+
+            // Job 4 bonus chance: Found a locker code
+            if ($jobId === 4 && rand(1, 100) <= 20) {
+                $lockedCharacter->vault_tokens = ($lockedCharacter->vault_tokens ?? 0) + 1;
+                $extraMessage .= ' 🔑 Tussen het zaagsel vond je een achtergelaten kluiscode (+1 Kluiscode)!';
+            }
+
+            // Job 5 bonus chance: Found extra cash in bushes
+            if ($jobId === 5 && rand(1, 100) <= 25) {
+                $bonusCash = rand(500, 1500);
+                $this->economyService->addCash($lockedCharacter, $bonusCash);
+                $extraMessage .= ' 🍂 In de struiken vond je een weggewaaid briefje van €'.number_format($bonusCash, 0, ',', '.').'!';
+            }
+
+            $lockedCharacter->save();
+
+            app(DailyBattleService::class)->record($lockedCharacter, 'hustles', 1);
+
+            return back()->with('success', 'Taak succesvol afgerond! Je ontving €'.number_format($cashEarned, 0, ',', '.')." loon en +{$cfg['xp']} XP.{$extraMessage}");
+        });
     }
 }

@@ -487,7 +487,7 @@ class GangPropertyCatalog
                 $discountFactor = 1.0 + ($variance * 0.01);
                 $discountedPrice = (int) (round(($prop['price'] * $discountFactor) / 2500) * 2500);
 
-                $token = substr(hash_hmac('sha256', "{$slot}_{$prop['key']}_{$discountedPrice}", config('app.key')), 0, 16);
+                $token = substr(hash_hmac('sha256', "{$slot}_{$prop['key']}_{$discountedPrice}", (string) (config('app.key') ?: 'tbs-gang-prop-secret')), 0, 16);
 
                 $items[] = [
                     'index' => $index,
@@ -695,7 +695,7 @@ class GangPropertyCatalog
 
             $items = [];
             foreach ($selected->values() as $index => $npc) {
-                $token = substr(hash_hmac('sha256', "{$slot}_{$npc['key']}_{$npc['cost']}", config('app.key')), 0, 16);
+                $token = substr(hash_hmac('sha256', "{$slot}_{$npc['key']}_{$npc['cost']}", (string) (config('app.key') ?: 'tbs-gang-npc-secret')), 0, 16);
 
                 $items[] = [
                     'index' => $index,

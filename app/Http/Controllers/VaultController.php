@@ -421,28 +421,33 @@ class VaultController extends Controller
      */
     public function buyCode(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $user = Auth::user();
         $cost = 4;
 
-        if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscode decoderen!');
-        }
+        return DB::transaction(function () use ($user, $cost) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        if ($character->isComatose()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
-        }
+            if ($character->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscode decoderen!');
+            }
 
-        if (($character->vault_tokens ?? 0) < $cost) {
-            return back()->with('error', "Je hebt minimaal {$cost} KluisMunten nodig om de exacte kluiscode te decoderen!");
-        }
+            if ($character->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
-        $target = $this->vaultTarget();
-        $character->vault_tokens -= $cost;
-        $character->save();
+            if (($character->vault_tokens ?? 0) < $cost) {
+                return back()->with('error', "Je hebt minimaal {$cost} KluisMunten nodig om de exacte kluiscode te decoderen!");
+            }
 
-        session(['vault_revealed_code' => $target]);
+            $target = $this->vaultTarget();
+            $character->vault_tokens -= $cost;
+            $character->save();
 
-        return back()->with('success', "Kluiscode gedecodeerd met {$cost} KluisMunten! De geheime code is: {$target}. Toets hem direct in!");
+            session(['vault_revealed_code' => $target]);
+
+            return back()->with('success', "Kluiscode gedecodeerd met {$cost} KluisMunten! De geheime code is: {$target}. Toets hem direct in!");
+        });
     }
 
     /**
@@ -450,32 +455,37 @@ class VaultController extends Controller
      */
     public function buyHint(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $user = Auth::user();
         $cost = 1;
 
-        if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen kluis-tip kopen!');
-        }
+        return DB::transaction(function () use ($user, $cost) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        if ($character->isComatose()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
-        }
+            if ($character->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen kluis-tip kopen!');
+            }
 
-        if (($character->vault_tokens ?? 0) < $cost) {
-            return back()->with('error', "Je hebt minimaal {$cost} KluisMunt nodig voor een tip!");
-        }
+            if ($character->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
-        $target = $this->vaultTarget();
-        $character->vault_tokens -= $cost;
-        $character->save();
+            if (($character->vault_tokens ?? 0) < $cost) {
+                return back()->with('error', "Je hebt minimaal {$cost} KluisMunt nodig voor een tip!");
+            }
 
-        $parity = ($target % 2 === 0) ? 'even getal' : 'oneven getal';
-        $range = ($target <= 5) ? 'tussen 1 en 5' : 'tussen 6 en 10';
-        $hintText = "De cijfercode is een {$parity} en ligt {$range}.";
+            $target = $this->vaultTarget();
+            $character->vault_tokens -= $cost;
+            $character->save();
 
-        session(['vault_bought_hint' => $hintText]);
+            $parity = ($target % 2 === 0) ? 'even getal' : 'oneven getal';
+            $range = ($target <= 5) ? 'tussen 1 en 5' : 'tussen 6 en 10';
+            $hintText = "De cijfercode is een {$parity} en ligt {$range}.";
 
-        return back()->with('success', "Geheime tip gekocht voor 1 KluisMunt: {$hintText}");
+            session(['vault_bought_hint' => $hintText]);
+
+            return back()->with('success', "Geheime tip gekocht voor 1 KluisMunt: {$hintText}");
+        });
     }
 
     /**
@@ -483,27 +493,32 @@ class VaultController extends Controller
      */
     public function buyJammer(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $user = Auth::user();
         $cost = 2;
 
-        if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen Alarm Jammer kopen!');
-        }
+        return DB::transaction(function () use ($user, $cost) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        if ($character->isComatose()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
-        }
+            if ($character->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen Alarm Jammer kopen!');
+            }
 
-        if (($character->vault_tokens ?? 0) < $cost) {
-            return back()->with('error', "Je hebt minimaal {$cost} KluisMunten nodig voor een Alarm Jammer!");
-        }
+            if ($character->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
-        $character->vault_tokens -= $cost;
-        $character->save();
+            if (($character->vault_tokens ?? 0) < $cost) {
+                return back()->with('error', "Je hebt minimaal {$cost} KluisMunten nodig voor een Alarm Jammer!");
+            }
 
-        session(['vault_jammer' => true]);
+            $character->vault_tokens -= $cost;
+            $character->save();
 
-        return back()->with('success', 'Alarm Jammer geactiveerd! Als je 3x faalt, word je NIET naar de isoleercel gestuurd.');
+            session(['vault_jammer' => true]);
+
+            return back()->with('success', 'Alarm Jammer geactiveerd! Als je 3x faalt, word je NIET naar de isoleercel gestuurd.');
+        });
     }
 
     /**

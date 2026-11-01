@@ -53,6 +53,20 @@
         </div>
     </div>
 
+    @if($character->isImprisoned())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-lock text-base text-rose-600 shrink-0"></i>
+        <span>Je zit in de isoleercel en kunt op dit moment niemand afpersen.</span>
+    </div>
+    @endif
+
+    @if($character->isComatose())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-bed-pulse text-base text-rose-600 shrink-0"></i>
+        <span>Je ligt in het ziekenhuis/coma en kunt op dit moment niemand afpersen.</span>
+    </div>
+    @endif
+
     <!-- ENERGY BAR CARD -->
     <div class="flex items-center gap-3.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl px-5 py-3.5 shadow-xs">
         <i class="fa-solid fa-bolt text-emerald-500 text-sm"></i>

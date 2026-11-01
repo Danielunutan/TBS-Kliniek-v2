@@ -92,7 +92,7 @@
                 </div>
                 <p class="text-xs leading-relaxed"
                    :class="sec > 0 && sec <= 1800 ? 'text-amber-900 dark:text-amber-300' : (sec <= 0 ? 'text-rose-900 dark:text-rose-300' : 'text-emerald-800 dark:text-emerald-300')">
-                    Je cel is vergrendeld tot <span class="font-extrabold">{{ $character->protection_until->format('d-m-Y \o\m H:i') }} uur</span> (nog ~{{ $remainingHours }} uur / {{ $remainingMinutes }} min). Andere patiënten kunnen je niet aanvallen of liquideren. Zolang je cel op slot zit, kun je zelf ook niet vechten op de luchtplaats zodat je betaalde beveiliging altijd 100% gegarandeerd actief blijft!
+                    Je cel is vergrendeld tot <span class="font-extrabold">{{ $character->protection_until?->format('d-m-Y \o\m H:i') }} uur</span> (nog ~{{ $remainingHours }} uur / {{ $remainingMinutes }} min). Andere patiënten kunnen je niet aanvallen of liquideren. Zolang je cel op slot zit, kun je zelf ook niet vechten op de luchtplaats zodat je betaalde beveiliging altijd 100% gegarandeerd actief blijft!
                 </p>
                 <p x-show="sec > 0 && sec <= 1800" x-cloak class="text-xs font-extrabold text-amber-800 dark:text-amber-300 flex items-center gap-1.5 pt-0.5">
                     <i class="fa-solid fa-triangle-exclamation"></i>
@@ -191,7 +191,7 @@
                     <i class="fa-solid fa-vest"></i>
                 </div>
                 <div class="min-w-0">
-                    <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">{{ $character->getActiveVestInfo()['name'] ?? 'Kogelwerend Backfire-Vest' }}</div>
+                    <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">{{ data_get($character->getActiveVestInfo(), 'name', 'Kogelwerend Backfire-Vest') }}</div>
                     <div class="text-[11px] text-slate-500 dark:text-slate-400">Tot {{ $character->vest_until?->format('d-m H:i') }} uur</div>
                 </div>
             </div>
@@ -293,7 +293,7 @@
             <div class="md:col-span-4 space-y-1">
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Aantal Uren (1 - 24)</label>
                 <input type="number" min="1" max="24" x-model.number="hours" 
-                       class="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                       class="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
             </div>
 
             <div class="md:col-span-4 space-y-1">

@@ -51,9 +51,15 @@ class ReplyTicketCommand extends Command
             ->orWhere('role', 'owner')
             ->orWhere('role', 'admin')
             ->orWhere('is_staff', true)
-            ->first();
+            ->first() ?? User::first();
 
-        $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
+        if (! $danielUser) {
+            $this->error('Geen staff user gevonden voor auto-reply.');
+
+            return Command::FAILURE;
+        }
+
+        $danielCharacter = $danielUser->character ?? Character::where('name', 'like', '%daniel%')->first() ?? Character::first();
 
         if ($ticket->id == 35 || str_contains(strtolower($ticket->subject), 'verwijder') || str_contains(strtolower($ticket->subject), 'account verqijderen')) {
             $replyMessage = "Beste {$ticket->character?->name},\n\n"

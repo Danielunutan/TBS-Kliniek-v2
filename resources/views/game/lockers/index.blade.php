@@ -70,7 +70,7 @@
             <form method="POST" action="{{ route('cooldown.skip') }}">
                 @csrf
                 <input type="hidden" name="action" value="locker">
-                <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < ($lockerSkipCost ?? 10)) class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-star text-[11px]"></i>
                     <span>Omzeilen ({{ $lockerSkipCost ?? 10 }} Sterren)</span>
                 </button>

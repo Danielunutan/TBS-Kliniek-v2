@@ -157,7 +157,7 @@
                    id="members-search-input"
                    x-model.debounce.150ms="search"
                    placeholder="Zoek patiënt op naam, titel of bende (realtime typen)..."
-                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:bg-white dark:focus:bg-slate-900 transition shadow-inner">
+                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl pl-10 pr-10 py-3 text-base sm:text-sm font-semibold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:bg-white dark:focus:bg-slate-900 transition shadow-inner">
             <button type="button"
                     x-show="search.length > 0"
                     @click="search = ''"

@@ -50,7 +50,7 @@ class EnergyService
             $character->last_energy_refill_at = $now;
             $character->save();
         } else {
-            $secondsElapsed = (int) floor($now->diffInSeconds($lastRefill));
+            $secondsElapsed = (int) floor($lastRefill->diffInSeconds($now));
         }
 
         $regenInterval = match ($character->getSupporterTier()) {
@@ -66,7 +66,9 @@ class EnergyService
             $leftoverSeconds = (int) ($secondsElapsed % $regenInterval);
 
             $newEnergy = min($character->max_energy, $character->energy + $pointsToRegen);
-            $newHealth = min($character->max_health, $character->health + $pointsToRegen);
+            $newHealth = $character->isComatose()
+                ? $character->health
+                : min($character->max_health, $character->health + $pointsToRegen);
 
             $character->energy = $newEnergy;
             $character->health = $newHealth;

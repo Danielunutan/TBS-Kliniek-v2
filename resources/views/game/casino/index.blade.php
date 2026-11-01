@@ -19,6 +19,22 @@
         </div>
     </div>
 
+    @if($character?->isImprisoned())
+        <div class="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 p-4 text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-3">
+            <i class="fa-solid fa-lock text-base text-amber-600 dark:text-amber-400 shrink-0"></i>
+            <div>
+                <span>Je zit in de isoleercel. Je kunt pas weer meespelen in het casino zodra je vrijkomt.</span>
+            </div>
+        </div>
+    @elseif($character?->isComatose())
+        <div class="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-700/60 p-4 text-xs font-bold text-rose-800 dark:text-rose-200 flex items-center gap-3">
+            <i class="fa-solid fa-heart-pulse text-base text-rose-600 dark:text-rose-400 shrink-0"></i>
+            <div>
+                <span>Je verkeert in coma (Code Blauw). Gebruik een {{ \App\Models\Character::REVIVE_SERUM_NAME }} om weer bij bewustzijn te komen.</span>
+            </div>
+        </div>
+    @endif
+
     <!-- Quick Coinflip Game -->
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 text-center max-w-xl mx-auto" x-data="{
         bet: 10,
@@ -83,7 +99,7 @@
                         <span class="text-slate-400 dark:text-slate-500 font-extrabold text-xs">€</span>
                     </div>
                     <input type="number" name="bet" min="10" x-model.number="bet" :max="Math.min(10000000, Math.max(10, cash))" 
-                           class="block w-full pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-500 text-xs font-bold bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition" 
+                           class="block w-full pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-500 text-base sm:text-xs font-bold bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition" 
                            placeholder="Inzet...">
                 </div>
                 <div class="flex items-center gap-1.5 mt-2">

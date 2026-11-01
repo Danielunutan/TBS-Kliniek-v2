@@ -57,12 +57,9 @@ class FriendController extends Controller
         // 24-hour mass message cooldown check
         $canMassMessage = true;
         $massMessageCooldown = 0;
-        if ($character->last_friends_mass_message_at) {
-            $diffHours = $character->last_friends_mass_message_at->diffInHours(now());
-            if ($diffHours < 24) {
-                $canMassMessage = false;
-                $massMessageCooldown = max(1, (int) ceil(24 - $diffHours));
-            }
+        if ($character->last_friends_mass_message_at && $character->last_friends_mass_message_at->copy()->addHours(24)->isFuture()) {
+            $canMassMessage = false;
+            $massMessageCooldown = max(1, (int) ceil(now()->diffInSeconds($character->last_friends_mass_message_at->copy()->addHours(24), false) / 3600));
         }
 
         // Generate custom TBS captcha challenge for giving respect
@@ -346,8 +343,8 @@ class FriendController extends Controller
                 return 'Je kunt alleen respect geven aan geaccepteerde vrienden.';
             }
 
-            if ($lockedFriend->last_respected_at && $lockedFriend->last_respected_at->diffInHours(now()) < 24) {
-                $hoursLeft = max(1, (int) ceil(24 - $lockedFriend->last_respected_at->diffInHours(now())));
+            if ($lockedFriend->last_respected_at && $lockedFriend->last_respected_at->copy()->addHours(24)->isFuture()) {
+                $hoursLeft = max(1, (int) ceil(now()->diffInSeconds($lockedFriend->last_respected_at->copy()->addHours(24), false) / 3600));
 
                 return "Je hebt {$target->name} vandaag al respect gegeven! Wacht nog {$hoursLeft} uur.";
             }
@@ -403,8 +400,8 @@ class FriendController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        if ($character->last_friends_mass_message_at && $character->last_friends_mass_message_at->diffInHours(now()) < 24) {
-            $hoursLeft = max(1, (int) ceil(24 - $character->last_friends_mass_message_at->diffInHours(now())));
+        if ($character->last_friends_mass_message_at && $character->last_friends_mass_message_at->copy()->addHours(24)->isFuture()) {
+            $hoursLeft = max(1, (int) ceil(now()->diffInSeconds($character->last_friends_mass_message_at->copy()->addHours(24), false) / 3600));
 
             return back()->with('error', "⏳ Massabericht naar vrienden kan maar 1x per 24 uur verzonden worden. Wacht nog {$hoursLeft} uur.");
         }
@@ -428,7 +425,7 @@ class FriendController extends Controller
         $canSend = DB::transaction(function () use ($character): bool {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
-            if ($locked->last_friends_mass_message_at && $locked->last_friends_mass_message_at->diffInHours(now()) < 24) {
+            if ($locked->last_friends_mass_message_at && $locked->last_friends_mass_message_at->copy()->addHours(24)->isFuture()) {
                 return false;
             }
 

@@ -173,6 +173,9 @@
             const now = new Date();
             const target = new Date();
             target.setHours(22, 0, 0, 0);
+            if (target <= now) {
+                target.setDate(target.getDate() + 1);
+            }
 
             let diffMs = target.getTime() - now.getTime();
             if (diffMs <= 0) {

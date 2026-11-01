@@ -60,9 +60,9 @@ class AdminModerationController extends Controller
             });
         }
 
-        $activeBans = $activeBansQuery->paginate(10, ['*'], 'bans_page')->withQueryString();
-        $recentWarnings = $warningsQuery->paginate(15, ['*'], 'warnings_page')->withQueryString();
-        $reports = $reportsQuery->paginate(15, ['*'], 'reports_page')->withQueryString();
+        $activeBans = $activeBansQuery->paginate(10, ['*'], 'bans_page')->withQueryString()->appends(['tab' => 'bans']);
+        $recentWarnings = $warningsQuery->paginate(15, ['*'], 'warnings_page')->withQueryString()->appends(['tab' => 'warnings']);
+        $reports = $reportsQuery->paginate(15, ['*'], 'reports_page')->withQueryString()->appends(['tab' => 'reports']);
 
         $totalBannedCount = User::where('is_banned', true)->count();
         $totalWarningsCount = UserWarning::count();

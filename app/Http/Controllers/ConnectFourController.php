@@ -29,8 +29,11 @@ class ConnectFourController extends Controller
      */
     public function index(): View
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
 
         /** @var CharacterConnectFourStat $stat */
         $stat = CharacterConnectFourStat::firstOrCreate(
@@ -72,8 +75,14 @@ class ConnectFourController extends Controller
      */
     public function finishGame(Request $request): JsonResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geen personage gevonden.',
+            ], 403);
+        }
 
         if ($character->isImprisoned()) {
             return response()->json([
@@ -111,9 +120,11 @@ class ConnectFourController extends Controller
                 ->firstOrCreate(['character_id' => $lockedCharacter->id]);
 
             if ($stat->isOnCooldown()) {
+                $adHint = SponsorAdController::areAdsEnabled() ? ' of kijk een sponsor-ad' : '';
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'OOHPA Arjan drinkt even een kop koffie! Wacht op de cooldown of kijk een sponsor-ad om direct door te gaan.',
+                    'message' => "OOHPA Arjan drinkt even een kop koffie! Wacht op de cooldown{$adHint} om direct door te gaan.",
                 ], 422);
             }
 
@@ -262,8 +273,11 @@ class ConnectFourController extends Controller
      */
     public function skipCooldownWithStars(): RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return redirect()->route('onboarding.show');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Je zit in de isoleercel!');

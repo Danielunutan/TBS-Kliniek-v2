@@ -73,28 +73,28 @@
     @if($activeVehicle)
     <div class="rounded-2xl p-6 shadow-xs border border-purple-200/90 dark:border-purple-800/70 relative overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
         <div class="absolute -right-8 -bottom-8 opacity-5 dark:opacity-10 text-9xl text-slate-900 dark:text-white pointer-events-none">
-            <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
+            <i class="fa-solid {{ $activeVehicle->vehicle?->icon ?? 'fa-car' }}"></i>
         </div>
 
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div class="flex items-start gap-4">
                 <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
-                    <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
+                    <i class="fa-solid {{ $activeVehicle->vehicle?->icon ?? 'fa-car' }}"></i>
                 </div>
                 <div class="space-y-1">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Actief Vluchtvoertuig
                         </span>
-                        <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">{{ $activeVehicle->vehicle->type_label }} &bull; {{ $activeVehicle->vehicle->brand }}</span>
-                        @if($activeVehicle->tuned_speed && $activeVehicle->tuned_speed !== $activeVehicle->vehicle->speed_pct)
+                        <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">{{ $activeVehicle->vehicle?->type_label ?? 'Voertuig' }} &bull; {{ $activeVehicle->vehicle?->brand ?? 'Fleet' }}</span>
+                        @if($activeVehicle->tuned_speed && $activeVehicle->tuned_speed !== ($activeVehicle->vehicle?->speed_pct ?? 0))
                             <span class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider">
                                 ⚡ Tuned Engine ({{ $activeVehicle->tuned_speed }}%)
                             </span>
                         @endif
                     </div>
-                    <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">{{ $activeVehicle->vehicle->name }}</h3>
-                    <p class="text-xs text-slate-600 dark:text-slate-400 max-w-xl">{{ $activeVehicle->vehicle->description }}</p>
+                    <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">{{ $activeVehicle->vehicle?->name ?? 'Voertuig' }}</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 max-w-xl">{{ $activeVehicle->vehicle?->description ?? '' }}</p>
                 </div>
             </div>
 
@@ -154,10 +154,11 @@
                      return `${m}:${s}`;
                  },
                  init() {
-                     setInterval(() => {
+                     const timer = setInterval(() => {
                          if (this.secondsLeft > 0) {
                              this.secondsLeft--;
                          } else {
+                             clearInterval(timer);
                              window.location.reload();
                          }
                      }, 1000);
@@ -471,7 +472,7 @@
                     <div class="space-y-3">
                         <div class="flex items-start justify-between gap-2">
                             <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl shrink-0">
-                                <i class="fa-solid {{ $ov->vehicle->icon }}"></i>
+                                <i class="fa-solid {{ $ov->vehicle?->icon ?? 'fa-car' }}"></i>
                             </div>
                             <div>
                                 @if($ov->is_active)
@@ -492,8 +493,8 @@
                         </div>
 
                         <div>
-                            <h4 class="text-sm font-black text-slate-900 dark:text-white">{{ $ov->vehicle->name }}</h4>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $ov->vehicle->brand }} &bull; {{ $ov->total_heists_done }} heists voltooid</p>
+                            <h4 class="text-sm font-black text-slate-900 dark:text-white">{{ $ov->vehicle?->name ?? 'Voertuig' }}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $ov->vehicle?->brand ?? 'Fleet' }} &bull; {{ $ov->total_heists_done }} heists voltooid</p>
                         </div>
 
                         <!-- Conditie & Snelheid -->
@@ -512,8 +513,8 @@
                                 <span class="font-bold">Huidige Topsnelheid:</span>
                                 <span class="font-mono font-black text-slate-900 dark:text-white">
                                     {{ $ov->effective_speed }}%
-                                    @if($ov->tuned_speed && $ov->tuned_speed > $ov->vehicle->speed_pct)
-                                        <span class="text-emerald-500 font-extrabold text-[10px]">(+{{ $ov->tuned_speed - $ov->vehicle->speed_pct }}% Getuned ⚡)</span>
+                                    @if($ov->tuned_speed && $ov->tuned_speed > ($ov->vehicle?->speed_pct ?? 0))
+                                        <span class="text-emerald-500 font-extrabold text-[10px]">(+{{ $ov->tuned_speed - ($ov->vehicle?->speed_pct ?? 0) }}% Getuned ⚡)</span>
                                     @endif
                                 </span>
                             </div>

@@ -28,7 +28,10 @@ class VpnDetectionService
     public function check(string $ip): array
     {
         // Don't check loopback / local IPs
-        if (in_array($ip, ['127.0.0.1', '::1', 'localhost']) || str_starts_with($ip, '192.168.') || str_starts_with($ip, '10.')) {
+        if (
+            in_array($ip, ['127.0.0.1', '::1', 'localhost'], true)
+            || filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false
+        ) {
             return ['is_vpn' => false, 'provider' => null, 'country' => 'NL'];
         }
 

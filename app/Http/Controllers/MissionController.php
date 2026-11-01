@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\Mission;
 use App\Models\User;
 use App\Services\EnergyService;

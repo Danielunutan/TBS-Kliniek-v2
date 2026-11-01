@@ -172,8 +172,7 @@ class DepotController extends Controller
 
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-            $lockedCharacter->cash = ($lockedCharacter->cash ?? 0) + $totalEarned;
-            $lockedCharacter->save();
+            $this->economyService->addCash($lockedCharacter, $totalEarned);
 
             $formattedCash = number_format($totalEarned, 0, ',', '.');
             $returnTab = (str_starts_with((string) $item->slug, 'halloween_') || $item->category === 'special')
@@ -221,8 +220,8 @@ class DepotController extends Controller
             $totalEarned = $pricePerMask * $quantity;
 
             $lockedCharacter->masks -= $quantity;
-            $lockedCharacter->cash = ($lockedCharacter->cash ?? 0) + $totalEarned;
             $lockedCharacter->save();
+            $this->economyService->addCash($lockedCharacter, $totalEarned);
 
             $formattedCash = number_format($totalEarned, 0, ',', '.');
             $used = $lockedCharacter->getStorageUsed();

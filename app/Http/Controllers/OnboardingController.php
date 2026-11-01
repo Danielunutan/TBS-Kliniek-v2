@@ -133,6 +133,11 @@ class OnboardingController extends Controller
             return response()->json(['success' => false, 'message' => 'Afbeelding is te groot (maximaal 5MB).'], 422);
         }
 
+        $imageInfo = @getimagesizefromstring($data);
+        if ($imageInfo === false || ! in_array($imageInfo['mime'], ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            return response()->json(['success' => false, 'message' => 'Ongeldige afbeeldingsdata gedetecteerd.'], 422);
+        }
+
         $ext = $matches[1] === 'jpeg' ? 'jpg' : $matches[1];
         $filename = 'avatar_user_'.$user->id.'_'.time().'_'.Str::random(6).'.'.$ext;
         $uploadDir = public_path('uploads/avatars');

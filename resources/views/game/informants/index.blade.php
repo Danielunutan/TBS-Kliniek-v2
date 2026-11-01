@@ -40,11 +40,11 @@
             <div class="space-y-1">
                 <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase">Typ of kies naam van doelwit</label>
                 <input type="text" x-model="targetName" placeholder="Spelersnaam..."
-                       class="w-full p-2.5 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                       class="w-full p-2.5 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
             </div>
             <div class="space-y-1">
                 <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase">Of selecteer uit actieve patiënten</label>
-                <select @change="targetName = $event.target.value" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                <select @change="targetName = $event.target.value" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     @foreach($patients as $p)
                         <option value="{{ $p->name }}">{{ $p->name }} (Lvl {{ $p->level }})</option>
                     @endforeach

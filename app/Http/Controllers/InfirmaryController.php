@@ -15,6 +15,7 @@ use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class InfirmaryController extends Controller
@@ -85,25 +86,30 @@ class InfirmaryController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'infirmary_take')) {
-            $seconds = $this->cooldownService->getRemainingSeconds($character, 'infirmary_take');
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            return back()->with('error', "⏳ Zuster Ingrid deelt medicijnen uit volgens het doseerschema. Wacht nog {$seconds}s.");
-        }
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'infirmary_take')) {
+                $seconds = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'infirmary_take');
 
-        if ($character->health >= $character->max_health) {
-            return back()->with('error', 'Je gezondheid is al 100%! Je hebt nu geen extra herstelmedicatie nodig.');
-        }
+                return back()->with('error', "⏳ Zuster Ingrid deelt medicijnen uit volgens het doseerschema. Wacht nog {$seconds}s.");
+            }
 
-        $healAmount = 45;
-        $character->health = min($character->max_health, $character->health + $healAmount);
-        $character->last_infirmary_visit_at = now();
-        $character->save();
+            if ($lockedCharacter->health >= $lockedCharacter->max_health) {
+                return back()->with('error', 'Je gezondheid is al 100%! Je hebt nu geen extra herstelmedicatie nodig.');
+            }
 
-        // Set 4 minute cooldown
-        $this->cooldownService->setCooldown($character, 'infirmary_take', 240);
+            $healAmount = 45;
+            $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $healAmount);
+            $lockedCharacter->last_infirmary_visit_at = now();
+            $lockedCharacter->save();
 
-        return back()->with('success', "Je hebt je tablet netjes doorgeslikt onder toeziend oog van zuster Ingrid. +{$healAmount} Gezondheid hersteld!");
+            // Set 4 minute cooldown
+            $this->cooldownService->setCooldown($lockedCharacter, 'infirmary_take', 240);
+
+            return back()->with('success', "Je hebt je tablet netjes doorgeslikt onder toeziend oog van zuster Ingrid. +{$healAmount} Gezondheid hersteld!");
+        });
     }
 
     /**
@@ -123,59 +129,64 @@ class InfirmaryController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'infirmary_palm')) {
-            $seconds = $this->cooldownService->getRemainingSeconds($character, 'infirmary_palm');
-            $mins = ceil($seconds / 60);
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            return back()->with('error', "⏳ Zuster Ingrid houdt je scherp in de gaten! Wacht nog {$seconds}s (~{$mins} min) voor een nieuwe poging of reset direct via een sponsor advertentie.");
-        }
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'infirmary_palm')) {
+                $seconds = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'infirmary_palm');
+                $mins = ceil($seconds / 60);
 
-        $energyCost = 10;
-        if (! $this->energyService->consume($character, $energyCost)) {
-            return back()->with('error', "Niet genoeg energie! Je hebt minstens {$energyCost} energie nodig om vliegensvlug te goochelen.");
-        }
-
-        $statBonus = min(35, (int) floor(($character->getEffectiveDiscipline() * 1.5 + $character->getEffectiveCharisma()) / 10));
-        $palmSuccessRate = min(85, max(30, 50 + $statBonus));
-        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($palmSuccessRate);
-        $this->cooldownService->setCooldown($character, 'infirmary_palm', $cooldownSeconds);
-
-        $roll = rand(1, 100);
-
-        if ($roll <= $palmSuccessRate) {
-            // Determine which pill is successfully palmed
-            $pillRoll = rand(1, 100);
-            if ($pillRoll <= 50) {
-                $pillSlug = 'strip-oxazepam';
-            } elseif ($pillRoll <= 85) {
-                $pillSlug = 'strip-ritalin';
-            } else {
-                $pillSlug = 'haloperidol-forte';
+                return back()->with('error', "⏳ Zuster Ingrid houdt je scherp in de gaten! Wacht nog {$seconds}s (~{$mins} min) voor een nieuwe poging of reset direct via een sponsor advertentie.");
             }
 
-            $pillItem = Item::where('slug', $pillSlug)->firstOrFail();
+            $energyCost = 10;
+            if (! $this->energyService->consume($lockedCharacter, $energyCost)) {
+                return back()->with('error', "Niet genoeg energie! Je hebt minstens {$energyCost} energie nodig om vliegensvlug te goochelen.");
+            }
 
-            $charItem = CharacterItem::firstOrCreate(
-                ['character_id' => $character->id, 'item_id' => $pillItem->id],
-                ['quantity' => 0]
-            );
-            $charItem->increment('quantity', 1);
+            $statBonus = min(35, (int) floor(($lockedCharacter->getEffectiveDiscipline() * 1.5 + $lockedCharacter->getEffectiveCharisma()) / 10));
+            $palmSuccessRate = min(85, max(30, 50 + $statBonus));
+            $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($palmSuccessRate);
+            $this->cooldownService->setCooldown($lockedCharacter, 'infirmary_palm', $cooldownSeconds);
 
-            $character->palmed_pills_count = ($character->palmed_pills_count ?? 0) + 1;
-            $character->addRespect(4);
-            $this->levelService->addXp($character, 50);
-            $character->save();
+            $roll = rand(1, 100);
 
-            app(DailyBattleService::class)->record($character, 'drugs_made', 1);
-            EventDrugsProductionService::record($character, 1, $pillSlug);
+            if ($roll <= $palmSuccessRate) {
+                // Determine which pill is successfully palmed
+                $pillRoll = rand(1, 100);
+                if ($pillRoll <= 50) {
+                    $pillSlug = 'strip-oxazepam';
+                } elseif ($pillRoll <= 85) {
+                    $pillSlug = 'strip-ritalin';
+                } else {
+                    $pillSlug = 'haloperidol-forte';
+                }
 
-            return back()->with('success', "💊 Meesterlijke goocheltruc! Terwijl Ingrid haar stempel zette, hield jij de pil behendig onder je tong. 1x {$pillItem->name} veilig in je zak gestoken (+50 XP, +4 respect)!");
-        }
+                $pillItem = Item::where('slug', $pillSlug)->firstOrFail();
 
-        // Failed: caught by Nurse Ingrid
-        $jailSeconds = 90;
-        $this->prisonService->jailSeconds($character, $jailSeconds, 'Betrapt bij het stiekem achterhouden van zware medicatie onder de tong.');
+                $charItem = CharacterItem::firstOrCreate(
+                    ['character_id' => $lockedCharacter->id, 'item_id' => $pillItem->id],
+                    ['quantity' => 0]
+                );
+                $charItem->increment('quantity', 1);
 
-        return redirect()->route('prison')->with('error', "🚨 BETRAPT! Zuster Ingrid riep: 'Hé, mond open en tong omhoog!' De zaalwacht greep je direct vast. {$jailSeconds} seconden in de isoleercel wegens medicatiesmokkel!");
+                $lockedCharacter->palmed_pills_count = ($lockedCharacter->palmed_pills_count ?? 0) + 1;
+                $lockedCharacter->addRespect(4);
+                $this->levelService->addXp($lockedCharacter, 50);
+                $lockedCharacter->save();
+
+                app(DailyBattleService::class)->record($lockedCharacter, 'drugs_made', 1);
+                EventDrugsProductionService::record($lockedCharacter, 1, $pillSlug);
+
+                return back()->with('success', "💊 Meesterlijke goocheltruc! Terwijl Ingrid haar stempel zette, hield jij de pil behendig onder je tong. 1x {$pillItem->name} veilig in je zak gestoken (+50 XP, +4 respect)!");
+            }
+
+            // Failed: caught by Nurse Ingrid
+            $jailSeconds = 90;
+            $this->prisonService->jailSeconds($lockedCharacter, $jailSeconds, 'Betrapt bij het stiekem achterhouden van zware medicatie onder de tong.');
+
+            return redirect()->route('prison')->with('error', "🚨 BETRAPT! Zuster Ingrid riep: 'Hé, mond open en tong omhoog!' De zaalwacht greep je direct vast. {$jailSeconds} seconden in de isoleercel wegens medicatiesmokkel!");
+        });
     }
 }

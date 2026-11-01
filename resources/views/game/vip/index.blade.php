@@ -28,9 +28,42 @@
         this.showDonateModal = true;
     },
     copyName() {
-        navigator.clipboard.writeText({{ Js::from($character->name) }});
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText({{ Js::from($character->name) }});
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = {{ Js::from($character->name) }};
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try { document.execCommand('copy'); } catch (err) {}
+            document.body.removeChild(textarea);
+        }
         this.copiedName = true;
         setTimeout(() => { this.copiedName = false; }, 3000);
+    },
+    copyCode(code) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code);
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = code;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try { document.execCommand('copy'); } catch (err) {}
+            document.body.removeChild(textarea);
+        }
+        const toastFn = window.tbsToast || window.tbsShowToast;
+        if (toastFn) {
+            toastFn('Koppelcode ' + code + ' gekopieerd naar klembord!', 'success');
+        } else {
+            alert('Koppelcode ' + code + ' gekopieerd naar klembord!');
+        }
     },
     setTab(tab) {
         this.activeTab = tab;
@@ -99,7 +132,7 @@
                 <div class="pt-2 flex flex-wrap items-center gap-2">
                     <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">Jouw koppelcode voor Buy Me a Coffee:</span>
                     <button type="button" 
-                            onclick="navigator.clipboard.writeText('TBS-{{ $character->id }}'); alert('Koppelcode TBS-{{ $character->id }} gekopieerd naar klembord!');"
+                            @click="copyCode(@js('TBS-' . $character->id))"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-mono text-xs font-black shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                         <i class="fa-regular fa-copy text-[11px]"></i>
                         <span>TBS-{{ $character->id }}</span>
@@ -749,6 +782,22 @@
                         </div>
                     </div>
 
+                    @if($character->isComatose())
+                        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-center gap-3">
+                            <i class="fa-solid fa-heart-pulse text-rose-500 text-lg shrink-0"></i>
+                            <div class="text-xs font-bold">
+                                Je ligt momenteel in coma (Code Blauw). Je kunt geen VIP-beloningen inwisselen totdat je bent gereanimeerd.
+                            </div>
+                        </div>
+                    @elseif($character->isImprisoned())
+                        <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 flex items-center gap-3">
+                            <i class="fa-solid fa-lock text-amber-500 text-lg shrink-0"></i>
+                            <div class="text-xs font-bold">
+                                Je zit momenteel in de isoleercel. Je kunt geen VIP-beloningen inwisselen totdat je celstraf voorbij is.
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Rewards Grid -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @php
@@ -807,12 +856,17 @@
                             ];
                         @endphp
 
+                        @php
+                            $isVipActionBlocked = $character->isComatose() || $character->isImprisoned();
+                        @endphp
+
                         @foreach($redeemOptions as $opt)
                             @php 
                                 $isStars = ($opt['currency'] ?? 'vip_points') === 'stars';
                                 $canAfford = $isStars 
                                     ? (($character->stars ?? 0) >= $opt['cost']) 
                                     : (($character->vip_points ?? 0) >= $opt['cost']);
+                                $canRedeem = $canAfford && ! $isVipActionBlocked;
                             @endphp
                             <div class="p-5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col justify-between gap-4">
                                 <div class="flex items-start gap-3.5">
@@ -826,7 +880,7 @@
                                                 <span x-data="{
                                                         left: {{ (int) $character->getCashProtectionRemainingSeconds() }},
                                                         format(s) {
-                                                            if (s <= 0) return 'Verlopen';
+                                                             if (s <= 0) return 'Verlopen';
                                                             const h = Math.floor(s / 3600);
                                                             const m = Math.floor((s % 3600) / 60);
                                                             const sec = Math.floor(s % 60);
@@ -848,7 +902,7 @@
                                                         $vipCashProtS = (int) ($vipCashProtSecs % 60);
                                                     @endphp
                                                     <span class="font-mono tabular-nums" x-text="format(left)">{{ sprintf('%02d:%02d:%02d (%du %dm)', $vipCashProtH, $vipCashProtM, $vipCashProtS, $vipCashProtH, $vipCashProtM) }}</span>
-                                                    <span class="opacity-75">(tot {{ $character->cash_protection_until->format('d-m H:i') }})</span>
+                                                    <span class="opacity-75">(tot {{ $character->cash_protection_until?->format('d-m H:i') }})</span>
                                                 </span>
                                             @endif
                                         </div>
@@ -863,8 +917,8 @@
                                         @csrf
                                         <input type="hidden" name="reward_type" value="{{ $opt['type'] }}">
                                         <button type="submit" 
-                                                {{ ! $canAfford ? 'disabled' : '' }}
-                                                class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white shadow-xs cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
+                                                {{ ! $canRedeem ? 'disabled' : '' }}
+                                                class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 {{ $canRedeem ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white shadow-xs cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                             {{ ($opt['type'] === 'cash_protection' && $character->hasCashProtection()) ? 'Verlengen (+24u)' : 'Inwisselen' }}
                                         </button>
                                     </form>

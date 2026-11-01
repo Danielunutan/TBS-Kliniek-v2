@@ -27,7 +27,7 @@
                     <i class="fa-solid fa-warehouse text-purple-500"></i>
                     <span>Mijn Garage</span>
                 </a>
-                <button @click="createModalOpen = true" class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs flex items-center gap-2 transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
+                <button @click="createModalOpen = true" @disabled($character->isImprisoned() || $character->isComatose()) class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs flex items-center gap-2 transition-all duration-150 active:scale-95 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-plus-circle text-sm text-purple-200"></i>
                     <span>Aanbod Plaatsen</span>
                 </button>
@@ -182,7 +182,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="w-full text-left border-collapse text-xs min-w-[580px]">
                 <thead>
                     <tr class="bg-slate-50/90 dark:bg-slate-800/60 text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
                         <th class="p-4">Aanbod & Categorie</th>
@@ -273,7 +273,7 @@
                                           data-confirm-btn="Intrekken"
                                           data-confirm-type="warning">
                                         @csrf
-                                        <button type="submit" class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer">
+                                        <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                             Annuleren
                                         </button>
                                     </form>
@@ -320,7 +320,7 @@
                     <i class="fa-solid fa-plus-circle text-purple-600"></i>
                     <span>Nieuw Aanbod Plaatsen</span>
                 </h3>
-                <button @click="createModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">
+                <button @click="createModalOpen = false" aria-label="Sluiten" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg cursor-pointer transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -330,7 +330,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Wat wil je verkopen?</label>
-                    <select name="item_type" x-model="selectedType" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <select name="item_type" x-model="selectedType" class="w-full text-base sm:text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <optgroup label="Depot, Garage & Bende">
                             <option value="depot_item">🎒 Depot Item ({{ $inventoryItems->count() }} beschikbaar)</option>
                             <option value="vehicle">🏎️ Garage Voertuig ({{ $ownedVehicles->count() }} beschikbaar)</option>
@@ -355,7 +355,7 @@
                     @if($inventoryItems->count() > 0)
                         <select name="character_item_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             @foreach($inventoryItems as $invItem)
-                                <option value="{{ $invItem->id }}">{{ $invItem->item->name }} (Aantal in depot: {{ $invItem->quantity }}x) - [{{ ucfirst($invItem->item->category ?? 'Item') }}]</option>
+                                <option value="{{ $invItem->id }}">{{ $invItem->item?->name ?? 'Onbekend' }} (Aantal in depot: {{ $invItem->quantity }}x) - [{{ ucfirst($invItem->item?->category ?? 'Item') }}]</option>
                             @endforeach
                         </select>
                     @else
@@ -371,7 +371,7 @@
                     @if($ownedVehicles->count() > 0)
                         <select name="character_vehicle_id" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             @foreach($ownedVehicles as $veh)
-                                <option value="{{ $veh->id }}">{{ $veh->vehicle->name }} (Conditie: {{ $veh->current_condition }}%, Snelheid: {{ $veh->effective_speed }} km/u){{ $veh->is_active ? ' [Actief]' : '' }}</option>
+                                <option value="{{ $veh->id }}">{{ $veh->vehicle?->name ?? 'Onbekend voertuig' }} (Conditie: {{ $veh->current_condition }}%, Snelheid: {{ $veh->effective_speed }} km/u){{ $veh->is_active ? ' [Actief]' : '' }}</option>
                             @endforeach
                         </select>
                         <p class="text-[11px] text-purple-600 dark:text-purple-400">
@@ -428,13 +428,13 @@
                         <input type="number" name="amount" min="1" value="1" 
                                :readonly="['vehicle', 'property', 'vault_codes'].includes(selectedType)" 
                                required 
-                               class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition" 
+                               class="w-full text-base sm:text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition" 
                                :class="{ 'opacity-60 bg-slate-100 dark:bg-slate-800/50': ['vehicle', 'property', 'vault_codes'].includes(selectedType) }">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Vraagprijs</label>
-                        <input type="number" name="price" min="10" max="50000000" value="500" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                        <input type="number" name="price" min="10" max="50000000" value="500" required class="w-full text-base sm:text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     </div>
                 </div>
 
@@ -456,7 +456,7 @@
                     <button @click="createModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
+                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-xs transition-all duration-150 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                         Plaats op Marktplaats
                     </button>
                 </div>

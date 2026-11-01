@@ -233,7 +233,7 @@
                                    name="gang_name" 
                                    value="{{ old('gang_name') }}" 
                                    placeholder="Bijv. Peaky Blinders, Mocro Maffia, Cartel" 
-                                   class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
+                                   class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-base sm:text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
                                    :required="selectedCategory === 'gang_overstap'">
                         </div>
                         @error('gang_name')
@@ -256,7 +256,7 @@
                                    maxlength="4" 
                                    value="{{ old('gang_tag') }}" 
                                    placeholder="PB" 
-                                   class="w-full pl-8 pr-4 py-2.5 uppercase font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
+                                   class="w-full pl-8 pr-4 py-2.5 uppercase font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-base sm:text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
                                    :required="selectedCategory === 'gang_overstap'">
                         </div>
                         @error('gang_tag')
@@ -280,7 +280,7 @@
                                name="external_gang_link" 
                                value="{{ old('external_gang_link') }}" 
                                placeholder="https://www.anderegame.nl/gang/profiel-link-of-pagina" 
-                               class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
+                               class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-base sm:text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
                                :required="selectedCategory === 'gang_overstap'">
                     </div>
                     <p class="text-[11px] text-slate-400 dark:text-slate-500">
@@ -300,7 +300,7 @@
                               name="member_names" 
                               rows="3" 
                               placeholder="Vul hier de gebruikersnamen in van je vrienden die meekomen (gescheiden door komma's of op nieuwe regels). Als ze al geregistreerd zijn in TBS Kliniek ontvangen ze direct VIP!"
-                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y">{{ old('member_names') }}</textarea>
+                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-base sm:text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y">{{ old('member_names') }}</textarea>
                     @error('member_names')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                     @enderror
@@ -315,7 +315,7 @@
                               name="proof_details" 
                               rows="2" 
                               placeholder="Eventuele toelichting of links naar Imgur/screenshot van jullie bendeleden..."
-                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y">{{ old('proof_details') }}</textarea>
+                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-base sm:text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y">{{ old('proof_details') }}</textarea>
                     @error('proof_details')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                     @enderror
@@ -336,7 +336,7 @@
                            name="subject" 
                            value="{{ old('subject') }}" 
                            placeholder="Bijv. Vraag over kluis kraken, of: Foutmelding bij missie 4" 
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
+                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-base sm:text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition"
                            :required="selectedCategory !== 'gang_overstap'">
                     @error('subject')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
@@ -352,7 +352,7 @@
                               name="message" 
                               rows="6" 
                               placeholder="Typ hier je uitgebreide vraag, bug-omschrijving of feedback. Hoe meer details en screenshots, hoe sneller we kunnen helpen!"
-                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y"
+                              class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-base sm:text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y"
                               :required="selectedCategory !== 'gang_overstap'">{{ old('message') }}</textarea>
                     @error('message')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>

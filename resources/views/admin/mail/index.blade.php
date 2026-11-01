@@ -773,6 +773,7 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
     <!-- 4. NIEUW BERICHT / COMPOSE MODAL               -->
     <!-- ============================================== -->
     <div x-show="composeOpen" x-cloak
+         @keydown.escape.window="composeOpen = false"
          class="fixed inset-0 z-50 flex items-center justify-center p-3 pb-24 sm:p-4 lg:pb-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs"
          @click.self="composeOpen = false">
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-2xl w-full shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
@@ -881,6 +882,7 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
     <!-- 5. SERVER SETUP / CREDENTIALS MODAL            -->
     <!-- ============================================== -->
     <div x-show="setupModalOpen" x-cloak
+         @keydown.escape.window="setupModalOpen = false"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs"
          @click.self="setupModalOpen = false">
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl space-y-4 text-xs">

@@ -99,17 +99,23 @@
                 <div class="w-full max-w-sm mt-5 flex flex-col gap-2">
                     <button type="button" 
                             @click="spinWheel()" 
-                            :disabled="spinning || availableSpins <= 0"
+                            :disabled="spinning || availableSpins <= 0 || isImprisoned || isComatose"
                             class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2"
-                            :class="availableSpins > 0 ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none'">
-                        <span x-show="!spinning && availableSpins > 0">
+                            :class="(availableSpins > 0 && !isImprisoned && !isComatose) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none'">
+                        <span x-show="!spinning && isImprisoned">
+                            <i class="fa-solid fa-lock mr-1"></i> In Isoleercel (Niet Beschikbaar)
+                        </span>
+                        <span x-show="!spinning && !isImprisoned && isComatose">
+                            <i class="fa-solid fa-heart-pulse mr-1"></i> In Coma (Niet Beschikbaar)
+                        </span>
+                        <span x-show="!spinning && !isImprisoned && !isComatose && availableSpins > 0">
                             <i class="fa-solid fa-play mr-1"></i>
                             <span x-text="availableSpins > 1 ? ('Gratis Draaien! (' + availableSpins + 'x over)') : (lastPrizeMessage ? 'Nogmaals Gratis Draaien! (1x over)' : 'Gratis Draaien!')"></span>
                         </span>
                         <span x-show="spinning">
                             <i class="fa-solid fa-spinner animate-spin mr-1"></i> Het rad draait...
                         </span>
-                        <span x-show="!spinning && availableSpins <= 0">
+                        <span x-show="!spinning && !isImprisoned && !isComatose && availableSpins <= 0">
                             <i class="fa-solid fa-clock mr-1"></i> Morgen weer beschikbaar
                         </span>
                     </button>
@@ -271,13 +277,21 @@
                 <!-- Claim Button & Window Status -->
                 <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
                     @if($canClaimStreak)
-                    <form action="{{ route('daily.claim-streak') }}" method="POST">
-                        @csrf
-                        <button type="submit" 
-                                class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-gift"></i> Claim Dag {{ $nextStreakDay }} Inlog Bonus!
-                        </button>
-                    </form>
+                        @if($character->isImprisoned() || $character->isComatose())
+                            <button type="button" disabled
+                                    title="Je kunt de inlog bonus niet claimen vanuit de isoleercel of in coma"
+                                    class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-slate-400 bg-slate-200 dark:bg-slate-800 cursor-not-allowed opacity-60 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-lock"></i> Claim Dag {{ $nextStreakDay }} Inlog Bonus ({{ $character->isImprisoned() ? 'In Isoleercel' : 'In Coma' }})
+                            </button>
+                        @else
+                            <form action="{{ route('daily.claim-streak') }}" method="POST">
+                                @csrf
+                                <button type="submit" 
+                                        class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-gift"></i> Claim Dag {{ $nextStreakDay }} Inlog Bonus!
+                                </button>
+                            </form>
+                        @endif
                     <div class="text-center text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-fire text-amber-500 animate-pulse"></i>
                         <span>Inlog bonus is geopend tot 22:30! (Nog <strong x-text="formatTimer(secRemaining)"></strong>)</span>
@@ -320,6 +334,8 @@ function tbsDailyRewards() {
     return {
         spinning: false,
         availableSpins: {{ (int) ($availableSpins ?? 0) }},
+        isImprisoned: {{ $character->isImprisoned() ? 'true' : 'false' }},
+        isComatose: {{ $character->isComatose() ? 'true' : 'false' }},
         lastPrizeMessage: '',
         sectors: @js($sectors ?? []),
         currentAngle: 0,
@@ -408,7 +424,7 @@ function tbsDailyRewards() {
         },
 
         spinWheel() {
-            if (this.spinning || this.availableSpins <= 0) return;
+            if (this.spinning || this.availableSpins <= 0 || this.isImprisoned || this.isComatose) return;
             this.spinning = true;
 
             fetch("{{ route('daily.spin') }}", {

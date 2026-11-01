@@ -205,7 +205,7 @@
                     @csrf
                     <input type="hidden" name="action" value="pickpocket">
                     <button type="submit"
-                            @disabled($character->isImprisoned() || $character->isComatose())
+                            @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < ($ppSkipCost ?? 10))
                             class="btn-star-gold w-full py-2 px-4 rounded-xl text-slate-900 dark:text-white text-xs font-black cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                         ⭐ Wachttijd Afkopen ({{ $ppSkipCost ?? 10 }} Sterren)
                     </button>

@@ -5,6 +5,18 @@
 @section('content')
 <div class="space-y-4 sm:space-y-6">
 
+    @if($character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>
+        <span>Je zit momenteel in de isoleercel. Diefstal en klusjes zijn niet mogelijk.</span>
+    </div>
+    @elseif($character->isComatose() || $character->needsReviveSerum())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-rose-500 text-base shrink-0"></i>
+        <span>Je ligt momenteel op de Intensive Care en kunt geen misdrijven plegen.</span>
+    </div>
+    @endif
+
     <!-- Mobile-First App Hero Banner -->
     <div class="rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-6 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/90 dark:border-slate-800 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -185,7 +197,7 @@
                     @endif
                     <span class="font-medium text-slate-800 dark:text-slate-200 truncate text-[11px] sm:text-xs">{{ $rec->log_message }}</span>
                 </div>
-                <span class="text-[10px] text-slate-400 shrink-0 font-mono">{{ $rec->created_at->diffForHumans() }}</span>
+                <span class="text-[10px] text-slate-400 shrink-0 font-mono">{{ $rec->created_at?->diffForHumans() }}</span>
             </div>
             @empty
             <p class="text-slate-400 dark:text-slate-500 py-3 text-center text-xs">Nog geen diefstallen geregistreerd in je dossier.</p>

@@ -186,12 +186,18 @@
                                         Geclaimd
                                     </span>
                                 @elseif($ms['can_claim'])
-                                    <form method="POST" action="{{ route('battle.milestone', $tier) }}">
-                                        @csrf
-                                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[11px] uppercase shadow-xs transition cursor-pointer">
+                                    @if($character->isComatose() || $character->isImprisoned())
+                                        <button type="button" disabled title="Je kunt geen premies innen vanuit de isoleercel of in coma" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 font-black text-[11px] uppercase cursor-not-allowed opacity-60">
                                             Eis Premie Op
                                         </button>
-                                    </form>
+                                    @else
+                                        <form method="POST" action="{{ route('battle.milestone', $tier) }}">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[11px] uppercase shadow-xs transition cursor-pointer">
+                                                Eis Premie Op
+                                            </button>
+                                        </form>
+                                    @endif
                                 @else
                                     <span class="text-[10px] font-bold text-slate-400 shrink-0">
                                         {{ $ms['progress_pct'] }}%
@@ -242,24 +248,30 @@
                     <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                         Kies één sector waarop jij je vandaag richt. Na vergrendeling telt elke actie in die sector voor <strong>1.5x</strong> mee (en <strong>2.0x</strong> tijdens het spitsuur). Let op: deze keuze staat voor de rest van de dag vast.
                     </p>
-                    <form method="POST" action="{{ route('battle.focus') }}" class="space-y-3">
-                        @csrf
-                        <div>
-                            <label for="focus-category-select" class="text-[11px] font-bold uppercase text-slate-600 dark:text-slate-300 block mb-1">
-                                Selecteer jouw Focus-Sector
-                            </label>
-                            <select id="focus-category-select"
-                                    name="category"
-                                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-white">
-                                @foreach($categories as $catKey => $cat)
-                                    <option value="{{ $catKey }}">{{ $cat['title'] }} ({{ $cat['formula_label'] ?? 'Standaard' }})</option>
-                                @endforeach
-                            </select>
+                    @if($character->isComatose() || $character->isImprisoned())
+                        <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-xl text-xs text-amber-800 dark:text-amber-200 font-bold">
+                            Je kunt momenteel geen focus-sector vergrendelen omdat je in de isoleercel of in coma verkeert.
                         </div>
-                        <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider shadow-xs transition cursor-pointer">
-                            <i class="fa-solid fa-lock mr-1"></i> Vergrendel Focus-Overdrive
-                        </button>
-                    </form>
+                    @else
+                        <form method="POST" action="{{ route('battle.focus') }}" class="space-y-3">
+                            @csrf
+                            <div>
+                                <label for="focus-category-select" class="text-[11px] font-bold uppercase text-slate-600 dark:text-slate-300 block mb-1">
+                                    Selecteer jouw Focus-Sector
+                                </label>
+                                <select id="focus-category-select"
+                                        name="category"
+                                        class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-white">
+                                    @foreach($categories as $catKey => $cat)
+                                        <option value="{{ $catKey }}">{{ $cat['title'] }} ({{ $cat['formula_label'] ?? 'Standaard' }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider shadow-xs transition cursor-pointer">
+                                <i class="fa-solid fa-lock mr-1"></i> Vergrendel Focus-Overdrive
+                            </button>
+                        </form>
+                    @endif
                 @endif
             </div>
 

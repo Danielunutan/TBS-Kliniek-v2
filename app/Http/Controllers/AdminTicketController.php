@@ -178,10 +178,16 @@ class AdminTicketController extends Controller
                 return null;
             }
 
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCharacter) {
+                return null;
+            }
+
             // Leave existing gang if any and return stored vehicles
-            if ($character->gang_id) {
-                $oldGang = Gang::find($character->gang_id);
-                CharacterVehicle::where('character_id', $character->id)
+            if ($lockedCharacter->gang_id) {
+                $oldGang = Gang::find($lockedCharacter->gang_id);
+                CharacterVehicle::where('character_id', $lockedCharacter->id)
                     ->where('in_gang_garage', true)
                     ->update([
                         'in_gang_garage' => false,
@@ -191,15 +197,15 @@ class AdminTicketController extends Controller
                     ]);
 
                 if ($oldGang) {
-                    if ($oldGang->treasurer_id === $character->id) {
+                    if ($oldGang->treasurer_id === $lockedCharacter->id) {
                         $oldGang->treasurer_id = null;
                     }
-                    if ($oldGang->underboss_id === $character->id) {
+                    if ($oldGang->underboss_id === $lockedCharacter->id) {
                         $oldGang->underboss_id = null;
                     }
-                    if ($oldGang->leader_character_id === $character->id) {
+                    if ($oldGang->leader_character_id === $lockedCharacter->id) {
                         $nextLeader = Character::where('gang_id', $oldGang->id)
-                            ->where('id', '!=', $character->id)
+                            ->where('id', '!=', $lockedCharacter->id)
                             ->orderByRaw("CASE WHEN gang_role = 'coleader' THEN 0 ELSE 1 END")
                             ->first();
                         if ($nextLeader) {
@@ -222,16 +228,16 @@ class AdminTicketController extends Controller
                     }
                 }
 
-                $character->gang_id = null;
-                $character->gang_role = 'member';
-                $character->save();
+                $lockedCharacter->gang_id = null;
+                $lockedCharacter->gang_role = 'member';
+                $lockedCharacter->save();
             }
 
             // Create the new Gang
             $newGang = Gang::create([
                 'name' => $gangName,
                 'tag' => $gangTag,
-                'leader_character_id' => $character->id,
+                'leader_character_id' => $lockedCharacter->id,
                 'specialty' => 'Kantine Controle',
                 'description' => 'Officiële overstapbende in TBS Kliniek. Gestart met €'.number_format($bonusCash, 0, ',', '.').' overstapbonus!',
                 'treasury' => $bonusCash,
@@ -240,15 +246,15 @@ class AdminTicketController extends Controller
             ]);
 
             // Assign leader and grant personal VIP as well
-            $character->gang_id = $newGang->id;
-            $character->gang_role = 'leader';
-            $character->last_gang_wage_at = now()->startOfHour();
-            $character->is_vip = true;
-            $leaderBaseExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
-                ? $character->vip_expires_at->copy()
+            $lockedCharacter->gang_id = $newGang->id;
+            $lockedCharacter->gang_role = 'leader';
+            $lockedCharacter->last_gang_wage_at = now()->startOfHour();
+            $lockedCharacter->is_vip = true;
+            $leaderBaseExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                ? $lockedCharacter->vip_expires_at->copy()
                 : now();
-            $character->vip_expires_at = $leaderBaseExpiry->addDays($vipDays);
-            $character->save();
+            $lockedCharacter->vip_expires_at = $leaderBaseExpiry->addDays($vipDays);
+            $lockedCharacter->save();
 
             // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
             $memberNames = $lockedTicket->metadata['member_names'] ?? null;

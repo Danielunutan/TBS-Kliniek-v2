@@ -46,9 +46,26 @@
         </div>
     </div>
 
+    @if($character->isImprisoned())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-lock text-base text-rose-600 shrink-0"></i>
+        <span>Je zit in de isoleercel en kunt op dit moment geen dagbesteding verrichten.</span>
+    </div>
+    @endif
+
+    @if($character->isComatose())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-bed-pulse text-base text-rose-600 shrink-0"></i>
+        <span>Je ligt in het ziekenhuis/coma en kunt op dit moment geen dagbesteding verrichten.</span>
+    </div>
+    @endif
+
     <!-- Active Cooldown Notice -->
     @if($activeCooldown > 0)
-    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div x-data="{ cd: {{ (int) $activeCooldown }} }" 
+         x-init="if (cd > 0) { const t = setInterval(() => { cd--; if (cd <= 0) clearInterval(t); }, 1000); }" 
+         x-show="cd > 0"
+         class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
                 <i class="fa-solid fa-mug-hot"></i>
@@ -56,7 +73,7 @@
             <div>
                 <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Koffiepauze Actief</h4>
                 <p class="text-[11px] text-amber-800 dark:text-amber-300">
-                    De zaalwacht laat je even bijkomen. Wacht nog <strong>{{ $activeCooldown }} seconden</strong> of omzeil direct met Sterren.
+                    De zaalwacht laat je even bijkomen. Wacht nog <strong x-text="cd + ' seconden'">{{ $activeCooldown }} seconden</strong> of omzeil direct met Sterren.
                 </p>
             </div>
         </div>

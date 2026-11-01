@@ -389,60 +389,53 @@ class DatabaseSeeder extends Seeder
      */
     private function seedTestFixtures(): void
     {
-        $gangKantine = Gang::create([
+        $gangKantine = Gang::firstOrCreate(['tag' => 'KB'], [
             'name' => 'De Kantinebende',
-            'tag' => 'KB',
             'description' => 'Wie de frituur beheerst, beheerst de kliniek.',
             'specialty' => 'Geld | Handel | Invloed',
             'emblem' => 'fa-burger',
             'treasury' => 8450,
         ]);
 
-        $gangPlofkippen = Gang::create([
+        $gangPlofkippen = Gang::firstOrCreate(['tag' => 'PP'], [
             'name' => 'De Paarse Plofkippen',
-            'tag' => 'PP',
             'description' => 'Geleid door Yordi de Regelaar.',
             'specialty' => 'Groepsmissies & Invloed',
             'emblem' => 'fa-feather',
             'treasury' => 5200,
         ]);
 
-        $gangHalters = Gang::create([
+        $gangHalters = Gang::firstOrCreate(['tag' => 'IJH'], [
             'name' => 'De IJzeren Halters',
-            'tag' => 'IJH',
             'description' => 'Geleid door Barry Biceps.',
             'specialty' => 'Kracht & Gevechten',
             'emblem' => 'fa-dumbbell',
             'treasury' => 6100,
         ]);
 
-        $gangGerda = Gang::create([
+        $gangGerda = Gang::firstOrCreate(['tag' => 'DAN'], [
             'name' => 'De Administratieve Nachtmerrie',
-            'tag' => 'DAN',
             'description' => 'Directeur Gerda.',
             'specialty' => 'Intelligentie & Strategie',
             'emblem' => 'fa-file-signature',
             'treasury' => 24000,
         ]);
 
-        $gangWasmachine = Gang::create([
+        $gangWasmachine = Gang::firstOrCreate(['tag' => 'WW'], [
             'name' => 'De Wasmachine Warriors',
-            'tag' => 'WW',
             'description' => 'Ome Willem.',
             'specialty' => 'Verzamelen & Geheimen',
             'emblem' => 'fa-soap',
             'treasury' => 3800,
         ]);
 
-        $henkieUser = User::create([
+        $henkieUser = User::firstOrCreate(['email' => 'demo@tbskliniek.nl'], [
             'name' => 'Henkie de Frikandelkoning',
-            'email' => 'demo@tbskliniek.nl',
             'password' => Hash::make('wachtwoord123'),
         ]);
 
-        $henkieChar = Character::create([
+        $henkieChar = Character::firstOrCreate(['name' => 'Henkie'], [
             'user_id' => $henkieUser->id,
-            'name' => 'Henkie',
             'title' => 'Kantinelegende',
             'avatar' => 'characters/henkie.jpg',
             'bio' => 'Henkie de Frikandelkoning.',
@@ -467,10 +460,12 @@ class DatabaseSeeder extends Seeder
             'gang_id' => $gangKantine->id,
         ]);
 
-        $rianneUser = User::create(['name' => 'BakkerieRianne', 'email' => 'rianne@tbskliniek.nl', 'password' => Hash::make('secret')]);
-        $rianneChar = Character::create([
-            'user_id' => $rianneUser->id,
+        $rianneUser = User::firstOrCreate(['email' => 'rianne@tbskliniek.nl'], [
             'name' => 'BakkerieRianne',
+            'password' => Hash::make('secret'),
+        ]);
+        $rianneChar = Character::firstOrCreate(['name' => 'BakkerieRianne'], [
+            'user_id' => $rianneUser->id,
             'title' => 'Broodjeskoningin',
             'avatar' => 'characters/rianne.jpg',
             'bio' => 'Smokkelt stiekem extra saucijzenbroodjes naar binnen.',
@@ -489,10 +484,12 @@ class DatabaseSeeder extends Seeder
             'gang_id' => $gangKantine->id,
         ]);
 
-        $queenUser = User::create(['name' => 'FrikandelQueen', 'email' => 'queen@tbskliniek.nl', 'password' => Hash::make('secret')]);
-        $queenChar = Character::create([
-            'user_id' => $queenUser->id,
+        $queenUser = User::firstOrCreate(['email' => 'queen@tbskliniek.nl'], [
             'name' => 'FrikandelQueen',
+            'password' => Hash::make('secret'),
+        ]);
+        $queenChar = Character::firstOrCreate(['name' => 'FrikandelQueen'], [
+            'user_id' => $queenUser->id,
             'title' => 'Snackbaas',
             'avatar' => 'characters/frikandelqueen.jpg',
             'bio' => 'Niemand raakt de frituurpan aan.',
@@ -511,10 +508,12 @@ class DatabaseSeeder extends Seeder
             'gang_id' => $gangKantine->id,
         ]);
 
-        $moederUser = User::create(['name' => 'MoederJellief', 'email' => 'jellief@tbskliniek.nl', 'password' => Hash::make('secret')]);
-        $moederChar = Character::create([
-            'user_id' => $moederUser->id,
+        $moederUser = User::firstOrCreate(['email' => 'jellief@tbskliniek.nl'], [
             'name' => 'MoederJellief',
+            'password' => Hash::make('secret'),
+        ]);
+        $moederChar = Character::firstOrCreate(['name' => 'MoederJellief'], [
+            'user_id' => $moederUser->id,
             'title' => 'Luchtplaats Veteraan',
             'avatar' => 'characters/avatar-default.png',
             'bio' => 'Gerda kan de pot op.',
@@ -533,10 +532,12 @@ class DatabaseSeeder extends Seeder
             'gang_id' => $gangPlofkippen->id,
         ]);
 
-        $kevinUser = User::create(['name' => 'KoffieKevin', 'email' => 'kevin@tbskliniek.nl', 'password' => Hash::make('secret')]);
-        $kevinChar = Character::create([
-            'user_id' => $kevinUser->id,
+        $kevinUser = User::firstOrCreate(['email' => 'kevin@tbskliniek.nl'], [
             'name' => 'KoffieKevin',
+            'password' => Hash::make('secret'),
+        ]);
+        $kevinChar = Character::firstOrCreate(['name' => 'KoffieKevin'], [
+            'user_id' => $kevinUser->id,
             'title' => 'Automaatmeester',
             'avatar' => 'characters/avatar-default.png',
             'bio' => 'Kent alle kliniekroddels bij de koffiehoek.',

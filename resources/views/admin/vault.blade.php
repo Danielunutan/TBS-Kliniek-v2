@@ -20,7 +20,7 @@
                 <div class="text-center">
                     <span class="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 block">ACTIEVE CODE</span>
                     <span class="text-3xl sm:text-4xl font-mono font-black tracking-widest text-purple-700 dark:text-purple-400">
-                        {{ $settings['vault_code'] }}
+                        {{ $settings['vault_code'] ?? '0000' }}
                     </span>
                 </div>
                 <form action="{{ route('admin.vault.randomize') }}" method="POST">
@@ -53,14 +53,14 @@
                 <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-4">
                     <label class="text-xs font-black uppercase text-slate-900 dark:text-white block mb-1">Handmatige Kluiscode</label>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">Pas de code direct aan naar eigen wens.</p>
-                    <input type="text" name="vault_code" value="{{ $settings['vault_code'] }}" maxlength="10" 
+                    <input type="text" name="vault_code" value="{{ old('vault_code', $settings['vault_code'] ?? '0000') }}" maxlength="10" 
                            class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-black text-purple-600 dark:text-purple-400 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-4">
                     <label class="text-xs font-black uppercase text-slate-900 dark:text-white block mb-1">Kluis Hoofdprijs Cash (€)</label>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">Contante jackpot voor het succesvol kraken.</p>
-                    <input type="number" name="vault_reward_cash" value="{{ $settings['vault_reward_cash'] }}" min="0" 
+                    <input type="number" name="vault_reward_cash" value="{{ old('vault_reward_cash', $settings['vault_reward_cash'] ?? 0) }}" min="0" 
                            class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-black text-emerald-600 dark:text-emerald-400 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
             </div>
@@ -68,25 +68,25 @@
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-4">
                     <label class="text-xs font-black uppercase text-slate-900 dark:text-white block mb-1">KluisMunten</label>
-                    <input type="number" name="vault_reward_tokens" value="{{ $settings['vault_reward_tokens'] }}" min="0" 
+                    <input type="number" name="vault_reward_tokens" value="{{ old('vault_reward_tokens', $settings['vault_reward_tokens'] ?? 0) }}" min="0" 
                            class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-black text-purple-600 dark:text-purple-400 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-4">
                     <label class="text-xs font-black uppercase text-slate-900 dark:text-white block mb-1">Respect Bonus</label>
-                    <input type="number" name="vault_reward_respect" value="{{ $settings['vault_reward_respect'] }}" min="0" 
+                    <input type="number" name="vault_reward_respect" value="{{ old('vault_reward_respect', $settings['vault_reward_respect'] ?? 0) }}" min="0" 
                            class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-black text-purple-600 dark:text-purple-400 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-4">
                     <label class="text-xs font-black uppercase text-slate-900 dark:text-white block mb-1">Hint Prijs (€)</label>
-                    <input type="number" name="vault_hint_cost" value="{{ $settings['vault_hint_cost'] }}" min="0" 
+                    <input type="number" name="vault_hint_cost" value="{{ old('vault_hint_cost', $settings['vault_hint_cost'] ?? 0) }}" min="0" 
                            class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-black text-purple-600 dark:text-purple-400 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-4">
                     <label class="text-xs font-black uppercase text-slate-900 dark:text-white block mb-1">Jammer Prijs (€)</label>
-                    <input type="number" name="vault_jammer_cost" value="{{ $settings['vault_jammer_cost'] }}" min="0" 
+                    <input type="number" name="vault_jammer_cost" value="{{ old('vault_jammer_cost', $settings['vault_jammer_cost'] ?? 0) }}" min="0" 
                            class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-black text-purple-600 dark:text-purple-400 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
             </div>

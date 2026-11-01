@@ -312,10 +312,16 @@ class GangPropertyController extends Controller
 
         // Check if purchased via rotating showroom offer with valid token & discount
         if ($request->filled('token') && $request->filled('dynamic_price')) {
+            $dynPrice = (int) $request->input('dynamic_price');
             $slot = (int) floor(time() / 1800);
-            $expectedToken = substr(hash_hmac('sha256', "{$slot}_{$propertyKey}_{$request->input('dynamic_price')}", config('app.key')), 0, 16);
-            if ($request->input('token') === $expectedToken) {
-                $price = (int) $request->input('dynamic_price');
+            $tokenCurrent = substr(hash_hmac('sha256', "{$slot}_{$propertyKey}_{$dynPrice}", config('app.key')), 0, 16);
+            $prevSlot = $slot - 1;
+            $tokenPrev = substr(hash_hmac('sha256', "{$prevSlot}_{$propertyKey}_{$dynPrice}", config('app.key')), 0, 16);
+
+            if ($request->input('token') === $tokenCurrent || ($request->input('token') === $tokenPrev && (time() % 1800) < 60)) {
+                $price = $dynPrice;
+            } else {
+                return back()->with('error', 'Deze tijdelijke showroom aanbieding is verlopen. Vernieuw de pagina voor de actuele aanbiedingen.');
             }
         }
 

@@ -43,7 +43,7 @@
                     <tr>
                         <td style="padding: 32px 36px 28px 36px;">
                             <p style="font-size: 16px; line-height: 1.6; color: #0f172a; margin: 0 0 16px 0;">
-                                Hallo <strong style="color: #6b21a8;">{{ $user->name }}</strong>,
+                                Hallo <strong style="color: #6b21a8;">{{ $user?->name ?? 'Speler' }}</strong>,
                             </p>
                             <p style="font-size: 14px; line-height: 1.7; color: #475569; margin: 0 0 24px 0;">
                                 Om jouw registratie bij de TBS Kliniek af te ronden en direct toegang te krijgen tot de afdeling en het spel, heb je onderstaande verificatiecode nodig:
@@ -60,7 +60,7 @@
                                             {{ $code }}
                                         </div>
                                         <div style="margin-top: 14px; font-size: 12px; font-weight: 700; color: #b91c1c; display: inline-block; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 5px 14px;">
-                                            ⏱️ Deze code verloopt na 30 minuten (tot {{ $expiresAt->format('H:i') }} uur)
+                                            ⏱️ Deze code verloopt na 30 minuten{{ (isset($expiresAt) && $expiresAt instanceof \Carbon\CarbonInterface) ? ' (tot ' . $expiresAt->format('H:i') . ' uur)' : '' }}
                                         </div>
                                     </td>
                                 </tr>

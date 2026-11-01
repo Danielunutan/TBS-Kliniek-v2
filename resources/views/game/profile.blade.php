@@ -14,24 +14,27 @@
     $allowedCustomTabs = ['sticker', 'name_style', 'frame', 'theme', 'title', 'bio'];
     $rawCustomTab = (string) request('custom_tab', 'sticker');
     $safeCustomTab = in_array($rawCustomTab, $allowedCustomTabs, true) ? $rawCustomTab : 'sticker';
+
+    $recentVisitors = $recentVisitors ?? collect();
+    $recentlyVisited = $recentlyVisited ?? collect();
 @endphp
 <div class="space-y-6" x-data="{ 
     avatarModalOpen: false, 
     bioModalOpen: false, 
     titleModalOpen: false,
     customizeModalOpen: false,
-    activeCustomTab: '{{ $safeCustomTab }}',
+    activeCustomTab: @js($safeCustomTab),
     staffWarnModalOpen: false,
     staffBanModalOpen: false,
-    activeTab: '{{ $safeProfileTab }}',
-    selectedSticker: '{{ $profileCharacter->profile_sticker ?? 'none' }}',
-    selectedTheme: '{{ $profileCharacter->profile_bg_theme ?? 'default' }}',
-    selectedColor: '{{ $profileCharacter->profile_color ?: 'purple' }}',
-    selectedTitle: '{{ $profileCharacter->title ?? 'Modelpatiënt' }}',
-    selectedBorder: '{{ $profileCharacter->equipped_border ?? 'none' }}',
-    selectedNameColor: '{{ $profileCharacter->getCustomNameColor() ?? '' }}',
-    selectedNameGradient: '{{ $profileCharacter->getCustomNameGradient() ?? 'none' }}',
-    selectedNameGlow: '{{ $profileCharacter->getCustomNameGlow() ?? 'none' }}',
+    activeTab: @js($safeProfileTab),
+    selectedSticker: @js($profileCharacter->profile_sticker ?? 'none'),
+    selectedTheme: @js($profileCharacter->profile_bg_theme ?? 'default'),
+    selectedColor: @js($profileCharacter->profile_color ?: 'purple'),
+    selectedTitle: @js($profileCharacter->title ?? 'Modelpatiënt'),
+    selectedBorder: @js($profileCharacter->equipped_border ?? 'none'),
+    selectedNameColor: @js($profileCharacter->getCustomNameColor() ?? ''),
+    selectedNameGradient: @js($profileCharacter->getCustomNameGradient() ?? 'none'),
+    selectedNameGlow: @js($profileCharacter->getCustomNameGlow() ?? 'none'),
     selectedSparkle: {{ $profileCharacter->isSparkleActive() ? 'true' : 'false' }},
     gradientMap: @js(collect($nameGradientCatalog)->map(fn($g) => ['css' => $g['css'], 'glow' => $g['glow']])),
     colorGlowMap: @js(collect($nameColorCatalog)->map(fn($c) => $c['glow'])),
@@ -218,12 +221,12 @@
     @endif
 
     <!-- Profile Header Card (Customized Theme & Background) -->
-    <div class="{{ $activeTheme['bg_class'] }} rounded-2xl shadow-sm border overflow-hidden relative transition-all duration-300">
+    <div class="{{ $activeTheme['bg_class'] ?? 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800' }} rounded-2xl shadow-sm border overflow-hidden relative transition-all duration-300">
         <!-- Ambient Glowing Background Light -->
-        <div class="absolute -right-16 -top-16 w-64 h-64 {{ $activeTheme['glow_class'] }} rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -right-16 -top-16 w-64 h-64 {{ $activeTheme['glow_class'] ?? 'bg-purple-500/10' }} rounded-full blur-3xl pointer-events-none"></div>
 
         <!-- Dynamic Theme Accent Bar -->
-        <div class="h-2 w-full {{ $activeTheme['bar_class'] }}"></div>
+        <div class="h-2 w-full {{ $activeTheme['bar_class'] ?? 'bg-purple-600' }}"></div>
 
         <div class="p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10">
             
@@ -405,7 +408,10 @@
                         @if(! $hasGivenRespectToday)
                         <form action="{{ route('profile.respect', $profileCharacter->name) }}" method="POST">
                             @csrf
-                            <button type="submit" class="px-3.5 py-2 text-xs font-black bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer" title="Bied een sigaret & respectpunt aan (1x per 24 uur)">
+                            <button type="submit"
+                                    @disabled(Auth::user()->character->isImprisoned() || Auth::user()->character->isComatose())
+                                    class="px-3.5 py-2 text-xs font-black {{ Auth::user()->character->isImprisoned() || Auth::user()->character->isComatose() ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer' }} rounded-xl shadow-xs transition flex items-center gap-1.5"
+                                    title="Bied een sigaret & respectpunt aan (1x per 24 uur)">
                                 <i class="fa-solid fa-smoking text-amber-100"></i>
                                 <span>Geef Respect (+1)</span>
                             </button>
@@ -418,14 +424,23 @@
                         @endif
 
                         <!-- Direct Steal Button leading to Respectlijst Arena suspense screen -->
+                        @php
+                            $cannotRob = Auth::user()->character->isImprisoned()
+                                || Auth::user()->character->isComatose()
+                                || Auth::user()->character->energy < 20
+                                || $profileCharacter->isImprisoned()
+                                || $profileCharacter->isComatose()
+                                || $profileCharacter->hasCashProtection()
+                                || $profileCharacter->isProtected();
+                        @endphp
                         <form action="{{ route('fight.attack') }}" method="POST" class="inline-block">
                             @csrf
                             <input type="hidden" name="opponent_id" value="{{ $profileCharacter->id }}">
                             <input type="hidden" name="from_profile" value="1">
                             
                             <button type="submit" 
-                                    {{ Auth::user()->character->isImprisoned() || Auth::user()->character->isComatose() || Auth::user()->character->energy < 20 ? 'disabled' : '' }}
-                                    class="px-4 py-2 text-xs font-black rounded-xl transition shadow-xs flex items-center gap-2 {{ Auth::user()->character->isImprisoned() || Auth::user()->character->isComatose() || Auth::user()->character->energy < 20 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 active:scale-95 text-white cursor-pointer' }}"
+                                    @disabled($cannotRob)
+                                    class="px-4 py-2 text-xs font-black rounded-xl transition shadow-xs flex items-center gap-2 {{ $cannotRob ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 active:scale-95 text-white cursor-pointer' }}"
                                     title="Overmeester en beroof {{ $profileCharacter->name }} van contant geld (20 energie)">
                                 <i class="fa-solid fa-mask"></i>
                                 <span>Beroof Patiënt (€{{ number_format($profileCharacter->cash, 0, ',', '.') }})</span>
@@ -447,14 +462,15 @@
                 <!-- XP Bar -->
                 @php
                     $lvlService = app(\App\Services\LevelService::class);
-                    $reqXp = $lvlService->getXpRequiredForNextLevel($profileCharacter->level);
-                    $pctXp = min(100, max(0, round(($profileCharacter->xp / max(1, $reqXp)) * 100)));
+                    $profileLvl = (int) ($profileCharacter->level ?? 1);
+                    $reqXp = $lvlService->getXpRequiredForNextLevel($profileLvl);
+                    $pctXp = min(100, max(0, round((($profileCharacter->xp ?? 0) / max(1, $reqXp)) * 100)));
                     $isDarkCard = ($activeTheme['key'] ?? 'default') !== 'default';
                 @endphp
                 <div class="flex flex-col gap-1.5 mb-4 md:w-3/4">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="font-bold {{ $isDarkCard ? 'text-slate-300' : 'text-slate-400 dark:text-slate-400' }} uppercase text-[10px] tracking-wider">Voortgang naar Level {{ $profileCharacter->level + 1 }}</span>
-                        <span class="font-black {{ $isDarkCard ? 'text-white' : 'text-slate-700 dark:text-white' }}">{{ number_format($profileCharacter->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP ({{ $pctXp }}%)</span>
+                        <span class="font-bold {{ $isDarkCard ? 'text-slate-300' : 'text-slate-400 dark:text-slate-400' }} uppercase text-[10px] tracking-wider">Voortgang naar Level {{ $profileLvl + 1 }}</span>
+                        <span class="font-black {{ $isDarkCard ? 'text-white' : 'text-slate-700 dark:text-white' }}">{{ number_format($profileCharacter->xp ?? 0, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP ({{ $pctXp }}%)</span>
                     </div>
                     <div class="h-2.5 {{ $isDarkCard ? 'bg-black/40 border-white/10' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700' }} rounded-full overflow-hidden border p-0.5 shadow-inner">
                         <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500 shadow-sm" style="width: {{ $pctXp }}%"></div>
@@ -2133,9 +2149,9 @@
                     </label>
                     <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
                         @foreach($availableTitles as $tDef)
-                            <label @if($tDef['unlocked']) @click="selectedTitle = '{{ addslashes($tDef['id']) }}'" @endif
+                            <label @if($tDef['unlocked']) @click="selectedTitle = @js($tDef['id'])" @endif
                                    class="p-3 rounded-2xl border-2 transition flex items-center justify-between gap-3"
-                                   :class="!{{ $tDef['unlocked'] ? 'true' : 'false' }} ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800' : (selectedTitle === '{{ addslashes($tDef['id']) }}' ? 'cursor-pointer border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 ring-2 ring-purple-500/50' : 'cursor-pointer border-slate-200 dark:border-slate-800 hover:border-purple-300')">
+                                   :class="!{{ $tDef['unlocked'] ? 'true' : 'false' }} ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800' : (selectedTitle === @js($tDef['id']) ? 'cursor-pointer border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 ring-2 ring-purple-500/50' : 'cursor-pointer border-slate-200 dark:border-slate-800 hover:border-purple-300')">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <input type="radio" name="title" value="{{ $tDef['id'] }}" x-model="selectedTitle" {{ !$tDef['unlocked'] ? 'disabled' : '' }} class="sr-only">
                                     <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs shrink-0">
@@ -2147,10 +2163,10 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <span x-show="selectedTitle === '{{ addslashes($tDef['id']) }}'" class="text-[10px] font-black text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                                    <span x-show="selectedTitle === @js($tDef['id'])" class="text-[10px] font-black text-purple-600 dark:text-purple-400 flex items-center gap-1">
                                         <i class="fa-solid fa-circle-check"></i> Geselecteerd
                                     </span>
-                                    <span x-show="selectedTitle !== '{{ addslashes($tDef['id']) }}'">
+                                    <span x-show="selectedTitle !== @js($tDef['id'])">
                                         @if($tDef['unlocked'])
                                             <span class="text-[10px] font-black text-emerald-600">Beschikbaar</span>
                                         @else

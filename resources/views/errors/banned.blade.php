@@ -2,6 +2,10 @@
 
 @section('title', 'Toegang Ontzegd - Account Verbannen | TBS Kliniek')
 
+@php
+    $u = $user ?? auth()->user();
+@endphp
+
 @section('content')
 <div class="max-w-2xl mx-auto py-6 sm:py-12 px-4">
     <div class="bg-white dark:bg-slate-900 border-2 border-rose-500/40 dark:border-rose-500/50 rounded-2xl p-6 sm:p-10 shadow-xs relative overflow-hidden text-center space-y-6">
@@ -28,7 +32,7 @@
                 Toegang Ontzegd tot de Kliniek
             </h1>
             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
-                Je patiëntaccount (<strong>{{ $user->character?->name ?? $user->name }}</strong>) is door de zaalwacht of directie van TBS Kliniek uitgesloten van deelname wegens het schenden van de huisregels.
+                Je patiëntaccount (<strong>{{ $u?->character?->name ?? $u?->name ?? 'Speler' }}</strong>) is door de zaalwacht of directie van TBS Kliniek uitgesloten van deelname wegens het schenden van de huisregels.
             </p>
         </div>
 
@@ -39,15 +43,15 @@
                     <i class="fa-solid fa-file-shield"></i> Dossier Sanctie Overzicht
                 </span>
                 <span class="text-[10px] font-mono text-rose-700 dark:text-rose-400 font-bold">
-                    ID #{{ $user->id }}
+                    ID #{{ $u?->id ?? '?' }}
                 </span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                     <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Status Verbanning</span>
-                    <span class="font-extrabold {{ $user->banned_until ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400' }}">
-                        @if($user->banned_until)
+                    <span class="font-extrabold {{ $u?->banned_until ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400' }}">
+                        @if($u?->banned_until)
                             <i class="fa-solid fa-hourglass-half mr-1"></i> Tijdelijk uitgesloten
                         @else
                             <i class="fa-solid fa-skull-crossbones mr-1"></i> Definitief / Permanent
@@ -58,9 +62,9 @@
                 <div>
                     <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Geldig Tot</span>
                     <span class="font-bold text-slate-800 dark:text-slate-200">
-                        @if($user->banned_until)
-                            {{ $user->banned_until->locale('nl')->isoFormat('D MMMM YYYY [om] HH:mm') }}
-                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block">({{ $user->banned_until->diffForHumans() }})</span>
+                        @if($u?->banned_until)
+                            {{ $u->banned_until->locale('nl')->isoFormat('D MMMM YYYY [om] HH:mm') }}
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block">({{ $u->banned_until->diffForHumans() }})</span>
                         @else
                             Levenslange isolatie (Permanent)
                         @endif
@@ -71,7 +75,7 @@
             <div class="pt-2 border-t border-rose-200/50 dark:border-rose-900/30">
                 <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">Opgegeven Reden:</span>
                 <div class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-rose-200/80 dark:border-rose-900/60 text-xs font-semibold text-rose-950 dark:text-rose-200 leading-relaxed italic">
-                    "{{ $user->ban_reason ?: 'Geen specifieke toelichting verstrekt door beheer.' }}"
+                    "{{ $u?->ban_reason ?: 'Geen specifieke toelichting verstrekt door beheer.' }}"
                 </div>
             </div>
         </div>

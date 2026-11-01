@@ -61,9 +61,9 @@
             </div>
 
             <div class="text-right text-xs text-slate-400 dark:text-slate-500 font-medium shrink-0">
-                <div>Aangemaakt: <strong class="text-slate-700 dark:text-slate-300">{{ $ticket->created_at->format('d-m-Y H:i') }}</strong></div>
+                <div>Aangemaakt: <strong class="text-slate-700 dark:text-slate-300">{{ $ticket->created_at?->format('d-m-Y H:i') }}</strong></div>
                 @if($ticket->closed_at)
-                <div class="text-rose-600 dark:text-rose-400 font-bold mt-0.5">Gesloten op: {{ $ticket->closed_at->format('d-m-Y H:i') }}</div>
+                <div class="text-rose-600 dark:text-rose-400 font-bold mt-0.5">Gesloten op: {{ $ticket->closed_at?->format('d-m-Y H:i') }}</div>
                 @endif
             </div>
         </div>
@@ -119,8 +119,8 @@
                 </div>
 
                 <div class="text-xs text-slate-400 dark:text-slate-500 font-mono">
-                    {{ $msg->created_at->format('d-m-Y H:i') }}
-                    <span class="hidden sm:inline">({{ $msg->created_at->diffForHumans() }})</span>
+                    {{ $msg->created_at?->format('d-m-Y H:i') }}
+                    <span class="hidden sm:inline">({{ $msg->created_at?->diffForHumans() }})</span>
                 </div>
             </div>
 

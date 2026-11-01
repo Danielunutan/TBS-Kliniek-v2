@@ -3,6 +3,18 @@
 @section('content')
 <div class="space-y-6">
 
+    @if($character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>
+        <span>Je zit momenteel in de isoleercel. Je hebt geen toegang tot je eigen cel en de uitbraaktunnel.</span>
+    </div>
+    @elseif($character->isComatose() || $character->needsReviveSerum())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-rose-500 text-base shrink-0"></i>
+        <span>Je ligt momenteel op de Intensive Care en kunt niet graven aan de tunnel.</span>
+    </div>
+    @endif
+
     <!-- Top Header Banner (TBS Kliniek Website Styling) -->
     <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">

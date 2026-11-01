@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\NewsArticle;
 use App\Models\NewsComment;
 use App\Models\User;
@@ -59,6 +60,7 @@ class NewsController extends Controller
         $this->energyService->refresh($character);
 
         $article = NewsArticle::with(['author.gang', 'author.user'])
+            ->withCount('comments')
             ->where('slug', $slug)
             ->where('is_published', true)
             ->firstOrFail();

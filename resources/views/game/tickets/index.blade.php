@@ -134,7 +134,7 @@
                             @endif
                         </td>
                         <td class="py-3.5 px-4 text-center text-slate-500 dark:text-slate-400 text-[11px]">
-                            {{ $ticket->updated_at->diffForHumans() }}
+                            {{ $ticket->updated_at?->diffForHumans() }}
                         </td>
                         <td class="py-3.5 px-4 text-right">
                             @if($ticket->status === 'beantwoord')

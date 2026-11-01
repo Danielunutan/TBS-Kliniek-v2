@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('characters', function (Blueprint $table) {
-            $table->json('unlocked_widgets')->nullable()->after('stars');
-        });
+        if (Schema::hasTable('characters') && ! Schema::hasColumn('characters', 'unlocked_widgets')) {
+            Schema::table('characters', function (Blueprint $table) {
+                $table->json('unlocked_widgets')->nullable()->after('stars');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('characters', function (Blueprint $table) {
-            $table->dropColumn('unlocked_widgets');
-        });
+        if (Schema::hasTable('characters') && Schema::hasColumn('characters', 'unlocked_widgets')) {
+            Schema::table('characters', function (Blueprint $table) {
+                $table->dropColumn('unlocked_widgets');
+            });
+        }
     }
 };

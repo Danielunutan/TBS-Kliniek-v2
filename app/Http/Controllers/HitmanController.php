@@ -522,14 +522,10 @@ class HitmanController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen liquidatieopdrachten uitvoeren!');
         }
 
-        if ($character->hasIsolationProtection()) {
-            if (! $request->boolean('confirm_break_isolation')) {
-                $remaining = $character->protection_until->diffForHumans(null, true);
+        if ($character->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
+            $remaining = $character->protection_until->diffForHumans(null, true);
 
-                return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een contract uit te zetten.");
-            }
-
-            $character->breakProtection();
+            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een contract uit te zetten.");
         }
 
         if ($character->needsReviveSerum()) {
@@ -640,14 +636,10 @@ class HitmanController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand liquideren!');
         }
 
-        if ($attacker->hasIsolationProtection()) {
-            if (! $request->boolean('confirm_break_isolation')) {
-                $remaining = $attacker->protection_until->diffForHumans(null, true);
+        if ($attacker->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
+            $remaining = $attacker->protection_until->diffForHumans(null, true);
 
-                return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een liquidatie uit te voeren.");
-            }
-
-            $attacker->breakProtection();
+            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een liquidatie uit te voeren.");
         }
 
         if ($attacker->needsReviveSerum()) {

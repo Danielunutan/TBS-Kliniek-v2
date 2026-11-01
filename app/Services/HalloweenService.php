@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Character;
 use App\Models\HalloweenQuestProgress;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 
 class HalloweenService
 {
@@ -340,7 +341,7 @@ class HalloweenService
      */
     public static function record(Character $character, string $category, int $count = 1): void
     {
-        if (! self::isEventActive()) {
+        if ($count <= 0 || ! self::isEventActive()) {
             return;
         }
 
@@ -369,17 +370,28 @@ class HalloweenService
      */
     private static function incrementProgress(Character $character, array $quest, string $periodKey, int $amount): void
     {
-        $record = HalloweenQuestProgress::firstOrCreate([
-            'character_id' => $character->id,
-            'quest_key' => $quest['key'],
-            'period_key' => $periodKey,
-        ], [
-            'current_count' => 0,
-            'target_count' => $quest['target'],
-            'is_claimed' => false,
-        ]);
+        if ($amount <= 0) {
+            return;
+        }
 
-        if (! $record->is_claimed) {
+        try {
+            $record = HalloweenQuestProgress::firstOrCreate([
+                'character_id' => $character->id,
+                'quest_key' => $quest['key'],
+                'period_key' => $periodKey,
+            ], [
+                'current_count' => 0,
+                'target_count' => $quest['target'],
+                'is_claimed' => false,
+            ]);
+        } catch (QueryException) {
+            $record = HalloweenQuestProgress::where('character_id', $character->id)
+                ->where('quest_key', $quest['key'])
+                ->where('period_key', $periodKey)
+                ->first();
+        }
+
+        if ($record && ! $record->is_claimed) {
             $record->current_count = min($quest['target'], $record->current_count + $amount);
             $record->save();
         }

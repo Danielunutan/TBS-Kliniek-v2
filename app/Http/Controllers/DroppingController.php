@@ -15,6 +15,7 @@ use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DroppingController extends Controller
@@ -72,89 +73,94 @@ class DroppingController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'dropping_tennisball')) {
-            $remaining = ceil($this->cooldownService->getRemainingSeconds($character, 'dropping_tennisball') / 60).' minuten';
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            return back()->with('error', "De luchtplaats wordt scherp in de gaten gehouden. Wacht nog {$remaining} tot de volgende worp.");
-        }
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'dropping_tennisball')) {
+                $remaining = ceil($this->cooldownService->getRemainingSeconds($lockedCharacter, 'dropping_tennisball') / 60).' minuten';
 
-        $energyCost = 15;
-        if (! $this->energy->consume($character, $energyCost)) {
-            return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig om op het juiste moment naar het hek te sprinten!");
-        }
+                return back()->with('error', "De luchtplaats wordt scherp in de gaten gehouden. Wacht nog {$remaining} tot de volgende worp.");
+            }
 
-        $this->cooldownService->setCooldown($character, 'dropping_tennisball');
+            $energyCost = 15;
+            if (! $this->energy->consume($lockedCharacter, $energyCost)) {
+                return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig om op het juiste moment naar het hek te sprinten!");
+            }
 
-        // 10% kans dat de bewaarder je pakt
-        $caught = mt_rand(1, 100) <= 10;
-        if ($caught) {
-            $this->level->addXp($character, 5);
-            $this->prisonService->jail($character, 5, 'Betrapt bij het oprapen van een met tape verzwaarde tennisbal bij het buitenhek.');
+            $this->cooldownService->setCooldown($lockedCharacter, 'dropping_tennisball');
+
+            // 10% kans dat de bewaarder je pakt
+            $caught = mt_rand(1, 100) <= 10;
+            if ($caught) {
+                $this->level->addXp($lockedCharacter, 5);
+                $this->prisonService->jail($lockedCharacter, 5, 'Betrapt bij het oprapen van een met tape verzwaarde tennisbal bij het buitenhek.');
+
+                SmuggleDropping::create([
+                    'character_id' => $lockedCharacter->id,
+                    'type' => 'tennisball',
+                    'loot_summary' => 'Betrapt door zaalwacht! Tennisbal in beslag genomen.',
+                    'cash_gained' => 0,
+                    'xp_gained' => 5,
+                    'caught' => true,
+                ]);
+
+                return redirect()->route('prison')->with('error', 'ALARM! Bewaker De Jong zag je sprinten en greep je net voordat je de bal kon verstoppen. 5 minuten isoleercel!');
+            }
+
+            // Buit genereren
+            $cash = mt_rand(250, 1200);
+            $xp = mt_rand(20, 45);
+            $lootItems = [];
+
+            $this->economy->addCash($lockedCharacter, $cash);
+            $this->level->addXp($lockedCharacter, $xp);
+
+            // 70% kans op sigaretten
+            if (mt_rand(1, 100) <= 70) {
+                $sigAmount = mt_rand(2, 5);
+                $sigItem = Item::where('slug', 'sigaretten')->first();
+                if ($sigItem) {
+                    $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $sigItem->id], ['quantity' => 0]);
+                    $ci->increment('quantity', $sigAmount);
+                    $lootItems[] = "{$sigAmount}x Sigaretten";
+                }
+            }
+
+            // 35% kans op ritalin
+            if (mt_rand(1, 100) <= 35) {
+                $ritAmount = mt_rand(1, 2);
+                $ritItem = Item::where('slug', 'ritalin')->first();
+                if ($ritItem) {
+                    $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $ritItem->id], ['quantity' => 0]);
+                    $ci->increment('quantity', $ritAmount);
+                    $lootItems[] = "{$ritAmount}x Ritalin";
+                }
+            }
+
+            // 10% bonus op strip oxazepam
+            if (mt_rand(1, 100) <= 10) {
+                $stripItem = Item::where('slug', 'strip-oxazepam')->first();
+                if ($stripItem) {
+                    $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $stripItem->id], ['quantity' => 0]);
+                    $ci->increment('quantity', 1);
+                    $lootItems[] = '1x Strip Oxazepam';
+                }
+            }
+
+            $lootStr = '€'.number_format($cash, 0, ',', '.').($lootItems ? ', '.implode(', ', $lootItems) : '');
 
             SmuggleDropping::create([
-                'character_id' => $character->id,
+                'character_id' => $lockedCharacter->id,
                 'type' => 'tennisball',
-                'loot_summary' => 'Betrapt door zaalwacht! Tennisbal in beslag genomen.',
-                'cash_gained' => 0,
-                'xp_gained' => 5,
-                'caught' => true,
+                'loot_summary' => $lootStr,
+                'cash_gained' => $cash,
+                'xp_gained' => $xp,
+                'caught' => false,
             ]);
 
-            return redirect()->route('prison')->with('error', 'ALARM! Bewaker De Jong zag je sprinten en greep je net voordat je de bal kon verstoppen. 5 minuten isoleercel!');
-        }
-
-        // Buit genereren
-        $cash = mt_rand(250, 1200);
-        $xp = mt_rand(20, 45);
-        $lootItems = [];
-
-        $this->economy->addCash($character, $cash);
-        $this->level->addXp($character, $xp);
-
-        // 70% kans op sigaretten
-        if (mt_rand(1, 100) <= 70) {
-            $sigAmount = mt_rand(2, 5);
-            $sigItem = Item::where('slug', 'sigaretten')->first();
-            if ($sigItem) {
-                $ci = CharacterItem::firstOrCreate(['character_id' => $character->id, 'item_id' => $sigItem->id], ['quantity' => 0]);
-                $ci->increment('quantity', $sigAmount);
-                $lootItems[] = "{$sigAmount}x Sigaretten";
-            }
-        }
-
-        // 35% kans op ritalin
-        if (mt_rand(1, 100) <= 35) {
-            $ritAmount = mt_rand(1, 2);
-            $ritItem = Item::where('slug', 'ritalin')->first();
-            if ($ritItem) {
-                $ci = CharacterItem::firstOrCreate(['character_id' => $character->id, 'item_id' => $ritItem->id], ['quantity' => 0]);
-                $ci->increment('quantity', $ritAmount);
-                $lootItems[] = "{$ritAmount}x Ritalin";
-            }
-        }
-
-        // 10% bonus op strip oxazepam
-        if (mt_rand(1, 100) <= 10) {
-            $stripItem = Item::where('slug', 'strip-oxazepam')->first();
-            if ($stripItem) {
-                $ci = CharacterItem::firstOrCreate(['character_id' => $character->id, 'item_id' => $stripItem->id], ['quantity' => 0]);
-                $ci->increment('quantity', 1);
-                $lootItems[] = '1x Strip Oxazepam';
-            }
-        }
-
-        $lootStr = '€'.number_format($cash, 0, ',', '.').($lootItems ? ', '.implode(', ', $lootItems) : '');
-
-        SmuggleDropping::create([
-            'character_id' => $character->id,
-            'type' => 'tennisball',
-            'loot_summary' => $lootStr,
-            'cash_gained' => $cash,
-            'xp_gained' => $xp,
-            'caught' => false,
-        ]);
-
-        return back()->with('success', "RAAK! Je dook als een snoek naar de heg en griste de opengeknipte tennisbal mee naar binnen. Buit: {$lootStr} (+{$xp} XP)!");
+            return back()->with('success', "RAAK! Je dook als een snoek naar de heg en griste de opengeknipte tennisbal mee naar binnen. Buit: {$lootStr} (+{$xp} XP)!");
+        });
     }
 
     public function orderDrone(Request $request): RedirectResponse
@@ -177,105 +183,110 @@ class DroppingController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'dropping_drone')) {
-            $remaining = ceil($this->cooldownService->getRemainingSeconds($character, 'dropping_drone') / 60).' minuten';
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            return back()->with('error', "De dronepiloot moet zijn accu's opladen en van locatie wisselen. Wacht nog {$remaining}.");
-        }
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'dropping_drone')) {
+                $remaining = ceil($this->cooldownService->getRemainingSeconds($lockedCharacter, 'dropping_drone') / 60).' minuten';
 
-        $droneCost = 500;
-        if ($character->cash < $droneCost) {
-            return back()->with('error', 'Je hebt minimaal €'.number_format($droneCost, 0, ',', '.').' contant nodig om de dronepiloot via prepaid crypto vooruit te betalen!');
-        }
+                return back()->with('error', "De dronepiloot moet zijn accu's opladen en van locatie wisselen. Wacht nog {$remaining}.");
+            }
 
-        $energyCost = 25;
-        if ($character->energy < $energyCost) {
-            return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de nachtelijke coördinatie!");
-        }
+            $droneCost = 500;
+            if ($lockedCharacter->cash < $droneCost) {
+                return back()->with('error', 'Je hebt minimaal €'.number_format($droneCost, 0, ',', '.').' contant nodig om de dronepiloot via prepaid crypto vooruit te betalen!');
+            }
 
-        if (! $this->economy->deductCash($character, $droneCost)) {
-            return back()->with('error', 'Je hebt minimaal €'.number_format($droneCost, 0, ',', '.').' contant nodig om de dronepiloot via prepaid crypto vooruit te betalen!');
-        }
+            $energyCost = 25;
+            if ($lockedCharacter->energy < $energyCost) {
+                return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de nachtelijke coördinatie!");
+            }
 
-        if (! $this->energy->consume($character, $energyCost)) {
-            $this->economy->addCash($character, $droneCost);
+            if (! $this->economy->deductCash($lockedCharacter, $droneCost)) {
+                return back()->with('error', 'Je hebt minimaal €'.number_format($droneCost, 0, ',', '.').' contant nodig om de dronepiloot via prepaid crypto vooruit te betalen!');
+            }
 
-            return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de nachtelijke coördinatie!");
-        }
+            if (! $this->energy->consume($lockedCharacter, $energyCost)) {
+                $this->economy->addCash($lockedCharacter, $droneCost);
 
-        $this->cooldownService->setCooldown($character, 'dropping_drone');
+                return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de nachtelijke coördinatie!");
+            }
 
-        // 12% kans dat zoeklichten de drone onderscheppen
-        $caught = mt_rand(1, 100) <= 12;
-        if ($caught) {
-            $this->level->addXp($character, 10);
+            $this->cooldownService->setCooldown($lockedCharacter, 'dropping_drone');
+
+            // 12% kans dat zoeklichten de drone onderscheppen
+            $caught = mt_rand(1, 100) <= 12;
+            if ($caught) {
+                $this->level->addXp($lockedCharacter, 10);
+
+                SmuggleDropping::create([
+                    'character_id' => $lockedCharacter->id,
+                    'type' => 'drone',
+                    'loot_summary' => 'Onderschept door zoeklichten en vogelweringsnetten!',
+                    'cash_gained' => 0,
+                    'xp_gained' => 10,
+                    'caught' => true,
+                ]);
+
+                return back()->with('error', 'MISLUKT! Een schijnwerper van de wachttoren verblindde de dronepiloot. De drone crashte op het buitenste prikkeldraad. Je bent je €500 aanbetaling kwijt!');
+            }
+
+            // Succesvolle high-tier drop
+            $cash = mt_rand(1800, 4800);
+            $xp = mt_rand(60, 110);
+            $lootItems = [];
+
+            $this->economy->addCash($lockedCharacter, $cash);
+            $this->level->addXp($lockedCharacter, $xp);
+
+            // Grote hoeveelheden sigaretten & ritalin
+            $sigAmount = mt_rand(6, 12);
+            $sigItem = Item::where('slug', 'sigaretten')->first();
+            if ($sigItem) {
+                $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $sigItem->id], ['quantity' => 0]);
+                $ci->increment('quantity', $sigAmount);
+                $lootItems[] = "{$sigAmount}x Sigaretten";
+            }
+
+            $ritAmount = mt_rand(3, 6);
+            $ritItem = Item::where('slug', 'ritalin')->first();
+            if ($ritItem) {
+                $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $ritItem->id], ['quantity' => 0]);
+                $ci->increment('quantity', $ritAmount);
+                $lootItems[] = "{$ritAmount}x Ritalin";
+            }
+
+            // 40% kans op Smokkelpakketje of Zware Medicatie
+            $specialRoll = mt_rand(1, 100);
+            if ($specialRoll <= 25) {
+                $pakket = Item::where('slug', 'smokkelpakketje')->first();
+                if ($pakket) {
+                    $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $pakket->id], ['quantity' => 0]);
+                    $ci->increment('quantity', 1);
+                    $lootItems[] = '1x Smokkelpakketje 📦';
+                }
+            } elseif ($specialRoll <= 50) {
+                $halo = Item::where('slug', 'haloperidol-forte')->first();
+                if ($halo) {
+                    $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $halo->id], ['quantity' => 0]);
+                    $ci->increment('quantity', 1);
+                    $lootItems[] = '1x Haloperidol Forte 💥';
+                }
+            }
+
+            $lootStr = '€'.number_format($cash, 0, ',', '.').($lootItems ? ', '.implode(', ', $lootItems) : '');
 
             SmuggleDropping::create([
-                'character_id' => $character->id,
+                'character_id' => $lockedCharacter->id,
                 'type' => 'drone',
-                'loot_summary' => 'Onderschept door zoeklichten en vogelweringsnetten!',
-                'cash_gained' => 0,
-                'xp_gained' => 10,
-                'caught' => true,
+                'loot_summary' => $lootStr,
+                'cash_gained' => $cash,
+                'xp_gained' => $xp,
+                'caught' => false,
             ]);
 
-            return back()->with('error', 'MISLUKT! Een schijnwerper van de wachttoren verblindde de dronepiloot. De drone crashte op het buitenste prikkeldraad. Je bent je €500 aanbetaling kwijt!');
-        }
-
-        // Succesvolle high-tier drop
-        $cash = mt_rand(1800, 4800);
-        $xp = mt_rand(60, 110);
-        $lootItems = [];
-
-        $this->economy->addCash($character, $cash);
-        $this->level->addXp($character, $xp);
-
-        // Grote hoeveelheden sigaretten & ritalin
-        $sigAmount = mt_rand(6, 12);
-        $sigItem = Item::where('slug', 'sigaretten')->first();
-        if ($sigItem) {
-            $ci = CharacterItem::firstOrCreate(['character_id' => $character->id, 'item_id' => $sigItem->id], ['quantity' => 0]);
-            $ci->increment('quantity', $sigAmount);
-            $lootItems[] = "{$sigAmount}x Sigaretten";
-        }
-
-        $ritAmount = mt_rand(3, 6);
-        $ritItem = Item::where('slug', 'ritalin')->first();
-        if ($ritItem) {
-            $ci = CharacterItem::firstOrCreate(['character_id' => $character->id, 'item_id' => $ritItem->id], ['quantity' => 0]);
-            $ci->increment('quantity', $ritAmount);
-            $lootItems[] = "{$ritAmount}x Ritalin";
-        }
-
-        // 40% kans op Smokkelpakketje of Zware Medicatie
-        $specialRoll = mt_rand(1, 100);
-        if ($specialRoll <= 25) {
-            $pakket = Item::where('slug', 'smokkelpakketje')->first();
-            if ($pakket) {
-                $ci = CharacterItem::firstOrCreate(['character_id' => $character->id, 'item_id' => $pakket->id], ['quantity' => 0]);
-                $ci->increment('quantity', 1);
-                $lootItems[] = '1x Smokkelpakketje 📦';
-            }
-        } elseif ($specialRoll <= 50) {
-            $halo = Item::where('slug', 'haloperidol-forte')->first();
-            if ($halo) {
-                $ci = CharacterItem::firstOrCreate(['character_id' => $character->id, 'item_id' => $halo->id], ['quantity' => 0]);
-                $ci->increment('quantity', 1);
-                $lootItems[] = '1x Haloperidol Forte 💥';
-            }
-        }
-
-        $lootStr = '€'.number_format($cash, 0, ',', '.').($lootItems ? ', '.implode(', ', $lootItems) : '');
-
-        SmuggleDropping::create([
-            'character_id' => $character->id,
-            'type' => 'drone',
-            'loot_summary' => $lootStr,
-            'cash_gained' => $cash,
-            'xp_gained' => $xp,
-            'caught' => false,
-        ]);
-
-        return back()->with('success', "🎯 PRECISIEDROPPING GESLAAGD! De zwarte drone loste geruisloos zijn waterdichte pakket recht door het luchtrooster van jouw afdeling. Buit: {$lootStr} (+{$xp} XP)!");
+            return back()->with('success', "🎯 PRECISIEDROPPING GESLAAGD! De zwarte drone loste geruisloos zijn waterdichte pakket recht door het luchtrooster van jouw afdeling. Buit: {$lootStr} (+{$xp} XP)!");
+        });
     }
 }

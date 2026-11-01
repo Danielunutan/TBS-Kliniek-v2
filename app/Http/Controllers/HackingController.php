@@ -233,7 +233,7 @@ class HackingController extends Controller
             $rewardLabel = $sector['label'];
 
             match ($sector['type']) {
-                'cash' => $lockedCharacter->cash += $sector['value'],
+                'cash' => $this->economyService->addCash($lockedCharacter, (int) $sector['value']),
                 'koffer' => $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + $sector['value'],
                 'xxl_koffer' => $lockedCharacter->xxl_cases = ($lockedCharacter->xxl_cases ?? 0) + $sector['value'],
                 'stars' => $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $sector['value'],
@@ -264,7 +264,7 @@ class HackingController extends Controller
                 $bonusCases = 1;
                 $bonusMasks = 4;
 
-                $lockedCharacter->cash += $bonusCash;
+                $this->economyService->addCash($lockedCharacter, $bonusCash);
                 $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $bonusStars;
                 $lockedCharacter->xxl_cases = ($lockedCharacter->xxl_cases ?? 0) + $bonusCases;
                 $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $bonusMasks;

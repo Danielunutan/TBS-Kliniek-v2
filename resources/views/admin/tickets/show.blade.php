@@ -150,17 +150,20 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                         <div class="sm:col-span-1">
                             <label class="block text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Bendenaam Bevestigen</label>
-                            <input type="text" name="gang_name" value="{{ old('gang_name', $ticket->metadata['gang_name'] ?? '') }}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500 dark:focus:border-amber-500">
+                            <input type="text" name="gang_name" value="{{ old('gang_name', $ticket->metadata['gang_name'] ?? '') }}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-base sm:text-xs text-slate-900 dark:text-white outline-none focus:border-amber-500 dark:focus:border-amber-500">
+                            @error('gang_name') <p class="text-[11px] text-rose-500 font-bold mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Tag (2-4 tekens)</label>
-                            <input type="text" name="gang_tag" maxlength="4" value="{{ old('gang_tag', $ticket->metadata['gang_tag'] ?? '') }}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-amber-500 dark:focus:border-amber-500">
+                            <input type="text" name="gang_tag" maxlength="4" value="{{ old('gang_tag', $ticket->metadata['gang_tag'] ?? '') }}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold text-base sm:text-xs uppercase text-slate-900 dark:text-white outline-none focus:border-amber-500 dark:focus:border-amber-500">
+                            @error('gang_tag') <p class="text-[11px] text-rose-500 font-bold mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Kluisgeld Bonus (€)</label>
-                            <input type="number" name="bonus_cash" value="5000000" step="500000" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold text-xs text-emerald-600 dark:text-emerald-400 outline-none focus:border-amber-500 dark:focus:border-amber-500">
+                            <input type="number" name="bonus_cash" value="5000000" step="500000" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold text-base sm:text-xs text-emerald-600 dark:text-emerald-400 outline-none focus:border-amber-500 dark:focus:border-amber-500">
+                            @error('bonus_cash') <p class="text-[11px] text-rose-500 font-bold mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
 

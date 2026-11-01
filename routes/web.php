@@ -151,7 +151,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Community Follow Reward Claim
-    Route::post('/community/claim/{platform}', [CommunityController::class, 'claim'])->name('community.claim');
+    Route::post('/community/claim/{platform}', [CommunityController::class, 'claim'])->middleware('throttle:10,1')->name('community.claim');
 
     // Onboarding Wizard (Nieuwe spelers & Discord)
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
@@ -161,9 +161,9 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Sponsorkamer & Rewarded Ads
     Route::get('/sponsorkamer', [SponsorAdController::class, 'index'])->name('sponsor.index');
-    Route::post('/sponsorkamer/start', [SponsorAdController::class, 'start'])->name('sponsor.start');
+    Route::post('/sponsorkamer/start', [SponsorAdController::class, 'start'])->middleware('throttle:30,1')->name('sponsor.start');
     Route::get('/sponsorkamer/status', [SponsorAdController::class, 'status'])->name('sponsor.status');
-    Route::post('/sponsorkamer/claim', [SponsorAdController::class, 'claim'])->name('sponsor.claim');
+    Route::post('/sponsorkamer/claim', [SponsorAdController::class, 'claim'])->middleware('throttle:30,1')->name('sponsor.claim');
 
     // E-mail Bevestiging (Code & Fallback Link)
     Route::get('/email/verify', [AuthController::class, 'verifyNotice'])->name('verification.notice');
@@ -183,8 +183,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/widgets/ontgrendelen', [DashboardController::class, 'unlockWidget'])->middleware('throttle:30,1')->name('dashboard.widgets.unlock');
     Route::get('/dashboard/weer-locatie', [DashboardController::class, 'weatherByCoords'])->middleware('throttle:30,1')->name('dashboard.weather.coords');
-    Route::post('/dashboard/peuken/verkopen', [DashboardController::class, 'sellPeuken'])->name('dashboard.peuken.sell');
-    Route::post('/dashboard/radar/sweep', [DashboardController::class, 'radarSweep'])->name('dashboard.radar.sweep');
+    Route::post('/dashboard/peuken/verkopen', [DashboardController::class, 'sellPeuken'])->middleware('throttle:30,1')->name('dashboard.peuken.sell');
+    Route::post('/dashboard/radar/sweep', [DashboardController::class, 'radarSweep'])->middleware('throttle:30,1')->name('dashboard.radar.sweep');
 
     // Rookie Overlevingstaken & Intake Tour
     Route::post('/rookie/claim/{taskKey}', [RookieQuestController::class, 'claim'])->middleware('throttle:30,1')->name('rookie.claim');
@@ -247,7 +247,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Training / Gym
     Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
-    Route::post('/training', [TrainingController::class, 'train'])->name('training.train');
+    Route::post('/training', [TrainingController::class, 'train'])->middleware('throttle:60,1')->name('training.train');
 
     // Behandelaarsgesprek & Verlofregeling (Dr. Visser & Yvonne)
     Route::get('/behandeling', [TreatmentController::class, 'index'])->name('treatment.index');
@@ -275,7 +275,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Hustle (Hosselen)
     Route::get('/hosselen', [HustleController::class, 'index'])->name('hustle.index');
-    Route::post('/hosselen/actie', [HustleController::class, 'attempt'])->name('hustle.attempt');
+    Route::post('/hosselen/actie', [HustleController::class, 'attempt'])->middleware('throttle:60,1')->name('hustle.attempt');
 
     // Smuggle (Dealen/Produceren)
     Route::get('/smokkelen', [SmuggleController::class, 'index'])->name('smuggle.index');
@@ -368,7 +368,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Combat Training (Schietoefening)
     Route::get('/vechtoefening', [CombatTrainingController::class, 'index'])->name('combat_training.index');
-    Route::post('/vechtoefening/trainen', [CombatTrainingController::class, 'train'])->name('combat_training.train');
+    Route::post('/vechtoefening/trainen', [CombatTrainingController::class, 'train'])->middleware('throttle:60,1')->name('combat_training.train');
 
     // Hitman (Liquidatie & Kogels)
     Route::get('/liquidatie', [HitmanController::class, 'index'])->name('hitman.index');
@@ -606,19 +606,19 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     // Kliniek Nieuws & Mededelingen
     Route::get('/nieuws', [NewsController::class, 'index'])->name('news.index');
     Route::get('/nieuws/{slug}', [NewsController::class, 'show'])->name('news.show');
-    Route::post('/nieuws/{article}/reactie', [NewsController::class, 'comment'])->name('news.comment');
+    Route::post('/nieuws/{article}/reactie', [NewsController::class, 'comment'])->middleware('throttle:15,1')->name('news.comment');
     Route::delete('/nieuws/reactie/{comment}', [NewsController::class, 'destroyComment'])->name('news.comment.destroy');
 
     // Toekomst & Roadmap (De 6 Nieuwe Features)
     Route::get('/roadmap', [RoadmapController::class, 'index'])->name('roadmap.index');
-    Route::post('/roadmap/stem/{featureKey}', [RoadmapController::class, 'vote'])->name('roadmap.vote');
+    Route::post('/roadmap/stem/{featureKey}', [RoadmapController::class, 'vote'])->middleware('throttle:20,1')->name('roadmap.vote');
 
     // De Illegale Armpjedruk Arena (Kracht Showdown & PvP Tafel)
     Route::get('/armpjedrukken', [ArmWrestleController::class, 'index'])->name('armwrestling.index');
     Route::post('/armpjedrukken/npc/finish', [ArmWrestleController::class, 'finishNpc'])->middleware('throttle:30,1')->name('armwrestling.npc.finish');
-    Route::post('/armpjedrukken/uitdaging/maken', [ArmWrestleController::class, 'createChallenge'])->name('armwrestling.challenge.create');
-    Route::post('/armpjedrukken/uitdaging/{id}/annuleren', [ArmWrestleController::class, 'cancelChallenge'])->name('armwrestling.challenge.cancel');
-    Route::post('/armpjedrukken/uitdaging/{id}/accepteren', [ArmWrestleController::class, 'acceptChallenge'])->name('armwrestling.challenge.accept');
+    Route::post('/armpjedrukken/uitdaging/maken', [ArmWrestleController::class, 'createChallenge'])->middleware('throttle:20,1')->name('armwrestling.challenge.create');
+    Route::post('/armpjedrukken/uitdaging/{id}/annuleren', [ArmWrestleController::class, 'cancelChallenge'])->middleware('throttle:30,1')->name('armwrestling.challenge.cancel');
+    Route::post('/armpjedrukken/uitdaging/{id}/accepteren', [ArmWrestleController::class, 'acceptChallenge'])->middleware('throttle:30,1')->name('armwrestling.challenge.accept');
 
     // Partner Minigame 1: 4 op 'n Rij met OOHPA Arjan
     Route::get('/vier-op-een-rij', [ConnectFourController::class, 'index'])->name('connect_four.index');
@@ -640,8 +640,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Seizoen 1: Battle Pass (4 Sporen: 1 Gratis + 3 VIP Tiers)
     Route::get('/seizoen-1/battle-pass', [BattlePassController::class, 'index'])->name('battlepass.index');
-    Route::post('/seizoen-1/battle-pass/claim', [BattlePassController::class, 'claim'])->name('battlepass.claim');
-    Route::post('/seizoen-1/battle-pass/claim-alles', [BattlePassController::class, 'claimAll'])->name('battlepass.claim_all');
+    Route::post('/seizoen-1/battle-pass/claim', [BattlePassController::class, 'claim'])->middleware('throttle:30,1')->name('battlepass.claim');
+    Route::post('/seizoen-1/battle-pass/claim-alles', [BattlePassController::class, 'claimAll'])->middleware('throttle:15,1')->name('battlepass.claim_all');
 
     // Staff Medewerkers Admin Panel
     Route::middleware(EnsureUserIsStaff::class)->prefix('admin')->name('admin.')->group(function (): void {

@@ -22,13 +22,16 @@ class AccountSettingsController extends Controller
     public function index(): View
     {
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
 
         // Check 6-month username change restriction
         $canChangeUsername = true;
         $daysUntilChange = 0;
 
-        if ($character->username_changed_at) {
+        if ($character && $character->username_changed_at) {
             $nextAllowed = $character->username_changed_at->copy()->addMonths(6);
             if ($nextAllowed->isFuture()) {
                 $canChangeUsername = false;
@@ -103,7 +106,11 @@ class AccountSettingsController extends Controller
      */
     public function updateUsername(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return back()->with('error', 'Geen personage gevonden.');
+        }
+
         $isUsernameLocked = false;
         $daysUntilChange = 0;
 
@@ -185,7 +192,11 @@ class AccountSettingsController extends Controller
     public function updateAvatar(Request $request): JsonResponse
     {
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 404);
+        }
 
         $request->validate([
             'image' => ['required', 'string'],

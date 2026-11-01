@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\CharacterVehicle;
 use App\Models\User;
@@ -263,6 +264,14 @@ class GarageController extends Controller
                         $diff = $finalPriceCash - $lockedCharacter->cash;
                         $lockedCharacter->cash = 0;
                         $lockedCharacter->bank -= $diff;
+                        BankTransaction::record(
+                            $lockedCharacter,
+                            'withdrawal',
+                            'bank',
+                            $diff,
+                            (int) $lockedCharacter->bank,
+                            "Aankoop {$vehicle->name} (Garage Showroom)"
+                        );
                     }
                     $lockedCharacter->save();
                 }
@@ -376,6 +385,14 @@ class GarageController extends Controller
                 $diff = $cost - $lockedCharacter->cash;
                 $lockedCharacter->cash = 0;
                 $lockedCharacter->bank -= $diff;
+                BankTransaction::record(
+                    $lockedCharacter,
+                    'withdrawal',
+                    'bank',
+                    $diff,
+                    (int) $lockedCharacter->bank,
+                    "Voertuig Revisie ({$characterVehicle->vehicle->name})"
+                );
             }
             $lockedCharacter->save();
 

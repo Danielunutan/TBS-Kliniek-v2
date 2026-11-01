@@ -11,11 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('characters', function (Blueprint $table) {
-            $table->string('weather_location')->nullable()->after('unlocked_widgets');
-            $table->decimal('weather_lat', 8, 4)->nullable()->after('weather_location');
-            $table->decimal('weather_lon', 8, 4)->nullable()->after('weather_lat');
-        });
+        if (Schema::hasTable('characters')) {
+            Schema::table('characters', function (Blueprint $table) {
+                if (! Schema::hasColumn('characters', 'weather_location')) {
+                    $table->string('weather_location')->nullable()->after('unlocked_widgets');
+                }
+                if (! Schema::hasColumn('characters', 'weather_lat')) {
+                    $table->decimal('weather_lat', 8, 4)->nullable()->after('weather_location');
+                }
+                if (! Schema::hasColumn('characters', 'weather_lon')) {
+                    $table->decimal('weather_lon', 8, 4)->nullable()->after('weather_lat');
+                }
+            });
+        }
     }
 
     /**
@@ -23,8 +31,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('characters', function (Blueprint $table) {
-            $table->dropColumn(['weather_location', 'weather_lat', 'weather_lon']);
-        });
+        if (Schema::hasTable('characters')) {
+            Schema::table('characters', function (Blueprint $table) {
+                $cols = array_filter(['weather_location', 'weather_lat', 'weather_lon'], fn ($col) => Schema::hasColumn('characters', $col));
+                if (! empty($cols)) {
+                    $table->dropColumn($cols);
+                }
+            });
+        }
     }
 };

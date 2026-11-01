@@ -31,6 +31,18 @@
         </div>
     </div>
 
+    @if($character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>
+        <span>Je zit momenteel in de isoleercel. Je communicatierechten zijn tijdelijk ingetrokken.</span>
+    </div>
+    @elseif($character->isComatose())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-rose-500 text-base shrink-0"></i>
+        <span>Je ligt momenteel op de Intensive Care en kunt geen berichten plaatsen of reageren.</span>
+    </div>
+    @endif
+
     <!-- Compose Box (Twitter Style with Smileys / Emoji Bar) -->
     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5" 
          x-data="{ 
@@ -53,8 +65,9 @@
                               maxlength="280"
                               required 
                               rows="3" 
-                              placeholder="Wat gebeurt er op de afdeling, {{ $character->name }}? Deel een bericht (max 280 tekens)..."
-                              class="w-full text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition"></textarea>
+                              @disabled($character->isImprisoned() || $character->isComatose())
+                              placeholder="{{ $character->isImprisoned() || $character->isComatose() ? 'Plaatsen van berichten is tijdelijk geblokkeerd...' : 'Wat gebeurt er op de afdeling, ' . $character->name . '? Deel een bericht (max 280 tekens)...' }}"
+                              class="w-full text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition disabled:opacity-50 disabled:cursor-not-allowed"></textarea>
                 </div>
             </div>
 
@@ -78,8 +91,9 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="submit" 
+                            @disabled($character->isImprisoned() || $character->isComatose())
                             :disabled="text.trim().length < 2" 
-                            class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95">
+                            class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-paper-plane text-amber-300"></i>
                         <span>Plaatsen</span>
                     </button>
@@ -145,7 +159,7 @@
                                 </a>
                                 @endif
                                 <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium ml-1">
-                                    &bull; {{ $post->created_at->diffForHumans() }}
+                                    &bull; {{ $post->created_at?->diffForHumans() }}
                                 </span>
                             </div>
 
@@ -285,7 +299,7 @@
                                             </span>
                                         @endif
                                         <span class="text-[10px] text-slate-400 dark:text-slate-500">
-                                            &bull; {{ $comment->created_at->diffForHumans() }}
+                                            &bull; {{ $comment->created_at?->diffForHumans() }}
                                         </span>
                                     </div>
                                     <p class="text-xs text-slate-700 dark:text-slate-300 font-medium mt-1 leading-relaxed whitespace-pre-line">
@@ -325,8 +339,9 @@
                                           maxlength="300"
                                           required 
                                           rows="2" 
-                                          placeholder="Schrijf een reactie op {{ $post->character->name }}..."
-                                          class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition"></textarea>
+                                          @disabled($character->isImprisoned() || $character->isComatose())
+                                          placeholder="{{ $character->isImprisoned() || $character->isComatose() ? 'Reageren is tijdelijk geblokkeerd...' : 'Schrijf een reactie op ' . $post->character->name . '...' }}"
+                                          class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition disabled:opacity-50 disabled:cursor-not-allowed"></textarea>
                                 
                                 <div class="flex items-center justify-between pt-1">
                                     <!-- Mini Smiley Bar for Replies -->
@@ -342,8 +357,9 @@
                                     </div>
 
                                     <button type="submit" 
-                                            :disabled="replyText.trim().length === 0" 
-                                            class="px-3.5 py-1.5 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                            @disabled($character->isImprisoned() || $character->isComatose())
+                                            :disabled="replyText.trim().length === 0 || {{ $character->isImprisoned() || $character->isComatose() ? 'true' : 'false' }}" 
+                                            class="px-3.5 py-1.5 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:cursor-not-allowed">
                                         <i class="fa-solid fa-reply text-[10px]"></i>
                                         <span>Reageren (+5 XP)</span>
                                     </button>

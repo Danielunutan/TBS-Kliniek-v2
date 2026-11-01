@@ -1,6 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $isOnLeave = $isOnLeave ?? false;
+    $leaveRemainingMinutes = $leaveRemainingMinutes ?? 0;
+    $treatmentScore = $treatmentScore ?? 50;
+    $treatmentCooldown = $treatmentCooldown ?? 0;
+    $vaultTokens = $vaultTokens ?? 0;
+    $activeVaultCodes = $activeVaultCodes ?? 0;
+    $redeemedVaultCodes = $redeemedVaultCodes ?? 0;
+    $unopenedBags = $unopenedBags ?? 0;
+    $xxlCases = $xxlCases ?? 0;
+    $lockerCooldown = $lockerCooldown ?? 0;
+    $packageCooldown = $packageCooldown ?? 0;
+    $quickMissions = $quickMissions ?? collect();
+    $isLoginBonusActive = $isLoginBonusActive ?? false;
+    $hasClaimedStreakToday = $hasClaimedStreakToday ?? false;
+    $secondsUntilLoginBonus = $secondsUntilLoginBonus ?? 0;
+    $secondsRemainingInLoginBonus = $secondsRemainingInLoginBonus ?? 0;
+    $nuNlNews = $nuNlNews ?? [];
+    $latestNews = $latestNews ?? collect();
+@endphp
 <!-- Alpine Dashboard Customizer Script (Defined before x-data so initial & Turbo renders always succeed) -->
 <script>
 window.tbsDashboardCustomizer = function() {
@@ -9,13 +29,13 @@ window.tbsDashboardCustomizer = function() {
         activeCustomizerTab: 'themes',
         theme: 'clinical',
 
-        weather: @js($clinicWeather),
+        weather: @js($clinicWeather ?? null),
         isLocating: false,
         showCityModal: false,
         citySearchQuery: '',
         unlockingKey: null,
         unlockedWidgets: @js(array_values($unlockedWidgets ?? [])),
-        widgetPrices: @js($widgetPrices),
+        widgetPrices: @js($widgetPrices ?? []),
         userStars: {{ (int) ($character->stars ?? 0) }},
 
         playStation(stId) {
@@ -483,7 +503,9 @@ function tbsDashboardCustomizer() {
             </div>
 
             <!-- Rookie Overlevingstaken & Beloningsspoor voor Beginners -->
-            @include('partials.rookie_quests_widget')
+            @if(!empty($rookieData))
+                @include('partials.rookie_quests_widget')
+            @endif
             
             @if(isset($latestNews) && $latestNews->isNotEmpty())
                 @php $featuredNews = $latestNews->first(); @endphp
@@ -1041,7 +1063,7 @@ function tbsDashboardCustomizer() {
 
                 <div class="flex flex-col sm:flex-row items-center gap-3 shrink-0 self-stretch md:self-center">
                     @php
-                        $dashSecondsLeft = max(0, (int) round(now()->diffInSeconds($lotteryRound->draws_at, false)));
+                        $dashSecondsLeft = ($lotteryRound && $lotteryRound->draws_at) ? max(0, (int) round(now()->diffInSeconds($lotteryRound->draws_at, false))) : 0;
                     @endphp
                     <div class="w-full sm:w-auto p-3 rounded-xl bg-amber-50/70 dark:bg-slate-800/80 border border-amber-200 dark:border-slate-700 text-center shrink-0"
                          x-data="{
@@ -1059,7 +1081,7 @@ function tbsDashboardCustomizer() {
                          }">
                         <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Tijd tot trekking</span>
                         <span class="text-xs font-mono font-black text-slate-900 dark:text-amber-400 mt-0.5 block" x-text="format()">
-                            {{ now()->diffForHumans($lotteryRound->draws_at, true) }}
+                            {{ ($lotteryRound && $lotteryRound->draws_at) ? now()->diffForHumans($lotteryRound->draws_at, true) : 'Binnenkort' }}
                         </span>
                     </div>
 
@@ -1079,7 +1101,7 @@ function tbsDashboardCustomizer() {
                  x-data="{ 
                      copied: false,
                      copyLink() {
-                         navigator.clipboard.writeText(@js($referralStats['link']));
+                         navigator.clipboard.writeText(@js($referralStats['link'] ?? ''));
                          this.copied = true;
                          setTimeout(() => this.copied = false, 2500);
                      }
@@ -1122,10 +1144,10 @@ function tbsDashboardCustomizer() {
                  x-transition
                  class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200/90 dark:border-slate-800"
                  x-data="{
-                     active: {{ $isLoginBonusActive ? 'true' : 'false' }},
-                     claimed: {{ $hasClaimedStreakToday ? 'true' : 'false' }},
-                     secUntilStart: {{ $secondsUntilLoginBonus }},
-                     secRemaining: {{ $secondsRemainingInLoginBonus }},
+                     active: {{ !empty($isLoginBonusActive) ? 'true' : 'false' }},
+                     claimed: {{ !empty($hasClaimedStreakToday) ? 'true' : 'false' }},
+                     secUntilStart: {{ (int) ($secondsUntilLoginBonus ?? 0) }},
+                     secRemaining: {{ (int) ($secondsRemainingInLoginBonus ?? 0) }},
                      formatTimer(s) {
                          const m = Math.floor(s / 60);
                          const sec = s % 60;
@@ -1140,7 +1162,7 @@ function tbsDashboardCustomizer() {
                  }">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-3.5">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-2xs {{ $isLoginBonusActive ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-2xs {{ !empty($isLoginBonusActive) ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}">
                             <i class="fa-solid fa-gift"></i>
                         </div>
                         <div>
@@ -1161,7 +1183,7 @@ function tbsDashboardCustomizer() {
                             <form action="{{ route('daily.claim-streak') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer">
-                                    Claim Dag {{ $nextStreakDay }}
+                                    Claim Dag {{ $nextStreakDay ?? 1 }}
                                 </button>
                             </form>
                         </template>
@@ -1224,15 +1246,15 @@ function tbsDashboardCustomizer() {
                 <div class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($recentActivities as $activity)
                         <div class="p-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition flex items-start gap-4">
-                            <div class="w-8 h-8 rounded-full {{ $activity['icon_bg'] }} flex items-center justify-center shrink-0 shadow-2xs">
-                                <i class="fa-solid {{ $activity['icon'] }} text-xs"></i>
+                            <div class="w-8 h-8 rounded-full {{ data_get($activity, 'icon_bg', 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400') }} flex items-center justify-center shrink-0 shadow-2xs">
+                                <i class="fa-solid {{ data_get($activity, 'icon', 'fa-clock-rotate-left') }} text-xs"></i>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ $activity['title'] }}</p>
-                                <p class="text-xs font-bold {{ $activity['badge_color'] }} mt-0.5">{{ $activity['badge'] }}</p>
+                                <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ data_get($activity, 'title', '') }}</p>
+                                <p class="text-xs font-bold {{ data_get($activity, 'badge_color', 'text-slate-500') }} mt-0.5">{{ data_get($activity, 'badge', '') }}</p>
                             </div>
                             <div class="text-xs text-slate-400 font-semibold whitespace-nowrap shrink-0">
-                                {{ \Carbon\Carbon::parse($activity['time'])->diffForHumans() }}
+                                {{ !empty(data_get($activity, 'time')) ? \Carbon\Carbon::parse(data_get($activity, 'time'))->diffForHumans() : '' }}
                             </div>
                         </div>
                     @empty
@@ -1266,7 +1288,7 @@ function tbsDashboardCustomizer() {
                 </div>
 
                 <div class="divide-y divide-slate-100 dark:divide-slate-800">
-                    @forelse($latestNews as $newsItem)
+                    @forelse($latestNews ?? [] as $newsItem)
                         @if(is_object($newsItem) && !empty($newsItem->slug))
                         <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition block group">
                             <div class="flex items-center justify-between gap-2">
@@ -1475,7 +1497,7 @@ function tbsDashboardCustomizer() {
                     </div>
 
                     <div class="divide-y divide-slate-100 dark:divide-slate-800">
-                        @forelse($nuNlNews as $item)
+                        @forelse($nuNlNews ?? [] as $item)
                             <a href="{{ $item['link'] }}" target="_blank" rel="noopener noreferrer" class="p-3.5 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition block group">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0 flex-1">
@@ -1543,6 +1565,7 @@ function tbsDashboardCustomizer() {
 
                 <!-- Unlocked Content -->
                 <div id="widget-content-tunnel" x-show="isUnlocked('tunnel')" x-cloak @if(!$character->isWidgetUnlocked('tunnel')) style="display: none;" @endif>
+                    @if(!empty($tunnel))
                     <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
@@ -1551,7 +1574,7 @@ function tbsDashboardCustomizer() {
                             <span>Ontsnappingstunnel</span>
                         </div>
                         <span class="text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
-                            Fase {{ $tunnel->stage }}: {{ $tunnelStageInfo['name'] }}
+                            Fase {{ $tunnel->stage }}: {{ $tunnelStageInfo['name'] ?? ('Fase ' . $tunnel->stage) }}
                         </span>
                     </div>
 
@@ -1600,7 +1623,7 @@ function tbsDashboardCustomizer() {
                                 </div>
                             @else
                                 <!-- Knop 1: Graven -->
-                                @if($tunnelDigCooldown > 0)
+                                @if(!empty($tunnelDigCooldown) && $tunnelDigCooldown > 0)
                                     <div class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[11px] text-center flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-clock text-amber-500"></i>
                                         <span>Graven over {{ ceil($tunnelDigCooldown / 60) }}m</span>
@@ -1613,7 +1636,7 @@ function tbsDashboardCustomizer() {
                                 @else
                                     <form method="POST" action="{{ route('tunnel.dig') }}">
                                         @csrf
-                                        <button type="submit" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[11px] transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <button type="submit" @disabled($character->energy < 20) class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-black text-[11px] transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
                                             <i class="fa-solid fa-spoon"></i>
                                             <span>Graaf 1 Meter (20 E)</span>
                                         </button>
@@ -1625,7 +1648,7 @@ function tbsDashboardCustomizer() {
                                     <div class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-[11px] text-center">
                                         Geen zand in sokken
                                     </div>
-                                @elseif($tunnelDumpCooldown > 0)
+                                @elseif(!empty($tunnelDumpCooldown) && $tunnelDumpCooldown > 0)
                                     <div class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[11px] text-center flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-clock text-sky-500"></i>
                                         <span>Dumpen over {{ ceil($tunnelDumpCooldown / 60) }}m</span>
@@ -1650,6 +1673,10 @@ function tbsDashboardCustomizer() {
                             </a>
                         </div>
                     </div>
+                    @else
+                    <div class="p-4 text-center text-xs text-slate-400">Tunnelgegevens niet beschikbaar.</div>
+                    @endif
+                </div>
                 </div>
 
             </div>
@@ -1898,7 +1925,7 @@ function tbsDashboardCustomizer() {
                                 <form method="POST" action="{{ route('packages.intercept') }}">
                                     @csrf
                                     <input type="hidden" name="package_id" value="2">
-                                    <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-sm shadow-purple-600/25 flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <button type="submit" @disabled($character->energy < 10) class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs transition shadow-sm shadow-purple-600/25 flex items-center justify-center gap-1.5 cursor-pointer">
                                         <i class="fa-solid fa-box-archive text-amber-300"></i>
                                         <span>Onderschep Koffer in Postkamer (10 E)</span>
                                     </button>

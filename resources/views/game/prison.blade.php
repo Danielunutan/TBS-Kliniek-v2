@@ -293,8 +293,8 @@
                                 </div>
 
                                 <button type="submit"
-                                        :disabled="reduceCooldownSecs > 0"
-                                        :class="reduceCooldownSecs > 0 ? 'opacity-50 cursor-not-allowed bg-gray-800 text-gray-400' : '{{ $actKey === 'wasserij' ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-amber-500 hover:bg-amber-400 text-black' }}'"
+                                        :disabled="reduceCooldownSecs > 0 || {{ $character->isComatose() ? 'true' : 'false' }}"
+                                        :class="(reduceCooldownSecs > 0 || {{ $character->isComatose() ? 'true' : 'false' }}) ? 'opacity-50 cursor-not-allowed bg-gray-800 text-gray-400' : '{{ $actKey === 'wasserij' ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-amber-500 hover:bg-amber-400 text-black' }}'"
                                         class="w-full py-2 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
                                     <i class="fa-solid {{ $actMeta['icon'] }}"></i>
                                     <span x-text="reduceCooldownSecs > 0 ? 'Cooldown (' + reduceCooldownSecs + 's)' : 'Uitvoeren: {{ $actMeta['name'] }}'">
@@ -321,8 +321,8 @@
                         <form action="{{ route('prison.escape') }}" method="POST" @submit.prevent="attemptEscapeAjax($event)">
                             @csrf
                             <button type="submit"
-                                    :disabled="escapeAttempted"
-                                    :class="escapeAttempted ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg'"
+                                    :disabled="escapeAttempted || {{ $character->isComatose() ? 'true' : 'false' }}"
+                                    :class="(escapeAttempted || {{ $character->isComatose() ? 'true' : 'false' }}) ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg'"
                                     class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5">
                                 <i class="fa-solid" :class="escapeAttempted ? 'fa-ban' : 'fa-bolt'"></i>
                                 <span x-text="escapeAttempted ? 'Poging Verbruikt' : 'Ontsnappen (20 Energie)'"></span>
@@ -506,8 +506,8 @@
                                         </div>
 
                                         <button type="submit"
-                                                @if($isImprisoned) disabled @endif
-                                                class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ $isImprisoned ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white shadow-lg' }}">
+                                                @if($isImprisoned || $character->isComatose()) disabled @endif
+                                                class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ ($isImprisoned || $character->isComatose()) ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white shadow-lg' }}">
                                             <i class="fa-solid fa-unlock"></i>
                                             <span x-text="selectedMethod === 'stil' ? 'Stille Sluipuitbraak (15 Energie)' : 'Breekijzer & Forceerwerk (15 Energie)'">
                                                 Stille Sluipuitbraak (15 Energie)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\ControlPoint;
 use App\Models\ControlPointLog;
 use App\Models\User;
@@ -64,6 +65,14 @@ class ControlPointController extends Controller
 
         if (! $character) {
             return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen controlepunten in de kliniek overnemen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $this->energyService->refresh($character);

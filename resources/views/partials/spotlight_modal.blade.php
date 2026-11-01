@@ -39,7 +39,7 @@
                        @keydown.up.prevent="navigateUp()"
                        @keydown.enter.prevent="selectHighlighted()"
                        placeholder="Zoek actie, locatie, minigame of functie... (bijv. 'hosselen', 'bank', 'bende')"
-                       class="w-full bg-transparent text-sm sm:text-base font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none">
+                       class="w-full bg-transparent text-base sm:text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none">
                 
                 <!-- Clear Button -->
                 <button x-show="query.length > 0" 

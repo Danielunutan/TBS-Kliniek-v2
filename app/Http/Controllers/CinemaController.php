@@ -51,11 +51,15 @@ class CinemaController extends Controller
     /**
      * Display the Cinema Lobby with active watchparties and official rooms.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
 
         $officialRooms = CinemaRoom::where('is_official', true)
             ->where('is_closed', false)
@@ -155,6 +159,10 @@ class CinemaController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen bioscoopzaal openen!');
@@ -282,6 +290,10 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
         // Check private room password
         if ($room->is_private && $room->host_character_id !== $character->id && ! $user->isStaff()) {
             $providedPass = $request->query('pin', session("cinema_pin_{$room->id}"));
@@ -338,6 +350,10 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
         if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Alleen de zaalhost of een stafflid kan deze zaal sluiten.'], 403);
@@ -384,8 +400,12 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
         if ($character->isImprisoned()) {
-            $msg = 'Vanuit de isoleercel kun je geen berichten sturen in de bioscoop!';
+            $msg = 'Vanuit de isoleercel kun je geen video\'s toevoegen aan de wachtrij!';
 
             return $request->wantsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 422)
@@ -483,6 +503,10 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
         if ($room->is_closed) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
@@ -563,6 +587,10 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
         if ($room->is_closed) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
@@ -617,6 +645,10 @@ class CinemaController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             $msg = 'Vanuit de isoleercel kun je geen berichten sturen in de bioscoop!';
@@ -694,6 +726,10 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
         if (! $this->canAccessRoom($request, $room, $user, $character)) {
             return response()->json(['success' => false, 'message' => 'Geen toegang tot deze privézaal.'], 403);
         }
@@ -739,6 +775,10 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
         if ($room->is_closed) {
             return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
         }
@@ -766,6 +806,10 @@ class CinemaController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
 
         if ($room->is_closed) {
             return back()->with('error', 'Deze zaal is gesloten.');

@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $hourlyWage = $hourlyWage ?? 0;
+    $dailyWage = $dailyWage ?? ($hourlyWage * 24);
+    $recentAttacks = $recentAttacks ?? collect();
+    $warsWon = $warsWon ?? 0;
+    $warsLost = $warsLost ?? 0;
+@endphp
 <div class="space-y-6" x-data="{
     memberSearch: '',
     onlyOnline: false,
@@ -35,6 +42,20 @@
             </a>
         </div>
     </div>
+
+    @if($character->isImprisoned())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-lock text-base text-rose-600 shrink-0"></i>
+        <span>Je zit in de isoleercel en kunt op dit moment geen bendelidmaatschap aanvragen.</span>
+    </div>
+    @endif
+
+    @if($character->isComatose())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-bed-pulse text-base text-rose-600 shrink-0"></i>
+        <span>Je ligt in het ziekenhuis/coma en kunt op dit moment geen bendelidmaatschap aanvragen.</span>
+    </div>
+    @endif
 
     <!-- Top Hero Banner Card -->
     <!-- Top Hero Banner Card (High-Contrast, Readable in Both Light and Dark Mode) -->
@@ -152,7 +173,7 @@
                         @if(($character->respect ?? 0) >= ($gang->min_respect ?? 0))
                             <form action="{{ route('gangs.request-join', $gang->id) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
+                                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                                     <i class="fa-solid fa-user-plus"></i>
                                     <span>Lidmaatschap Aanvragen</span>
                                 </button>

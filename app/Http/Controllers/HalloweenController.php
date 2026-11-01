@@ -165,7 +165,7 @@ class HalloweenController extends Controller
         $character = $user->character;
 
         if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen Halloween quests claimen!');
+            return back()->with('error', 'Vanuit de isoleercel kun je geen Halloween items kopen!');
         }
 
         if ($character->isComatose()) {
@@ -189,91 +189,87 @@ class HalloweenController extends Controller
             return back()->with('error', 'Kon aankoop niet verwerken.');
         }
 
-        // Spend the seeds under a row lock so parallel purchases cannot use the same seeds twice.
-        $seedsSpent = DB::transaction(function () use ($character, $price): bool {
+        return DB::transaction(function () use ($character, $itemKey, $item, $price): RedirectResponse {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if ($item['type'] === 'border' && $locked->hasBorder($itemKey)) {
+                return back()->with('info', 'Je bezit deze Halloween profielrand al!');
+            }
+
             if (($locked->pumpkin_seeds ?? 0) < $price) {
-                return false;
+                $short = $price - ($locked->pumpkin_seeds ?? 0);
+
+                return back()->with('error', "Onvoldoende Pompoenpitten! Je hebt {$price} 🎃 nodig (je komt er {$short} te kort). Voltooi Halloween Quests om meer pitten te verdienen!");
             }
 
             $locked->pumpkin_seeds -= $price;
-            $locked->save();
 
-            return true;
-        });
+            if ($item['type'] === 'border') {
+                $locked->unlockBorder($itemKey);
+                $locked->equipped_border = $itemKey;
+                $locked->save();
 
-        if (! $seedsSpent) {
-            $character->refresh();
-            $short = $price - ($character->pumpkin_seeds ?? 0);
-
-            return back()->with('error', "Onvoldoende Pompoenpitten! Je hebt {$price} 🎃 nodig (je komt er {$short} te kort). Voltooi Halloween Quests om meer pitten te verdienen!");
-        }
-
-        $character->refresh();
-
-        // Handle specific item types
-        if ($item['type'] === 'border') {
-            $character->unlockBorder($itemKey);
-            $character->equipped_border = $itemKey;
-            $character->save();
-
-            return back()->with('success', "🎃 {$item['name']} succesvol gekocht en direct geactiveerd op je profiel!");
-        }
-
-        if ($item['type'] === 'collectible') {
-            $dbItem = Item::firstOrCreate(
-                ['slug' => 'halloween_'.$itemKey],
-                [
-                    'name' => $item['name'],
-                    'slug' => 'halloween_'.$itemKey,
-                    'description' => $item['description'],
-                    'category' => $item['consumable'] ? 'consumable' : 'special',
-                    'rarity' => 'legendary',
-                    'price_kc' => 2500,
-                    'energy_restore' => $item['consumable'] ? 35 : 0,
-                    'icon' => $item['icon'],
-                    'is_buyable' => false,
-                ]
-            );
-
-            $charItem = CharacterItem::where('character_id', $character->id)
-                ->where('item_id', $dbItem->id)
-                ->first();
-
-            if ($charItem) {
-                $charItem->increment('quantity');
-            } else {
-                CharacterItem::create([
-                    'character_id' => $character->id,
-                    'item_id' => $dbItem->id,
-                    'quantity' => 1,
-                    'is_equipped' => false,
-                ]);
+                return back()->with('success', "🎃 {$item['name']} succesvol gekocht en direct geactiveerd op je profiel!");
             }
 
-            return back()->with('success', "🎃 {$item['name']} toegevoegd aan je inventaris en cel!");
-        }
+            if ($item['type'] === 'collectible') {
+                $locked->save();
 
-        if ($itemKey === 'witch_brew') {
-            $character->health = $character->max_health;
-            $character->energy = min($character->max_energy, $character->energy + 75);
-            $character->save();
+                $dbItem = Item::firstOrCreate(
+                    ['slug' => 'halloween_'.$itemKey],
+                    [
+                        'name' => $item['name'],
+                        'slug' => 'halloween_'.$itemKey,
+                        'description' => $item['description'],
+                        'category' => $item['consumable'] ? 'consumable' : 'special',
+                        'rarity' => 'legendary',
+                        'price_kc' => 2500,
+                        'energy_restore' => $item['consumable'] ? 35 : 0,
+                        'icon' => $item['icon'],
+                        'is_buyable' => false,
+                    ]
+                );
 
-            return back()->with('success', '🧪 Je dronk het Heksenbrouwsel! 100% Gezondheid hersteld en direct +75 Energie ontvangen!');
-        }
+                $charItem = CharacterItem::where('character_id', $locked->id)
+                    ->where('item_id', $dbItem->id)
+                    ->lockForUpdate()
+                    ->first();
 
-        if ($itemKey === 'pumpkin_mask') {
-            $character->masks = ($character->masks ?? 0) + 5;
-            $character->save();
+                if ($charItem) {
+                    $charItem->increment('quantity');
+                } else {
+                    CharacterItem::create([
+                        'character_id' => $locked->id,
+                        'item_id' => $dbItem->id,
+                        'quantity' => 1,
+                        'is_equipped' => false,
+                    ]);
+                }
 
-            return back()->with('success', "🎭 +5 Jack-O'-Lantern maskers ontvangen! Je kunt nu 5x ongemerkt zakkenrollen.");
-        }
+                return back()->with('success', "🎃 {$item['name']} toegevoegd aan je inventaris en cel!");
+            }
 
-        $character->addPerk('magere_hein_zegening', 24);
-        $character->save();
+            if ($itemKey === 'witch_brew') {
+                $locked->health = $locked->max_health;
+                $locked->energy = min($locked->max_energy, $locked->energy + 75);
+                $locked->save();
 
-        return back()->with('success', '💀 Magere Hein Zegening actief! Je ontvangt de komende 24 uur +15% extra Kracht & Verdediging!');
+                return back()->with('success', '🧪 Je dronk het Heksenbrouwsel! 100% Gezondheid hersteld en direct +75 Energie ontvangen!');
+            }
+
+            if ($itemKey === 'pumpkin_mask') {
+                $locked->masks = ($locked->masks ?? 0) + 5;
+                $locked->save();
+
+                return back()->with('success', "🎭 +5 Jack-O'-Lantern maskers ontvangen! Je kunt nu 5x ongemerkt zakkenrollen.");
+            }
+
+            $locked->addPerk('magere_hein_zegening', 24);
+            $locked->save();
+
+            return back()->with('success', '💀 Magere Hein Zegening actief! Je ontvangt de komende 24 uur +15% extra Kracht & Verdediging!');
+        });
     }
 
     /**
@@ -290,7 +286,7 @@ class HalloweenController extends Controller
         $character = $user->character;
 
         if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen Halloween quests claimen!');
+            return back()->with('error', 'Vanuit de isoleercel kun je geen profielrand instellen!');
         }
 
         if ($character->isComatose()) {

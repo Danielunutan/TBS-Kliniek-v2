@@ -163,6 +163,13 @@
                                     class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
                                 Onvoldoende Energie (5 vereist)
                             </button>
+                            <button type="button"
+                                    x-show="cooldownSeconds <= 0 && playerStrength < {{ $npc['min_strength'] }}"
+                                    x-cloak
+                                    disabled
+                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
+                                Onvoldoende Kracht (min. {{ $npc['min_strength'] }})
+                            </button>
                             <button type="button" 
                                     x-show="cooldownSeconds > 0"
                                     x-cloak
@@ -230,7 +237,7 @@
                             @endforeach
                         </select>
                         <button type="submit" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="w-full sm:w-auto px-4 py-2 rounded-xl {{ $canCreateAnyChallenge ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-xs font-black transition-all duration-150 shadow-xs shrink-0">
-                            {{ $canCreateAnyChallenge ? 'Plaats Uitdaging' : 'Onvoldoende Contant' }}
+                            {{ $canCreateAnyChallenge ? 'Plaats Uitdaging' : ($character->isComatose() ? 'Code Blauw (Geen Armworstelen)' : ($character->isImprisoned() ? 'Isoleercel (Geen Toegang)' : 'Onvoldoende Contant')) }}
                         </button>
                     </div>
                 </form>
@@ -260,7 +267,11 @@
                                 <button type="submit" {{ !$canAcceptChallenge ? 'disabled' : '' }} class="px-3.5 py-1.5 rounded-xl {{ $canAcceptChallenge ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-xs font-black transition-all duration-150 shadow-xs flex items-center gap-1.5">
                                     <i class="fa-solid fa-hand-fist {{ $canAcceptChallenge ? 'text-amber-300' : 'text-slate-400' }} text-[10px]"></i>
                                     <span>
-                                        @if(!$canAffordChallenge)
+                                        @if($character?->isComatose())
+                                            Code Blauw (Geen Armworstelen)
+                                        @elseif($character?->isImprisoned())
+                                            Isoleercel (Geen Toegang)
+                                        @elseif(!$canAffordChallenge)
                                              Onvoldoende Contant (€ {{ number_format($open->bet_amount, 0, ',', '.') }})
                                         @elseif(!$hasEnergyForChallenge)
                                             Onvoldoende Energie (5 EP)

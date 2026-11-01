@@ -94,10 +94,11 @@ MARKDOWN;
             $chatMessageText = "🚨 **[SYSTEEM MELDING - DIRECTIE]**: Er staat een enorme nieuwe update live! 🎯 **Doel van het spel, 24u Battles & Clan Bazen**, 🔫 **Moord & Liquidaties (Hitman)**, 📦 **XXL Koffers Kraken**, en 📺 **Ad beloningen (Kogels, Coma & Gevangenis verkorten)**. Lees het complete beginnersvriendelijke overzicht nu in het Nieuwscentrum: {$newsUrl}";
 
             foreach (['global', 'algemeen'] as $ch) {
-                ChatMessage::create([
+                ChatMessage::firstOrCreate([
                     'character_id' => $senderChar->id,
                     'channel' => $ch,
                     'message' => $chatMessageText,
+                ], [
                     'hearts_count' => 0,
                     'hearts_users' => [],
                 ]);

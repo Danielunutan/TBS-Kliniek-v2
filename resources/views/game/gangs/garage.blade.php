@@ -3,6 +3,9 @@
 @section('title', 'Bende Garage - TBS Kliniek')
 
 @section('content')
+@php
+    $storedCount = $storedCount ?? ($storedVehicles?->count() ?? 0);
+@endphp
 <div class="space-y-6">
 
     <!-- Header Section -->
@@ -190,7 +193,7 @@
                                     <i class="fa-solid {{ $veh->icon ?? 'fa-car' }}"></i>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <h4 class="font-black text-slate-900 dark:text-white text-sm truncate">{{ $veh->name }}</h4>
+                                    <h4 class="font-black text-slate-900 dark:text-white text-sm truncate">{{ $veh?->name ?? 'Voertuig' }}</h4>
                                     <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $veh->brand ?? 'Onderwereld Fleet' }}</p>
                                 </div>
                             </div>
@@ -304,7 +307,7 @@
                                     <i class="fa-solid {{ $v->icon ?? 'fa-car' }}"></i>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <h4 class="font-extrabold text-slate-900 dark:text-white text-sm truncate">{{ $v->name }}</h4>
+                                    <h4 class="font-extrabold text-slate-900 dark:text-white text-sm truncate">{{ $v?->name ?? 'Voertuig' }}</h4>
                                     <p class="text-xs text-slate-400 dark:text-slate-500">Conditie: {{ $myVehicle->current_condition }}%</p>
                                 </div>
                             </div>

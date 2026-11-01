@@ -286,6 +286,38 @@
         <span>Rente & Leningtax (8,5%)</span>
     </div>
 
+    @if($character->isComatose())
+        <div class="rounded-2xl p-4 bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-800 dark:text-rose-300 flex items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-heart-pulse animate-pulse"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black uppercase tracking-wider text-rose-900 dark:text-rose-200">Code Blauw (Hartstilstand)</h4>
+                    <p class="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5">Je bent buiten bewustzijn en kunt de Geldmaat niet bedienen tot je bent ontwaakt.</p>
+                </div>
+            </div>
+            <a href="{{ route('dashboard') }}" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase tracking-wider transition shrink-0 shadow-2xs">
+                Naar Overzicht &raquo;
+            </a>
+        </div>
+    @elseif($character->isImprisoned())
+        <div class="rounded-2xl p-4 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 flex items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-200">Opgesloten in Isoleercel</h4>
+                    <p class="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">Vanuit de isoleercel heb je geen toegang tot de Geldmaat of bankzaken.</p>
+                </div>
+            </div>
+            <a href="{{ route('prison') }}" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider transition shrink-0 shadow-2xs">
+                Naar Cel &raquo;
+            </a>
+        </div>
+    @endif
+
     <!-- ============================================================== -->
     <!-- SLIM COMPACT HEADER WITH INTEGRATED PAS & SALDO TICKER         -->
     <!-- ============================================================== -->
@@ -605,16 +637,16 @@
                             @csrf
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold text-sm">€</span>
-                                <input type="number" name="amount" x-model="depositAmount" min="1" max="{{ $character->cash }}"
-                                       placeholder="Bedrag..." required
+                                <input type="number" name="amount" x-model="depositAmount" min="1" max="{{ max(1, (int) $character->cash) }}"
+                                       placeholder="Bedrag..." required {{ ($character->isComatose() || $character->isImprisoned() || (int)$character->cash <= 0) ? 'disabled' : '' }}
                                        class="w-full rounded-xl py-2 pl-7 pr-3 font-mono text-sm sm:text-base font-bold border focus:outline-hidden
                                               bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500
                                               dark:bg-slate-950 dark:border-slate-700 dark:text-white">
                             </div>
 
-                            <button type="submit"
-                                    class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider font-mono transition cursor-pointer shadow-xs">
-                                Storting Bevestigen
+                            <button type="submit" {{ ($character->isComatose() || $character->isImprisoned() || (int)$character->cash <= 0) ? 'disabled' : '' }}
+                                    class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider font-mono transition cursor-pointer shadow-xs">
+                                {{ $character->isComatose() ? 'Code Blauw (Geen Geldmaat)' : ($character->isImprisoned() ? 'Isoleercel (Geen Geldmaat)' : ((int)$character->cash <= 0 ? 'Geen Contant Geld' : 'Storting Bevestigen')) }}
                             </button>
                         </form>
                     </div>
@@ -648,16 +680,16 @@
                             @csrf
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold text-sm">€</span>
-                                <input type="number" name="amount" x-model="withdrawAmount" min="1" max="{{ $character->bank }}"
-                                       placeholder="Bedrag..." required
+                                <input type="number" name="amount" x-model="withdrawAmount" min="1" max="{{ max(1, (int) $character->bank) }}"
+                                       placeholder="Bedrag..." required {{ ($character->isComatose() || $character->isImprisoned() || (int)$character->bank <= 0) ? 'disabled' : '' }}
                                        class="w-full rounded-xl py-2 pl-7 pr-3 font-mono text-sm sm:text-base font-bold border focus:outline-hidden
                                               bg-slate-50 border-slate-300 text-slate-900 focus:border-amber-500
                                               dark:bg-slate-950 dark:border-slate-700 dark:text-white">
                             </div>
 
-                            <button type="submit"
-                                    class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider font-mono transition cursor-pointer shadow-xs">
-                                Pinnen Uit Automaat
+                            <button type="submit" {{ ($character->isComatose() || $character->isImprisoned() || (int)$character->bank <= 0) ? 'disabled' : '' }}
+                                    class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-black text-xs uppercase tracking-wider font-mono transition cursor-pointer shadow-xs">
+                                {{ $character->isComatose() ? 'Code Blauw (Geen Geldmaat)' : ($character->isImprisoned() ? 'Isoleercel (Geen Geldmaat)' : ((int)$character->bank <= 0 ? 'Geen Banktegoed' : 'Pinnen Uit Automaat')) }}
                             </button>
                         </form>
                     </div>
@@ -700,7 +732,7 @@
                                     <form method="POST" action="{{ route('bank.loans.repay-full', $loan) }}">
                                         @csrf
                                         <input type="hidden" name="source" value="bank">
-                                        <button type="submit" class="px-2.5 py-1.5 min-h-[32px] rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold font-mono transition cursor-pointer">
+                                        <button type="submit" {{ ($character->isComatose() || $character->isImprisoned()) ? 'disabled' : '' }} class="px-2.5 py-1.5 min-h-[32px] rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] font-bold font-mono transition cursor-pointer">
                                             Aflossen
                                         </button>
                                     </form>
@@ -717,14 +749,14 @@
                             <form method="POST" action="{{ route('bank.loans.request') }}" class="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-800">
                                 @csrf
                                 <input type="number" name="amount" min="10000" max="{{ $beschikbareLening }}" step="5000"
-                                       value="{{ min(25000, $beschikbareLening) }}" required
+                                       value="{{ min(25000, $beschikbareLening) }}" required {{ ($character->isComatose() || $character->isImprisoned()) ? 'disabled' : '' }}
                                        class="flex-1 min-w-0 rounded-xl px-2.5 py-1.5 font-mono text-xs font-bold border bg-slate-50 border-slate-300 dark:bg-slate-950 dark:border-slate-700">
-                                <select name="deposit_to" class="rounded-xl px-2 py-1.5 font-mono text-xs border bg-slate-50 border-slate-300 dark:bg-slate-950 dark:border-slate-700">
+                                <select name="deposit_to" {{ ($character->isComatose() || $character->isImprisoned()) ? 'disabled' : '' }} class="rounded-xl px-2 py-1.5 font-mono text-xs border bg-slate-50 border-slate-300 dark:bg-slate-950 dark:border-slate-700">
                                     <option value="bank">Kluis</option>
                                     <option value="cash">Zak</option>
                                 </select>
-                                <button type="submit" class="shrink-0 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase font-mono cursor-pointer shadow-xs">
-                                    Lenen
+                                <button type="submit" {{ ($character->isComatose() || $character->isImprisoned()) ? 'disabled' : '' }} class="shrink-0 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase font-mono cursor-pointer shadow-xs">
+                                    {{ $character->isComatose() ? 'Code Blauw' : ($character->isImprisoned() ? 'Isoleercel' : 'Lenen') }}
                                 </button>
                             </form>
                         @endif
@@ -846,12 +878,12 @@
                     <div>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold">€</span>
-                            <input type="number" name="amount" min="1" max="{{ $character->cash }}" placeholder="0" required
+                            <input type="number" name="amount" min="1" max="{{ max(1, (int) $character->cash) }}" placeholder="0" required {{ ($character->isComatose() || $character->isImprisoned() || (int)$character->cash <= 0) ? 'disabled' : '' }}
                                    class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-8 pr-4 font-mono font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         </div>
                     </div>
-                    <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                        Storten in Beveiligde Kluis
+                    <button type="submit" {{ ($character->isComatose() || $character->isImprisoned() || (int)$character->cash <= 0) ? 'disabled' : '' }} class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
+                        {{ $character->isComatose() ? 'Code Blauw (Geen Geldmaat)' : ($character->isImprisoned() ? 'Isoleercel (Geen Geldmaat)' : ((int)$character->cash <= 0 ? 'Geen Contant Geld' : 'Storten in Beveiligde Kluis')) }}
                     </button>
                 </form>
             </div>
@@ -873,12 +905,12 @@
                     <div>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold">€</span>
-                            <input type="number" name="amount" min="1" max="{{ $character->bank }}" placeholder="0" required
+                            <input type="number" name="amount" min="1" max="{{ max(1, (int) $character->bank) }}" placeholder="0" required {{ ($character->isComatose() || $character->isImprisoned() || (int)$character->bank <= 0) ? 'disabled' : '' }}
                                    class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-8 pr-4 font-mono font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         </div>
                     </div>
-                    <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                        Contant Opnemen (-{{ $character->isVip() ? '3%' : '5%' }} Tax)
+                    <button type="submit" {{ ($character->isComatose() || $character->isImprisoned() || (int)$character->bank <= 0) ? 'disabled' : '' }} class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
+                        {{ $character->isComatose() ? 'Code Blauw (Geen Geldmaat)' : ($character->isImprisoned() ? 'Isoleercel (Geen Geldmaat)' : ((int)$character->bank <= 0 ? 'Geen Banktegoed' : 'Contant Opnemen (-' . ($character->isVip() ? '3%' : '5%') . ' Tax)')) }}
                     </button>
                 </form>
             </div>
@@ -896,14 +928,14 @@
                     <form method="POST" action="{{ route('bank.loans.request') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                         @csrf
                         <input type="number" name="amount" min="10000" max="{{ $beschikbareLening }}" step="5000"
-                               value="{{ min(25000, $beschikbareLening) }}" required
+                               value="{{ min(25000, $beschikbareLening) }}" required {{ ($character->isComatose() || $character->isImprisoned()) ? 'disabled' : '' }}
                                class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-3 font-mono font-bold text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
-                        <select name="deposit_to" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-3 font-mono font-bold text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                        <select name="deposit_to" {{ ($character->isComatose() || $character->isImprisoned()) ? 'disabled' : '' }} class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-3 font-mono font-bold text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             <option value="bank">Veilige Bankkluis</option>
                             <option value="cash">Contant op Zak</option>
                         </select>
-                        <button type="submit" class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                            Lening Afsluiten
+                        <button type="submit" {{ ($character->isComatose() || $character->isImprisoned()) ? 'disabled' : '' }} class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider font-mono shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
+                            {{ $character->isComatose() ? 'Code Blauw' : ($character->isImprisoned() ? 'Isoleercel' : 'Lening Afsluiten') }}
                         </button>
                     </form>
                 @else
@@ -930,7 +962,7 @@
                             <form method="POST" action="{{ route('bank.loans.repay-full', $loan) }}">
                                 @csrf
                                 <input type="hidden" name="source" value="bank">
-                                <button type="submit" class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-mono font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
+                                <button type="submit" {{ ($character->isComatose() || $character->isImprisoned()) ? 'disabled' : '' }} class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                                     Alles Aflossen
                                 </button>
                             </form>

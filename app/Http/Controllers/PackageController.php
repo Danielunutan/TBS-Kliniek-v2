@@ -103,23 +103,6 @@ class PackageController extends Controller
      */
     public function intercept(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
-
-        if ($character->isImprisoned()) {
-            return redirect()->route('prison')->with('error', 'Zolang je in de strafcel zit, kun je geen zendingen onderscheppen.');
-        }
-
-        if ($character->isComatose()) {
-            return back()->with('error', 'Kritieke toestand (Code Blauw)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
-        }
-
-        if ($this->cooldownService->isOnCooldown($character, 'package')) {
-            $remaining = $this->cooldownService->getRemainingSeconds($character, 'package');
-            $mins = ceil($remaining / 60);
-
-            return back()->with('error', "⏳ De goederensluis wordt nu streng bewaakt! Wacht nog {$remaining}s (~{$mins} min) of koop de wachttijd af.");
-        }
-
         $validated = $request->validate([
             'package_id' => ['required', 'integer', 'in:1,2,3,4,5'],
         ]);
@@ -133,63 +116,84 @@ class PackageController extends Controller
         ];
 
         $pkg = $config[$validated['package_id']];
+        $user = Auth::user();
 
-        if ($pkg['token_cost'] > 0 && ($character->vault_tokens ?? 0) < $pkg['token_cost']) {
-            return back()->with('error', "Je hebt ten minste {$pkg['token_cost']} KluisMunten nodig om dit slot te ontgrendelen.");
-        }
+        return DB::transaction(function () use ($user, $validated, $pkg) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        if (! $this->energy->consume($character, $pkg['energy'])) {
-            return back()->with('error', "Onvoldoende uithouding: deze onderschepping vraagt {$pkg['energy']} energie.");
-        }
-
-        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($pkg['rate']);
-        $this->cooldownService->setCooldown($character, 'package', $cooldownSeconds);
-
-        if ($pkg['token_cost'] > 0) {
-            $character->vault_tokens -= $pkg['token_cost'];
-        }
-
-        $roll = rand(1, 100);
-        if ($roll <= $pkg['rate']) {
-            $cash = rand($pkg['min'], $pkg['max']);
-            $this->economy->addCash($character, $cash);
-            $this->level->addXp($character, $pkg['xp']);
-
-            $tokensFound = 0;
-            if (rand(1, 100) <= $pkg['token_chance']) {
-                $tokensFound = ((int) $validated['package_id'] === 5) ? rand(2, 3) : 1;
-                $character->vault_tokens = ($character->vault_tokens ?? 0) + $tokensFound;
+            if ($character->isImprisoned()) {
+                return redirect()->route('prison')->with('error', 'Zolang je in de strafcel zit, kun je geen zendingen onderscheppen.');
             }
 
-            $bagDropped = false;
-            if (rand(1, 100) <= 25) {
-                $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
-                $bagDropped = true;
+            if ($character->isComatose()) {
+                return back()->with('error', 'Kritieke toestand (Code Blauw)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
-            $character->addRespect(1);
+            if ($this->cooldownService->isOnCooldown($character, 'package')) {
+                $remaining = $this->cooldownService->getRemainingSeconds($character, 'package');
+                $mins = ceil($remaining / 60);
+
+                return back()->with('error', "⏳ De goederensluis wordt nu streng bewaakt! Wacht nog {$remaining}s (~{$mins} min) of koop de wachttijd af.");
+            }
+
+            if ($pkg['token_cost'] > 0 && ($character->vault_tokens ?? 0) < $pkg['token_cost']) {
+                return back()->with('error', "Je hebt ten minste {$pkg['token_cost']} KluisMunten nodig om dit slot te ontgrendelen.");
+            }
+
+            if (! $this->energy->consume($character, $pkg['energy'])) {
+                return back()->with('error', "Onvoldoende uithouding: deze onderschepping vraagt {$pkg['energy']} energie.");
+            }
+
+            $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($pkg['rate']);
+            $this->cooldownService->setCooldown($character, 'package', $cooldownSeconds);
+
+            if ($pkg['token_cost'] > 0) {
+                $character->vault_tokens -= $pkg['token_cost'];
+            }
+
+            $roll = rand(1, 100);
+            if ($roll <= $pkg['rate']) {
+                $cash = rand($pkg['min'], $pkg['max']);
+                $this->economy->addCash($character, $cash);
+                $this->level->addXp($character, $pkg['xp']);
+
+                $tokensFound = 0;
+                if (rand(1, 100) <= $pkg['token_chance']) {
+                    $tokensFound = ((int) $validated['package_id'] === 5) ? rand(2, 3) : 1;
+                    $character->vault_tokens = ($character->vault_tokens ?? 0) + $tokensFound;
+                }
+
+                $bagDropped = false;
+                if (rand(1, 100) <= 25) {
+                    $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
+                    $bagDropped = true;
+                }
+
+                $character->addRespect(1);
+                $character->save();
+
+                $tokenTxt = $tokensFound > 0 ? " +{$tokensFound} KluisMunten 🔑 buitgemaakt!" : '';
+                $bagTxt = $bagDropped ? ' 🧳 EXTRA: Er zat een verzegelde Smokkelkoffer in de zending!' : '';
+
+                return back()->with('success', 'Zending onderschept! Je haalt €'.number_format($cash, 0, ',', '.')." contant uit het pakket (+{$pkg['xp']} XP){$tokenTxt}{$bagTxt}");
+            }
+
             $character->save();
 
-            $tokenTxt = $tokensFound > 0 ? " +{$tokensFound} KluisMunten 🔑 buitgemaakt!" : '';
-            $bagTxt = $bagDropped ? ' 🧳 EXTRA: Er zat een verzegelde Smokkelkoffer in de zending!' : '';
+            $jailSeconds = match ((int) $validated['package_id']) {
+                1 => random_int(60, 90),
+                2 => random_int(90, 130),
+                3 => random_int(120, 180),
+                4 => random_int(180, 240),
+                5 => random_int(210, 300),
+                default => 120,
+            };
 
-            return back()->with('success', 'Zending onderschept! Je haalt €'.number_format($cash, 0, ',', '.')." contant uit het pakket (+{$pkg['xp']} XP){$tokenTxt}{$bagTxt}");
-        }
+            $this->prison->jailSeconds($character, $jailSeconds, "Op heterdaad betrapt bij de goederensluis: {$pkg['name']}");
 
-        $character->save();
-
-        $jailSeconds = match ((int) $validated['package_id']) {
-            1 => random_int(60, 90),
-            2 => random_int(90, 130),
-            3 => random_int(120, 180),
-            4 => random_int(180, 240),
-            5 => random_int(210, 300),
-            default => 120,
-        };
-
-        $this->prison->jailSeconds($character, $jailSeconds, "Op heterdaad betrapt bij de goederensluis: {$pkg['name']}");
-
-        return redirect()->route('prison')->with('error', "Alarm bij de goederensluis! Je zit {$jailSeconds} sec vast in isolatie nadat bewakers je omsingelden.");
+            return redirect()->route('prison')->with('error', "Alarm bij de goederensluis! Je zit {$jailSeconds} sec vast in isolatie nadat bewakers je omsingelden.");
+        });
     }
 
     /**

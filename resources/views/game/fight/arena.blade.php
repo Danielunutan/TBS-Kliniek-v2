@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $attacker = $attacker ?? $character;
+@endphp
 <div class="max-w-4xl mx-auto space-y-6"
      x-data="{
          countdown: {{ (!empty($arenaBattle['resolved'])) ? 0 : 2 }},
@@ -74,7 +77,7 @@
             </a>
         </div>
         <span class="text-xs font-mono font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70">
-            Aanvallen over vandaag: {{ $arenaBattle['left_today'] }} / {{ $arenaBattle['max_today'] ?? 100 }}
+            Aanvallen over vandaag: {{ $arenaBattle['left_today'] ?? 0 }} / {{ $arenaBattle['max_today'] ?? 100 }}
         </span>
     </div>
 
@@ -276,7 +279,7 @@
                         <input type="hidden" name="opponent_id" value="{{ $defender->id }}">
                         <input type="hidden" name="from_profile" value="1">
                         <button type="submit" 
-                                {{ $attacker->energy < 20 || $arenaBattle['left_today'] <= 0 || $attacker->isImprisoned() || $attacker->isComatose() ? 'disabled' : '' }}
+                                {{ $attacker->energy < 20 || ($arenaBattle['left_today'] ?? 0) <= 0 || $attacker->isImprisoned() || $attacker->isComatose() ? 'disabled' : '' }}
                                 class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 text-center shadow-xs cursor-pointer">
                             <i class="fa-solid fa-sack-dollar mr-1.5"></i> Opnieuw geld stelen (20 energie)
                         </button>

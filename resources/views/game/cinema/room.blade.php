@@ -784,6 +784,12 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
 
         async sendMessage() {
             if (!this.chatInput.trim()) return;
+            @if($character?->isImprisoned() || $character?->isComatose())
+                if (window.tbsToast) {
+                    window.tbsToast(@js($character?->isImprisoned() ? 'In de isoleercel kun je niet meepraten in de bioscoop!' : 'Je verkeert in coma en kunt geen berichten sturen!'), 'warning');
+                }
+                return;
+            @endif
             const text = this.chatInput.trim();
             this.chatInput = '';
 
@@ -795,7 +801,7 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
                 gif_url: null,
                 sticker_key: null,
                 character_name: @js($character?->name ?? 'Gast'),
-                avatar: @js(asset($character?->avatar ?? 'characters/avatar-default.png')),
+                avatar: @js($character?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg')),
                 is_staff: {{ Auth::user()?->isStaff() ? 'true' : 'false' }},
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 pending: true,
@@ -835,6 +841,12 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
 
         async sendGif(gifUrl) {
             this.showGifPicker = false;
+            @if($character?->isImprisoned() || $character?->isComatose())
+                if (window.tbsToast) {
+                    window.tbsToast(@js($character?->isImprisoned() ? 'In de isoleercel kun je niet meepraten in de bioscoop!' : 'Je verkeert in coma en kunt geen berichten sturen!'), 'warning');
+                }
+                return;
+            @endif
             try {
                 const res = await fetch(`/cinema/${this.roomId}/chat`, {
                     method: 'POST',
@@ -861,6 +873,12 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
 
         async submitAddToQueue() {
             if (!this.newQueueUrl.trim()) return;
+            @if($character?->isImprisoned() || $character?->isComatose())
+                if (window.tbsToast) {
+                    window.tbsToast(@js($character?->isImprisoned() ? 'In de isoleercel kun je geen video\'s toevoegen!' : 'Je verkeert in coma!'), 'warning');
+                }
+                return;
+            @endif
             const url = this.newQueueUrl.trim();
             const title = this.newQueueTitle.trim();
             this.showAddQueueModal = false;

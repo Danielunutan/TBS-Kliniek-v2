@@ -17,6 +17,13 @@ class LoanService
      */
     public function requestLoan(Character $character, int $amount, string $depositTo = 'cash'): array
     {
+        if ($character->isComatose()) {
+            return [
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ];
+        }
+
         if ($amount < Loan::MIN_LOAN_AMOUNT) {
             return [
                 'success' => false,
@@ -48,8 +55,11 @@ class LoanService
 
         /** @var Loan|null $loan */
         $loan = DB::transaction(function () use ($character, $amount, $interestRate, $interestAmount, $totalDue, $loanNumber, $depositTo): ?Loan {
-            /** @var Character $lockedChar */
+            /** @var Character|null $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedChar || $lockedChar->isComatose()) {
+                return null;
+            }
 
             // Re-check the capacity under the character lock so parallel requests cannot exceed the limit.
             if ($amount > Loan::getBeschikbareLening($lockedChar)) {
@@ -121,6 +131,15 @@ class LoanService
      */
     public function repayLoan(Character $character, Loan $loan, int $amount, string $source = 'cash'): array
     {
+        if ($character->isComatose()) {
+            return [
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+                'amount_paid' => 0,
+                'paid_full' => false,
+            ];
+        }
+
         if ($loan->character_id !== $character->id || $loan->status !== 'active') {
             return [
                 'success' => false,
@@ -140,8 +159,16 @@ class LoanService
         }
 
         return DB::transaction(function () use ($character, $loan, $amount, $source): array {
-            /** @var Character $lockedChar */
+            /** @var Character|null $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedChar || $lockedChar->isComatose()) {
+                return [
+                    'success' => false,
+                    'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+                    'amount_paid' => 0,
+                    'paid_full' => false,
+                ];
+            }
             /** @var Loan $lockedLoan */
             $lockedLoan = Loan::where('id', $loan->id)->lockForUpdate()->first();
 

@@ -574,14 +574,16 @@ class AdminController extends Controller
         }
 
         return Character::query()
-            ->whereRaw('strength > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('defense > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('stamina > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('intelligence > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
-            ->orWhere('max_energy', '>', 100)
-            ->orWhere('energy', '>', 100)
+            ->where(function ($q) {
+                $q->whereRaw('strength > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('defense > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('stamina > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('intelligence > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhere('max_energy', '>', 100)
+                    ->orWhere('energy', '>', 100);
+            })
             ->count();
     }
 

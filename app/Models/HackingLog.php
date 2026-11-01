@@ -14,6 +14,10 @@ class HackingLog extends Model
 
     protected $casts = [
         'vip_bonus_applied' => 'boolean',
+        'success' => 'boolean',
+        'cash_earned' => 'integer',
+        'xp_earned' => 'integer',
+        'ports_scanned' => 'integer',
     ];
 
     public function character(): BelongsTo

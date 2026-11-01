@@ -11,7 +11,7 @@
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div class="flex items-start sm:items-center gap-4">
-                <div class="w-13 h-13 rounded-2xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                     <i class="fa-solid fa-ghost"></i>
                 </div>
                 <div>
@@ -88,7 +88,7 @@
             </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($dailyQuests as $quest)
                 @php
                     $isClaimed = $quest['is_claimed'];
@@ -231,7 +231,7 @@
             </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4.5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($weeklyQuests as $quest)
                 @php
                     $isClaimed = $quest['is_claimed'];

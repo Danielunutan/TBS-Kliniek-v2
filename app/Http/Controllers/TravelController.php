@@ -134,6 +134,8 @@ class TravelController extends Controller
             $locked->current_location = $locData['name'];
             $locked->save();
 
+            $this->level->addXp($locked, 35);
+
             $character->cash = $locked->cash;
             $character->current_location = $locked->current_location;
 
@@ -148,9 +150,7 @@ class TravelController extends Controller
             return back()->with('error', 'Je hebt niet genoeg contant geld (€'.number_format($cost, 0, ',', '.').') om de bewakers om te kopen!');
         }
 
-        // Award XP
         $xpAward = 35;
-        $this->level->addXp($character, $xpAward);
 
         return back()->with('success', 'Je hebt de bewakers omgekocht voor €'.number_format($cost, 0, ',', '.')." en bent succesvol verplaatst naar {$locData['name']}! (+{$xpAward} XP)");
     }

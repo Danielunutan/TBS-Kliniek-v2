@@ -34,7 +34,7 @@
         <div x-data="{ adminNavOpen: false }" class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
             <button type="button" 
                     @click="adminNavOpen = !adminNavOpen" 
-                    class="sm:hidden w-full mb-2.5 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 font-black text-xs flex items-center justify-between cursor-pointer active:scale-98 transition">
+                    class="sm:hidden w-full mb-2.5 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 font-black text-xs flex items-center justify-between cursor-pointer active:scale-95 transition">
                 <span class="flex items-center gap-2">
                     <i class="fa-solid fa-layer-group text-purple-600 dark:text-purple-400"></i>
                     <span>Admin Secties &amp; Navigatie</span>

@@ -29,6 +29,9 @@
 window.tbsChatConfig = {
     authCharId: {{ (int) ($character->id ?? 0) }},
     authCharName: @js((string) ($character->name ?? '')),
+    authCharAvatar: @js((string) ($character->avatar_url ?? asset('assets/characters/avatar_male_1.jpg'))),
+    isImprisoned: {{ $character->isImprisoned() ? 'true' : 'false' }},
+    isComatose: {{ $character->isComatose() ? 'true' : 'false' }},
     initialTab: @js((string) ($initialTab ?? 'global')),
     initialRecipient: {{ (int) ($initialRecipient ?? 0) }},
     hasGang: {{ ($hasGang ?? false) ? "true" : "false" }},
@@ -48,6 +51,11 @@ function tbsLiveMessenger(config) {
     return {
         authCharId: config.authCharId,
         authCharName: config.authCharName,
+        authCharAvatar: config.authCharAvatar,
+        myName: config.authCharName,
+        myAvatar: config.authCharAvatar,
+        isImprisoned: config.isImprisoned,
+        isComatose: config.isComatose,
         activeTab: config.initialTab || 'global',
         mobileView: (config.initialTab === 'direct' && !(config.initialRecipient > 0)) ? 'list' : 'chat',
         searchQuery: '',
@@ -1694,6 +1702,17 @@ window.tbsLiveMessenger = tbsLiveMessenger;
         <!-- CHAT INPUT BAR (GLOBAL / GANG / DIRECT) -->
         <div class="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-slate-800 shrink-0 space-y-2">
             
+            @if($character->isImprisoned())
+                <div class="text-center py-2.5 px-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-xl text-xs text-amber-800 dark:text-amber-200 font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock text-amber-600 dark:text-amber-400"></i>
+                    <span>Je zit in de isoleercel. Je kunt pas weer berichten sturen zodra je vrijkomt.</span>
+                </div>
+            @elseif($character->isComatose())
+                <div class="text-center py-2.5 px-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-700/60 rounded-xl text-xs text-rose-800 dark:text-rose-200 font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-heart-pulse text-rose-600 dark:text-rose-400"></i>
+                    <span>Je verkeert in coma (Code Blauw). Dien eerst een {{ \App\Models\Character::REVIVE_SERUM_NAME }} toe.</span>
+                </div>
+            @else
             <!-- Disable input on direct chat when no partner selected -->
             <template x-if="activeTab === 'direct' && activePartnerId === null">
                 <div class="text-center py-2 text-xs text-slate-400 italic">
@@ -1873,6 +1892,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     </form>
                 </div>
             </template>
+            @endif
         </div>
 
     </div>

@@ -796,6 +796,10 @@ class Character extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (Character $character) {
+            $character->last_energy_refill_at ??= now();
+        });
+
         static::saving(function (Character $character) {
             if ($character->isDirty('respect') && ! $character->isDirty('today_respect')) {
                 $oldRespect = (float) ($character->getOriginal('respect') ?? 0);

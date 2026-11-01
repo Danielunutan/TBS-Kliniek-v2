@@ -276,11 +276,11 @@
     <div class="lg:hidden flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar" x-show="!searchQuery">
         @foreach($categories as $catKey => $category)
         <button type="button" 
-                @click="selectCategory('{{ $catKey }}')"
-                :class="activeCategory === '{{ $catKey }}' ? 'bg-purple-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'"
+                @click="selectCategory(@js($catKey))"
+                :class="activeCategory === @js($catKey) ? 'bg-purple-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'"
                 class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 cursor-pointer">
             <i class="fa-solid {{ $category['icon'] }} text-[11px]"></i>
-            <span>{{ trim(preg_replace('/^[^a-zA-Z0-9]+/', '', $category['title'])) }}</span>
+            <span>{{ trim(preg_replace('/^[^\p{L}\p{N}]+/u', '', $category['title'])) }}</span>
         </button>
         @endforeach
     </div>
@@ -303,22 +303,22 @@
                 <div class="space-y-1 max-h-[700px] overflow-y-auto pr-1">
                     @foreach($categories as $catKey => $category)
                     <button type="button" 
-                            @click="selectCategory('{{ $catKey }}')"
-                            :class="activeCategory === '{{ $catKey }}' 
+                            @click="selectCategory(@js($catKey))"
+                            :class="activeCategory === @js($catKey) 
                                 ? 'bg-purple-600 text-white font-black shadow-xs' 
                                 : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 font-medium'"
                             class="w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition-all flex items-center justify-between gap-3 cursor-pointer group">
                         
                         <div class="flex items-center gap-2.5 truncate">
                             <span class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs transition"
-                                  :class="activeCategory === '{{ $catKey }}' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-purple-600 dark:text-purple-400 group-hover:bg-purple-100 dark:group-hover:bg-purple-950'">
+                                  :class="activeCategory === @js($catKey) ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-purple-600 dark:text-purple-400 group-hover:bg-purple-100 dark:group-hover:bg-purple-950'">
                                 <i class="fa-solid {{ $category['icon'] }}"></i>
                             </span>
                             <span class="truncate">{{ $category['title'] }}</span>
                         </div>
 
                         <span class="text-[10px] px-1.5 py-0.5 rounded-md shrink-0 font-mono font-bold"
-                              :class="activeCategory === '{{ $catKey }}' ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'">
+                              :class="activeCategory === @js($catKey) ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'">
                             {{ count($category['questions']) }}
                         </span>
                     </button>

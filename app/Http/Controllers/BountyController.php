@@ -20,7 +20,10 @@ class BountyController extends Controller
 
     public function index(): View
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
 
         // Active bounties, grouped by target or listed chronologically
         $bounties = Bounty::with(['target', 'placedBy'])
@@ -46,7 +49,10 @@ class BountyController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen kopgeld uitloven!');

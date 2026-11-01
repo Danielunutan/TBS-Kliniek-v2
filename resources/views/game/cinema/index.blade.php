@@ -182,7 +182,7 @@
                     <!-- Host & Actions Footer -->
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2 min-w-0">
-                            <img src="{{ asset($room->host?->avatar ?? 'characters/avatar-default.png') }}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700">
+                            <img src="{{ $room->host?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg') }}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                             <div class="min-w-0">
                                 <span class="text-xs font-black text-slate-900 dark:text-white truncate block">{{ $room->host?->name ?? 'TBS Directie' }}</span>
                                 <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase">Directie Host</span>
@@ -295,7 +295,7 @@
                     <!-- Footer -->
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2 min-w-0">
-                            <img src="{{ asset($pRoom->host?->avatar ?? 'characters/avatar-default.png') }}" class="w-6 h-6 rounded-full object-cover shrink-0">
+                            <img src="{{ $pRoom->host?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg') }}" class="w-6 h-6 rounded-full object-cover shrink-0" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
                                 {{ $pRoom->host?->name ?? 'Patiënt' }}
                             </span>

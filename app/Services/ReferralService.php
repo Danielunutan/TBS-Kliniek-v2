@@ -38,26 +38,28 @@ class ReferralService
             $referrer = Character::whereRaw('LOWER(name) = ?', [strtolower($cleanIdentifier)])->first();
         }
 
-        if (! $referrer || $referrer->id === $newCharacter->id) {
+        if (! $referrer || $referrer->id === $newCharacter->id || ($referrer->user_id && $newCharacter->user_id && $referrer->user_id === $newCharacter->user_id)) {
             return null;
         }
 
-        // Avoid duplicate entry if already recorded
-        $existing = Referral::where('referred_id', $newCharacter->id)->first();
-        if ($existing) {
-            return $existing;
-        }
+        return DB::transaction(function () use ($referrer, $newCharacter, $ipAddress): ?Referral {
+            // Avoid duplicate entry if already recorded
+            $existing = Referral::where('referred_id', $newCharacter->id)->lockForUpdate()->first();
+            if ($existing) {
+                return $existing;
+            }
 
-        $referral = Referral::create([
-            'referrer_id' => $referrer->id,
-            'referred_id' => $newCharacter->id,
-            'ip_address' => $ipAddress,
-            'rewarded' => false,
-        ]);
+            $referral = Referral::create([
+                'referrer_id' => $referrer->id,
+                'referred_id' => $newCharacter->id,
+                'ip_address' => $ipAddress,
+                'rewarded' => false,
+            ]);
 
-        $this->checkAndGrantRewards($referrer);
+            $this->checkAndGrantRewards($referrer);
 
-        return $referral;
+            return $referral;
+        });
     }
 
     /**

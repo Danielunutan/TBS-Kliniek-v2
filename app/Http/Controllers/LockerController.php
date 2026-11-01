@@ -13,6 +13,7 @@ use App\Services\RandomDropService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class LockerController extends Controller
@@ -54,13 +55,6 @@ class LockerController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'locker')) {
-            $remaining = $this->cooldownService->getRemainingSeconds($character, 'locker');
-            $mins = ceil($remaining / 60);
-
-            return back()->with('error', "⏳ Kluisjes cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
-        }
-
         $validated = $request->validate([
             'locker_id' => ['required', 'integer', 'in:1,2,3,4,5,6'],
         ]);
@@ -76,45 +70,57 @@ class LockerController extends Controller
 
         $locker = $config[$validated['locker_id']];
 
-        if (! $this->energy->consume($character, $locker['energy'])) {
-            return back()->with('error', "Je hebt minimaal {$locker['energy']} energie nodig om dit kluisje te kraken!");
-        }
+        return DB::transaction(function () use ($character, $locker): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        // Dynamic cooldown duration based on success rate
-        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($locker['rate']);
-        $this->cooldownService->setCooldown($character, 'locker', $cooldownSeconds);
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'locker')) {
+                $remaining = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'locker');
+                $mins = ceil($remaining / 60);
 
-        $roll = rand(1, 100);
-        if ($roll <= $locker['rate']) {
-            $cash = rand($locker['min'], $locker['max']);
-            // Zwart geld contant!
-            $this->economy->addCash($character, $cash);
-            $this->level->addXp($character, $locker['xp']);
-            $character->addRespect(1);
-            $character->save();
-
-            HalloweenService::record($character, 'vault', 1);
-
-            $dropMsg = RandomDropService::roll($character);
-            $successMsg = 'Kluisje opengeknald! Je vindt €'.number_format($cash, 0, ',', '.')." contant erin! +{$locker['xp']} XP.";
-            if ($dropMsg) {
-                $successMsg .= ' '.$dropMsg;
+                return back()->with('error', "⏳ Kluisjes cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
             }
 
-            return back()->with('success', $successMsg);
-        }
+            if (! $this->energy->consume($lockedCharacter, $locker['energy'])) {
+                return back()->with('error', "Je hebt minimaal {$locker['energy']} energie nodig om dit kluisje te kraken!");
+            }
 
-        if ($locker['jail'] && rand(1, 100) <= 60) {
-            $jailSeconds = random_int(90, 150);
-            $this->prison->jailSeconds($character, $jailSeconds, 'Betrapt bij het kraken van een kluisje.');
+            // Dynamic cooldown duration based on success rate
+            $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($locker['rate']);
+            $this->cooldownService->setCooldown($lockedCharacter, 'locker', $cooldownSeconds);
 
-            return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Alarm bij kluisjes)");
-        }
+            $roll = rand(1, 100);
+            if ($roll <= $locker['rate']) {
+                $cash = rand($locker['min'], $locker['max']);
+                // Zwart geld contant!
+                $this->economy->addCash($lockedCharacter, $cash);
+                $this->level->addXp($lockedCharacter, $locker['xp']);
+                $lockedCharacter->addRespect(1);
+                $lockedCharacter->save();
 
-        $dmg = rand(3, 8);
-        $character->health = max(1, $character->health - $dmg);
-        $character->save();
+                HalloweenService::record($lockedCharacter, 'vault', 1);
 
-        return back()->with('error', "Kluisje kraken mislukt! Het slot gaf een elektrische schok. -{$dmg} HP.");
+                $dropMsg = RandomDropService::roll($lockedCharacter);
+                $successMsg = 'Kluisje opengeknald! Je vindt €'.number_format($cash, 0, ',', '.')." contant erin! +{$locker['xp']} XP.";
+                if ($dropMsg) {
+                    $successMsg .= ' '.$dropMsg;
+                }
+
+                return back()->with('success', $successMsg);
+            }
+
+            if ($locker['jail'] && rand(1, 100) <= 60) {
+                $jailSeconds = random_int(90, 150);
+                $this->prison->jailSeconds($lockedCharacter, $jailSeconds, 'Betrapt bij het kraken van een kluisje.');
+
+                return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Alarm bij kluisjes)");
+            }
+
+            $dmg = rand(3, 8);
+            $lockedCharacter->health = max(1, $lockedCharacter->health - $dmg);
+            $lockedCharacter->save();
+
+            return back()->with('error', "Kluisje kraken mislukt! Het slot gaf een elektrische schok. -{$dmg} HP.");
+        });
     }
 }

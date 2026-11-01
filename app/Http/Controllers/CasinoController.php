@@ -8,6 +8,7 @@ use App\Services\CooldownService;
 use App\Services\EconomyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CasinoController extends Controller
 {
@@ -18,14 +19,23 @@ class CasinoController extends Controller
 
     public function index()
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
 
         return view('game.casino.index', compact('character'));
     }
 
     public function play(Request $request)
     {
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            $msg = 'Geen personage gevonden.';
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 403)
+                : redirect()->route('dashboard');
+        }
 
         if ($character->isImprisoned()) {
             $msg = 'Vanuit de isoleercel kun je niet gokken!';
@@ -44,7 +54,37 @@ class CasinoController extends Controller
                 : back()->with('error', $msg);
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'casino_dice')) {
+        $validated = $request->validate([
+            'game' => 'required|in:coinflip,dice',
+            'bet' => 'required|integer|min:10|max:10000000',
+        ]);
+
+        $bet = (int) $validated['bet'];
+
+        $deducted = DB::transaction(function () use ($character, $bet) {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return 'no_character';
+            }
+
+            if ($this->cooldownService->isOnCooldown($locked, 'casino_dice')) {
+                return 'cooldown';
+            }
+
+            if ($locked->cash < $bet) {
+                return 'insufficient_funds';
+            }
+
+            $locked->cash -= $bet;
+            $locked->save();
+            $character->cash = $locked->cash;
+            $this->cooldownService->setCooldown($locked, 'casino_dice', 5);
+
+            return 'ok';
+        });
+
+        if ($deducted === 'cooldown') {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'casino_dice');
             $msg = "⏳ De croupier verzamelt de fiches! Wacht nog {$remaining}s.";
 
@@ -53,31 +93,13 @@ class CasinoController extends Controller
                 : back()->with('error', $msg);
         }
 
-        $validated = $request->validate([
-            'game' => 'required|in:coinflip,dice',
-            'bet' => 'required|integer|min:10|max:10000000',
-        ]);
-
-        $bet = $validated['bet'];
-
-        if ($character->cash < $bet) {
+        if ($deducted !== 'ok') {
             $msg = 'Je hebt niet genoeg contant geld (€) om in te zetten!';
 
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 422)
                 : back()->with('error', $msg);
         }
-
-        $deducted = $this->economy->deductCash($character, $bet);
-        if (! $deducted) {
-            $msg = 'Je hebt niet genoeg contant geld (€) om in te zetten!';
-
-            return $request->expectsJson()
-                ? response()->json(['success' => false, 'message' => $msg], 422)
-                : back()->with('error', $msg);
-        }
-
-        $this->cooldownService->setCooldown($character, 'casino_dice', 5);
 
         // Configured win rate check
         $winRate = (int) GameSetting::get('win_rate_casino', 45);

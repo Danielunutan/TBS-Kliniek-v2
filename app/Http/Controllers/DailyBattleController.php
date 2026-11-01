@@ -29,6 +29,11 @@ class DailyBattleController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
+
         $this->energyService->refresh($character);
 
         $battleData = $this->battleService->getBattleData($character);
@@ -61,6 +66,18 @@ class DailyBattleController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('battle.index')->with('error', 'Vanuit de isoleercel kun je geen focus categorie selecteren!');
+        }
+
+        if ($character->isComatose()) {
+            return redirect()->route('battle.index')->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $result = $this->battleService->selectFocusCategory($character, $validated['category']);
 
         return redirect()->route('battle.index')->with(
@@ -77,6 +94,18 @@ class DailyBattleController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('battle.index')->with('error', 'Vanuit de isoleercel kun je geen escalatie-beloningen claimen!');
+        }
+
+        if ($character->isComatose()) {
+            return redirect()->route('battle.index')->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         $result = $this->battleService->claimMilestone($character, $tier);
 

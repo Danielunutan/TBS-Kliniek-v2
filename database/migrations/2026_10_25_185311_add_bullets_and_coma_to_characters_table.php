@@ -11,13 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('characters', function (Blueprint $table) {
-            $table->unsignedInteger('bullets')->default(0)->after('respect');
-            $table->timestamp('vest_until')->nullable()->after('bullets');
-            $table->timestamp('coma_until')->nullable()->after('vest_until');
-            $table->unsignedInteger('kills_count')->default(0)->after('coma_until');
-            $table->unsignedInteger('deaths_count')->default(0)->after('kills_count');
-        });
+        if (Schema::hasTable('characters')) {
+            Schema::table('characters', function (Blueprint $table) {
+                if (! Schema::hasColumn('characters', 'bullets')) {
+                    $table->unsignedInteger('bullets')->default(0)->after('respect');
+                }
+                if (! Schema::hasColumn('characters', 'vest_until')) {
+                    $table->timestamp('vest_until')->nullable()->after('bullets');
+                }
+                if (! Schema::hasColumn('characters', 'coma_until')) {
+                    $table->timestamp('coma_until')->nullable()->after('vest_until');
+                }
+                if (! Schema::hasColumn('characters', 'kills_count')) {
+                    $table->unsignedInteger('kills_count')->default(0)->after('coma_until');
+                }
+                if (! Schema::hasColumn('characters', 'deaths_count')) {
+                    $table->unsignedInteger('deaths_count')->default(0)->after('kills_count');
+                }
+            });
+        }
     }
 
     /**
@@ -25,8 +37,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('characters', function (Blueprint $table) {
-            $table->dropColumn(['bullets', 'vest_until', 'coma_until', 'kills_count', 'deaths_count']);
-        });
+        if (Schema::hasTable('characters')) {
+            Schema::table('characters', function (Blueprint $table) {
+                $cols = array_filter(['bullets', 'vest_until', 'coma_until', 'kills_count', 'deaths_count'], fn ($col) => Schema::hasColumn('characters', $col));
+                if (! empty($cols)) {
+                    $table->dropColumn($cols);
+                }
+            });
+        }
     }
 };

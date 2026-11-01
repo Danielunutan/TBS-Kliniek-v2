@@ -3,8 +3,6 @@
 @section('content')
 <div class="space-y-6">
 
-<div class="space-y-6">
-
     <!-- Top Jackpot Hero Banner (Polished Light & Clean Dark Mode, Solid Colors, No Gradients) -->
     <div class="relative rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs text-slate-900 dark:text-white">
         <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
@@ -355,7 +353,7 @@
                             <span class="text-[10px] text-slate-400">{{ $past->draws_at?->format('d-m-Y H:i') }}</span>
                         </div>
                         <div class="text-sm font-black text-slate-900 dark:text-slate-100 truncate">
-                            {{ $past->winner ? $past->winner->display_name : 'Geen winnaar' }}
+                            {{ $past->winner?->display_name ?? 'Geen winnaar' }}
                         </div>
                         <div class="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">
                             €{{ number_format($past->winner_payout ?? 0, 0, ',', '.') }} gewonnen
@@ -365,8 +363,6 @@
             </div>
         @endif
     </div>
-
-</div>
 
 </div>
 @endsection

@@ -126,6 +126,8 @@
         'isVip' => (bool) $isVip,
         'supporterTier' => (int) $supporterTier,
         'claimableCount' => (int) $claimableCount,
+        'isImprisoned' => (bool) $character->isImprisoned(),
+        'isComatose' => (bool) $character->isComatose(),
         'initialLevel' => (int) $initialTargetLevel,
         'maxLevel' => (int) $maxPassLevel,
         'claimUrl' => route('battlepass.claim'),
@@ -150,6 +152,8 @@
         isVip: window.__TBS_BP_DATA__.isVip,
         supporterTier: window.__TBS_BP_DATA__.supporterTier,
         claimableCount: window.__TBS_BP_DATA__.claimableCount,
+        isImprisoned: window.__TBS_BP_DATA__.isImprisoned,
+        isComatose: window.__TBS_BP_DATA__.isComatose,
         busyKey: null,
         touchStartX: 0,
         touchStartY: 0,
@@ -234,6 +238,10 @@
         },
         async claimReward(lvl, track) {
             if (this.busyKey) return;
+            if (this.isImprisoned || this.isComatose) {
+                if (window.tbsToast) window.tbsToast(this.isImprisoned ? 'Vanuit de isoleercel kun je geen Battle Pass beloningen claimen!' : 'Je verkeert in coma en kunt geen beloningen claimen!', 'warning');
+                return;
+            }
             const key = 'lvl_' + lvl + '_' + track;
             this.busyKey = key;
             // Optimistic UI update + instant confetti!
@@ -269,6 +277,10 @@
         },
         async claimAllRewards() {
             if (this.busyKey || this.claimableCount <= 0) return;
+            if (this.isImprisoned || this.isComatose) {
+                if (window.tbsToast) window.tbsToast(this.isImprisoned ? 'Vanuit de isoleercel kun je geen Battle Pass beloningen claimen!' : 'Je verkeert in coma en kunt geen beloningen claimen!', 'warning');
+                return;
+            }
             this.busyKey = 'all';
             this.fireConfetti('mega');
             if (window.tbsVibrate) window.tbsVibrate([25, 40, 25]);
@@ -413,10 +425,11 @@
                 <template x-if="claimableCount > 0">
                     <button type="button"
                             @click="claimAllRewards()"
-                            :disabled="busyKey !== null"
-                            class="btn-star-gold w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                            :disabled="busyKey !== null || isImprisoned || isComatose"
+                            :title="(isImprisoned || isComatose) ? 'Niet beschikbaar vanuit de isoleercel of in coma' : ''"
+                            class="btn-star-gold w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-gifts"></i>
-                        <span x-text="busyKey === 'all' ? 'Bezig met Claimen...' : ('Claim Alle ' + claimableCount + ' Prijzen!')"></span>
+                        <span x-text="busyKey === 'all' ? 'Bezig met Claimen...' : (isImprisoned ? 'In Isoleercel' : (isComatose ? 'In Coma' : ('Claim Alle ' + claimableCount + ' Prijzen!')))"></span>
                     </button>
                 </template>
                 <template x-if="claimableCount === 0">
@@ -709,10 +722,11 @@
                                 <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && canClaim(activeLevel, '{{ $tKey }}')">
                                     <button type="button"
                                             @click="claimReward(activeLevel, '{{ $tKey }}')"
-                                            :disabled="busyKey !== null"
-                                            class="w-full py-2 rounded-xl {{ $tInfo['btn_cls'] }} text-[11px] font-black uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
+                                            :disabled="busyKey !== null || isImprisoned || isComatose"
+                                            :title="(isImprisoned || isComatose) ? 'Niet beschikbaar vanuit de isoleercel of in coma' : ''"
+                                            class="w-full py-2 rounded-xl {{ $tInfo['btn_cls'] }} text-[11px] font-black uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-gift"></i>
-                                        <span>Claim Beloning</span>
+                                        <span x-text="isImprisoned ? 'In Isoleercel' : (isComatose ? 'In Coma' : 'Claim Beloning')"></span>
                                     </button>
                                 </template>
 

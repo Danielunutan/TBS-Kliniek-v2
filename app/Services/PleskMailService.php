@@ -421,14 +421,20 @@ class PleskMailService
             return;
         }
 
+        $cleanSenderName = str_replace(["\r", "\n"], '', $senderName);
+        $cleanSenderEmail = str_replace(["\r", "\n"], '', $senderEmail);
+        $cleanTo = str_replace(["\r", "\n"], '', $to);
+        $cleanCc = $cc !== null ? str_replace(["\r", "\n"], '', $cc) : null;
+        $cleanSubject = str_replace(["\r", "\n"], '', $subject);
+
         $date = date('r');
-        $headers = "From: \"{$senderName}\" <{$senderEmail}>\r\n";
-        $headers .= "To: <{$to}>\r\n";
-        if (! empty($cc)) {
-            $headers .= "Cc: {$cc}\r\n";
+        $headers = "From: \"{$cleanSenderName}\" <{$cleanSenderEmail}>\r\n";
+        $headers .= "To: <{$cleanTo}>\r\n";
+        if (! empty($cleanCc)) {
+            $headers .= "Cc: {$cleanCc}\r\n";
         }
         $headers .= "Date: {$date}\r\n";
-        $headers .= "Subject: {$subject}\r\n";
+        $headers .= "Subject: {$cleanSubject}\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n\r\n";
 

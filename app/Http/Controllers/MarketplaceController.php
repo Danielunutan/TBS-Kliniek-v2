@@ -463,8 +463,8 @@ class MarketplaceController extends Controller
                     $charItem->save();
                 } elseif ($lockedListing->item_type === 'vehicle') {
                     $charVehicle = CharacterVehicle::where('id', $lockedListing->related_id)->lockForUpdate()->first();
-                    if (! $charVehicle) {
-                        throw new \RuntimeException('Het aangeboden voertuig kon niet meer worden gevonden.');
+                    if (! $charVehicle || ! $charVehicle->is_for_sale) {
+                        throw new \RuntimeException('Het aangeboden voertuig kon niet meer worden gevonden of staat niet meer te koop.');
                     }
                     $charVehicle->character_id = $lockedBuyer->id;
                     $charVehicle->in_gang_garage = false;
@@ -476,7 +476,7 @@ class MarketplaceController extends Controller
                     $charVehicle->save();
                 } elseif ($lockedListing->item_type === 'property') {
                     $gangProperty = GangProperty::where('id', $lockedListing->related_id)->lockForUpdate()->first();
-                    if (! $gangProperty || ! $lockedBuyer->gang_id) {
+                    if (! $gangProperty || ! $gangProperty->is_for_sale || ! $lockedBuyer->gang_id) {
                         throw new \RuntimeException('Het aangeboden bendepand of je bende kon niet worden gevonden.');
                     }
                     $buyerGang = Gang::where('id', $lockedBuyer->gang_id)->lockForUpdate()->first();

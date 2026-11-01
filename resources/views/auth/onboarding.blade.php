@@ -179,7 +179,7 @@
                     <i class="fa-solid fa-masks-theater text-purple-600 dark:text-purple-400"></i> Standaard TBS Avatars:
                 </h4>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                    @foreach($avatars as $preset)
+                    @foreach(($avatars ?? []) as $preset)
                     <div @click="selectPreset('{{ asset($preset['path']) }}', '{{ $preset['path'] }}', '{{ $preset['label'] }}')"
                          class="cursor-pointer rounded-xl p-2 border-2 transition-all flex flex-col items-center gap-2 group relative overflow-hidden text-center"
                          :class="selectedAvatar === '{{ $preset['path'] }}' ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 shadow-xs ring-2 ring-purple-600/30' : 'border-slate-200/80 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/60'">
@@ -197,7 +197,7 @@
                 <button type="button" @click="step = 1" class="py-2.5 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition cursor-pointer">
                     <i class="fa-solid fa-arrow-left mr-1.5"></i> Terug
                 </button>
-                <button type="button" @click="step = 3" class="py-3 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-2 cursor-pointer">
+                <button type="button" @click="if(validateStep2()) { step = 3; } else { alert('Kies of upload eerst een profielfoto!'); }" class="py-3 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-2 cursor-pointer">
                     <span>Volgende: Profiel & Startrol</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
@@ -221,7 +221,7 @@
                 </label>
                 <input type="hidden" name="profile_color" :value="selectedColor">
                 <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
-                    @foreach($colors as $c)
+                    @foreach(($colors ?? []) as $c)
                     <div @click="selectedColor = '{{ $c['id'] }}'"
                          class="cursor-pointer p-2.5 rounded-xl border-2 transition-all flex flex-col items-center gap-2 text-center"
                          :class="selectedColor === '{{ $c['id'] }}' ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 shadow-xs ring-2 ring-purple-600/30' : 'border-slate-200/80 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700 bg-slate-50/60 dark:bg-slate-800/60'">
@@ -404,18 +404,18 @@
 function onboardingWizard() {
     return {
         step: 1,
-        username: @js(old('username', $suggestedUsername)),
-        displayName: @js(old('display_name', $suggestedDisplayName)),
-        birthdate: @js(old('birthdate', $character?->birthdate?->format('Y-m-d') ?? '')),
+        username: @js(old('username', $suggestedUsername ?? '')),
+        displayName: @js(old('display_name', $suggestedDisplayName ?? '')),
+        birthdate: @js(old('birthdate', ($character ?? null)?->birthdate?->format('Y-m-d') ?? '')),
         calculatedAge: null,
         usernameStatus: 'initial',
         usernameMessage: '',
         usernameLoading: false,
         checkTimeout: null,
-        selectedAvatar: @js(old('avatar', $character?->avatar ?: 'assets/characters/avatar_male_1.jpg')),
-        selectedAvatarUrl: @js(asset($character?->avatar ?: 'assets/characters/avatar_male_1.jpg')),
+        selectedAvatar: @js(old('avatar', ($character ?? null)?->avatar ?: 'assets/characters/avatar_male_1.jpg')),
+        selectedAvatarUrl: @js(asset(($character ?? null)?->avatar ?: 'assets/characters/avatar_male_1.jpg')),
         selectedAvatarLabel: 'Standaard Avatar',
-        selectedColor: @js(old('profile_color', $character?->profile_color ?: 'purple')),
+        selectedColor: @js(old('profile_color', ($character ?? null)?->profile_color ?: 'purple')),
         selectedSpecialty: 'hossel',
         
         // Crop Modal State
@@ -474,9 +474,17 @@ function onboardingWizard() {
                 return;
             }
             const dob = new Date(this.birthdate);
-            const diff = Date.now() - dob.getTime();
-            const ageDate = new Date(diff);
-            this.calculatedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
+            if (isNaN(dob.getTime())) {
+                this.calculatedAge = null;
+                return;
+            }
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            this.calculatedAge = age;
         },
 
         validateStep1() {
@@ -492,7 +500,8 @@ function onboardingWizard() {
                 alert('Vul je geboortedatum in om door te gaan.');
                 return false;
             }
-            if (this.calculatedAge !== null && this.calculatedAge < 16) {
+            this.calculateAge();
+            if (this.calculatedAge === null || this.calculatedAge < 16) {
                 alert('Je moet minimaal 16 jaar oud zijn om te kunnen spelen in de TBS Kliniek!');
                 return false;
             }

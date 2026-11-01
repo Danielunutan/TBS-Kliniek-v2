@@ -33,7 +33,12 @@ class BankController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
+
         $this->energyService->refresh($character);
 
         $allowanceDetails = $this->allowanceService->getAllowanceDetails($character);
@@ -92,7 +97,11 @@ class BankController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
@@ -129,7 +138,11 @@ class BankController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
@@ -182,7 +195,11 @@ class BankController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen lening afsluiten!');
@@ -221,7 +238,11 @@ class BankController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
@@ -258,7 +279,11 @@ class BankController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
@@ -301,7 +326,11 @@ class BankController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         $character->setBankPin($validated['pin']);
         session(['atm_unlocked_'.$character->id => true]);
@@ -331,7 +360,11 @@ class BankController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         if ($character->verifyBankPin($validated['pin'])) {
             session(['atm_unlocked_'.$character->id => true]);
@@ -365,7 +398,11 @@ class BankController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         session()->forget('atm_unlocked_'.$character->id);
 

@@ -4,13 +4,21 @@
 
 @section('content')
 @php
+    $adsEnabled = \App\Http\Controllers\SponsorAdController::areAdsEnabled();
     $isComaOrCodeBlauw = $character->isComatose() || $character->needsReviveSerum();
-    $cannotWatchStandardAd = ($adsLeftToday <= 0) || $isComaOrCodeBlauw;
+    $cannotWatchStandardAd = ($adsLeftToday <= 0) || $isComaOrCodeBlauw || ! $adsEnabled;
     $comaProgress = (int) ($character->ad_coma_progress ?? 0);
     $bulletsProgress = (int) ($character->ad_bullets_progress ?? 0);
     $vestProgress = (int) ($character->ad_vest_progress ?? 0);
 @endphp
 <div class="space-y-6">
+
+    @if(! $adsEnabled)
+    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-4 text-amber-800 dark:text-amber-200 text-xs sm:text-sm font-semibold flex items-center gap-3">
+        <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400 text-lg shrink-0"></i>
+        <span>Sponsoradvertenties zijn momenteel tijdelijk uitgeschakeld. Je kunt op dit moment geen advertenties bekijken.</span>
+    </div>
+    @endif
 
     <!-- Top Hero Card -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
@@ -64,7 +72,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0 w-full md:w-auto">
             <button type="button"
-                    @disabled($adsLeftToday <= 0)
+                    @disabled($adsLeftToday <= 0 || ! $adsEnabled)
                     onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })"
                     class="w-full sm:w-auto min-h-11 py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-sm transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fa-solid fa-syringe text-xs"></i>
@@ -426,7 +434,7 @@
                                     <span>Ontwaken ({{ \App\Models\Character::REVIVE_SERUM_STARS }} ⭐)</span>
                                 </button>
                             </form>
-                            <button type="button" @disabled($adsLeftToday <= 0) onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full min-h-11 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button type="button" @disabled($adsLeftToday <= 0 || ! $adsEnabled) onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full min-h-11 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-syringe text-xs"></i>
                                 <span>Kijk Ad ({{ min(3, $comaProgress + 1) }}/3{{ $comaProgress >= 2 ? ' - Claim!' : '' }})</span>
                             </button>

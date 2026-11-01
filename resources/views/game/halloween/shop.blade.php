@@ -88,7 +88,7 @@
                 <form action="{{ route('halloween.equip-border') }}" method="POST">
                     @csrf
                     <input type="hidden" name="border_key" value="none">
-                    <button type="submit" class="text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:underline cursor-pointer flex items-center gap-1 self-start sm:self-auto">
+                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:underline cursor-pointer flex items-center gap-1 self-start sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-xmark text-[11px]"></i>
                         <span>Rand Uitschakelen</span>
                     </button>

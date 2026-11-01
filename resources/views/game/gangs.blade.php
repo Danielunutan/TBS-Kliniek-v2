@@ -2,6 +2,8 @@
 
 @section('content')
 @php
+    $gangTreasury = $myGang ? (int) ($myGang->treasury ?? 0) : 0;
+    $totalRespect = $myGang ? (int) ($myGang->respect ?? 0) : 0;
     $allowedGangTabs = ['mijn_gang', 'leden', 'oorlog', 'depot', 'doneren', 'winkel', 'beheer', 'instellingen', 'alle_bendes', 'ranglijst', 'logboek', 'oprichten'];
     $defaultGangTab = $myGang ? 'mijn_gang' : 'alle_bendes';
     $rawGangTab = (string) ($activeTab ?? session('active_gang_tab', request('tab', $defaultGangTab)));
@@ -30,7 +32,7 @@
             this.activeGangTab = sessionStorage.getItem('tbs_active_gang_tab');
         }
         @if(!$myGang)
-            if (this.activeGangTab === 'mijn_gang') {
+            if (!['alle_bendes', 'oprichten', 'ranglijst'].includes(this.activeGangTab)) {
                 this.activeGangTab = '{{ $safeNoGangFallbackTab }}';
             }
         @endif
@@ -151,7 +153,8 @@
                     <i class="fa-solid fa-star text-amber-600 dark:text-amber-400"></i> {{ $character->stars ?? 0 }} Sterren
                 </span>
                 <button type="button" @click="showCreateModal = true" 
-                        class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center gap-1.5">
+                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                        class="px-4 py-2 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-xs' }} font-extrabold text-xs uppercase tracking-wider transition flex items-center gap-1.5">
                     <i class="fa-solid fa-plus"></i> Bende Oprichten
                 </button>
             </div>
@@ -419,7 +422,9 @@
                     Start je eigen syndicaat en domineer de TBS kliniek met je bendeleden.
                 </p>
             </div>
-            <button type="button" @click="setGangTab('oprichten'); showCreateModal = true" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shrink-0 transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+            <button type="button" @click="setGangTab('oprichten'); showCreateModal = true" 
+                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                    class="px-4 py-2 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-xs' }} font-bold text-xs shrink-0 transition inline-flex items-center gap-1.5">
                 <i class="fa-solid fa-crown text-amber-300 text-xs"></i>
                 <span>25 ⭐ / €50K</span>
             </button>
@@ -1341,7 +1346,8 @@
 
                         <div class="flex items-center gap-3 pt-2">
                             <button type="submit" 
-                                    class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md hover:shadow-lg cursor-pointer flex items-center gap-2">
+                                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    class="px-6 py-3 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-md hover:shadow-lg' }} font-black text-xs uppercase tracking-wider transition flex items-center gap-2">
                                 <i class="fa-solid fa-crown text-amber-300"></i>
                                 <span>Bende Oprichten & Starten</span>
                             </button>
@@ -1407,7 +1413,8 @@
 
                             @if(!$character->gang_id)
                             <button type="button" @click="showCreateModal = true" 
-                                    class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center gap-1.5">
+                                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    class="px-3.5 py-2 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-xs' }} font-extrabold text-xs uppercase tracking-wider transition flex items-center gap-1.5">
                                 <i class="fa-solid fa-plus"></i>
                                 <span>Bende Oprichten</span>
                             </button>
@@ -1556,7 +1563,9 @@
                                     <template x-if="!g.has_pending_request && g.is_open && {{ (int) ($character->respect ?? 0) }} >= (g.min_respect || 0)">
                                         <form :action="'{{ url('/gangs') }}/' + g.id + '/aanvragen'" method="POST" class="inline">
                                             @csrf
-                                            <button type="submit" class="py-1.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                                            <button type="submit" 
+                                                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                                    class="py-1.5 px-3 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-xs' }} font-extrabold text-xs transition inline-flex items-center gap-1.5">
                                                 <i class="fa-solid fa-user-plus text-[10px]"></i>
                                                 <span>Aanmelden</span>
                                             </button>
@@ -1648,7 +1657,9 @@
                                                     <template x-if="!g.has_pending_request && g.is_open && {{ (int) ($character->respect ?? 0) }} >= (g.min_respect || 0)">
                                                         <form :action="'{{ url('/gangs') }}/' + g.id + '/aanvragen'" method="POST" class="inline">
                                                             @csrf
-                                                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs">
+                                                            <button type="submit" 
+                                                                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                                                    class="px-3 py-1.5 rounded-lg {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-xs' }} font-bold text-xs transition">
                                                                 Aanmelden
                                                             </button>
                                                         </form>
@@ -1981,7 +1992,7 @@
                                     </h3>
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-[11px] font-mono">
                                         <i class="fa-solid fa-store text-[10px]"></i>
-                                        <span>In bezit: {{ number_format($myGang->bling_shops ?? 0, 0, ',', '.') }} kiosken</span>
+                                        <span>In bezit: {{ number_format($myGang?->bling_shops ?? 0, 0, ',', '.') }} kiosken</span>
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -2008,8 +2019,8 @@
                                 </button>
                                 @endif
                                 <button type="submit" 
-                                        :disabled="qty < 1 || qty > {{ max(0, $possibleBlingShops) }}"
-                                        @if($possibleBlingShops <= 0) disabled @endif
+                                        @if($possibleBlingShops <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || qty > ' . max(0, $possibleBlingShops) }}"
                                         class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95">
                                     Koop
                                 </button>
@@ -2026,7 +2037,7 @@
                                     </h3>
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-extrabold text-[11px] font-mono">
                                         <i class="fa-solid fa-shield text-[10px]"></i>
-                                        <span>In bezit: {{ number_format($myGang->protection_points ?? 1000, 0, ',', '.') }} punten</span>
+                                        <span>In bezit: {{ number_format($myGang?->protection_points ?? 1000, 0, ',', '.') }} punten</span>
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -2053,8 +2064,8 @@
                                 </button>
                                 @endif
                                 <button type="submit" 
-                                        :disabled="qty < 1 || qty > {{ max(0, $possibleProtection) }}"
-                                        @if($possibleProtection <= 0) disabled @endif
+                                        @if($possibleProtection <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || qty > ' . max(0, $possibleProtection) }}"
                                         class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95">
                                     Koop
                                 </button>
@@ -2071,7 +2082,7 @@
                                     </h3>
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-extrabold text-[11px] font-mono">
                                         <i class="fa-solid fa-bolt text-[10px]"></i>
-                                        <span>In bezit: {{ number_format($myGang->attack_power ?? 500, 0, ',', '.') }} power</span>
+                                        <span>In bezit: {{ number_format($myGang?->attack_power ?? 500, 0, ',', '.') }} power</span>
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -2098,8 +2109,8 @@
                                 </button>
                                 @endif
                                 <button type="submit" 
-                                        :disabled="qty < 1 || qty > {{ max(0, $possiblePower) }}"
-                                        @if($possiblePower <= 0) disabled @endif
+                                        @if($possiblePower <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || qty > ' . max(0, $possiblePower) }}"
                                         class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95">
                                     Koop
                                 </button>
@@ -2133,8 +2144,8 @@
                                        value="{{ $possibleMaxMembers }}" 
                                        class="w-20 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none focus:border-purple-500">
                                 <button type="submit" 
-                                        :disabled="qty < 1 || qty > {{ max(0, $possibleMaxMembers) }}"
-                                        @if($possibleMaxMembers <= 0) disabled @endif
+                                        @if($possibleMaxMembers <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || qty > ' . max(0, $possibleMaxMembers) }}"
                                         class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95">
                                     Koop
                                 </button>
@@ -2170,15 +2181,15 @@
                                     </a>
                                 @else
                                     @php
-                                        $has500Stars = ($character->stars ?? 0) >= 500 || (($myGang->gang_stars ?? 0) >= 500 && $myGang->isOfficer($character));
+                                        $has500Stars = ($character->stars ?? 0) >= 500 || ($myGang && ($myGang->gang_stars ?? 0) >= 500 && $myGang->isOfficer($character));
                                     @endphp
                                     <form action="{{ route('gangs.shop-buy') }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="item_type" value="gang_chat">
                                         <input type="hidden" name="quantity" value="1">
                                         <button type="submit" 
-                                                @if(! $has500Stars) disabled @endif
-                                                class="px-5 py-2.5 rounded-xl {{ $has500Stars ? 'btn-star-gold cursor-pointer shadow-sm active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs uppercase tracking-wider transition flex items-center gap-2">
+                                                @if(! $has500Stars || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                                class="px-5 py-2.5 rounded-xl {{ ($has500Stars && ! $character->isImprisoned() && ! $character->isComatose()) ? 'btn-star-gold cursor-pointer shadow-sm active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs uppercase tracking-wider transition flex items-center gap-2">
                                             <i class="fa-solid fa-unlock-keyhole"></i>
                                             <span>Koop Bende Chat (500 ⭐)</span>
                                         </button>
@@ -2273,7 +2284,8 @@
                                        class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-4 py-2.5 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 font-mono shadow-2xs">
                             </div>
                             <button type="submit" 
-                                    :disabled="donateAmount < 50 || donateAmount > {{ $character->cash }}"
+                                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'donateAmount < 50 || donateAmount > ' . (int) $character->cash }}"
                                     class="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs shrink-0 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-hand-holding-dollar"></i>
                                 <span>Doneer Cash</span>
@@ -2496,7 +2508,8 @@
                                        class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-mono shadow-2xs">
                             </div>
                             <button type="submit" 
-                                    :disabled="starAmount < 1 || starAmount > {{ $character->stars ?? 0 }}"
+                                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'starAmount < 1 || starAmount > ' . (int) ($character->stars ?? 0) }}"
                                     class="py-2.5 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs shrink-0 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-gem"></i>
                                 <span>Doneer Sterren</span>
@@ -2533,7 +2546,8 @@
                                        class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-mono shadow-2xs">
                             </div>
                             <button type="submit" 
-                                    :disabled="maskDonationQty < 1 || maskDonationQty > {{ (int)($character->masks ?? 0) }}"
+                                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'maskDonationQty < 1 || maskDonationQty > ' . (int) ($character->masks ?? 0) }}"
                                     class="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs shrink-0 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-masks-theater"></i>
                                 <span>Doneer Maskers aan Bende Depot</span>
@@ -2565,7 +2579,9 @@
                                 <input type="number" name="quantity" value="1" min="1" max="100" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none focus:border-indigo-500" placeholder="Aantal" required>
                             </div>
                             <div class="sm:col-span-3">
-                                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs flex items-center justify-center gap-1.5">
+                                <button type="submit" 
+                                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2.5 px-4 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-share-from-square"></i>
                                     <span>Doneer Item</span>
                                 </button>
@@ -2675,7 +2691,9 @@
                             <form action="{{ route('gangs.sell-masks') }}" method="POST" onsubmit="return confirm('Weet je zeker dat je bende maskers wilt verkopen aan de heler? De opbrengst van €1.500 per stuk wordt direct gestort in de Bende Kas.');" class="flex items-center gap-1.5">
                                 @csrf
                                 <input type="number" name="quantity" value="{{ min(10, (int)($myGang->masks ?? 0)) }}" min="1" max="{{ (int)($myGang->masks ?? 0) }}" class="w-16 px-2 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-center" title="Aantal te verkopen">
-                                <button type="submit" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition flex items-center gap-1 shadow-xs cursor-pointer" title="Verkoop voor bende kas">
+                                <button type="submit" 
+                                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="px-3 py-1.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer' }} font-black text-xs transition flex items-center gap-1 shadow-xs" title="Verkoop voor bende kas">
                                     <i class="fa-solid fa-coins"></i>
                                     <span>Verkopen (€1.500 p/s)</span>
                                 </button>
@@ -2723,7 +2741,9 @@
                                 <form action="{{ route('gangs.sell-item', $gItem->id) }}" method="POST" onsubmit="return confirm('Item verkopen (€{{ number_format($gangItemSellPrice, 0, ',', '.') }} p/s) en opbrengst storten in de bende kas?');" class="flex items-center gap-1">
                                     @csrf
                                     <input type="number" name="quantity" value="1" min="1" max="{{ $gItem->quantity }}" class="w-12 px-1 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-xs text-center">
-                                    <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition" title="Verkopen voor €{{ number_format($gangItemSellPrice, 0, ',', '.') }} per stuk">
+                                    <button type="submit" 
+                                            @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                            class="px-2 py-1 rounded-lg {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer' }} font-black text-[11px] transition" title="Verkopen voor €{{ number_format($gangItemSellPrice, 0, ',', '.') }} per stuk">
                                         <i class="fa-solid fa-coins"></i>
                                     </button>
                                 </form>
@@ -2780,7 +2800,8 @@
                                     <form action="{{ route('garage.repair', $gv->id) }}" method="POST" class="pt-1">
                                         @csrf
                                         <button type="submit" 
-                                                class="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-wider transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                                                @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                                class="w-full py-1.5 rounded-lg {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-95' }} font-black text-[10px] uppercase tracking-wider transition shadow-2xs flex items-center justify-center gap-1.5">
                                             <i class="fa-solid fa-wrench text-[9px]"></i>
                                             <span>Reviseren (€{{ number_format($gv->repair_cost, 0, ',', '.') }})</span>
                                         </button>
@@ -2925,7 +2946,9 @@
                                                 @elseif($g['is_open'])
                                                     <form action="{{ route('gangs.request-join', $g['model']) }}" method="POST" class="inline">
                                                         @csrf
-                                                        <button type="submit" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase transition-all duration-150 active:scale-95 cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                                                        <button type="submit" 
+                                                                @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                                                class="px-3 py-1.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' }} font-black text-xs uppercase transition-all duration-150 inline-flex items-center gap-1.5">
                                                             <i class="fa-solid fa-user-plus text-[10px]"></i> Aanvragen
                                                         </button>
                                                     </form>
@@ -3119,6 +3142,7 @@
                                     </button>
                                 </form>
                                 @endif
+                                @if($mem->gang_role !== 'co_leader' || $character->gang_role === 'leader')
                                 <form action="{{ route('gangs.kick', $mem) }}" method="POST"
                                       data-confirm="Weet je zeker dat je bendelid '{{ $mem->name }}' wilt verwijderen uit {{ $myGang->name }}?"
                                       data-confirm-title="Bendelid Verwijderen"
@@ -3130,6 +3154,7 @@
                                         Kick
                                     </button>
                                 </form>
+                                @endif
                             </div>
                             @endif
                         </div>
@@ -4391,7 +4416,9 @@
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold cursor-pointer transition-all duration-150 active:scale-95">Annuleren</button>
-                        <button type="submit" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase cursor-pointer inline-flex items-center gap-1.5 shadow-xs transition-all duration-150 active:scale-95">
+                        <button type="submit" 
+                                @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                class="px-5 py-2 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' }} font-black text-xs uppercase inline-flex items-center gap-1.5 transition-all duration-150">
                             <i class="fa-solid fa-crown text-amber-300 text-xs"></i>
                             <span x-text="paymentMethod === 'stars' ? 'Oprichten (25 Sterren)' : 'Oprichten (€50.000)'">Oprichten</span>
                         </button>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\User;
 use App\Services\CooldownService;
 use App\Services\DailyBattleService;
@@ -15,6 +16,7 @@ use App\Services\RandomDropService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class HustleController extends Controller
@@ -175,13 +177,6 @@ class HustleController extends Controller
             return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via een sponsor advertentie.");
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'hustle')) {
-            $remaining = $this->cooldownService->getRemainingSeconds($character, 'hustle');
-            $mins = ceil($remaining / 60);
-
-            return back()->with('error', "⏳ Hossel cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
-        }
-
         $validated = $request->validate([
             'hustle_id' => 'required|integer|between:1,6',
         ]);
@@ -191,84 +186,96 @@ class HustleController extends Controller
             return back()->with('error', 'Ongeldige hossel gekozen.');
         }
 
-        if (! $this->energy->consume($character, $hustle['cost'])) {
-            return back()->with('error', 'Niet genoeg energie! Je hebt minstens '.$hustle['cost'].' energie nodig.');
-        }
+        return DB::transaction(function () use ($character, $hustle): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        // Set cooldown for hustle
-        $this->cooldownService->setCooldown($character, 'hustle', $hustle['cooldown']);
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'hustle')) {
+                $remaining = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'hustle');
+                $mins = ceil($remaining / 60);
 
-        // Stat bonus: Charisma & Intelligence boost hustle success rate
-        $statBonus = min(25, (int) floor(($character->getEffectiveCharisma() * 1.5 + $character->getEffectiveIntelligence() * 1.2) / 7));
-        $effectiveRate = min(95, $hustle['rate'] + $statBonus);
-
-        $roll = rand(1, 100);
-
-        if ($roll <= $effectiveRate) {
-            // Charisma bonus on cash reward
-            $cashMultiplier = 1 + min(0.35, ($character->getEffectiveCharisma() * 0.006));
-            $cash = (int) round(rand($hustle['cash_min'], $hustle['cash_max']) * $cashMultiplier);
-
-            if ($character->hasPerk('grotere_broekzakken')) {
-                $cash = (int) round($cash * 1.10);
+                return back()->with('error', "⏳ Hossel cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
             }
 
-            // Zwart geld contant!
-            $this->economy->addCash($character, $cash);
-            $this->level->addXp($character, $hustle['xp']);
-            $character->addRespect($hustle['respect']);
-
-            // 25% chance to gain +1 permanent Charisma from smooth hustling (capped at level maximum)
-            $statGainMsg = '';
-            $maxStatForLevel = $character->getMaxStatForLevel();
-            if (rand(1, 100) <= 25 && (int) ($character->charisma ?? 10) < $maxStatForLevel) {
-                $character->charisma = min($maxStatForLevel, ($character->charisma ?? 10) + 1);
-                $statGainMsg = ' 😎 Gladde babbel beloond: +1 Charisma!';
-            }
-            // 20% chance to drop illegal bullets from a successful hustle
-            $bulletDrop = (rand(1, 100) <= 20) ? rand(5, 15) : 0;
-            $bulletTxt = '';
-            if ($bulletDrop > 0) {
-                $character->bullets = ($character->bullets ?? 0) + $bulletDrop;
-                $bulletTxt = " +{$bulletDrop} Kogels 🔫";
+            if (! $this->energy->consume($lockedCharacter, $hustle['cost'])) {
+                return back()->with('error', 'Niet genoeg energie! Je hebt minstens '.$hustle['cost'].' energie nodig.');
             }
 
-            $character->save();
+            // Set cooldown for hustle
+            $this->cooldownService->setCooldown($lockedCharacter, 'hustle', $hustle['cooldown']);
 
-            EventCashHuntService::record($character, $cash, 'hustle');
-            app(DailyBattleService::class)->record($character, 'hustles', 1);
-            HalloweenService::record($character, 'hustle', 1);
-            HalloweenService::record($character, 'cash_earned', $cash);
+            // Stat bonus: Charisma & Intelligence boost hustle success rate
+            $statBonus = min(25, (int) floor(($lockedCharacter->getEffectiveCharisma() * 1.5 + $lockedCharacter->getEffectiveIntelligence() * 1.2) / 7));
+            $effectiveRate = min(95, $hustle['rate'] + $statBonus);
 
-            $dropMsg = RandomDropService::roll($character);
-            $successMsg = '🎉 Hossel geslaagd! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!{$bulletTxt}{$statGainMsg}";
-            if ($dropMsg) {
-                $successMsg .= ' '.$dropMsg;
+            $roll = rand(1, 100);
+
+            if ($roll <= $effectiveRate) {
+                // Charisma bonus on cash reward
+                $cashMultiplier = 1 + min(0.35, ($lockedCharacter->getEffectiveCharisma() * 0.006));
+                $cash = (int) round(rand($hustle['cash_min'], $hustle['cash_max']) * $cashMultiplier);
+
+                if ($lockedCharacter->hasPerk('grotere_broekzakken')) {
+                    $cash = (int) round($cash * 1.10);
+                }
+
+                // Zwart geld contant!
+                $this->economy->addCash($lockedCharacter, $cash);
+                $this->level->addXp($lockedCharacter, $hustle['xp']);
+                $lockedCharacter->addRespect($hustle['respect']);
+
+                // 25% chance to gain +1 permanent Charisma from smooth hustling (capped at level maximum)
+                $statGainMsg = '';
+                $maxStatForLevel = $lockedCharacter->getMaxStatForLevel();
+                if (rand(1, 100) <= 25 && (int) ($lockedCharacter->charisma ?? 10) < $maxStatForLevel) {
+                    $lockedCharacter->charisma = min($maxStatForLevel, ($lockedCharacter->charisma ?? 10) + 1);
+                    $statGainMsg = ' 😎 Gladde babbel beloond: +1 Charisma!';
+                }
+                // 20% chance to drop illegal bullets from a successful hustle
+                $bulletDrop = (rand(1, 100) <= 20) ? rand(5, 15) : 0;
+                $bulletTxt = '';
+                if ($bulletDrop > 0) {
+                    $lockedCharacter->bullets = ($lockedCharacter->bullets ?? 0) + $bulletDrop;
+                    $bulletTxt = " +{$bulletDrop} Kogels 🔫";
+                }
+
+                $lockedCharacter->save();
+
+                EventCashHuntService::record($lockedCharacter, $cash, 'hustle');
+                app(DailyBattleService::class)->record($lockedCharacter, 'hustles', 1);
+                HalloweenService::record($lockedCharacter, 'hustle', 1);
+                HalloweenService::record($lockedCharacter, 'cash_earned', $cash);
+
+                $dropMsg = RandomDropService::roll($lockedCharacter);
+                $successMsg = '🎉 Hossel geslaagd! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!{$bulletTxt}{$statGainMsg}";
+                if ($dropMsg) {
+                    $successMsg .= ' '.$dropMsg;
+                }
+
+                return back()->with('success', $successMsg);
             }
 
-            return back()->with('success', $successMsg);
-        }
+            // Failure handling
+            // Check if high stamina allows escaping isolation
+            $escapeChance = min(40, (int) floor($lockedCharacter->getEffectiveStamina() / 12));
+            $jailChance = $hustle['jail_chance'] ?? 0;
 
-        // Failure handling
-        // Check if high stamina allows escaping isolation
-        $escapeChance = min(40, (int) floor($character->getEffectiveStamina() / 12));
-        $jailChance = $hustle['jail_chance'] ?? 0;
+            if ($jailChance > 0 && rand(1, 100) <= $jailChance) {
+                if (rand(1, 100) <= $escapeChance) {
+                    return back()->with('error', '⚠️ Hossel mislukt! De zaalwacht sloeg alarm, maar dankzij je snelle conditie wist je hem af te schudden en ontliep je de isolatie!');
+                }
 
-        if ($jailChance > 0 && rand(1, 100) <= $jailChance) {
-            if (rand(1, 100) <= $escapeChance) {
-                return back()->with('error', '⚠️ Hossel mislukt! De zaalwacht sloeg alarm, maar dankzij je snelle conditie wist je hem af te schudden en ontliep je de isolatie!');
+                $jailReduction = min(45, (int) floor($lockedCharacter->getEffectiveDiscipline() / 5));
+                $jailSeconds = max(45, random_int(60, 110) - $jailReduction);
+
+                // Clear hustle cooldown if sent to jail so they don't get double punished
+                $this->cooldownService->clearCooldown($lockedCharacter, 'hustle');
+                $this->prison->jailSeconds($lockedCharacter, $jailSeconds, 'Gepakt tijdens hosselen.');
+
+                return redirect()->route('prison')->with('error', "🚨 Betrapt tijdens het hosselen! {$jailSeconds} sec in de isoleercel. Bekijk een korte ad om direct vrij te komen!");
             }
 
-            $jailReduction = min(45, (int) floor($character->getEffectiveDiscipline() / 5));
-            $jailSeconds = max(45, random_int(60, 110) - $jailReduction);
-
-            // Clear hustle cooldown if sent to jail so they don't get double punished
-            $this->cooldownService->clearCooldown($character, 'hustle');
-            $this->prison->jailSeconds($character, $jailSeconds, 'Gepakt tijdens hosselen.');
-
-            return redirect()->route('prison')->with('error', "🚨 Betrapt tijdens het hosselen! {$jailSeconds} sec in de isoleercel. Bekijk een korte ad om direct vrij te komen!");
-        }
-
-        return back()->with('error', 'Hossel mislukt! Iemand waarschuwde de zaalwacht en je moest snel maken dat je wegkwam.');
+            return back()->with('error', 'Hossel mislukt! Iemand waarschuwde de zaalwacht en je moest snel maken dat je wegkwam.');
+        });
     }
 }

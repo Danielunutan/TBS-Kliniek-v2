@@ -520,7 +520,7 @@
     </div>
 
     <!-- QUICK ACTION MODAL (WARN / BAN) -->
-    <div x-show="showQuickAction" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
+    <div x-show="showQuickAction" x-cloak @keydown.escape.window="showQuickAction = false" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs">
         <div @click.outside="showQuickAction = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2">
@@ -532,7 +532,7 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400">Patiënt: <strong class="text-slate-800 dark:text-slate-200" x-text="selectedUserName"></strong></p>
                     </div>
                 </div>
-                <button type="button" @click="showQuickAction = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer">&times;</button>
+                <button type="button" @click="showQuickAction = false" aria-label="Sluiten" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg cursor-pointer transition">&times;</button>
             </div>
 
             <form :action="selectedActionUrl" method="POST" class="space-y-4">
@@ -540,7 +540,7 @@
                 <template x-if="quickMode === 'ban'">
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Duur van de verbanning</label>
-                        <select name="duration" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                        <select name="duration" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             <option value="1_hour">1 uur</option>
                             <option value="6_hours">6 uur</option>
                             <option value="12_hours">12 uur</option>
@@ -558,7 +558,7 @@
                     <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Opgegeven Reden (zichtbaar voor speler)</label>
                     <textarea name="reason" rows="3" required x-model="defaultReason"
                               placeholder="Beschrijf de reden van deze maatregel..." 
-                              class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition"></textarea>
+                              class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-base sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">

@@ -205,7 +205,7 @@
                                                 <option value="user" {{ ($player->user?->role ?? 'user') === 'user' ? 'selected' : '' }}>Lid (Speler)</option>
                                                 <option value="moderator" {{ ($player->user?->role ?? '') === 'moderator' ? 'selected' : '' }}>Moderator (Mod)</option>
                                                 <option value="admin" {{ ($player->user?->role ?? '') === 'admin' ? 'selected' : '' }}>Beheerder (Admin)</option>
-                                                @if(Auth::user()->isOwner())
+                                                @if(Auth::user()?->isOwner())
                                                 <option value="owner" {{ ($player->user?->role ?? '') === 'owner' ? 'selected' : '' }}>👑 Eigenaar</option>
                                                 @endif
                                             </select>

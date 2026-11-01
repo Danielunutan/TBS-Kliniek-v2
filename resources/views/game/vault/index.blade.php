@@ -5,6 +5,18 @@
 @section('content')
 <div class="space-y-6">
 
+    @if($character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>
+        <span>Je zit momenteel in de isoleercel. De medicijnkluis en voucher-verzilvering zijn niet toegankelijk.</span>
+    </div>
+    @elseif($character->isComatose() || $character->needsReviveSerum())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-rose-500 text-base shrink-0"></i>
+        <span>Je ligt momenteel op de Intensive Care en kunt geen kluiscodes verzilveren.</span>
+    </div>
+    @endif
+
     <!-- Top Forensic Hero Banner -->
     <div class="rounded-2xl shadow-xs p-5 sm:p-7 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
@@ -242,7 +254,7 @@
                            name="code" 
                            value="{{ old('code', $prefillCode ?? '') }}" 
                            placeholder="BIJV. KLUIS-L5-XXXX OF SPONSOR-XXX" 
-                           class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-4 py-2.5 text-xs font-mono font-black text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition"
+                           class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-4 py-2.5 text-base sm:text-xs font-mono font-black text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition"
                            required>
                     <button type="submit" 
                             @disabled($character->isImprisoned() || $character->isComatose())

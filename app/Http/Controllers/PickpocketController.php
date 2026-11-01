@@ -14,6 +14,7 @@ use App\Services\RandomDropService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PickpocketController extends Controller
@@ -150,23 +151,6 @@ class PickpocketController extends Controller
 
     public function steal(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
-
-        if ($character->isImprisoned()) {
-            return redirect()->route('prison')->with('error', 'Zolang je in de strafcel zit, kun je niemand rollen.');
-        }
-
-        if ($character->isComatose()) {
-            return back()->with('error', 'Kritieke toestand (Code Blauw)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om bij bewustzijn te komen.');
-        }
-
-        if ($this->cooldownService->isOnCooldown($character, 'pickpocket')) {
-            $remaining = $this->cooldownService->getRemainingSeconds($character, 'pickpocket');
-            $mins = ceil($remaining / 60);
-
-            return back()->with('error', "⏳ Je moet je nog gedeisd houden ({$remaining}s / ~{$mins} min resterend). Koop de wachttijd direct af met Sterren.");
-        }
-
         $validated = $request->validate([
             'action_id' => ['required', 'integer', 'in:1,2,3,4,5,6'],
             'technique' => ['nullable', 'string', 'in:schaduw,afleiding,snelle_greep'],
@@ -185,85 +169,107 @@ class PickpocketController extends Controller
         ];
 
         $action = $config[$validated['action_id']];
+        $user = Auth::user();
 
-        $invMaskItem = CharacterItem::where('character_id', $character->id)
-            ->whereHas('item', fn ($q) => $q->where('slug', 'bivakmuts-masker'))
-            ->first();
-        if ($invMaskItem && $invMaskItem->quantity > 0) {
-            $character->masks = ($character->masks ?? 0) + $invMaskItem->quantity;
-            $invMaskItem->delete();
-            $character->save();
-        }
+        return DB::transaction(function () use ($user, $tech, $action) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        if (($character->masks ?? 0) < 1) {
-            return back()->with('error', 'Zonder Bivakmuts 🎭 herkent iedereen je direct! Haal eerst nieuwe bivakmutsen in de Winkel.');
-        }
-
-        if (! $this->energy->consume($character, $action['energy'])) {
-            return back()->with('error', "Je komt uithouding tekort ({$action['energy']} energie vereist voor dit doelwit).");
-        }
-
-        $alertness = $this->getAlertness($character->id);
-        $isScouted = (bool) session("pickpocket_scouted_{$character->id}", false);
-        $alertMod = $this->calculateAlertnessModifier($alertness, $isScouted);
-
-        $effectiveRate = max(5, min(95, $action['rate'] + $tech['rate_mod'] + $alertMod));
-
-        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($action['rate']);
-        $this->cooldownService->setCooldown($character, 'pickpocket', $cooldownSeconds);
-
-        $newAlertness = min(100, $alertness + $tech['alert_increase']);
-        session([
-            "pickpocket_alertness_{$character->id}" => $newAlertness,
-            "pickpocket_scouted_{$character->id}" => false,
-        ]);
-
-        $roll = rand(1, 100);
-        if ($roll <= $effectiveRate) {
-            $character->masks = max(0, ($character->masks ?? 1) - 1);
-
-            $baseCash = rand($action['min'], $action['max']);
-            $cash = max(50, (int) round($baseCash * $tech['cash_mult']));
-            if ($character->hasPerk('grotere_broekzakken')) {
-                $cash = (int) round($cash * 1.10);
+            if ($character->isImprisoned()) {
+                return redirect()->route('prison')->with('error', 'Zolang je in de strafcel zit, kun je niemand rollen.');
             }
 
-            $xpGain = (int) round($action['xp'] * $tech['xp_mult']);
-            $respectGain = 1 + $tech['respect_bonus'];
-
-            $this->economy->addCash($character, $cash);
-            $this->level->addXp($character, $xpGain);
-            $character->addRespect($respectGain);
-            $character->save();
-
-            HalloweenService::record($character, 'theft', 1);
-            HalloweenService::record($character, 'cash_earned', $cash);
-
-            $dropMsg = RandomDropService::roll($character);
-            $successMsg = "Vingervlug toegeslagen met '{$tech['name']}'! Buit: €".number_format($cash, 0, ',', '.')." zwart geld, +{$xpGain} XP en +{$respectGain} Gezag (1 bivakmuts verbruikt).";
-            if ($dropMsg) {
-                $successMsg .= ' '.$dropMsg;
+            if ($character->isComatose()) {
+                return back()->with('error', 'Kritieke toestand (Code Blauw)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om bij bewustzijn te komen.');
             }
 
-            return back()->with('success', $successMsg);
-        }
+            if ($this->cooldownService->isOnCooldown($character, 'pickpocket')) {
+                $remaining = $this->cooldownService->getRemainingSeconds($character, 'pickpocket');
+                $mins = ceil($remaining / 60);
 
-        if ($action['jail'] && rand(1, 100) <= 60) {
-            $character->masks = max(0, ($character->masks ?? 1) - 1);
+                return back()->with('error', "⏳ Je moet je nog gedeisd houden ({$remaining}s / ~{$mins} min resterend). Koop de wachttijd direct af met Sterren.");
+            }
+
+            $invMaskItem = CharacterItem::where('character_id', $character->id)
+                ->whereHas('item', fn ($q) => $q->where('slug', 'bivakmuts-masker'))
+                ->lockForUpdate()
+                ->first();
+            if ($invMaskItem && $invMaskItem->quantity > 0) {
+                $character->masks = ($character->masks ?? 0) + $invMaskItem->quantity;
+                $invMaskItem->delete();
+                $character->save();
+            }
+
+            if (($character->masks ?? 0) < 1) {
+                return back()->with('error', 'Zonder Bivakmuts 🎭 herkent iedereen je direct! Haal eerst nieuwe bivakmutsen in de Winkel.');
+            }
+
+            if (! $this->energy->consume($character, $action['energy'])) {
+                return back()->with('error', "Je komt uithouding tekort ({$action['energy']} energie vereist voor dit doelwit).");
+            }
+
+            $alertness = $this->getAlertness($character->id);
+            $isScouted = (bool) session("pickpocket_scouted_{$character->id}", false);
+            $alertMod = $this->calculateAlertnessModifier($alertness, $isScouted);
+
+            $effectiveRate = max(5, min(95, $action['rate'] + $tech['rate_mod'] + $alertMod));
+
+            $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($action['rate']);
+            $this->cooldownService->setCooldown($character, 'pickpocket', $cooldownSeconds);
+
+            $newAlertness = min(100, $alertness + $tech['alert_increase']);
+            session([
+                "pickpocket_alertness_{$character->id}" => $newAlertness,
+                "pickpocket_scouted_{$character->id}" => false,
+            ]);
+
+            $roll = rand(1, 100);
+            if ($roll <= $effectiveRate) {
+                $character->masks = max(0, ($character->masks ?? 1) - 1);
+
+                $baseCash = rand($action['min'], $action['max']);
+                $cash = max(50, (int) round($baseCash * $tech['cash_mult']));
+                if ($character->hasPerk('grotere_broekzakken')) {
+                    $cash = (int) round($cash * 1.10);
+                }
+
+                $xpGain = (int) round($action['xp'] * $tech['xp_mult']);
+                $respectGain = 1 + $tech['respect_bonus'];
+
+                $this->economy->addCash($character, $cash);
+                $this->level->addXp($character, $xpGain);
+                $character->addRespect($respectGain);
+                $character->save();
+
+                HalloweenService::record($character, 'theft', 1);
+                HalloweenService::record($character, 'cash_earned', $cash);
+
+                $dropMsg = RandomDropService::roll($character);
+                $successMsg = "Vingervlug toegeslagen met '{$tech['name']}'! Buit: €".number_format($cash, 0, ',', '.')." zwart geld, +{$xpGain} XP en +{$respectGain} Gezag (1 bivakmuts verbruikt).";
+                if ($dropMsg) {
+                    $successMsg .= ' '.$dropMsg;
+                }
+
+                return back()->with('success', $successMsg);
+            }
+
+            if ($action['jail'] && rand(1, 100) <= 60) {
+                $character->masks = max(0, ($character->masks ?? 1) - 1);
+                $character->save();
+
+                $this->cooldownService->clearCooldown($character, 'pickpocket');
+                $jailSeconds = random_int(85, 140);
+                $this->prison->jailSeconds($character, $jailSeconds, "Opgepakt tijdens vingervlugheid ({$tech['name']}).");
+
+                return redirect()->route('prison')->with('error', "Greep mislukt! Je zit {$jailSeconds} sec vast in isolatie nadat de zaalwacht je bivakmuts afpakte.");
+            }
+
+            $dmg = rand(2, 6);
+            $character->health = max(1, $character->health - $dmg);
             $character->save();
 
-            $this->cooldownService->clearCooldown($character, 'pickpocket');
-            $jailSeconds = random_int(85, 140);
-            $this->prison->jailSeconds($character, $jailSeconds, "Opgepakt tijdens vingervlugheid ({$tech['name']}).");
-
-            return redirect()->route('prison')->with('error', "Greep mislukt! Je zit {$jailSeconds} sec vast in isolatie nadat de zaalwacht je bivakmuts afpakte.");
-        }
-
-        $dmg = rand(2, 6);
-        $character->health = max(1, $character->health - $dmg);
-        $character->save();
-
-        return back()->with('error', "⚠️ Het doelwit merkte je '{$tech['name']}' op en sloeg van zich af (-{$dmg} HP). Je wist weg te glippen met behoud van je bivakmuts!");
+            return back()->with('error', "⚠️ Het doelwit merkte je '{$tech['name']}' op en sloeg van zich af (-{$dmg} HP). Je wist weg te glippen met behoud van je bivakmuts!");
+        });
     }
 
     protected function getAlertness(int $characterId): int

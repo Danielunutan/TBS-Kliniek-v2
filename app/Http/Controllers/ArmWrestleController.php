@@ -114,8 +114,11 @@ class ArmWrestleController extends Controller
      */
     public function index(): View
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
 
         $stat = CharacterArmWrestleStat::firstOrCreate(
             ['character_id' => $character->id],
@@ -179,8 +182,14 @@ class ArmWrestleController extends Controller
      */
     public function finishNpc(Request $request): JsonResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geen personage gevonden.',
+            ], 403);
+        }
 
         if ($character->isImprisoned()) {
             return response()->json([
@@ -421,8 +430,11 @@ class ArmWrestleController extends Controller
      */
     public function createChallenge(Request $request): RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return back()->with('error', 'Geen personage gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen plaatsen!');
@@ -475,8 +487,11 @@ class ArmWrestleController extends Controller
      */
     public function cancelChallenge(int $id): RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return back()->with('error', 'Geen personage gevonden.');
+        }
 
         return DB::transaction(function () use ($character, $id) {
             /** @var Character $lockedCharacter */
@@ -507,8 +522,11 @@ class ArmWrestleController extends Controller
      */
     public function acceptChallenge(Request $request, int $id): RedirectResponse
     {
-        /** @var Character $opponent */
-        $opponent = Auth::user()->character;
+        /** @var Character|null $opponent */
+        $opponent = Auth::user()?->character;
+        if (! $opponent) {
+            return back()->with('error', 'Geen personage gevonden.');
+        }
 
         if ($opponent->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen aannemen!');
@@ -560,12 +578,12 @@ class ArmWrestleController extends Controller
                 return back()->with('error', 'Uitdager niet gevonden.');
             }
 
-            if (! $this->energyService->consume($lockedOpponent, 5)) {
-                return back()->with('error', 'Je hebt minimaal 5 Energie nodig om deze uitdaging aan te gaan!');
-            }
-
             if ($lockedOpponent->cash < $bet) {
                 return back()->with('error', 'Je hebt onvoldoende contant geld op zak om deze uitdaging aan te gaan (€'.number_format($bet, 0, ',', '.').').');
+            }
+
+            if (! $this->energyService->consume($lockedOpponent, 5)) {
+                return back()->with('error', 'Je hebt minimaal 5 Energie nodig om deze uitdaging aan te gaan!');
             }
 
             $match->status = 'completed';

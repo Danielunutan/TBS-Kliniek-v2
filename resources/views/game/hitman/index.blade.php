@@ -212,7 +212,7 @@
             </div>
             <form action="{{ route('hitman.quick_travel') }}" method="POST" class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 min-w-0">
                 @csrf
-                <select name="destination" class="flex-1 min-w-0 py-1.5 px-2 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-[11px] font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500 truncate">
+                <select name="destination" class="flex-1 min-w-0 py-1.5 px-2 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-[11px] font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500 truncate">
                     @foreach($locations as $locKey => $locItem)
                         <option value="{{ $locKey }}" {{ $currentWing === $locItem['name'] ? 'selected' : '' }}>
                             {{ $locItem['name'] }}
@@ -299,7 +299,7 @@
                             Dader: <span class="text-rose-600 dark:text-rose-400">{{ $feud->attacker->name }}</span> (Lvl {{ $feud->attacker->level }})
                         </div>
                         <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                            Slachtoffer: {{ $feud->victim?->name ?? 'Bendelid' }} • Verloopt {{ $feud->expires_at->diffForHumans() }}
+                            Slachtoffer: {{ $feud->victim?->name ?? 'Bendelid' }} • Verloopt {{ $feud->expires_at?->diffForHumans() ?? 'Verlopen' }}
                         </div>
                     </div>
                     <button type="button"
@@ -378,7 +378,7 @@
                                x-model="searchQuery"
                                @input.debounce.250ms="performSearch()"
                                placeholder="Typ de naam van je doelwit..."
-                               class="w-full p-3 pl-9 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
+                               class="w-full p-3 pl-9 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
                         <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 top-3.5 text-xs"></i>
                     </div>
 
@@ -550,7 +550,7 @@
                         <div class="sm:col-span-5 space-y-1">
                             <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300">Aantal Patronen Vuren</label>
                             <input type="number" name="bullets" x-model.number="bulletAmount" value="{{ $canOneTap ? 1 : $minBullets }}" min="1" max="10000"
-                                   class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-black text-slate-900 dark:text-slate-100 focus:outline-none focus:border-rose-500 dark:focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition shadow-2xs">
+                                   class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-black text-slate-900 dark:text-slate-100 focus:outline-none focus:border-rose-500 dark:focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition shadow-2xs">
                         </div>
 
                         <div class="sm:col-span-7">
@@ -725,7 +725,7 @@
             <div class="max-w-md space-y-1.5">
                 <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase">Kies of typ de naam van het doelwit</label>
                 <input type="text" x-model="selectedTargetName" placeholder="Typ exacte spelersnaam..."
-                       class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
+                       class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1114,7 +1114,7 @@
         <div class="max-w-md space-y-1.5">
             <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase">Doelwit Naam</label>
             <input type="text" x-model="selectedTargetName" placeholder="Typ spelersnaam..."
-                   class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
+                   class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

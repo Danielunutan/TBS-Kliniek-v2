@@ -53,7 +53,11 @@ class DailyRewardController extends Controller
 
     public function index(): View
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
+
         $this->energy->refresh($character);
 
         $availableSpins = $character->availableSpinsCount();
@@ -90,7 +94,15 @@ class DailyRewardController extends Controller
      */
     public function spin(Request $request): JsonResponse|RedirectResponse
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            $msg = 'Geen personage gevonden.';
+
+            return ($request->wantsJson() || $request->ajax())
+                ? response()->json(['success' => false, 'message' => $msg], 403)
+                : back()->with('error', $msg);
+        }
 
         if ($character->isImprisoned()) {
             $msg = 'Vanuit de isoleercel kun je niet aan het Rad van Fortuin draaien!';
@@ -229,7 +241,11 @@ class DailyRewardController extends Controller
      */
     public function claimStreak(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return back()->with('error', 'Geen personage gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je de dagelijkse bonus niet claimen!');

@@ -3,8 +3,8 @@
 @section('content')
 <div class="space-y-6" x-data="tbsHackingTerminal({
     canHack: {{ ($canHack && ! $character->isComatose() && ! $character->isImprisoned()) ? 'true' : 'false' }},
-    initialStage: '{{ $currentStage }}',
-    secondsLeftDaily: {{ $secondsUntilMidnight }},
+    initialStage: @js((string) $currentStage),
+    secondsLeftDaily: {{ (int) $secondsUntilMidnight }},
     csrfToken: '{{ csrf_token() }}',
     puzzleRoute: '{{ route('hacking.puzzle') }}',
     spinRoute: '{{ route('hacking.spin') }}',
@@ -184,13 +184,13 @@
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <button type="button" @click="adjustPort(idx, -5)" :disabled="port.synced"
-                                                    class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">-</button>
+                                                    class="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">-</button>
                                             <div class="flex-1 bg-slate-950 rounded-full h-2.5 border border-slate-700 overflow-hidden relative">
                                                 <div class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full rounded-full transition-all"
                                                      :style="'width: ' + Math.min(100, Math.max(0, (port.current / port.target) * 100)) + '%'"></div>
                                             </div>
                                             <button type="button" @click="adjustPort(idx, +5)" :disabled="port.synced"
-                                                    class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">+</button>
+                                                    class="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">+</button>
                                         </div>
                                     </div>
                                 </div>
@@ -379,7 +379,7 @@
                                 </span>
                             </div>
                             <div class="text-right shrink-0">
-                                <span class="text-[9px] text-slate-400 block">{{ $log->created_at->diffForHumans(null, true) }}</span>
+                                <span class="text-[9px] text-slate-400 block">{{ $log->created_at?->diffForHumans(null, true) ?? 'Zojuist' }}</span>
                                 @if($log->vip_bonus_applied)
                                     <span class="text-[9px] font-black text-amber-500"><i class="fa-solid fa-crown"></i> VIP</span>
                                 @endif

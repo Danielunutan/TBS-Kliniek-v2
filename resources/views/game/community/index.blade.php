@@ -3,6 +3,10 @@
 @section('title', 'Community Hub & Volg-Beloningen | TBS Kliniek')
 
 @section('content')
+@php
+    $character = Auth::user()?->character;
+    $totalPossibleEnergy = array_sum(array_column(array_column($platforms, 'reward'), 'energy'));
+@endphp
 <div class="max-w-5xl mx-auto space-y-6" x-data="{
     claiming: null,
     async claimPlatform(platformKey, url, formId) {
@@ -60,7 +64,7 @@
                     <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
                     <div>
                         <span class="text-lg sm:text-xl font-black text-amber-500 font-mono block leading-none">
-                            +90
+                            +{{ $totalPossibleEnergy }}
                         </span>
                         <span class="text-[10px] text-slate-400 dark:text-slate-500">Energie</span>
                     </div>
@@ -149,6 +153,11 @@
                         <i class="fa-solid fa-circle-check"></i>
                         <span>Beloning Ontvangen</span>
                     </div>
+                @elseif(Auth::check() && $character && ($character->isImprisoned() || $character->isComatose()))
+                    <button type="button" disabled title="Je kunt geen community beloningen claimen vanuit de isoleercel of in coma" class="w-full py-2.5 px-4 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-400 text-xs font-black uppercase tracking-wider cursor-not-allowed opacity-60 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>{{ $character->isImprisoned() ? 'In Isoleercel' : 'In Coma' }}</span>
+                    </button>
                 @elseif(Auth::check())
                     <form id="claim-form-{{ $key }}" action="{{ route('community.claim', $key) }}" method="POST" class="w-full">
                         @csrf
@@ -190,7 +199,7 @@
                     TBS Kliniek Ambassadeur Bonus
                 </h4>
                 <p class="text-xs text-slate-600 dark:text-purple-200/90 leading-relaxed">
-                    Volg je ons op alle 6 platforms? Dan maak je automatisch kans op de maandelijkse trekking van <strong>100 VIP Punten</strong> en exclusieve in-game titels!
+                    Volg je ons op alle {{ $totalPlatforms }} platforms? Dan maak je automatisch kans op de maandelijkse trekking van <strong>100 VIP Punten</strong> en exclusieve in-game titels!
                 </p>
             </div>
         </div>

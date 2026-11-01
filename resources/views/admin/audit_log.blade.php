@@ -102,11 +102,11 @@
                        name="search" 
                        value="{{ $search }}" 
                        placeholder="Zoek op spelernaam, IP-adres, omschrijving of risico-reden..." 
-                       class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 bg-slate-50 dark:bg-slate-800/90 transition">
+                       class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-base sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 bg-slate-50 dark:bg-slate-800/90 transition">
             </div>
 
             <!-- Dropdown Filters -->
-            <div class="flex items-center gap-2 flex-wrap text-xs">
+            <div class="flex items-center gap-2 flex-wrap text-base sm:text-xs">
                 <!-- Risico Filter -->
                 <select name="risk" onchange="this.form.submit()" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 transition">
                     <option value="all" {{ $risk === 'all' ? 'selected' : '' }}>Alle Risiconiveaus</option>
@@ -312,6 +312,7 @@
     <!-- Inspector JSON Modal -->
     <div x-show="detailModalOpen" 
          x-transition.opacity
+         @keydown.escape.window="detailModalOpen = false"
          class="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 pb-24 lg:pb-4" 
          style="display: none;">
         <div @click.away="detailModalOpen = false" 
@@ -323,7 +324,7 @@
                     </span>
                     <h3 class="font-black text-slate-900 dark:text-white text-sm">Audit Log Inspectie &bull; ID #<span x-text="selectedLog?.id"></span></h3>
                 </div>
-                <button type="button" @click="detailModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm cursor-pointer">
+                <button type="button" @click="detailModalOpen = false" aria-label="Sluiten" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm cursor-pointer transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>

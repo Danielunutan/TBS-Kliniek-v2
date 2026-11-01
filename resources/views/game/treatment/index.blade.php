@@ -5,6 +5,18 @@
 @section('content')
 <div class="space-y-6">
 
+    @if($character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>
+        <span>Je zit momenteel in de isoleercel. Behandelaarsgesprekken en verlofactiviteiten zijn tijdelijk opgeschort.</span>
+    </div>
+    @elseif($character->isComatose() || $character->needsReviveSerum())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-rose-500 text-base shrink-0"></i>
+        <span>Je ligt momenteel op de Intensive Care en kunt niet deelnemen aan behandelaarsgesprekken.</span>
+    </div>
+    @endif
+
     <!-- Header Banner in TBS Kliniek Styling -->
     <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-start gap-4">
@@ -62,7 +74,7 @@
         <div class="text-right shrink-0">
             <span class="text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-400 block">Resterende Verloftijd</span>
             <span class="text-base font-black text-emerald-950 dark:text-emerald-100 font-mono">
-                {{ gmdate('H:i:s', $character->getLeaveRemainingSeconds()) }}
+                {{ gmdate('H:i:s', max(0, (int) $character->getLeaveRemainingSeconds())) }}
             </span>
         </div>
     </div>
@@ -76,7 +88,7 @@
             </div>
         </div>
         <span class="text-xs font-mono font-bold text-rose-900 dark:text-rose-200 bg-rose-100 dark:bg-rose-900/50 px-3 py-1 rounded-md border border-rose-200 dark:border-rose-700">
-            {{ gmdate('i:s', $character->getSedatedRemainingSeconds()) }}
+            {{ gmdate('i:s', max(0, (int) $character->getSedatedRemainingSeconds())) }}
         </span>
     </div>
     @endif
@@ -151,7 +163,7 @@
                         Het behandelteam heeft je recente evaluatie verwerkt in het dossier. Je volgende officiële consultatie is beschikbaar over:
                     </p>
                     <div class="text-2xl font-black font-mono text-purple-700 dark:text-purple-400 mt-2">
-                        {{ gmdate('H:i:s', $remainingCooldown) }}
+                        {{ gmdate('H:i:s', max(0, (int) $remainingCooldown)) }}
                     </div>
                 </div>
 
@@ -161,7 +173,8 @@
                         @csrf
                         <input type="hidden" name="action" value="treatment_session">
                         <button type="submit" 
-                                class="btn-star-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs cursor-pointer">
+                                @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 35)
+                                class="btn-star-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-star text-[11px]"></i>
                             <span>Omzeilen (35 Sterren)</span>
                         </button>

@@ -398,11 +398,13 @@ class DiscordShieldController extends Controller
         if (Auth::check()) {
             $authUser = Auth::user();
             if (empty($authUser->discord_id)) {
-                $authUser->discord_id = $discordId;
-                $authUser->save();
+                if (! User::where('discord_id', $discordId)->where('id', '!=', $authUser->id)->exists()) {
+                    $authUser->discord_id = $discordId;
+                    $authUser->save();
+                }
             }
 
-            if ($character) {
+            if ($authUser->discord_id === $discordId && $character) {
                 if (! $character->hasClaimedDiscordReward()) {
                     $character->claimDiscordReward();
                     $bonusAwarded = true;

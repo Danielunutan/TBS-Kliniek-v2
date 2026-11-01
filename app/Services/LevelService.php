@@ -16,7 +16,9 @@ class LevelService
      */
     public function getXpRequiredForNextLevel(int $currentLevel): int
     {
-        return (int) ceil(350 * ($currentLevel ** 1.75));
+        $safeLevel = max(1, $currentLevel);
+
+        return (int) ceil(350 * ($safeLevel ** 1.75));
     }
 
     /**

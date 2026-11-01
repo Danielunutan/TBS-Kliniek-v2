@@ -201,7 +201,7 @@
                                 {{ $msg->type === 'friend_request' ? 'VRIENDSCHAPSVERZOEK' : $msg->type }}
                             </span>
                         </div>
-                        <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">{{ $msg->created_at->diffForHumans() }}</span>
+                        <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">{{ $msg->created_at?->diffForHumans() }}</span>
                     </div>
 
                     <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white mt-1">

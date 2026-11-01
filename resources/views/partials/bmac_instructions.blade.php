@@ -16,7 +16,7 @@
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
-            document.execCommand('copy');
+            try { document.execCommand('copy'); } catch (e) {}
             document.body.removeChild(textArea);
         }
         this.copiedType = type;
@@ -90,7 +90,7 @@ class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-8
 
                 <!-- Koppelcode Knop -->
                 <button type="button" 
-                        @click="copyText('TBS-{{ $character->id }}', 'code')"
+                        @click="copyText(@js('TBS-' . $character->id), 'code')"
                         class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 hover:border-amber-400 dark:hover:border-amber-600 text-left flex items-center justify-between text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
                     <div class="flex items-center gap-2 min-w-0">
                         <i class="fa-solid fa-key text-amber-500 text-xs"></i>

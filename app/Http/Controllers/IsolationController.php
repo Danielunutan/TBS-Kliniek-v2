@@ -38,7 +38,7 @@ class IsolationController extends Controller
 
         $isProtected = $character->hasIsolationProtection();
         $remainingSeconds = $character->getIsolationProtectionRemainingSeconds();
-        $remainingMinutes = $isProtected ? (int) Carbon::now()->diffInMinutes($character->protection_until) : 0;
+        $remainingMinutes = $isProtected && $character->protection_until ? max(0, (int) ceil(now()->diffInSeconds($character->protection_until, false) / 60)) : 0;
         $remainingHours = $isProtected ? round($remainingMinutes / 60, 1) : 0;
 
         $hasCashProtection = $character->hasCashProtection();

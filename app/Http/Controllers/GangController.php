@@ -1642,7 +1642,7 @@ class GangController extends Controller
         }
 
         if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen geld doneren aan de bende!');
+            return back()->with('error', 'Vanuit de isoleercel kun je geen maskers doneren aan de bende!');
         }
 
         if ($character->isComatose()) {
@@ -1706,7 +1706,7 @@ class GangController extends Controller
         }
 
         if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen geld doneren aan de bende!');
+            return back()->with('error', 'Vanuit de isoleercel kun je geen voorwerpen doneren aan de bende!');
         }
 
         if ($character->isComatose()) {
@@ -1799,7 +1799,7 @@ class GangController extends Controller
         }
 
         if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen geld doneren aan de bende!');
+            return back()->with('error', 'Vanuit de isoleercel kun je geen maskers uit het Bende Depot verkopen!');
         }
 
         if ($character->isComatose()) {
@@ -1856,7 +1856,7 @@ class GangController extends Controller
         }
 
         if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen geld doneren aan de bende!');
+            return back()->with('error', 'Vanuit de isoleercel kun je geen voorwerpen uit het Bende Depot verkopen!');
         }
 
         if ($character->isComatose()) {
@@ -2068,18 +2068,22 @@ class GangController extends Controller
                 'summary' => $summary,
             ]);
 
-            if ($targetGang->leader) {
-                $targetGang->leader->addRespect(2.0);
-                $targetGang->leader->save();
+            if ($targetGang->leader_id) {
+                /** @var Character|null $lockedLeader */
+                $lockedLeader = Character::where('id', $targetGang->leader_id)->lockForUpdate()->first();
+                if ($lockedLeader) {
+                    $lockedLeader->addRespect(2.0);
+                    $lockedLeader->save();
 
-                GameMessage::create([
-                    'recipient_id' => $targetGang->leader->id,
-                    'sender_id' => $character->id,
-                    'sender_name' => "{$character->name} [{$myGang->name}]",
-                    'subject' => "🛡️ [Bende Oorlog] Aanval van {$myGang->name} afgeslagen!",
-                    'content' => "Patiënt {$targetGang->leader->name},\n\nBende '{$myGang->name}' probeerde jullie bende aan te vallen, maar jullie verdediging ({$targetDefense} punten) hield stand!\nDe vijand verloor {$powerDamage} aanvalskracht. Je hebt +2.0 respect verdiend voor de verdediging.",
-                    'type' => 'gang',
-                ]);
+                    GameMessage::create([
+                        'recipient_id' => $lockedLeader->id,
+                        'sender_id' => $character->id,
+                        'sender_name' => "{$character->name} [{$myGang->name}]",
+                        'subject' => "🛡️ [Bende Oorlog] Aanval van {$myGang->name} afgeslagen!",
+                        'content' => "Patiënt {$lockedLeader->name},\n\nBende '{$myGang->name}' probeerde jullie bende aan te vallen, maar jullie verdediging ({$targetDefense} punten) hield stand!\nDe vijand verloor {$powerDamage} aanvalskracht. Je hebt +2.0 respect verdiend voor de verdediging.",
+                        'type' => 'gang',
+                    ]);
+                }
             }
 
             return back()

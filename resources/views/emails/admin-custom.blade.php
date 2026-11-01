@@ -40,7 +40,7 @@
                             @endif
 
                             <!-- Custom Message Content -->
-                            <div style="font-size: 15px; line-height: 1.8; color: #334155; margin: 0 0 28px 0; white-space: pre-line;">
+                            <div style="font-size: 15px; line-height: 1.8; color: #334155; margin: 0 0 28px 0;">
 {!! nl2br(e($mailBody)) !!}
                             </div>
 

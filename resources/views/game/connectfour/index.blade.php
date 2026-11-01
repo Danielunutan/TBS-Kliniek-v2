@@ -137,7 +137,24 @@ body.dark .board-socket:hover,
      data-matches="{{ (int) ($stat->matches_played ?? 0) }}"
      data-player-wins="{{ (int) ($stat->current_player_wins ?? 0) }}"
      data-arjan-wins="{{ (int) ($stat->current_arjan_wins ?? 0) }}"
-     data-draws="{{ (int) ($stat->current_draws ?? 0) }}">
+     data-draws="{{ (int) ($stat->current_draws ?? 0) }}"
+     data-is-blocked="{{ ($character->isImprisoned() || $character->isComatose()) ? '1' : '0' }}">
+
+    @if($character->isImprisoned())
+        <div class="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 p-4 text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-3">
+            <i class="fa-solid fa-lock text-base text-amber-600 dark:text-amber-400 shrink-0"></i>
+            <div>
+                <span>Je zit in de isoleercel! Vanuit de cel kun je niet aanschuiven bij OOHPA Arjan in de recreatiezaal.</span>
+            </div>
+        </div>
+    @elseif($character->isComatose())
+        <div class="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-700/60 p-4 text-xs font-bold text-rose-800 dark:text-rose-200 flex items-center gap-3">
+            <i class="fa-solid fa-heart-pulse text-base text-rose-600 dark:text-rose-400 shrink-0"></i>
+            <div>
+                <span>Je verkeert in coma (Code Blauw)! Dien eerst een {{ \App\Models\Character::REVIVE_SERUM_NAME }} toe om weer bij te komen.</span>
+            </div>
+        </div>
+    @endif
 
     
 
@@ -910,6 +927,12 @@ body.dark .board-socket:hover,
     // Strict Click Handler (Immediate lock prevents multi-click glitches)
     window.handleColumnClick = function(col) {
         if (isGameOver || isAiThinking || isDropping || currentPlayer !== PLAYER) return;
+        if (appEl && appEl.getAttribute('data-is-blocked') === '1') {
+            if (window.tbsToast) {
+                window.tbsToast('Je kunt niet meespelen vanuit de isoleercel of in coma!', 'warning');
+            }
+            return;
+        }
 
         const targetRow = getLowestEmptyRow(board, col);
         if (targetRow === -1) return; // Column full

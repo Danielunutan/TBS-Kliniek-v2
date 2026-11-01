@@ -11,6 +11,7 @@ use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ExtortController extends Controller
@@ -54,13 +55,6 @@ class ExtortController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        if ($this->cooldownService->isOnCooldown($character, 'extort')) {
-            $remaining = $this->cooldownService->getRemainingSeconds($character, 'extort');
-            $mins = ceil($remaining / 60);
-
-            return back()->with('error', "⏳ Afpersen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
-        }
-
         $validated = $request->validate([
             'target_id' => ['required', 'integer', 'in:1,2,3,4,5,6'],
         ]);
@@ -76,32 +70,44 @@ class ExtortController extends Controller
 
         $target = $config[$validated['target_id']];
 
-        if (! $this->energy->consume($character, $target['energy'])) {
-            return back()->with('error', "Je hebt minimaal {$target['energy']} energie nodig om af te persen!");
-        }
+        return DB::transaction(function () use ($character, $target): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($target['rate']);
-        $this->cooldownService->setCooldown($character, 'extort', $cooldownSeconds);
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'extort')) {
+                $remaining = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'extort');
+                $mins = ceil($remaining / 60);
 
-        $roll = rand(1, 100);
-        if ($roll <= $target['rate']) {
-            $cash = rand($target['min'], $target['max']);
-            // Zwart geld contant!
-            $this->economy->addCash($character, $cash);
-            $this->level->addXp($character, $target['xp']);
-            $character->addRespect(2);
-            $character->save();
+                return back()->with('error', "⏳ Afpersen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
+            }
 
-            return back()->with('success', 'Afpersing geslaagd! Het doelwit betaalt €'.number_format($cash, 0, ',', '.')." contant uit angst. +{$target['xp']} XP.");
-        }
+            if (! $this->energy->consume($lockedCharacter, $target['energy'])) {
+                return back()->with('error', "Je hebt minimaal {$target['energy']} energie nodig om af te persen!");
+            }
 
-        if ($target['jail'] && rand(1, 100) <= 60) {
-            $jailSeconds = random_int(100, 180);
-            $this->prison->jailSeconds($character, $jailSeconds, 'Betrapt bij afpersing.');
+            $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($target['rate']);
+            $this->cooldownService->setCooldown($lockedCharacter, 'extort', $cooldownSeconds);
 
-            return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Doelwit sloeg alarm!)");
-        }
+            $roll = rand(1, 100);
+            if ($roll <= $target['rate']) {
+                $cash = rand($target['min'], $target['max']);
+                // Zwart geld contant!
+                $this->economy->addCash($lockedCharacter, $cash);
+                $this->level->addXp($lockedCharacter, $target['xp']);
+                $lockedCharacter->addRespect(2);
+                $lockedCharacter->save();
 
-        return back()->with('error', 'Afpersing mislukt! Het doelwit weigerde te buigen en dreigde alarm te slaan.');
+                return back()->with('success', 'Afpersing geslaagd! Het doelwit betaalt €'.number_format($cash, 0, ',', '.')." contant uit angst. +{$target['xp']} XP.");
+            }
+
+            if ($target['jail'] && rand(1, 100) <= 60) {
+                $jailSeconds = random_int(100, 180);
+                $this->prison->jailSeconds($lockedCharacter, $jailSeconds, 'Betrapt bij afpersing.');
+
+                return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Doelwit sloeg alarm!)");
+            }
+
+            return back()->with('error', 'Afpersing mislukt! Het doelwit weigerde te buigen en dreigde alarm te slaan.');
+        });
     }
 }

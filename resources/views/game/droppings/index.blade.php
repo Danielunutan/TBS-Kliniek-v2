@@ -46,6 +46,20 @@
         </div>
     </div>
 
+    @if($character->isImprisoned())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-lock text-base text-rose-600 shrink-0"></i>
+        <span>Je zit in de isoleercel en kunt op dit moment geen droppings opvangen of bestellen.</span>
+    </div>
+    @endif
+
+    @if($character->isComatose())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-bed-pulse text-base text-rose-600 shrink-0"></i>
+        <span>Je ligt in het ziekenhuis/coma en kunt op dit moment geen droppings opvangen of bestellen.</span>
+    </div>
+    @endif
+
     <!-- 2 Dropping Operations Cards (Clean TBS Kliniek Layout) -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -84,19 +98,22 @@
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                @if($tennisCooldown > 0)
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800"
+                 x-data="{ cd: {{ (int) $tennisCooldown }} }"
+                 x-init="if (cd > 0) { const t = setInterval(() => { cd--; if (cd <= 0) clearInterval(t); }, 1000); }">
+                <template x-if="cd > 0">
                     <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
-                        <i class="fa-solid fa-clock"></i> Afkoelen (Nog {{ ceil($tennisCooldown / 60) }} min)
+                        <i class="fa-solid fa-clock"></i> Afkoelen (Nog <span x-text="Math.ceil(cd / 60)">{{ ceil($tennisCooldown / 60) }}</span> min)
                     </button>
-                @else
+                </template>
+                <template x-if="cd <= 0">
                     <form action="{{ route('droppings.tennisball') }}" method="POST">
                         @csrf
                         <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->energy < 15) class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-baseball"></i> Sprint & Vang Tennisbal
                         </button>
                     </form>
-                @endif
+                </template>
             </div>
         </div>
 
@@ -135,23 +152,30 @@
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                @if($droneCooldown > 0)
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800"
+                 x-data="{ cd: {{ (int) $droneCooldown }} }"
+                 x-init="if (cd > 0) { const t = setInterval(() => { cd--; if (cd <= 0) clearInterval(t); }, 1000); }">
+                <template x-if="cd > 0">
                     <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
-                        <i class="fa-solid fa-clock"></i> Drone Accu Laadt Op (Nog {{ ceil($droneCooldown / 60) }} min)
+                        <i class="fa-solid fa-clock"></i> Drone Accu Laadt Op (Nog <span x-text="Math.ceil(cd / 60)">{{ ceil($droneCooldown / 60) }}</span> min)
                     </button>
-                @elseif($character->level < 3)
-                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
-                        <i class="fa-solid fa-lock"></i> Vereist Level 3 (Jij bent Level {{ $character->level }})
-                    </button>
-                @else
-                    <form action="{{ route('droppings.drone') }}" method="POST">
-                        @csrf
-                        <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->energy < 25 || $character->cash < 500) class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-paper-plane"></i> Bestel Drone Dropping (€500)
-                        </button>
-                    </form>
-                @endif
+                </template>
+                <template x-if="cd <= 0">
+                    <div>
+                        @if($character->level < 3)
+                            <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                                <i class="fa-solid fa-lock"></i> Vereist Level 3 (Jij bent Level {{ $character->level }})
+                            </button>
+                        @else
+                            <form action="{{ route('droppings.drone') }}" method="POST">
+                                @csrf
+                                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->energy < 25 || $character->cash < 500) class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-paper-plane"></i> Bestel Drone Dropping (€500)
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </template>
             </div>
         </div>
 
@@ -188,7 +212,7 @@
                                 <p class="text-[11px] {{ $drop->caught ? 'text-rose-500 font-bold' : 'text-slate-500 dark:text-slate-400' }}">{{ $drop->loot_summary }}</p>
                             </div>
                         </div>
-                        <span class="text-slate-400 text-[10px]">{{ $drop->created_at->diffForHumans() }}</span>
+                        <span class="text-slate-400 text-[10px]">{{ $drop->created_at?->diffForHumans() }}</span>
                     </div>
                 @endforeach
             </div>

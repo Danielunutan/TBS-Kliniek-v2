@@ -8,7 +8,8 @@
          deckData: @js($deck),
          cooldown: {{ (int) $cooldownRemaining }},
          finishUrl: '{{ route('memory.finish') }}',
-         csrfToken: '{{ csrf_token() }}'
+         csrfToken: '{{ csrf_token() }}',
+         canPlay: {{ (! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'true' : 'false' }}
      })"
      x-init="initGame()">
 
@@ -408,6 +409,7 @@ function memoryGame(config) {
     return {
         cards: config.deckData || [],
         cooldownRemaining: config.cooldown || 0,
+        canPlay: Boolean(config.canPlay),
         gameState: 'idle', // 'idle', 'preview', 'playing', 'finished'
         gameResult: null, // null, 'won', 'lost'
         lossReason: '',
@@ -559,7 +561,7 @@ function memoryGame(config) {
         },
 
         startGame() {
-            if (this.cooldownRemaining > 0) return;
+            if (!this.canPlay || this.cooldownRemaining > 0) return;
             
             // Clear any lingering intervals
             if (this.previewInterval) clearInterval(this.previewInterval);

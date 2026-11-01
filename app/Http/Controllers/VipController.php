@@ -186,6 +186,7 @@ class VipController extends Controller
                     break;
                 case 'vip_lootbag':
                     $locked->xxl_cases = ($locked->xxl_cases ?? 0) + 2;
+                    $locked->unopened_bags = ($locked->unopened_bags ?? 0) + 2;
                     $locked->cash += 500000;
                     break;
                 case 'stars_pack':

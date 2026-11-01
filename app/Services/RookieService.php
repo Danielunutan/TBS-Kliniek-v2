@@ -209,7 +209,7 @@ class RookieService
 
                 case 'sponsor_vip':
                     $currentExpiry = $locked->vip_expires_at && $locked->vip_expires_at->isFuture()
-                        ? $locked->vip_expires_at
+                        ? $locked->vip_expires_at->copy()
                         : now();
                     $locked->is_vip = true;
                     $locked->vip_expires_at = $currentExpiry->addDay();

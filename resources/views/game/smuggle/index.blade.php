@@ -26,6 +26,18 @@
     }
 }">
 
+    @if($character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>
+        <span>Je zit momenteel in de isoleercel. Het synthese-lab en koeriersnetwerk zijn niet toegankelijk.</span>
+    </div>
+    @elseif($character->isComatose() || $character->needsReviveSerum())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-rose-500 text-base shrink-0"></i>
+        <span>Je ligt momenteel op de Intensive Care en kunt geen goederen smokkelen of produceren.</span>
+    </div>
+    @endif
+
     <!-- Top Command Banner -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
@@ -421,13 +433,13 @@
 
                             <div x-show="cd > 0" class="flex items-center justify-between gap-2 pt-1" style="{{ $line['cooldown'] > 0 ? '' : 'display: none;' }}">
                                 <span class="text-[11px] font-mono font-black text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-200/80 dark:border-amber-800/70">
-                                    Afkoeling: <span x-text="format(cd)">{{ gmdate('i:s', $line['cooldown']) }}</span>
+                                    Afkoeling: <span x-text="format(cd)">{{ gmdate('i:s', max(0, (int) $line['cooldown'])) }}</span>
                                 </span>
                                 <form method="POST" action="{{ route('cooldown.skip') }}">
                                     @csrf
                                     <input type="hidden" name="action" value="{{ $line['action'] }}">
                                     <button type="submit"
-                                            @disabled($character->isImprisoned() || $character->isComatose())
+                                            @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < $line['skip_stars'])
                                             class="btn-star-gold px-3 py-1.5 rounded-lg text-slate-900 dark:text-white font-black text-[11px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                         ⭐ Versnel ({{ $line['skip_stars'] }})
                                     </button>

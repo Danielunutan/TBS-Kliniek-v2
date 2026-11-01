@@ -46,11 +46,11 @@
             <div class="flex flex-wrap items-center gap-2 text-xs font-bold shrink-0">
                 <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3.5 py-2 rounded-xl border border-purple-200 dark:border-purple-800 shadow-2xs flex items-center gap-1.5">
                     <i class="fa-solid fa-layer-group text-purple-600 dark:text-purple-400"></i>
-                    <span>{{ count($features) }} Gepland</span>
+                    <span>{{ count($features ?? []) }} Gepland</span>
                 </span>
                 <span class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-3.5 py-2 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-2xs flex items-center gap-1.5">
                     <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i>
-                    <span>{{ count($completedFeatures) }} Reeds Live</span>
+                    <span>{{ count($completedFeatures ?? []) }} Reeds Live</span>
                 </span>
             </div>
         </div>
@@ -67,7 +67,7 @@
                     :class="activeTab === 'completed' ? 'bg-emerald-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/80 dark:border-slate-700'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2">
                 <i class="fa-solid fa-circle-check text-xs"></i>
-                <span>Recent Uitgebracht & Live ({{ count($completedFeatures) }})</span>
+                <span>Recent Uitgebracht & Live ({{ count($completedFeatures ?? []) }})</span>
             </button>
         </div>
     </div>
@@ -108,7 +108,7 @@
         <!-- Feature Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($features as $featureKey => $f)
-            <div x-show="matches({ phase: '{{ $f['phase'] }}' })"
+            <div x-show="matches({ phase: @js($f['phase']) })"
                 class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 flex flex-col justify-between p-5 sm:p-6 {{ $f['has_voted'] ? 'ring-2 ring-purple-400/40 bg-purple-50/10 dark:bg-purple-950/20' : '' }}">
                 
                 <div class="space-y-3.5">
@@ -146,7 +146,7 @@
                     <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
                         <span class="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider block">Kernonderdelen:</span>
                         <ul class="space-y-1 text-xs text-slate-700 dark:text-slate-300 font-medium">
-                            @foreach($f['highlights'] as $highlight)
+                            @foreach($f['highlights'] ?? [] as $highlight)
                             <li class="flex items-center gap-2">
                                 <i class="fa-solid fa-check text-purple-600 dark:text-purple-400 text-[10px] shrink-0"></i>
                                 <span class="text-[11px]">{{ $highlight }}</span>
@@ -161,7 +161,7 @@
                     <div class="flex items-center gap-2 text-xs">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 font-black text-slate-800 dark:text-slate-200 text-[11px]">
                             <i class="fa-solid fa-fire text-amber-500 text-[10px]"></i>
-                            <span>{{ number_format($f['votes'], 0, ',', '.') }} Stemmen</span>
+                            <span>{{ number_format($f['votes'] ?? 0, 0, ',', '.') }} Stemmen</span>
                         </span>
                         <span class="text-[10px] font-bold text-slate-400 hidden sm:inline">
                             {{ $f['phase'] }}
@@ -202,7 +202,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @foreach($completedFeatures as $compKey => $c)
+            @foreach($completedFeatures ?? [] as $compKey => $c)
             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between p-5 sm:p-6">
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-3">

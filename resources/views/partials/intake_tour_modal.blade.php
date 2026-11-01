@@ -1,3 +1,6 @@
+@php
+    $character = $character ?? (Auth::check() ? Auth::user()?->character : null);
+@endphp
 <!-- INTERACTIEVE TBS INTAKE TOUR MODAL (Teleported to Body) -->
 <div x-data="{
     isOpen: false,
@@ -5,7 +8,7 @@
     totalSteps: 5,
     isSubmitting: false,
     tourCompleted: @js($rookieData['tour_completed'] ?? false),
-    playerLevel: {{ (int) ($character->level ?? 1) }},
+    playerLevel: {{ (int) ($character?->level ?? 1) }},
 
     init() {
         // Toon automatisch aan elke speler (zowel bestaand als nieuw) die de rondleiding nog niet heeft afgerond in de database
@@ -43,12 +46,12 @@
         if (this.isSubmitting) return;
         this.isSubmitting = true;
         try {
-            const res = await fetch('{{ route('rookie.tour.complete') }}', {
+            const res = await fetch(@js(route('rookie.tour.complete')), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']')?.content || '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']')?.content || @js(csrf_token())
                 }
             });
             const data = await res.json();

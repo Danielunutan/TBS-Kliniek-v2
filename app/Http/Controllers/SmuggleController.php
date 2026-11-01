@@ -124,15 +124,6 @@ class SmuggleController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
-
-        if ($character->isImprisoned()) {
-            return redirect()->route('prison')->with('error', 'Vanuit de strafcel heb je geen toegang tot het synthese-laboratorium.');
-        }
-
-        if ($character->isComatose()) {
-            return back()->with('error', 'Kritieke toestand (Code Blauw)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om bij bewustzijn te komen.');
-        }
 
         $type = $request->input('type') ?? $request->input('item_type');
         if ($type === 'cigarettes') {
@@ -150,16 +141,6 @@ class SmuggleController extends Controller
             'type' => ['required', 'string', 'in:sigaretten,ritalin,telefoon,wiet'],
         ]);
 
-        $actionName = 'produce_'.$validated['type'];
-        if ($this->cooldownService->isOnCooldown($character, $actionName) || ($validated['type'] === 'telefoon' && $this->cooldownService->isOnCooldown($character, 'produce_phone'))) {
-            $checkAction = $this->cooldownService->isOnCooldown($character, $actionName) ? $actionName : 'produce_phone';
-            $remaining = $this->cooldownService->getRemainingSeconds($character, $checkAction);
-            $mins = ceil($remaining / 60);
-            $cost = $this->cooldownService->getSkipCost($checkAction);
-
-            return back()->with('error', "⏳ Synthese-lijn koelt nog af ({$remaining}s / ~{$mins} min resterend). Versnel direct voor {$cost} Sterren ⭐.");
-        }
-
         $configs = [
             'sigaretten' => ['cost' => 5, 'quantity' => 10, 'xp' => 35, 'name' => '10x Zware Shagwikkels'],
             'ritalin' => ['cost' => 10, 'quantity' => 5, 'xp' => 65, 'name' => '5x Ritalin Blisters'],
@@ -168,28 +149,51 @@ class SmuggleController extends Controller
         ];
 
         $cfg = $configs[$validated['type']];
+        $actionName = 'produce_'.$validated['type'];
 
-        if (! $this->energy->consume($character, $cfg['cost'])) {
-            return back()->with('error', "Je mist de benodigde uithouding ({$cfg['cost']} energie vereist voor deze batch).");
-        }
+        return DB::transaction(function () use ($user, $validated, $cfg, $actionName) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        $this->ensureContrabandItemsExist();
-        $item = Item::where('slug', $validated['type'])->firstOrFail();
+            if ($character->isImprisoned()) {
+                return redirect()->route('prison')->with('error', 'Vanuit de strafcel heb je geen toegang tot het synthese-laboratorium.');
+            }
 
-        $charItem = CharacterItem::firstOrCreate(
-            ['character_id' => $character->id, 'item_id' => $item->id],
-            ['quantity' => 0]
-        );
+            if ($character->isComatose()) {
+                return back()->with('error', 'Kritieke toestand (Code Blauw)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om bij bewustzijn te komen.');
+            }
 
-        $charItem->increment('quantity', $cfg['quantity']);
-        $this->level->addXp($character, $cfg['xp']);
+            if ($this->cooldownService->isOnCooldown($character, $actionName) || ($validated['type'] === 'telefoon' && $this->cooldownService->isOnCooldown($character, 'produce_phone'))) {
+                $checkAction = $this->cooldownService->isOnCooldown($character, $actionName) ? $actionName : 'produce_phone';
+                $remaining = $this->cooldownService->getRemainingSeconds($character, $checkAction);
+                $mins = ceil($remaining / 60);
+                $cost = $this->cooldownService->getSkipCost($checkAction);
 
-        app(DailyBattleService::class)->record($character, 'drugs_made', $cfg['quantity']);
-        EventDrugsProductionService::record($character, $cfg['quantity'], $validated['type']);
+                return back()->with('error', "⏳ Synthese-lijn koelt nog af ({$remaining}s / ~{$mins} min resterend). Versnel direct voor {$cost} Sterren ⭐.");
+            }
 
-        $this->cooldownService->setCooldown($character, $actionName);
+            if (! $this->energy->consume($character, $cfg['cost'])) {
+                return back()->with('error', "Je mist de benodigde uithouding ({$cfg['cost']} energie vereist voor deze batch).");
+            }
 
-        return back()->with('success', "Geproduceerd! Batch van {$cfg['name']} is veilig opgeslagen in je geheime smokkelkluis (+{$cfg['xp']} XP).");
+            $this->ensureContrabandItemsExist();
+            $item = Item::where('slug', $validated['type'])->firstOrFail();
+
+            $charItem = CharacterItem::firstOrCreate(
+                ['character_id' => $character->id, 'item_id' => $item->id],
+                ['quantity' => 0]
+            );
+
+            $charItem->increment('quantity', $cfg['quantity']);
+            $this->level->addXp($character, $cfg['xp']);
+
+            app(DailyBattleService::class)->record($character, 'drugs_made', $cfg['quantity']);
+            EventDrugsProductionService::record($character, $cfg['quantity'], $validated['type']);
+
+            $this->cooldownService->setCooldown($character, $actionName);
+
+            return back()->with('success', "Geproduceerd! Batch van {$cfg['name']} is veilig opgeslagen in je geheime smokkelkluis (+{$cfg['xp']} XP).");
+        });
     }
 
     public function sell(Request $request): RedirectResponse

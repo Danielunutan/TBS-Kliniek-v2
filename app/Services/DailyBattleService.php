@@ -725,7 +725,7 @@ class DailyBattleService
 
                 return [
                     'rank' => $idx + 1,
-                    'name' => $s->character->name ?? 'Onbekend',
+                    'name' => $s->character?->name ?? 'Onbekend',
                     'avatar' => $s->character?->avatar_url ?? asset('assets/characters/avatar_female_1.jpg'),
                     'score' => $rawVal,
                     'ep' => $this->calculateCategoryEp($key, $rawVal),

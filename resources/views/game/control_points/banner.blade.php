@@ -51,7 +51,7 @@
                         <span class="inline-flex items-center gap-1 text-amber-500 font-black">
                             <i class="fa-solid fa-star text-[11px]"></i> +{{ $cpPendingStars }} ⭐
                         </span>
-                        <span class="text-[11px] text-slate-400 dark:text-slate-500">(+€{{ $cpPoint->cash_per_minute }} en +{{ $cpPoint->stars_per_minute }}⭐ per minuut)</span>
+                        <span class="text-[11px] text-slate-400 dark:text-slate-500">(+€{{ $cpPoint->cash_per_minute }}/min &bull; max 1⭐ na 30+ min bezetting)</span>
                     @elseif($cpPoint->holder)
                         <span class="flex items-center gap-1.5">
                             <span>Bezet door</span>

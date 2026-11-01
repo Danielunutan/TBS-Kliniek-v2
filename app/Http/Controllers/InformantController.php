@@ -102,14 +102,18 @@ class InformantController extends Controller
             return back()->with('error', "Je hebt minimaal {$info['energy']} energie nodig voor deze informant!");
         }
 
-        if (! $this->economy->deductCash($character, $info['cost'])) {
+        if ($character->cash < $info['cost']) {
             return back()->with('error', 'Je hebt €'.number_format($info['cost'], 0, ',', '.')." nodig om de {$info['label']} in te huren.");
         }
 
         if (! $this->energy->consume($character, $info['energy'])) {
-            $this->economy->addCash($character, $info['cost']);
-
             return back()->with('error', "Je hebt minimaal {$info['energy']} energie nodig voor deze informant!");
+        }
+
+        if (! $this->economy->deductCash($character, $info['cost'])) {
+            $this->energy->add($character, $info['energy']);
+
+            return back()->with('error', 'Je hebt €'.number_format($info['cost'], 0, ',', '.')." nodig om de {$info['label']} in te huren.");
         }
 
         // 80% success rate for informants (intel always comes through eventually)

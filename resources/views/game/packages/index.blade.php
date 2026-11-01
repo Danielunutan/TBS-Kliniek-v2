@@ -95,7 +95,7 @@
                 @csrf
                 <input type="hidden" name="action" value="package">
                 <button type="submit"
-                        @disabled($character->isImprisoned() || $character->isComatose())
+                        @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < ($packageSkipCost ?? 10))
                         class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-star text-[11px]"></i>
                     <span>Wachtpost Omkopen ({{ $packageSkipCost ?? 10 }} ⭐)</span>

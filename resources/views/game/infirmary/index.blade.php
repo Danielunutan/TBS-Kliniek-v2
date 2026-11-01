@@ -256,8 +256,8 @@
                 @forelse($ownedPills as $owned)
                 <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 text-xs">
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <i class="fa-solid {{ $owned->item->icon }} text-purple-600 dark:text-purple-400"></i>
-                        <span class="font-bold text-slate-900 dark:text-white truncate">{{ $owned->item->name }}</span>
+                        <i class="fa-solid {{ $owned->item?->icon ?? 'fa-pills' }} text-purple-600 dark:text-purple-400"></i>
+                        <span class="font-bold text-slate-900 dark:text-white truncate">{{ $owned->item?->name ?? 'Onbekend medicijn' }}</span>
                     </div>
                     <span class="font-mono font-black px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-xs shrink-0">
                         {{ $owned->quantity }}x in bezit

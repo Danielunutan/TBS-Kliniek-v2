@@ -307,14 +307,14 @@
                 mobileQuickSheetOpen: false,
                 stats: {
                     cash: {{ (int)$character->cash }},
-                    cashFormatted: '€{{ number_format($character->cash, 0, ',', '.') }}',
-                    cash_formatted: '€{{ number_format($character->cash, 0, ',', '.') }}',
+                    cashFormatted: @js('€' . number_format($character->cash, 0, ',', '.')),
+                    cash_formatted: @js('€' . number_format($character->cash, 0, ',', '.')),
                     bank: {{ (int)$character->bank }},
-                    bankFormatted: '€{{ number_format($character->bank, 0, ',', '.') }}',
-                    bank_formatted: '€{{ number_format($character->bank, 0, ',', '.') }}',
+                    bankFormatted: @js('€' . number_format($character->bank, 0, ',', '.')),
+                    bank_formatted: @js('€' . number_format($character->bank, 0, ',', '.')),
                     total: {{ (int)($character->cash + $character->bank) }},
-                    totalFormatted: '€{{ number_format($character->cash + $character->bank, 0, ',', '.') }}',
-                    total_formatted: '€{{ number_format($character->cash + $character->bank, 0, ',', '.') }}',
+                    totalFormatted: @js('€' . number_format($character->cash + $character->bank, 0, ',', '.')),
+                    total_formatted: @js('€' . number_format($character->cash + $character->bank, 0, ',', '.')),
                     energy: {{ (int)$character->energy }},
                     max_energy: {{ (int)$character->max_energy }},
                     energy_pct: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }},
@@ -324,15 +324,15 @@
                     xp: {{ (int)$character->xp }},
                     req_xp: {{ (int)$reqXp }},
                     xp_pct: {{ (int)$pctXp }},
-                    xpFormatted: '{{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP',
+                    xpFormatted: @js(number_format($character->xp, 0, ',', '.') . ' / ' . number_format($reqXp, 0, ',', '.') . ' XP'),
                     stars: {{ (int)($character->stars ?? 0) }},
-                    starsFormatted: '{{ number_format($character->stars ?? 0, 0, ',', '.') }}',
-                    stars_formatted: '{{ number_format($character->stars ?? 0, 0, ',', '.') }}',
+                    starsFormatted: @js(number_format($character->stars ?? 0, 0, ',', '.')),
+                    stars_formatted: @js(number_format($character->stars ?? 0, 0, ',', '.')),
                     vip_points: {{ (int)($character->vip_points ?? 0) }},
-                    vipPointsFormatted: '{{ number_format($character->vip_points ?? 0, 0, ',', '.') }}',
-                    vip_points_formatted: '{{ number_format($character->vip_points ?? 0, 0, ',', '.') }}',
-                    respect: '{{ $character->formatted_respect }}',
-                    formatted_respect: '{{ $character->formatted_respect }}',
+                    vipPointsFormatted: @js(number_format($character->vip_points ?? 0, 0, ',', '.')),
+                    vip_points_formatted: @js(number_format($character->vip_points ?? 0, 0, ',', '.')),
+                    respect: @js((string) $character->formatted_respect),
+                    formatted_respect: @js((string) $character->formatted_respect),
                     onlineCount: {{ (int)$onlineCount }}
                 },
                 init() {
@@ -856,7 +856,7 @@
                     root.querySelectorAll('button[data-fav-url]').forEach(btn => {
                         const active = this.isFav(btn.dataset.favUrl);
                         btn.innerHTML = active
-                            ? '<i class="fa-solid fa-star text-amber-400 drop-shadow-2xs"></i>'
+                            ? '<i class="fa-solid fa-star text-amber-400 drop-shadow-xs"></i>'
                             : '<i class="fa-regular fa-star text-slate-300 dark:text-slate-600 opacity-60 group-hover/navitem:opacity-100 hover:text-amber-400"></i>';
                     });
                 }
@@ -889,7 +889,7 @@
     @if($character)
     <!-- SIDEBAR NAVIGATION (Desktop & Tablet) - Clean Modern White Sidebar -->
     <aside class="hidden lg:flex lg:flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 shrink-0 min-h-screen text-slate-700 dark:text-slate-200 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
-           x-data="window.tbsSidebarController('{{ $activeCategory ?? '' }}')">
+           x-data="window.tbsSidebarController(@js($activeCategory ?? ''))">
         <!-- Logo Header (TBS Kliniek Brand Emblem & Typography) -->
         <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
             <a href="{{ route('dashboard') }}" data-no-fav="1" class="w-11 h-11 shrink-0 drop-shadow-md hover:scale-105 transition-transform flex items-center justify-center" title="TBS Kliniek Dashboard">
@@ -3611,7 +3611,7 @@
                   const articleSeenKey = 'tbs_article_seen_14';
                   if (!localStorage.getItem(articleSeenKey)) {
                       setTimeout(() => {
-                          addToast('Nieuw artikel Grote Update Eerlijke Spelbalans en Vaardigheden!', 'info', 12000, '{{ route("news.show", "grote-update-eerlijke-spelbalans") }}');
+                          addToast('Nieuw artikel Grote Update Eerlijke Spelbalans en Vaardigheden!', 'info', 12000, @js(route('news.index')));
                           localStorage.setItem(articleSeenKey, '1');
                       }, 900);
                   }

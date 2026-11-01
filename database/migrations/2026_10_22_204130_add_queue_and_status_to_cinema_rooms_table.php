@@ -11,11 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cinema_rooms', function (Blueprint $table): void {
-            $table->boolean('is_closed')->default(false)->after('is_private');
-            $table->timestamp('closed_at')->nullable()->after('is_closed');
-            $table->json('video_queue')->nullable()->after('youtube_video_id');
-        });
+        if (Schema::hasTable('cinema_rooms')) {
+            Schema::table('cinema_rooms', function (Blueprint $table): void {
+                if (! Schema::hasColumn('cinema_rooms', 'is_closed')) {
+                    $table->boolean('is_closed')->default(false)->after('is_private');
+                }
+                if (! Schema::hasColumn('cinema_rooms', 'closed_at')) {
+                    $table->timestamp('closed_at')->nullable()->after('is_closed');
+                }
+                if (! Schema::hasColumn('cinema_rooms', 'video_queue')) {
+                    $table->json('video_queue')->nullable()->after('youtube_video_id');
+                }
+            });
+        }
     }
 
     /**
@@ -23,8 +31,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cinema_rooms', function (Blueprint $table): void {
-            $table->dropColumn(['is_closed', 'closed_at', 'video_queue']);
-        });
+        if (Schema::hasTable('cinema_rooms')) {
+            Schema::table('cinema_rooms', function (Blueprint $table): void {
+                $cols = array_filter(['is_closed', 'closed_at', 'video_queue'], fn ($col) => Schema::hasColumn('cinema_rooms', $col));
+                if (! empty($cols)) {
+                    $table->dropColumn($cols);
+                }
+            });
+        }
     }
 };

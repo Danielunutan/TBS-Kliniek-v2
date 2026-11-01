@@ -13,6 +13,7 @@ use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class RadioController extends Controller
@@ -99,27 +100,30 @@ class RadioController extends Controller
         }
 
         $cost = 150;
-        if (! $this->economy->deductCash($character, $cost)) {
-            return back()->with('error', 'Een shoutout uitzenden kost €'.number_format($cost, 0, ',', '.').' kleingeld voor de zendkosten!');
-        }
 
-        $this->cooldownService->setCooldown($character, 'radio_shoutout');
+        return DB::transaction(function () use ($character, $cost, $validated, $cleanedMessage): RedirectResponse {
+            if (! $this->economy->deductCash($character, $cost)) {
+                return back()->with('error', 'Een shoutout uitzenden kost €'.number_format($cost, 0, ',', '.').' kleingeld voor de zendkosten!');
+            }
 
-        $gangName = $character->gang ? $character->gang->name : null;
+            $this->cooldownService->setCooldown($character, 'radio_shoutout');
 
-        RadioShoutout::create([
-            'character_id' => $character->id,
-            'character_name' => $character->name,
-            'gang_name' => $gangName,
-            'is_anonymous' => (bool) ($validated['is_anonymous'] ?? false),
-            'track_title' => $validated['track_title'],
-            'message' => $cleanedMessage,
-            'likes_count' => 0,
-        ]);
+            $gangName = $character->gang ? $character->gang->name : null;
 
-        $this->level->addXp($character, 15);
+            RadioShoutout::create([
+                'character_id' => $character->id,
+                'character_name' => $character->name,
+                'gang_name' => $gangName,
+                'is_anonymous' => (bool) ($validated['is_anonymous'] ?? false),
+                'track_title' => $validated['track_title'],
+                'message' => $cleanedMessage,
+                'likes_count' => 0,
+            ]);
 
-        return back()->with('success', "📻 LIVE ON AIR! Jouw plaatje '{$validated['track_title']}' en shoutout knallen nu over de afdelingsspeakers (+15 XP)!");
+            $this->level->addXp($character, 15);
+
+            return back()->with('success', "📻 LIVE ON AIR! Jouw plaatje '{$validated['track_title']}' en shoutout knallen nu over de afdelingsspeakers (+15 XP)!");
+        });
     }
 
     public function like(RadioShoutout $shoutout): RedirectResponse

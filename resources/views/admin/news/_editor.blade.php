@@ -169,7 +169,7 @@ function tbsNewsEditor(initialContent) {
             t = t.replace(/\[img\]((?:https?:\/\/|\/)[^\s<"']+)\[\/img\]/gi, '<div class="my-3"><img src="$1" class="rounded-xl max-w-full max-h-72 object-contain border border-slate-200 dark:border-slate-700 shadow-xs" alt="Afbeelding" /></div>');
             
             // Links
-            t = t.replace(/\[(?:link|url)=((?:https?:\/\/|\/)[^\s<"']+)\](.*?)\[\/(?:link|url)\]/gi, '<a href="$1" target="_blank" class="text-purple-600 dark:text-purple-400 underline font-extrabold hover:text-purple-800 dark:hover:text-purple-300">$2 ↗</a>');
+            t = t.replace(/\[(?:link|url)=((?:https?:\/\/|\/)[^\s<"']+)\](.*?)\[\/(?:link|url)\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 underline font-extrabold hover:text-purple-800 dark:hover:text-purple-300">$2 ↗</a>');
             
             // Colors & alignment
             const colorMap = {

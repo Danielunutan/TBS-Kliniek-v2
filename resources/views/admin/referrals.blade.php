@@ -131,7 +131,7 @@
                                         <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[9px] font-black uppercase">VIP</span>
                                     @endif
                                 </div>
-                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block">{{ $ref->referrer->user->email ?? '-' }}</span>
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block">{{ $ref->referrer->user?->email ?? '-' }}</span>
                             @else
                                 <span class="text-slate-400 dark:text-slate-500 italic">Verwijderd</span>
                             @endif
@@ -139,7 +139,7 @@
                         <td class="px-5 py-3.5">
                             @if($ref->referred)
                                 <span class="font-bold text-slate-900 dark:text-white">{{ $ref->referred->name }}</span>
-                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block">{{ $ref->referred->user->email ?? '-' }}</span>
+                                <span class="text-[10px] text-slate-400 dark:text-slate-500 block">{{ $ref->referred->user?->email ?? '-' }}</span>
                             @else
                                 <span class="text-slate-400 dark:text-slate-500 italic">Verwijderd</span>
                             @endif

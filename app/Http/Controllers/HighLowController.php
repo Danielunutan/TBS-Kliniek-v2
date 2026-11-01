@@ -10,6 +10,7 @@ use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class HighLowController extends Controller
@@ -46,13 +47,6 @@ class HighLowController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        // Anti-spam cooldown check (6 seconds)
-        if ($this->cooldownService->isOnCooldown($character, 'casino_highlow')) {
-            $remaining = $this->cooldownService->getRemainingSeconds($character, 'casino_highlow');
-
-            return back()->with('error', "⏳ Rustig aan! De croupier schudt de kaarten. Wacht nog {$remaining}s.");
-        }
-
         $validated = $request->validate([
             'choice' => ['required', 'in:hoger,lager'],
             'bet' => ['required', 'integer', 'min:50', 'max:50000'],
@@ -60,51 +54,63 @@ class HighLowController extends Controller
 
         $bet = (int) $validated['bet'];
 
-        // Atomic cash deduction before card reveal
-        if (! $this->economy->deductCash($character, $bet)) {
-            return back()->with('error', 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.');
-        }
+        return DB::transaction(function () use ($character, $validated, $bet): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $currentCard = (int) session('highlow_card', rand(2, 12));
-        if ($currentCard <= 1 || $currentCard >= 13) {
-            $currentCard = rand(2, 12);
-        }
+            // Anti-spam cooldown check (6 seconds)
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'casino_highlow')) {
+                $remaining = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'casino_highlow');
 
-        $nextCard = rand(1, 13);
+                return back()->with('error', "⏳ Rustig aan! De croupier schudt de kaarten. Wacht nog {$remaining}s.");
+            }
 
-        // Store next base card: if it's 1 or 13, reshuffle to 2..12 for the next round
-        $nextStartingCard = ($nextCard <= 1 || $nextCard >= 13) ? rand(2, 12) : $nextCard;
-        session(['highlow_card' => $nextStartingCard]);
+            // Atomic cash deduction before card reveal
+            if (! $this->economy->deductCash($lockedCharacter, $bet)) {
+                return back()->with('error', 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.');
+            }
 
-        // Set cooldown immediately for this turn
-        $this->cooldownService->setCooldown($character, 'casino_highlow', 6);
+            // Set cooldown immediately for this turn
+            $this->cooldownService->setCooldown($lockedCharacter, 'casino_highlow', 6);
 
-        $cardLabels = [1 => 'A', 2 => '2', 3 => '3', 4 => '4', 5 => '5', 6 => '6', 7 => '7',
-            8 => '8', 9 => '9', 10 => '10', 11 => 'J', 12 => 'Q', 13 => 'K'];
+            $currentCard = (int) session('highlow_card', rand(2, 12));
+            if ($currentCard <= 1 || $currentCard >= 13) {
+                $currentCard = rand(2, 12);
+            }
 
-        $tie = $nextCard === $currentCard;
-        $won = ($validated['choice'] === 'hoger' && $nextCard > $currentCard)
-            || ($validated['choice'] === 'lager' && $nextCard < $currentCard);
+            $nextCard = rand(1, 13);
 
-        // In standard casino rules: Ties (gelijke kaart) are a house win
-        if ($tie) {
-            return back()->with('error', "Gelijkspel! Huidig: {$cardLabels[$currentCard]} tegen Nieuw: {$cardLabels[$nextCard]}. Bij gelijke kaart wint het huis! -€".number_format($bet, 0, ',', '.').'.');
-        }
+            // Store next base card: if it's 1 or 13, reshuffle to 2..12 for the next round
+            $nextStartingCard = ($nextCard <= 1 || $nextCard >= 13) ? rand(2, 12) : $nextCard;
+            session(['highlow_card' => $nextStartingCard]);
 
-        if ($won) {
-            // Dynamic odds calculation based on card difficulty:
-            $favorable = $validated['choice'] === 'hoger' ? (13 - $currentCard) : ($currentCard - 1);
-            $multiplier = round(max(1.15, min(4.5, (12 / max(1, $favorable)) * 0.95)), 2);
-            $totalPayout = (int) round($bet * $multiplier);
-            $profit = max(0, $totalPayout - $bet);
+            $cardLabels = [1 => 'A', 2 => '2', 3 => '3', 4 => '4', 5 => '5', 6 => '6', 7 => '7',
+                8 => '8', 9 => '9', 10 => '10', 11 => 'J', 12 => 'Q', 13 => 'K'];
 
-            $this->economy->addCash($character, $totalPayout);
-            $this->level->addXp($character, 15);
-            EventCashHuntService::record($character, $profit, 'highlow');
+            $tie = $nextCard === $currentCard;
+            $won = ($validated['choice'] === 'hoger' && $nextCard > $currentCard)
+                || ($validated['choice'] === 'lager' && $nextCard < $currentCard);
 
-            return back()->with('success', "Gewonnen! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]} ({$multiplier}x)! +€".number_format($profit, 0, ',', '.').'! +15 XP.');
-        }
+            // In standard casino rules: Ties (gelijke kaart) are a house win
+            if ($tie) {
+                return back()->with('error', "Gelijkspel! Huidig: {$cardLabels[$currentCard]} tegen Nieuw: {$cardLabels[$nextCard]}. Bij gelijke kaart wint het huis! -€".number_format($bet, 0, ',', '.').'.');
+            }
 
-        return back()->with('error', "Verloren! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]}. -€".number_format($bet, 0, ',', '.').'.');
+            if ($won) {
+                // Dynamic odds calculation based on card difficulty:
+                $favorable = $validated['choice'] === 'hoger' ? (13 - $currentCard) : ($currentCard - 1);
+                $multiplier = round(max(1.15, min(4.5, (12 / max(1, $favorable)) * 0.95)), 2);
+                $totalPayout = (int) round($bet * $multiplier);
+                $profit = max(0, $totalPayout - $bet);
+
+                $this->economy->addCash($lockedCharacter, $totalPayout);
+                $this->level->addXp($lockedCharacter, 15);
+                EventCashHuntService::record($lockedCharacter, $profit, 'highlow');
+
+                return back()->with('success', "Gewonnen! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]} ({$multiplier}x)! +€".number_format($profit, 0, ',', '.').'! +15 XP.');
+            }
+
+            return back()->with('error', "Verloren! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]}. -€".number_format($bet, 0, ',', '.').'.');
+        });
     }
 }

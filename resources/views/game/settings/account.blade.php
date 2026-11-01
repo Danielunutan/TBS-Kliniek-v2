@@ -53,7 +53,7 @@
                 <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/50 rounded-xl p-3 flex items-start gap-2.5">
                     <i class="fa-solid fa-lock text-amber-600 dark:text-amber-400 mt-0.5 text-xs"></i>
                     <div class="text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed">
-                        <strong>@Gebruikersnaam vergrendeld:</strong> gewijzigd op {{ $character->username_changed_at->format('d-m-Y H:i') }}. Volgende systeemnaam-wijziging over <span class="font-mono font-bold">{{ $daysUntilChange }} dagen</span>.
+                        <strong>@Gebruikersnaam vergrendeld:</strong> gewijzigd op {{ $character->username_changed_at?->format('d-m-Y H:i') ?? 'eerder' }}. Volgende systeemnaam-wijziging over <span class="font-mono font-bold">{{ $daysUntilChange }} dagen</span>.
                         <span class="block text-slate-500 dark:text-slate-400 mt-0.5">Je kunt je <strong>Weergavenaam</strong> en <strong>Profielkleur</strong> hieronder wel altijd vrij aanpassen!</span>
                     </div>
                 </div>
@@ -78,13 +78,13 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold text-xs">@</span>
                         <input type="text" name="username" value="{{ old('username', $character->username) }}" maxlength="20"
                                @if(! $canChangeUsername) readonly @endif
-                               class="w-full rounded-xl pl-7 pr-3.5 py-2 text-xs font-bold transition focus:outline-none {{ ! $canChangeUsername ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-600' }}">
+                               class="w-full rounded-xl pl-7 pr-3.5 py-2 text-base sm:text-xs font-bold transition focus:outline-none {{ ! $canChangeUsername ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700' : 'bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-purple-600' }}">
                     </div>
                     <span class="text-[10px] text-slate-400 mt-1 block">
                         @if($canChangeUsername)
                             Min 3, max 20 tekens. Alleen letters (a-z), cijfers (0-9), underscores (_) en streepjes (-). <strong>Geen spaties of rare tekens</strong>.
                         @else
-                            Deze systeemnaam staat vast tot {{ $character->username_changed_at->copy()->addMonths(6)->format('d-m-Y') }}.
+                            Deze systeemnaam staat vast tot {{ $character->username_changed_at ? $character->username_changed_at->copy()->addMonths(6)->format('d-m-Y') : 'onbepaalde tijd' }}.
                         @endif
                     </span>
                 </div>
@@ -95,7 +95,7 @@
                         Weergavenaam / Roepnaam <span class="text-emerald-600 dark:text-emerald-400 font-semibold">(Altijd aanpasbaar)</span>
                     </label>
                     <input type="text" name="display_name" value="{{ old('display_name', $character->display_name ?: $character->name) }}" required maxlength="30"
-                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-base sm:text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     <span class="text-[10px] text-slate-400 mt-1 block">
                         Hoe je naam getoond wordt in het spel (mag spaties, leestekens en emoji's bevatten).
                     </span>
@@ -106,7 +106,7 @@
                     <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
                         Profiel Accentkleur <span class="text-emerald-600 dark:text-emerald-400 font-semibold">(Altijd aanpasbaar)</span>
                     </label>
-                    <select name="profile_color" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    <select name="profile_color" class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-base sm:text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <option value="purple" {{ $character->profile_color === 'purple' ? 'selected' : '' }}>TBS Paars (Standaard)</option>
                         <option value="rose" {{ $character->profile_color === 'rose' ? 'selected' : '' }}>Bloedrood</option>
                         <option value="emerald" {{ $character->profile_color === 'emerald' ? 'selected' : '' }}>Smaragdgroen</option>
@@ -165,20 +165,20 @@
                 <div>
                     <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Huidig Wachtwoord</label>
                     <input type="password" name="current_password" required
-                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-base sm:text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div>
                     <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Nieuw Wachtwoord</label>
                     <input type="password" name="password" required minlength="8"
-                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-base sm:text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     <span class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">Minimaal 8 tekens.</span>
                 </div>
 
                 <div>
                     <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Bevestig Nieuw Wachtwoord</label>
                     <input type="password" name="password_confirmation" required minlength="8"
-                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-base sm:text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
@@ -262,9 +262,9 @@
             <form action="{{ route('settings.sessions.logout-others') }}" method="POST" class="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
                 @csrf
                 <label class="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">Vul je wachtwoord in om andere apparaten te verbreken:</label>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                     <input type="password" name="password" placeholder="Jouw wachtwoord" required
-                           class="flex-1 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                           class="flex-1 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3 py-2 text-base sm:text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     <button type="submit" 
                             class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer whitespace-nowrap">
                         <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Overal Uitloggen

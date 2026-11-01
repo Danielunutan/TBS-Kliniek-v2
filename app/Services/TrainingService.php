@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Character;
 use App\Models\TrainingLog;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class TrainingService
@@ -63,125 +64,134 @@ class TrainingService
             throw new InvalidArgumentException("Ongeldige eigenschap: {$stat}");
         }
 
-        if ($character->isImprisoned()) {
-            return [
-                'success' => false,
-                'message' => 'Je zit in de isoleercel en kunt nu niet trainen!',
-                'stat_gain' => 0,
-                'new_value' => (int) $character->{$stat},
-            ];
-        }
+        return DB::transaction(function () use ($character, $stat, $mode): array {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return [
+                    'success' => false,
+                    'message' => 'Karakter niet gevonden.',
+                    'stat_gain' => 0,
+                    'new_value' => (int) $character->{$stat},
+                ];
+            }
 
-        if ($character->isComatose()) {
-            return [
-                'success' => false,
-                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
-                'stat_gain' => 0,
-                'new_value' => (int) $character->{$stat},
-            ];
-        }
+            if ($locked->isImprisoned()) {
+                return [
+                    'success' => false,
+                    'message' => 'Je zit in de isoleercel en kunt nu niet trainen!',
+                    'stat_gain' => 0,
+                    'new_value' => (int) $locked->{$stat},
+                ];
+            }
 
-        $character->syncStatsWithLevelCap();
+            if ($locked->isComatose()) {
+                return [
+                    'success' => false,
+                    'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+                    'stat_gain' => 0,
+                    'new_value' => (int) $locked->{$stat},
+                ];
+            }
 
-        $currentValue = (int) $character->{$stat};
-        $maxStat = $character->getMaxStatForLevel();
-        $statName = self::STATS[$stat]['name'];
-        $trainer = self::STATS[$stat]['trainer'];
+            $locked->syncStatsWithLevelCap();
 
-        if ($mode === 'stat' && $currentValue >= $maxStat) {
-            return [
-                'success' => false,
-                'message' => "Je hebt het maximum voor {$statName} bereikt voor jouw huidige level ({$maxStat})! Kies 'Level Focus (+50 XP)' of stijg eerst in level om verder te trainen.",
-                'stat_gain' => 0,
-                'new_value' => $currentValue,
-            ];
-        }
+            $currentValue = (int) $locked->{$stat};
+            $maxStat = $locked->getMaxStatForLevel();
+            $statName = self::STATS[$stat]['name'];
+            $trainer = self::STATS[$stat]['trainer'];
 
-        $energyCost = 10;
-        $cashCost = (int) max(20, round(15 + ($currentValue * 3.5)));
+            if ($mode === 'stat' && $currentValue >= $maxStat) {
+                return [
+                    'success' => false,
+                    'message' => "Je hebt het maximum voor {$statName} bereikt voor jouw huidige level ({$maxStat})! Kies 'Level Focus (+50 XP)' of stijg eerst in level om verder te trainen.",
+                    'stat_gain' => 0,
+                    'new_value' => $currentValue,
+                ];
+            }
 
-        if ($character->cash < $cashCost) {
-            return [
-                'success' => false,
-                'message' => "Je hebt €{$cashCost} nodig om {$statName} te trainen, maar je hebt slechts €{$character->cash} contant.",
-                'stat_gain' => 0,
-                'new_value' => $currentValue,
-            ];
-        }
+            $energyCost = 10;
+            $cashCost = (int) max(20, round(15 + ($currentValue * 3.5)));
 
-        if (! $this->economyService->deductCash($character, $cashCost)) {
-            return [
-                'success' => false,
-                'message' => "Je hebt €{$cashCost} nodig om {$statName} te trainen, maar je hebt onvoldoende contant geld.",
-                'stat_gain' => 0,
-                'new_value' => $currentValue,
-            ];
-        }
+            if ($locked->cash < $cashCost) {
+                return [
+                    'success' => false,
+                    'message' => "Je hebt €{$cashCost} nodig om {$statName} te trainen, maar je hebt slechts €{$locked->cash} contant.",
+                    'stat_gain' => 0,
+                    'new_value' => $currentValue,
+                ];
+            }
 
-        if (! $this->energyService->consume($character, $energyCost)) {
-            $this->economyService->addCash($character, $cashCost);
+            if (! $this->energyService->consume($locked, $energyCost)) {
+                return [
+                    'success' => false,
+                    'message' => "Niet genoeg energie! Trainen kost {$energyCost} energie.",
+                    'stat_gain' => 0,
+                    'new_value' => $currentValue,
+                ];
+            }
 
-            return [
-                'success' => false,
-                'message' => "Niet genoeg energie! Trainen kost {$energyCost} energie.",
-                'stat_gain' => 0,
-                'new_value' => $currentValue,
-            ];
-        }
+            $locked->cash -= $cashCost;
+            $locked->save();
 
-        if ($mode === 'level') {
-            $gain = 0;
-            $xpReward = 50;
-            $levelResult = $this->levelService->addXp($character, $xpReward);
+            if ($mode === 'level') {
+                $gain = 0;
+                $xpReward = 50;
+                $levelResult = $this->levelService->addXp($locked, $xpReward);
+
+                TrainingLog::create([
+                    'character_id' => $locked->id,
+                    'stat' => $stat,
+                    'stat_gain' => 0,
+                    'energy_cost' => $energyCost,
+                    'cash_cost' => $cashCost,
+                    'trainer' => $trainer,
+                ]);
+
+                $character->refresh();
+
+                $levelUpSuffix = $levelResult['leveled_up']
+                    ? " 🎉 Je bent gestegen naar Level {$locked->level} (nieuw plafond: {$locked->getMaxStatForLevel()})!"
+                    : '';
+
+                return [
+                    'success' => true,
+                    'message' => "Top workout (Level Focus)! Samen met {$trainer} getraind voor +{$xpReward} XP!{$levelUpSuffix}",
+                    'stat_gain' => 0,
+                    'xp_gain' => $xpReward,
+                    'leveled_up' => $levelResult['leveled_up'],
+                    'new_value' => (int) $locked->{$stat},
+                ];
+            }
+
+            // Stat gain strictly clamped to the level maximum
+            $gain = min(1, max(0, $maxStat - $currentValue));
+            $locked->{$stat} = min($maxStat, $currentValue + $gain);
+            $locked->save();
+
+            // Training also rewards a little XP
+            $xpReward = 12;
+            $levelResult = $this->levelService->addXp($locked, $xpReward);
 
             TrainingLog::create([
-                'character_id' => $character->id,
+                'character_id' => $locked->id,
                 'stat' => $stat,
-                'stat_gain' => 0,
+                'stat_gain' => $gain,
                 'energy_cost' => $energyCost,
                 'cash_cost' => $cashCost,
                 'trainer' => $trainer,
             ]);
 
-            $levelUpSuffix = $levelResult['leveled_up']
-                ? " 🎉 Je bent gestegen naar Level {$character->level} (nieuw plafond: {$character->getMaxStatForLevel()})!"
-                : '';
+            $character->refresh();
 
             return [
                 'success' => true,
-                'message' => "Top workout (Level Focus)! Samen met {$trainer} getraind voor +{$xpReward} XP!{$levelUpSuffix}",
-                'stat_gain' => 0,
+                'message' => "Top workout! Samen met {$trainer} getraind. Je {$statName} is gestegen naar {$locked->{$stat}}/{$locked->getMaxStatForLevel()}! (+{$xpReward} XP)",
+                'stat_gain' => $gain,
                 'xp_gain' => $xpReward,
                 'leveled_up' => $levelResult['leveled_up'],
-                'new_value' => (int) $character->{$stat},
+                'new_value' => (int) $locked->{$stat},
             ];
-        }
-
-        // Stat gain strictly clamped to the level maximum
-        $gain = min(1, max(0, $maxStat - $currentValue));
-        $character->{$stat} = min($maxStat, $currentValue + $gain);
-        $character->save();
-
-        // Training also rewards a little XP
-        $xpReward = 12;
-        $levelResult = $this->levelService->addXp($character, $xpReward);
-
-        TrainingLog::create([
-            'character_id' => $character->id,
-            'stat' => $stat,
-            'stat_gain' => $gain,
-            'energy_cost' => $energyCost,
-            'cash_cost' => $cashCost,
-            'trainer' => $trainer,
-        ]);
-
-        return [
-            'success' => true,
-            'message' => "Top workout! Samen met {$trainer} getraind. Je {$statName} is gestegen naar {$character->{$stat}}/{$character->getMaxStatForLevel()}! (+{$xpReward} XP)",
-            'stat_gain' => $gain,
-            'xp_gain' => $xpReward,
-            'leveled_up' => $levelResult['leveled_up'],
-            'new_value' => (int) $character->{$stat},
-        ];
+        });
     }
 }

@@ -118,6 +118,10 @@
                             <span class="text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-3 py-1.5 rounded-xl border border-rose-200/80 dark:border-rose-800/70">
                                 Dit ben jij!
                             </span>
+                        @elseif(Auth::user()?->character?->isImprisoned() || Auth::user()?->character?->isComatose())
+                            <button type="button" disabled title="Je kunt niet vechten vanuit de isoleercel of in coma" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-400 text-xs font-black uppercase tracking-wider cursor-not-allowed flex items-center gap-1.5 opacity-60">
+                                <i class="fa-solid fa-lock"></i> Vecht & Incasseer
+                            </button>
                         @else
                             <a href="{{ route('fight.arena', $bounty->target) }}" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-crosshairs"></i> Vecht & Incasseer
@@ -189,7 +193,7 @@
                                required
                                autocomplete="off"
                                placeholder="Typ de naam van de patiënt..."
-                               class="w-full text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-10 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
+                               class="w-full text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-10 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
                         <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
                             <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
                         </div>
@@ -239,7 +243,7 @@
                                step="500"
                                required
                                value="5000"
-                               class="w-full text-sm font-black pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                               class="w-full text-base sm:text-sm font-black pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     </div>
                     <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                         @foreach([1000, 5000, 10000, 25000, 50000] as $preset)
@@ -261,14 +265,23 @@
                            name="reason" 
                            maxlength="150" 
                            placeholder="bijv: Heeft me bestolen op de luchtplaats! Pak hem!"
-                           class="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                           class="w-full text-base sm:text-sm font-medium bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <!-- Submit Button -->
                 <div class="pt-3">
-                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-sm uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-bullseye"></i> Plaats Kopgeld op het Prikbord
-                    </button>
+                    @if(Auth::user()?->character?->isImprisoned() || Auth::user()?->character?->isComatose())
+                        <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-xl text-xs text-amber-800 dark:text-amber-200 font-bold mb-3 text-center">
+                            Je kunt momenteel geen kopgeld uitzetten omdat je in de isoleercel of in coma verkeert.
+                        </div>
+                        <button type="button" disabled class="w-full py-3.5 px-6 rounded-xl bg-slate-300 dark:bg-slate-700 text-slate-500 font-black text-sm uppercase tracking-wider cursor-not-allowed opacity-60 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-lock"></i> Plaats Kopgeld op het Prikbord
+                        </button>
+                    @else
+                        <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-sm uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-bullseye"></i> Plaats Kopgeld op het Prikbord
+                        </button>
+                    @endif
                 </div>
             </form>
         </div>

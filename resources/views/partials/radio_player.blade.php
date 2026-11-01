@@ -81,6 +81,7 @@
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-2 scale-95"
          @click.outside="isExpanded = false"
+         @keydown.escape.window="isExpanded = false"
          class="absolute {{ $isMobile ? '-right-14 sm:right-0' : 'right-0' }} top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-24px)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 sm:p-4 z-50 space-y-3.5">
         
         <!-- Header -->
@@ -180,7 +181,7 @@
                 <input type="text" 
                        x-model="autoDjQuery" 
                        placeholder="Zoek artiest of nummer..." 
-                       class="w-full pl-8 pr-7 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                       class="w-full pl-8 pr-7 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-base sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 <template x-if="autoDjQuery.length > 0">
                     <button type="button" @click="autoDjQuery = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
                         <i class="fa-solid fa-circle-xmark"></i>

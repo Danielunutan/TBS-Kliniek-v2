@@ -16,7 +16,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <a href="{{ route('news.show', $article->slug) }}" target="_blank" class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs font-bold transition flex items-center gap-1.5 border border-purple-200/80 dark:border-purple-800/70 cursor-pointer active:scale-95">
+            <a href="{{ route('news.show', $article->slug) }}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs font-bold transition flex items-center gap-1.5 border border-purple-200/80 dark:border-purple-800/70 cursor-pointer active:scale-95">
                 <i class="fa-solid fa-eye"></i> Bekijken
             </a>
             <a href="{{ route('admin.news.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition border border-slate-200/80 dark:border-slate-700 flex items-center gap-1.5 cursor-pointer active:scale-95">

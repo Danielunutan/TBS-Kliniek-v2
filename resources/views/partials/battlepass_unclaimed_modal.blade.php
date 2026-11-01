@@ -1,7 +1,7 @@
 @auth
 @php
     $bpPopupChar = Auth::user()->character;
-    $bpUnclaimedCount = ($bpPopupChar && !request()->routeIs('battlepass.*'))
+    $bpUnclaimedCount = ($bpPopupChar && !request()->routeIs('battlepass.*') && !$bpPopupChar->isComatose() && !$bpPopupChar->isImprisoned())
         ? $bpPopupChar->getUnclaimedBattlePassCount()
         : 0;
 @endphp
@@ -10,7 +10,7 @@
 <div x-data="{
         open: false,
         unclaimed: {{ $bpUnclaimedCount }},
-        storageKey: 'tbs_bp_popup_dismissed_{{ $bpPopupChar->id }}',
+        storageKey: @js('tbs_bp_popup_dismissed_' . $bpPopupChar->id),
         init() {
             try {
                 const raw = sessionStorage.getItem(this.storageKey);

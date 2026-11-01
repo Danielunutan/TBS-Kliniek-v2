@@ -3,9 +3,28 @@
 @section('title', 'Depot & Centrale Opslag - TBS Kliniek')
 
 @section('content')
+@php
+    $unlockedBorders = $unlockedBorders ?? [];
+    $borderCatalog = $borderCatalog ?? [];
+    $equippedBorder = $equippedBorder ?? null;
+@endphp
 <div class="space-y-6 pb-12" x-data="{ tab: @js($activeTab ?? 'garage'), sellModalItem: null, sellQty: 1 }">
 
     @include('game.control_points.banner', ['slug' => 'depot'])
+
+    @if($character->isImprisoned())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-lock text-base text-rose-600 shrink-0"></i>
+        <span>Je zit in de isoleercel. Depot functies zoals wagenbeheer en consumpties zijn momenteel vergrendeld.</span>
+    </div>
+    @endif
+
+    @if($character->isComatose())
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/70 flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm">
+        <i class="fa-solid fa-bed-pulse text-base text-rose-600 shrink-0"></i>
+        <span>Je ligt in het ziekenhuis/coma. Depot functies zoals wagenbeheer en consumpties zijn momenteel vergrendeld.</span>
+    </div>
+    @endif
 
     <!-- HERO HEADER -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
@@ -224,7 +243,7 @@
                     @if(! $charVehicle->is_active)
                     <form action="{{ route('garage.set-active', $charVehicle->id) }}" method="POST" class="flex-1">
                         @csrf
-                        <button type="submit" class="w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                        <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-check"></i>
                             <span>Als Vluchtwagen</span>
                         </button>
@@ -234,7 +253,7 @@
                     @if($charVehicle->current_condition < 100)
                     <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST" class="{{ $charVehicle->is_active ? 'flex-1' : 'shrink-0' }}">
                         @csrf
-                        <button type="submit" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
+                        <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-wrench text-amber-500"></i>
                             <span>Repareer (€{{ number_format($charVehicle->repair_cost, 0, ',', '.') }})</span>
                         </button>
@@ -325,7 +344,7 @@
                             </div>
                             <h3 class="font-black text-sm text-slate-900 dark:text-white">Maskers Verkopen aan Heler</h3>
                         </div>
-                        <button type="button" @click="showSellModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">
+                        <button type="button" @click="showSellModal = false" aria-label="Sluiten" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition">
                             <i class="fa-solid fa-xmark text-sm"></i>
                         </button>
                     </div>
@@ -480,7 +499,7 @@
                     <form action="{{ route('shop.consume', $itemRow->id) }}" method="POST" class="flex-1">
                         @csrf
                         <input type="hidden" name="quantity" value="1">
-                        <button type="submit" class="w-full py-2 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-[11px] transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1">
+                        <button type="submit" @disabled($character->isComatose()) class="w-full py-2 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-[11px] transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1">
                             <i class="fa-solid fa-bolt"></i>
                             <span>Gebruiken</span>
                         </button>
@@ -885,7 +904,7 @@
                             +€{{ number_format($code->reward_cash, 0, ',', '.') }} bankgeld &bull; +{{ $code->reward_stars }} ⭐
                         </div>
                     </div>
-                    <a href="/kluis-kraak?code={{ urlencode($code->code) }}" 
+                    <a href="{{ route('vault.index', ['code' => $code->code]) }}" 
                        class="px-4 py-2 rounded-xl btn-star-gold text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer">
                         <i class="fa-solid fa-unlock-keyhole"></i>
                         <span>Inwisselen</span>
@@ -910,7 +929,7 @@
                     <i class="fa-solid fa-coins text-amber-500"></i>
                     <h4 class="text-sm font-black text-slate-900 dark:text-white">Item Verkopen</h4>
                 </div>
-                <button type="button" @click="sellModalItem = null" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm cursor-pointer">
+                <button type="button" @click="sellModalItem = null" aria-label="Sluiten" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm cursor-pointer transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -920,7 +939,7 @@
             </p>
 
             <template x-if="sellModalItem">
-                <form :action="'{{ url('/depot/verkopen') }}/' + sellModalItem.id" method="POST" class="space-y-4">
+                <form :action="'{{ route('depot.sell-item', ':id') }}'.replace(':id', sellModalItem.id)" method="POST" class="space-y-4">
                     @csrf
                     <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                         <div class="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">

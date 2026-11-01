@@ -16,7 +16,7 @@
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
-            document.execCommand('copy');
+            try { document.execCommand('copy'); } catch (e) {}
             document.body.removeChild(textArea);
         }
         this.copiedType = type;
@@ -60,7 +60,7 @@ class="bg-white dark:bg-slate-900 border border-amber-400/80 dark:border-amber-5
         </button>
 
         <button type="button" 
-                @click="copyText('TBS-{{ $character->id }}', 'code')"
+                @click="copyText(@js('TBS-' . $character->id), 'code')"
                 class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-xs">
             <i class="fa-solid fa-key text-amber-500 text-xs"></i>
             <span x-show="copiedType === 'code'" class="text-emerald-600 dark:text-emerald-400 font-black">✓ Gekopieerd!</span>
@@ -68,7 +68,7 @@ class="bg-white dark:bg-slate-900 border border-amber-400/80 dark:border-amber-5
         </button>
 
         <button type="button" 
-                @click="setShopTab('donaties')" 
+                @click="typeof setShopTab === 'function' ? setShopTab('donaties') : (window.location.href = @js(route('shop.index', ['tab' => 'donaties'])))" 
                 class="btn-star-gold px-3.5 py-2 rounded-xl text-slate-900 dark:text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0">
             <i class="fa-solid fa-hand-holding-heart text-xs"></i>
             <span>Bekijk Vrijwillige Donaties</span>

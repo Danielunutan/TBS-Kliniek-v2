@@ -417,8 +417,11 @@ class TreatmentController extends Controller
         // ROOD STATUS: AGRESSIEF / SANCTIE (KALMERING)
         $character->leave_until = null;
         $character->sedated_until = now()->addHour();
-        // Reduce energy directly
-        $character->energy = max(0, $character->energy - 30);
+        // Reduce energy via EnergyService
+        $energyToDeduct = min((int) ($character->energy ?? 0), 30);
+        if ($energyToDeduct > 0) {
+            $this->energy->consume($character, $energyToDeduct);
+        }
 
         $character->treatment_history = [
             'outcome' => 'negative',

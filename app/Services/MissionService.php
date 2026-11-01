@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\CharacterMission;
 use App\Models\Mission;
 use App\Support\MissionScenarioCatalog;
+use Illuminate\Support\Facades\DB;
 
 class MissionService
 {
@@ -232,13 +233,43 @@ class MissionService
         $roll = random_int(1, 100);
         $isSuccess = $roll <= $totalChance;
 
-        $progression = CharacterMission::firstOrNew([
-            'character_id' => $character->id,
-            'mission_id' => $mission->id,
-        ]);
-        $progression->last_attempted_at = now();
-
         if ($isSuccess) {
+            $alreadyCompleted = false;
+
+            DB::transaction(function () use ($character, $mission, &$alreadyCompleted): void {
+                $progression = CharacterMission::where('character_id', $character->id)
+                    ->where('mission_id', $mission->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($progression && $progression->completed_count > 0) {
+                    $alreadyCompleted = true;
+
+                    return;
+                }
+
+                if (! $progression) {
+                    $progression = new CharacterMission([
+                        'character_id' => $character->id,
+                        'mission_id' => $mission->id,
+                    ]);
+                }
+
+                $progression->last_attempted_at = now();
+                $progression->completed_count = 1;
+                $progression->save();
+            });
+
+            if ($alreadyCompleted) {
+                return [
+                    'success' => false,
+                    'message' => 'Je hebt deze missie al voltooid! Elke missie kan maar 1 keer worden uitgevoerd.',
+                    'cash_earned' => 0,
+                    'xp_earned' => 0,
+                    'respect_earned' => 0,
+                ];
+            }
+
             $cashEarned = random_int($mission->min_cash_reward, $mission->max_cash_reward);
             $xpEarned = $mission->xp_reward;
             $respectEarned = $mission->respect_reward;
@@ -265,9 +296,6 @@ class MissionService
                 $statBonusMsg = " 🔥 Ervaring opgedaan: +1 {$statLabels[$primaryStat]}!";
             }
 
-            $progression->completed_count = 1;
-            $progression->save();
-
             $character->missions_completed = CharacterMission::where('character_id', $character->id)
                 ->where('completed_count', '>', 0)
                 ->count();
@@ -285,7 +313,15 @@ class MissionService
             ];
         }
 
-        $progression->save();
+        CharacterMission::updateOrCreate(
+            [
+                'character_id' => $character->id,
+                'mission_id' => $mission->id,
+            ],
+            [
+                'last_attempted_at' => now(),
+            ]
+        );
 
         // On failure: Check if player can dodge arrest through high stamina and defense
         $dodgeChance = min(40, (int) floor(($character->getEffectiveStamina() + $character->getEffectiveDefense()) / 15));

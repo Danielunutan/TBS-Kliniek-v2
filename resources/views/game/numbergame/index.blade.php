@@ -42,7 +42,7 @@
                 </div>
                 <div class="relative">
                     <input type="number" name="bet" min="50" max="50000" value="100" required
-                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-extrabold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-base sm:text-sm font-extrabold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     <div class="absolute right-3 top-3 text-xs font-bold text-slate-400 dark:text-slate-500">€</div>
                 </div>
                 <div class="grid grid-cols-4 gap-2 mt-2">

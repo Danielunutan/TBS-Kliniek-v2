@@ -113,13 +113,17 @@ MARKDOWN;
                 $chatMessageText = "🚨 **[SYSTEEM MELDING - DIRECTIE]**: Het weekend event **De Grote Drugsproductie** is zojuist gestart! 🌿 De #1 op zondag 23:59 wint automatisch **€5.000.000 contant geld én 1.000 Sterren ⭐**! Bekijk het live klassement in het nieuwsbericht: {$newsUrl}";
 
                 foreach (['global', 'algemeen'] as $ch) {
-                    ChatMessage::create([
-                        'character_id' => $senderChar->id,
-                        'channel' => $ch,
-                        'message' => $chatMessageText,
-                        'hearts_count' => 0,
-                        'hearts_users' => [],
-                    ]);
+                    ChatMessage::firstOrCreate(
+                        [
+                            'character_id' => $senderChar->id,
+                            'channel' => $ch,
+                            'message' => $chatMessageText,
+                        ],
+                        [
+                            'hearts_count' => 0,
+                            'hearts_users' => [],
+                        ]
+                    );
                     Cache::forget("chat_last_id_{$ch}");
                 }
             } catch (Throwable) {

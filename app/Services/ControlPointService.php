@@ -44,7 +44,7 @@ class ControlPointService
             /** @var Character|null $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose()) {
+            if (! $lockedPoint || ! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose()) {
                 return [
                     'success' => false,
                     'message' => 'Je bent momenteel niet in staat om een controlepunt te veroveren.',
@@ -132,16 +132,19 @@ class ControlPointService
             $lockedPoint->total_captures++;
             $lockedPoint->save();
 
+            // Small respect bonus for taking a point
+            $lockedCharacter->addRespect(1);
+            $lockedCharacter->save();
+
+            $character->fill($lockedCharacter->getAttributes());
+            $character->syncOriginal();
+
             return null;
         });
 
         if ($errorResult !== null) {
             return $errorResult;
         }
-
-        // Small respect bonus for taking a point
-        $character->addRespect(1);
-        $character->save();
 
         $point->refresh();
 

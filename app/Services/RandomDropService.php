@@ -13,26 +13,24 @@ class RandomDropService
      */
     public static function roll(Character $character): ?string
     {
-        $roll = rand(1, 100);
+        $roll = random_int(1, 100);
 
         // 12% chance to drop an unopened Koffer
         if ($roll <= 12) {
+            Character::where('id', $character->id)->increment('unopened_bags');
             $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
-            $character->save();
 
             return '💼 BONUS BUIT: Je vond een mysterieuze smokkelkoffer tussen de spullen! Open hem bij Koffers.';
         }
 
         // 6% chance to drop a secret MedicijnKluis code via GameMessage
         if ($roll >= 94) {
-            do {
-                $uniqueCode = 'DROP-'.strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
-            } while (VaultCode::where('code', $uniqueCode)->exists());
+            $uniqueCode = VaultCode::generateUniqueCode('DROP');
 
             VaultCode::create([
                 'code' => $uniqueCode,
-                'reward_cash' => rand(1500, 4000),
-                'reward_stars' => (rand(1, 100) <= 20 ? 1 : 0),
+                'reward_cash' => random_int(1500, 4000),
+                'reward_stars' => (random_int(1, 100) <= 20 ? 1 : 0),
                 'reward_tokens' => 2,
                 'character_id' => $character->id,
                 'is_redeemed' => false,

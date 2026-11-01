@@ -91,6 +91,13 @@
 
                 <!-- LOGIN TAB (NO UGLY LABELS - MODERN CLEAN INPUTS) -->
                 <div x-show="tab === 'login'" class="space-y-4">
+                    @if($errors->any() && $errors->has('email') && !old('username') && !old('terms'))
+                    <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
+                        <span>{{ $errors->first('email') }}</span>
+                    </div>
+                    @endif
+
                     <form method="POST" action="{{ route('login.post') }}" class="space-y-3">
                         @csrf
 
@@ -101,7 +108,7 @@
                             </span>
                             <input type="email" name="email" value="{{ old('email') }}" required
                                    placeholder="E-mailadres / Dossiernummer"
-                                   class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                                   class="w-full pl-9 pr-3.5 py-2.5 text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         </div>
 
                         <!-- Password Input with Eye Toggle -->
@@ -111,7 +118,7 @@
                             </span>
                             <input :type="showPass ? 'text' : 'password'" name="password" required
                                    placeholder="Wachtwoord"
-                                   class="w-full pl-9 pr-10 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                                   class="w-full pl-9 pr-10 py-2.5 text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer">
                                 <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
@@ -191,7 +198,7 @@
                                     <i class="fa-solid fa-user-ninja text-xs"></i>
                                 </span>
                                 <input type="text" name="username" value="{{ old('username') }}" placeholder="Gebruikersnaam / Kliniek Alias" required minlength="3" maxlength="25"
-                                       class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                                       class="w-full pl-9 pr-3.5 py-2.5 text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             </div>
 
                             <!-- Email -->
@@ -200,7 +207,7 @@
                                     <i class="fa-solid fa-envelope text-xs"></i>
                                 </span>
                                 <input type="email" name="email" value="{{ old('email') }}" placeholder="E-mailadres" required
-                                       class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                                       class="w-full pl-9 pr-3.5 py-2.5 text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                             </div>
 
                             <!-- Wachtwoord & Bevestigen (Strak naast elkaar of compact onder elkaar) -->
@@ -210,7 +217,7 @@
                                         <i class="fa-solid fa-lock text-xs"></i>
                                     </span>
                                     <input :type="showRegPass ? 'text' : 'password'" name="password" placeholder="Wachtwoord (min. 6)" required
-                                           class="w-full pl-9 pr-8 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                                           class="w-full pl-9 pr-8 py-2.5 text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                                     <button type="button" @click="showRegPass = !showRegPass" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer">
                                         <i class="fa-solid text-[11px]" :class="showRegPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                                     </button>
@@ -220,7 +227,7 @@
                                         <i class="fa-solid fa-shield-halved text-xs"></i>
                                     </span>
                                     <input :type="showRegPass ? 'text' : 'password'" name="password_confirmation" placeholder="Herhaal Wachtwoord" required
-                                           class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                                           class="w-full pl-9 pr-3.5 py-2.5 text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                                 </div>
                             </div>
                         </div>
@@ -335,7 +342,7 @@
     </div>
 
     <!-- EXCLUSIVE GANG OVERSTAP BONUS BANNER (HOMEPAGE PROMOTION) -->
-    <div class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-amber-50/40 dark:from-[#180a33] dark:via-[#130b2c] dark:to-[#0f172a] bg-purple-50/60 dark:bg-[#130b2c] border-2 border-purple-200/90 dark:border-purple-800/60 text-slate-900 dark:text-white shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
+    <div class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-amber-50/40 dark:from-[#180a33] dark:via-[#130b2c] dark:to-[#0f172a] border-2 border-purple-200/90 dark:border-purple-800/60 text-slate-900 dark:text-white shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
         <!-- Ambient Decorative Glows -->
         <div class="absolute -top-16 -left-16 w-44 h-44 bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute -bottom-16 -right-16 w-44 h-44 bg-amber-500/10 dark:bg-amber-600/15 rounded-full blur-2xl pointer-events-none"></div>
@@ -369,10 +376,10 @@
         </div>
 
         <div class="relative z-10 shrink-0 flex items-center gap-2.5">
-            <a href="{{ route('faq.index') }}" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition border border-slate-200/80 dark:border-slate-700 rounded-xl shadow-xs">
+            <a href="{{ route('faq.index') }}" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition border border-slate-200/80 dark:border-slate-700 shadow-xs">
                 Uitleg in FAQ
             </a>
-            <button type="button" @click="tab = 'register'; document.getElementById('auth-form-card').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+            <button type="button" @click="tab = 'register'; document.getElementById('auth-form-card')?.scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer">
                 <span>Meld Je Bende Aan</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </button>

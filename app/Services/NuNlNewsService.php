@@ -26,7 +26,7 @@ class NuNlNewsService
                     return $this->getFallbackNews();
                 }
 
-                $xml = simplexml_load_string($response->body(), SimpleXMLElement::class, LIBXML_NOCDATA);
+                $xml = @simplexml_load_string($response->body(), SimpleXMLElement::class, LIBXML_NOCDATA | LIBXML_NONET);
                 if (! $xml || ! isset($xml->channel->item)) {
                     return $this->getFallbackNews();
                 }
