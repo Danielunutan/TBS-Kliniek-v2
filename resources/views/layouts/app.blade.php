@@ -3978,5 +3978,7 @@
     </script>
     @endif
     @endif
+
+    @stack('scripts')
 </body>
 </html>

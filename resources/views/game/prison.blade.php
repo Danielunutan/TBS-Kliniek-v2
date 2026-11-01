@@ -214,7 +214,8 @@
         <div class="lg:col-span-8 space-y-6 order-1 lg:order-2">
 
             <!-- STATUS DASHBOARD: VRIJ OF INGESLOTEN -->
-            <div x-show="!isImprisoned" x-cloak class="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-[#111726] to-[#111726] p-5 shadow-xl">
+            @if(! $isImprisoned)
+            <div x-show="!isImprisoned" class="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-[#111726] to-[#111726] p-5 shadow-xl">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-start gap-3.5">
                         <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
@@ -246,9 +247,11 @@
                     </a>
                 </div>
             </div>
+            @endif
 
             <!-- ACTIEVE ISOLATIESTRAF: ZELF UITBREKEN, ONTSNAPPEN & STRAFVERKORTING -->
-            <div x-show="isImprisoned" x-cloak class="rounded-2xl border border-red-500/50 bg-gradient-to-b from-red-950/35 via-[#111726] to-[#111726] overflow-hidden shadow-2xl space-y-5 p-5 md:p-6">
+            @if($isImprisoned)
+            <div x-show="isImprisoned" class="rounded-2xl border border-red-500/50 bg-gradient-to-b from-red-950/35 via-[#111726] to-[#111726] overflow-hidden shadow-2xl space-y-5 p-5 md:p-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-500/20 pb-4">
                     <div class="flex items-start gap-3.5">
                         <div class="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
@@ -447,6 +450,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <!-- GEDETINEERDEN-DOSSIERS (INTERACTIEVE CELBLOK KAARTEN I.P.V. TABEL) -->
             <div class="rounded-2xl border border-white/10 bg-[#111726] overflow-hidden shadow-xl">
@@ -663,9 +667,8 @@
     </div>
 </div>
 
-@push('scripts')
 <script>
-function prisonPageController(config) {
+window.prisonPageController = function prisonPageController(config) {
     return {
         isImprisoned: config.isImprisoned,
         remainingSecs: config.remainingSecs,
@@ -726,7 +729,6 @@ function prisonPageController(config) {
             }
         }
     };
-}
+};
 </script>
-@endpush
 @endsection
