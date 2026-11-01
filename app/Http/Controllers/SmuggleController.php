@@ -20,6 +20,57 @@ use Illuminate\View\View;
 
 class SmuggleController extends Controller
 {
+    /**
+     * Define the tactical transport routes for contraband delivery.
+     *
+     * @var array<string, array{
+     *     key: string,
+     *     name: string,
+     *     subtitle: string,
+     *     success_rate: int,
+     *     cash_multiplier: float,
+     *     respect_bonus: int,
+     *     xp_multiplier: float,
+     *     loss_fraction: float,
+     *     badge: string
+     * }>
+     */
+    public const TRANSPORT_ROUTES = [
+        'sluiproute' => [
+            'key' => 'sluiproute',
+            'name' => 'Voorzichtige Sluiproute',
+            'subtitle' => 'Verborgen doorvoer via de oude ventilatieschachten zonder patrouilles.',
+            'success_rate' => 100,
+            'cash_multiplier' => 1.00,
+            'respect_bonus' => 0,
+            'xp_multiplier' => 1.00,
+            'loss_fraction' => 0.0,
+            'badge' => '100% Slaagkans • Standaard Winst',
+        ],
+        'koerier' => [
+            'key' => 'koerier',
+            'name' => 'Gecamoufleerde Wasserijkar',
+            'subtitle' => 'Snelle doorvoer tussen het vuile linnengoed met beperkt controlerisico.',
+            'success_rate' => 85,
+            'cash_multiplier' => 1.15,
+            'respect_bonus' => 2,
+            'xp_multiplier' => 1.10,
+            'loss_fraction' => 0.5,
+            'badge' => '85% Slaagkans • +15% Bonuswinst',
+        ],
+        'stormloop' => [
+            'key' => 'stormloop',
+            'name' => 'Roekeloze Snelle Route',
+            'subtitle' => 'Directe overdracht dwars over de bewaakte binnenplaats voor maximale premie.',
+            'success_rate' => 70,
+            'cash_multiplier' => 1.25,
+            'respect_bonus' => 5,
+            'xp_multiplier' => 1.25,
+            'loss_fraction' => 1.0,
+            'badge' => '70% Slaagkans • +25% Bonuswinst',
+        ],
+    ];
+
     public function __construct(
         protected EconomyService $economy,
         protected EnergyService $energy,
@@ -36,7 +87,6 @@ class SmuggleController extends Controller
 
         $this->ensureContrabandItemsExist();
 
-        // Get character contraband inventory
         $cigarettes = $this->getItemQuantity($character->id, 'sigaretten');
         $ritalin = $this->getItemQuantity($character->id, 'ritalin');
         $phones = $this->getItemQuantity($character->id, 'telefoon');
@@ -53,10 +103,21 @@ class SmuggleController extends Controller
         $orders = [];
         foreach ($rawOrders as $key => $ord) {
             $ord['can_fulfill'] = ($stock[$ord['item_slug']] ?? 0) >= $ord['amount'];
+            $ord['current_stock'] = $stock[$ord['item_slug']] ?? 0;
             $orders[$key] = $ord;
         }
 
-        return view('game.smuggle.index', compact('character', 'cigarettes', 'ritalin', 'phones', 'weed', 'orders'));
+        $transportRoutes = self::TRANSPORT_ROUTES;
+
+        return view('game.smuggle.index', compact(
+            'character',
+            'cigarettes',
+            'ritalin',
+            'phones',
+            'weed',
+            'orders',
+            'transportRoutes'
+        ));
     }
 
     public function produce(Request $request): RedirectResponse
@@ -66,11 +127,11 @@ class SmuggleController extends Controller
         $character = $user->character;
 
         if ($character->isImprisoned()) {
-            return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot de productiekelder!');
+            return redirect()->route('prison')->with('error', 'Vanuit de strafcel heb je geen toegang tot het synthese-laboratorium.');
         }
 
         if ($character->isComatose()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            return back()->with('error', 'Kritieke toestand (Code Blauw)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om bij bewustzijn te komen.');
         }
 
         $type = $request->input('type') ?? $request->input('item_type');
@@ -96,20 +157,20 @@ class SmuggleController extends Controller
             $mins = ceil($remaining / 60);
             $cost = $this->cooldownService->getSkipCost($checkAction);
 
-            return back()->with('error', "⏳ Productie bezig! Wacht nog {$remaining}s (~{$mins} min) of rond direct af met {$cost} Sterren ⭐.");
+            return back()->with('error', "⏳ Synthese-lijn koelt nog af ({$remaining}s / ~{$mins} min resterend). Versnel direct voor {$cost} Sterren ⭐.");
         }
 
         $configs = [
-            'sigaretten' => ['cost' => 5, 'quantity' => 10, 'xp' => 35, 'name' => '10x Sigaretten'],
-            'ritalin' => ['cost' => 10, 'quantity' => 5, 'xp' => 65, 'name' => '5x Ritalin Strips'],
-            'telefoon' => ['cost' => 20, 'quantity' => 1, 'xp' => 150, 'name' => '1x Gesmokkelde Telefoon'],
-            'wiet' => ['cost' => 15, 'quantity' => 8, 'xp' => 95, 'name' => '8x Nederwiet Toppen'],
+            'sigaretten' => ['cost' => 5, 'quantity' => 10, 'xp' => 35, 'name' => '10x Zware Shagwikkels'],
+            'ritalin' => ['cost' => 10, 'quantity' => 5, 'xp' => 65, 'name' => '5x Ritalin Blisters'],
+            'telefoon' => ['cost' => 20, 'quantity' => 1, 'xp' => 150, 'name' => '1x Burner-Toestel'],
+            'wiet' => ['cost' => 15, 'quantity' => 8, 'xp' => 95, 'name' => '8x Kaswiet Toppen'],
         ];
 
         $cfg = $configs[$validated['type']];
 
         if (! $this->energy->consume($character, $cfg['cost'])) {
-            return back()->with('error', "Niet genoeg energie! Je hebt {$cfg['cost']} energie nodig.");
+            return back()->with('error', "Je mist de benodigde uithouding ({$cfg['cost']} energie vereist voor deze batch).");
         }
 
         $this->ensureContrabandItemsExist();
@@ -126,10 +187,9 @@ class SmuggleController extends Controller
         app(DailyBattleService::class)->record($character, 'drugs_made', $cfg['quantity']);
         EventDrugsProductionService::record($character, $cfg['quantity'], $validated['type']);
 
-        // Set difficulty-scaled production cooldown
         $this->cooldownService->setCooldown($character, $actionName);
 
-        return back()->with('success', "Geproduceerd! {$cfg['name']} toegevoegd aan je smokkelvoorraad (+{$cfg['xp']} XP).");
+        return back()->with('success', "Geproduceerd! Batch van {$cfg['name']} is veilig opgeslagen in je geheime smokkelkluis (+{$cfg['xp']} XP).");
     }
 
     public function sell(Request $request): RedirectResponse
@@ -139,31 +199,43 @@ class SmuggleController extends Controller
         $character = $user->character;
 
         if ($character->isImprisoned()) {
-            return redirect()->route('prison')->with('error', 'Je zit in de isoleercel en kunt niet handelen!');
+            return redirect()->route('prison')->with('error', 'Koeriersroutes zijn geblokkeerd zolang je in de strafcel verblijft.');
         }
 
         if ($character->isComatose()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            return back()->with('error', 'Kritieke toestand (Code Blauw)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om bij bewustzijn te komen.');
         }
 
         $validated = $request->validate([
             'order_id' => ['required', 'string', 'in:order_1,order_2,order_3'],
+            'transport_mode' => ['nullable', 'string', 'in:sluiproute,koerier,stormloop'],
         ]);
+
+        $routeKey = $validated['transport_mode'] ?? 'sluiproute';
+        $routeConfig = self::TRANSPORT_ROUTES[$routeKey] ?? self::TRANSPORT_ROUTES['sluiproute'];
 
         $orders = $this->getActiveOrders($character->id);
         $order = $orders[$validated['order_id']] ?? null;
 
         if (! $order) {
-            return back()->with('error', 'Aanbod niet meer geldig.');
+            return back()->with('error', 'Deze smokkelopdracht is inmiddels verlopen.');
         }
 
         $item = Item::where('slug', $order['item_slug'])->first();
 
         if (! $item) {
-            return back()->with('error', 'Item niet gevonden.');
+            return back()->with('error', 'Gevraagde handelswaar kon niet worden gevonden.');
         }
 
-        $sold = DB::transaction(function () use ($character, $item, $order): bool {
+        $roll = rand(1, 100);
+        $isSuccess = $roll <= $routeConfig['success_rate'];
+        $finalCash = (int) round($order['reward_cash'] * $routeConfig['cash_multiplier']);
+        $finalRespect = (int) $order['reward_respect'] + $routeConfig['respect_bonus'];
+        $deductAmount = $isSuccess
+            ? (int) $order['amount']
+            : max(1, (int) ceil($order['amount'] * $routeConfig['loss_fraction']));
+
+        $transactionDone = DB::transaction(function () use ($character, $item, $order, $isSuccess, $finalCash, $finalRespect, $deductAmount): bool {
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
             $charItem = CharacterItem::where('character_id', $lockedCharacter->id)
@@ -176,37 +248,50 @@ class SmuggleController extends Controller
                 return false;
             }
 
-            $charItem->decrement('quantity', $order['amount']);
+            $charItem->decrement('quantity', $deductAmount);
             if ($charItem->fresh()?->quantity <= 0) {
                 $charItem->delete();
             }
-            $this->economy->addCash($lockedCharacter, $order['reward_cash']);
-            $lockedCharacter->addRespect($order['reward_respect']);
-            $lockedCharacter->save();
+
+            if ($isSuccess) {
+                $this->economy->addCash($lockedCharacter, $finalCash);
+                $lockedCharacter->addRespect($finalRespect);
+                $lockedCharacter->save();
+            }
 
             return true;
         });
 
-        if (! $sold) {
-            return back()->with('error', "Je hebt niet genoeg {$item->name} om aan {$order['buyer']} te leveren!");
+        if (! $transactionDone) {
+            return back()->with('error', "Voorraad ontoereikend: je mist voldoende {$item->name} voor de bestelling van {$order['buyer']}.");
         }
 
         $character->refresh();
+
+        if (! $isSuccess) {
+            $orders[$validated['order_id']] = $this->generateRandomOrder($validated['order_id']);
+            session(["smuggle_orders_{$character->id}" => $orders]);
+
+            return back()->with('error', "Onderschept op de {$routeConfig['name']}! Bewakers namen {$deductAmount}x {$item->name} in beslag voordat je {$order['buyer']} bereikte.");
+        }
+
         app(DailyBattleService::class)->record($character, 'drugs_sold', $order['amount']);
 
-        // 5% Rank XP reward for completing the sale
-        $xpGain = max(45, (int) round(($character->level * 80) * 0.05 + $order['reward_cash'] * 0.2));
+        $baseXp = max(45, (int) round(($character->level * 80) * 0.05 + $order['reward_cash'] * 0.2));
+        $xpGain = (int) round($baseXp * $routeConfig['xp_multiplier']);
         $this->level->addXp($character, $xpGain);
 
-        // Immediately roll a brand new randomized buyer offer in this slot!
         $orders[$validated['order_id']] = $this->generateRandomOrder($validated['order_id']);
         session(["smuggle_orders_{$character->id}" => $orders]);
 
-        return back()->with('success', "Deal gesloten met {$order['buyer']}! Je ontvangt €".number_format($order['reward_cash'], 0, ',', '.')." contant, +{$order['reward_respect']} Respect en +{$xpGain} Rank XP! Er staat direct een nieuw aanbod klaar.");
+        return back()->with(
+            'success',
+            "Zending afgeleverd bij {$order['buyer']} via {$routeConfig['name']}! Opbrengst: €".number_format($finalCash, 0, ',', '.')." contant, +{$finalRespect} Gezag en +{$xpGain} XP."
+        );
     }
 
     /**
-     * Decline a buyer offer to roll a new buyer in that slot.
+     * Dismiss a buyer request and replace it with a fresh contact in that slot.
      */
     public function reject(Request $request): RedirectResponse
     {
@@ -215,11 +300,11 @@ class SmuggleController extends Controller
         $character = $user->character;
 
         if ($character->isImprisoned()) {
-            return redirect()->route('prison')->with('error', 'Je zit in de isoleercel en kunt niet handelen!');
+            return redirect()->route('prison')->with('error', 'Koeriersroutes zijn geblokkeerd zolang je in de strafcel verblijft.');
         }
 
         if ($character->isComatose()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            return back()->with('error', 'Kritieke toestand (Code Blauw)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om bij bewustzijn te komen.');
         }
 
         $validated = $request->validate([
@@ -230,7 +315,7 @@ class SmuggleController extends Controller
         $orders[$validated['order_id']] = $this->generateRandomOrder($validated['order_id']);
         session(["smuggle_orders_{$character->id}" => $orders]);
 
-        return back()->with('info', 'Aanbod afgewezen. Er heeft zich direct een nieuwe koper gemeld!');
+        return back()->with('info', 'Koper weggestuurd. Een nieuwe tussenpersoon wacht nu bij het doorgeefluik.');
     }
 
     protected function getActiveOrders(int $characterId): array
@@ -308,7 +393,7 @@ class SmuggleController extends Controller
     {
         Item::firstOrCreate(['slug' => 'sigaretten'], [
             'name' => 'Sigaretten',
-            'description' => 'Pakjes zware tabak, het meest verhandelde betaalmiddel in de kliniek.',
+            'description' => 'Stevige shagwikkels die dienen als ondergronds ruilmiddel op elke afdeling.',
             'category' => 'contraband',
             'rarity' => 'common',
             'icon' => 'fa-smoking',
@@ -320,7 +405,7 @@ class SmuggleController extends Controller
 
         Item::firstOrCreate(['slug' => 'ritalin'], [
             'name' => 'Ritalin Strips',
-            'description' => 'Illegaal verhandelde medicatie van de psychiatrische afdeling.',
+            'description' => 'Achterovergedrukte medicatiestrips uit de afgesloten apothekerskast.',
             'category' => 'contraband',
             'rarity' => 'uncommon',
             'icon' => 'fa-pills',
@@ -332,7 +417,7 @@ class SmuggleController extends Controller
 
         Item::firstOrCreate(['slug' => 'telefoon'], [
             'name' => 'Gesmokkelde Telefoon',
-            'description' => 'Een kleine mobiel om contact te onderhouden met de buitenwereld.',
+            'description' => 'Compacte burner-telefoon voor ontraceerbare lijnen buiten de kliniekmuren.',
             'category' => 'contraband',
             'rarity' => 'rare',
             'icon' => 'fa-mobile-screen',
@@ -344,7 +429,7 @@ class SmuggleController extends Controller
 
         Item::firstOrCreate(['slug' => 'wiet'], [
             'name' => 'Nederwiet Toppen',
-            'description' => 'Geurige toppen gekweekt in de geheime kweekruimte van de kliniek.',
+            'description' => 'Sterk geurende toppen uit een gecamoufleerde kweekkast achter het ketelhuis.',
             'category' => 'contraband',
             'rarity' => 'rare',
             'icon' => 'fa-cannabis',

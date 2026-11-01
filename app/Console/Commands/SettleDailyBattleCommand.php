@@ -8,27 +8,27 @@ use Illuminate\Console\Command;
 class SettleDailyBattleCommand extends Command
 {
     /**
-     * The name and signature of the console command.
+     * Define the name and signature of the console command.
      *
      * @var string
      */
     protected $signature = 'battle:settle';
 
     /**
-     * The console command description.
+     * Describe the console command purpose.
      *
      * @var string
      */
-    protected $description = 'Settle past 24-hour daily battles and distribute prizes to top 3 winners.';
+    protected $description = 'Settle completed 24-hour escalation battles and grant prizes to the top 3 players.';
 
     /**
      * Execute the console command.
      */
     public function handle(DailyBattleService $battleService): int
     {
-        $this->info('Controleren op onafgeronde 24 Uur Battles...');
+        $this->info('Openstaande Etmaal-Escalaties worden gecontroleerd...');
         $battleService->checkAndSettle();
-        $this->info('24 Uur Battles succesvol afgehandeld en prijzen toegekend!');
+        $this->info('Alle afgeronde Etmaal-Escalaties zijn verwerkt en de buit is uitgekeerd!');
 
         return Command::SUCCESS;
     }

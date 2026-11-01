@@ -28,14 +28,15 @@ class DailyBattleAndXxlCasesTest extends TestCase
 
         $response = $this->get(route('battle.index'));
         $response->assertStatus(200);
-        $response->assertSee('DE 24 UUR');
-        $response->assertSee('MEESTE RESPECT');
-        $response->assertSee('MEESTE HOSSELS');
-        $response->assertSee('BETALINGEN');
-        $response->assertSee('PATIËNTEN UITGEBROKEN');
-        $response->assertSee('DRUGS GEMAAKT');
-        $response->assertSee('DRUGS VERKOCHT');
-        $response->assertSee('MEESTE MOORDEN');
+        $response->assertSee('HET 24-UURS');
+        $response->assertSee('ESCALATIE-PROTOCOL');
+        $response->assertSee('STRAATGEZAG & EERBETOON');
+        $response->assertSee('ONDERGRONDSE ZWENDEL');
+        $response->assertSee('ZWARTGELD-CIRCULATIE');
+        $response->assertSee('CEL-BEVRIJDINGEN');
+        $response->assertSee('LAB-SYNTHESE');
+        $response->assertSee('CONTRABANDE-AFZET');
+        $response->assertSee('GENADELOZE LIQUIDATIES');
         $response->assertSee('XXL Koffers');
     }
 
@@ -109,9 +110,67 @@ class DailyBattleAndXxlCasesTest extends TestCase
     public function test_artisan_command_battle_settle(): void
     {
         $this->artisan('battle:settle')
-            ->expectsOutput('Controleren op onafgeronde 24 Uur Battles...')
-            ->expectsOutput('24 Uur Battles succesvol afgehandeld en prijzen toegekend!')
+            ->expectsOutput('Openstaande Etmaal-Escalaties worden gecontroleerd...')
+            ->expectsOutput('Alle afgeronde Etmaal-Escalaties zijn verwerkt en de buit is uitgekeerd!')
             ->assertSuccessful();
+    }
+
+    public function test_focus_overdrive_and_rush_hour_multiplier_and_milestone_claims(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'cash' => 1000,
+            'masks' => 0,
+            'stars' => 0,
+            'xxl_cases' => 0,
+        ]);
+
+        $this->actingAs($user);
+
+        // Lock in 'hustles' as today's Focus-Sector
+        $focusResp = $this->post(route('battle.focus'), ['category' => 'hustles']);
+        $focusResp->assertRedirect(route('battle.index'));
+        $focusResp->assertSessionHas('success');
+
+        // Cannot lock a second focus category on the same day
+        $secondFocusResp = $this->post(route('battle.focus'), ['category' => 'kills']);
+        $secondFocusResp->assertSessionHas('error');
+
+        /** @var DailyBattleService $battleService */
+        $battleService = app(DailyBattleService::class);
+
+        // Record 4 hustles outside rush hour (10:00) -> 1.5x = 6
+        $outsideRush = Carbon::today('Europe/Amsterdam')->setTime(10, 0, 0);
+        $battleService->record($char, 'hustles', 4, $outsideRush);
+
+        // Record 4 hustles during rush hour (20:30) -> 2.0x = 8
+        $insideRush = Carbon::today('Europe/Amsterdam')->setTime(20, 30, 0);
+        $battleService->record($char, 'hustles', 4, $insideRush);
+
+        $score = DailyBattleScore::where('battle_date', Carbon::today()->toDateString())
+            ->where('character_id', $char->id)
+            ->first();
+
+        $this->assertNotNull($score);
+        // 6 + 8 = 14 hustles total (14 * 15 EP = 210 EP)
+        $this->assertEquals(14, $score->score_hustles);
+
+        // Tier 1 milestone requires 100 EP -> should succeed
+        $claim1 = $this->post(route('battle.milestone', 1));
+        $claim1->assertSessionHas('success');
+
+        $char->refresh();
+        $this->assertEquals(16000, $char->cash);
+        $this->assertEquals(2, $char->masks);
+
+        // Cannot claim Tier 1 twice
+        $claim1Duplicate = $this->post(route('battle.milestone', 1));
+        $claim1Duplicate->assertSessionHas('error');
+
+        // Tier 2 requires 350 EP -> currently at 210 EP, so it must fail
+        $claim2Early = $this->post(route('battle.milestone', 2));
+        $claim2Early->assertSessionHas('error');
     }
 
     public function test_buy_and_open_xxl_koffer(): void

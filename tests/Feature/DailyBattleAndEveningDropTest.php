@@ -137,7 +137,7 @@ class DailyBattleAndEveningDropTest extends TestCase
         ]);
 
         $this->artisan('battle:settle')
-            ->expectsOutputToContain('24 Uur Battles succesvol afgehandeld')
+            ->expectsOutputToContain('Alle afgeronde Etmaal-Escalaties zijn verwerkt')
             ->assertSuccessful();
 
         $battle->refresh();
@@ -146,7 +146,7 @@ class DailyBattleAndEveningDropTest extends TestCase
         // Check winner received message
         $this->assertDatabaseHas('game_messages', [
             'recipient_id' => $char->id,
-            'sender_name' => 'TBS 24-Uur Toernooicommissie',
+            'sender_name' => 'Kliniek Escalatie-Tribunaal',
         ]);
     }
 }

@@ -19,6 +19,57 @@ use Illuminate\View\View;
 
 class PackageController extends Controller
 {
+    /**
+     * Define the three cracking approaches for opening intercepted cases.
+     *
+     * @var array<string, array{
+     *     key: string,
+     *     name: string,
+     *     subtitle: string,
+     *     success_rate: int,
+     *     cash_multiplier: float,
+     *     fail_cash_multiplier: float,
+     *     star_chance: int,
+     *     mask_chance: int,
+     *     code_chance: int
+     * }>
+     */
+    public const CRACK_METHODS = [
+        'precisie' => [
+            'key' => 'precisie',
+            'name' => 'Voorzichtig Openen (Precisie-Loper)',
+            'subtitle' => 'Gegarandeerde standaardbuit zonder enig risico op beschadigde inhoud.',
+            'success_rate' => 100,
+            'cash_multiplier' => 1.00,
+            'fail_cash_multiplier' => 1.00,
+            'star_chance' => 8,
+            'mask_chance' => 40,
+            'code_chance' => 30,
+        ],
+        'thermisch' => [
+            'key' => 'thermisch',
+            'name' => 'Thermische Snijbrander',
+            'subtitle' => '75% kans op +35% extra bankbuit en hogere itemkans, 25% kans op schroeischade.',
+            'success_rate' => 75,
+            'cash_multiplier' => 1.35,
+            'fail_cash_multiplier' => 0.40,
+            'star_chance' => 12,
+            'mask_chance' => 55,
+            'code_chance' => 42,
+        ],
+        'forceren' => [
+            'key' => 'forceren',
+            'name' => 'Ruwe Kracht & Forceren',
+            'subtitle' => '60% kans op +75% topbuit en extra sterren, 40% kans dat de verfvlam-beveiliging afgaat.',
+            'success_rate' => 60,
+            'cash_multiplier' => 1.75,
+            'fail_cash_multiplier' => 0.15,
+            'star_chance' => 18,
+            'mask_chance' => 65,
+            'code_chance' => 50,
+        ],
+    ];
+
     public function __construct(
         protected EconomyService $economy,
         protected EnergyService $energy,
@@ -33,39 +84,40 @@ class PackageController extends Controller
         $this->energy->refresh($character);
 
         $packages = [
-            ['id' => 1, 'name' => 'Postpakket in de gang', 'desc' => 'Klein pakketje, waarschijnlijk een brief of wat snoepjes.', 'energy' => 5, 'token_cost' => 0, 'min' => 80, 'max' => 280, 'rate' => 55, 'cooldown' => $this->cooldownService->calculateBySuccessRate(55), 'xp' => 28, 'token_chance' => 15, 'icon' => 'fa-envelope'],
-            ['id' => 2, 'name' => 'Leveranciersdoos (Keuken)', 'desc' => 'Grotere doos van een buitenlevering. Bevat cash of voorraden.', 'energy' => 10, 'token_cost' => 0, 'min' => 220, 'max' => 750, 'rate' => 45, 'cooldown' => $this->cooldownService->calculateBySuccessRate(45), 'xp' => 60, 'token_chance' => 25, 'icon' => 'fa-box-open'],
-            ['id' => 3, 'name' => 'Medisch pakket (Apotheek)', 'desc' => 'Medicijnen of waardevolle goederen. Bewaking houdt toezicht.', 'energy' => 14, 'token_cost' => 0, 'min' => 500, 'max' => 1800, 'rate' => 35, 'cooldown' => $this->cooldownService->calculateBySuccessRate(35), 'xp' => 110, 'token_chance' => 35, 'icon' => 'fa-kit-medical'],
-            ['id' => 4, 'name' => 'Gepantserde Geldkoffer (Directie)', 'desc' => 'Zwaar beveiligd transport van directiegelden en kluiscodes.', 'energy' => 20, 'token_cost' => 0, 'min' => 1100, 'max' => 3600, 'rate' => 25, 'cooldown' => $this->cooldownService->calculateBySuccessRate(25), 'xp' => 195, 'token_chance' => 50, 'icon' => 'fa-truck-fast'],
-            ['id' => 5, 'name' => 'Geheime Masterkoffer (Exclusief)', 'desc' => 'Zwaar slot! Vereist 3 KluisMunten. Garandeert exclusieve buit en prestige.', 'energy' => 15, 'token_cost' => 3, 'min' => 2500, 'max' => 6500, 'rate' => 42, 'cooldown' => $this->cooldownService->calculateBySuccessRate(42), 'xp' => 320, 'token_chance' => 80, 'icon' => 'fa-briefcase'],
+            ['id' => 1, 'name' => 'Koerierszending bij de Receptie', 'desc' => 'Onbewaakte envelop met klein kasgeld of verstopte smokkelwaar.', 'energy' => 5, 'token_cost' => 0, 'min' => 80, 'max' => 280, 'rate' => 55, 'cooldown' => $this->cooldownService->calculateBySuccessRate(55), 'xp' => 28, 'token_chance' => 15, 'icon' => 'fa-envelope'],
+            ['id' => 2, 'name' => 'Beleveringskrat Grootkeuken', 'desc' => 'Afgesloten voorraadkist van een externe transporteur vol zwarte handel.', 'energy' => 10, 'token_cost' => 0, 'min' => 220, 'max' => 750, 'rate' => 45, 'cooldown' => $this->cooldownService->calculateBySuccessRate(45), 'xp' => 60, 'token_chance' => 25, 'icon' => 'fa-box-open'],
+            ['id' => 3, 'name' => 'Verzegelde Apothekerscontainer', 'desc' => 'Waardevolle medische zending onder cameratoezicht op de vleugel.', 'energy' => 14, 'token_cost' => 0, 'min' => 500, 'max' => 1800, 'rate' => 35, 'cooldown' => $this->cooldownService->calculateBySuccessRate(35), 'xp' => 110, 'token_chance' => 35, 'icon' => 'fa-kit-medical'],
+            ['id' => 4, 'name' => 'Waardetransport Directievleugel', 'desc' => 'Zwaar vergrendelde geldkist met kasreserves en toegangscodes.', 'energy' => 20, 'token_cost' => 0, 'min' => 1100, 'max' => 3600, 'rate' => 25, 'cooldown' => $this->cooldownService->calculateBySuccessRate(25), 'xp' => 195, 'token_chance' => 50, 'icon' => 'fa-truck-fast'],
+            ['id' => 5, 'name' => 'Diplomatieke Kluiskoffer (Speciaal)', 'desc' => 'Vereist 3 KluisMunten. Hoogwaardige buit met maximale kans op extra munten.', 'energy' => 15, 'token_cost' => 3, 'min' => 2500, 'max' => 6500, 'rate' => 42, 'cooldown' => $this->cooldownService->calculateBySuccessRate(42), 'xp' => 320, 'token_chance' => 80, 'icon' => 'fa-briefcase'],
         ];
 
         $kofferLogs = KofferLog::where('character_id', $character->id)->latest()->take(8)->get();
         $packageSkipCost = $this->cooldownService->getSkipCost('package');
+        $crackMethods = self::CRACK_METHODS;
 
-        return view('game.packages.index', compact('character', 'packages', 'kofferLogs', 'packageSkipCost'));
+        return view('game.packages.index', compact('character', 'packages', 'kofferLogs', 'packageSkipCost', 'crackMethods'));
     }
 
     /**
-     * Intercept a package in the corridor (illicit street action: yields cash contant).
+     * Intercept a package in the clinic corridor.
      */
     public function intercept(Request $request): RedirectResponse
     {
         $character = Auth::user()->character;
 
         if ($character->isImprisoned()) {
-            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen koffers onderscheppen!');
+            return redirect()->route('prison')->with('error', 'Zolang je in de strafcel zit, kun je geen zendingen onderscheppen.');
         }
 
         if ($character->isComatose()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            return back()->with('error', 'Kritieke toestand (Code Blauw)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($this->cooldownService->isOnCooldown($character, 'package')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'package');
             $mins = ceil($remaining / 60);
 
-            return back()->with('error', "⏳ Koffers onderscheppen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
+            return back()->with('error', "⏳ De goederensluis wordt nu streng bewaakt! Wacht nog {$remaining}s (~{$mins} min) of koop de wachttijd af.");
         }
 
         $validated = $request->validate([
@@ -73,21 +125,21 @@ class PackageController extends Controller
         ]);
 
         $config = [
-            1 => ['name' => 'Postpakket in de gang', 'energy' => 5,  'token_cost' => 0, 'min' => 80,   'max' => 280,  'rate' => 55, 'xp' => 28,  'token_chance' => 15],
-            2 => ['name' => 'Leveranciersdoos (Keuken)', 'energy' => 10, 'token_cost' => 0, 'min' => 220,  'max' => 750,  'rate' => 45, 'xp' => 60,  'token_chance' => 25],
-            3 => ['name' => 'Medisch pakket (Apotheek)', 'energy' => 14, 'token_cost' => 0, 'min' => 500,  'max' => 1800, 'rate' => 35, 'xp' => 110, 'token_chance' => 35],
-            4 => ['name' => 'Gepantserde Geldkoffer (Directie)', 'energy' => 20, 'token_cost' => 0, 'min' => 1100, 'max' => 3600, 'rate' => 25, 'xp' => 195, 'token_chance' => 50],
-            5 => ['name' => 'Geheime Masterkoffer (Exclusief)', 'energy' => 15, 'token_cost' => 3, 'min' => 2500, 'max' => 6500, 'rate' => 42, 'xp' => 320, 'token_chance' => 80],
+            1 => ['name' => 'Koerierszending bij de Receptie', 'energy' => 5, 'token_cost' => 0, 'min' => 80, 'max' => 280, 'rate' => 55, 'xp' => 28, 'token_chance' => 15],
+            2 => ['name' => 'Beleveringskrat Grootkeuken', 'energy' => 10, 'token_cost' => 0, 'min' => 220, 'max' => 750, 'rate' => 45, 'xp' => 60, 'token_chance' => 25],
+            3 => ['name' => 'Verzegelde Apothekerscontainer', 'energy' => 14, 'token_cost' => 0, 'min' => 500, 'max' => 1800, 'rate' => 35, 'xp' => 110, 'token_chance' => 35],
+            4 => ['name' => 'Waardetransport Directievleugel', 'energy' => 20, 'token_cost' => 0, 'min' => 1100, 'max' => 3600, 'rate' => 25, 'xp' => 195, 'token_chance' => 50],
+            5 => ['name' => 'Diplomatieke Kluiskoffer (Speciaal)', 'energy' => 15, 'token_cost' => 3, 'min' => 2500, 'max' => 6500, 'rate' => 42, 'xp' => 320, 'token_chance' => 80],
         ];
 
         $pkg = $config[$validated['package_id']];
 
         if ($pkg['token_cost'] > 0 && ($character->vault_tokens ?? 0) < $pkg['token_cost']) {
-            return back()->with('error', "Voor deze koffer heb je minimaal {$pkg['token_cost']} KluisMunten nodig!");
+            return back()->with('error', "Je hebt ten minste {$pkg['token_cost']} KluisMunten nodig om dit slot te ontgrendelen.");
         }
 
         if (! $this->energy->consume($character, $pkg['energy'])) {
-            return back()->with('error', "Je hebt minimaal {$pkg['energy']} energie nodig om deze actie uit te voeren!");
+            return back()->with('error', "Onvoldoende uithouding: deze onderschepping vraagt {$pkg['energy']} energie.");
         }
 
         $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($pkg['rate']);
@@ -105,12 +157,10 @@ class PackageController extends Controller
 
             $tokensFound = 0;
             if (rand(1, 100) <= $pkg['token_chance']) {
-                // Validated input is still a string ("5"), so cast before the strict comparison.
                 $tokensFound = ((int) $validated['package_id'] === 5) ? rand(2, 3) : 1;
                 $character->vault_tokens = ($character->vault_tokens ?? 0) + $tokensFound;
             }
 
-            // Chance to drop an unopened bag!
             $bagDropped = false;
             if (rand(1, 100) <= 25) {
                 $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
@@ -120,10 +170,10 @@ class PackageController extends Controller
             $character->addRespect(1);
             $character->save();
 
-            $tokenTxt = $tokensFound > 0 ? " +{$tokensFound} KluisMunten 🔑 gevonden!" : '';
-            $bagTxt = $bagDropped ? ' 🧳 BONUS: Je hebt ook een ongeopende Smokkeltas buitgemaakt!' : '';
+            $tokenTxt = $tokensFound > 0 ? " +{$tokensFound} KluisMunten 🔑 buitgemaakt!" : '';
+            $bagTxt = $bagDropped ? ' 🧳 EXTRA: Er zat een verzegelde Smokkelkoffer in de zending!' : '';
 
-            return back()->with('success', 'Buit binnen! Je vind contant €'.number_format($cash, 0, ',', '.')."! +{$pkg['xp']} XP{$tokenTxt}{$bagTxt}");
+            return back()->with('success', 'Zending onderschept! Je haalt €'.number_format($cash, 0, ',', '.')." contant uit het pakket (+{$pkg['xp']} XP){$tokenTxt}{$bagTxt}");
         }
 
         $character->save();
@@ -137,78 +187,96 @@ class PackageController extends Controller
             default => 120,
         };
 
-        $this->prison->jailSeconds($character, $jailSeconds, "Betrapt door de bewaking bij het forceren en onderscheppen van: {$pkg['name']}");
+        $this->prison->jailSeconds($character, $jailSeconds, "Op heterdaad betrapt bij de goederensluis: {$pkg['name']}");
 
-        return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (De bewaking betrapte je bij het onderscheppen)");
+        return redirect()->route('prison')->with('error', "Alarm bij de goederensluis! Je zit {$jailSeconds} sec vast in isolatie nadat bewakers je omsingelden.");
     }
 
     /**
-     * Interactive bag opening: Clicking the bag opens it and deposits clean rewards directly to the bank.
+     * Open a single intercepted bag using the chosen cracking method and chest slot.
      */
     public function openBag(Request $request): RedirectResponse
     {
+        $validated = $request->validate([
+            'crack_method' => ['nullable', 'string', 'in:precisie,thermisch,forceren'],
+            'chest_slot' => ['nullable', 'integer', 'in:1,2,3'],
+        ]);
+
+        $methodKey = $validated['crack_method'] ?? 'precisie';
+        $method = self::CRACK_METHODS[$methodKey] ?? self::CRACK_METHODS['precisie'];
+        $chestSlot = (int) ($validated['chest_slot'] ?? 1);
         $user = Auth::user();
 
-        return DB::transaction(function () use ($user) {
+        return DB::transaction(function () use ($user, $method, $chestSlot) {
             /** @var Character $character */
             $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
             if ($character->isImprisoned()) {
-                return back()->with('error', 'Vanuit de isoleercel kun je geen tassen openen!');
+                return back()->with('error', 'Vanuit de strafcel heb je geen toegang tot je opgeslagen koffers.');
             }
 
             if ($character->isComatose()) {
-                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+                return back()->with('error', 'Kritieke toestand (Code Blauw)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             if (($character->unopened_bags ?? 0) <= 0) {
-                return back()->with('error', 'Je hebt geen ongeopende tassen liggen. Onderschep er een bij Pakketjes of koop er een op de Marktplaats!');
+                return back()->with('error', 'Geen verzegelde koffers op voorraad. Onderschep eerst een zending of schaf er een aan op de Marktplaats.');
             }
 
             $character->unopened_bags -= 1;
 
-            // Clean white money deposited directly to bank!
-            $bankReward = rand(1250, 3750);
+            $isCleanCrack = rand(1, 100) <= $method['success_rate'];
+            $baseBank = rand(1250, 3750);
+            $multiplier = $isCleanCrack ? $method['cash_multiplier'] : $method['fail_cash_multiplier'];
+            $bankReward = max(200, (int) round($baseBank * $multiplier));
             $character->bank += $bankReward;
 
             $xpReward = rand(80, 180);
             $this->level->addXp($character, $xpReward);
 
-            // Rare chance for stars (exclusive premium currency: 8% chance for 1 star)
-            $starsFound = (rand(1, 100) <= 8) ? 1 : 0;
-            if ($starsFound > 0) {
-                $character->stars = ($character->stars ?? 0) + $starsFound;
-            }
-
-            // Chance for a mask (40% chance)
-            $maskFound = (rand(1, 100) <= 40);
-            if ($maskFound) {
-                $character->masks = ($character->masks ?? 0) + 1;
-            }
-
-            // Chance for a secret voucher code
+            $starsFound = 0;
+            $maskFound = false;
             $voucherCode = null;
-            if (rand(1, 100) <= 30) {
-                $voucherCode = VaultCode::generateUniqueCode('TAS');
-                VaultCode::create([
-                    'code' => $voucherCode,
-                    'reward_cash' => rand(1000, 2500),
-                    'reward_stars' => 0,
-                    'reward_tokens' => 2,
-                    'character_id' => $character->id,
-                    'is_redeemed' => false,
-                ]);
+
+            if ($isCleanCrack) {
+                $starsFound = (rand(1, 100) <= $method['star_chance']) ? 1 : 0;
+                if ($starsFound > 0) {
+                    $character->stars = ($character->stars ?? 0) + $starsFound;
+                }
+
+                $maskFound = (rand(1, 100) <= $method['mask_chance']);
+                if ($maskFound) {
+                    $character->masks = ($character->masks ?? 0) + 1;
+                }
+
+                if (rand(1, 100) <= $method['code_chance']) {
+                    $voucherCode = VaultCode::generateUniqueCode('TAS');
+                    VaultCode::create([
+                        'code' => $voucherCode,
+                        'reward_cash' => rand(1000, 2500),
+                        'reward_stars' => 0,
+                        'reward_tokens' => 2,
+                        'character_id' => $character->id,
+                        'is_redeemed' => false,
+                    ]);
+                }
             }
 
-            $character->addRespect(2);
+            $character->addRespect($isCleanCrack ? 2 : 1);
             $character->save();
 
-            $logParts = ['€'.number_format($bankReward, 0, ',', '.').' contant'];
+            $slotNames = [1 => 'Kist Alpha', 2 => 'Kist Beta', 3 => 'Kist Omega'];
+            $slotLabel = $slotNames[$chestSlot] ?? 'Kist Alpha';
+
+            $logParts = ["[{$slotLabel} • {$method['name']}] €".number_format($bankReward, 0, ',', '.').' bankgeld'];
+            if (! $isCleanCrack) {
+                $logParts[] = 'beveiligingsschade';
+            }
             if ($starsFound > 0) {
                 $logParts[] = "{$starsFound} sterren";
             }
             if ($maskFound) {
-                $logParts[] = '1 masker';
+                $logParts[] = '1 bivakmuts';
             }
             if ($voucherCode) {
                 $logParts[] = '1 kluiscode';
@@ -219,41 +287,55 @@ class PackageController extends Controller
                 'loot_summary' => implode(', ', $logParts),
             ]);
 
-            $starTxt = $starsFound > 0 ? " +{$starsFound} Exclusieve Sterren ⭐" : '';
-            $maskTxt = $maskFound ? ' +1 Masker 🎭' : '';
-            $voucherTxt = $voucherCode ? " 🔐 Geheime Kluiscode gevonden: {$voucherCode} (opgeslagen in je postvak/kluis!)" : '';
+            if (! $isCleanCrack) {
+                return back()->with(
+                    'success',
+                    "⚠️ De beveiligingspatroon in {$slotLabel} sprong open tijdens '{$method['name']}'! Restwaarde gered: €".number_format($bankReward, 0, ',', '.')." op je bankrekening (+{$xpReward} XP)."
+                );
+            }
 
-            return back()->with('success', '🧳 RRRITSS! Je hebt de koffer geopend! Buit: €'.number_format($bankReward, 0, ',', '.')." wit geld direct op je bank 🏦! +{$xpReward} XP{$starTxt}{$maskTxt}{$voucherTxt}");
+            $starTxt = $starsFound > 0 ? " +{$starsFound} Ster ⭐" : '';
+            $maskTxt = $maskFound ? ' +1 Bivakmuts 🎭' : '';
+            $voucherTxt = $voucherCode ? " 🔐 Kluiscode ontdekt: {$voucherCode}" : '';
+
+            return back()->with(
+                'success',
+                "🔓 {$slotLabel} succesvol geopend via {$method['name']}! Opbrengst: €".number_format($bankReward, 0, ',', '.')." schoon bankgeld (+{$xpReward} XP){$starTxt}{$maskTxt}{$voucherTxt}."
+            );
         });
     }
 
     /**
-     * Open ALL unopened bags at once, aggregating all rewards in one transaction.
-     * Feature added in response to support ticket TBS-B9G-711 (Bellakita).
+     * Open up to 50 unopened bags in a single transaction using the selected cracking method.
      */
     public function openBagAll(Request $request): RedirectResponse
     {
+        $validated = $request->validate([
+            'crack_method' => ['nullable', 'string', 'in:precisie,thermisch,forceren'],
+        ]);
+
+        $methodKey = $validated['crack_method'] ?? 'precisie';
+        $method = self::CRACK_METHODS[$methodKey] ?? self::CRACK_METHODS['precisie'];
         $user = Auth::user();
 
-        return DB::transaction(function () use ($user) {
+        return DB::transaction(function () use ($user, $method) {
             /** @var Character $character */
             $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
             if ($character->isImprisoned()) {
-                return back()->with('error', 'Vanuit de isoleercel kun je geen tassen openen!');
+                return back()->with('error', 'Vanuit de strafcel heb je geen toegang tot je opgeslagen koffers.');
             }
 
             if ($character->isComatose()) {
-                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+                return back()->with('error', 'Kritieke toestand (Code Blauw)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             $availableBags = (int) ($character->unopened_bags ?? 0);
 
             if ($availableBags <= 0) {
-                return back()->with('error', 'Je hebt geen ongeopende koffers liggen. Onderschep er een bij Pakketjes of koop er een op de Marktplaats!');
+                return back()->with('error', 'Geen verzegelde koffers op voorraad om in bulk te openen.');
             }
 
-            // Cap bulk opens to at most 50 at a time to prevent performance bottlenecks and system abuse
             $totalBags = min(50, $availableBags);
 
             $totalBank = 0;
@@ -261,32 +343,38 @@ class PackageController extends Controller
             $totalStars = 0;
             $totalMasks = 0;
             $totalRespect = 0;
+            $cleanHits = 0;
             $voucherCodes = [];
 
             for ($i = 0; $i < $totalBags; $i++) {
-                $totalBank += rand(1250, 3750);
+                $isClean = rand(1, 100) <= $method['success_rate'];
+                $mult = $isClean ? $method['cash_multiplier'] : $method['fail_cash_multiplier'];
+                $totalBank += max(200, (int) round(rand(1250, 3750) * $mult));
                 $totalXp += rand(80, 180);
-                $totalRespect += 2;
+                $totalRespect += $isClean ? 2 : 1;
 
-                if (rand(1, 100) <= 8) {
-                    $totalStars += 1;
-                }
+                if ($isClean) {
+                    $cleanHits++;
+                    if (rand(1, 100) <= $method['star_chance']) {
+                        $totalStars += 1;
+                    }
 
-                if (rand(1, 100) <= 40) {
-                    $totalMasks += 1;
-                }
+                    if (rand(1, 100) <= $method['mask_chance']) {
+                        $totalMasks += 1;
+                    }
 
-                if (rand(1, 100) <= 25 && count($voucherCodes) < 3) {
-                    $code = VaultCode::generateUniqueCode('TAS');
-                    VaultCode::create([
-                        'code' => $code,
-                        'reward_cash' => rand(1000, 2500),
-                        'reward_stars' => 0,
-                        'reward_tokens' => 2,
-                        'character_id' => $character->id,
-                        'is_redeemed' => false,
-                    ]);
-                    $voucherCodes[] = $code;
+                    if (rand(1, 100) <= 25 && count($voucherCodes) < 3) {
+                        $code = VaultCode::generateUniqueCode('TAS');
+                        VaultCode::create([
+                            'code' => $code,
+                            'reward_cash' => rand(1000, 2500),
+                            'reward_stars' => 0,
+                            'reward_tokens' => 2,
+                            'character_id' => $character->id,
+                            'is_redeemed' => false,
+                        ]);
+                        $voucherCodes[] = $code;
+                    }
                 }
             }
 
@@ -299,12 +387,12 @@ class PackageController extends Controller
             $this->level->addXp($character, $totalXp);
             $character->save();
 
-            $logParts = ['€'.number_format($totalBank, 0, ',', '.').' contant'];
+            $logParts = ['€'.number_format($totalBank, 0, ',', '.').' bankgeld'];
             if ($totalStars > 0) {
                 $logParts[] = "{$totalStars} sterren";
             }
             if ($totalMasks > 0) {
-                $logParts[] = "{$totalMasks} maskers";
+                $logParts[] = "{$totalMasks} bivakmutsen";
             }
             if (count($voucherCodes) > 0) {
                 $logParts[] = count($voucherCodes).' kluiscodes';
@@ -312,24 +400,24 @@ class PackageController extends Controller
 
             KofferLog::create([
                 'character_id' => $character->id,
-                'loot_summary' => "[{$totalBags}x BULK] ".implode(', ', $logParts),
+                'loot_summary' => "[{$totalBags}x SERIE • {$method['name']}] ".implode(', ', $logParts),
             ]);
 
-            $starTxt = $totalStars > 0 ? " +{$totalStars} Sterren" : '';
-            $maskTxt = $totalMasks > 0 ? " +{$totalMasks} Maskers" : '';
+            $starTxt = $totalStars > 0 ? ", +{$totalStars} Sterren" : '';
+            $maskTxt = $totalMasks > 0 ? ", +{$totalMasks} Bivakmutsen" : '';
             $voucherTxt = count($voucherCodes) > 0
-                ? ' '.count($voucherCodes).' Geheime Kluiscodes gevonden (opgeslagen in je postvak/kluis!)'
-                : '';
-            $remainingTxt = $character->unopened_bags > 0
-                ? " (Je hebt nog {$character->unopened_bags} koffers over)"
+                ? ' en '.count($voucherCodes).' Kluiscodes'
                 : '';
 
-            return back()->with('success', "BULK KRAAK! Je hebt {$totalBags} koffers in één klap geopend! Totale buit: €".number_format($totalBank, 0, ',', '.')." op je bank! +{$totalXp} XP{$starTxt}{$maskTxt}{$voucherTxt}{$remainingTxt}");
+            return back()->with(
+                'success',
+                "Serie-ontgrendeling voltooid ({$cleanHits}/{$totalBags} schadevrij via {$method['name']})! Totaal gestort: €".number_format($totalBank, 0, ',', '.')." op je bank, +{$totalXp} XP{$starTxt}{$maskTxt}{$voucherTxt}."
+            );
         });
     }
 
     /**
-     * Sell an unopened bag directly to the black market broker for clean bank cash.
+     * Sell unopened bags directly to the underground fence for bank cash.
      */
     public function sellBag(Request $request): RedirectResponse
     {
@@ -341,15 +429,15 @@ class PackageController extends Controller
             $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
             if ($character->isImprisoned()) {
-                return back()->with('error', 'Vanuit de isoleercel kun je geen koffers verkopen!');
+                return back()->with('error', 'Vanuit de strafcel kun je geen ongeopende koffers verhandelen.');
             }
 
             if ($character->isComatose()) {
-                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+                return back()->with('error', 'Kritieke toestand (Code Blauw)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             if (($character->unopened_bags ?? 0) < $amount) {
-                return back()->with('error', 'Je hebt niet genoeg ongeopende koffers om te verkopen.');
+                return back()->with('error', 'Je beschikt niet over dit aantal verzegelde koffers.');
             }
 
             $character->unopened_bags -= $amount;
@@ -358,12 +446,12 @@ class PackageController extends Controller
             $character->bank += $totalReward;
             $character->save();
 
-            return back()->with('success', "💰 Verkocht! Je hebt {$amount}x Smokkelkoffer verkocht voor €".number_format($totalReward, 0, ',', '.').' wit bankgeld 🏦!');
+            return back()->with('success', "💼 Doorverkocht aan de heler! {$amount}x verzegelde koffer ingeleverd voor €".number_format($totalReward, 0, ',', '.').' schoon bankgeld.');
         });
     }
 
     /**
-     * Open an XXL Koffer with massive rewards.
+     * Open an XXL Case with high-roller rewards.
      */
     public function openXxl(Request $request): RedirectResponse
     {
@@ -374,20 +462,19 @@ class PackageController extends Controller
             $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
             if ($character->isImprisoned()) {
-                return back()->with('error', 'Vanuit de isoleercel kun je geen XXL koffers openen!');
+                return back()->with('error', 'Vanuit de strafcel kun je geen XXL Kluiskoffers openen.');
             }
 
             if ($character->isComatose()) {
-                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+                return back()->with('error', 'Kritieke toestand (Code Blauw)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             if (($character->xxl_cases ?? 0) <= 0) {
-                return back()->with('error', 'Je hebt geen XXL koffers in je bezit! Win ze in de 24 Uur Battle of koop er een met sterren.');
+                return back()->with('error', 'Geen XXL Kluiskoffers op voorraad. Verover ze in het Etmaal-Protocol of schaf er een aan met Sterren.');
             }
 
             $character->xxl_cases -= 1;
 
-            // Big rewards!
             $bankReward = rand(25000, 75000);
             $character->bank += $bankReward;
 
@@ -403,7 +490,6 @@ class PackageController extends Controller
             $respectGain = rand(15, 30);
             $character->addRespect($respectGain);
 
-            // Generate 2-4 secret vault codes
             $codeCount = rand(2, 4);
             $generatedCodes = [];
             for ($i = 0; $i < $codeCount; $i++) {
@@ -421,52 +507,50 @@ class PackageController extends Controller
 
             $character->save();
 
-            // Record battle slay progress
             app(DailyBattleService::class)->record($character, 'slay', $respectGain);
 
             KofferLog::create([
                 'character_id' => $character->id,
-                'loot_summary' => '[XXL KOFFER] €'.number_format($bankReward, 0, ',', '.').", {$starsFound} sterren, {$masksFound} maskers, {$codeCount} kluiscodes",
+                'loot_summary' => '[XXL KLUISKIST] €'.number_format($bankReward, 0, ',', '.').", {$starsFound} sterren, {$masksFound} bivakmutsen, {$codeCount} kluiscodes",
             ]);
 
             $codesStr = implode(', ', $generatedCodes);
 
-            return back()->with('success', '💎💥 BOOM! XXL KOFFER GEKRAAKT! Buit: €'.number_format($bankReward, 0, ',', '.')." direct op je bank 🏦, +{$starsFound} Sterren ⭐, +{$masksFound} Maskers 🎭, +{$respectGain} Respect en {$codeCount} geheime kluiscodes: ({$codesStr})!");
+            return back()->with('success', '👑 XXL KLUISKOFFER ONTGRENDELD! Gestort op je bank: €'.number_format($bankReward, 0, ',', '.').", +{$starsFound} Sterren ⭐, +{$masksFound} Bivakmutsen 🎭, +{$respectGain} Gezag en {$codeCount} kluiscodes ({$codesStr}).");
         });
     }
 
     /**
-     * Purchase an XXL Koffer for stars.
+     * Purchase an XXL Case using stars.
      */
     public function buyXxl(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        $cost = 100; // 100 Sterren for XXL Koffer
+        $cost = 100;
 
         return DB::transaction(function () use ($user, $cost) {
             /** @var Character $character */
             $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
             if ($character->isImprisoned()) {
-                return back()->with('error', 'Vanuit de isoleercel kun je geen XXL Koffers kopen!');
+                return back()->with('error', 'Vanuit de strafcel kun je geen XXL Kluiskoffers aanschaffen.');
             }
 
             if ($character->isComatose()) {
-                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+                return back()->with('error', 'Kritieke toestand (Code Blauw)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             if (($character->stars ?? 0) < $cost) {
-                return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om een XXL Koffer te kopen (je hebt er {$character->stars}).");
+                return back()->with('error', "Onvoldoende Sterren: een XXL Kluiskoffer kost {$cost} Sterren ⭐ (huidig saldo: {$character->stars}).");
             }
 
             $character->stars -= $cost;
             $character->xxl_cases = ($character->xxl_cases ?? 0) + 1;
             $character->save();
 
-            // Record payments in battle
             app(DailyBattleService::class)->record($character, 'payments', $cost * 500);
 
-            return back()->with('success', "🎉 XXL Koffer aangeschaft voor {$cost} Sterren ⭐! Je kunt hem direct openen voor monsterlijke buit!");
+            return back()->with('success', "👑 XXL Kluiskoffer toegevoegd aan je voorraad voor {$cost} Sterren ⭐! Kies hieronder direct wanneer je hem openbreekt.");
         });
     }
 }

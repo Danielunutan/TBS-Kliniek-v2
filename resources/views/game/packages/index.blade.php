@@ -1,14 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Koffers & Pakketjes - TBS Kliniek')
+@section('title', 'Goederensluis & Kraakkamer - TBS Kliniek')
 
 @section('content')
 @php
     $pkgCooldown = $character->cooldownRemaining('package');
+    $methods = $crackMethods ?? \App\Http\Controllers\PackageController::CRACK_METHODS;
 @endphp
 
 <div class="space-y-6" x-data="{
     seconds: {{ (int) $pkgCooldown }},
+    selectedMethod: 'precisie',
+    selectedChest: 1,
+    methodInfo: {
+        precisie: { name: 'Voorzichtig Openen (Precisie-Loper)', rate: 100, multLabel: '1.00x Garantiebuit', risk: '0% kans op schade' },
+        thermisch: { name: 'Thermische Snijbrander', rate: 75, multLabel: '1.35x Overwinst', risk: '25% kans op schroeischade' },
+        forceren: { name: 'Ruwe Kracht & Forceren', rate: 60, multLabel: '1.75x Topbuit', risk: '40% kans op verfvlam-schade' }
+    },
     format(s) {
         if (s <= 0) return '00:00';
         const m = Math.floor(s / 60);
@@ -18,500 +26,412 @@
     init() {
         if (this.seconds > 0) {
             const timer = setInterval(() => {
-                if (this.seconds > 0) {
-                    this.seconds--;
-                }
-                if (this.seconds <= 0) {
-                    clearInterval(timer);
-                }
+                if (this.seconds > 0) this.seconds--;
+                if (this.seconds <= 0) clearInterval(timer);
             }, 1000);
         }
     }
 }">
 
-    <!-- Top Interception Operation Header -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="absolute -left-10 -top-10 w-44 h-44 bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
-            <div class="flex items-start gap-4">
-                <div class="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center text-2xl shrink-0 shadow-md shadow-purple-500/20">
-                    <i class="fa-solid fa-briefcase"></i>
+    <!-- Top Command Header -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-full border border-indigo-200/80 dark:border-indigo-800/70">
+                        <i class="fa-solid fa-boxes-packing mr-1"></i> Smokkelkoffers &amp; Postpakketten
+                    </span>
+                    <span class="text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-full border border-amber-200/80 dark:border-amber-800/70">
+                        3 Kraak-Technieken &amp; 3 Kluiskisten
+                    </span>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">
-                            <i class="fa-solid fa-shield-halved mr-1"></i> Smokkelsector
-                        </span>
-                        <span class="text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-md border border-amber-200/80 dark:border-amber-800/70 inline-flex items-center gap-1">
-                            <i class="fa-solid fa-gem text-[9px]"></i> 25% Koffer Dropkans
-                        </span>
-                        <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-md border border-emerald-200/80 dark:border-emerald-800/70">
-                            Geheime Kluiscodes
-                        </span>
-                    </div>
-                    <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                        Smokkelkoffers & Postpakketten
-                    </h1>
-                    <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-                        Onderschep illegale pakketjes in de wandelgangen van de kliniek. Kraak gevonden smokkelkoffers voor contant bankgeld, exclusieve maskers, sterren en geheime kluiscodes!
-                    </p>
-                </div>
+                <h1 class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+                    GOEDERENSLUIS &amp; <span class="text-indigo-600 dark:text-indigo-400">KRAAKKAMER</span>
+                </h1>
+                <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
+                    Grijp bewaakte zendingen weg bij de goederensluis en kies vervolgens in de Kraakkamer zelf hoe je jouw verzegelde koffers opent: ga voor 100% veilige loper-precisie of gok met de snijbrander en het breekijzer voor maximaal +75% extra bankbuit!
+                </p>
             </div>
 
-            <!-- Header Inventory Vitals -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:flex items-center gap-2.5 shrink-0">
-                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl px-4 py-2.5 text-center shadow-xs">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Standaard Koffers</span>
-                    <span class="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400 font-mono flex items-center justify-center gap-1.5 mt-0.5">
-                        <i class="fa-solid fa-briefcase text-xs"></i> {{ $character->unopened_bags ?? 0 }}
+            <!-- Telemetry Stats -->
+            <div class="grid grid-cols-3 gap-2.5 shrink-0">
+                <div class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-xl px-4 py-2.5 text-center">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Koffers</span>
+                    <span class="text-base font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                        🧳 {{ $character->unopened_bags ?? 0 }}
                     </span>
                 </div>
-                <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 rounded-xl px-4 py-2.5 text-center shadow-xs">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 block">XXL Koffers</span>
-                    <span class="text-sm sm:text-base font-black text-amber-600 dark:text-amber-300 font-mono flex items-center justify-center gap-1.5 mt-0.5">
-                        <i class="fa-solid fa-crown text-xs"></i> {{ $character->xxl_cases ?? 0 }}
+                <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 rounded-xl px-4 py-2.5 text-center">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 block">XXL Kisten</span>
+                    <span class="text-base font-black text-amber-600 dark:text-amber-300 font-mono">
+                        👑 {{ $character->xxl_cases ?? 0 }}
                     </span>
                 </div>
-                <div class="col-span-2 sm:col-span-1 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/70 rounded-xl px-4 py-2.5 text-center shadow-xs">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 block">Beschikbare Energie</span>
-                    <span class="text-sm sm:text-base font-black text-emerald-700 dark:text-emerald-300 font-mono mt-0.5 block">
-                        {{ $character->energy }} <span class="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 font-semibold">/ {{ $character->max_energy }}</span>
+                <div class="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/70 rounded-xl px-4 py-2.5 text-center">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 block">Uithouding</span>
+                    <span class="text-base font-black text-emerald-700 dark:text-emerald-300 font-mono">
+                        {{ $character->energy }}/{{ $character->max_energy }}
                     </span>
                 </div>
             </div>
         </div>
 
-        <!-- Live Cooldown Notice Banner -->
-        <div x-show="seconds > 0" class="mt-5 p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-700/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style="{{ $pkgCooldown > 0 ? '' : 'display: none;' }}">
+        <!-- Cooldown Banner -->
+        <div x-show="seconds > 0"
+             class="mt-5 p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-700/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+             style="{{ $pkgCooldown > 0 ? '' : 'display: none;' }}">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
-                    <i class="fa-solid fa-clock"></i>
+                <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-black shrink-0">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div>
-                    <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Corridor Onderschepping in Cooldown</h4>
+                    <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Verscherpt Toezicht bij de Goederensluis</h4>
                     <p class="text-[11px] text-amber-800 dark:text-amber-300">
-                        Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-200 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $pkgCooldown) }}</strong> voordat bewakers weer wegkijken.
+                        Patrouille loopt nog <strong class="font-mono" x-text="format(seconds)">{{ gmdate('i:s', $pkgCooldown) }}</strong> door de gang.
                     </p>
                 </div>
             </div>
             <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full sm:w-auto">
                 @csrf
                 <input type="hidden" name="action" value="package">
-                <button type="submit" class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <button type="submit"
+                        @disabled($character->isImprisoned() || $character->isComatose())
+                        class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-star text-[11px]"></i>
-                    <span>Omzeilen ({{ $packageSkipCost ?? 10 }} Sterren)</span>
+                    <span>Wachtpost Omkopen ({{ $packageSkipCost ?? 10 }} ⭐)</span>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- MAIN CRACKING BAY & LOGS SECTION -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-        <!-- ========================================================================= -->
-        <!-- LEFT: CRACKING TERMINAL & XXL SHOP (5 COLS)                                -->
-        <!-- ========================================================================= -->
-        <div class="lg:col-span-5 space-y-5">
-            
-            <!-- Standard Smokkelkoffer Terminal -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-sm font-black">
-                            <i class="fa-solid fa-lock-open"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
-                                Smokkelkoffers Kraken
-                            </h2>
-                            <span class="text-[10px] text-slate-400 font-bold">Kraak voor buit of verkoop direct</span>
-                        </div>
-                    </div>
-                    <span class="text-xs font-black font-mono px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
-                        {{ $character->unopened_bags ?? 0 }} Beschikbaar
-                    </span>
-                </div>
-
-                @if(($character->unopened_bags ?? 0) <= 0)
-                    <div class="py-7 px-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-2">
-                        <div class="w-12 h-12 mx-auto rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-briefcase"></i>
-                        </div>
-                        <h4 class="text-xs font-black text-slate-800 dark:text-slate-200">Geen Smokkelkoffers in Bezit</h4>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                            Onderschep postpakketjes in de wandelgangen hieronder om koffers en zeldzame kluiscodes binnen te halen!
-                        </p>
-                        <div class="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/70 inline-flex items-center gap-1.5 text-[11px] font-extrabold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70">
-                            <i class="fa-solid fa-bolt text-amber-400"></i>
-                            <span>Nieuw: Meerdere koffers in één klap tegelijk kraken!</span>
-                        </div>
-                    </div>
-                @else
-                    <div class="space-y-4">
-                        <div class="p-4 rounded-xl bg-gradient-to-r from-purple-50/90 to-indigo-50/70 dark:from-purple-950/40 dark:to-indigo-950/30 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xl shrink-0 shadow-xs shadow-purple-600/30">
-                                    <i class="fa-solid fa-briefcase"></i>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                        <span>{{ $character->unopened_bags }}x Smokkelkoffer gereed</span>
-                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-600 text-white shadow-xs">
-                                            Bulk Ready
-                                        </span>
-                                    </div>
-                                    <div class="text-[11px] text-purple-700 dark:text-purple-300 font-bold">
-                                        Buit: Tot €10.000 cash, maskers, sterren & kluizen per stuk
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Bulk kraak knop: direct prominent aanwezig --}}
-                        <form action="{{ route('packages.open-bag-all') }}" method="POST">
-                            @csrf
-                            <button type="submit"
-                                    {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
-                                    class="w-full py-3 px-4 rounded-xl {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2"
-                                    title="Open alle {{ $character->unopened_bags }} koffers tegelijk en ontvang alle beloningen in één keer!">
-                                <i class="fa-solid fa-bolt text-amber-300"></i>
-                                <span>Kraak {{ $character->unopened_bags > 50 ? '50 van je ' : 'Alle ' }}{{ min(50, $character->unopened_bags) }} Koffer{{ min(50, $character->unopened_bags) > 1 ? 's' : '' }} In Één Klap!</span>
-                                <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-400 text-slate-950 font-black">BULK</span>
-                            </button>
-                        </form>
-
-                        <!-- Direct Single Actions -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <form action="{{ route('packages.open-bag') }}" method="POST">
-                                @csrf
-                                <button type="submit" 
-                                        {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
-                                        class="w-full py-2.5 px-3 rounded-xl {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 active:scale-95 cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-key"></i>
-                                    <span>Kraak 1 Koffer</span>
-                                </button>
-                            </form>
-                            <form action="{{ route('packages.sell-bag') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="amount" value="1">
-                                <button type="submit" 
-                                        {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
-                                        class="w-full py-2.5 px-3 rounded-xl {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5"
-                                        title="Verkoop 1 koffer direct voor €2.500 wit bankgeld">
-                                    <i class="fa-solid fa-sack-dollar"></i>
-                                    <span>Verkoop 1 (€2.500)</span>
-                                </button>
-                            </form>
-                        </div>
-
-                        @if(($character->unopened_bags ?? 0) > 1)
-                        <form action="{{ route('packages.sell-bag') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="amount" value="{{ min(100, $character->unopened_bags) }}">
-                            <button type="submit"
-                                    {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
-                                    class="w-full py-2 px-3 rounded-xl {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 cursor-pointer active:scale-95' }} text-[11px] font-black transition-all duration-150 flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-money-bill-transfer"></i>
-                                <span>Verkoop {{ $character->unopened_bags > 100 ? '100 van je ' : 'Alle ' }}{{ min(100, $character->unopened_bags) }} Koffers Direct (€{{ number_format(min(100, $character->unopened_bags) * 2500, 0, ',', '.') }} bankgeld)</span>
-                            </button>
-                        </form>
-                        @endif
-
-                        <div class="text-center pt-1">
-                            <a href="{{ route('marketplace.index') }}" class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition">
-                                <i class="fa-solid fa-scale-balanced"></i>
-                                <span>Verkoop tegen jouw prijs op Spelers Marktplaats &rarr;</span>
-                            </a>
-                        </div>
-                    </div>
-                @endif
-            </div>
-
-            <!-- XXL Vault Koffers (High-Roller Tier) -->
-            <div class="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-950/30 dark:via-amber-950/10 dark:to-transparent border border-amber-300/80 dark:border-amber-700/80 rounded-2xl p-5 shadow-xs relative overflow-hidden">
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center text-sm font-black shadow-xs">
-                            <i class="fa-solid fa-crown"></i>
-                        </span>
-                        <div>
-                            <h3 class="text-xs sm:text-sm font-black uppercase tracking-wide text-amber-950 dark:text-amber-200">
-                                XXL Kluiskoffers
-                            </h3>
-                            <span class="text-[10px] text-amber-800 dark:text-amber-400 font-bold">Exclusieve High-Roller Beloningen</span>
-                        </div>
-                    </div>
-                    <span class="text-xs font-black font-mono text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-3 py-1 rounded-full">
-                        {{ $character->xxl_cases ?? 0 }} in bezit
-                    </span>
-                </div>
-
-                <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 mb-3.5">
-                    <div class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Gigantische buitpot: tot wel <strong class="text-emerald-700 dark:text-emerald-400 font-mono font-black">€75.000 cash</strong> op je bank, <strong class="text-amber-600 dark:text-amber-300 font-mono font-black">4 Sterren</strong>, <strong class="text-purple-600 dark:text-purple-400 font-mono font-black">12 Maskers</strong> én zeldzame kluiscodes!
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    @if(($character->xxl_cases ?? 0) > 0)
-                    <form action="{{ route('packages.open-xxl') }}" method="POST">
-                        @csrf
-                        <button type="submit" 
-                                {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
-                                class="w-full py-2.5 px-4 rounded-xl {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i>
-                            <span>Kraak XXL Koffer Nu</span>
-                        </button>
-                    </form>
-                    @endif
-
-                    <form action="{{ route('packages.buy-xxl') }}" method="POST">
-                        @csrf
-                        <button type="submit" 
-                                {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 100 ? 'disabled' : '' }}
-                                class="btn-star-gold w-full py-2.5 px-4 rounded-xl font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i class="fa-solid fa-star text-[11px]"></i>
-                            <span>Koop XXL Koffer (100 Sterren)</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Clandestien Master Pakket Bundle -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-xs font-black">
-                            <i class="fa-solid fa-box-open"></i>
-                        </span>
-                        <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide">
-                            Master Smokkelpakket
-                        </h4>
-                    </div>
-                    <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 font-mono">
-                        <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> 100 Sterren
-                    </span>
-                </div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3.5 leading-relaxed">
-                    Direct resultaat zonder wachten. Garandeert direct een massaal wit geld bedrag, zeldzame maskers en geheime kluiscodes.
-                </p>
-                <form action="{{ route('shop.buy-star-item') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="item_type" value="package_150">
-                    <button type="submit" 
-                            @if(($character->stars ?? 0) < 100) disabled @endif
-                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-bolt text-amber-300"></i>
-                        <span>Ontgrendel Master Pakket</span>
-                    </button>
-                </form>
-            </div>
-
-        </div>
-
-        <!-- ========================================================================= -->
-        <!-- RIGHT: RECENT INTERCEPTED LOOT JOURNAL (7 COLS)                          -->
-        <!-- ========================================================================= -->
-        <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+    <!-- STEP 1: GOEDERENSLUIS ONDERSCHEPPINGS-MATRIX (Moved to top) -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/70 flex items-center justify-center text-sm font-black">
-                            <i class="fa-solid fa-clipboard-list"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
-                                Koffer & Buit Logboek
-                            </h2>
-                            <span class="text-[10px] text-slate-400 font-bold">Recente krakingen en geregistreerde beloningen</span>
-                        </div>
-                    </div>
-                    <span class="text-[11px] font-bold text-slate-400">
-                        Laatste acties
-                    </span>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="text-[10px] font-black uppercase tracking-wider bg-slate-50/90 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
-                                <th class="py-2.5 px-3">DOSSIER #</th>
-                                <th class="py-2.5 px-3">BUIT SPECIFICATIE</th>
-                                <th class="py-2.5 px-3 text-right">TIJDSTIP</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs font-medium">
-                            @forelse($kofferLogs ?? [] as $log)
-                                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td class="py-3 px-3 font-mono font-bold text-slate-400 dark:text-slate-500 text-[11px]">
-                                        #{{ 150000 + $log->id }}
-                                    </td>
-                                    <td class="py-3 px-3 text-slate-800 dark:text-slate-200">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            @if(str_contains($log->loot_summary, 'XXL'))
-                                                <span class="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-[10px] font-black text-amber-800 dark:text-amber-300">
-                                                    XXL
-                                                </span>
-                                            @else
-                                                <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-[10px] font-black text-purple-700 dark:text-purple-300">
-                                                    KOFFER
-                                                </span>
-                                            @endif
-                                            <span class="font-bold text-slate-800 dark:text-slate-100">{{ $log->loot_summary }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3 px-3 text-right font-mono text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                                        {{ $log->created_at->format('d-m-Y H:i') }}
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="py-12 text-center text-slate-400 dark:text-slate-500 text-xs italic">
-                                        <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-400 flex items-center justify-center text-sm mb-2">
-                                            <i class="fa-solid fa-clock-rotate-left"></i>
-                                        </div>
-                                        Nog geen koffers gekraakt. Onderschep er een in de wandelgangen!
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
-                <span>Alle buit wordt direct bijgeschreven op je profiel</span>
-                <span class="font-mono font-bold text-purple-600 dark:text-purple-400">Beveiligde Transacties</span>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- BOTTOM SECTION: CORRIDOR INTERCEPT MISSIONS (TACTICAL OPERATIONS)         -->
-    <!-- ========================================================================= -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs space-y-5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-lg font-black shrink-0">
-                    <i class="fa-solid fa-person-walking-luggage"></i>
-                </div>
-                <div>
-                    <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>Pakketjes Onderscheppen in de Wandelgangen</span>
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Kies een sector in de kliniek. Elke succesvolle actie kan een zware koffer of geheime kluiscode opleveren!
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
-                <span class="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 font-mono text-emerald-700 dark:text-emerald-300">
-                    ⚡ Energie: <strong>{{ $character->energy }} / {{ $character->max_energy }}</strong>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                    Fase 1: Buit Binnenhalen
                 </span>
+                <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 dark:text-white">
+                    Zendingen Onderscheppen op de Vleugel
+                </h2>
             </div>
+            <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
+                🔑 KluisMunten op zak: <strong class="text-slate-900 dark:text-white">{{ $character->vault_tokens ?? 0 }}</strong>
+            </span>
         </div>
 
-        <!-- 5 Intercept Operations Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3.5">
             @foreach($packages as $pkg)
-            @php
-                $hasTokenCost = ($pkg['token_cost'] ?? 0) > 0;
-                $canAffordTokens = !$hasTokenCost || ($character->vault_tokens >= $pkg['token_cost']);
-                $canAffordEnergy = $character->energy >= $pkg['energy'];
-                $otherBlocked = $character->isImprisoned() || $character->isComatose() || !$canAffordEnergy || !$canAffordTokens;
-                $isDisabled = $otherBlocked || $pkgCooldown > 0;
-            @endphp
-            <div class="bg-slate-50/90 hover:bg-white dark:bg-slate-800/60 dark:hover:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all duration-200 shadow-xs group">
-                
-                <div class="space-y-3">
-                    <!-- Operation Header -->
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 group-hover:scale-105 transition-transform">
+                @php
+                    $hasTokenCost = ($pkg['token_cost'] ?? 0) > 0;
+                    $canAffordTokens = !$hasTokenCost || (($character->vault_tokens ?? 0) >= $pkg['token_cost']);
+                    $canAffordEnergy = $character->energy >= $pkg['energy'];
+                    $otherBlocked = $character->isImprisoned() || $character->isComatose() || !$canAffordEnergy || !$canAffordTokens;
+                    $isDisabled = $otherBlocked || $pkgCooldown > 0;
+                @endphp
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-4 flex flex-col justify-between space-y-3">
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid {{ $pkg['icon'] }}"></i>
-                            </div>
-                            <div>
-                                <span class="text-[9px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block">
-                                    Corridor Operatie
-                                </span>
-                                <h4 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">
-                                    {{ $pkg['name'] }}
-                                </h4>
-                            </div>
-                        </div>
-                        <span class="text-[10px] font-black font-mono text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2 py-0.5 rounded-md shrink-0">
-                            {{ $pkg['energy'] }}⚡ EP
-                        </span>
-                    </div>
-
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed min-h-[32px]">
-                        {{ $pkg['desc'] }}
-                    </p>
-
-                    <!-- Success Rate Progress Bar -->
-                    <div class="space-y-1 pt-1">
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                                <i class="fa-solid fa-bullseye text-purple-600 dark:text-purple-400"></i> Kans op slagen:
                             </span>
-                            <span class="font-black font-mono text-purple-700 dark:text-purple-300">
-                                {{ $pkg['rate'] }}%
+                            <span class="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-slate-200/70 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
+                                {{ $pkg['energy'] }}⚡ @if($hasTokenCost) • {{ $pkg['token_cost'] }}🔑 @endif
                             </span>
                         </div>
-                        <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-500 {{ $pkg['rate'] >= 50 ? 'bg-emerald-500' : ($pkg['rate'] >= 35 ? 'bg-purple-600' : 'bg-amber-500') }}"
-                                 style="width: {{ $pkg['rate'] }}%;"></div>
+
+                        <div>
+                            <h3 class="text-xs font-black text-slate-900 dark:text-white leading-snug">
+                                {{ $pkg['name'] }}
+                            </h3>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                {{ $pkg['desc'] }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[10px] font-bold">
+                                <span class="text-slate-400">Slagingskans</span>
+                                <span class="font-mono text-indigo-600 dark:text-indigo-400">{{ $pkg['rate'] }}%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-indigo-600" style="width: {{ $pkg['rate'] }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                            €{{ number_format($pkg['min'], 0, ',', '.') }} – €{{ number_format($pkg['max'], 0, ',', '.') }}
                         </div>
                     </div>
 
-                    <!-- Loot & Rewards Chips -->
-                    <div class="grid grid-cols-2 gap-1.5 pt-1 text-[11px]">
-                        <div class="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 font-black text-emerald-700 dark:text-emerald-300 font-mono flex items-center gap-1.5">
-                            <i class="fa-solid fa-sack-dollar text-[10px]"></i>
-                            <span>€{{ number_format($pkg['min'], 0, ',', '.') }}–€{{ number_format($pkg['max'], 0, ',', '.') }}</span>
-                        </div>
-                        <div class="px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 font-black text-amber-800 dark:text-amber-300 font-mono flex items-center gap-1.5">
-                            <i class="fa-solid fa-clock text-[10px]"></i>
-                            <span>{{ gmdate('i:s', $pkg['cooldown'] ?? 180) }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Drop Badges -->
-                    <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-200/80 dark:border-slate-700/70 text-slate-600 dark:text-slate-400">
-                        <span class="font-bold flex items-center gap-1 text-purple-700 dark:text-purple-300">
-                            <i class="fa-solid fa-briefcase text-[9px]"></i> 25% Koffer Drop
-                        </span>
-                        <span class="font-bold flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
-                            <i class="fa-solid fa-envelope-open-text text-[9px]"></i> Kluiscode Drop
-                        </span>
-                    </div>
+                    <form action="{{ route('packages.intercept') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="package_id" value="{{ $pkg['id'] }}">
+                        <button type="submit"
+                                :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
+                                {{ $isDisabled ? 'disabled' : '' }}
+                                class="w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-[11px] uppercase tracking-wider transition cursor-pointer">
+                            Grijp Zending
+                        </button>
+                    </form>
                 </div>
-
-                <!-- Intercept Submit Button -->
-                <form action="{{ route('packages.intercept') }}" method="POST" class="pt-2">
-                    @csrf
-                    <input type="hidden" name="package_id" value="{{ $pkg['id'] }}">
-                    <button type="submit" 
-                            :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
-                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95'"
-                            {{ $isDisabled ? 'disabled' : '' }}
-                            class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
-                        <span class="flex items-center gap-1">
-                            <i class="fa-solid fa-bolt text-[10px]"></i> {{ $pkg['energy'] }} EP
-                        </span>
-                        <span>&bull;</span>
-                        <span>Onderscheppen</span>
-                    </button>
-                </form>
-
-            </div>
             @endforeach
         </div>
     </div>
 
+    <!-- STEP 2: TWO-COLUMN INTERACTIVE CRACKING CHAMBER & FORENSIC LOGS -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- LEFT/MAIN COLUMN (7 cols): Interactive 3-Chest & 3-Method Cracking Chamber -->
+        <div class="lg:col-span-7 space-y-6">
+
+            <!-- Visual 3-Chest + 3-Method Cracking Selector -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 block">
+                            Fase 2: Kies Kist &amp; Openbreek-Techniek
+                        </span>
+                        <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 dark:text-white">
+                            Interactieve Kraaktafel (Voorzichtig vs. Forceren)
+                        </h2>
+                    </div>
+                    <span class="text-xs font-mono font-black px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                        {{ $character->unopened_bags ?? 0 }} Koffers Paraat
+                    </span>
+                </div>
+
+                <!-- 1. Visual 3-Chest Selection Screen -->
+                <div class="space-y-2">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                        1. Kies één van de 3 Verzegelde Kluiskisten op de Kraaktafel:
+                    </span>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button"
+                                @click="selectedChest = 1"
+                                :class="selectedChest === 1 ? 'border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 ring-1 ring-indigo-500/40' : 'border-slate-200/80 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50'"
+                                class="p-3.5 rounded-xl border text-center transition cursor-pointer space-y-1">
+                            <i class="fa-solid fa-briefcase text-lg text-indigo-600 dark:text-indigo-400"></i>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block">Kist Alpha</span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Cilinderslot #A1</span>
+                        </button>
+
+                        <button type="button"
+                                @click="selectedChest = 2"
+                                :class="selectedChest === 2 ? 'border-purple-500 bg-purple-50/80 dark:bg-purple-950/40 ring-1 ring-purple-500/40' : 'border-slate-200/80 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50'"
+                                class="p-3.5 rounded-xl border text-center transition cursor-pointer space-y-1">
+                            <i class="fa-solid fa-toolbox text-lg text-purple-600 dark:text-purple-400"></i>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block">Kist Beta</span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Dubbel Penslot #B2</span>
+                        </button>
+
+                        <button type="button"
+                                @click="selectedChest = 3"
+                                :class="selectedChest === 3 ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/40 ring-1 ring-amber-500/40' : 'border-slate-200/80 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50'"
+                                class="p-3.5 rounded-xl border text-center transition cursor-pointer space-y-1">
+                            <i class="fa-solid fa-vault text-lg text-amber-500"></i>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block">Kist Omega</span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Pantserkist #Z9</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Cracking Method Choice (Safe vs Gamble/Force) -->
+                <div class="space-y-2">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                        2. Kies jouw Openbreek-Methode (Risico vs. Bonuswinst):
+                    </span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button type="button"
+                                @click="selectedMethod = 'precisie'"
+                                :class="selectedMethod === 'precisie' ? 'border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 ring-1 ring-emerald-500/40' : 'border-slate-200/80 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50'"
+                                class="p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-900 dark:text-white">Voorzichtig</span>
+                                <span class="text-[10px] font-mono font-black text-emerald-600 dark:text-emerald-400">100% Veilig</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">1.00x standaardbuit, nooit schade aan inhoud.</p>
+                        </button>
+
+                        <button type="button"
+                                @click="selectedMethod = 'thermisch'"
+                                :class="selectedMethod === 'thermisch' ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/40 ring-1 ring-amber-500/40' : 'border-slate-200/80 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50'"
+                                class="p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-900 dark:text-white">Snijbrander</span>
+                                <span class="text-[10px] font-mono font-black text-amber-600 dark:text-amber-400">75% Kans</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">+35% extra bankgeld &amp; hogere itemkans.</p>
+                        </button>
+
+                        <button type="button"
+                                @click="selectedMethod = 'forceren'"
+                                :class="selectedMethod === 'forceren' ? 'border-rose-500 bg-rose-50/80 dark:bg-rose-950/40 ring-1 ring-rose-500/40' : 'border-slate-200/80 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50'"
+                                class="p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-900 dark:text-white">Forceren</span>
+                                <span class="text-[10px] font-mono font-black text-rose-600 dark:text-rose-400">60% Gok</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">+75% topbuit &amp; extra ster-kans, of verfvlam-schade!</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Forms (Single Crack, Bulk Crack, or Direct Fence Sale) -->
+                <div class="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <form action="{{ route('packages.open-bag') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="crack_method" :value="selectedMethod">
+                            <input type="hidden" name="chest_slot" :value="selectedChest">
+                            <button type="submit"
+                                    {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
+                                    class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-unlock-keyhole"></i>
+                                <span x-text="'Open 1 Koffer (' + methodInfo[selectedMethod].multLabel + ')'">Open 1 Koffer</span>
+                            </button>
+                        </form>
+
+                        <form action="{{ route('packages.open-bag-all') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="crack_method" :value="selectedMethod">
+                            <button type="submit"
+                                    {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
+                                    class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-300"></i>
+                                <span>Open Serie (Max 50x)</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <form action="{{ route('packages.sell-bag') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="amount" value="1">
+                            <button type="submit"
+                                    {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
+                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition cursor-pointer">
+                                Lever 1 In bij Heler (€ 2.500)
+                            </button>
+                        </form>
+
+                        @if(($character->unopened_bags ?? 0) > 1)
+                            <form action="{{ route('packages.sell-bag') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="amount" value="{{ min(100, $character->unopened_bags) }}">
+                                <button type="submit"
+                                        {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
+                                        class="w-full py-2.5 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-black text-xs uppercase tracking-wider transition cursor-pointer">
+                                    Lever {{ min(100, $character->unopened_bags) }}x In (€{{ number_format(min(100, $character->unopened_bags) * 2500, 0, ',', '.') }})
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- XXL Vault Cases & Master Bundle Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-white dark:bg-slate-900 border border-amber-300/80 dark:border-amber-700/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black uppercase text-amber-800 dark:text-amber-300">
+                                👑 XXL Kluiskoffers
+                            </span>
+                            <span class="text-xs font-mono font-black text-amber-600 dark:text-amber-400">
+                                {{ $character->xxl_cases ?? 0 }} stuks
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Zware directiekisten met €25.000–€75.000 bankgeld, 2–4 Sterren, 5–12 Bivakmutsen en meerdere kluiscodes.
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        @if(($character->xxl_cases ?? 0) > 0)
+                            <form action="{{ route('packages.open-xxl') }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                        {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                        class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:bg-slate-200 disabled:text-slate-400 text-slate-950 font-black text-xs uppercase cursor-pointer">
+                                    Ontgrendel XXL Kluiskoffer
+                                </button>
+                            </form>
+                        @endif
+
+                        <form action="{{ route('packages.buy-xxl') }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                    {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 100 ? 'disabled' : '' }}
+                                    class="btn-star-gold w-full py-2.5 px-4 rounded-xl font-black text-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                ⭐ Schaf XXL Koffer Aan (100 Sterren)
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black uppercase text-slate-900 dark:text-white">
+                                ⚡ Directe Master-Lading
+                            </span>
+                            <span class="text-xs font-mono font-black text-indigo-600 dark:text-indigo-400">
+                                100 ⭐
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Sla het onderscheppen over en laat direct een diplomatieke geldzending met bivakmutsen en codes afleveren.
+                        </p>
+                    </div>
+
+                    <form action="{{ route('shop.buy-star-item') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="item_type" value="package_150">
+                        <button type="submit"
+                                @if(($character->stars ?? 0) < 100 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-xs uppercase cursor-pointer">
+                            Bestel Master-Lading
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN (5 cols): Forensic Cracking Timeline Cards (Replaces old HTML Table) -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                        Kraak-Historie
+                    </span>
+                    <h2 class="text-sm font-black uppercase text-slate-900 dark:text-white">
+                        Forensisch Buit-Archief
+                    </h2>
+                </div>
+                <i class="fa-solid fa-folder-open text-indigo-500"></i>
+            </div>
+
+            <div class="space-y-2.5">
+                @forelse($kofferLogs ?? [] as $log)
+                    <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
+                        <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                            <span class="font-bold text-indigo-600 dark:text-indigo-400">Registratie #{{ 150000 + $log->id }}</span>
+                            <span>{{ $log->created_at->format('d-m-Y H:i') }}</span>
+                        </div>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
+                            {{ $log->loot_summary }}
+                        </p>
+                    </div>
+                @empty
+                    <div class="py-10 text-center text-xs text-slate-400 italic">
+                        Er zijn nog geen geopende kisten vastgelegd in je archief.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+    </div>
+
 </div>
 @endsection
-

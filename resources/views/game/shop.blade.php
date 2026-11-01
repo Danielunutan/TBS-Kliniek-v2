@@ -6,24 +6,22 @@
         $slug = $item->slug ?? '';
         $nameLower = strtolower($item->name ?? '');
 
-        // Category mapping
-        if (in_array($slug, ['frikandelbroodje', 'saucijzenbroodje', 'bami-schijf-speciaal', 'broodje-bal-mayo', 'portie-bitterballen', 'kapsalon-paviljoen-7', 'gouden-frikandel']) 
+        if (in_array($slug, ['frikandelbroodje', 'saucijzenbroodje', 'bami-schijf-speciaal', 'broodje-bal-mayo', 'portie-bitterballen', 'kapsalon-paviljoen-7', 'gouden-frikandel'])
             || str_contains($nameLower, 'frikandel') || str_contains($nameLower, 'broodje') || str_contains($nameLower, 'bami') || str_contains($nameLower, 'bitterbal') || str_contains($nameLower, 'kapsalon')) {
             $cat = 'eten';
-        } elseif (in_array($slug, ['sterke-kliniek-koffie', 'energy-drink-xxl']) 
+        } elseif (in_array($slug, ['sterke-kliniek-koffie', 'energy-drink-xxl'])
             || str_contains($nameLower, 'koffie') || str_contains($nameLower, 'energy') || str_contains($nameLower, 'drank')) {
             $cat = 'drank';
-        } elseif (in_array($slug, ['strip-oxazepam', 'ehbo-noodverbanddoos', 'adrenaline-injectie', 'strip-ritalin', 'haloperidol-forte']) 
+        } elseif (in_array($slug, ['strip-oxazepam', 'ehbo-noodverbanddoos', 'adrenaline-injectie', 'strip-ritalin', 'haloperidol-forte'])
             || str_contains($nameLower, 'oxazepam') || str_contains($nameLower, 'ehbo') || str_contains($nameLower, 'adrenaline') || str_contains($nameLower, 'medicijn') || str_contains($nameLower, 'ritalin') || str_contains($nameLower, 'haloperidol')) {
             $cat = 'medisch';
-        } elseif (in_array($slug, ['trainingshandschoenen', 'paarse-trainingsjas', 'sporttas', 'legendarische-halter', 'eiwitshake-bodybuilder', 'multivitaminen-focus', 'boksbeugel', 'stalen-neus-kisten']) 
+        } elseif (in_array($slug, ['trainingshandschoenen', 'paarse-trainingsjas', 'sporttas', 'legendarische-halter', 'eiwitshake-bodybuilder', 'multivitaminen-focus', 'boksbeugel', 'stalen-neus-kisten'])
             || str_contains($nameLower, 'training') || str_contains($nameLower, 'halter') || str_contains($nameLower, 'boksbeugel') || str_contains($nameLower, 'kisten') || str_contains($nameLower, 'eiwitshake') || str_contains($nameLower, 'vitamin') || str_contains($nameLower, 'sporttas')) {
             $cat = 'kracht';
         } else {
             $cat = 'smokkel';
         }
 
-        // Icon mapping (100% verified FontAwesome 6 Free icons - no broken or missing icons!)
         $icon = match($slug) {
             'frikandelbroodje' => 'fa-solid fa-hotdog',
             'saucijzenbroodje' => 'fa-solid fa-bread-slice',
@@ -53,12 +51,11 @@
             'ritalin', 'strip-ritalin' => 'fa-solid fa-pills',
             'haloperidol-forte' => 'fa-solid fa-syringe',
             'telefoon' => 'fa-solid fa-mobile-screen',
-            default => (!empty($item->icon) && !in_array($item->icon, ['fa-vest', 'fa-mitten', 'fa-key-skeleton', 'fa-utensils']) 
-                ? (str_starts_with($item->icon, 'fa-') ? 'fa-solid ' . $item->icon : $item->icon) 
+            default => (!empty($item->icon) && !in_array($item->icon, ['fa-vest', 'fa-mitten', 'fa-key-skeleton', 'fa-utensils'])
+                ? (str_starts_with($item->icon, 'fa-') ? 'fa-solid ' . $item->icon : $item->icon)
                 : 'fa-solid fa-box')
         };
 
-        // Tailored color badges
         $badgeClass = match($cat) {
             'eten' => ($slug === 'gouden-frikandel' ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-xs ring-1 ring-amber-400' : 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60'),
             'drank' => 'bg-cyan-100 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300 border border-cyan-200/60 dark:border-cyan-800/60',
@@ -75,6 +72,26 @@
     $rawShopTab = (string) session('shop_tab', request('tab', 'pakketten'));
     $safeShopTab = in_array($rawShopTab, $allowedShopTabs, true) ? $rawShopTab : 'pakketten';
     $hasExplicitShopTab = session()->has('shop_tab') || in_array((string) request('tab'), $allowedShopTabs, true);
+
+    $dailyDealItem = $dailyDealItem ?? null;
+    $dailyDealDiscountPct = (int) ($dailyDealDiscountPct ?? 15);
+    $charismaDiscountPct = min(15, (int) floor($character->getEffectiveCharisma() / 10));
+
+    $playerStats = $playerStatsComparison ?? [
+        'energy' => (int) $character->energy,
+        'max_energy' => (int) max(1, $character->max_energy),
+        'health' => (int) $character->health,
+        'max_health' => (int) max(1, $character->max_health),
+        'strength' => (int) $character->getEffectiveStrength(),
+        'base_strength' => (int) ($character->strength ?? 10),
+        'defense' => (int) $character->getEffectiveDefense(),
+        'stamina' => (int) $character->getEffectiveStamina(),
+        'base_stamina' => (int) ($character->stamina ?? 10),
+        'intelligence' => (int) $character->getEffectiveIntelligence(),
+        'charisma' => (int) $character->getEffectiveCharisma(),
+        'discipline' => (int) $character->getEffectiveDiscipline(),
+        'stat_cap' => (int) $character->getMaxStatForLevel(),
+    ];
 @endphp
 
 <div class="space-y-6" x-data="{ 
@@ -155,7 +172,7 @@
                     ...this.itemToast,
                     [itemId]: {
                         type: 'success',
-                        text: qty + 'x Gekocht! (Voorraad: ' + data.owned_count + 'x)'
+                        text: qty + 'x Aangeschaft! (In bezit: ' + data.owned_count + 'x)'
                     }
                 };
                 setTimeout(() => {
@@ -176,7 +193,7 @@
                     ...this.itemToast,
                     [itemId]: {
                         type: 'error',
-                        text: data.message || 'Niet genoeg geld of aankoop mislukt.'
+                        text: data.message || 'Transactie geweigerd.'
                     }
                 };
                 setTimeout(() => {
@@ -199,540 +216,243 @@
 
     @include('game.control_points.banner', ['slug' => 'kantine'])
 
-    <!-- Top Hero Banner -->
-    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-black px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70 mb-2">
-                    <i class="fa-solid fa-store"></i> De Kliniek Kiosk & Winkel
+    <!-- Top Command Banner -->
+    <div class="rounded-2xl shadow-xs p-6 sm:p-7 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="space-y-1.5">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-black px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70">
+                    <i class="fa-solid fa-cart-flatbed-suitcase"></i> Paviljoen Bevoorrading &amp; Zwarte Toonbank
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Kliniek Shop</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Scoor exclusieve bundels, VIP-voordelen, kluiscodes en koffers als bedankje bij een vrijwillige supportersdonatie of met verdiende Sterren, en haal handige kantinesnacks met fictief in-game speelgeld!
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Kliniek Handelsplein &amp; Uitrustingsgrid</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
+                    Vergelijk elk artikel rechtstreeks met je huidige eigenschappen, profiteer van de dagelijkse <strong>-{{ $dailyDealDiscountPct }}% Dagdeal</strong> en stel voorraadpakketten of sterrenprivileges veilig.
                 </p>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-black text-amber-700 dark:text-amber-400 flex items-center gap-1.5 shadow-2xs">
-                    <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Sterren
-                </span>
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-black text-purple-700 dark:text-purple-400 flex items-center gap-1.5 shadow-2xs">
-                    <i class="fa-solid fa-mask text-purple-600"></i> {{ $character->masks ?? 0 }} Maskers
-                </span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0">
+                <div class="px-3.5 py-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">Sterren</span>
+                    <span class="text-sm font-black text-amber-600 dark:text-amber-300 flex items-center gap-1 mt-0.5">
+                        <i class="fa-solid fa-star text-amber-500 text-xs"></i> {{ $character->stars ?? 0 }}
+                    </span>
+                </div>
+                <div class="px-3.5 py-2.5 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400 block">Maskers</span>
+                    <span class="text-sm font-black text-purple-700 dark:text-purple-300 flex items-center gap-1 mt-0.5">
+                        <i class="fa-solid fa-mask text-purple-500 text-xs"></i> {{ $character->masks ?? 0 }}
+                    </span>
+                </div>
+                <div class="px-3.5 py-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">Charisma-Korting</span>
+                    <span class="text-sm font-black text-emerald-700 dark:text-emerald-300 font-mono mt-0.5 block">
+                        -{{ $charismaDiscountPct }}%
+                    </span>
+                </div>
+                <div class="px-3.5 py-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Depot Vakken</span>
+                    <span class="text-sm font-black text-slate-800 dark:text-white font-mono mt-0.5 block" x-text="storageUsed + '/' + storageCapacity">
+                        {{ $character->getStorageUsed() }}/{{ $character->getStorageCapacity() }}
+                    </span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- SERVER SUPPORT & RECLAMEVRIJ HERO PROMO -->
-    <div class="rounded-2xl p-5 bg-gradient-to-r from-amber-500/15 via-purple-600/15 to-purple-800/20 border border-amber-300 dark:border-amber-500/40 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xs">
-        <div class="flex items-center gap-3.5">
-            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-purple-950 flex items-center justify-center text-2xl font-black shrink-0 shadow-md">
-                <i class="fa-solid fa-mug-hot"></i>
-            </div>
-            <div>
-                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider mb-1">
-                    Vrijwillige Donatie • 100% Reclamevrij
-                </div>
-                <h3 class="font-black text-sm sm:text-base text-slate-900 dark:text-white">Trakteer op Koffie of Steun als VIP Lid</h3>
-                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    TBS Kliniek is een non-profit game. Dingen zoals VIP en Sterren vallen onder een vrijwillige donatie ter dekking van onze hostingkosten! Als dank ontvang je direct <strong>+25 Sterren</strong>, <strong>+1 Masker</strong> en <strong>+50 Kogels</strong>!
-                </p>
-            </div>
-        </div>
-        <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-            <button type="button" @click="setShopTab('donaties')" 
-                    class="btn-star-gold w-full sm:w-auto px-4 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 text-center cursor-pointer">
-                <i class="fa-solid fa-mug-hot mr-1"></i> Koffie Doneren
-            </button>
-            <a href="{{ route('vip.index') }}" 
-               class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 text-center cursor-pointer">
-                <i class="fa-solid fa-crown mr-1"></i> VIP Donaties
-            </a>
-        </div>
-    </div>
-
-    <!-- MOBILE APP STICKY NAVIGATION BAR (Fast Mobile App Experience) -->
+    <!-- MOBILE STICKY SEGMENTED BAR -->
     <div class="lg:hidden sticky top-2 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-md space-y-2">
-        <!-- Horizontal Scrollable Segmented Chips -->
         <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 px-0.5">
-            <button type="button" @click="setShopTab('pakketten')" 
-                    :class="shopTab === 'pakketten' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'" 
+            <button type="button" @click="setShopTab('items')"
+                    :class="shopTab === 'items' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'"
                     class="px-3 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-basket-shopping text-xs"></i>
-                <span>Pakketten</span>
+                <i class="fa-solid fa-table-cells-large text-xs"></i>
+                <span>Grid-Winkel</span>
             </button>
-            <button type="button" @click="setShopTab('items')" 
-                    :class="shopTab === 'items' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'" 
+            <button type="button" @click="setShopTab('pakketten')"
+                    :class="shopTab === 'pakketten' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'"
                     class="px-3 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                <i class="fa-solid fa-utensils text-xs"></i>
-                <span>Kantine</span>
+                <i class="fa-solid fa-boxes-packing text-xs"></i>
+                <span>Bundels</span>
             </button>
-            <button type="button" @click="setShopTab('sterren')" 
-                    :class="shopTab === 'sterren' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'" 
+            <button type="button" @click="setShopTab('sterren')"
+                    :class="shopTab === 'sterren' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'"
                     class="px-3 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                 <i class="fa-solid fa-gem text-amber-500 text-xs"></i>
-                <span>Sterren</span>
+                <span>Sterrenkiosk</span>
             </button>
-            <button type="button" @click="setShopTab('inventaris')" 
-                    :class="shopTab === 'inventaris' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'" 
+            <button type="button" @click="setShopTab('inventaris')"
+                    :class="shopTab === 'inventaris' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'"
                     class="px-3 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                 <i class="fa-solid fa-box-archive text-xs"></i>
-                <span>Rugzak</span>
+                <span>Plunjezak</span>
                 <span class="px-1.5 py-0.5 rounded-full bg-purple-200 dark:bg-purple-950 text-purple-800 dark:text-purple-300 font-black text-[10px]" x-text="totalInvCount"></span>
             </button>
-            <button type="button" @click="setShopTab('donaties')" 
-                    :class="shopTab === 'donaties' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 shadow-xs font-black' : 'text-amber-700 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60'" 
+            <button type="button" @click="setShopTab('donaties')"
+                    :class="shopTab === 'donaties' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 shadow-xs font-black' : 'text-amber-700 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60'"
                     class="px-3 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                 <i class="fa-solid fa-mug-hot text-xs text-amber-500"></i>
-                <span>Koffie &amp; VIP</span>
+                <span>Supporter</span>
             </button>
-        </div>
-
-        <!-- Mobile Quick-Wallet Strip -->
-        <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] px-1 font-bold">
-            <span class="text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> {{ $character->stars ?? 0 }}
-            </span>
-            <span class="text-purple-700 dark:text-purple-400 flex items-center gap-1">
-                <i class="fa-solid fa-mask text-[10px]"></i> {{ $character->masks ?? 0 }}
-            </span>
-            <span class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-mono">
-                <i class="fa-solid fa-wallet text-[10px]"></i> €{{ number_format($character->cash, 0, ',', '.') }}
-            </span>
-            <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                <i class="fa-solid fa-warehouse text-[10px]"></i> <span x-text="storageUsed + '/' + storageCapacity"></span>
-            </span>
         </div>
     </div>
 
-    <!-- MAIN TWO COLUMN SHOP LAYOUT -->
+    <!-- FLIPPED MAIN GRID: LEFT = 9-COL INTERACTIVE GRID-SHOP, RIGHT = 3-COL TELEMETRY & DOCK -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- Left Column: Shop Sidebar Navigation (Desktop only) -->
-        <div class="hidden lg:block lg:col-span-3 space-y-4">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <button type="button" @click="setShopTab('donaties')" 
-                        :class="shopTab === 'donaties' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 font-black shadow-md' : 'hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-300/80 dark:border-amber-800/80'"
-                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-mug-hot text-amber-500 w-4 text-center"></i>
-                        <span>Koffie & VIP Steunen</span>
-                    </span>
-                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-400 text-purple-950 font-black uppercase tracking-wider">Donatie</span>
-                </button>
+        <!-- Left Column (lg:col-span-9): Main Interactive Shop Views -->
+        <div class="lg:col-span-9 space-y-6 order-2 lg:order-1">
 
-                <button type="button" @click="setShopTab('pakketten')" 
-                        :class="shopTab === 'pakketten' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
-                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-basket-shopping text-purple-600 dark:text-purple-400 w-4 text-center"></i>
-                        <span>Pakketten & Deals</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
-                </button>
+            <!-- TAB: MODERNE GRID-SHOP MET AANBIEDING VAN DE DAG & STAT-VERGELIJKING -->
+            <div x-show="shopTab === 'items'" class="space-y-6">
+                @include('partials.bmac_banner')
 
-                <button type="button" @click="setShopTab('sterren')" 
-                        :class="shopTab === 'sterren' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
-                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-gem text-amber-500 w-4 text-center"></i>
-                        <span>Sterren Items</span>
-                    </span>
-                    <span class="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold flex items-center gap-1">{{ $character->stars ?? 0 }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
-                </button>
+                <!-- AANBIEDING VAN DE DAG (DETERMINISTIC DAILY DEAL SPOTLIGHT) -->
+                @if($dailyDealItem)
+                @php
+                    $ddMeta = $getItemData($dailyDealItem);
+                    $ddCombinedPct = min(25, $charismaDiscountPct + $dailyDealDiscountPct);
+                    $ddDiscountedPrice = (int) round($dailyDealItem->price_kc * (1 - ($ddCombinedPct / 100)));
+                    $ddOwned = $dailyDealItem->slug === 'bivakmuts-masker'
+                        ? (int) ($character->masks ?? 0)
+                        : ($inventory->firstWhere('item_id', $dailyDealItem->id)?->quantity ?? 0);
+                @endphp
+                <div class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-amber-500/15 via-purple-600/10 to-emerald-500/15 border-2 border-amber-400/80 dark:border-amber-500/60 shadow-sm relative overflow-hidden"
+                     data-testid="daily-deal-spotlight">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+                        <div class="flex items-start sm:items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl {{ $ddMeta['badgeClass'] }} flex items-center justify-center text-2xl shrink-0 shadow-md ring-2 ring-amber-400/60">
+                                <i class="{{ $ddMeta['icon'] }}"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-fire"></i> Aanbieding van de Dag (-{{ $dailyDealDiscountPct }}%)
+                                    </span>
+                                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono">
+                                        Datumselectie: {{ now()->format('d-m-Y') }}
+                                    </span>
+                                </div>
+                                <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                                    {{ $dailyDealItem->name }}
+                                </h3>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 max-w-xl">
+                                    Vandaag geselecteerd door de kantinebeheerder met <strong>{{ $dailyDealDiscountPct }}% dagkorting</strong> bovenop je Charisma-voordeel (totale korting: <strong>{{ $ddCombinedPct }}%</strong>).
+                                </p>
+                                <div class="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-bold">
+                                    @if($dailyDealItem->energy_restore > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300">
+                                            Energie: {{ $playerStats['energy'] }} &rarr; {{ min($playerStats['max_energy'], $playerStats['energy'] + $dailyDealItem->energy_restore) }} (+{{ $dailyDealItem->energy_restore }})
+                                        </span>
+                                    @endif
+                                    @if($dailyDealItem->health_restore > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300">
+                                            HP: {{ $playerStats['health'] }} &rarr; {{ min($playerStats['max_health'], $playerStats['health'] + $dailyDealItem->health_restore) }} (+{{ $dailyDealItem->health_restore }})
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
 
-                <button type="button" @click="setShopTab('items')" 
-                        :class="shopTab === 'items' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
-                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-utensils text-emerald-600 dark:text-emerald-400 w-4 text-center"></i>
-                        <span>Kantine Items</span>
-                    </span>
-                    <span class="text-[10px] text-slate-400">Speelgeld (€)</span>
-                </button>
+                        <div class="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end justify-between gap-3 shrink-0 border-t lg:border-t-0 pt-3 lg:pt-0 border-amber-300/50 dark:border-amber-800/50">
+                            <div class="text-left lg:text-right">
+                                <span class="text-xs text-slate-400 line-through font-mono mr-1.5">€{{ number_format($dailyDealItem->price_kc, 0, ',', '.') }}</span>
+                                <span class="text-lg font-black text-emerald-700 dark:text-emerald-400 font-mono">€{{ number_format($ddDiscountedPrice, 0, ',', '.') }}</span>
+                                <span class="block text-[10px] font-bold text-amber-700 dark:text-amber-300">Directe besparing per stuk</span>
+                            </div>
 
-                <!-- Mijn Inventaris Tab -->
-                <button type="button" @click="setShopTab('inventaris')" 
-                        :class="shopTab === 'inventaris' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
-                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer">
-                    <span class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-box-archive text-purple-600 dark:text-purple-400 w-4 text-center"></i>
-                        <span>Mijn Inventaris</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-extrabold text-[10px]" x-text="totalInvCount + ' items'">
-                        {{ $inventory->sum('quantity') }} items
-                    </span>
-                </button>
-            </div>
-
-            <!-- Character Wallet Badge Card -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block border-b border-slate-100 dark:border-slate-800 pb-2">
-                    Jouw Bezittingen
-                </span>
-                <div class="space-y-2.5 text-xs">
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">Sterren:</span>
-                        <span class="font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1">{{ $character->stars ?? 0 }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">Koffers:</span>
-                        <span class="font-extrabold text-purple-700 dark:text-purple-400">{{ $character->unopened_bags ?? 0 }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">Maskers:</span>
-                        <span class="font-extrabold text-indigo-700 dark:text-indigo-400">{{ $character->masks ?? 0 }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">Bank:</span>
-                        <span class="font-extrabold text-emerald-600 dark:text-emerald-400">€{{ number_format($character->bank, 0, ',', '.') }}</span>
+                            <form action="{{ route('shop.buy', $dailyDealItem->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $dailyDealItem->id }}, 1)">
+                                @csrf
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit"
+                                        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider transition active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-bolt"></i>
+                                    <span>Pak Dagdeal (€{{ number_format($ddDiscountedPrice, 0, ',', '.') }})</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+                @endif
 
-        <!-- Right Content Area: Bundles & Showcase -->
-        <div class="lg:col-span-9 space-y-6">
-
-            <!-- TAB: KOFFIE & VIP DONATIES -->
-            <div x-show="shopTab === 'donaties'" class="space-y-6">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
-                    <div class="border-b border-slate-100 dark:border-slate-800 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <!-- LIVE SPELER STAT-VERGELIJKINGSBALK -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[10px] font-black uppercase tracking-wider mb-2">
-                                Vrijwillige Server Donaties • Geen Reclame Meer
-                            </span>
-                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Trakteer op Koffie of Steun TBS Kliniek</h2>
-                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-                                Alle bijdragen voor VIP-lidmaatschappen, Sterren en koffies vallen onder een vrijwillige donatie ter dekking van server- en hostingkosten. Als dank voor jouw steun aan dit non-profit project beloont het systeem je direct met virtuele in-game perks!
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-simple text-purple-600 dark:text-purple-400"></i>
+                                <span>Huidig Spelersprofiel &amp; Stat-Referentie</span>
+                            </h3>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                Elk winkelartikel hieronder toont direct hoe het zich verhoudt tot jouw actuele waarden en je levelplafond ({{ $playerStats['stat_cap'] }}).
                             </p>
                         </div>
-                        <a href="{{ route('vip.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black shrink-0 transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-crown text-amber-400"></i>
-                            <span>Alle VIP Donaties</span>
-                        </a>
+                        <span class="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            Level {{ $character->level }} Plafond: {{ $playerStats['stat_cap'] }} pt
+                        </span>
                     </div>
 
-                    <!-- Koffie opties 1, 3 en 5 -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-3 flex flex-col justify-between">
-                            <div class="space-y-2">
-                                <div class="text-3xl">☕</div>
-                                <h4 class="font-black text-sm text-slate-900 dark:text-white">1x Bakkie Koffie</h4>
-                                <div class="text-lg font-black text-amber-600 dark:text-amber-400">€3,00</div>
-                                <div class="text-xs text-slate-600 dark:text-slate-300 font-bold space-y-1 pt-2 text-left border-t border-slate-200/80 dark:border-slate-700/70">
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-500 text-[10px]"></i> +25 Sterren</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-mask text-purple-500 text-[10px]"></i> +1 Masker</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> +50 Kogels</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-heart text-pink-500 text-[10px]"></i> Donateur Badge</div>
-                                </div>
-                            </div>
-                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
-                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
-                                Doneer €3 (Vrijwillig)
-                            </a>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 text-xs">
+                        <div class="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-800/60">
+                            <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 block">Energie</span>
+                            <span class="font-black text-slate-900 dark:text-white font-mono">{{ $playerStats['energy'] }}/{{ $playerStats['max_energy'] }}</span>
                         </div>
-
-                        <div class="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-500/80 text-center space-y-3 flex flex-col justify-between shadow-md relative">
-                            <div class="absolute -top-3 right-4 bg-amber-500 text-purple-950 font-black text-[9px] uppercase px-2 py-0.5 rounded-full">
-                                Populairste Keuze
-                            </div>
-                            <div class="space-y-2">
-                                <div class="text-3xl">☕☕☕</div>
-                                <h4 class="font-black text-sm text-slate-900 dark:text-white">3x Bakkie Koffie</h4>
-                                <div class="text-lg font-black text-amber-600 dark:text-amber-400">€9,00</div>
-                                <div class="text-xs text-slate-600 dark:text-slate-300 font-bold space-y-1 pt-2 text-left border-t border-amber-300/60 dark:border-amber-800/60">
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-500 text-[10px]"></i> <strong>+85 Sterren</strong> (+10 bonus!)</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-mask text-purple-500 text-[10px]"></i> +3 Maskers</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-indigo-500 text-[10px]"></i> 1x XXL Zaak Kist</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> +200 Kogels</div>
-                                </div>
-                            </div>
-                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
-                               class="btn-star-gold block w-full py-2.5 rounded-xl font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
-                                Doneer €9 (Vrijwillig)
-                            </a>
+                        <div class="p-2.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-800/60">
+                            <span class="text-[10px] font-bold text-rose-700 dark:text-rose-400 block">Gezondheid</span>
+                            <span class="font-black text-slate-900 dark:text-white font-mono">{{ $playerStats['health'] }}/{{ $playerStats['max_health'] }}</span>
                         </div>
-
-                        <div class="p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-center space-y-3 flex flex-col justify-between">
-                            <div class="space-y-2">
-                                <div class="text-3xl">☕☕☕☕☕</div>
-                                <h4 class="font-black text-sm text-slate-900 dark:text-white">5x Bakkie Koffie</h4>
-                                <div class="text-lg font-black text-amber-600 dark:text-amber-400">€15,00</div>
-                                <div class="text-xs text-slate-600 dark:text-slate-300 font-bold space-y-1 pt-2 text-left border-t border-slate-200/80 dark:border-slate-700/70">
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-500 text-[10px]"></i> <strong>+160 Sterren</strong> (+35 bonus!)</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-mask text-purple-500 text-[10px]"></i> +6 Maskers</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-indigo-500 text-[10px]"></i> 2x XXL Zaak Kisten</div>
-                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> +500 Kogels</div>
-                                </div>
-                            </div>
-                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
-                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
-                                Doneer €15 (Vrijwillig)
-                            </a>
+                        <div class="p-2.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/70 dark:border-purple-800/60">
+                            <span class="text-[10px] font-bold text-purple-700 dark:text-purple-400 block">Kracht</span>
+                            <span class="font-black text-slate-900 dark:text-white font-mono">{{ $playerStats['strength'] }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-800/60">
+                            <span class="text-[10px] font-bold text-blue-700 dark:text-blue-400 block">Verdediging</span>
+                            <span class="font-black text-slate-900 dark:text-white font-mono">{{ $playerStats['defense'] }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/60">
+                            <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400 block">Conditie</span>
+                            <span class="font-black text-slate-900 dark:text-white font-mono">{{ $playerStats['stamina'] }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-800/60">
+                            <span class="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 block">Intelligentie</span>
+                            <span class="font-black text-slate-900 dark:text-white font-mono">{{ $playerStats['intelligence'] }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-pink-50/70 dark:bg-pink-950/30 border border-pink-200/70 dark:border-pink-800/60">
+                            <span class="text-[10px] font-bold text-pink-700 dark:text-pink-400 block">Charisma</span>
+                            <span class="font-black text-slate-900 dark:text-white font-mono">{{ $playerStats['charisma'] }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-cyan-50/70 dark:bg-cyan-950/30 border border-cyan-200/70 dark:border-cyan-800/60">
+                            <span class="text-[10px] font-bold text-cyan-700 dark:text-cyan-400 block">Discipline</span>
+                            <span class="font-black text-slate-900 dark:text-white font-mono">{{ $playerStats['discipline'] }}</span>
                         </div>
                     </div>
-
-                    <!-- Uitgebreide Buy Me a Coffee Instructies & Koppelcode -->
-                    @include('partials.bmac_instructions')
-                </div>
-            </div>
-
-            <!-- TAB: PAKKETTEN & BUNDELS -->
-            <div x-show="shopTab === 'pakketten'" class="space-y-6">
-
-                <!-- Snelinstructie Buy Me a Coffee Koppeling -->
-                @include('partials.bmac_banner')
-
-                <!-- Special Action Banner -->
-                <div class="bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-950/40 dark:via-pink-950/20 dark:to-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 rounded-2xl p-4 text-center shadow-xs">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 border border-purple-200/80 dark:border-purple-800/70 px-3 py-0.5 rounded-full mb-1.5 inline-block">
-                        SPECIALE ACTIE
-                    </span>
-                    <p class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white mt-1">
-                        Bij iedere aankoop vanaf 100 sterren ontvang je <strong class="text-purple-700 dark:text-purple-400">1 XXL koffer als bonus</strong>
-                    </p>
-                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Exclusief VIP en extra kluiscodes!</span>
                 </div>
 
-                <!-- Active Bundle Showcase Card -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5"
-                     x-data="{ currentBundle() { return bundles[selectedBundleId] || bundles['afdelingsbaas_deal'] || Object.values(bundles)[0]; } }">
-                    
-                    <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white" x-text="currentBundle().name"></h3>
-                            <div class="text-sm font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-3 py-1 rounded-full w-fit inline-flex items-center gap-1.5">
-                                <span>Prijs: <span x-text="currentBundle().cost_stars"></span> Sterren</span>
-                                <i class="fa-solid fa-star text-amber-500 text-xs"></i>
-                            </div>
-                        </div>
-
-                        <!-- Bundle Contents List with Icons -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                            <div class="flex items-center gap-3 p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-700 dark:text-slate-200 font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-coins"></i>
-                                </div>
-                                <span>€<strong x-text="new Intl.NumberFormat('nl-NL').format(currentBundle().cash)"></strong> Wit Bankgeld</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-700 dark:text-slate-200 font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-key"></i>
-                                </div>
-                                <span><strong x-text="currentBundle().codes"></strong> Kluiscodes</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-700 dark:text-slate-200 font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-briefcase"></i>
-                                </div>
-                                <span><strong x-text="currentBundle().koffers"></strong> Koffers</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-700 dark:text-slate-200 font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-950/70 text-pink-600 dark:text-pink-400 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-mask"></i>
-                                </div>
-                                <span><strong x-text="currentBundle().masks"></strong> Maskers</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Buy / Gift Form -->
-                    <form action="{{ route('shop.buy-bundle') }}" method="POST" class="space-y-4">
-                        @csrf
-                        <input type="hidden" name="bundle_id" :value="selectedBundleId">
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                Aantal keer kopen:
-                            </label>
-                            <input type="number" name="quantity" min="1" max="10" x-model="bundleQty" required 
-                                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
-                        </div>
-
-                        <!-- Gifting Selector with Autocomplete Search Input -->
-                        <div x-data="{
-                            search: '',
-                            selectedId: '',
-                            selectedName: '',
-                            openDropdown: false,
-                            patients: @js(array_merge([
-                                [
-                                    'id' => '',
-                                    'name' => 'Mijn eigen account (' . $character->name . ')',
-                                    'level' => (int) $character->level,
-                                    'respect' => (int) $character->respect,
-                                    'isSelf' => true,
-                                ],
-                            ], collect($otherPatients)->map(fn($p) => [
-                                'id' => (string) $p->id,
-                                'name' => $p->name,
-                                'level' => (int) $p->level,
-                                'respect' => (int) $p->respect,
-                                'isSelf' => false,
-                            ])->values()->all())),
-                            get filtered() {
-                                if (!this.search.trim()) return this.patients.slice(0, 25);
-                                return this.patients.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 25);
-                            },
-                            select(patient) {
-                                this.selectedId = patient.id;
-                                this.selectedName = patient.name;
-                                this.search = patient.name;
-                                this.openDropdown = false;
-                                recipientId = patient.id;
-                            }
-                        }" class="relative">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                Wil je dit product cadeau geven? Selecteer of typ ontvanger:
-                            </label>
-                            <input type="hidden" name="recipient_id" :value="selectedId">
-                            <input type="hidden" name="recipient_name" :value="search">
-
-                            <div class="relative flex items-center">
-                                <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-purple-600 dark:text-purple-400 text-xs z-10">
-                                    <i class="fa-solid fa-user-tag"></i>
-                                </div>
-                                <input type="text"
-                                       x-model="search"
-                                       @focus="openDropdown = true"
-                                       @input="openDropdown = true; selectedId = ''"
-                                       @click.outside="openDropdown = false"
-                                       autocomplete="off"
-                                       placeholder="Mijn eigen account ({{ $character->name }}) of typ naam..."
-                                       class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl py-2.5 text-xs font-bold focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition tbs-search-input shadow-2xs"
-                                       style="padding-left: 2.75rem !important; padding-right: 2.25rem !important;">
-                                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
-                                    <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
-                                </div>
-                            </div>
-
-                            <!-- Supplemental Dropdown List -->
-                            <div x-show="openDropdown" 
-                                 x-transition
-                                 class="absolute z-50 left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80">
-                                <template x-for="p in filtered" :key="p.name">
-                                    <button type="button" 
-                                            @click="select(p)"
-                                            class="w-full text-left px-3.5 py-2.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 flex items-center justify-between text-xs transition cursor-pointer group">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black"
-                                                  :class="p.isSelf ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200'">
-                                                <i :class="p.isSelf ? 'fa-solid fa-user' : 'fa-solid fa-user-ninja'"></i>
-                                            </span>
-                                            <div>
-                                                <span class="font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 block" x-text="p.name"></span>
-                                                <span class="text-[10px] text-slate-400" x-text="'Level ' + p.level + ' • ' + p.respect + ' Respect'"></span>
-                                            </div>
-                                        </div>
-                                        <span x-show="selectedName === p.name" class="text-purple-600 dark:text-purple-400 text-xs">
-                                            <i class="fa-solid fa-check"></i>
-                                        </span>
-                                    </button>
-                                </template>
-                                <template x-if="filtered.length === 0">
-                                    <div class="p-3 text-xs text-slate-400 text-center">
-                                        Geen medepatiënt gevonden met '<span x-text="search"></span>'
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" 
-                                :disabled="({{ $character->stars ?? 0 }}) < (currentBundle().cost_stars * bundleQty)"
-                                class="w-full py-3 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-lock text-xs"></i>
-                            <span>Betalen (<span x-text="currentBundle().cost_stars * bundleQty"></span> Sterren)</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Category Selector -->
-                <div class="flex items-center justify-center gap-2 bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 p-1.5 rounded-xl">
-                    <button type="button" @click="bundleFilter = 'all'" 
-                            :class="bundleFilter === 'all' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
-                            class="px-5 py-2 rounded-lg text-xs uppercase transition-all duration-150 active:scale-95 cursor-pointer">
-                        Alle Deals
-                    </button>
-                    <button type="button" @click="bundleFilter = 'smokkel'" 
-                            :class="bundleFilter === 'smokkel' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
-                            class="px-5 py-2 rounded-lg text-xs uppercase transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5">
-                        <i class="fa-solid fa-box text-xs"></i> Smokkel
-                    </button>
-                    <button type="button" @click="bundleFilter = 'kluisbuit'" 
-                            :class="bundleFilter === 'kluisbuit' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
-                            class="px-5 py-2 rounded-lg text-xs uppercase transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5">
-                        <i class="fa-solid fa-vault text-xs"></i> Kluisbuit
-                    </button>
-                    <button type="button" @click="bundleFilter = 'syndicaat'" 
-                            :class="bundleFilter === 'syndicaat' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
-                            class="px-5 py-2 rounded-lg text-xs uppercase transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5">
-                        <i class="fa-solid fa-crown text-xs"></i> Syndicaat
-                    </button>
-                </div>
-
-                <!-- Deals List Table -->
-                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs divide-y divide-slate-100 dark:divide-slate-800/80">
-                    @foreach($bundles as $bKey => $b)
-                    <div x-show="bundleFilter === 'all' || bundleFilter === '{{ $b['category'] }}'"
-                         @click="selectedBundleId = '{{ $bKey }}'"
-                         :class="selectedBundleId === '{{ $bKey }}' ? 'bg-purple-50/70 dark:bg-purple-950/40 border-l-4 border-purple-600' : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'"
-                         class="p-4 flex items-center justify-between gap-4 transition cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid fa-box-open"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-extrabold text-slate-900 dark:text-white">{{ $b['name'] }}</h4>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400">{{ $b['codes'] }} codes &bull; {{ $b['koffers'] }} koffers &bull; {{ $b['masks'] }} maskers</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-extrabold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">{{ number_format($b['cost_stars']) }} Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-
-                <!-- Bottom Disclaimer -->
-                <p class="text-xs text-slate-400 text-center leading-relaxed">
-                    Personen onder de 18 jaar dienen toestemming te hebben van hun ouders of voogd. De spelregels en voorwaarden zijn van toepassing op alle aankopen.
-                </p>
-            </div>
-
-            <!-- TAB: REGULIERE ITEMS (CONTANT GELD / EURO) -->
-            <div x-show="shopTab === 'items'" class="space-y-6">
-                <!-- Snelinstructie Buy Me a Coffee Koppeling -->
-                @include('partials.bmac_banner')
-
+                <!-- GRID-SHOP CONTAINER MET CATEGORIE-FILTERS -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div class="flex items-center gap-2.5">
                             <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-sm shadow-2xs">
-                                <i class="fa-solid fa-utensils"></i>
+                                <i class="fa-solid fa-table-cells-large"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Kantine & Uitrusting</h3>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Koop snacks, drankjes, medische spullen en smokkelwaar met je contant geld.</p>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Assortiments-Grid &amp; Stat-Vergelijker</h3>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Filter op afdeling en bekijk per kaart de exacte vooruitgang op jouw dossier.</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <div class="text-xs font-bold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition"
                                  :class="storageRemaining <= 0 ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 text-slate-700 dark:text-slate-300'">
                                 <i class="fa-solid fa-warehouse text-purple-600 dark:text-purple-400"></i>
-                                <span>Opslagruimte: <span class="font-mono font-black" x-text="storageUsed + '/' + storageCapacity"></span></span>
+                                <span>Celopslag: <span class="font-mono font-black" x-text="storageUsed + '/' + storageCapacity"></span></span>
                                 <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold font-mono"
                                       :class="storageRemaining <= 0 ? 'bg-rose-600 text-white' : 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300'"
                                       x-text="storageRemaining > 0 ? storageRemaining + ' vrij' : 'VOL'"></span>
                             </div>
                             <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1.5 cursor-pointer bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 px-3 py-1.5 rounded-lg transition w-fit">
                                 <i class="fa-solid fa-box-archive"></i>
-                                <span x-text="'Mijn inventaris (' + totalInvCount + ')'">Mijn inventaris ({{ $inventory->sum('quantity') }})</span>
+                                <span x-text="'Plunjezak (' + totalInvCount + ')'">Plunjezak ({{ $inventory->sum('quantity') }})</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Category Filter Tabs -->
                     @php
                         $categoryCounts = [
                             'eten' => 0,
@@ -749,181 +469,227 @@
                         }
                     @endphp
 
+                    <!-- Category Filter Pills -->
                     <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-slate-100 dark:border-slate-800">
                         <button type="button"
                                 @click="itemFilter = 'all'"
-                                :class="itemFilter === 'all' 
-                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                :class="itemFilter === 'all' ? 'bg-purple-600 text-white shadow-xs font-extrabold' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-border-all text-[11px]"></i>
-                            <span>Alle Items</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
+                            <span>Volledig Grid</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono"
                                   :class="itemFilter === 'all' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ count($items) }}
                             </span>
                         </button>
                         <button type="button"
                                 @click="itemFilter = 'eten'"
-                                :class="itemFilter === 'eten' 
-                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                :class="itemFilter === 'eten' ? 'bg-purple-600 text-white shadow-xs font-extrabold' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-burger text-[11px]" :class="itemFilter === 'eten' ? 'text-white' : 'text-amber-500'"></i>
-                            <span>Eten & Snacks</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
+                            <span>Kantinekeuken</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono"
                                   :class="itemFilter === 'eten' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['eten'] ?? 0 }}
                             </span>
                         </button>
                         <button type="button"
                                 @click="itemFilter = 'drank'"
-                                :class="itemFilter === 'drank' 
-                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                :class="itemFilter === 'drank' ? 'bg-purple-600 text-white shadow-xs font-extrabold' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-bolt text-[11px]" :class="itemFilter === 'drank' ? 'text-white' : 'text-cyan-500'"></i>
-                            <span>Drank & Energie</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
+                            <span>Cafeïne &amp; Drank</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono"
                                   :class="itemFilter === 'drank' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['drank'] ?? 0 }}
                             </span>
                         </button>
                         <button type="button"
                                 @click="itemFilter = 'medisch'"
-                                :class="itemFilter === 'medisch' 
-                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                :class="itemFilter === 'medisch' ? 'bg-purple-600 text-white shadow-xs font-extrabold' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-kit-medical text-[11px]" :class="itemFilter === 'medisch' ? 'text-white' : 'text-rose-500'"></i>
-                            <span>Medisch & Herstel</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
+                            <span>Ziekenboeg</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono"
                                   :class="itemFilter === 'medisch' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['medisch'] ?? 0 }}
                             </span>
                         </button>
                         <button type="button"
                                 @click="itemFilter = 'kracht'"
-                                :class="itemFilter === 'kracht' 
-                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                :class="itemFilter === 'kracht' ? 'bg-purple-600 text-white shadow-xs font-extrabold' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-dumbbell text-[11px]" :class="itemFilter === 'kracht' ? 'text-white' : 'text-indigo-500'"></i>
-                            <span>Kracht & Uitrusting</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
+                            <span>Gevechtsgear</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono"
                                   :class="itemFilter === 'kracht' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['kracht'] ?? 0 }}
                             </span>
                         </button>
                         <button type="button"
                                 @click="itemFilter = 'smokkel'"
-                                :class="itemFilter === 'smokkel' 
-                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                :class="itemFilter === 'smokkel' ? 'bg-purple-600 text-white shadow-xs font-extrabold' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-mask text-[11px]" :class="itemFilter === 'smokkel' ? 'text-white' : 'text-slate-600'"></i>
-                            <span>Smokkel & Sleutels</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
+                            <span>Gereedschap &amp; Maskers</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono"
                                   :class="itemFilter === 'smokkel' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['smokkel'] ?? 0 }}
                             </span>
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+                    <!-- MODERN PRODUCT GRID -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
                         @foreach($items as $item)
                         @php
                             $ownedCount = $item->slug === 'bivakmuts-masker'
                                 ? (int) ($character->masks ?? 0)
                                 : ($inventory->firstWhere('item_id', $item->id)?->quantity ?? 0);
                             $itemData = $getItemData($item);
+                            $isItemDailyDeal = $dailyDealItem && $dailyDealItem->id === $item->id;
+                            $itemTotalDiscountPct = min(25, $charismaDiscountPct + ($isItemDailyDeal ? $dailyDealDiscountPct : 0));
+
+                            $energyGainPreview = $item->slug === 'adrenaline-injectie'
+                                ? max(0, $playerStats['max_energy'] - $playerStats['energy'])
+                                : (int) ($item->energy_restore ?? 0);
+                            $healthGainPreview = $item->slug === 'ehbo-noodverbanddoos'
+                                ? max(0, $playerStats['max_health'] - $playerStats['health'])
+                                : (int) ($item->health_restore ?? 0);
+
+                            $projectedEnergy = min($playerStats['max_energy'], $playerStats['energy'] + $energyGainPreview);
+                            $projectedHealth = min($playerStats['max_health'], $playerStats['health'] + $healthGainPreview);
                         @endphp
                         <div x-show="itemFilter === 'all' || itemFilter === '{{ $itemData['cat'] }}'"
-                             class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600/70 rounded-xl p-3 sm:p-4 flex flex-col justify-between gap-2.5 sm:gap-3 transition shadow-xs">
-                            <div class="space-y-1.5 sm:space-y-2">
-                                <div class="flex items-start justify-between gap-2 min-h-[36px] sm:min-h-[40px]">
-                                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl {{ $itemData['badgeClass'] }} flex items-center justify-center text-sm sm:text-base shrink-0 shadow-2xs">
+                             class="bg-slate-50/90 dark:bg-slate-800/60 border {{ $isItemDailyDeal ? 'border-amber-400 dark:border-amber-500 ring-1 ring-amber-400/50' : 'border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600/70' }} rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs relative">
+                            <div class="space-y-2.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="w-10 h-10 rounded-xl {{ $itemData['badgeClass'] }} flex items-center justify-center text-base shrink-0 shadow-2xs">
                                         <i class="{{ $itemData['icon'] }}"></i>
                                     </div>
-                                    <div class="h-6 flex items-center">
+                                    <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                                        @if($isItemDailyDeal)
+                                            <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
+                                                Dagdeal -{{ $dailyDealDiscountPct }}%
+                                            </span>
+                                        @endif
                                         <template x-if="ownedCounts[{{ $item->id }}] > 0">
-                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[9px] sm:text-[10px] font-black shrink-0 transition"
-                                                  x-text="'{{ $item->category === 'equipment' ? '1x (Uniek)' : '' }}' || (ownedCounts[{{ $item->id }}] + 'x')">
-                                                {{ $item->category === 'equipment' ? '1x (Uniek)' : $ownedCount.'x' }}
+                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-black shrink-0 transition"
+                                                  x-text="'{{ $item->category === 'equipment' ? '1x (Actief)' : '' }}' || (ownedCounts[{{ $item->id }}] + 'x in bezit')">
+                                                {{ $item->category === 'equipment' ? '1x (Actief)' : $ownedCount.'x in bezit' }}
                                             </span>
                                         </template>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h4 class="text-xs font-black text-slate-900 dark:text-white line-clamp-1 sm:line-clamp-none">{{ $item->name }}</h4>
-                                    <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 sm:line-clamp-2 mt-0.5">{{ $item->description ?: 'Heerlijke snack uit de kliniekkantine.' }}</p>
+                                    <h4 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">{{ $item->name }}</h4>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ $item->description ?: 'Geselecteerd artikel uit de paviljoenbevoorrading.' }}</p>
                                 </div>
 
-                                <!-- Effect Pills -->
-                                <div class="flex flex-wrap gap-1.5 pt-1">
-                                    @if($item->slug === 'adrenaline-injectie')
-                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>100% Volle Energie</span> <i class="fa-solid fa-bolt text-amber-500 text-[9px]"></i>
-                                    </span>
-                                    @elseif($item->energy_restore > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+{{ $item->energy_restore }} Energie</span> <i class="fa-solid fa-bolt text-amber-500 text-[9px]"></i>
-                                    </span>
+                                <!-- VISUELE STAT-VERGELIJKING MET HUIDIGE STATS VAN DE SPELER -->
+                                <div class="p-2.5 rounded-xl bg-white/90 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 space-y-1.5 text-[10px]">
+                                    <div class="font-extrabold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                                        <span>Dossier-Impact</span>
+                                        <i class="fa-solid fa-scale-unbalanced text-purple-500"></i>
+                                    </div>
+
+                                    @if($item->slug === 'adrenaline-injectie' || $item->energy_restore > 0)
+                                        <div class="space-y-1">
+                                            <div class="flex items-center justify-between font-bold">
+                                                <span class="text-emerald-700 dark:text-emerald-400"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i>Energie</span>
+                                                <span class="font-mono text-slate-800 dark:text-slate-200">
+                                                    {{ $playerStats['energy'] }} &rarr; <strong class="text-emerald-600 dark:text-emerald-400">{{ $projectedEnergy }}</strong>/{{ $playerStats['max_energy'] }}
+                                                </span>
+                                            </div>
+                                            <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex">
+                                                <div class="h-full bg-slate-400 dark:bg-slate-500" style="width: {{ min(100, round(($playerStats['energy'] / $playerStats['max_energy']) * 100)) }}%"></div>
+                                                <div class="h-full bg-emerald-500" style="width: {{ max(0, min(100 - round(($playerStats['energy'] / $playerStats['max_energy']) * 100), round((($projectedEnergy - $playerStats['energy']) / $playerStats['max_energy']) * 100))) }}%"></div>
+                                            </div>
+                                        </div>
                                     @endif
-                                    @if($item->slug === 'ehbo-noodverbanddoos')
-                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>100% Volle HP</span> <i class="fa-solid fa-heart text-rose-500 text-[9px]"></i>
-                                    </span>
-                                    @elseif($item->health_restore > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+{{ $item->health_restore }} HP</span> <i class="fa-solid fa-heart text-rose-500 text-[9px]"></i>
-                                    </span>
+
+                                    @if($item->slug === 'ehbo-noodverbanddoos' || $item->health_restore > 0)
+                                        <div class="space-y-1">
+                                            <div class="flex items-center justify-between font-bold">
+                                                <span class="text-rose-700 dark:text-rose-400"><i class="fa-solid fa-heart text-rose-500 mr-1"></i>Gezondheid</span>
+                                                <span class="font-mono text-slate-800 dark:text-slate-200">
+                                                    {{ $playerStats['health'] }} &rarr; <strong class="text-rose-600 dark:text-rose-400">{{ $projectedHealth }}</strong>/{{ $playerStats['max_health'] }}
+                                                </span>
+                                            </div>
+                                            <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex">
+                                                <div class="h-full bg-slate-400 dark:bg-slate-500" style="width: {{ min(100, round(($playerStats['health'] / $playerStats['max_health']) * 100)) }}%"></div>
+                                                <div class="h-full bg-rose-500" style="width: {{ max(0, min(100 - round(($playerStats['health'] / $playerStats['max_health']) * 100), round((($projectedHealth - $playerStats['health']) / $playerStats['max_health']) * 100))) }}%"></div>
+                                            </div>
+                                        </div>
                                     @endif
-                                    @if($item->slug === 'bivakmuts-masker')
-                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+1 Masker</span> <i class="fa-solid fa-masks-theater text-indigo-500 text-[9px]"></i>
-                                    </span>
+
+                                    @if($item->strength_bonus > 0 || $item->slug === 'eiwitshake-bodybuilder')
+                                        @php
+                                            $strDelta = $item->slug === 'eiwitshake-bodybuilder' ? 1 : (int) $item->strength_bonus;
+                                            $newStr = $ownedCount > 0 && $item->category === 'equipment' ? $playerStats['strength'] : ($playerStats['strength'] + $strDelta);
+                                        @endphp
+                                        <div class="flex items-center justify-between font-bold text-purple-700 dark:text-purple-300">
+                                            <span><i class="fa-solid fa-hand-fist mr-1"></i>Kracht</span>
+                                            <span class="font-mono">{{ $playerStats['strength'] }} &rarr; {{ $newStr }} (+{{ $strDelta }})</span>
+                                        </div>
                                     @endif
-                                    @if($item->slug === 'smokkelpakketje')
-                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+1 Pakket/Koffer</span> <i class="fa-solid fa-box text-purple-500 text-[9px]"></i>
-                                    </span>
-                                    @endif
-                                    @if($item->slug === 'ijzerzaagje')
-                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>-30m Celstraf</span> <i class="fa-solid fa-hourglass-half text-amber-500 text-[9px]"></i>
-                                    </span>
-                                    @endif
-                                    @if($item->strength_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Kracht: Verhoogt jouw schade op de Luchtplaats, bij Armpjedrukken en kogel-impact bij Liquidaties">
-                                        <span>+{{ $item->strength_bonus }} Kracht</span> <i class="fa-solid fa-circle-info text-purple-500 text-[9px]"></i>
-                                    </span>
-                                    @endif
+
                                     @if($item->defense_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-800/70 text-blue-700 dark:text-blue-300 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Verdediging: Vermindert schade die je oploopt bij gevechten en maakt je moeilijker te liquideren">
-                                        <span>+{{ $item->defense_bonus }} Verdediging</span> <i class="fa-solid fa-circle-info text-blue-500 text-[9px]"></i>
-                                    </span>
+                                        @php
+                                            $newDef = $ownedCount > 0 && $item->category === 'equipment' ? $playerStats['defense'] : ($playerStats['defense'] + (int) $item->defense_bonus);
+                                        @endphp
+                                        <div class="flex items-center justify-between font-bold text-blue-700 dark:text-blue-300">
+                                            <span><i class="fa-solid fa-shield-halved mr-1"></i>Verdediging</span>
+                                            <span class="font-mono">{{ $playerStats['defense'] }} &rarr; {{ $newDef }} (+{{ $item->defense_bonus }})</span>
+                                        </div>
                                     @endif
-                                    @if($item->stamina_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Conditie: Verhoogt je slagingskans bij fysieke diefstallen, klusjes en cel-ontsnappingen">
-                                        <span>+{{ $item->stamina_bonus }} Conditie</span> <i class="fa-solid fa-circle-info text-amber-500 text-[9px]"></i>
-                                    </span>
+
+                                    @if($item->stamina_bonus > 0 || $item->slug === 'multivitaminen-focus')
+                                        @php
+                                            $staDelta = $item->slug === 'multivitaminen-focus' ? 1 : (int) $item->stamina_bonus;
+                                            $newSta = $ownedCount > 0 && $item->category === 'equipment' ? $playerStats['stamina'] : ($playerStats['stamina'] + $staDelta);
+                                        @endphp
+                                        <div class="flex items-center justify-between font-bold text-amber-700 dark:text-amber-300">
+                                            <span><i class="fa-solid fa-person-running mr-1"></i>Conditie</span>
+                                            <span class="font-mono">{{ $playerStats['stamina'] }} &rarr; {{ $newSta }} (+{{ $staDelta }})</span>
+                                        </div>
                                     @endif
-                                    @if($item->intelligence_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Intelligentie: Verhoogt je slagingskans bij complexe misdaden, smokkel en kluiskraken">
-                                        <span>+{{ $item->intelligence_bonus }} Intelligentie</span> <i class="fa-solid fa-circle-info text-indigo-500 text-[9px]"></i>
-                                    </span>
+
+                                    @if(($item->intelligence_bonus ?? 0) > 0)
+                                        <div class="flex items-center justify-between font-bold text-indigo-700 dark:text-indigo-300">
+                                            <span><i class="fa-solid fa-brain mr-1"></i>Intelligentie</span>
+                                            <span class="font-mono">{{ $playerStats['intelligence'] }} &rarr; {{ $playerStats['intelligence'] + (int) $item->intelligence_bonus }} (+{{ $item->intelligence_bonus }})</span>
+                                        </div>
                                     @endif
+
                                     @if(($item->charisma_bonus ?? 0) > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Charisma: Geeft tot 15% korting in de Kliniek Shop en verhoogt je hossel- en afperswinst">
-                                        <span>+{{ $item->charisma_bonus }} Charisma</span> <i class="fa-solid fa-circle-info text-amber-500 text-[9px]"></i>
-                                    </span>
+                                        <div class="flex items-center justify-between font-bold text-pink-700 dark:text-pink-300">
+                                            <span><i class="fa-solid fa-comments mr-1"></i>Charisma</span>
+                                            <span class="font-mono">{{ $playerStats['charisma'] }} &rarr; {{ $playerStats['charisma'] + (int) $item->charisma_bonus }} (+{{ $item->charisma_bonus }})</span>
+                                        </div>
                                     @endif
-                                    @if(($item->discipline_bonus ?? 0) > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200/80 dark:border-cyan-800/70 text-cyan-700 dark:text-cyan-300 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Discipline: Zorgt voor hogere slagingskans bij behandelaarsgesprekken, verlof en gevechtsfocus">
-                                        <span>+{{ $item->discipline_bonus }} Discipline</span> <i class="fa-solid fa-circle-info text-cyan-500 text-[9px]"></i>
-                                    </span>
+
+                                    @if(($item->discipline_bonus ?? 0) > 0 || $item->slug === 'strip-oxazepam')
+                                        @php
+                                            $disDelta = $item->slug === 'strip-oxazepam' ? 1 : (int) ($item->discipline_bonus ?? 0);
+                                        @endphp
+                                        <div class="flex items-center justify-between font-bold text-cyan-700 dark:text-cyan-300">
+                                            <span><i class="fa-solid fa-scale-balanced mr-1"></i>Discipline</span>
+                                            <span class="font-mono">{{ $playerStats['discipline'] }} &rarr; {{ $playerStats['discipline'] + $disDelta }} (+{{ $disDelta }})</span>
+                                        </div>
+                                    @endif
+
+                                    @if($item->slug === 'bivakmuts-masker')
+                                        <div class="flex items-center justify-between font-bold text-indigo-700 dark:text-indigo-300">
+                                            <span><i class="fa-solid fa-mask mr-1"></i>Maskervoorraad</span>
+                                            <span class="font-mono">{{ $character->masks ?? 0 }} &rarr; {{ ($character->masks ?? 0) + 1 }} (+1)</span>
+                                        </div>
+                                    @elseif($item->slug === 'ijzerzaagje')
+                                        <div class="flex items-center justify-between font-bold text-amber-700 dark:text-amber-300">
+                                            <span><i class="fa-solid fa-hourglass-half mr-1"></i>Celstraf-Reductie</span>
+                                            <span class="font-mono">-30 min per stuk</span>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -948,7 +714,7 @@
                                     'haloperidol-forte',
                                 ], true);
                             @endphp
-                            <div class="pt-2 border-t border-slate-200/70 dark:border-slate-700/60 space-y-2.5"
+                            <div class="pt-2.5 border-t border-slate-200/70 dark:border-slate-700/60 space-y-2.5"
                                  x-data="{
                                      buyQty: 1,
                                      isEquipment: {{ $isEquipment ? 'true' : 'false' }},
@@ -956,7 +722,7 @@
                                      isOnCooldown: {{ $isStatOnCooldown ? 'true' : 'false' }},
                                      isDirectDelivery: {{ $isDirectDelivery ? 'true' : 'false' }},
                                      unitPrice: {{ $item->price_kc }},
-                                     discountPct: {{ min(15, (int) floor($character->getEffectiveCharisma() / 10)) }},
+                                     discountPct: {{ $itemTotalDiscountPct }},
                                      get actualPrice() {
                                          return this.discountPct > 0 ? Math.round(this.unitPrice * (1 - (this.discountPct / 100))) : this.unitPrice;
                                      },
@@ -996,32 +762,35 @@
                                      }
                                  }">
                                 <div class="flex items-center justify-between text-xs">
-                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Prijs per stuk:</span>
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Tarief:</span>
                                     <div class="text-right">
-                                        <span class="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                                        @if($itemTotalDiscountPct > 0)
+                                            <span class="text-[10px] text-slate-400 line-through font-mono mr-1">€{{ number_format($item->price_kc, 0, ',', '.') }}</span>
+                                        @endif
+                                        <span class="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono"
+                                              x-text="'€' + new Intl.NumberFormat('nl-NL').format(actualPrice)">
                                             €{{ number_format($item->price_kc, 0, ',', '.') }}
                                         </span>
                                         <template x-if="!isEquipment && !isRestrictedStat && buyQty > 1">
-                                            <span class="text-[10px] text-slate-400 dark:text-slate-400 block font-mono" x-text="'Totaal: €' + new Intl.NumberFormat('nl-NL').format(totalCost)"></span>
+                                            <span class="text-[10px] text-slate-400 dark:text-slate-400 block font-mono" x-text="'Som: €' + new Intl.NumberFormat('nl-NL').format(totalCost)"></span>
                                         </template>
                                     </div>
                                 </div>
 
-                                <!-- Aantal Knoppen (voor consumables/snacks) OF Unieke Uitrusting Badge OF 6-Uurs Cooldown Badge -->
                                 <template x-if="isEquipment">
                                     <div class="flex items-center justify-between py-1.5 px-3 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 text-[11px]">
                                         <span class="text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1.5">
                                             <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
-                                            <span>Unieke Uitrusting</span>
+                                            <span>Permanente Uitrusting</span>
                                         </span>
                                         <template x-if="isOwned">
                                             <span class="text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-1">
                                                 <i class="fa-solid fa-circle-check"></i>
-                                                <span>Reeds in bezit</span>
+                                                <span>Actief</span>
                                             </span>
                                         </template>
                                         <template x-if="!isOwned">
-                                            <span class="text-slate-400 dark:text-slate-500 font-bold font-mono">1x max</span>
+                                            <span class="text-slate-400 dark:text-slate-500 font-bold font-mono">1x uniek</span>
                                         </template>
                                     </div>
                                 </template>
@@ -1029,93 +798,66 @@
                                     <div class="flex items-center justify-between py-1.5 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-[11px]">
                                         <span class="text-amber-800 dark:text-amber-300 font-extrabold flex items-center gap-1.5">
                                             <i class="fa-solid fa-clock text-amber-500"></i>
-                                            <span>Max. 1x per 6 uur</span>
+                                            <span>Limiet: 1x per 6 uur</span>
                                         </span>
-                                        <span class="text-slate-500 dark:text-slate-400 font-bold font-mono">1x per beurt</span>
+                                        <span class="text-slate-500 dark:text-slate-400 font-bold font-mono">1 dosis</span>
                                     </div>
                                 </template>
                                 <template x-if="!isEquipment && !isRestrictedStat">
-                                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 sm:p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
+                                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
                                         <button type="button" @click="setQty(1)" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">1x</button>
                                         <button type="button" @click="setQty(5)" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">5x</button>
                                         <button type="button" @click="setQty(10)" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">10x</button>
-                                        <button type="button" @click="buyQty = Math.max(1, maxBuyable)" :class="buyQty > 10 || (maxBuyable > 0 && buyQty === maxBuyable) ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer" :title="'Max berekend op je saldo (' + maxBuyable + 'x)'">
+                                        <button type="button" @click="buyQty = Math.max(1, maxBuyable)" :class="buyQty > 10 || (maxBuyable > 0 && buyQty === maxBuyable) ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">
                                             <span class="hidden sm:inline" x-text="maxBuyable > 0 ? ('Max (' + maxBuyable + ')') : 'Max'">Max</span>
                                             <span class="sm:hidden">Max</span>
                                         </button>
                                     </div>
                                 </template>
 
-                                <!-- Realtime Status Indicatie -->
                                 @if($isStatOnCooldown)
                                 <div class="text-[11px] text-amber-700 dark:text-amber-300 font-bold text-center flex items-center justify-center gap-1.5 py-1 px-2 bg-amber-50 dark:bg-amber-950/80 rounded-lg border border-amber-300/80 dark:border-amber-800">
                                     <i class="fa-solid fa-hourglass-half text-amber-500 text-[10px]"></i>
-                                    <span>Cooldown actief: nog {{ $statRemainingText }}</span>
+                                    <span>Doseringspauze: nog {{ $statRemainingText }}</span>
                                 </div>
                                 @endif
-
-                                <template x-if="!isDirectDelivery && storageRemaining <= 0">
-                                    <div class="text-[10px] text-rose-500 dark:text-rose-400 font-bold text-center flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
-                                        <span>Opslagruimte vol (0 vrij in Depot)</span>
-                                    </div>
-                                </template>
-                                <template x-if="isDirectDelivery">
-                                    <div class="text-[10px] text-purple-600 dark:text-purple-400 font-bold text-center">
-                                        @if($item->slug === 'bivakmuts-masker')
-                                            <span>🎭 Voegt toe aan Maskers (geen opslag nodig)</span>
-                                        @elseif($item->slug === 'smokkelpakketje')
-                                            <span>📦 Voegt toe aan Koffers & Buit (geen opslag nodig)</span>
-                                        @elseif($isRestrictedStat)
-                                            <span>💪 Permanente Stat Boost (max 1x per 6u)</span>
-                                        @else
-                                            <span>⚡ Directe Stat Boost (geen opslag nodig)</span>
-                                        @endif
-                                    </div>
-                                </template>
-                                <template x-if="!isDirectDelivery && !isEquipment && storageRemaining > 0 && maxByStorage < maxByMoney && maxByStorage < 100">
-                                    <div class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold text-center" x-text="'Max ' + maxByStorage + 'x passend in vrije voorraad (' + storageRemaining + ' vrij)'"></div>
-                                </template>
-                                <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney < 1 && !isOwned">
-                                    <div class="text-[10px] text-rose-500 dark:text-rose-400 font-semibold text-center">Niet genoeg saldo voor dit item</div>
-                                </template>
 
                                 <form action="{{ route('shop.buy', $item->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, (isEquipment || isRestrictedStat) ? 1 : buyQty)">
                                     @csrf
                                     <input type="hidden" name="quantity" :value="(isEquipment || isRestrictedStat) ? 1 : buyQty">
-                                    
+
                                     <template x-if="isOwned">
                                         <div class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 font-black text-xs flex items-center justify-center gap-1.5 border border-emerald-500/30 dark:border-emerald-500/20 shadow-2xs select-none">
                                             <i class="fa-solid fa-circle-check text-xs"></i>
-                                            <span>Al in bezit (Uniek)</span>
+                                            <span>Reeds Gekoppeld</span>
                                         </div>
                                     </template>
                                     <template x-if="!isOwned">
-                                        <button type="submit" 
+                                        <button type="submit"
                                                 :disabled="itemBuying[{{ $item->id }}] || (!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1 || isOnCooldown"
                                                 :class="(!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1 || isOnCooldown ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer'"
                                                 class="w-full py-2.5 rounded-xl text-white font-black text-xs transition-all duration-150 flex items-center justify-center gap-1.5 shadow-xs">
                                             <template x-if="itemBuying[{{ $item->id }}]">
                                                 <span class="inline-flex items-center gap-1.5 text-purple-200">
                                                     <i class="fa-solid fa-spinner fa-spin text-xs"></i>
-                                                    <span>Inpakken...</span>
+                                                    <span>Afrekenen...</span>
                                                 </span>
                                             </template>
                                             <template x-if="!itemBuying[{{ $item->id }}] && (!itemToast[{{ $item->id }}] || itemToast[{{ $item->id }}].type !== 'success')">
                                                 <span class="inline-flex items-center gap-1.5">
                                                     <template x-if="isOnCooldown">
-                                                        <span><i class="fa-solid fa-lock text-[11px] mr-1"></i> Cooldown (nog {{ $statRemainingText }})</span>
+                                                        <span><i class="fa-solid fa-lock text-[11px] mr-1"></i> Pauze ({{ $statRemainingText }})</span>
                                                     </template>
                                                     <template x-if="!isOnCooldown && !isDirectDelivery && storageRemaining <= 0">
-                                                        <span>Opslag Vol</span>
+                                                        <span>Celopslag Vol</span>
                                                     </template>
                                                     <template x-if="!isOnCooldown && (isDirectDelivery || storageRemaining > 0) && maxByMoney < 1">
-                                                        <span>Onvoldoende Saldo</span>
+                                                        <span>Saldo Tekort</span>
                                                     </template>
                                                     <template x-if="!isOnCooldown && (isDirectDelivery || storageRemaining > 0) && maxByMoney >= 1">
                                                         <span class="inline-flex items-center gap-1.5">
-                                                            <i class="fa-solid fa-cart-shopping text-xs"></i>
-                                                            <span x-text="isEquipment ? 'Uitrusting Kopen' : (buyQty > 1 ? 'Koop ' + buyQty + 'x direct' : 'Kopen')"></span>
+                                                            <i class="fa-solid fa-cart-plus text-xs"></i>
+                                                            <span x-text="isEquipment ? 'Uitrusting Aanschaffen' : (buyQty > 1 ? 'Sla ' + buyQty + 'x In' : 'Aanschaffen')"></span>
                                                         </span>
                                                     </template>
                                                 </span>
@@ -1128,7 +870,6 @@
                                             </template>
                                         </button>
                                     </template>
-                                    <!-- Inline error toast if not enough cash without shifting layout -->
                                     <template x-if="itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'error'">
                                         <div class="mt-1 text-[11px] font-bold text-rose-600 text-center flex items-center justify-center gap-1" x-text="itemToast[{{ $item->id }}].text"></div>
                                     </template>
@@ -1140,332 +881,272 @@
                 </div>
             </div>
 
-            <!-- TAB: MIJN INVENTARIS (NEW & BEAUTIFUL) -->
+            <!-- TAB: PAKKETTEN & BUNDEL-GRID -->
+            <div x-show="shopTab === 'pakketten'" class="space-y-6">
+                @include('partials.bmac_banner')
+
+                <div class="bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-950/40 dark:via-pink-950/20 dark:to-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 rounded-2xl p-4 text-center shadow-xs">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 border border-purple-200/80 dark:border-purple-800/70 px-3 py-0.5 rounded-full mb-1.5 inline-block">
+                        GROOTVERBRUIK BONUS
+                    </span>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white mt-1">
+                        Elke bundel vanaf 100 Sterren levert automatisch <strong class="text-purple-700 dark:text-purple-400">+1 extra XXL transportkoffer per stuk</strong> op!
+                    </p>
+                </div>
+
+                <!-- Category Filter Pills for Bundles -->
+                <div class="flex flex-wrap items-center justify-center gap-2 bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 p-1.5 rounded-xl">
+                    <button type="button" @click="bundleFilter = 'all'"
+                            :class="bundleFilter === 'all' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
+                            class="px-4 py-2 rounded-lg text-xs uppercase transition cursor-pointer">
+                        Alle Bundels
+                    </button>
+                    <button type="button" @click="bundleFilter = 'smokkel'"
+                            :class="bundleFilter === 'smokkel' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
+                            class="px-4 py-2 rounded-lg text-xs uppercase transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-box text-xs"></i> Smokkel
+                    </button>
+                    <button type="button" @click="bundleFilter = 'kluisbuit'"
+                            :class="bundleFilter === 'kluisbuit' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
+                            class="px-4 py-2 rounded-lg text-xs uppercase transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-vault text-xs"></i> Kluisbuit
+                    </button>
+                    <button type="button" @click="bundleFilter = 'syndicaat'"
+                            :class="bundleFilter === 'syndicaat' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
+                            class="px-4 py-2 rounded-lg text-xs uppercase transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-crown text-xs"></i> Syndicaat
+                    </button>
+                </div>
+
+                <!-- Bundle Cards Grid (replaces old vertical table list) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($bundles as $bKey => $b)
+                    <div x-show="bundleFilter === 'all' || bundleFilter === '{{ $b['category'] }}'"
+                         @click="selectedBundleId = '{{ $bKey }}'"
+                         :class="selectedBundleId === '{{ $bKey }}' ? 'ring-2 ring-purple-600 border-purple-600 bg-purple-50/40 dark:bg-purple-950/30' : 'border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300'"
+                         class="rounded-2xl border p-4 flex flex-col justify-between gap-3 transition cursor-pointer shadow-xs">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-base">
+                                    <i class="fa-solid fa-boxes-packing"></i>
+                                </span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-black text-xs inline-flex items-center gap-1">
+                                    {{ number_format($b['cost_stars']) }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+                                </span>
+                            </div>
+                            <h4 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">{{ $b['name'] }}</h4>
+                            <div class="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 pt-1">
+                                <span><i class="fa-solid fa-coins text-emerald-500 mr-1"></i>€{{ number_format($b['cash'], 0, ',', '.') }}</span>
+                                <span><i class="fa-solid fa-key text-purple-500 mr-1"></i>{{ $b['codes'] }} codes</span>
+                                <span><i class="fa-solid fa-briefcase text-indigo-500 mr-1"></i>{{ $b['koffers'] }} koffers</span>
+                                <span><i class="fa-solid fa-mask text-pink-500 mr-1"></i>{{ $b['masks'] }} maskers</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-black">
+                            <span :class="selectedBundleId === '{{ $bKey }}' ? 'text-purple-700 dark:text-purple-300' : 'text-slate-400'"
+                                  x-text="selectedBundleId === '{{ $bKey }}' ? '✓ Geselecteerd voor afrekening' : 'Klik om te selecteren'"></span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                <!-- Selected Bundle Checkout & Gifting Card -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5"
+                     x-data="{ currentBundle() { return bundles[selectedBundleId] || bundles['afdelingsbaas_deal'] || Object.values(bundles)[0]; } }">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block">Geselecteerde Zending</span>
+                            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white" x-text="currentBundle().name"></h3>
+                        </div>
+                        <div class="text-sm font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-3.5 py-1.5 rounded-full w-fit inline-flex items-center gap-1.5">
+                            <span>Tarief: <span x-text="currentBundle().cost_stars"></span> Sterren</span>
+                            <i class="fa-solid fa-star text-amber-500 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('shop.buy-bundle') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="bundle_id" :value="selectedBundleId">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Aantal zendingen (1–10):
+                                </label>
+                                <input type="number" name="quantity" min="1" max="10" x-model="bundleQty" required
+                                       class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-500">
+                            </div>
+
+                            <!-- Gifting Selector with Safe JSON Encoding -->
+                            <div x-data="{
+                                search: '',
+                                selectedId: '',
+                                selectedName: '',
+                                openDropdown: false,
+                                patients: @js(array_merge([
+                                    [
+                                        'id' => '',
+                                        'name' => 'Mijn eigen account (' . $character->name . ')',
+                                        'level' => (int) $character->level,
+                                        'respect' => (int) $character->respect,
+                                        'isSelf' => true,
+                                    ],
+                                ], collect($otherPatients)->map(fn($p) => [
+                                    'id' => (string) $p->id,
+                                    'name' => $p->name,
+                                    'level' => (int) $p->level,
+                                    'respect' => (int) $p->respect,
+                                    'isSelf' => false,
+                                ])->values()->all())),
+                                get filtered() {
+                                    if (!this.search.trim()) return this.patients.slice(0, 25);
+                                    return this.patients.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 25);
+                                },
+                                select(patient) {
+                                    this.selectedId = patient.id;
+                                    this.selectedName = patient.name;
+                                    this.search = patient.name;
+                                    this.openDropdown = false;
+                                    recipientId = patient.id;
+                                }
+                            }" class="relative">
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Bestemmeling (eigen dossier of medepatiënt):
+                                </label>
+                                <input type="hidden" name="recipient_id" :value="selectedId">
+                                <input type="hidden" name="recipient_name" :value="search">
+
+                                <div class="relative flex items-center">
+                                    <input type="text"
+                                           x-model="search"
+                                           @focus="openDropdown = true"
+                                           @input="openDropdown = true; selectedId = ''"
+                                           @click.outside="openDropdown = false"
+                                           autocomplete="off"
+                                           placeholder="Mijn eigen account ({{ $character->name }}) of zoek naam..."
+                                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-500">
+                                </div>
+
+                                <div x-show="openDropdown"
+                                     x-transition
+                                     class="absolute z-50 left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80">
+                                    <template x-for="p in filtered" :key="p.name">
+                                        <button type="button"
+                                                @click="select(p)"
+                                                class="w-full text-left px-3.5 py-2.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 flex items-center justify-between text-xs transition cursor-pointer">
+                                            <div>
+                                                <span class="font-extrabold text-slate-900 dark:text-white block" x-text="p.name"></span>
+                                                <span class="text-[10px] text-slate-400" x-text="'Level ' + p.level + ' • ' + p.respect + ' Respect'"></span>
+                                            </div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                :disabled="({{ $character->stars ?? 0 }}) < (currentBundle().cost_stars * bundleQty)"
+                                class="w-full py-3 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <span>Zending Vrijgeven (<span x-text="currentBundle().cost_stars * bundleQty"></span> Sterren)</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB: PLUNJEZAK & INVENTARIS -->
             <div x-show="shopTab === 'inventaris'" class="space-y-6">
-                <!-- Status Bar with Live Energy & Health -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div>
                             <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-solid fa-box-archive text-purple-600 dark:text-purple-400"></i>
-                                <span>Mijn Rugzak & Inventaris</span>
+                                <span>Persoonlijke Plunjezak &amp; Voorraadbeheer</span>
                             </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Hier bewaar je al je gekochte kantinesnacks, maaltijden en benodigdheden.</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gebruik rantsoenen voor direct herstel of beheer je actieve uitrusting.</p>
                         </div>
-                        <button type="button" @click="setShopTab('items')" class="px-3.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 w-fit">
+                        <button type="button" @click="setShopTab('items')" class="px-3.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-purple-700 dark:text-purple-300 font-black text-xs transition cursor-pointer flex items-center gap-1.5 w-fit">
                             <i class="fa-solid fa-plus"></i>
-                            <span>Snacks Kopen in Kantine</span>
+                            <span>Voorraad Aanvullen</span>
                         </button>
                     </div>
 
-                    <!-- Energy and Health Progress -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                         <div class="p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
                             <div class="flex items-center justify-between text-xs font-bold">
-                                <span class="text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-bolt text-amber-500"></i> Energie
-                                </span>
+                                <span class="text-slate-600 dark:text-slate-400"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i>Energie</span>
                                 <span class="text-slate-900 dark:text-white font-mono">{{ $character->energy }} / {{ $character->max_energy }}</span>
                             </div>
                             <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-amber-400 to-emerald-500 rounded-full transition-all duration-300" 
+                                <div class="h-full bg-gradient-to-r from-amber-400 to-emerald-500 rounded-full"
                                      style="width: {{ min(100, round(($character->energy / max(1, $character->max_energy)) * 100)) }}%"></div>
                             </div>
                         </div>
 
                         <div class="p-3 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
                             <div class="flex items-center justify-between text-xs font-bold">
-                                <span class="text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-heart-pulse text-rose-500"></i> Gezondheid (HP)
-                                </span>
+                                <span class="text-slate-600 dark:text-slate-400"><i class="fa-solid fa-heart-pulse text-rose-500 mr-1"></i>Gezondheid (HP)</span>
                                 <span class="text-slate-900 dark:text-white font-mono">{{ $character->health }} / {{ $character->max_health }}</span>
                             </div>
                             <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full transition-all duration-300" 
+                                <div class="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full"
                                      style="width: {{ min(100, round(($character->health / max(1, $character->max_health)) * 100)) }}%"></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Maskers & Buit Stats Banner in Inventaris -->
-                    <div class="mt-4 p-3 bg-purple-50/70 dark:bg-purple-950/40 rounded-xl border border-purple-200/80 dark:border-purple-800/60 flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center text-sm shadow-2xs">
-                                <i class="fa-solid fa-mask"></i>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
-                                    Zakkenroller Maskers: <strong class="text-purple-600 dark:text-purple-400">{{ $character->masks ?? 0 }} Masker(s)</strong>
-                                </span>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Klaar voor gebruik bij Zakkenrollen in de gangen en Bende Heists.</span>
-                            </div>
-                        </div>
-                        <a href="{{ route('pickpocket.index') }}" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-2xs shrink-0 flex items-center gap-1 cursor-pointer">
-                            <span>Naar Zakkenrollen</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </a>
-                    </div>
-
-                    @php
-                        $foodAndRecovery = $inventory->filter(function($inv) {
-                            return ($inv->quantity > 0) && ($inv->item && $inv->item->category !== 'equipment') && (
-                                $inv->item->energy_restore > 0 || 
-                                $inv->item->health_restore > 0 || 
-                                in_array($inv->item->slug, ['sigaretten', 'ritalin', 'telefoon', 'adrenaline-injectie', 'ehbo-noodverbanddoos'])
-                            );
-                        });
-                        $needsRecovery = ($character->energy < $character->max_energy) || ($character->health < $character->max_health);
-                    @endphp
-
-                    <!--  SNEL ETEN & HERSTELLEN BALK (1-KLIK) -->
-                    <div class="mt-4 p-4 rounded-xl border {{ $needsRecovery ? 'bg-gradient-to-r from-amber-50/70 via-emerald-50/50 to-white dark:from-emerald-950/40 dark:via-slate-900 dark:to-slate-900 border-emerald-300/80 dark:border-emerald-800/60' : 'bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70' }}">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-slate-800">
-                            <div>
-                                <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
-                                    <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs">
-                                        <i class="fa-solid fa-utensils"></i>
-                                    </span>
-                                    <span>Snel Eten & Herstellen</span>
-                                    @if(! $needsRecovery)
-                                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">100% Volledig Hersteld!</span>
-                                    @endif
-                                </h4>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Herstel je Energie en Gezondheid direct in 1 klik zonder eindeloos los te klikken.
-                                </p>
-                            </div>
-
-                            @if($foodAndRecovery->isEmpty())
-                                <button type="button" @click="setShopTab('items')" class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs w-fit">
-                                    <i class="fa-solid fa-store"></i>
-                                    <span>Naar Kantine voor Eten</span>
-                                </button>
-                            @endif
-                        </div>
-
-                        @if($foodAndRecovery->isNotEmpty())
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
-                                @foreach($foodAndRecovery as $quickInv)
-                                @php
-                                    $qItemData = $getItemData($quickInv->item);
-                                @endphp
-                                <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-2xs flex items-center justify-between gap-3">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-9 h-9 rounded-lg {{ $qItemData['badgeClass'] }} flex items-center justify-center text-sm shrink-0 shadow-2xs">
-                                            <i class="{{ $qItemData['icon'] }}"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="text-xs font-black text-slate-900 dark:text-white truncate flex items-center gap-1.5">
-                                                <span>{{ $quickInv->item->name }}</span>
-                                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold border border-slate-200/50 dark:border-slate-700">{{ $quickInv->quantity }}x</span>
-                                            </div>
-                                            <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-0.5">
-                                                @if($quickInv->item->energy_restore > 0)
-                                                    <span class="text-emerald-700 dark:text-emerald-400 font-bold">+{{ $quickInv->item->energy_restore }}</span>
-                                                @endif
-                                                @if($quickInv->item->health_restore > 0)
-                                                    <span class="text-rose-700 dark:text-rose-400 font-bold">+{{ $quickInv->item->health_restore }}️</span>
-                                                @endif
-                                                @if(in_array($quickInv->item->slug, ['sigaretten', 'ritalin', 'telefoon']))
-                                                    <span class="text-purple-700 dark:text-purple-400 font-bold">Herstelboost</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center gap-1.5 shrink-0">
-                                        <!-- 1x Eten Knop -->
-                                        <form action="{{ route('shop.consume', $quickInv->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" 
-                                                    title="1 stuk consumeren"
-                                                    class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-black text-xs transition cursor-pointer flex items-center gap-1 active:scale-95">
-                                                <span>1x</span>
-                                            </button>
-                                        </form>
-
-                                        <!-- Eet tot 100% Vol Knop -->
-                                        @if($needsRecovery)
-                                        <form action="{{ route('shop.consume', $quickInv->id) }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" name="fill_max" value="1">
-                                            <button type="submit" 
-                                                    title="Eet automatisch het benodigde aantal om 100% vol te raken"
-                                                    class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95">
-                                                <i class="fa-solid fa-bolt text-[11px]"></i>
-                                                <span>Eet tot Vol</span>
-                                            </button>
-                                        </form>
-                                        @endif
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="pt-3 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between gap-3">
-                                <span class="flex items-center gap-2">
-                                    <i class="fa-solid fa-circle-info text-amber-500"></i>
-                                    Je hebt geen eten of drinken in je rugzak. Koop snacks in de kantine om snel te herstellen na gevechten of misdaden!
-                                </span>
-                            </div>
-                        @endif
-                    </div>
                 </div>
 
-                <!-- Items Grid or Empty State -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
                     @if($inventory->where('quantity', '>', 0)->isEmpty())
                         <div class="text-center py-12 space-y-3">
-                            <div class="w-16 h-16 mx-auto rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl border border-purple-100 dark:border-purple-800 shadow-xs">
-                                <i class="fa-solid fa-box-open"></i>
-                            </div>
-                            <h4 class="text-sm font-extrabold text-slate-800 dark:text-white">Je inventaris is momenteel leeg</h4>
+                            <h4 class="text-sm font-extrabold text-slate-800 dark:text-white">Je plunjezak bevat momenteel geen artikelen</h4>
                             <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                                Je hebt nog geen items of snacks in je rugzak. Bezoek de kantine om lekkere frikandelbroodjes of drankjes te kopen!
+                                Sla rantsoenen, medicatie of uitrustingsstukken in via het assortiments-grid.
                             </p>
-                            <button type="button" @click="setShopTab('items')" class="mt-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer inline-flex items-center gap-2 shadow-xs">
-                                <i class="fa-solid fa-store"></i>
-                                <span>Kantine Bekijken</span>
-                            </button>
                         </div>
                     @else
-                        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($inventory->where('quantity', '>', 0) as $inv)
                             @php
                                 $invItemData = $getItemData($inv->item);
+                                $isConsumableRecovery = ($inv->item->energy_restore > 0 || $inv->item->health_restore > 0 || in_array($inv->item->slug, ['sigaretten', 'ritalin', 'telefoon']));
                             @endphp
-                            <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600/70 rounded-xl p-3 sm:p-4 flex flex-col justify-between gap-2.5 sm:gap-3 shadow-xs transition group">
+                            <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-xs">
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl {{ $invItemData['badgeClass'] }} flex items-center justify-center text-lg sm:text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                                        <div class="w-10 h-10 rounded-xl {{ $invItemData['badgeClass'] }} flex items-center justify-center text-lg">
                                             <i class="{{ $invItemData['icon'] }}"></i>
                                         </div>
-                                        <span class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-purple-600 text-white font-black text-[11px] sm:text-xs font-mono shadow-xs">
+                                        <span class="px-2.5 py-0.5 rounded-full bg-purple-600 text-white font-black text-xs font-mono">
                                             {{ $inv->quantity }}x
                                         </span>
                                     </div>
-
                                     <div>
                                         <h4 class="text-sm font-black text-slate-900 dark:text-white">{{ $inv->item->name }}</h4>
-                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $inv->item->description ?: 'Eet dit item om je energie of gezondheid te herstellen.' }}</p>
-                                    </div>
-
-                                    <!-- Effects Pills -->
-                                    <div class="flex flex-wrap gap-1.5 pt-1">
-                                        @if($inv->item->slug === 'adrenaline-injectie')
-                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-bolt text-emerald-600 dark:text-emerald-400"></i> 100% Volle Energie
-                                        </span>
-                                        @elseif($inv->item->energy_restore > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-bolt text-emerald-600 dark:text-emerald-400"></i> +{{ $inv->item->energy_restore }} Energie
-                                        </span>
-                                        @endif
-                                        @if($inv->item->slug === 'ehbo-noodverbanddoos')
-                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-heart text-rose-600 dark:text-rose-400"></i> 100% Volle HP
-                                        </span>
-                                        @elseif($inv->item->health_restore > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-heart text-rose-600 dark:text-rose-400"></i> +{{ $inv->item->health_restore }} HP
-                                        </span>
-                                        @endif
-                                        @if($inv->item->slug === 'bivakmuts-masker')
-                                        <span class="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-mask text-indigo-600 dark:text-indigo-400"></i> +1 Masker
-                                        </span>
-                                        @endif
-                                        @if($inv->item->slug === 'smokkelpakketje')
-                                        <span class="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-box text-purple-600 dark:text-purple-400"></i> +1 Pakket
-                                        </span>
-                                        @endif
-                                        @if($inv->item->slug === 'ijzerzaagje')
-                                        <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-screwdriver-wrench text-amber-600 dark:text-amber-400"></i> -30m Straf
-                                        </span>
-                                        @endif
-                                        @if($inv->item->strength_bonus > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-hand-back-fist text-purple-600 dark:text-purple-400"></i> +{{ $inv->item->strength_bonus }} Kracht
-                                        </span>
-                                        @endif
-                                        @if($inv->item->defense_bonus > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-shield text-blue-600 dark:text-blue-400"></i> +{{ $inv->item->defense_bonus }} Def
-                                        </span>
-                                        @endif
-                                        @if($inv->item->stamina_bonus > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-person-running text-amber-600 dark:text-amber-400"></i> +{{ $inv->item->stamina_bonus }} Conditie
-                                        </span>
-                                        @endif
-                                        @if(($inv->item->intelligence_bonus ?? 0) > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-cyan-100 dark:bg-cyan-950/70 text-cyan-800 dark:text-cyan-300 border border-cyan-200/50 dark:border-cyan-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-brain text-cyan-600 dark:text-cyan-400"></i> +{{ $inv->item->intelligence_bonus }} Intelligentie
-                                        </span>
-                                        @endif
-                                        @if(($inv->item->charisma_bonus ?? 0) > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-pink-100 dark:bg-pink-950/70 text-pink-800 dark:text-pink-300 border border-pink-200/50 dark:border-pink-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-comments text-pink-600 dark:text-pink-400"></i> +{{ $inv->item->charisma_bonus }} Charisma
-                                        </span>
-                                        @endif
-                                        @if(($inv->item->discipline_bonus ?? 0) > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 border border-teal-200/50 dark:border-teal-800/60 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-scale-balanced text-teal-600 dark:text-teal-400"></i> +{{ $inv->item->discipline_bonus }} Discipline
-                                        </span>
-                                        @endif
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{{ $inv->item->description }}</p>
                                     </div>
                                 </div>
 
-                                <!-- Action Button -->
                                 <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
                                     @if($inv->item->category === 'equipment' || ! $inv->item->isConsumableItem())
-                                        <div class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700">
-                                            <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400 text-xs"></i>
-                                            <span>Actieve Uitrusting</span>
+                                        <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-shield-halved text-purple-600"></i>
+                                            <span>Passief Geactiveerd</span>
                                         </div>
                                     @else
-                                        @php
-                                            $isConsumableRecovery = ($inv->item->energy_restore > 0 || $inv->item->health_restore > 0 || in_array($inv->item->slug, ['sigaretten', 'ritalin', 'telefoon']));
-                                        @endphp
                                         <div class="flex items-center gap-2">
                                             <form action="{{ route('shop.consume', $inv->id) }}" method="POST" class="flex-1">
                                                 @csrf
-                                                <button type="submit" 
-                                                        class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]">
-                                                    @if(str_contains(strtolower($inv->item->name), 'broodje') || str_contains(strtolower($inv->item->name), 'frikandel') || str_contains(strtolower($inv->item->name), 'bami') || str_contains(strtolower($inv->item->name), 'kapsalon') || str_contains(strtolower($inv->item->name), 'bitterbal'))
-                                                        <i class="fa-solid fa-utensils text-xs"></i>
-                                                        <span>1x Opeten</span>
-                                                    @elseif(str_contains(strtolower($inv->item->name), 'drank') || str_contains(strtolower($inv->item->name), 'koffie') || str_contains(strtolower($inv->item->name), 'shake'))
-                                                        <i class="fa-solid fa-mug-hot text-xs"></i>
-                                                        <span>1x Drinken</span>
-                                                    @elseif(str_contains(strtolower($inv->item->name), 'sigaret'))
-                                                        <i class="fa-solid fa-smoking text-xs"></i>
-                                                        <span>1x Oproken</span>
-                                                    @elseif(str_contains(strtolower($inv->item->name), 'ritalin') || str_contains(strtolower($inv->item->name), 'oxazepam'))
-                                                        <i class="fa-solid fa-pills text-xs"></i>
-                                                        <span>1x Innemen</span>
-                                                    @elseif(str_contains(strtolower($inv->item->name), 'telefoon'))
-                                                        <i class="fa-solid fa-mobile-screen text-xs"></i>
-                                                        <span>Gebruiken</span>
-                                                    @else
-                                                        <i class="fa-solid fa-hand-holding-medical text-xs"></i>
-                                                        <span>Gebruiken</span>
-                                                    @endif
+                                                <button type="submit" class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer">
+                                                    1x Innemen
                                                 </button>
                                             </form>
-
                                             @if($isConsumableRecovery && $inv->quantity > 1)
                                             <form action="{{ route('shop.consume', $inv->id) }}" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="fill_max" value="1">
-                                                <button type="submit" 
-                                                        title="Eet tot 100% vol (gebruikt automatisch meerdere stuks)"
-                                                        class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition cursor-pointer flex items-center gap-1 shadow-xs active:scale-[0.98]">
-                                                    <i class="fa-solid fa-bolt text-xs"></i>
-                                                    <span class="hidden sm:inline">Eet tot Vol</span>
-                                                    <span class="sm:hidden">Vol</span>
+                                                <button type="submit" class="py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer">
+                                                    Vol
                                                 </button>
                                             </form>
                                             @endif
@@ -1479,435 +1160,290 @@
                 </div>
             </div>
 
-            <!-- TAB: STERREN & DIAMANTEN -->
+            <!-- TAB: STERRENKIOSK -->
             <div x-show="shopTab === 'sterren'" class="space-y-6">
-                <!-- Snelinstructie Buy Me a Coffee Koppeling -->
                 @include('partials.bmac_banner')
 
-                <!-- Info Header Banner -->
-                <div class="bg-white dark:bg-slate-900 border-2 border-amber-400/80 dark:border-amber-500/50 rounded-2xl p-6 shadow-sm relative overflow-hidden">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-                        <div>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 text-[10px] font-black uppercase tracking-wider mb-2">
-                                <i class="fa-solid fa-star text-amber-500 dark:text-amber-400"></i> Exclusieve Gouden Sterren Kiosk
-                            </span>
-                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Krachtige Voordelen &amp; Schaarste</h2>
-                            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-xl leading-relaxed">
-                                Sterren zijn zeldzaam en geven enorme privileges zoals direct herstel, celontsnappingen, kogelmagazijnen en kluiscodes. Verdien ze gratis via het Rad van Fortuin, de 7-Dagen Inlogstreak en Level Mijlpalen, of ontvang ze als bedankje bij een vrijwillige donatie via Buy Me a Coffee!
-                            </p>
-                        </div>
-                        <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
-                            <span class="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-black text-sm flex items-center gap-2 shadow-2xs">
-                                <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Saldo
-                            </span>
-                            <button type="button" @click="setShopTab('donaties')" class="btn-star-gold w-full sm:w-auto px-4 py-2 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-heart"></i> Sterren via Donatie
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Products Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- 1. Full Restore -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                        <div class="space-y-3">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-bolt-lightning"></i>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                    5 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                </span>
+                                <span class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-bolt-lightning"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs">5 ⭐</span>
                             </div>
-                            <div>
-                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">100% Energie & HP Herstel</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    Direct al je energie én gezondheid maximaal aangevuld. Ideaal tijdens gevechten of missies!
-                                </p>
-                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Vitale Reset (100% Energie &amp; HP)</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Brengt zowel je energiepeil als levenspunten onmiddellijk terug naar 100%.</p>
                         </div>
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="full_restore">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-bolt"></i> Direct Herstellen (5 Sterren)
-                            </button>
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs cursor-pointer">Direct Resetten (5 ⭐)</button>
                         </form>
                     </div>
 
                     <!-- 2. Prison Escape -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                        <div class="space-y-3">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-lock-open"></i>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                    10 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                </span>
+                                <span class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 flex items-center justify-center text-lg"><i class="fa-solid fa-lock-open"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs">10 ⭐</span>
                             </div>
-                            <div>
-                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Directe Cel Uitbraak</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    Zit je in de isoleercel of gevangenis? Betaal direct borgtocht en sta onmiddellijk weer buiten!
-                                </p>
-                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Directe Celvrijlating</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Wist je actuele celstraf en opent onmiddellijk de sluisdeur.</p>
                         </div>
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="prison_escape">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                                <i class="fa-solid fa-key"></i> Uitbreken (10 Sterren)
-                            </button>
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs cursor-pointer">Vrijlating Kopen (10 ⭐)</button>
                         </form>
                     </div>
 
-                    <!-- 2b. Forensisch Reanimatie-Serum (Epinefrine-Ampul) -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                        <div class="space-y-3">
+                    <!-- 2b. Revive Serum -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-syringe"></i>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 font-black text-xs flex items-center gap-1 border border-rose-200 dark:border-rose-800">
-                                    €1,5M of {{ \App\Models\Character::REVIVE_SERUM_STARS }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                </span>
+                                <span class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center text-lg"><i class="fa-solid fa-syringe"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 font-black text-xs">€1,5M / {{ \App\Models\Character::REVIVE_SERUM_STARS }} ⭐</span>
                             </div>
-                            <div>
-                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ \App\Models\Character::REVIVE_SERUM_NAME }}</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    10x geliquideerd (Code Blauw)? Wek jezelf direct weer tot leven met 100% HP, 30m schild en reset je liquidatieteller ({{ $character->getLiquidationStreakDeaths() }}/10) naar 0/10!
-                                </p>
-                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ \App\Models\Character::REVIVE_SERUM_NAME }}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Heft Code Blauw op, herstelt 100% HP en zet je liquidatieteller ({{ $character->getLiquidationStreakDeaths() }}/10) op 0/10.</p>
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-4">
                             <form action="{{ route('hitman.revive_serum') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="currency" value="cash">
-                                <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1 shadow-xs">
-                                    <i class="fa-solid fa-money-bill-wave"></i> €1.500.000
-                                </button>
+                                <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-emerald-600 text-white font-black text-xs cursor-pointer">€1.500.000</button>
                             </form>
                             <form action="{{ route('hitman.revive_serum') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="currency" value="stars">
-                                <button type="submit" class="btn-star-gold w-full py-2.5 px-2 rounded-xl font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1 shadow-xs">
-                                    <i class="fa-solid fa-star text-amber-200"></i> {{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren
-                                </button>
+                                <button type="submit" class="btn-star-gold w-full py-2.5 px-2 rounded-xl font-black text-xs cursor-pointer">{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</button>
                             </form>
                         </div>
                     </div>
 
                     <!-- 3. Maskers Pack (5x) -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                        <div class="space-y-3">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-500 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-masks-theater"></i>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                    15 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                </span>
+                                <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-500 flex items-center justify-center text-lg"><i class="fa-solid fa-masks-theater"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs">15 ⭐</span>
                             </div>
-                            <div>
-                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">5x Bivakmutsen & Maskers</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    Essentieel voor zakkenrollen en overvallen op de binnenplaats om anoniem te blijven.
-                                </p>
-                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">5x Bivakmutsen</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Onmisbaar voor anonieme zakkenroloperaties in de vleugels.</p>
                         </div>
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="mask_5">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                                <i class="fa-solid fa-mask"></i> 5x Maskers (15 Sterren)
-                            </button>
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-black text-xs cursor-pointer">5x Maskers (15 ⭐)</button>
                         </form>
                     </div>
 
                     <!-- 4a. Munitievoorraad (50 Kogels) -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                        <div class="space-y-3">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-boxes-stacked"></i>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                    50 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                </span>
+                                <span class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-boxes-stacked"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs">50 ⭐</span>
                             </div>
-                            <div>
-                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Munitievoorraad (+50 Kogels)</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    Ontvang direct +50 kogels voor liquidaties en aanslagen op rivalen in het hitman arsenaal.
-                                </p>
-                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Patronendoos (+50 Kogels)</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Vult je wapenkluis direct aan met 50 scherpe patronen.</p>
                         </div>
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="bullets_50">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-crosshairs"></i> Kogels Kopen (50 Sterren)
-                            </button>
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs cursor-pointer">50 Kogels (50 ⭐)</button>
                         </form>
                     </div>
 
                     <!-- 4b. Kogelwerend Vest (12 Uur) -->
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                        <div class="space-y-3">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-shield-halved"></i>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center gap-1">
-                                    150 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                </span>
+                                <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center text-lg"><i class="fa-solid fa-shield-halved"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-black text-xs">150 ⭐</span>
                             </div>
-                            <div>
-                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Kogelwerend Vest (12 Uur)</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    12 uur zware bepantsering tegen vijandige kogels met 45% ricochet-kans waardoor aanvallers zichzelf neerschieten.
-                                </p>
-                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Gepantserd Kevlar Vest (12u)</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">12 uur ballistische bescherming met 45% terugslagkans op schutters.</p>
                             @if($character->hasVest())
-                                <div x-data="{
-                                        left: {{ (int) $character->getVestRemainingSeconds() }},
-                                        format(s) {
-                                             if (s <= 0) return 'Verlopen';
-                                             const h = Math.floor(s / 3600);
-                                             const m = Math.floor((s % 3600) / 60);
-                                             const sec = Math.floor(s % 60);
-                                             const pad = (n) => String(n).padStart(2, '0');
-                                             return `${pad(h)}:${pad(m)}:${pad(sec)} (${h}u ${m}m)`;
-                                         },
-                                         init() {
-                                             setInterval(() => { if (this.left > 0) this.left--; }, 1000);
-                                         }
-                                     }"
-                                     data-testid="shop-vest-countdown"
-                                     class="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/80 text-[11px] space-y-0.5">
-                                     <div class="flex items-center justify-between font-black text-purple-800 dark:text-purple-300">
-                                         <span><i class="fa-solid fa-clock mr-1"></i> Vest Actief:</span>
-                                         <span class="font-mono tabular-nums" x-text="format(left)">{{ gmdate('H:i:s', $character->getVestRemainingSeconds()) }}</span>
-                                     </div>
-                                     <div class="text-[10px] text-purple-600 dark:text-purple-400">
-                                         Verloopt om {{ $character->vest_until->format('d-m H:i') }} uur
-                                     </div>
-                                 </div>
-                             @endif
-                         </div>
-                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
-                             @csrf
-                             <input type="hidden" name="item_type" value="bulletproof_vest">
-                             <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                                 <i class="fa-solid fa-shield-halved"></i> {{ $character->hasVest() ? 'Vest Verlengen (+12u) (150 Sterren)' : 'Vest Kopen (150 Sterren)' }}
-                             </button>
-                         </form>
-                     </div>
+                                <div data-testid="shop-vest-countdown" class="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 text-[11px] font-bold text-purple-800 dark:text-purple-300">
+                                    Pantser actief: {{ gmdate('H:i:s', $character->getVestRemainingSeconds()) }}
+                                </div>
+                            @endif
+                        </div>
+                        <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
+                            @csrf
+                            <input type="hidden" name="item_type" value="bulletproof_vest">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-black text-xs cursor-pointer">Pantser Activeren (150 ⭐)</button>
+                        </form>
+                    </div>
 
-                     <!-- 5. Vault Code Voucher -->
-                     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                         <div class="space-y-3">
-                             <div class="flex items-center justify-between">
-                                 <span class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center text-lg">
-                                     <i class="fa-solid fa-vault"></i>
-                                 </span>
-                                 <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                     25 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                 </span>
-                             </div>
-                             <div>
-                                 <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Master Kluiscode Voucher</h4>
-                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                     Gegarandeerde unieke voucher in je postvak met €15.000 tot €35.000 cash op je bank en 5 kluismunten!
-                                 </p>
-                             </div>
-                         </div>
-                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
-                             @csrf
-                             <input type="hidden" name="item_type" value="vault_code">
-                             <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                                 <i class="fa-solid fa-key"></i> Voucher Kopen (25 Sterren)
-                             </button>
-                         </form>
-                     </div>
+                    <!-- 5. Vault Code Voucher -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center text-lg"><i class="fa-solid fa-vault"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs">25 ⭐</span>
+                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Gecodeerde Kluis-Voucher</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Levert direct een unieke MedicijnKluis code in je berichtenbox.</p>
+                        </div>
+                        <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
+                            @csrf
+                            <input type="hidden" name="item_type" value="vault_code">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs cursor-pointer">Voucher Kopen (25 ⭐)</button>
+                        </form>
+                    </div>
 
-                     <!-- 6. 24h Protection -->
-                     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                         <div class="space-y-3">
-                             <div class="flex items-center justify-between">
-                                 <span class="w-10 h-10 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 flex items-center justify-center text-lg">
-                                     <i class="fa-solid fa-shield-halved"></i>
-                                 </span>
-                                 <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                     30 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                 </span>
-                             </div>
-                             <div>
-                                 <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">24-Uurs Onschendbaarheid</h4>
-                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                     Volledige 24-uurs bescherming tegen alle aanvallen, gevechten en liquidaties. Slaap met een gerust hart!
-                                 </p>
-                             </div>
-                             @if($character->hasIsolationProtection())
-                                 <div x-data="{
-                                         left: {{ (int) $character->getIsolationProtectionRemainingSeconds() }},
-                                         format(s) {
-                                             if (s <= 0) return 'Verlopen';
-                                             const h = Math.floor(s / 3600);
-                                             const m = Math.floor((s % 3600) / 60);
-                                             const sec = Math.floor(s % 60);
-                                             const pad = (n) => String(n).padStart(2, '0');
-                                             return `${pad(h)}:${pad(m)}:${pad(sec)} (${h}u ${m}m)`;
-                                         },
-                                         init() {
-                                             setInterval(() => { if (this.left > 0) this.left--; }, 1000);
-                                         }
-                                     }"
-                                     data-testid="shop-protection-countdown"
-                                     class="p-2.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200/80 dark:border-cyan-800/80 text-[11px] space-y-0.5">
-                                     <div class="flex items-center justify-between font-black text-cyan-800 dark:text-cyan-300">
-                                         <span><i class="fa-solid fa-clock mr-1"></i> Beveiliging Actief:</span>
-                                         <span class="font-mono tabular-nums" x-text="format(left)">{{ gmdate('H:i:s', $character->getIsolationProtectionRemainingSeconds()) }}</span>
-                                     </div>
-                                     <div class="text-[10px] text-cyan-700 dark:text-cyan-400">
-                                         Verloopt om {{ $character->protection_until->format('d-m H:i') }} uur
-                                     </div>
-                                 </div>
-                             @endif
-                         </div>
-                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
-                             @csrf
-                             <input type="hidden" name="item_type" value="protection_24h">
-                             <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                                 <i class="fa-solid fa-shield"></i> {{ $character->hasIsolationProtection() ? 'Bijkoop (+24u) (30 Sterren)' : 'Beschermen (30 Sterren)' }}
-                             </button>
-                         </form>
-                     </div>
+                    <!-- 6. 24h Protection -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="w-10 h-10 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 flex items-center justify-center text-lg"><i class="fa-solid fa-shield-halved"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs">30 ⭐</span>
+                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">24-Uurs Paviljoenimmuniteit</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Volledige 24-uurs afscherming tegen vijandige aanvallen en liquidaties.</p>
+                            @if($character->hasIsolationProtection())
+                                <div data-testid="shop-protection-countdown" class="p-2.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200/80 text-[11px] font-bold text-cyan-800 dark:text-cyan-300">
+                                    Schild actief: {{ gmdate('H:i:s', $character->getIsolationProtectionRemainingSeconds()) }}
+                                </div>
+                            @endif
+                        </div>
+                        <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
+                            @csrf
+                            <input type="hidden" name="item_type" value="protection_24h">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 text-white font-black text-xs cursor-pointer">Immuniteit (30 ⭐)</button>
+                        </form>
+                    </div>
 
-                     <!-- 7. 3x XXL Koffers -->
-                     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                         <div class="space-y-3">
-                             <div class="flex items-center justify-between">
-                                 <span class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center text-lg">
-                                     <i class="fa-solid fa-briefcase"></i>
-                                 </span>
-                                 <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                     35 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                 </span>
-                             </div>
-                             <div>
-                                 <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">3x Zware XXL Buitkoffers</h4>
-                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                     Drie zware koffers direct in je inventaris. Bevatten smokkelwaar, forse geldbedragen en zeldzame items.
-                                 </p>
-                             </div>
-                         </div>
-                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
-                             @csrf
-                             <input type="hidden" name="item_type" value="xxl_cases_3">
-                             <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                                 <i class="fa-solid fa-box"></i> Koffers Kopen (35 Sterren)
-                             </button>
-                         </form>
-                     </div>
-
-                     <!-- 8. Syndicaat Master Box -->
-                     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150">
-                         <div class="space-y-3">
-                             <div class="flex items-center justify-between">
-                                 <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center text-lg">
-                                     <i class="fa-solid fa-crown"></i>
-                                 </span>
-                                 <span class="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center gap-1">
-                                     75 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
-                                 </span>
-                             </div>
-                             <div>
-                                 <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Kliniek Syndicaat Master Box</h4>
-                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                     Ultieme deal: +€100.000 cash, +10 Maskers, +500 Kogels, +2 XXL Koffers en 5 Geheime Kluiscodes!
-                                 </p>
-                             </div>
-                         </div>
-                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
-                             @csrf
-                             <input type="hidden" name="item_type" value="package_master">
-                             <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-md">
-                                 <i class="fa-solid fa-gem"></i> Master Box (75 Sterren)
-                             </button>
-                         </form>
-                     </div>
-
-                     <!-- 9. 1 Week VIP Status (500 Sterren) -->
-                     <div class="bg-gradient-to-b from-purple-950 via-purple-900 to-slate-900 border-2 border-purple-500/60 rounded-2xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden group">
-                         <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
-                         <div class="space-y-3 relative z-10">
-                             <div class="flex items-center justify-between">
-                                 <span class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-lg shadow-inner">
-                                     <i class="fa-solid fa-crown text-amber-400 animate-pulse"></i>
-                                 </span>
-                                 <span class="px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1 shadow-sm">
-                                     500 <i class="fa-solid fa-star text-slate-950 text-[10px]"></i>
-                                 </span>
-                             </div>
-                             <div>
-                                 <span class="text-[10px] font-black uppercase tracking-wider text-purple-400">Exclusief Voordeel</span>
-                                 <h4 class="text-sm font-black text-white">1 Week VIP Status (7 Dagen)</h4>
-                                 <p class="text-xs text-purple-200/80 mt-1 leading-relaxed">
-                                     7 dagen alle VIP privileges: +25% kluisbeloningen, dagelijkse VIP Koffer, glans badge, hogere rentes en vip lounge!
-                                 </p>
-                             </div>
-                         </div>
-                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4 relative z-10">
-                             @csrf
-                             <input type="hidden" name="item_type" value="vip_week">
-                             <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-md">
-                                 <i class="fa-solid fa-crown"></i> 1 Week VIP (500 Sterren)
-                             </button>
-                         </form>
-                     </div>
-                 </div>
-             </div>
-
-         </div>
-
-     </div>
-
-     <!-- Bottom Podium Ranglijst -->
-     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
-        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
-            <i class="fa-solid fa-trophy text-amber-500"></i>
-            <span>RANGLIJST TOP PATIËNTEN</span>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-3 pt-2">
-            @foreach($topRankings ?? [] as $index => $player)
-            <div class="flex flex-col items-center text-center group">
-                <div class="relative mb-2">
-                    <img src="{{ $player->avatar_url }}" alt="{{ $player->name }}" 
-                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400' : 'border-slate-200 dark:border-slate-700') }} group-hover:scale-105 transition-transform shadow-xs">
-                    
-                    <span class="absolute -top-1 -left-1 w-6 h-6 rounded-full {{ $index === 0 ? 'bg-amber-400 text-slate-950 font-black' : ($index < 3 ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800 text-white font-bold') }} text-xs flex items-center justify-center shadow">
-                        {{ $index + 1 }}
-                    </span>
-
-                    <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] flex items-center justify-center">
-                        <i class="fa-solid fa-check"></i>
-                    </span>
+                    <!-- 7. 3x XXL Koffers -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center text-lg"><i class="fa-solid fa-briefcase"></i></span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs">35 ⭐</span>
+                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">3x XXL Transportkoffers</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Drie zwaar verzegelde koffers voor de kraakbank.</p>
+                        </div>
+                        <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
+                            @csrf
+                            <input type="hidden" name="item_type" value="xxl_cases_3">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-black text-xs cursor-pointer">3x Koffers (35 ⭐)</button>
+                        </form>
+                    </div>
                 </div>
-
-                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate w-full block">
-                    {{ $player->name }}
-                </a>
-                <span class="text-[10px] font-bold text-slate-400">
-                    {{ $player->respect >= 1000000 ? number_format($player->respect / 1000000, 2) . 'M' : ($player->respect >= 1000 ? number_format($player->respect / 1000, 1) . 'K' : $player->respect) }}
-                </span>
             </div>
-            @endforeach
-        </div>
-    </div>
 
+            <!-- TAB: SUPPORTER & DONATIES -->
+            <div x-show="shopTab === 'donaties'" class="space-y-6">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900 dark:text-white">Serverondersteuning &amp; Reclamevrij Spelen</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                Draag vrijwillig bij aan het serveronderhoud en ontvang als dank direct Sterren, Maskers en VIP-privileges.
+                            </p>
+                        </div>
+                        <a href="{{ route('vip.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-600 text-white text-xs font-black shrink-0">
+                            <i class="fa-solid fa-crown text-amber-400 mr-1"></i> VIP Overzicht
+                        </a>
+                    </div>
+                    @include('partials.bmac_instructions')
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column (lg:col-span-3): Flipped Navigation & Telemetry Dock -->
+        <div class="hidden lg:block lg:col-span-3 space-y-4 order-1 lg:order-2">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs p-2.5 space-y-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                <div class="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Winkelafdelingen
+                </div>
+                <button type="button" @click="setShopTab('items')"
+                        :class="shopTab === 'items' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-table-cells-large text-emerald-600 dark:text-emerald-400 w-4 text-center"></i>
+                        <span>Grid-Winkel &amp; Dagdeal</span>
+                    </span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black">-{{ $dailyDealDiscountPct }}%</span>
+                </button>
+
+                <button type="button" @click="setShopTab('pakketten')"
+                        :class="shopTab === 'pakketten' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-boxes-packing text-purple-600 dark:text-purple-400 w-4 text-center"></i>
+                        <span>Voorraadbundels</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-left text-[10px] opacity-60"></i>
+                </button>
+
+                <button type="button" @click="setShopTab('sterren')"
+                        :class="shopTab === 'sterren' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-gem text-amber-500 w-4 text-center"></i>
+                        <span>Sterrenkiosk</span>
+                    </span>
+                    <span class="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold">{{ $character->stars ?? 0 }} ⭐</span>
+                </button>
+
+                <button type="button" @click="setShopTab('inventaris')"
+                        :class="shopTab === 'inventaris' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black' : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-box-archive text-purple-600 dark:text-purple-400 w-4 text-center"></i>
+                        <span>Plunjezak</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-extrabold text-[10px]" x-text="totalInvCount + ' st'"></span>
+                </button>
+
+                <button type="button" @click="setShopTab('donaties')"
+                        :class="shopTab === 'donaties' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 font-black shadow-md' : 'hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-300/80 dark:border-amber-800/80'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-mug-hot text-amber-500 w-4 text-center"></i>
+                        <span>Server Steunen</span>
+                    </span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-400 text-purple-950 font-black uppercase">VIP</span>
+                </button>
+            </div>
+
+            <!-- Live Dossier & Wallet Telemetry Card -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block border-b border-slate-100 dark:border-slate-800 pb-2">
+                    Betaalmiddelen &amp; Dossier
+                </span>
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 dark:text-slate-400">Contant:</span>
+                        <span class="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">€{{ number_format($character->cash, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 dark:text-slate-400">Bankrekening:</span>
+                        <span class="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">€{{ number_format($character->bank, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 dark:text-slate-400">Sterren:</span>
+                        <span class="font-extrabold text-amber-600 dark:text-amber-400">{{ $character->stars ?? 0 }} ⭐</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 dark:text-slate-400">Koffers:</span>
+                        <span class="font-extrabold text-purple-700 dark:text-purple-400">{{ $character->unopened_bags ?? 0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 dark:text-slate-400">Charisma-Bonus:</span>
+                        <span class="font-extrabold text-pink-600 dark:text-pink-400">-{{ $charismaDiscountPct }}% korting</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 @endsection

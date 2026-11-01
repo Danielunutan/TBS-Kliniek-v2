@@ -14,6 +14,7 @@ use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,10 +25,23 @@ use Illuminate\View\View;
 
 class ShopController extends Controller
 {
+    public const DAILY_DEAL_DISCOUNT_PCT = 15;
+
+    public const DAILY_DEAL_CANDIDATES = [
+        'kapsalon-paviljoen-7',
+        'energy-drink-xxl',
+        'strip-oxazepam',
+        'portie-bitterballen',
+        'bami-schijf-speciaal',
+        'saucijzenbroodje',
+        'sterke-kliniek-koffie',
+        'broodje-bal-mayo',
+    ];
+
     public const BUNDLES = [
         'kliniek_starter' => [
             'id' => 'kliniek_starter',
-            'name' => 'Kliniek Starterspakket 🏥',
+            'name' => 'Opname & Start-Rantsoen 🏥',
             'category' => 'smokkel',
             'cost_stars' => 75,
             'codes' => 10,
@@ -37,7 +51,7 @@ class ShopController extends Controller
         ],
         'smokkel_buit' => [
             'id' => 'smokkel_buit',
-            'name' => 'Smokkel & Buitkoffer Pack 📦',
+            'name' => 'Koeriers & Lading Cargo 📦',
             'category' => 'smokkel',
             'cost_stars' => 150,
             'codes' => 15,
@@ -47,7 +61,7 @@ class ShopController extends Controller
         ],
         'afdelingsbaas_deal' => [
             'id' => 'afdelingsbaas_deal',
-            'name' => 'Afdelingsbaas Buitdeal 💼',
+            'name' => 'Paviljoenleider Voorraadkist 💼',
             'category' => 'kluisbuit',
             'cost_stars' => 250,
             'codes' => 25,
@@ -57,7 +71,7 @@ class ShopController extends Controller
         ],
         'syndicaat_pack' => [
             'id' => 'syndicaat_pack',
-            'name' => 'Kliniek Maffia Syndicaat Pack 👑',
+            'name' => 'Onderwereld Kartel Transport 👑',
             'category' => 'syndicaat',
             'cost_stars' => 500,
             'codes' => 50,
@@ -67,7 +81,7 @@ class ShopController extends Controller
         ],
         'koffer_booster_xl' => [
             'id' => 'koffer_booster_xl',
-            'name' => 'Zwarte Markt Imperium XL 💉',
+            'name' => 'Schaduwhandel Monopolie XL 💉',
             'category' => 'kluisbuit',
             'cost_stars' => 1000,
             'codes' => 120,
@@ -77,7 +91,7 @@ class ShopController extends Controller
         ],
         'eindbaas_kluis_xxl' => [
             'id' => 'eindbaas_kluis_xxl',
-            'name' => 'TBS Kliniek Eindbaas Kluis XXL 🏆',
+            'name' => 'Hoofddirectie Reservekluis XXL 🏆',
             'category' => 'syndicaat',
             'cost_stars' => 2500,
             'codes' => 350,
@@ -102,7 +116,31 @@ class ShopController extends Controller
     ) {}
 
     /**
-     * Show shop, bundles and inventory (Matching Screenshot 3).
+     * Select one deterministic daily deal item based on the current date.
+     */
+    public function getDailyDealItem(?Collection $items = null): ?Item
+    {
+        $buyable = $items ?? Item::where('is_buyable', true)->get();
+        if ($buyable->isEmpty()) {
+            return null;
+        }
+
+        $preferredPool = $buyable->filter(fn (Item $item) => in_array($item->slug, self::DAILY_DEAL_CANDIDATES, true))->values();
+        $pool = $preferredPool->isNotEmpty()
+            ? $preferredPool
+            : $buyable->filter(fn (Item $item) => ! in_array($item->slug, ['smokkelpakketje', 'test-gadget', 'frikandelbroodje'], true) && $item->category !== 'equipment')->values();
+
+        if ($pool->isEmpty()) {
+            return null;
+        }
+
+        $seed = abs(crc32('tbs-daily-deal-'.Carbon::today()->toDateString()));
+
+        return $pool->get($seed % $pool->count());
+    }
+
+    /**
+     * Render the Grid-shop with category filters, Daily Deal, and live stat comparison.
      */
     public function index(): View
     {
@@ -116,6 +154,25 @@ class ShopController extends Controller
             ->where('quantity', '>', 0)
             ->with('item')
             ->get();
+
+        $dailyDealItem = $this->getDailyDealItem($items);
+        $dailyDealDiscountPct = self::DAILY_DEAL_DISCOUNT_PCT;
+
+        $playerStatsComparison = [
+            'energy' => (int) $character->energy,
+            'max_energy' => (int) max(1, $character->max_energy),
+            'health' => (int) $character->health,
+            'max_health' => (int) max(1, $character->max_health),
+            'strength' => (int) $character->getEffectiveStrength(),
+            'base_strength' => (int) ($character->strength ?? 10),
+            'defense' => (int) $character->getEffectiveDefense(),
+            'stamina' => (int) $character->getEffectiveStamina(),
+            'base_stamina' => (int) ($character->stamina ?? 10),
+            'intelligence' => (int) $character->getEffectiveIntelligence(),
+            'charisma' => (int) $character->getEffectiveCharisma(),
+            'discipline' => (int) $character->getEffectiveDiscipline(),
+            'stat_cap' => (int) $character->getMaxStatForLevel(),
+        ];
 
         $bundles = self::BUNDLES;
         $otherPatients = Character::where('id', '!=', $character->id)
@@ -131,12 +188,15 @@ class ShopController extends Controller
             'inventory',
             'bundles',
             'otherPatients',
-            'topRankings'
+            'topRankings',
+            'dailyDealItem',
+            'dailyDealDiscountPct',
+            'playerStatsComparison'
         ));
     }
 
     /**
-     * Buy an item with regular cash.
+     * Buy an item with cash or bank balance, applying Charisma and Daily Deal discounts.
      */
     public function buy(Request $request, Item $item): RedirectResponse|JsonResponse
     {
@@ -145,7 +205,7 @@ class ShopController extends Controller
         $character = $user->character;
 
         if (! $item->is_buyable || $item->slug === 'smokkelpakketje') {
-            $msg = 'Dit item kan niet via de reguliere winkel worden gekocht!';
+            $msg = 'Dit artikel is uitgesloten van reguliere toonbankverkoop.';
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -166,7 +226,7 @@ class ShopController extends Controller
                     ->exists();
 
                 if ($alreadyOwned) {
-                    $errorMsg = "Je hebt {$item->name} al in je bezit! Uitrusting is uniek en koop je eenmalig voor permanente gevechtskracht in je rugzak.";
+                    $errorMsg = "{$item->name} zit al in je plunjezak! Uitrustingsstukken zijn uniek en leveren doorlopend passieve gevechtskracht.";
 
                     if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                         return response()->json([
@@ -193,7 +253,7 @@ class ShopController extends Controller
                         $minutes = $diffMinutes % 60;
                         $timeRemaining = $hours > 0 ? "{$hours} uur en {$minutes} minuten" : "{$minutes} minuten";
 
-                        $errorMsg = "Je kunt {$item->name} maximaal 1x per 6 uur aanschaffen om de spelbalans eerlijk te houden! Probeer het over {$timeRemaining} opnieuw.";
+                        $errorMsg = "Klinisch doseringslimiet bereikt: je mag {$item->name} maximaal 1x per 6 uur aanschaffen! Volgende afgifte over {$timeRemaining}.";
 
                         if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                             return response()->json([
@@ -212,8 +272,13 @@ class ShopController extends Controller
             $quantity = max(1, min(50, (int) $request->input('quantity', 1)));
         }
 
-        // Charisma discount up to 15% (1% per 10 charisma)
-        $discountPct = min(15, (int) floor($character->getEffectiveCharisma() / 10));
+        // Charisma discount up to 15% (1% per 10 charisma) + Daily Deal discount (15%), capped at 25% total
+        $charismaDiscountPct = min(15, (int) floor($character->getEffectiveCharisma() / 10));
+        $dailyDealItem = $this->getDailyDealItem();
+        $isDailyDeal = $dailyDealItem && $dailyDealItem->id === $item->id;
+        $dailyDealBonus = $isDailyDeal ? self::DAILY_DEAL_DISCOUNT_PCT : 0;
+
+        $discountPct = min(25, $charismaDiscountPct + $dailyDealBonus);
         $unitPrice = $discountPct > 0 ? (int) round($item->price_kc * (1 - ($discountPct / 100))) : $item->price_kc;
         $totalCost = $unitPrice * $quantity;
 
@@ -231,8 +296,8 @@ class ShopController extends Controller
             $storageRemaining = max(0, $storageCap - $storageUsed);
 
             $errorMsg = $storageRemaining > 0
-                ? "Je opbergplaats heeft nog maar {$storageRemaining} vrije plek(ken) ({$storageUsed}/{$storageCap})! Je kunt maximaal {$storageRemaining}x van dit voorwerp kopen."
-                : "Je opbergplaats zit helemaal vol ({$storageUsed}/{$storageCap} plaatsen)! Verkoop of gebruik spullen in je Depot, level up of word VIP voor +50 extra voorraadplekken.";
+                ? "Je celopslag telt nog slechts {$storageRemaining} vrije vak(ken) ({$storageUsed}/{$storageCap})! Verlaag het aantal naar maximaal {$storageRemaining}x."
+                : "Je celopslag zit volledig vol ({$storageUsed}/{$storageCap} vakken bezet)! Ruim eerst voorraad op in je Depot of breid je capaciteit uit.";
 
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -249,7 +314,14 @@ class ShopController extends Controller
                 ->with('error', $errorMsg);
         }
 
-        $discountNote = $discountPct > 0 ? " (inclusief {$discountPct}% Charisma-korting! 😎)" : '';
+        $discountParts = [];
+        if ($isDailyDeal) {
+            $discountParts[] = "{$dailyDealBonus}% Dagdeal";
+        }
+        if ($charismaDiscountPct > 0) {
+            $discountParts[] = "{$charismaDiscountPct}% Charisma";
+        }
+        $discountNote = ! empty($discountParts) ? ' (inclusief '.implode(' + ', $discountParts).' korting! 🔥)' : '';
         $formatted = number_format($totalCost, 0, ',', '.');
         $ownedCount = 0;
         $successMsg = '';
@@ -299,12 +371,12 @@ class ShopController extends Controller
                 $locked->masks = ($locked->masks ?? 0) + $quantity;
                 $locked->save();
                 $ownedCount = (int) $locked->masks;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$quantity} Masker(s) 🎭 toegevoegd aan je voorraad voor Zakkenrollen (totaal: {$locked->masks}).";
+                $successMsg = "Afrekening voltooid: {$quantity}x {$item->name} ingeslagen voor €{$formatted}{$discountNote}! Direct +{$quantity} Masker(s) 🎭 klaargelegd voor Zakkenrollen (totaal: {$locked->masks}).";
             } elseif ($item->slug === 'smokkelpakketje') {
                 $locked->unopened_bags = ($locked->unopened_bags ?? 0) + $quantity;
                 $locked->save();
                 $ownedCount = (int) $locked->unopened_bags;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$quantity} Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$locked->unopened_bags}).";
+                $successMsg = "Afrekening voltooid: {$quantity}x {$item->name} ingeslagen voor €{$formatted}{$discountNote}! Direct +{$quantity} Pakket(ten) 📦 bijgeschreven (totaal: {$locked->unopened_bags}).";
             } elseif ($item->category === 'equipment') {
                 $inv = CharacterItem::firstOrNew([
                     'character_id' => $locked->id,
@@ -313,7 +385,7 @@ class ShopController extends Controller
                 $inv->quantity = 1;
                 $inv->save();
                 $ownedCount = 1;
-                $successMsg = "Je hebt de unieke uitrusting {$item->name} aangeschaft voor €{$formatted}{$discountNote}! Deze biedt permanente gevechtskracht in je rugzak.";
+                $successMsg = "Uitrustingsstuk {$item->name} vergrendeld in je plunjezak voor €{$formatted}{$discountNote}! Je gevechtsstatistieken zijn permanent verhoogd.";
             } else {
                 $inv = CharacterItem::firstOrNew([
                     'character_id' => $locked->id,
@@ -322,7 +394,7 @@ class ShopController extends Controller
                 $inv->quantity = ($inv->quantity ?? 0) + $quantity;
                 $inv->save();
                 $ownedCount = (int) $inv->quantity;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}!";
+                $successMsg = "Toonbankdeal afgerond: {$quantity}x {$item->name} aangeschaft voor €{$formatted}{$discountNote}!";
 
                 if (in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus'], true)) {
                     $perks = $locked->perks ?? [];
@@ -348,7 +420,7 @@ class ShopController extends Controller
         });
 
         if (! $purchaseSuccess) {
-            $errorMsg = "Niet genoeg geld! {$quantity}x {$item->name} kost €{$formatted}.";
+            $errorMsg = "Saldo ontoereikend! Voor {$quantity}x {$item->name} is €{$formatted} vereist.";
 
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -380,6 +452,7 @@ class ShopController extends Controller
                     'unit_price' => $unitPrice,
                     'total_cost' => $totalCost,
                     'discount_pct' => $discountPct,
+                    'is_daily_deal' => $isDailyDeal,
                 ]
             );
         } catch (\Throwable) {
@@ -394,6 +467,8 @@ class ShopController extends Controller
                 'item_name' => $item->name,
                 'quantity_bought' => $quantity,
                 'owned_count' => $ownedCount,
+                'is_daily_deal' => $isDailyDeal,
+                'discount_pct' => $discountPct,
                 'cash' => (int) $character->cash,
                 'cash_formatted' => number_format($character->cash, 0, ',', '.'),
                 'bank' => (int) $character->bank,
@@ -431,10 +506,10 @@ class ShopController extends Controller
 
             if (! $lockedItem || $lockedItem->quantity < 1) {
                 if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => 'Voorwerp niet beschikbaar in je inventaris.'], 422);
+                    return response()->json(['success' => false, 'message' => 'Dit artikel ontbreekt in je plunjezak.'], 422);
                 }
 
-                return back()->with('shop_tab', 'inventaris')->with('error', 'Voorwerp niet beschikbaar in je inventaris.');
+                return back()->with('shop_tab', 'inventaris')->with('error', 'Dit artikel ontbreekt in je plunjezak.');
             }
 
             /** @var Character $lockedCharacter */
@@ -445,7 +520,7 @@ class ShopController extends Controller
             $this->energyService->refresh($lockedCharacter);
 
             if ($lockedCharacter->isComatose()) {
-                $comaMsg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+                $comaMsg = 'Kritieke Code Blauw status! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe om bij bewustzijn te komen.';
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json(['success' => false, 'message' => $comaMsg], 422);
                 }
@@ -456,18 +531,18 @@ class ShopController extends Controller
             $item = $lockedItem->item;
             if (! $item) {
                 if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => 'Item niet gevonden.'], 422);
+                    return response()->json(['success' => false, 'message' => 'Artikelgegevens niet gevonden.'], 422);
                 }
 
-                return back()->with('shop_tab', 'inventaris')->with('error', 'Item niet gevonden.');
+                return back()->with('shop_tab', 'inventaris')->with('error', 'Artikelgegevens niet gevonden.');
             }
 
             if ($item->category === 'equipment' || ! $item->isConsumableItem()) {
                 if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!"], 422);
+                    return response()->json(['success' => false, 'message' => "{$item->name} fungeert als vaste uitrusting en versterkt doorlopend je eigenschappen vanuit je plunjezak!"], 422);
                 }
 
-                return back()->with('shop_tab', 'inventaris')->with('info', "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!");
+                return back()->with('shop_tab', 'inventaris')->with('info', "{$item->name} fungeert als vaste uitrusting en versterkt doorlopend je eigenschappen vanuit je plunjezak!");
             }
 
             // Voorkom verspilling van herstel-items als zowel energie als gezondheid al 100% vol zijn
@@ -480,7 +555,7 @@ class ShopController extends Controller
                 $isRecoveryItem = ($item->energy_restore > 0 || $item->health_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'ehbo-noodverbanddoos', 'sigaretten', 'ritalin', 'telefoon'], true));
 
                 if ($isRecoveryItem && ! $hasEnergyBenefit && ! $hasHealthBenefit) {
-                    $alreadyFullMsg = "Zowel je Energie ({$lockedCharacter->energy}/{$lockedCharacter->max_energy}) als Gezondheid ({$lockedCharacter->health}/{$lockedCharacter->max_health}) zijn al maximaal! Bewaar {$item->name} voor wanneer je het nodig hebt.";
+                    $alreadyFullMsg = "Je vitale functies — Energie ({$lockedCharacter->energy}/{$lockedCharacter->max_energy}) én Gezondheid ({$lockedCharacter->health}/{$lockedCharacter->max_health}) — zijn al maximaal! Houd {$item->name} achter de hand voor een later moment.";
                     if ($request->wantsJson() || $request->ajax()) {
                         return response()->json(['success' => false, 'message' => $alreadyFullMsg], 422);
                     }
@@ -540,7 +615,7 @@ class ShopController extends Controller
                             $minutes = $diffMinutes % 60;
                             $timeRemaining = $hours > 0 ? "{$hours} uur en {$minutes} minuten" : "{$minutes} minuten";
 
-                            $errorMsg = "Je lichaam moet herstellen! Je kunt {$item->name} maximaal 1x per 6 uur gebruiken. Probeer het over {$timeRemaining} opnieuw.";
+                            $errorMsg = "Spier- en opnamepauze actief: je mag {$item->name} maximaal 1x per 6 uur innemen. Volgende dosis over {$timeRemaining}.";
 
                             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                                 return response()->json([
@@ -566,19 +641,19 @@ class ShopController extends Controller
                 $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 10) * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
-                $customFeedback[] = "Lekker {$consumeQty}x peuk gerookt op de binnenplaats! 🚬";
+                $customFeedback[] = "Rookpauze achter het luchthek afgerond ({$consumeQty}x)! 🚬";
             } elseif ($item->slug === 'ritalin') {
                 $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 35) * $consumeQty;
                 $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 15) * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
-                $customFeedback[] = "Scherpe focus en alertheid gekregen ({$consumeQty}x Ritalin)! 💊";
+                $customFeedback[] = "Concentratie-impuls geactiveerd ({$consumeQty}x Ritalin)! 💊";
             } elseif ($item->slug === 'telefoon') {
                 $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 50) * $consumeQty;
                 $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 25) * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
-                $customFeedback[] = 'Kort contact gehad met de buitenwereld voor morele steun! 📱';
+                $customFeedback[] = 'Geheime lijn met buitenwereld geopend voor mentale oppepper! 📱';
             } elseif ($item->slug === 'strip-oxazepam') {
                 $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 35) * $consumeQty;
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
@@ -587,30 +662,30 @@ class ShopController extends Controller
                 if ($curDis < $maxStat) {
                     $lockedCharacter->discipline = min($maxStat, $curDis + $consumeQty);
                 }
-                $customFeedback[] = "Rust keert terug in je hoofd (+{$restoreHealth} Gezondheid, +{$consumeQty} Weerbaarheid/Discipline)! 💊";
+                $customFeedback[] = "Hartslag gestabiliseerd (+{$restoreHealth} Gezondheid, +{$consumeQty} Discipline)! 💊";
             } elseif ($item->slug === 'strip-ritalin') {
                 $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 45) * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $this->levelService->addXp($lockedCharacter, 25 * $consumeQty);
-                $customFeedback[] = "Laserfocus en adrenalinekick (+{$restoreEnergy} Energie, +25 XP per strip)! ⚡";
+                $customFeedback[] = "Mentale versnelling geactiveerd (+{$restoreEnergy} Energie, +25 XP per strip)! ⚡";
             } elseif ($item->slug === 'haloperidol-forte') {
                 $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 20) * $consumeQty;
                 $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 60) * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
-                $customFeedback[] = "💥 BERSERK STATUS! Pijn verdoofd (+{$restoreEnergy} Energie, +{$restoreHealth} Gezondheid)!";
+                $customFeedback[] = "💥 NOODAMPUL INGEWERKT! Pijngrens uitgeschakeld (+{$restoreEnergy} Energie, +{$restoreHealth} Gezondheid)!";
             } else {
                 // Reguliere herstel items
                 if ($item->slug === 'adrenaline-injectie') {
                     $lockedCharacter->energy = $lockedCharacter->max_energy;
-                    $customFeedback[] = "100% Volledige Energie hersteld ({$lockedCharacter->max_energy}/{$lockedCharacter->max_energy})! ⚡";
+                    $customFeedback[] = "Energiepeil direct naar 100% gestuwd ({$lockedCharacter->max_energy}/{$lockedCharacter->max_energy})! ⚡";
                 } elseif ($item->energy_restore > 0) {
                     $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + ($item->energy_restore * $consumeQty));
                 }
 
                 if ($item->slug === 'ehbo-noodverbanddoos') {
                     $lockedCharacter->health = $lockedCharacter->max_health;
-                    $customFeedback[] = "100% Volledige Gezondheid hersteld ({$lockedCharacter->max_health}/{$lockedCharacter->max_health} HP)! ❤️";
+                    $customFeedback[] = "Levenspunten direct naar 100% geheeld ({$lockedCharacter->max_health}/{$lockedCharacter->max_health} HP)! ❤️";
                 } elseif ($item->health_restore > 0) {
                     $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + ($item->health_restore * $consumeQty));
                 }
@@ -623,9 +698,9 @@ class ShopController extends Controller
                 if ($cur < $maxStat) {
                     $gain = min($consumeQty, $maxStat - $cur);
                     $lockedCharacter->strength = $cur + $gain;
-                    $customFeedback[] = "+{$gain} Kracht 💪 (nu {$lockedCharacter->strength}/{$maxStat})!";
+                    $customFeedback[] = "+{$gain} Kracht 💪 (stand: {$lockedCharacter->strength}/{$maxStat})!";
                 } else {
-                    $customFeedback[] = "Je Kracht zit al op het maximum ({$maxStat}) voor jouw level!";
+                    $customFeedback[] = "Krachtplafond ({$maxStat}) voor je huidige level is al bereikt!";
                 }
                 $perks = $lockedCharacter->perks ?? [];
                 $perks['last_used_eiwitshake_bodybuilder'] = now()->toISOString();
@@ -637,9 +712,9 @@ class ShopController extends Controller
                 if ($cur < $maxStat) {
                     $gain = min($consumeQty, $maxStat - $cur);
                     $lockedCharacter->stamina = $cur + $gain;
-                    $customFeedback[] = "+{$gain} Conditie 🏃 (nu {$lockedCharacter->stamina}/{$maxStat})!";
+                    $customFeedback[] = "+{$gain} Conditie 🏃 (stand: {$lockedCharacter->stamina}/{$maxStat})!";
                 } else {
-                    $customFeedback[] = "Je Conditie zit al op het maximum ({$maxStat}) voor jouw level!";
+                    $customFeedback[] = "Conditieplafond ({$maxStat}) voor je huidige level is al bereikt!";
                 }
                 $perks = $lockedCharacter->perks ?? [];
                 $perks['last_used_multivitaminen_focus'] = now()->toISOString();
@@ -649,13 +724,13 @@ class ShopController extends Controller
             // 3. Masker toevoegen
             if ($item->slug === 'bivakmuts-masker') {
                 $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $consumeQty;
-                $customFeedback[] = "+{$consumeQty} Masker(s) 🎭 toegevoegd aan je voorraad (totaal: {$lockedCharacter->masks})!";
+                $customFeedback[] = "+{$consumeQty} Masker(s) 🎭 klaargelegd (totaal: {$lockedCharacter->masks})!";
             }
 
             // 4. Ongeopend pakketje toevoegen
             if ($item->slug === 'smokkelpakketje') {
                 $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + $consumeQty;
-                $customFeedback[] = "+{$consumeQty} Ongeopend Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$lockedCharacter->unopened_bags})!";
+                $customFeedback[] = "+{$consumeQty} Ongeopend Pakket(ten) 📦 klaargelegd (totaal: {$lockedCharacter->unopened_bags})!";
             }
 
             // 5. IJzerzaagje (Strafvermindering cel)
@@ -664,13 +739,13 @@ class ShopController extends Controller
                     if ($request->wantsJson() || $request->ajax()) {
                         return response()->json([
                             'success' => false,
-                            'message' => 'Je zit momenteel niet in de isoleercel! Bewaar je ijzerzaagje voor een uitbraak.',
+                            'message' => 'Je verblijft momenteel niet in een gesloten cel! Houd je ijzerzaagje achter de hand voor noodgevallen.',
                         ], 422);
                     }
 
                     return back()
                         ->with('shop_tab', 'inventaris')
-                        ->with('error', 'Je zit momenteel niet in de isoleercel! Bewaar je ijzerzaagje voor een uitbraak.');
+                        ->with('error', 'Je verblijft momenteel niet in een gesloten cel! Houd je ijzerzaagje achter de hand voor noodgevallen.');
                 }
 
                 $newPrisonUntil = $lockedCharacter->prison_until->copy()->subMinutes(30 * $consumeQty);
@@ -678,10 +753,10 @@ class ShopController extends Controller
                     $lockedCharacter->is_in_prison = false;
                     $lockedCharacter->prison_until = null;
                     $lockedCharacter->prison_reason = null;
-                    $customFeedback[] = 'Tralies doorgezaagd! Je bent direct ontsnapt uit de cel! 🔓';
+                    $customFeedback[] = 'Spijlen doorgezaagd! Je staat direct weer op vrije voeten! 🔓';
                 } else {
                     $lockedCharacter->prison_until = $newPrisonUntil;
-                    $customFeedback[] = (30 * $consumeQty).' minuten straftijd afgezagen van je celstraf! ⏳';
+                    $customFeedback[] = (30 * $consumeQty).' minuten celstraf weggevijld! ⏳';
                 }
             }
 
@@ -697,7 +772,7 @@ class ShopController extends Controller
             $energyGained = $lockedCharacter->energy - $energyBefore;
             $healthGained = $lockedCharacter->health - $healthBefore;
 
-            $msg = $consumeQty > 1 ? "Je hebt {$consumeQty}x {$item->name} geconsumeerd!" : "Je hebt {$item->name} gebruikt!";
+            $msg = $consumeQty > 1 ? "Voorraadinname: {$consumeQty}x {$item->name} benut!" : "Artikel {$item->name} ingenomen!";
             $details = [];
             if (! empty($customFeedback)) {
                 $details[] = implode(' ', $customFeedback);
@@ -717,7 +792,7 @@ class ShopController extends Controller
                 $msg .= ' '.implode(' ', $details);
             } elseif ($energyGained === 0 && $healthGained === 0 && empty($customFeedback)) {
                 if ($lockedCharacter->energy >= $lockedCharacter->max_energy && $lockedCharacter->health >= $lockedCharacter->max_health) {
-                    $msg .= ' (Energie en Gezondheid waren al maximaal)';
+                    $msg .= ' (Energie en Gezondheid stonden al op 100%)';
                 }
             }
 
@@ -755,20 +830,20 @@ class ShopController extends Controller
         ]);
 
         $configs = [
-            'full_restore' => ['cost' => 5, 'name' => 'Adrenaline & Gezondheid 100% Herstel ⚡'],
-            'prison_escape' => ['cost' => 10, 'name' => 'Directe Cel Uitbraak (Borgtocht) 🔓'],
+            'full_restore' => ['cost' => 5, 'name' => 'Volledige Vitale Reset (100% Energie & HP) ⚡'],
+            'prison_escape' => ['cost' => 10, 'name' => 'Directe Celvrijlating (Vrijbrief) 🔓'],
             'coma_revive' => ['cost' => Character::REVIVE_SERUM_STARS, 'name' => Character::REVIVE_SERUM_NAME.' 💉'],
-            'mask_1' => ['cost' => 5, 'name' => '1x Masker 🎭'],
-            'mask_5' => ['cost' => 15, 'name' => '5x Maskers 🎭'],
-            'ammo_pack' => ['cost' => 20, 'name' => 'Hitman Kogelmagazijn (250 Kogels + Vest) 🎯'],
-            'bullets_50' => ['cost' => 50, 'name' => 'Munitievoorraad (+50 Kogels) 🎯'],
-            'bulletproof_vest' => ['cost' => 150, 'name' => 'Kogelwerend Vest (12 Uur Bescherming) 🛡️'],
-            'vault_code' => ['cost' => 25, 'name' => 'Geheime Master Kluiscode Voucher 🔐'],
-            'protection_24h' => ['cost' => 30, 'name' => '24-Uurs Onschendbaarheid (Kluisbeveiliging) 🛡️'],
-            'xxl_cases_3' => ['cost' => 35, 'name' => '3x Zware XXL Buitkoffers 💼'],
-            'package_master' => ['cost' => 75, 'name' => 'Kliniek Syndicaat Master Box 📦'],
-            'package_150' => ['cost' => 100, 'name' => 'Exclusief Master Pakket 📦'],
-            'vip_week' => ['cost' => 500, 'name' => '1 Week VIP Status (7 Dagen) 👑'],
+            'mask_1' => ['cost' => 5, 'name' => '1x Bivakmuts 🎭'],
+            'mask_5' => ['cost' => 15, 'name' => '5x Bivakmutsen 🎭'],
+            'ammo_pack' => ['cost' => 20, 'name' => 'Tactisch Munitiedepot (250 Kogels + Vest) 🎯'],
+            'bullets_50' => ['cost' => 50, 'name' => 'Patronendoos (+50 Kogels) 🎯'],
+            'bulletproof_vest' => ['cost' => 150, 'name' => 'Gepantserd Kevlar Vest (12 Uur Schild) 🛡️'],
+            'vault_code' => ['cost' => 25, 'name' => 'Gecodeerde Kluis-Voucher 🔐'],
+            'protection_24h' => ['cost' => 30, 'name' => '24-Uurs Paviljoenimmuniteit 🛡️'],
+            'xxl_cases_3' => ['cost' => 35, 'name' => '3x Verzegelde XXL Transportkoffers 💼'],
+            'package_master' => ['cost' => 75, 'name' => 'Kartel Commandokist 📦'],
+            'package_150' => ['cost' => 100, 'name' => 'Hoofdkwartier Voorraadkist 📦'],
+            'vip_week' => ['cost' => 500, 'name' => '7 Dagen Ere-Patiënt (VIP Status) 👑'],
         ];
 
         $cfg = $configs[$validated['item_type']];
@@ -778,12 +853,12 @@ class ShopController extends Controller
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
             if (($lockedCharacter->stars ?? 0) < $cfg['cost']) {
-                return back()->with('shop_tab', 'sterren')->with('error', "Je hebt minimaal {$cfg['cost']} Sterren ⭐ nodig voor {$cfg['name']}! (Je hebt er {$lockedCharacter->stars}).");
+                return back()->with('shop_tab', 'sterren')->with('error', "Sterrentegoed ontoereikend: voor {$cfg['name']} zijn {$cfg['cost']} Sterren ⭐ vereist (huidig saldo: {$lockedCharacter->stars}).");
             }
 
             if ($validated['item_type'] === 'prison_escape') {
                 if (! $lockedCharacter->isImprisoned()) {
-                    return back()->with('shop_tab', 'sterren')->with('error', 'Je zit momenteel niet in de isoleercel of gevangenis!');
+                    return back()->with('shop_tab', 'sterren')->with('error', 'Je verblijft momenteel niet achter gesloten celdeuren!');
                 }
                 $lockedCharacter->stars -= $cfg['cost'];
                 $lockedCharacter->is_in_prison = false;
@@ -795,23 +870,23 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "🔓 VRIJHEID! Je hebt de tralies omzeild en bent direct vrijgelaten uit de cel voor {$cfg['cost']} Sterren ⭐!");
+                    ->with('success', "🔓 CELDEUR ONTGRENDELD! Je hebt je strafdossier afgekocht voor {$cfg['cost']} Sterren ⭐ en staat direct buiten!");
             }
 
             if ($validated['item_type'] === 'coma_revive') {
                 if (! $lockedCharacter->needsReviveSerum() && $lockedCharacter->getLiquidationStreakDeaths() === 0) {
-                    return back()->with('shop_tab', 'sterren')->with('error', 'Je verkeert momenteel niet in Code Blauw (Hartstilstand) en je liquidatieteller staat al op 0/10!');
+                    return back()->with('shop_tab', 'sterren')->with('error', 'Geen reanimatie vereist: je verkeert niet in Code Blauw en je liquidatieteller staat al op 0/10!');
                 }
                 $lockedCharacter->stars -= $cfg['cost'];
                 $lockedCharacter->applyReviveSerum();
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', '💉 '.Character::REVIVE_SERUM_NAME." toegediend! Je bent direct ontwaakt uit Code Blauw voor {$cfg['cost']} Sterren ⭐, hersteld naar 100% HP, je teller staat op 0/10 en je hebt 30 minuten bescherming!");
+                    ->with('success', '💉 '.Character::REVIVE_SERUM_NAME." toegediend voor {$cfg['cost']} Sterren ⭐! Hartslag hersteld naar 100% HP, liquidatieteller gereset naar 0/10 en 30 minuten noodschild geactiveerd!");
             }
 
             if ($validated['item_type'] === 'full_restore' && $lockedCharacter->isComatose()) {
-                return back()->with('shop_tab', 'sterren')->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om te ontwaken.');
+                return back()->with('shop_tab', 'sterren')->with('error', 'Kritieke Code Blauw status! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe voordat je een vitale reset gebruikt.');
             }
 
             $lockedCharacter->stars -= $cfg['cost'];
@@ -823,7 +898,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "⚡ Volledig hersteld! Je Energie ({$lockedCharacter->max_energy}/{$lockedCharacter->max_energy}) en Gezondheid ({$lockedCharacter->max_health}/{$lockedCharacter->max_health} HP) zijn direct 100% aangevuld voor {$cfg['cost']} Sterren ⭐.");
+                    ->with('success', "⚡ Vitale functies gereset! Energie ({$lockedCharacter->max_energy}/{$lockedCharacter->max_energy}) én Gezondheid ({$lockedCharacter->max_health}/{$lockedCharacter->max_health} HP) staan weer op 100% voor {$cfg['cost']} Sterren ⭐.");
             }
 
             if ($validated['item_type'] === 'mask_1') {
@@ -832,7 +907,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "Gekocht! 1x Masker 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
+                    ->with('success', "Uitgifte voltooid: +1x Bivakmuts 🎭 bijgeschreven voor {$cfg['cost']} Sterren ⭐.");
             }
 
             if ($validated['item_type'] === 'mask_5') {
@@ -841,7 +916,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "Gekocht! 5x Maskers 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
+                    ->with('success', "Uitgifte voltooid: +5x Bivakmutsen 🎭 bijgeschreven voor {$cfg['cost']} Sterren ⭐.");
             }
 
             if ($validated['item_type'] === 'ammo_pack') {
@@ -855,7 +930,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "🎯 Gekocht! +250 Kogels en een Kogelvrij Vest (24 uur actief) toegevoegd voor {$cfg['cost']} Sterren ⭐!");
+                    ->with('success', "🎯 Munitiedepot geleverd: +250 Kogels én 24 uur Kevlar-pantser geactiveerd voor {$cfg['cost']} Sterren ⭐!");
             }
 
             if ($validated['item_type'] === 'bullets_50') {
@@ -864,7 +939,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "🎯 Gekocht! +50 Kogels toegevoegd aan je munitievoorraad voor {$cfg['cost']} Sterren ⭐!");
+                    ->with('success', "🎯 Patronendoos geleverd: +50 Kogels toegevoegd aan je wapenkluis voor {$cfg['cost']} Sterren ⭐!");
             }
 
             if ($validated['item_type'] === 'bulletproof_vest') {
@@ -877,7 +952,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "🛡️ Gekocht! Kogelwerend Vest (12 uur actief) geactiveerd voor {$cfg['cost']} Sterren ⭐!");
+                    ->with('success', "🛡️ Pantservest aangetrokken: 12 uur ballistische bescherming geactiveerd voor {$cfg['cost']} Sterren ⭐!");
             }
 
             if ($validated['item_type'] === 'vault_code') {
@@ -893,9 +968,9 @@ class ShopController extends Controller
 
                 GameMessage::create([
                     'recipient_id' => $lockedCharacter->id,
-                    'sender_name' => 'Kliniek Shop Dealer',
-                    'subject' => '🔐 Jouw Aangeschafte MedicijnKluis Code!',
-                    'content' => "Beste {$lockedCharacter->name},\n\nHier is jouw aangeschafte kluiscode voucher:\n\n👉 **{$codeStr}**\n\nWissel hem direct in op de MedicijnKluis voor wit geld op je bank, extra sterren en tokens!",
+                    'sender_name' => 'Paviljoen Bevoorrading',
+                    'subject' => '🔐 Jouw Gecodeerde Kluis-Voucher!',
+                    'content' => "Beste {$lockedCharacter->name},\n\nJe gecodeerde toegangsvoucher voor de MedicijnKluis staat klaar:\n\n👉 **{$codeStr}**\n\nVerzilver deze reeks bij de MedicijnKluis voor direct banktegoed, sterren en draaimunten!",
                     'type' => 'reward',
                 ]);
 
@@ -903,7 +978,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "Gekocht! Geheime kluiscode voucher {$codeStr} bezorgd in je postvak en toegevoegd aan je kluiscodes voor {$cfg['cost']} Sterren ⭐!");
+                    ->with('success', "Kluis-voucher {$codeStr} afgeleverd in je berichtenbox en kluisoverzicht voor {$cfg['cost']} Sterren ⭐!");
             }
 
             if ($validated['item_type'] === 'protection_24h') {
@@ -913,7 +988,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "🛡️ Onschendbaarheid geactiveerd! Niemand kan je aanvallen of liquideren tot {$lockedCharacter->protection_until->format('d-m-Y H:i')} voor {$cfg['cost']} Sterren ⭐!");
+                    ->with('success', "🛡️ Paviljoenimmuniteit actief! Geen enkele rivaal kan je aanvallen tot {$lockedCharacter->protection_until->format('d-m-Y H:i')} ({$cfg['cost']} Sterren ⭐)!");
             }
 
             if ($validated['item_type'] === 'xxl_cases_3') {
@@ -923,7 +998,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "💼 Gekocht! +3x Zware XXL Buitkoffers toegevoegd aan je inventaris voor {$cfg['cost']} Sterren ⭐. Open ze direct bij Koffers!");
+                    ->with('success', "💼 Lading geleverd: +3x Verzegelde XXL Transportkoffers klaargezet voor {$cfg['cost']} Sterren ⭐!");
             }
 
             if ($validated['item_type'] === 'package_master' || $validated['item_type'] === 'package_150') {
@@ -948,7 +1023,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "👑 GEWELDIG! Syndicaat Master Box uitgepakt (+€100.000 bankgeld, +10 Maskers, +500 Kogels, +2 XXL Koffers en 5 Kluiscodes) voor {$cfg['cost']} Sterren ⭐!");
+                    ->with('success', "👑 KARTEL COMMANDOKIST GEOPEND! +€100.000 bankgeld, +10 Maskers, +500 Kogels, +2 XXL Koffers en 5 Kluiscodes bijgeschreven voor {$cfg['cost']} Sterren ⭐!");
             }
 
             if ($validated['item_type'] === 'vip_week') {
@@ -961,7 +1036,7 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "👑 GEFELICITEERD! 1 Week VIP Status (7 Dagen) geactiveerd voor {$cfg['cost']} Sterren ⭐!");
+                    ->with('success', "👑 ERE-STATUS TOEGEKEND! 7 Dagen VIP-privileges geactiveerd voor {$cfg['cost']} Sterren ⭐!");
             }
 
             return back()->with('shop_tab', 'sterren');
@@ -969,7 +1044,7 @@ class ShopController extends Controller
     }
 
     /**
-     * Purchase high-value bundles with Stars ⭐ (Codes, Koffers, Cash, Masks) - Matching Screenshot 3.
+     * Purchase high-value bundles with Stars ⭐ (Codes, Koffers, Cash, Masks).
      */
     public function buyBundle(Request $request): RedirectResponse
     {
@@ -1017,7 +1092,7 @@ class ShopController extends Controller
             }
 
             if (($lockedCharacter->stars ?? 0) < $totalCost) {
-                return back()->with('error', "Niet genoeg sterren! Deze bundel kost {$totalCost} Sterren ⭐ (Je hebt er {$lockedCharacter->stars}).");
+                return back()->with('error', "Sterrentegoed ontoereikend! Voor dit pakket zijn {$totalCost} Sterren ⭐ vereist (huidig saldo: {$lockedCharacter->stars}).");
             }
 
             $lockedCharacter->stars -= $totalCost;
@@ -1075,21 +1150,21 @@ class ShopController extends Controller
                     'recipient_id' => $target->id,
                     'sender_id' => $lockedCharacter->id,
                     'sender_name' => $lockedCharacter->name,
-                    'subject' => "🎁 VERRASSING! Je hebt een {$bundle['name']} cadeau gekregen!",
-                    'content' => "Beste {$target->name},\n\n{$lockedCharacter->name} heeft jou zojuist een exclusief cadeau gestuurd:\n\n📦 **{$bundle['name']} ({$quantity}x)**\n• +€".number_format($totalCash, 0, ',', '.')." wit bankgeld 🏦\n• +{$totalBags} Koffers 🧳\n• +{$totalMasks} Maskers 🎭\n• +{$totalCodes} Geheime Kluiscodes 🔐 (klaar om te verzilveren op de MedicijnKluis!)\n\nVeel succes in de TBS Kliniek!",
+                    'subject' => "🎁 KOERIERSZENDING: {$bundle['name']} ontvangen!",
+                    'content' => "Beste {$target->name},\n\n{$lockedCharacter->name} heeft een verzegelde voorraadzending op jouw naam laten afleveren:\n\n📦 **{$bundle['name']} ({$quantity}x)**\n• +€".number_format($totalCash, 0, ',', '.')." banktegoed 🏦\n• +{$totalBags} Koffers 🧳\n• +{$totalMasks} Maskers 🎭\n• +{$totalCodes} Kluiscodes 🔐\n\nDirect bijgeschreven op je dossier!",
                     'type' => 'reward',
                 ]);
 
                 return back()
                     ->with('shop_tab', 'pakketten')
-                    ->with('success', "🎁 Prachtig! Je hebt {$quantity}x {$bundle['name']} succesvol cadeau gedaan aan {$target->name} voor {$totalCost} Sterren ⭐!");
+                    ->with('success', "🎁 Zending afgeleverd! {$quantity}x {$bundle['name']} overgedragen aan {$target->name} voor {$totalCost} Sterren ⭐!");
             }
 
-            $bonusMsg = $bonusBags > 0 ? " inclusief +{$bonusBags} bonus XXL koffer(s)!" : '!';
+            $bonusMsg = $bonusBags > 0 ? " (inclusief +{$bonusBags} extra XXL bonuskoffer)!" : '!';
 
             return back()
                 ->with('shop_tab', 'pakketten')
-                ->with('success', "🎉 Gefeliciteerd! {$bundle['name']} ontvangen voor {$totalCost} Sterren ⭐{$bonusMsg} Inhoud: +€".number_format($totalCash, 0, ',', '.')." bankgeld, +{$totalBags} koffers, +{$totalMasks} maskers en +{$totalCodes} kluiscodes!");
+                ->with('success', "🎉 Pakketlevering voltooid: {$bundle['name']} vrijgegeven voor {$totalCost} Sterren ⭐{$bonusMsg} Bijschrijving: +€".number_format($totalCash, 0, ',', '.')." banktegoed, +{$totalBags} koffers, +{$totalMasks} maskers en +{$totalCodes} kluiscodes!");
         });
     }
 
@@ -1111,7 +1186,7 @@ class ShopController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
             if ($lockedCharacter->isComatose()) {
-                $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+                $msg = 'Kritieke Code Blauw status! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
 
                 return ($request->wantsJson() || $request->ajax())
                     ? response()->json(['success' => false, 'message' => $msg], 422)
@@ -1124,10 +1199,10 @@ class ShopController extends Controller
 
             if (! $needsEnergy && ! $needsHealth) {
                 $msg = $targetStat === 'energy'
-                    ? "Je Energie zit al op 100% ({$lockedCharacter->energy}/{$lockedCharacter->max_energy})!"
+                    ? "Je Energie staat al op het maximum ({$lockedCharacter->energy}/{$lockedCharacter->max_energy})!"
                     : ($targetStat === 'health'
-                        ? "Je Gezondheid zit al op 100% ({$lockedCharacter->health}/{$lockedCharacter->max_health} HP)!"
-                        : 'Je Energie en Gezondheid zitten allebei al op 100%!');
+                        ? "Je Gezondheid staat al op het maximum ({$lockedCharacter->health}/{$lockedCharacter->max_health} HP)!"
+                        : 'Zowel Energie als Gezondheid staan al op 100%!');
 
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json([
@@ -1168,7 +1243,7 @@ class ShopController extends Controller
                 });
 
             if ($items->isEmpty()) {
-                $msg = 'Geen geschikte snacks of herstel-items gevonden in je rugzak! Haal voorraad in de Kantine & Winkel.';
+                $msg = 'Geen bruikbare rantsoenen of herstelartikelen in je plunjezak gevonden! Sla eerst voorraad in bij de Winkel.';
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json([
                         'success' => false,
@@ -1274,8 +1349,8 @@ class ShopController extends Controller
 
             if (empty($consumedSummary)) {
                 $msg = $targetStat === 'energy'
-                    ? 'Je hebt geen snacks in je rugzak die Energie aanvullen!'
-                    : 'Je hebt geen items in je rugzak die Gezondheid (HP) aanvullen!';
+                    ? 'Geen enkel artikel in je plunjezak herstelt Energie!'
+                    : 'Geen enkel artikel in je plunjezak herstelt Gezondheid (HP)!';
 
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json(['success' => false, 'message' => $msg], 422);
@@ -1298,7 +1373,7 @@ class ShopController extends Controller
                 $gains[] = "+{$healthGained} HP ❤️ ({$lockedCharacter->health}/{$lockedCharacter->max_health})";
             }
 
-            $msg = 'Snel aangevuld uit je voorraad ('.implode(', ', $consumedSummary).'): '.implode(' & ', $gains).'!';
+            $msg = 'Noodrantsoen ingenomen ('.implode(', ', $consumedSummary).'): '.implode(' & ', $gains).'!';
 
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([

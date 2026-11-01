@@ -317,9 +317,10 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/afpersen', [ExtortController::class, 'index'])->name('extort.index');
     Route::post('/afpersen/uitvoeren', [ExtortController::class, 'extort'])->name('extort.extort')->middleware('throttle:30,1');
 
-    // Pickpocket (Zakkenrollen)
+    // Pickpocket (Zakkenrollen & Observatie)
     Route::get('/zakkenrollen', [PickpocketController::class, 'index'])->name('pickpocket.index');
     Route::post('/zakkenrollen/stelen', [PickpocketController::class, 'steal'])->name('pickpocket.steal')->middleware('throttle:30,1');
+    Route::post('/zakkenrollen/observeren', [PickpocketController::class, 'observe'])->name('pickpocket.observe')->middleware('throttle:30,1');
 
     // Lockers (Kluisjes)
     Route::get('/kluisjes', [LockerController::class, 'index'])->name('lockers.index');
@@ -334,9 +335,11 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/pakketjes/xxl-openen', [PackageController::class, 'openXxl'])->name('packages.open-xxl')->middleware('throttle:30,1');
     Route::post('/pakketjes/xxl-kopen', [PackageController::class, 'buyXxl'])->name('packages.buy-xxl')->middleware('throttle:30,1');
 
-    // 24 Uur Battle (Dagelijkse Battle)
+    // 24 Uur Battle (Etmaal-Escalatie & Mijlpalen)
     Route::get('/24-uur-battle', [DailyBattleController::class, 'index'])->name('battle.index');
     Route::get('/24-uur-battle/categorie/{category}', [DailyBattleController::class, 'categoryDetails'])->name('battle.category');
+    Route::post('/24-uur-battle/focus', [DailyBattleController::class, 'selectFocus'])->name('battle.focus')->middleware('throttle:20,1');
+    Route::post('/24-uur-battle/mijlpaal/{tier}', [DailyBattleController::class, 'claimMilestone'])->name('battle.milestone')->middleware('throttle:20,1');
 
     // Rad van Fortuin & Dagelijkse Beloningen
     Route::get('/rad-van-fortuin', [DailyRewardController::class, 'index'])->name('daily.index');
@@ -503,6 +506,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/gevangenis', [PrisonController::class, 'index'])->name('prison');
     Route::post('/gevangenis/ontsnappen', [PrisonController::class, 'escape'])->name('prison.escape');
     Route::post('/gevangenis/uitkopen-sterren', [PrisonController::class, 'buyout'])->name('prison.buyout');
+    Route::post('/gevangenis/strafvermindering', [PrisonController::class, 'reduceSentence'])->name('prison.reduce')->middleware('throttle:30,1');
     Route::post('/gevangenis/bevrijd/{prisoner}', [PrisonController::class, 'breakout'])->name('prison.breakout');
 
     // Player Profile & Guestbook

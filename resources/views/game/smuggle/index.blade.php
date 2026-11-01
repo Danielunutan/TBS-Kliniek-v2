@@ -1,509 +1,453 @@
 @extends('layouts.app')
 
-@section('title', 'Zwarte Markt & Productie - TBS Kliniek')
+@section('title', 'Synthese-Lab & Koeriersnetwerk - TBS Kliniek')
 
 @section('content')
-<div class="space-y-6">
+@php
+    $routesConfig = $transportRoutes ?? \App\Http\Controllers\SmuggleController::TRANSPORT_ROUTES;
+    $sigStock = (int) ($cigarettes ?? 0);
+    $ritStock = (int) ($ritalin ?? 0);
+    $weedStock = (int) ($weed ?? 0);
+    $phoneStock = (int) ($phones ?? 0);
+@endphp
 
-    <!-- Top Subterranean Workshop Hero -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="absolute -left-10 -top-10 w-48 h-48 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="space-y-6" x-data="{
+    routeIndex: 1,
+    routes: {
+        1: { key: 'sluiproute', name: 'Voorzichtige Sluiproute', rate: 100, mult: 1.00, respBonus: 0, riskLabel: 'Geen onderscheppingsrisico', desc: 'Doorvoer via de oude ventilatieschacht: 100% veilige aankomst tegen het basistarief.' },
+        2: { key: 'koerier', name: 'Gecamoufleerde Wasserijkar', rate: 85, mult: 1.15, respBonus: 2, riskLabel: '15% kans op half verlies', desc: 'Verstopt tussen het vuile linnengoed: +15% extra winst en +2 gezag bij een geslaagde rit.' },
+        3: { key: 'stormloop', name: 'Roekeloze Snelle Route', rate: 70, mult: 1.25, respBonus: 5, riskLabel: '30% kans op volledig verlies', desc: 'Directe overdracht dwars over het luchtplein: +25% bonuswinst, +5 gezag en +25% XP!' }
+    },
+    get activeRoute() {
+        return this.routes[this.routeIndex] || this.routes[1];
+    },
+    formatEuro(amount) {
+        return '€' + Math.round(amount).toLocaleString('nl-NL');
+    }
+}">
 
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-            <div class="flex items-start gap-4">
-                <div class="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center text-2xl shrink-0 shadow-md shadow-purple-600/20">
-                    <i class="fa-solid fa-industry"></i>
+    <!-- Top Command Banner -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200/80 dark:border-emerald-800/70">
+                        <i class="fa-solid fa-route mr-1"></i> Tactisch Koeriers-Dashboard
+                    </span>
+                    <span class="text-[10px] font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-full border border-indigo-200/80 dark:border-indigo-800/70">
+                        Tot +25% Risico-Opslag per Levering
+                    </span>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-md border border-purple-200/80 dark:border-purple-800/70">
-                            <i class="fa-solid fa-flask-vial mr-1"></i> Ondergronds Smokkelnetwerk
-                        </span>
-                        <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-md border border-emerald-200/80 dark:border-emerald-800/70 inline-flex items-center gap-1">
-                            <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> +5% Rank XP Per Deal
-                        </span>
-                        <span class="text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-md border border-amber-200/80 dark:border-amber-800/70">
-                            Direct Wit Bankgeld
-                        </span>
-                    </div>
-                    <h1 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                        Productiekelder & Zwarte Markt
-                    </h1>
-                    <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                        Draai sigaretten van gesmokkelde shag, ritsel zware ritalin strips en smokkel mini-smartphones binnen. Verkoop je voorraad direct aan patiënten en bewakers voor contant geld en respect!
-                    </p>
-                </div>
+                <h1 class="text-xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
+                    SYNTHESE-LAB &amp; <span class="text-emerald-600 dark:text-emerald-400">KOERIERSNETWERK</span>
+                </h1>
+                <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
+                    Bepaal bij elke levering zelf je <strong class="text-slate-900 dark:text-white">Transport-Aanpak</strong> met de tactische route-schuifregelaar. Kies voor een veilige doorgang via het ventilatiekanaal of neem bewust risico met een snelle overdracht voor maximaal +25% extra opbrengst.
+                </p>
             </div>
 
-            <!-- Header Vitals Matrix -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 md:flex items-center gap-2 shrink-0">
-                <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
-                    <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">Energie</span>
-                    <span class="text-xs sm:text-sm font-black text-emerald-900 dark:text-emerald-300 font-mono">
-                        {{ $character->energy }}<span class="text-[10px] text-emerald-600/80 font-semibold">/{{ $character->max_energy }}</span>
+            <!-- Telemetry Strip -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+                <div class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-xl px-3.5 py-2.5">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Uithouding</span>
+                    <span class="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                        {{ $character->energy }}/{{ $character->max_energy }} ⚡
                     </span>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
-                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 block">Contant</span>
-                    <span class="text-xs sm:text-sm font-black text-amber-900 dark:text-amber-300 font-mono">
-                        €{{ $character->cash >= 1000000 ? number_format($character->cash / 1000000, 1) . 'M' : number_format($character->cash, 0, ',', '.') }}
+                <div class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-xl px-3.5 py-2.5">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Kasgeld</span>
+                    <span class="text-sm font-black text-amber-600 dark:text-amber-400 font-mono">
+                        €{{ number_format($character->cash, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
-                    <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-400 block">Respect</span>
-                    <span class="text-xs sm:text-sm font-black text-purple-900 dark:text-purple-300 font-mono">
+                <div class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-xl px-3.5 py-2.5">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Gezag</span>
+                    <span class="text-sm font-black text-indigo-600 dark:text-indigo-400 font-mono">
                         {{ number_format($character->respect, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 rounded-xl px-3.5 py-2 text-center shadow-xs">
-                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Sterren</span>
-                    <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> {{ $character->stars ?? 0 }}
+                <div class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-xl px-3.5 py-2.5">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Sterren</span>
+                    <span class="text-sm font-black text-slate-900 dark:text-white font-mono">
+                        ⭐ {{ $character->stars ?? 0 }}
                     </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Live Warehouse Inventory Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Sigaretten Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group">
-            <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl border border-amber-200/80 dark:border-amber-800/70 shrink-0 group-hover:scale-105 transition-transform">
-                    <i class="fa-solid fa-smoking"></i>
-                </span>
-                <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Gedraaide Shag</span>
-                    <span class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($cigarettes, 0, ',', '.') }}</span>
-                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">stuks op voorraad</span>
-                </div>
-            </div>
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300">
-                {{ $cigarettes > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
-            </span>
-        </div>
-
-        <!-- Ritalin Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group">
-            <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl border border-purple-200/80 dark:border-purple-800/70 shrink-0 group-hover:scale-105 transition-transform">
-                    <i class="fa-solid fa-pills"></i>
-                </span>
-                <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Medicatie Buit</span>
-                    <span class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($ritalin, 0, ',', '.') }}</span>
-                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">strips Ritalin</span>
-                </div>
-            </div>
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300">
-                {{ $ritalin > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
-            </span>
-        </div>
-
-        <!-- Nederwiet Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700/80 transition-all duration-200 group">
-            <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl border border-emerald-200/80 dark:border-emerald-800/70 shrink-0 group-hover:scale-105 transition-transform">
-                    <i class="fa-solid fa-cannabis"></i>
-                </span>
-                <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Nederwiet Teelt</span>
-                    <span class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($weed ?? 0, 0, ',', '.') }}</span>
-                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">toppen voorraad</span>
-                </div>
-            </div>
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300">
-                {{ ($weed ?? 0) > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
-            </span>
-        </div>
-
-        <!-- Telefoons Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group">
-            <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl border border-indigo-200/80 dark:border-indigo-800/70 shrink-0 group-hover:scale-105 transition-transform">
-                    <i class="fa-solid fa-mobile-screen"></i>
-                </span>
-                <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Smokkel Hardware</span>
-                    <span class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($phones, 0, ',', '.') }}</span>
-                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">mini toestellen</span>
-                </div>
-            </div>
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-indigo-700 dark:text-indigo-300">
-                {{ $phones > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
-            </span>
-        </div>
-    </div>
-
-    <!-- MAIN TWO COLUMN FACILITY LAYOUT -->
+    <!-- Main Asymmetric Grid (Flipped Columns: Left = Courier & Deals, Right = Storage Silos & Synthesis Units) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- ========================================================================= -->
-        <!-- LEFT: PRODUCTIEKELDER UNITS                                               -->
-        <!-- ========================================================================= -->
-        <div class="lg:col-span-6 bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col justify-between space-y-4 p-5 sm:p-6">
-            <div>
-                <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm font-black">
-                            <i class="fa-solid fa-screwdriver-wrench"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
-                                Productiewerkplaats
-                            </h2>
-                            <span class="text-[10px] text-slate-400 font-bold">Draai, Druk & Onderschep Voorraden</span>
-                        </div>
+
+        <!-- LEFT COLUMN (7 cols): Interactive Transport Route Slider & Active Buyer Contracts -->
+        <div class="lg:col-span-7 space-y-6">
+
+            <!-- Interactive Transport Strategy Selector Card (Slider + Mode Cards) -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">
+                            Stap 1: Strategische Smokkelkeuze
+                        </span>
+                        <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 dark:text-white">
+                            Transportmethode &amp; Risico-Regelaar
+                        </h2>
                     </div>
-                    <span class="text-xs font-black text-emerald-700 dark:text-emerald-400 font-mono">
-                        {{ $character->energy }}⚡ Beschikbaar
+                    <span class="text-xs font-mono font-black px-3 py-1 rounded-full"
+                          :class="routeIndex == 1 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : (routeIndex == 2 ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300')"
+                          x-text="activeRoute.rate + '% Slaagkans • ' + Math.round((activeRoute.mult - 1) * 100) + '% Bonus'">
                     </span>
                 </div>
-                
-                <div class="space-y-3 pt-4">
-                    <!-- 1. Sigaretten (5 min cooldown) -->
-                    @php
-                        $sigCooldown = $character->cooldownRemaining('produce_sigaretten');
-                    @endphp
-                    <div class="p-4 border border-slate-200/80 dark:border-slate-700/70 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
-                        <div class="flex items-center gap-3">
-                            <span class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/70 flex items-center justify-center text-base shrink-0 font-bold">
-                                <i class="fa-solid fa-smoking"></i>
-                            </span>
-                            <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">10x Peuken Rollen</h4>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span class="text-emerald-700 dark:text-emerald-400">5⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+35 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 5 min</span>
-                                </span>
-                            </div>
-                        </div>
 
-                        <div class="flex items-center gap-2 shrink-0" x-data="{
-                            cd: {{ (int) $sigCooldown }},
-                            format(s) {
-                                if (s <= 0) return '00:00';
-                                const m = Math.floor(s / 60);
-                                const sec = Math.floor(s % 60);
-                                return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
-                            },
-                            init() {
-                                if (this.cd > 0) {
-                                    const timer = setInterval(() => {
-                                        if (this.cd > 0) this.cd--;
-                                        if (this.cd <= 0) clearInterval(timer);
-                                    }, 1000);
-                                }
-                            }
-                        }">
-                            <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $sigCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
-                                    <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $sigCooldown) }}</span>
-                                </span>
-                                <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
-                                    @csrf
-                                    <input type="hidden" name="action" value="produce_sigaretten">
-                                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) title="Omzeil cooldown met 20 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <i class="fa-solid fa-star text-[11px]"></i>
-                                        <span>Omzeilen (20 ⭐)</span>
-                                    </button>
-                                </form>
-                            </div>
-                            <div x-show="cd <= 0" style="{{ $sigCooldown <= 0 ? '' : 'display: none;' }}">
-                                <form action="{{ route('smuggle.produce') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="type" value="sigaretten">
-                                    <button type="submit" 
-                                            @if($character->energy < 5 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-gear text-[11px]"></i>
-                                        <span>Produceren</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                <!-- Interactive Range Slider -->
+                <div class="space-y-2 pt-1">
+                    <div class="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider">
+                        <span class="text-emerald-600 dark:text-emerald-400">1. Sluiproute (Veilig)</span>
+                        <span class="text-amber-600 dark:text-amber-400">2. Wasserijkar (+15%)</span>
+                        <span class="text-rose-600 dark:text-rose-400">3. Snelle Route (+25%)</span>
                     </div>
+                    <input type="range"
+                           min="1"
+                           max="3"
+                           step="1"
+                           x-model.number="routeIndex"
+                           aria-label="Kies transportmethode"
+                           class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                </div>
 
-                    <!-- 2. Ritalin (10 min cooldown) -->
-                    @php
-                        $ritCooldown = $character->cooldownRemaining('produce_ritalin');
-                    @endphp
-                    <div class="p-4 border border-slate-200/80 dark:border-slate-700/70 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
-                        <div class="flex items-center gap-3">
-                            <span class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-base shrink-0 font-bold">
-                                <i class="fa-solid fa-pills"></i>
-                            </span>
-                            <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">5x Ritalin Strips Onderscheppen</h4>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span class="text-emerald-700 dark:text-emerald-400">10⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+65 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 10 min</span>
-                                </span>
-                            </div>
+                <!-- 3 Clickable Route Mode Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button type="button"
+                            @click="routeIndex = 1"
+                            :class="routeIndex == 1 ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 ring-1 ring-emerald-500/40' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/70 dark:bg-slate-800/50'"
+                            class="p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-slate-900 dark:text-white">Sluiproute</span>
+                            <span class="text-[10px] font-mono font-black text-emerald-600 dark:text-emerald-400">100% kans</span>
                         </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Standaard winst, 0% verlieskans.</p>
+                    </button>
 
-                        <div class="flex items-center gap-2 shrink-0" x-data="{
-                            cd: {{ (int) $ritCooldown }},
-                            format(s) {
-                                if (s <= 0) return '00:00';
-                                const m = Math.floor(s / 60);
-                                const sec = Math.floor(s % 60);
-                                return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
-                            },
-                            init() {
-                                if (this.cd > 0) {
-                                    const timer = setInterval(() => {
-                                        if (this.cd > 0) this.cd--;
-                                        if (this.cd <= 0) clearInterval(timer);
-                                    }, 1000);
-                                }
-                            }
-                        }">
-                            <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $ritCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
-                                    <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $ritCooldown) }}</span>
-                                </span>
-                                <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
-                                    @csrf
-                                    <input type="hidden" name="action" value="produce_ritalin">
-                                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) title="Omzeil cooldown met 35 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <i class="fa-solid fa-star text-[11px]"></i>
-                                        <span>Omzeilen (35 ⭐)</span>
-                                    </button>
-                                </form>
-                            </div>
-                            <div x-show="cd <= 0" style="{{ $ritCooldown <= 0 ? '' : 'display: none;' }}">
-                                <form action="{{ route('smuggle.produce') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="type" value="ritalin">
-                                    <button type="submit" 
-                                            @if($character->energy < 10 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-gear text-[11px]"></i>
-                                        <span>Produceren</span>
-                                    </button>
-                                </form>
-                            </div>
+                    <button type="button"
+                            @click="routeIndex = 2"
+                            :class="routeIndex == 2 ? 'border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 ring-1 ring-amber-500/40' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/70 dark:bg-slate-800/50'"
+                            class="p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-slate-900 dark:text-white">Wasserijkar</span>
+                            <span class="text-[10px] font-mono font-black text-amber-600 dark:text-amber-400">85% kans</span>
                         </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">+15% winst &amp; +2 gezag.</p>
+                    </button>
+
+                    <button type="button"
+                            @click="routeIndex = 3"
+                            :class="routeIndex == 3 ? 'border-rose-500 bg-rose-50/70 dark:bg-rose-950/40 ring-1 ring-rose-500/40' : 'border-slate-200/80 dark:border-slate-700/70 bg-slate-50/70 dark:bg-slate-800/50'"
+                            class="p-3.5 rounded-xl border text-left transition cursor-pointer space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-slate-900 dark:text-white">Snelle Route</span>
+                            <span class="text-[10px] font-mono font-black text-rose-600 dark:text-rose-400">70% kans</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">+25% winst, +5 gezag &amp; +25% XP.</p>
+                    </button>
+                </div>
+
+                <!-- Selected Route Summary Box -->
+                <div class="p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div>
+                        <strong class="text-slate-900 dark:text-white" x-text="activeRoute.name + ': '"></strong>
+                        <span class="text-slate-600 dark:text-slate-300" x-text="activeRoute.desc"></span>
                     </div>
-
-                    <!-- 3. Telefoon (20 min cooldown) -->
-                    @php
-                        $phoneCooldown = max($character->cooldownRemaining('produce_telefoon'), $character->cooldownRemaining('produce_phone'));
-                    @endphp
-                    <div class="p-4 border border-slate-200/80 dark:border-slate-700/70 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
-                        <div class="flex items-center gap-3">
-                            <span class="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/70 flex items-center justify-center text-base shrink-0 font-bold">
-                                <i class="fa-solid fa-mobile-screen"></i>
-                            </span>
-                            <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">1x Mini Telefoon Smokkelen</h4>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span class="text-emerald-700 dark:text-emerald-400">20⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+150 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 20 min</span>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 shrink-0" x-data="{
-                            cd: {{ (int) $phoneCooldown }},
-                            format(s) {
-                                if (s <= 0) return '00:00';
-                                const m = Math.floor(s / 60);
-                                const sec = Math.floor(s % 60);
-                                return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
-                            },
-                            init() {
-                                if (this.cd > 0) {
-                                    const timer = setInterval(() => {
-                                        if (this.cd > 0) this.cd--;
-                                        if (this.cd <= 0) clearInterval(timer);
-                                    }, 1000);
-                                }
-                            }
-                        }">
-                            <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $phoneCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
-                                    <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $phoneCooldown) }}</span>
-                                </span>
-                                <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
-                                    @csrf
-                                    <input type="hidden" name="action" value="produce_telefoon">
-                                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) title="Omzeil cooldown met 50 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <i class="fa-solid fa-star text-[11px]"></i>
-                                        <span>Omzeilen (50 ⭐)</span>
-                                    </button>
-                                </form>
-                            </div>
-                            <div x-show="cd <= 0" style="{{ $phoneCooldown <= 0 ? '' : 'display: none;' }}">
-                                <form action="{{ route('smuggle.produce') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="type" value="telefoon">
-                                    <button type="submit" 
-                                            @if($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-gear text-[11px]"></i>
-                                        <span>Produceren</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 4. Nederwiet Toppen (15 min cooldown) -->
-                    @php
-                        $wietCooldown = $character->cooldownRemaining('produce_wiet');
-                    @endphp
-                    <div class="p-4 border border-slate-200/80 dark:border-slate-700/70 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-300 dark:hover:border-emerald-700/80 transition-all duration-200">
-                        <div class="flex items-center gap-3">
-                            <span class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center justify-center text-base shrink-0 font-bold">
-                                <i class="fa-solid fa-cannabis"></i>
-                            </span>
-                            <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">8x Nederwiet Toppen Kweken</h4>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span class="text-emerald-700 dark:text-emerald-400">15⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+95 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 15 min</span>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 shrink-0" x-data="{
-                            cd: {{ (int) $wietCooldown }},
-                            format(s) {
-                                if (s <= 0) return '00:00';
-                                const m = Math.floor(s / 60);
-                                const sec = Math.floor(s % 60);
-                                return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
-                            },
-                            init() {
-                                if (this.cd > 0) {
-                                    const timer = setInterval(() => {
-                                        if (this.cd > 0) this.cd--;
-                                        if (this.cd <= 0) clearInterval(timer);
-                                    }, 1000);
-                                }
-                            }
-                        }">
-                            <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $wietCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
-                                    <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $wietCooldown) }}</span>
-                                </span>
-                                <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
-                                    @csrf
-                                    <input type="hidden" name="action" value="produce_wiet">
-                                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) title="Omzeil cooldown met 40 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <i class="fa-solid fa-star text-[11px]"></i>
-                                        <span>Omzeilen (40 ⭐)</span>
-                                    </button>
-                                </form>
-                            </div>
-                            <div x-show="cd <= 0" style="{{ $wietCooldown <= 0 ? '' : 'display: none;' }}">
-                                <form action="{{ route('smuggle.produce') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="type" value="wiet">
-                                    <button type="submit" 
-                                            @if($character->energy < 15 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                            class="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-cannabis text-[11px]"></i>
-                                        <span>Kweken</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                    <span class="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0" x-text="activeRoute.riskLabel"></span>
                 </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center justify-between">
-                <span>Gebruik Sterren ⭐ om cooldowns direct over te slaan!</span>
-                <span class="font-mono text-amber-600 dark:text-amber-400 font-bold">⭐ Directe Doorloop</span>
-            </div>
-        </div>
-
-        <!-- ========================================================================= -->
-        <!-- RIGHT: VERKOPEN AAN PATIËNTEN (ORDERS)                                    -->
-        <!-- ========================================================================= -->
-        <div class="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4">
-            <div>
+            <!-- Buyer Dispatch Cards -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-black">
-                            <i class="fa-solid fa-cart-shopping"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
-                                Patiënten Afzetmarkt
-                            </h2>
-                            <span class="text-[10px] text-slate-400 font-bold">Lever Goederen & Pak Wit Geld</span>
-                        </div>
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                            Stap 2: Bestellingen Afhandelen
+                        </span>
+                        <h2 class="text-sm sm:text-base font-black uppercase text-slate-900 dark:text-white">
+                            Actieve Afnemers bij het Doorgeefluik
+                        </h2>
                     </div>
-                    <span class="text-[11px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2.5 py-1 rounded-full">
-                        +5% Rank XP
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        3 Wachtende Contacten
                     </span>
                 </div>
 
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">
-                    Voor elke verkoop pak je direct contant geld, respect én <strong>5% Rank XP</strong>. Hoe meer deals je sluit, hoe sneller je doorgroeit in niveau!
-                </p>
-
-                <!-- Deals List -->
-                <div class="mt-4 space-y-3">
+                <div class="grid grid-cols-1 gap-4">
                     @foreach($orders as $order)
-                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-all duration-200 hover:border-purple-300 dark:hover:border-purple-700/80">
-                        <!-- Buyer info -->
-                        <div class="flex items-center gap-3.5 min-w-0">
-                            <img src="{{ $order['avatar'] }}" alt="{{ $order['buyer'] }}" 
-                                 onerror="this.onerror=null; this.src='{{ asset('assets/characters/henkie.jpg') }}';"
-                                 class="w-12 h-12 rounded-2xl object-cover border-2 border-purple-200 dark:border-purple-800 shrink-0 shadow-xs ring-2 ring-purple-50 dark:ring-purple-950">
-                            <div class="min-w-0">
-                                <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
-                                    {{ $order['amount'] }}x {{ strtolower($order['item_name']) }} voor <span class="text-emerald-700 dark:text-emerald-400 font-mono font-black">€{{ number_format($order['reward_cash'], 0, ',', '.') }}</span>
+                        @php
+                            $haveStock = (int) ($order['current_stock'] ?? 0);
+                            $needStock = (int) $order['amount'];
+                            $stockPct = min(100, (int) floor(($haveStock / max(1, $needStock)) * 100));
+                        @endphp
+                        <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-3.5 min-w-0">
+                                    <img src="{{ $order['avatar'] }}"
+                                         alt="{{ $order['buyer'] }}"
+                                         onerror="this.onerror=null; this.src='{{ asset('assets/characters/henkie.jpg') }}';"
+                                         class="w-12 h-12 rounded-xl object-cover border border-slate-300 dark:border-slate-600 shrink-0">
+                                    <div class="min-w-0">
+                                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                                            Afnemer: {{ $order['buyer'] }}
+                                        </span>
+                                        <h3 class="text-sm font-black text-slate-900 dark:text-white truncate">
+                                            Vraagt {{ $order['amount'] }}x {{ $order['item_name'] }}
+                                        </h3>
+                                        <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                            Jouw voorraad: <strong class="{{ $order['can_fulfill'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">{{ $haveStock }}/{{ $needStock }}</strong>
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2 mt-0.5">
-                                    <span>Koper: <strong class="text-slate-700 dark:text-slate-200">{{ $order['buyer'] }}</strong></span>
-                                    <span>&bull;</span>
-                                    <span class="text-purple-700 dark:text-purple-400 font-black">+{{ $order['reward_respect'] }} Resp</span>
+
+                                <!-- Dynamic Payout Preview based on selected Transport Route -->
+                                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 rounded-xl px-3.5 py-2 text-right shrink-0">
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block" x-text="'Opbrengst (' + activeRoute.name + ')'">
+                                        Opbrengst
+                                    </span>
+                                    <span class="text-base font-black font-mono text-emerald-600 dark:text-emerald-400"
+                                          x-text="formatEuro({{ (int) $order['reward_cash'] }} * activeRoute.mult)">
+                                        €{{ number_format($order['reward_cash'], 0, ',', '.') }}
+                                    </span>
+                                    <span class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 block"
+                                          x-text="'+' + ({{ (int) $order['reward_respect'] }} + activeRoute.respBonus) + ' Gezag'">
+                                        +{{ $order['reward_respect'] }} Gezag
+                                    </span>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Action buttons -->
-                        <div class="flex items-center sm:flex-col gap-2 shrink-0 sm:w-32">
-                            <!-- Verkopen -->
-                            <form action="{{ route('smuggle.sell') }}" method="POST" class="flex-1 sm:w-full">
-                                @csrf
-                                <input type="hidden" name="order_id" value="{{ $order['id'] }}">
-                                <button type="submit" 
-                                        @if(!$order['can_fulfill'] || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                        class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-check text-[11px]"></i>
-                                    <span>Verkopen</span>
-                                </button>
-                            </form>
+                            <!-- Stock Fulfill Progress Bar -->
+                            <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full {{ $order['can_fulfill'] ? 'bg-emerald-500' : 'bg-amber-500' }} transition-all"
+                                     style="width: {{ $stockPct }}%"></div>
+                            </div>
 
-                            <!-- Weigeren -->
-                            <form action="{{ route('smuggle.reject') }}" method="POST" class="flex-1 sm:w-full"
-                                  data-confirm="Weet je zeker dat je deze order wilt afwijzen?"
-                                  data-confirm-title="Order Weigeren"
-                                  data-confirm-btn="Weigeren"
-                                  data-confirm-type="warning">
-                                @csrf
-                                <input type="hidden" name="order_id" value="{{ $order['id'] }}">
-                                <button type="submit" 
-                                        @disabled($character->isImprisoned() || $character->isComatose())
-                                        class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <i class="fa-solid fa-xmark text-[10px]"></i>
-                                    <span>Weigeren</span>
-                                </button>
-                            </form>
+                            <!-- Action Buttons Row -->
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                                <form action="{{ route('smuggle.sell') }}" method="POST" class="flex-1">
+                                    @csrf
+                                    <input type="hidden" name="order_id" value="{{ $order['id'] }}">
+                                    <input type="hidden" name="transport_mode" :value="activeRoute.key">
+                                    <button type="submit"
+                                            @if(!$order['can_fulfill'] || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                            class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-truck-fast text-[11px]"></i>
+                                        <span x-text="'Verstuur via ' + activeRoute.name + ' (' + activeRoute.rate + '%)'">Verstuur Zending</span>
+                                    </button>
+                                </form>
+
+                                <form action="{{ route('smuggle.reject') }}" method="POST"
+                                      data-confirm="Wil je deze koper wegsturen en een nieuw contact oproepen?"
+                                      data-confirm-title="Koper Wegsturen"
+                                      data-confirm-btn="Wegsturen"
+                                      data-confirm-type="warning">
+                                    @csrf
+                                    <input type="hidden" name="order_id" value="{{ $order['id'] }}">
+                                    <button type="submit"
+                                            @disabled($character->isImprisoned() || $character->isComatose())
+                                            class="w-full sm:w-auto py-2.5 px-3.5 rounded-xl bg-slate-200/80 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <i class="fa-solid fa-rotate mr-1"></i> Andere Koper
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
                     @endforeach
                 </div>
             </div>
+        </div>
 
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-                <span>Na elke deal meldt zich direct een nieuwe koper!</span>
-                <span class="text-purple-700 dark:text-purple-400 font-black">+5% Rank XP</span>
+        <!-- RIGHT COLUMN (5 cols): Contraband Storage Silos & Secret Synthesis Units -->
+        <div class="lg:col-span-5 space-y-6">
+
+            <!-- Storage Silo Gauges Card -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
+                <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                            Verborgen Opslag
+                        </span>
+                        <h2 class="text-sm font-black uppercase text-slate-900 dark:text-white">
+                            Smokkelkluis Voorraadmeters
+                        </h2>
+                    </div>
+                    <i class="fa-solid fa-boxes-stacked text-slate-400"></i>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-slate-700 dark:text-slate-200"><i class="fa-solid fa-smoking text-amber-500 mr-1"></i> Shagwikkels</span>
+                            <span class="font-mono font-black text-slate-900 dark:text-white">{{ $sigStock }}</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-amber-500" style="width: {{ min(100, $sigStock * 5) }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-slate-700 dark:text-slate-200"><i class="fa-solid fa-pills text-purple-500 mr-1"></i> Ritalin</span>
+                            <span class="font-mono font-black text-slate-900 dark:text-white">{{ $ritStock }}</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-purple-500" style="width: {{ min(100, $ritStock * 10) }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-slate-700 dark:text-slate-200"><i class="fa-solid fa-cannabis text-emerald-500 mr-1"></i> Kaswiet</span>
+                            <span class="font-mono font-black text-slate-900 dark:text-white">{{ $weedStock }}</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-500" style="width: {{ min(100, $weedStock * 8) }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-slate-700 dark:text-slate-200"><i class="fa-solid fa-mobile-screen text-indigo-500 mr-1"></i> Burners</span>
+                            <span class="font-mono font-black text-slate-900 dark:text-white">{{ $phoneStock }}</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-indigo-500" style="width: {{ min(100, $phoneStock * 25) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secret Synthesis Lab Units Card -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
+                <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 block">
+                            Eigen Aanmaak
+                        </span>
+                        <h2 class="text-sm font-black uppercase text-slate-900 dark:text-white">
+                            Synthese-Units &amp; Kweekkasten
+                        </h2>
+                    </div>
+                    <span class="text-xs font-mono font-black text-emerald-600 dark:text-emerald-400">
+                        {{ $character->energy }}⚡ Paraat
+                    </span>
+                </div>
+
+                @php
+                    $productionLines = [
+                        [
+                            'type' => 'sigaretten',
+                            'action' => 'produce_sigaretten',
+                            'title' => '10x Zware Shagwikkels Draaien',
+                            'energy' => 5,
+                            'xp' => 35,
+                            'mins' => 5,
+                            'skip_stars' => 20,
+                            'icon' => 'fa-smoking',
+                            'cooldown' => $character->cooldownRemaining('produce_sigaretten'),
+                        ],
+                        [
+                            'type' => 'ritalin',
+                            'action' => 'produce_ritalin',
+                            'title' => '5x Ritalin Blisters Achteroverdrukken',
+                            'energy' => 10,
+                            'xp' => 65,
+                            'mins' => 10,
+                            'skip_stars' => 35,
+                            'icon' => 'fa-pills',
+                            'cooldown' => $character->cooldownRemaining('produce_ritalin'),
+                        ],
+                        [
+                            'type' => 'wiet',
+                            'action' => 'produce_wiet',
+                            'title' => '8x Kaswiet Toppen Oogsten',
+                            'energy' => 15,
+                            'xp' => 95,
+                            'mins' => 15,
+                            'skip_stars' => 40,
+                            'icon' => 'fa-cannabis',
+                            'cooldown' => $character->cooldownRemaining('produce_wiet'),
+                        ],
+                        [
+                            'type' => 'telefoon',
+                            'action' => 'produce_telefoon',
+                            'title' => '1x Burner-Toestel Assembleren',
+                            'energy' => 20,
+                            'xp' => 150,
+                            'mins' => 20,
+                            'skip_stars' => 50,
+                            'icon' => 'fa-mobile-screen',
+                            'cooldown' => max($character->cooldownRemaining('produce_telefoon'), $character->cooldownRemaining('produce_phone')),
+                        ],
+                    ];
+                @endphp
+
+                <div class="space-y-3">
+                    @foreach($productionLines as $line)
+                        <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-2.5"
+                             x-data="{
+                                cd: {{ (int) $line['cooldown'] }},
+                                format(s) {
+                                    if (s <= 0) return '00:00';
+                                    const m = Math.floor(s / 60);
+                                    const sec = Math.floor(s % 60);
+                                    return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+                                },
+                                init() {
+                                    if (this.cd > 0) {
+                                        const timer = setInterval(() => {
+                                            if (this.cd > 0) this.cd--;
+                                            if (this.cd <= 0) clearInterval(timer);
+                                        }, 1000);
+                                    }
+                                }
+                             }">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm shrink-0">
+                                        <i class="fa-solid {{ $line['icon'] }}"></i>
+                                    </span>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 dark:text-white">{{ $line['title'] }}</h4>
+                                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                            Vereist: {{ $line['energy'] }}⚡ • +{{ $line['xp'] }} XP • Cyclus: {{ $line['mins'] }}m
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div x-show="cd > 0" class="flex items-center justify-between gap-2 pt-1" style="{{ $line['cooldown'] > 0 ? '' : 'display: none;' }}">
+                                <span class="text-[11px] font-mono font-black text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-200/80 dark:border-amber-800/70">
+                                    Afkoeling: <span x-text="format(cd)">{{ gmdate('i:s', $line['cooldown']) }}</span>
+                                </span>
+                                <form method="POST" action="{{ route('cooldown.skip') }}">
+                                    @csrf
+                                    <input type="hidden" name="action" value="{{ $line['action'] }}">
+                                    <button type="submit"
+                                            @disabled($character->isImprisoned() || $character->isComatose())
+                                            class="btn-star-gold px-3 py-1.5 rounded-lg text-slate-900 dark:text-white font-black text-[11px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                        ⭐ Versnel ({{ $line['skip_stars'] }})
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div x-show="cd <= 0" style="{{ $line['cooldown'] <= 0 ? '' : 'display: none;' }}">
+                                <form action="{{ route('smuggle.produce') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="type" value="{{ $line['type'] }}">
+                                    <button type="submit"
+                                            @if($character->energy < $line['energy'] || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                            class="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-wider transition cursor-pointer">
+                                        Start Synthese-Batch
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
 
@@ -511,4 +455,3 @@
 
 </div>
 @endsection
-

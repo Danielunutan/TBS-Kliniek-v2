@@ -1,471 +1,611 @@
 @extends('layouts.app')
 
+@section('title', 'Celblok & Isolatievleugel - TBS Kliniek')
+
 @section('content')
-<div class="space-y-6">
+@php
+    $breakoutMethods = $breakoutMethods ?? \App\Http\Controllers\PrisonController::BREAKOUT_METHODS;
+    $reduceActions = $reduceActions ?? \App\Http\Controllers\PrisonController::REDUCE_ACTIONS;
+    $prisonActionCooldownRemaining = $prisonActionCooldownRemaining ?? 0;
+    $adsRequired = $character->getRequiredPrisonAds();
+    $adsProgress = min($adsRequired, (int) ($character->ad_prison_progress ?? 0));
+    $adPct = $adsRequired > 0 ? min(100, round(($adsProgress / $adsRequired) * 100)) : 100;
+@endphp
 
-    <!-- Top Hero Banner -->
-    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70 mb-2">
-                    <i class="fa-solid fa-lock text-purple-600 dark:text-purple-400"></i> De Gevangenis & Isoleercel
-                </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Gevangenis</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Patiënten die betrapt zijn bij illegale acties of mislukte uitbraken zitten hier vast. Breek mede-patiënten uit voor respect en aanzien, of koop jezelf direct vrij met 10 Gouden Sterren ⭐!
-                </p>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 shadow-2xs">
-                    <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Sterren
-                </span>
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 shadow-2xs">
-                    <i class="fa-solid fa-bolt text-emerald-600 dark:text-emerald-400"></i> {{ $character->energy }} / {{ $character->max_energy }} Energie
-                </span>
-            </div>
-        </div>
-    </div>
+<div class="space-y-6" x-data="prisonPageController({
+    isImprisoned: {{ $isImprisoned ? 'true' : 'false' }},
+    remainingSecs: {{ $isImprisoned ? max(0, (int) $remainingSeconds) : 0 }},
+    adsProgress: {{ $adsProgress }},
+    adsRequired: {{ $adsRequired }},
+    escapeAttempted: {{ ($character->prison_escape_attempted ?? false) ? 'true' : 'false' }},
+    reduceCooldownSecs: {{ max(0, (int) $prisonActionCooldownRemaining) }}
+})" x-init="startCountdown()">
 
-    <!-- IF PLAYER IS IN JAIL: BUYOUT & ESCAPE PROMPT -->
-    @if($isImprisoned)
-    <div x-data="{ 
-            sec: {{ $remainingSeconds }},
-            reloaded: false,
-            attempted: {{ ($character->prison_escape_attempted ?? false) ? 'true' : 'false' }},
-            isEscaping: false,
-            formatTime(s) {
-                if (s <= 0) return '00:00';
-                const m = Math.floor(s / 60);
-                const remainder = s % 60;
-                return (m < 10 ? '0' : '') + m + ':' + (remainder < 10 ? '0' : '') + remainder;
-            },
-            releasePrisoner() {
-                if (this.reloaded) return;
-                this.reloaded = true;
-                this.sec = 0;
-                if (typeof window.tbsToast === 'function') {
-                    window.tbsToast('🔓 Je straf is voorbij! Je bent weer een vrij man.', 'success');
-                }
-                setTimeout(() => {
-                    if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                        window.Turbo.visit('{{ route('dashboard') }}');
-                    } else {
-                        window.location.href = '{{ route('dashboard') }}';
-                    }
-                }, 800);
-            },
-            async attemptEscape() {
-                if (this.attempted || this.isEscaping) return;
-                this.isEscaping = true;
-                try {
-                    const res = await fetch('{{ route('prison.escape') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        if (typeof window.tbsToast === 'function') {
-                            window.tbsToast(data.message, 'success');
-                        }
-                        setTimeout(() => {
-                            window.location.href = data.redirect || '{{ route('dashboard') }}';
-                        }, 1200);
-                    } else {
-                        this.attempted = true;
-                        if (data.remaining_seconds !== undefined) {
-                            this.sec = data.remaining_seconds;
-                        } else {
-                            this.sec += 90;
-                        }
-                        if (typeof window.tbsToast === 'function') {
-                            window.tbsToast(data.message, 'error');
-                        }
-                    }
-                } catch (err) {
-                    if (typeof window.tbsToast === 'function') {
-                        window.tbsToast('Er is een fout opgetreden bij de ontsnappingspoging.', 'error');
-                    }
-                } finally {
-                    this.isEscaping = false;
-                }
-            },
-            init() {
-                if (this.sec > 0) {
-                    const timer = setInterval(() => {
-                        this.sec--;
-                        if (this.sec <= 0) {
-                            clearInterval(timer);
-                            this.releasePrisoner();
-                        }
-                    }, 1000);
-                }
-            }
-         }" 
-         x-show="sec > 0"
-         class="bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-900/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 relative overflow-hidden">
-        
-        <!-- Ambient Background Glow -->
-        <div class="absolute -right-12 -top-12 w-48 h-48 bg-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
+    <!-- BOVENSTE TELEMETRIE BANNER -->
+    <div class="relative rounded-2xl overflow-hidden border border-red-500/30 bg-[#0d111a] shadow-2xl">
+        <div class="relative min-h-[210px] md:min-h-[240px] flex items-end p-5 md:p-7">
+            <img src="{{ asset('images/headers/gevangenis_header.png') }}"
+                 alt="Celblok & Isolatievleugel"
+                 class="absolute inset-0 w-full h-full object-cover object-center opacity-35">
+            <div class="absolute inset-0 bg-gradient-to-r from-[#080b11] via-[#080b11]/85 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0d111a] via-transparent to-black/40"></div>
 
-        <!-- Header Row: Icon, Title, Countdown Pill & Reason (Full width) -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-            <div class="flex items-start gap-3 min-w-0 flex-1">
-                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg sm:text-xl shrink-0 shadow-xs mt-0.5">
-                    <i class="fa-solid fa-lock"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-xs"></i>
-                            <span>Je zit vast in de Isoleercel</span>
-                        </h3>
+            <div class="relative z-10 w-full flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+                <div class="max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/40 text-red-400 text-[11px] font-black uppercase tracking-widest mb-2.5">
+                        <i class="fa-solid fa-dungeon animate-pulse"></i> Gesloten Forensisch Celblok • Sector Z-04
                     </div>
-                    <p class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1 leading-relaxed">
-                        Reden: <span class="text-rose-600 dark:text-rose-400 font-bold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
+                    <h1 class="text-2xl md:text-4xl font-black text-white tracking-tight uppercase drop-shadow">
+                        Isolatievleugel & <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-300 to-amber-400">Tactische Celkraak</span>
+                    </h1>
+                    <p class="text-xs md:text-sm text-gray-300 mt-1.5 leading-relaxed">
+                        Wie door het interventieteam wordt overmeesterd, belandt achter de gepantserde deuren van Sector Z-04. Verkort je eigen straftijd via de stoomwasserij of omkoping, of bevrijd ingesloten medepatiënten via een <strong class="text-cyan-300">Stille Sluipuitbraak</strong> of <strong class="text-amber-300">Breekijzer & Forceerwerk</strong>.
                     </p>
                 </div>
-            </div>
 
-            <!-- Live Countdown Pill -->
-            <div class="shrink-0 self-start sm:self-auto">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-xs font-mono font-black border border-rose-300 dark:border-rose-800 shadow-2xs whitespace-nowrap">
-                    <i class="fa-solid fa-stopwatch text-rose-500 text-xs animate-pulse"></i>
-                    <span x-text="formatTime(sec) + ' (' + sec + 's)'">{{ gmdate('i:s', $remainingSeconds) }} ({{ $remainingSeconds }}s)</span>
-                </span>
-            </div>
-        </div>
-
-        <!-- Actions Row: Responsive Grid -->
-        <div class="grid grid-cols-1 {{ \App\Http\Controllers\SponsorAdController::areAdsEnabled() ? 'sm:grid-cols-3' : 'sm:grid-cols-2' }} gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40 relative z-10">
-            <!-- Watch Ad Button -->
-            @php
-                $reqPrisonAds = $character ? $character->getRequiredPrisonAds() : 1;
-                $currPrisonAds = $character ? (int) ($character->ad_prison_progress ?? 0) : 0;
-            @endphp
-            @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
-            <button type="button"
-                    onclick="window.tbsOpenSponsorAd('prison')"
-                    class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
-                    title="Bekijk een sponsor-ad voor -3 min straftijd en vrijlating bij {{ $reqPrisonAds }} ad(s)">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-play text-xs"></i>
-                    <span>Sponsor-Ad (-3m)</span>
+                <!-- 5 KPI Telemetrie Tegels -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 shrink-0">
+                    <div class="bg-black/65 backdrop-blur-md border border-white/10 rounded-xl px-3.5 py-2.5 text-center">
+                        <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Ingesloten</div>
+                        <div class="text-base md:text-lg font-black text-red-400 mt-0.5">{{ $jailList->count() }}</div>
+                    </div>
+                    <div class="bg-black/65 backdrop-blur-md border border-white/10 rounded-xl px-3.5 py-2.5 text-center">
+                        <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Bevrijdingen</div>
+                        <div class="text-base md:text-lg font-black text-emerald-400 mt-0.5">{{ $stats['escapes_today'] }}</div>
+                    </div>
+                    <div class="bg-black/65 backdrop-blur-md border border-white/10 rounded-xl px-3.5 py-2.5 text-center">
+                        <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Slagingsratio</div>
+                        <div class="text-base md:text-lg font-black text-cyan-400 mt-0.5">{{ $stats['breakout_xp'] }}</div>
+                    </div>
+                    <div class="bg-black/65 backdrop-blur-md border border-white/10 rounded-xl px-3.5 py-2.5 text-center">
+                        <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Kraak-Index</div>
+                        <div class="text-base md:text-lg font-black text-amber-400 mt-0.5">{{ $stats['slay'] }}</div>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1 bg-black/65 backdrop-blur-md border {{ $isImprisoned ? 'border-red-500/40' : 'border-emerald-500/40' }} rounded-xl px-3.5 py-2.5 text-center">
+                        <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Jouw Status</div>
+                        <div class="text-xs md:text-sm font-black {{ $isImprisoned ? 'text-red-400' : 'text-emerald-400' }} mt-1 uppercase">
+                            {{ $isImprisoned ? 'Ingesloten' : 'Vrije Voeten' }}
+                        </div>
+                    </div>
                 </div>
-                <span class="px-2 py-0.5 rounded-md bg-purple-900/80 text-[10px] font-black text-purple-100">{{ $currPrisonAds }}/{{ $reqPrisonAds }} Ads</span>
-            </button>
-            @endif
-            <form action="{{ route('shop.buy-star-item') }}" method="POST" class="w-full">
-                @csrf
-                <input type="hidden" name="item_type" value="prison_escape">
-                <button type="submit" 
-                        class="btn-star-gold w-full py-2.5 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
-                        title="Direct vrijkomen voor 10 Gouden Sterren ⭐">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-star text-xs"></i>
-                        <span>Vrijkopen</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-md bg-amber-400/30 text-[10px] font-black text-slate-900 dark:text-white border border-amber-300/40">10 Sterren ⭐</span>
-                </button>
-            </form>
-
-            <!-- Escape Button -->
-            <template x-if="!attempted">
-                <button type="button" 
-                        @click="attemptEscape()"
-                        :disabled="isEscaping"
-                        class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs hover:shadow-md cursor-pointer flex items-center justify-between gap-2 disabled:opacity-50">
-                    <div class="flex items-center gap-2">
-                        <template x-if="isEscaping">
-                            <i class="fa-solid fa-circle-notch fa-spin text-white text-xs"></i>
-                        </template>
-                        <template x-if="!isEscaping">
-                            <i class="fa-solid fa-person-running text-white text-xs"></i>
-                        </template>
-                        <span x-text="isEscaping ? 'Ontsnappen...' : 'Ontsnappingspoging'"></span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-md bg-rose-900/80 text-[10px] font-black text-rose-200">1x mogelijk</span>
-                </button>
-            </template>
-
-            <template x-if="attempted">
-                <button type="button" 
-                        disabled
-                        class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-between gap-2 cursor-not-allowed opacity-80"
-                        title="Je hebt je ontsnappingspoging voor deze straf al verbruikt. Koop jezelf vrij met 10 Gouden Sterren om alsnog direct vrijgelaten te worden!">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-lock text-slate-400 dark:text-slate-500 text-xs"></i>
-                        <span>Poging Verbruikt</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-[10px] font-semibold text-amber-500 border border-amber-500/20">Vrijkopen ⭐</span>
-                </button>
-            </template>
+            </div>
         </div>
     </div>
-    @endif
 
-    <!-- MAIN TWO COLUMN PRISON GRID -->
+    <!-- OMGEKEERDE 12-KOLOMS LAYOUT: LINKS (4 KOLOMMEN) TELEMETRIE & EREGALERIJ, RECHTS (8 KOLOMMEN) CELBLOK & ACTIES -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- Left Column: Inmates Table Card -->
-        <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
-             x-data="{
-                inmates: [
-                    @foreach($jailList as $inmate)
-                    {
-                        id: {{ $inmate['id'] }},
-                        name: @js($inmate['name']),
-                        reason: @js($inmate['reason']),
-                        avatar: @js($inmate['avatar']),
-                        chance: {{ (int) $inmate['chance'] }},
-                        profileUrl: @js(route('profile.show', $inmate['name'])),
-                        breakoutUrl: @js(route('prison.breakout', $inmate['id'])),
-                        remainingSeconds: {{ (int) $inmate['remaining_seconds'] }}
-                    },
-                    @endforeach
-                ],
-                formatTime(sec) {
-                    if (sec <= 0) return '00:00';
-                    const m = Math.floor(sec / 60);
-                    const s = sec % 60;
-                    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-                },
-                init() {
-                    if (this.inmates.length > 0) {
-                        const timer = setInterval(() => {
-                            let hasActive = false;
-                            this.inmates.forEach(inmate => {
-                                if (inmate.remainingSeconds > 0) {
-                                    inmate.remainingSeconds--;
-                                    if (inmate.remainingSeconds > 0) {
-                                        hasActive = true;
-                                    }
-                                }
-                            });
-                            if (!hasActive) {
-                                clearInterval(timer);
-                            }
-                        }, 1000);
-                    }
-                },
-                get activeInmates() {
-                    return this.inmates.filter(i => i.remainingSeconds > 0);
-                }
-             }">
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wide">
-                    <i class="fa-solid fa-lock text-purple-600 dark:text-purple-400"></i>
-                    <span>Gevangenen in de Isoleercel</span>
-                    <span class="text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70" 
-                          x-text="activeInmates.length">
-                        {{ count($jailList) }}
+        <!-- LINKERKOLOM (4 van 12): UITBRAAK-TELEMETRIE, EREGALERIJ & TACTISCH PROTOCOL -->
+        <div class="lg:col-span-4 space-y-6 order-2 lg:order-1">
+
+            <!--Persoonlijk Uitbraak-Dossier -->
+            <div class="rounded-2xl border border-cyan-500/25 bg-[#111726] overflow-hidden shadow-xl">
+                <div class="px-5 py-4 border-b border-white/10 bg-[#151d30] flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                            <i class="fa-solid fa-chart-pie text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xs font-black uppercase tracking-wider text-white">Kraak-Telemetrie & Dossier</h2>
+                            <p class="text-[11px] text-gray-400">Persoonlijke bevrijdingsstatistieken</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-black text-cyan-300 uppercase">
+                        Actief
                     </span>
                 </div>
-                <span class="text-xs font-bold text-slate-400 dark:text-slate-500">
-                    Kost 15 Energie per uitbraak
-                </span>
-            </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead>
-                        <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60">
-                            <th class="py-3 px-3">PATIËNT</th>
-                            <th class="py-3 px-3 text-center">TIJD</th>
-                            <th class="py-3 px-3 text-center">KANS</th>
-                            <th class="py-3 px-3 text-right">ACTIE</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
-                        <template x-for="inmate in activeInmates" :key="inmate.id">
-                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                                <!-- Inmate Avatar & Name/Reason -->
-                                <td class="py-3 px-3">
-                                    <div class="flex items-center gap-3">
-                                        <img :src="inmate.avatar" :alt="inmate.name" 
-                                             class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-xs shrink-0">
-                                        <div>
-                                            <div class="font-extrabold text-slate-900 dark:text-white text-xs leading-tight">
-                                                <a :href="inmate.profileUrl" class="hover:text-purple-600 dark:hover:text-purple-400 transition" x-text="inmate.name"></a>
-                                            </div>
-                                            <div class="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-[200px] sm:max-w-xs" x-text="inmate.reason"></div>
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <!-- Time Countdown -->
-                                <td class="py-3 px-3 text-center font-mono font-bold text-xs text-slate-700 dark:text-slate-300">
-                                    <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 font-bold" x-text="formatTime(inmate.remainingSeconds)"></span>
-                                </td>
-
-                                <!-- Chance -->
-                                <td class="py-3 px-3 text-center font-bold text-xs text-purple-700 dark:text-purple-400">
-                                    <span x-text="inmate.chance + '%'"></span>
-                                </td>
-
-                                <!-- Action Button: Breek uit -->
-                                <td class="py-3 px-3 text-right">
-                                    <form :action="inmate.breakoutUrl" method="POST">
-                                        @csrf
-                                        <button type="submit" 
-                                                {{ $character->isImprisoned() || $character->isComatose() || $character->energy < 15 ? 'disabled' : '' }}
-                                                class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer inline-flex items-center gap-1.5">
-                                            <i class="fa-solid fa-unlock text-[10px]"></i>
-                                            <span>Breek uit</span>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        </template>
-
-                        <tr x-show="activeInmates.length === 0">
-                            <td colspan="4" class="py-10 text-center">
-                                <div class="flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
-                                    <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xl">
-                                        <i class="fa-solid fa-lock-open"></i>
-                                    </div>
-                                    <span class="font-bold text-slate-700 dark:text-slate-300 text-xs">De isoleercel is momenteel leeg!</span>
-                                    <span class="text-[11px] text-slate-400 dark:text-slate-500 max-w-sm">Er zitten op dit moment geen medepatiënten vast. Zodra een speler betrapt wordt bij een diefstal of mislukte uitbraak, verschijnt die hier!</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Right Column: Breakout Stats & Top Breakers -->
-        <div class="lg:col-span-4 space-y-6">
-
-            <!-- Card 1: Stats & Aanzien regels -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
-                <div class="text-xs font-extrabold uppercase tracking-wide text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                    <i class="fa-solid fa-fire text-purple-600 dark:text-purple-400"></i>
-                    <span>Uitbraak Statistieken</span>
-                </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                    Help mede-patiënten ontsnappen en verdien aanzien! Per succesvolle uitbraak scoor je <strong>0.1 respect & aanzien</strong>.
-                </p>
-
-                <div class="pt-2 space-y-2.5 text-xs">
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
-                            <i class="fa-solid fa-link-slash text-purple-600 dark:text-purple-400 text-xs"></i>
-                            <span>Uitbraken Vandaag:</span>
-                        </span>
-                        <div class="text-right">
-                            <span class="font-extrabold text-slate-900 dark:text-white">{{ $stats['escapes_today'] }}</span>
-                            <span class="text-slate-400 dark:text-slate-500 text-[10px] ml-1">Pogingen: {{ $stats['attempts_today'] }}</span>
+                <div class="p-5 space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-xl bg-[#0b0f19] border border-white/10 p-3">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Geslaagde Kraken</div>
+                            <div class="text-xl font-black text-emerald-400 mt-1">{{ $stats['escapes_today'] }}</div>
+                        </div>
+                        <div class="rounded-xl bg-[#0b0f19] border border-white/10 p-3">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Totale Pogingen</div>
+                            <div class="text-xl font-black text-white mt-1">{{ $stats['attempts_today'] }}</div>
+                        </div>
+                        <div class="rounded-xl bg-[#0b0f19] border border-white/10 p-3">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Nauwkeurigheid</div>
+                            <div class="text-xl font-black text-cyan-400 mt-1">{{ $stats['breakout_xp'] }}</div>
+                        </div>
+                        <div class="rounded-xl bg-[#0b0f19] border border-white/10 p-3">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Kraak-Reputatie</div>
+                            <div class="text-xl font-black text-amber-400 mt-1">{{ $stats['slay'] }}</div>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
-                            <i class="fa-solid fa-percent text-purple-600 dark:text-purple-400 text-xs"></i>
-                            <span>Uitbreek XP:</span>
-                        </span>
-                        <span class="font-extrabold text-slate-900 dark:text-white">{{ $stats['breakout_xp'] }}</span>
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
-                            <i class="fa-solid fa-star text-amber-500 text-xs"></i>
-                            <span>Aanzien:</span>
-                        </span>
-                        <span class="font-extrabold text-purple-700 dark:text-purple-400 font-mono">{{ $stats['slay'] }}</span>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                        <span class="text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                            <i class="fa-solid fa-calendar-days text-slate-400 dark:text-slate-500"></i>
-                            <span>Beste dag:</span>
-                        </span>
-                        <span class="font-bold text-slate-700 dark:text-slate-300">
-                            {{ $stats['best_day_date'] }} ({{ $stats['best_day_count'] }}x)
-                        </span>
+                    <!-- Voortgangsbalk Slagingspercentage -->
+                    @php
+                        $numericRate = (float) str_replace('%', '', (string) $stats['breakout_xp']);
+                    @endphp
+                    <div class="rounded-xl bg-[#0b0f19] border border-white/10 p-3.5">
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="text-gray-400 font-bold">Effectiviteit op Slotmechanismen</span>
+                            <span class="text-cyan-400 font-black">{{ $stats['breakout_xp'] }}</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-gray-800 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-500"
+                                 style="width: {{ min(100, max(4, $numericRate)) }}%"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-gray-500 mt-2">
+                            <span>Recorddatum: {{ $stats['best_day_date'] }}</span>
+                            <span class="text-emerald-400 font-bold">{{ $stats['best_day_count'] }} bevrijdingen</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Card 2: Uitbrekers van de dag -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
-                <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                    <i class="fa-solid fa-chart-line text-purple-600 dark:text-purple-400"></i>
-                    <span>Top Uitbrekers Vandaag</span>
+            <!-- Eregalerij van Meester-Krakers -->
+            <div class="rounded-2xl border border-amber-500/25 bg-[#111726] overflow-hidden shadow-xl">
+                <div class="px-5 py-4 border-b border-white/10 bg-[#151d30] flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                            <i class="fa-solid fa-key text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xs font-black uppercase tracking-wider text-white">Meester-Celkrakers Top 5</h2>
+                            <p class="text-[11px] text-gray-400">Specialisten in celblok-infiltratie</p>
+                        </div>
+                    </div>
                 </div>
 
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-2">
-                            <th class="py-2">PATIËNT</th>
-                            <th class="py-2 text-right">UITBRAKEN</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
-                        @forelse($topBreakers as $b)
-                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                            <td class="py-2.5 flex items-center gap-2.5">
-                                <img src="{{ $b->avatar_url }}" alt="{{ $b->name }}" class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs">
-                                <a href="{{ route('profile.show', $b->name) }}" class="font-bold text-slate-800 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition truncate max-w-[140px]">
-                                    {{ $b->name }}
+                <div class="p-4 space-y-2.5">
+                    @forelse($topBreakers as $index => $tb)
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b0f19] border border-white/5 hover:border-amber-500/30 transition">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black {{ $index === 0 ? 'bg-amber-500 text-black' : ($index === 1 ? 'bg-gray-300 text-black' : ($index === 2 ? 'bg-amber-700 text-white' : 'bg-white/10 text-gray-400')) }}">
+                                    {{ $index + 1 }}
+                                </div>
+                                <a href="{{ route('profile.show', $tb->name) }}" class="flex items-center gap-2.5 truncate group">
+                                    <div class="{{ $tb->avatar_border_class }} rounded-full shrink-0">
+                                        <img src="{{ $tb->avatar_url }}" class="w-7 h-7 rounded-full object-cover border border-white/15">
+                                    </div>
+                                    <span class="{{ $tb->name_color_class }} font-bold text-xs group-hover:underline truncate">{{ $tb->name }}</span>
+                                    @if($tb->isVip())
+                                        <i class="fa-solid fa-gem text-cyan-400 text-[10px]"></i>
+                                    @endif
                                 </a>
-                            </td>
-                            <td class="py-2.5 text-right font-mono font-bold text-purple-700 dark:text-purple-400">
-                                {{ $b->prison_escapes }}
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="2" class="py-4 text-center text-slate-400 dark:text-slate-500 text-xs italic">
-                                Nog geen uitbraken geregistreerd.
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-black shrink-0">
+                                {{ $tb->prison_escapes }} kraken
+                            </span>
+                        </div>
+                    @empty
+                        <div class="py-6 text-center text-xs text-gray-500">
+                            Nog geen geregistreerde celkraken in dit tijdvak.
+                        </div>
+                    @endforelse
+                </div>
             </div>
 
+            <!-- Tactisch Protocol & Risicomatrix -->
+            <div class="rounded-2xl border border-white/10 bg-[#111726] p-5 space-y-3.5 shadow-xl">
+                <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-200">
+                    <i class="fa-solid fa-compass-drafting text-red-400"></i> Tactische Uitbraak-Methodes
+                </div>
+                <div class="space-y-2.5 text-xs">
+                    @foreach($breakoutMethods as $mKey => $mData)
+                        <div class="p-3 rounded-xl bg-[#0b0f19] border {{ $mKey === 'stil' ? 'border-cyan-500/25' : 'border-amber-500/25' }}">
+                            <div class="flex items-center justify-between font-black {{ $mKey === 'stil' ? 'text-cyan-400' : 'text-amber-400' }}">
+                                <span><i class="fa-solid {{ $mData['icon'] }} mr-1"></i> {{ $mData['name'] }}</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded bg-white/5 text-gray-300">
+                                    {{ $mData['chance_mod'] > 0 ? '+'.$mData['chance_mod'].'%' : $mData['chance_mod'].'%' }} kans
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-1 leading-relaxed">{{ $mData['description'] }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
         </div>
 
+        <!-- RECHTERKOLOM (8 van 12): PERSOONLIJKE CELSTATUS, STRAFVERKORTING & GEDETINEERDEN-DOSSIERS -->
+        <div class="lg:col-span-8 space-y-6 order-1 lg:order-2">
+
+            <!-- STATUS DASHBOARD: VRIJ OF INGESLOTEN -->
+            <div x-show="!isImprisoned" x-cloak class="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-[#111726] to-[#111726] p-5 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                            <i class="fa-solid fa-shield-check text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Vrije Corridorstatus
+                            </div>
+                            <h2 class="text-base md:text-lg font-black text-white mt-0.5">Je beweegt vrij over de kliniekafdelingen</h2>
+                            <p class="text-xs text-gray-300 mt-1">
+                                Kies hieronder een gedetineerde en bepaal per celdossier of je kiest voor een <strong class="text-cyan-300">Stille Sluipuitbraak</strong> (hogere trefkans) of <strong class="text-amber-300">Breekijzer & Forceerwerk</strong> (dubbele Respect-beloning & kans op +1 Kracht). Elke kraakpoging kost <strong class="text-amber-400">15 Energie</strong>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIEVE ISOLATIESTRAF + NIEUWE STRAFVERKORTING MODULE (STOOMWASSERIJ / CIPIER OMKOPEN) -->
+            <div x-show="isImprisoned" x-cloak class="rounded-2xl border border-red-500/50 bg-gradient-to-b from-red-950/35 via-[#111726] to-[#111726] overflow-hidden shadow-2xl space-y-5 p-5 md:p-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-500/20 pb-4">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+                            <i class="fa-solid fa-lock text-xl animate-pulse"></i>
+                        </div>
+                        <div>
+                            <span class="px-2.5 py-0.5 rounded bg-red-500/20 border border-red-500/40 text-red-300 text-[10px] font-black uppercase tracking-widest">
+                                Celblok Vergrendeld • Isolatieregime Actief
+                            </span>
+                            <h2 class="text-lg md:text-xl font-black text-white mt-1">Je zit opgesloten in Sector Z-04</h2>
+                            <p class="text-xs text-gray-300 mt-0.5">
+                                Geregistreerd vergrijp: <span class="text-red-300 font-bold">"{{ $character->prison_reason ?: 'Overtreding van het kliniekreglement' }}"</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Live Digitale Celklok -->
+                    <div class="bg-[#090d15] border border-red-500/40 rounded-xl px-4 py-3 text-center shrink-0">
+                        <div class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Resterende Celstraf</div>
+                        <div class="text-2xl font-black font-mono text-amber-400 mt-0.5" x-text="formatTime(remainingSecs)">
+                            {{ gmdate('i:s', max(0, (int) $remainingSeconds)) }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NIEUW MECHANISME: STRAFVERKORTING & CORRIDORSABOTAGE (STOOMWASSERIJ OF CIPIER OMKOPEN) -->
+                <div class="rounded-xl bg-[#0b0f19] border border-amber-500/30 p-4 space-y-3.5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <div class="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                                <i class="fa-solid fa-stopwatch-20"></i> Strafverkorting & Corridorsabotage
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-0.5">
+                                Verkort je lopende isolatiestraf actief door arbeid in de wasserij te verrichten of de dienstdoende nachtcipier om te kopen.
+                            </p>
+                        </div>
+                        <template x-if="reduceCooldownSecs > 0">
+                            <span class="px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-black shrink-0">
+                                <i class="fa-solid fa-hourglass-half mr-1"></i> Wachtpost Cooldown: <span x-text="reduceCooldownSecs + 's'"></span>
+                            </span>
+                        </template>
+                        <template x-if="reduceCooldownSecs <= 0">
+                            <span class="px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-black shrink-0">
+                                <i class="fa-solid fa-circle-check mr-1"></i> Direct Beschikbaar
+                            </span>
+                        </template>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        @foreach($reduceActions as $actKey => $actMeta)
+                            <form action="{{ route('prison.reduce') }}" method="POST"
+                                  class="rounded-xl border {{ $actKey === 'wasserij' ? 'border-cyan-500/30 bg-[#101726]' : 'border-amber-500/30 bg-[#141522]' }} p-3.5 flex flex-col justify-between gap-3">
+                                @csrf
+                                <input type="hidden" name="action" value="{{ $actKey }}">
+                                <div>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-xs font-black uppercase tracking-wider {{ $actKey === 'wasserij' ? 'text-cyan-300' : 'text-amber-300' }}">
+                                            <i class="fa-solid {{ $actMeta['icon'] }} mr-1"></i> {{ $actMeta['name'] }}
+                                        </span>
+                                        <span class="px-2 py-0.5 rounded bg-black/50 border border-white/10 text-[10px] font-black text-white">
+                                            Kost: {{ $actMeta['cost_label'] }}
+                                        </span>
+                                    </div>
+                                    <div class="text-[11px] font-bold text-emerald-400 mt-1">{{ $actMeta['subtitle'] }}</div>
+                                    <p class="text-[11px] text-gray-400 mt-1 leading-relaxed">{{ $actMeta['description'] }}</p>
+                                </div>
+
+                                <button type="submit"
+                                        :disabled="reduceCooldownSecs > 0"
+                                        :class="reduceCooldownSecs > 0 ? 'opacity-50 cursor-not-allowed bg-gray-800 text-gray-400' : '{{ $actKey === 'wasserij' ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-amber-500 hover:bg-amber-400 text-black' }}'"
+                                        class="w-full py-2 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid {{ $actMeta['icon'] }}"></i>
+                                    <span x-text="reduceCooldownSecs > 0 ? 'Cooldown (' + reduceCooldownSecs + 's)' : 'Uitvoeren: {{ $actMeta['name'] }}'">
+                                        Uitvoeren: {{ $actMeta['name'] }}
+                                    </span>
+                                </button>
+                            </form>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- DIRECTE ONTSNAPPING, VRIJKOOP MET STERREN & SPONSORVIDEO -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                    <!-- Optie 1: Luchtschacht Ontsnapping -->
+                    <div class="rounded-xl bg-[#0b0f19] border border-white/10 p-3.5 flex flex-col justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-person-running text-amber-400"></i> Luchtschacht-Uitbraak
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-1">
+                                Waag één ontsnappingspoging per celstraf (20 Energie). Bij succes direct vrij + 15 Respect; bij betrapping +90 sec straf.
+                            </p>
+                        </div>
+                        <form action="{{ route('prison.escape') }}" method="POST" @submit.prevent="attemptEscapeAjax($event)">
+                            @csrf
+                            <button type="submit"
+                                    :disabled="escapeAttempted"
+                                    :class="escapeAttempted ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg'"
+                                    class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid" :class="escapeAttempted ? 'fa-ban' : 'fa-bolt'"></i>
+                                <span x-text="escapeAttempted ? 'Poging Verbruikt' : 'Ontsnappen (20 Energie)'"></span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Optie 2: Vrijkoopakte (25 Sterren) -->
+                    <div class="rounded-xl bg-[#0b0f19] border border-yellow-500/30 p-3.5 flex flex-col justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-black text-yellow-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-star"></i> Directe Vrijkoopakte
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-1">
+                                Koop de elektronische sluis direct vrij zonder risico. Vereist <strong class="text-yellow-300">25 Sterren ⭐</strong> (bezit: {{ $character->stars ?? 0 }} ⭐).
+                            </p>
+                        </div>
+                        <form action="{{ route('prison.buyout') }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                    @if(($character->stars ?? 0) < 25) disabled @endif
+                                    class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 {{ ($character->stars ?? 0) >= 25 ? 'bg-yellow-500 hover:bg-yellow-400 text-black shadow-lg' : 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' }}">
+                                <i class="fa-solid fa-unlock-keyhole"></i> Vrijkoop (25 ⭐)
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Optie 3: Sponsoruitzending -->
+                    <div class="rounded-xl bg-[#0b0f19] border border-emerald-500/30 p-3.5 flex flex-col justify-between gap-3">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-emerald-400 uppercase tracking-wider">
+                                    <i class="fa-solid fa-clapperboard mr-1"></i> Sponsor-Amnestie
+                                </span>
+                                <span class="text-[10px] font-black text-gray-300" x-text="adsProgress + ' / ' + adsRequired + ' video\'s'">
+                                    {{ $adsProgress }} / {{ $adsRequired }} video's
+                                </span>
+                            </div>
+                            <div class="w-full h-1.5 rounded-full bg-gray-800 overflow-hidden mt-2">
+                                <div class="h-full bg-emerald-500 transition-all duration-300"
+                                     :style="'width: ' + Math.min(100, Math.round((adsProgress / Math.max(1, adsRequired)) * 100)) + '%'"></div>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-1.5">
+                                Bekijk een korte sponsoruitzending om de celdeur kosteloos te ontgrendelen.
+                            </p>
+                        </div>
+                        <button type="button"
+                                @click="watchAdForFreedom()"
+                                :disabled="watchingAd"
+                                class="w-full py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-play"></i>
+                            <span x-text="watchingAd ? 'Uitzending Laden...' : 'Video Bekijken (Gratis Vrij)'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GEDETINEERDEN-DOSSIERS (INTERACTIEVE CELBLOK KAARTEN I.P.V. TABEL) -->
+            <div class="rounded-2xl border border-white/10 bg-[#111726] overflow-hidden shadow-xl">
+                <div class="px-5 py-4 border-b border-white/10 bg-[#151d30] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
+                            <i class="fa-solid fa-Border-all text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-black uppercase tracking-wider text-white">Actieve Celdossiers in Sector Z-04</h2>
+                            <p class="text-[11px] text-gray-400">Kies per gevangene een tactische kraakmethode (15 Energie per poging)</p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-black">
+                        {{ $jailList->count() }} {{ $jailList->count() === 1 ? 'Gedetineerde' : 'Gedetineerden' }}
+                    </span>
+                </div>
+
+                <div class="p-5">
+                    @if($jailList->isEmpty())
+                        <div class="rounded-2xl border border-dashed border-white/10 bg-[#0b0f19]/70 p-10 text-center space-y-2">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
+                                <i class="fa-solid fa-lock-open text-lg"></i>
+                            </div>
+                            <h3 class="text-sm font-black uppercase tracking-wider text-white">Alle Isoleercellen Staan Leeg</h3>
+                            <p class="text-xs text-gray-400 max-w-md mx-auto">
+                                Er zitten op dit moment geen andere patiënten vast in Sector Z-04. Zodra iemand wordt opgepakt door de beveiliging, verschijnt het celdossier hier direct.
+                            </p>
+                        </div>
+                    @else
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach($jailList as $inmate)
+                                @php
+                                    $rpModel = $inmate['model'] ?? null;
+                                    $chanceStil = $inmate['chance_stil'] ?? $inmate['chance'];
+                                    $chanceGeweld = $inmate['chance_geweld'] ?? max(5, $inmate['chance'] - 5);
+                                @endphp
+                                <div x-data="{ selectedMethod: 'stil', chanceStil: {{ (int) $chanceStil }}, chanceGeweld: {{ (int) $chanceGeweld }} }"
+                                     class="rounded-xl border border-white/10 bg-[#0b0f19] p-4 flex flex-col justify-between gap-4 hover:border-red-500/30 transition">
+                                    <!-- Bovenkant: Avatar, Naam & Resterende Straftijd -->
+                                    <div class="space-y-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                @if($rpModel)
+                                                    <a href="{{ route('profile.show', $rpModel->name) }}" class="shrink-0">
+                                                        <div class="{{ $rpModel->avatar_border_class }} rounded-full">
+                                                            <img src="{{ $inmate['avatar'] }}" alt="{{ $inmate['name'] }}" class="w-11 h-11 rounded-full object-cover border border-white/15">
+                                                        </div>
+                                                    </a>
+                                                    <div class="min-w-0">
+                                                        <a href="{{ route('profile.show', $rpModel->name) }}" class="{{ $rpModel->name_color_class }} font-black text-sm hover:underline truncate block">
+                                                            {{ $inmate['name'] }}
+                                                        </a>
+                                                        <span class="text-[11px] text-gray-400 block truncate">
+                                                            Cel #Z-{{ str_pad((string) $inmate['id'], 3, '0', STR_PAD_LEFT) }}
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <img src="{{ $inmate['avatar'] }}" alt="{{ $inmate['name'] }}" class="w-11 h-11 rounded-full object-cover border border-white/15 shrink-0">
+                                                    <div class="min-w-0">
+                                                        <span class="font-black text-sm text-white truncate block">{{ $inmate['name'] }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <span class="px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/30 text-red-300 font-mono text-xs font-black shrink-0"
+                                                  data-inmate-timer="{{ $inmate['remaining_seconds'] }}">
+                                                <i class="fa-regular fa-clock mr-1"></i>{{ $inmate['time'] }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Vergrijp / Reden -->
+                                        <div class="rounded-lg bg-[#111726] border border-white/5 px-3 py-2 text-xs text-gray-300">
+                                            <span class="text-[10px] font-black uppercase tracking-wider text-gray-500 block">Dossiernotitie:</span>
+                                            {{ $inmate['reason'] }}
+                                        </div>
+
+                                        <!-- Dynamische Slaagkans-indicator -->
+                                        <div class="space-y-1.5">
+                                            <div class="flex items-center justify-between text-xs">
+                                                <span class="text-gray-400 font-bold">Geschatte Slaagkans:</span>
+                                                <span class="font-black"
+                                                      :class="selectedMethod === 'stil' ? 'text-cyan-400' : 'text-amber-400'"
+                                                      x-text="(selectedMethod === 'stil' ? chanceStil : chanceGeweld) + '%'">
+                                                    {{ $chanceStil }}%
+                                                </span>
+                                            </div>
+                                            <div class="w-full h-2 rounded-full bg-gray-800 overflow-hidden">
+                                                <div class="h-full rounded-full transition-all duration-300"
+                                                     :class="selectedMethod === 'stil' ? 'bg-cyan-500' : 'bg-amber-500'"
+                                                     :style="'width: ' + (selectedMethod === 'stil' ? chanceStil : chanceGeweld) + '%'"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Formulier met Tactiek-Keuze (Stil vs Geweld) -->
+                                    <form action="{{ route('prison.breakout', $inmate['id']) }}" method="POST" class="space-y-2.5 pt-2 border-t border-white/10">
+                                        @csrf
+                                        <input type="hidden" name="method" :value="selectedMethod">
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button type="button"
+                                                    @click="selectedMethod = 'stil'"
+                                                    :class="selectedMethod === 'stil' ? 'border-cyan-400 bg-cyan-500/15 text-cyan-200' : 'border-white/10 bg-[#111726] text-gray-400 hover:text-gray-200'"
+                                                    class="p-2 rounded-lg border text-left transition">
+                                                <div class="text-[11px] font-black flex items-center justify-between">
+                                                    <span><i class="fa-solid fa-user-ninja mr-1"></i> Stil</span>
+                                                    <span x-text="chanceStil + '%'">{{ $chanceStil }}%</span>
+                                                </div>
+                                                <div class="text-[10px] opacity-80 mt-0.5">+2 Resp • +140 XP</div>
+                                            </button>
+
+                                            <button type="button"
+                                                    @click="selectedMethod = 'geweld'"
+                                                    :class="selectedMethod === 'geweld' ? 'border-amber-400 bg-amber-500/15 text-amber-200' : 'border-white/10 bg-[#111726] text-gray-400 hover:text-gray-200'"
+                                                    class="p-2 rounded-lg border text-left transition">
+                                                <div class="text-[11px] font-black flex items-center justify-between">
+                                                    <span><i class="fa-solid fa-hammer mr-1"></i> Geweld</span>
+                                                    <span x-text="chanceGeweld + '%'">{{ $chanceGeweld }}%</span>
+                                                </div>
+                                                <div class="text-[10px] opacity-80 mt-0.5">+4 Resp • +210 XP</div>
+                                            </button>
+                                        </div>
+
+                                        <button type="submit"
+                                                @if($isImprisoned) disabled @endif
+                                                class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ $isImprisoned ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white shadow-lg' }}">
+                                            <i class="fa-solid fa-unlock"></i>
+                                            <span x-text="selectedMethod === 'stil' ? 'Stille Sluipuitbraak (15 Energie)' : 'Breekijzer & Forceerwerk (15 Energie)'">
+                                                Stille Sluipuitbraak (15 Energie)
+                                            </span>
+                                        </button>
+                                    </form>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Bottom Podium Ranglijst -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5">
-        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
-            <i class="fa-solid fa-trophy text-amber-500"></i>
-            <span>RANGLIJST TOP PATIËNTEN</span>
+    <!-- ONDERSTE SECTIE: KLINIEK MACHTSHIËRARCHIE TOP 10 -->
+    <div class="rounded-2xl border border-white/10 bg-[#111726] overflow-hidden shadow-xl">
+        <div class="px-5 py-4 border-b border-white/10 bg-[#151d30] flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <i class="fa-solid fa-crown text-sm"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black uppercase tracking-wider text-white">Kliniek Machtshiërarchie — Top 10 Patiënten</h2>
+                    <p class="text-[11px] text-gray-400">De meest invloedrijke kopstukken binnen de TBS-muren</p>
+                </div>
+            </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-3 pt-2">
-            @foreach($topRankings ?? [] as $index => $player)
-            <div class="flex flex-col items-center text-center group">
-                <div class="relative mb-2">
-                    <img src="{{ $player->avatar_url }}" alt="{{ $player->name }}" 
-                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400 ring-2 ring-purple-400/20' : 'border-slate-200 dark:border-slate-700') }} group-hover:scale-105 transition-transform shadow-xs">
-                    
-                    <span class="absolute -top-1 -left-1 w-6 h-6 rounded-full {{ $index === 0 ? 'bg-amber-400 text-slate-950 font-black' : ($index < 3 ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800 text-white font-bold') }} text-xs flex items-center justify-center shadow">
-                        {{ $index + 1 }}
-                    </span>
-
-                    <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] flex items-center justify-center">
-                        <i class="fa-solid fa-check"></i>
-                    </span>
-                </div>
-
-                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate w-full block">
-                    {{ $player->name }}
+        <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            @foreach($topRankings as $idx => $ranked)
+                <a href="{{ route('profile.show', $ranked->name) }}"
+                   class="p-3 rounded-xl bg-[#0b0f19] border border-white/10 hover:border-amber-500/40 transition flex items-center gap-3 min-w-0">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 {{ $idx === 0 ? 'bg-amber-500 text-black' : ($idx === 1 ? 'bg-gray-300 text-black' : ($idx === 2 ? 'bg-amber-700 text-white' : 'bg-white/10 text-gray-400')) }}">
+                        #{{ $idx + 1 }}
+                    </div>
+                    <div class="{{ $ranked->avatar_border_class }} rounded-full shrink-0">
+                        <img src="{{ $ranked->avatar_url }}" alt="{{ $ranked->name }}" class="w-9 h-9 rounded-full object-cover border border-white/15">
+                    </div>
+                    <div class="min-w-0">
+                        <div class="{{ $ranked->name_color_class }} text-xs font-black truncate">{{ $ranked->name }}</div>
+                        <div class="text-[10px] text-gray-400">Lvl {{ $ranked->level }} • {{ number_format($ranked->respect) }} Resp</div>
+                    </div>
                 </a>
-                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">
-                    {{ $player->respect >= 1000000 ? number_format($player->respect / 1000000, 2) . 'M' : ($player->respect >= 1000 ? number_format($player->respect / 1000, 1) . 'K' : $player->respect) }}
-                </span>
-            </div>
             @endforeach
         </div>
     </div>
-
 </div>
+
+@push('scripts')
+<script>
+function prisonPageController(config) {
+    return {
+        isImprisoned: config.isImprisoned,
+        remainingSecs: config.remainingSecs,
+        adsProgress: config.adsProgress,
+        adsRequired: config.adsRequired,
+        escapeAttempted: config.escapeAttempted,
+        reduceCooldownSecs: config.reduceCooldownSecs || 0,
+        watchingAd: false,
+        timerInterval: null,
+
+        startCountdown() {
+            this.timerInterval = setInterval(() => {
+                if (this.reduceCooldownSecs > 0) {
+                    this.reduceCooldownSecs--;
+                }
+                if (this.isImprisoned && this.remainingSecs > 0) {
+                    this.remainingSecs--;
+                    if (this.remainingSecs <= 0) {
+                        this.isImprisoned = false;
+                        window.location.reload();
+                    }
+                }
+            }, 1000);
+        },
+
+        formatTime(secs) {
+            const s = Math.max(0, parseInt(secs || 0, 10));
+            const m = Math.floor(s / 60);
+            const rem = s % 60;
+            return String(m).padStart(2, '0') + ':' + String(rem).padStart(2, '0');
+        },
+
+        async attemptEscapeAjax(event) {
+            event.target.submit();
+        },
+
+        watchAdForFreedom() {
+            if (typeof window.openSponsorVideoModal === 'function') {
+                this.watchingAd = true;
+                window.openSponsorVideoModal('prison', () => {
+                    window.location.reload();
+                });
+            } else {
+                window.location.reload();
+            }
+        }
+    };
+}
+</script>
+@endpush
 @endsection

@@ -41,15 +41,15 @@ class PrisonService
             'character_id' => $character->id,
             'type' => 'prison',
             'icon' => 'fa-lock',
-            'title' => 'Gepakt door de beveiliging!',
-            'message' => "Je bent opgesloten in de isoleercel voor {$timeLabel}. Reden: {$reason}. Bekijk een korte advertentie om direct vrij te komen!",
+            'title' => 'Ingesloten op de Isolatievleugel!',
+            'message' => "De interne interventieploeg heeft je voor {$timeLabel} in een zwaarbeveiligde cel geplaatst. Dossiernotitie: {$reason}. Verkort je straftijd via de stoomwasserij, koop de nachtcipier om of bekijk een sponsorvideo.",
         ]);
 
         GameMessage::create([
             'recipient_id' => $character->id,
-            'sender_name' => 'Hoofdbeveiliging & Cipiers',
+            'sender_name' => 'Interne Interventie & Celblokbeheer',
             'subject' => '🚨 Arrestatierapport: Isoleercel Straf',
-            'content' => "Patiënt {$character->name},\n\nJe bent zojuist overmeesterd door het beveiligingsteam en overgebracht naar de gesloten isoleercel voor {$timeLabel}.\n\nOfficiële reden:\n\"{$reason}\"\n\nIn de gevangenis kun je direct een korte sponsoradvertentie bekijken om per direct vrijgelaten te worden, een ontsnappingspoging wagen of je straftijd uitzitten.",
+            'content' => "Patiënt {$character->name},\n\nHet tactisch interventieteam heeft je zojuist ingerekend en overgeplaatst naar het gesloten celblok voor een duur van {$timeLabel}.\n\nGeregistreerde overtreding:\n\"{$reason}\"\n\nVanuit je cel kun je dienst draaien in de stoomwasserij, een nachtcipier omkopen om de klok terug te draaien, een ontsnappingspoging wagen of via een sponsoruitzending directe vrijlating afdwingen.",
             'type' => 'jail',
         ]);
     }
@@ -75,7 +75,7 @@ class PrisonService
             if (! $locked) {
                 return [
                     'success' => false,
-                    'message' => 'Karakter niet gevonden!',
+                    'message' => 'Patiëntdossier kon niet worden geladen.',
                 ];
             }
 
@@ -104,7 +104,7 @@ class PrisonService
             if (! $energyService->consume($locked, $escapeCost)) {
                 return [
                     'success' => false,
-                    'message' => "Je hebt minimaal {$escapeCost} energie nodig voor een ontsnappingspoging.",
+                    'message' => "Onvoldoende uithoudingsvermogen: een uitbraak door de luchtschacht vereist {$escapeCost} energie.",
                 ];
             }
 
@@ -136,13 +136,13 @@ class PrisonService
                     'character_id' => $locked->id,
                     'type' => 'escape',
                     'icon' => 'fa-door-open',
-                    'title' => 'Succesvol ontsnapt!',
-                    'message' => 'Je bent via het luchtkanaal ontsnapt uit de isoleercel! Je verdiende 15 respect.',
+                    'title' => 'Luchtschacht-Uitbraak Geslaagd!',
+                    'message' => 'Je hebt het ventilatierooster losgewrikt en bent ongezien uit het celblok geglipt! Beloning: +15 Respect.',
                 ]);
 
                 return [
                     'success' => true,
-                    'message' => 'Geweldig! Je hebt de bewakers afgeleid en bent ontsnapt via de wasruimte. Je verdient 15 respect!',
+                    'message' => 'Uitbraak geslaagd! Je hebt de elektronische vergrendeling kortgesloten en bent via de technische schacht ontkomen (+15 Respect).',
                 ];
             }
 
@@ -161,7 +161,7 @@ class PrisonService
 
             return [
                 'success' => false,
-                'message' => 'Mislukt! Bewaker Barry greep je bij je lurven bij het luchtrooster. Je straftijd is met 90 seconden verlengd en je hebt je ontsnappingspoging verbruikt! Bekijk een advertentie om alsnog direct vrij te komen.',
+                'message' => 'Alarmfase Rood! Hoofdcipier Barry onderschepte je bij het ventilatiekanaal. Je celstraf is verzwaard met 90 seconden en je ontsnappingskans voor deze straf is verkeken.',
             ];
         });
     }
