@@ -33,7 +33,9 @@ class ResolveVaultChallengeEventCommand extends Command
         }
 
         $this->info('Resolving De Grote Kluiscode Challenge event...');
-        $result = EventVaultCrackingService::resolveWinner((bool) $this->option('force'));
+        $force = (bool) $this->option('force');
+        $result = EventVaultCrackingService::resolveWinner($force);
+        EventVaultCrackingService::syncWinnerArticle($force);
 
         if (! $result) {
             $this->warn('No vault code cracks found or challenge already resolved.');

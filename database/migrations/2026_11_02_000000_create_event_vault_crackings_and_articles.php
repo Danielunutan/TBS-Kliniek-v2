@@ -74,8 +74,10 @@ return new class extends Migration
             }
         }
 
-        // Settle previous challenge if not settled yet and synchronize both news articles
-        EventDrugsProductionService::resolveWinner(true);
+        // Settle previous challenge only if its deadline has passed, and synchronize both news articles
+        if (EventDrugsProductionService::hasEnded()) {
+            EventDrugsProductionService::resolveWinner();
+        }
         EventDrugsProductionService::syncWinnerArticle();
         $challengeArticle = EventVaultCrackingService::syncChallengeArticle();
 

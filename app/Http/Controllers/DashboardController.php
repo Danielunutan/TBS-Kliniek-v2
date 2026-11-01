@@ -20,6 +20,7 @@ use App\Services\CooldownService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\EventVaultCrackingService;
 use App\Services\LevelService;
 use App\Services\NuNlNewsService;
 use App\Services\ReferralService;
@@ -117,12 +118,21 @@ class DashboardController extends Controller
             $quickMissions = $activeMissions;
         }
 
+        if (EventVaultCrackingService::hasEnded() && ! GameNotification::where('type', EventVaultCrackingService::NOTIFICATION_TYPE)->exists()) {
+            try {
+                EventVaultCrackingService::resolveWinner();
+            } catch (\Throwable) {
+                // Ignore event resolution errors during dashboard load
+            }
+        }
+
         $notifications = $character->notifications()->take(5)->get();
         $recentGuestbook = $character->guestbookEntries()->with('author')->take(3)->get();
 
         $latestNews = NewsArticle::published()
             ->orderByDesc('is_pinned')
-            ->latest()
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
+            ->orderByDesc('id')
             ->take(4)
             ->get();
 

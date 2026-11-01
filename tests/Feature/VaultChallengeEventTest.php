@@ -51,6 +51,7 @@ class VaultChallengeEventTest extends TestCase
         $article = NewsArticle::where('slug', 'winnaar-bekend-de-grote-drugsproductie')->first();
         $this->assertNotNull($article, 'Winner news article must exist.');
         $this->assertEquals('2026-11-02 00:00:00', $article->published_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('2026-11-02 00:00:00', $article->created_at->format('Y-m-d H:i:s'));
         $this->assertStringContainsString('De Grote Drugsproductie', $article->title);
         $this->assertStringContainsString('5.000.000', $article->content);
         $this->assertStringContainsString('1.000 Sterren', $article->content);
@@ -77,6 +78,7 @@ class VaultChallengeEventTest extends TestCase
         $this->assertNotNull($article, 'New challenge news article must exist.');
         $this->assertTrue($article->is_pinned);
         $this->assertEquals('2026-11-02 00:00:00', $article->published_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('2026-11-02 00:00:00', $article->created_at->format('Y-m-d H:i:s'));
         $this->assertStringContainsString('2.500 Sterren', $article->title);
         $this->assertStringContainsString('100 Kluiscodes', $article->title);
 
@@ -253,8 +255,14 @@ class VaultChallengeEventTest extends TestCase
             'created_at' => Carbon::parse('2026-11-02 13:00:00'),
         ]);
 
+        // Before the deadline (Wednesday 4 November 23:50), resolveWinner must NOT pay out or create winner article
+        Carbon::setTestNow(Carbon::parse('2026-11-04 23:50:00', 'Europe/Amsterdam'));
+        $this->assertFalse(EventVaultCrackingService::hasEnded());
+        $this->assertNull(EventVaultCrackingService::resolveWinner());
+        $this->assertNull(NewsArticle::where('slug', EventVaultCrackingService::WINNER_ARTICLE_SLUG)->first());
+
         // Advance time past Wednesday 4 November 23:59:59
-        Carbon::setTestNow(Carbon::parse('2026-11-05 00:01:00'));
+        Carbon::setTestNow(Carbon::parse('2026-11-05 00:01:00', 'Europe/Amsterdam'));
 
         $this->assertTrue(EventVaultCrackingService::hasEnded());
 
@@ -271,6 +279,14 @@ class VaultChallengeEventTest extends TestCase
             ->where('code', 'LIKE', 'EVENT-%')
             ->count();
         $this->assertEquals(100, $awardedCodesCount);
+
+        // Check automatic winner news article creation with exact 2026-11-05 00:00:00 timestamps
+        $vaultWinnerArticle = NewsArticle::where('slug', EventVaultCrackingService::WINNER_ARTICLE_SLUG)->first();
+        $this->assertNotNull($vaultWinnerArticle);
+        $this->assertEquals('2026-11-05 00:00:00', $vaultWinnerArticle->published_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('2026-11-05 00:00:00', $vaultWinnerArticle->created_at->format('Y-m-d H:i:s'));
+        $this->assertStringContainsString($winnerChar->name, $vaultWinnerArticle->title);
+        $this->assertStringContainsString($loserChar->name, $vaultWinnerArticle->content);
 
         // Notifications and Messages
         $this->assertDatabaseHas('game_notifications', [

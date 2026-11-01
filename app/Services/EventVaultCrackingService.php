@@ -15,9 +15,13 @@ use Illuminate\Support\Facades\Schema;
 
 class EventVaultCrackingService
 {
+    public const TIMEZONE = 'Europe/Amsterdam';
+
     public const EVENT_START = '2026-11-02 00:00:00';
 
     public const EVENT_END = '2026-11-04 23:59:59';
+
+    public const WINNER_PUBLISH_AT = '2026-11-05 00:00:00';
 
     public const PRIZE_STARS = 2500;
 
@@ -27,14 +31,16 @@ class EventVaultCrackingService
 
     public const EVENT_SLUG = 'de-grote-kluiscode-challenge-2500-sterren-en-100-codes';
 
+    public const WINNER_ARTICLE_SLUG = 'winnaar-bekend-de-grote-kluiscode-challenge';
+
     /**
      * Check whether the vault code challenge is currently active.
      */
     public static function isActive(): bool
     {
         $now = now();
-        $start = Carbon::parse(self::EVENT_START);
-        $end = Carbon::parse(self::EVENT_END);
+        $start = Carbon::parse(self::EVENT_START, self::TIMEZONE);
+        $end = Carbon::parse(self::EVENT_END, self::TIMEZONE);
 
         return $now->greaterThanOrEqualTo($start) && $now->lessThan($end);
     }
@@ -44,7 +50,7 @@ class EventVaultCrackingService
      */
     public static function hasEnded(): bool
     {
-        return now()->greaterThanOrEqualTo(Carbon::parse(self::EVENT_END));
+        return now()->greaterThanOrEqualTo(Carbon::parse(self::EVENT_END, self::TIMEZONE));
     }
 
     /**
@@ -118,8 +124,8 @@ class EventVaultCrackingService
             }
         }
 
-        $start = Carbon::parse(self::EVENT_START);
-        $end = Carbon::parse(self::EVENT_END);
+        $start = Carbon::parse(self::EVENT_START, self::TIMEZONE);
+        $end = Carbon::parse(self::EVENT_END, self::TIMEZONE);
         $now = now();
 
         $isActive = self::isActive();
@@ -211,8 +217,8 @@ class EventVaultCrackingService
      */
     public static function resolveWinner(bool $force = false): ?array
     {
-        $start = Carbon::parse(self::EVENT_START);
-        $end = Carbon::parse(self::EVENT_END);
+        $start = Carbon::parse(self::EVENT_START, self::TIMEZONE);
+        $end = Carbon::parse(self::EVENT_END, self::TIMEZONE);
 
         // Guard against premature runs or double payouts
         if ((! $force && ! self::hasEnded()) || GameNotification::where('type', self::NOTIFICATION_TYPE)->exists()) {
@@ -294,6 +300,12 @@ class EventVaultCrackingService
                 Log::warning('EventVaultCrackingService broadcast failed: '.$e->getMessage());
             }
 
+            try {
+                self::syncWinnerArticle(true);
+            } catch (\Throwable $e) {
+                Log::warning('EventVaultCrackingService winner article sync failed: '.$e->getMessage());
+            }
+
             return [
                 'winner' => $lockedWinner,
                 'total_cracked' => $totalCracked,
@@ -325,7 +337,7 @@ class EventVaultCrackingService
                 ->first() ?? Character::first();
         }
 
-        $publishDate = Carbon::parse('2026-11-02 00:00:00', 'Europe/Amsterdam');
+        $publishDate = Carbon::parse(self::EVENT_START, self::TIMEZONE);
         $challengeTitle = 'Nieuwe Challenge: De Grote Kluiscode Jacht — Win 2.500 Sterren & 100 Kluiscodes!';
         $challengeSlug = self::EVENT_SLUG;
 
@@ -386,7 +398,7 @@ MARKDOWN;
             ->where('slug', '!=', $challengeSlug)
             ->update(['is_pinned' => false]);
 
-        return NewsArticle::updateOrCreate(
+        $article = NewsArticle::updateOrCreate(
             ['slug' => $challengeSlug],
             [
                 'character_id' => $authorChar?->id,
@@ -398,7 +410,151 @@ MARKDOWN;
                 'is_published' => true,
                 'comments_enabled' => true,
                 'published_at' => $publishDate,
+                'created_at' => $publishDate,
             ]
         );
+
+        if ($article->created_at?->format('Y-m-d H:i:s') !== $publishDate->format('Y-m-d H:i:s')) {
+            $article->forceFill([
+                'created_at' => $publishDate,
+                'published_at' => $publishDate,
+            ])->saveQuietly();
+        }
+
+        return $article;
+    }
+
+    /**
+     * Publish the winner announcement news article once the vault challenge has ended.
+     */
+    public static function syncWinnerArticle(bool $force = false): ?NewsArticle
+    {
+        if ((! $force && ! self::hasEnded()) || ! Schema::hasTable('news_articles') || ! Schema::hasTable('event_vault_crackings')) {
+            return null;
+        }
+
+        $start = Carbon::parse(self::EVENT_START, self::TIMEZONE);
+        $end = Carbon::parse(self::EVENT_END, self::TIMEZONE);
+
+        $rows = EventVaultCracking::select('character_id', DB::raw('SUM(amount) as total_cracked'))
+            ->where('created_at', '>=', $start)
+            ->where('created_at', '<=', $end)
+            ->groupBy('character_id')
+            ->orderByDesc('total_cracked')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return null;
+        }
+
+        $charIds = $rows->pluck('character_id')->all();
+        $characters = Character::whereIn('id', $charIds)->get(['id', 'name'])->keyBy('id');
+
+        $ranked = [];
+        foreach ($rows as $row) {
+            $char = $characters->get($row->character_id);
+            if ($char) {
+                $ranked[] = [
+                    'name' => $char->name,
+                    'cracked' => (int) $row->total_cracked,
+                    'cracked_formatted' => number_format((int) $row->total_cracked, 0, ',', '.'),
+                ];
+            }
+        }
+
+        if (empty($ranked)) {
+            return null;
+        }
+
+        $winnerName = $ranked[0]['name'];
+        $winnerCracked = $ranked[0]['cracked_formatted'];
+        $totalCodes = (int) $rows->sum('total_cracked');
+        $totalCodesFormatted = number_format($totalCodes, 0, ',', '.');
+
+        $podiumLines = [];
+        $podiumLines[] = "- 🥇 **#1 {$winnerName}** — {$winnerCracked} gekraakte kluiscodes *(Winnaar van 2.500 Sterren ⭐ + 100 Kluiscodes 🔐)*";
+
+        if (isset($ranked[1])) {
+            $podiumLines[] = "- 🥈 **#2 {$ranked[1]['name']}** — {$ranked[1]['cracked_formatted']} gekraakte kluiscodes *(Zilveren podiumplaats)*";
+        }
+        if (isset($ranked[2])) {
+            $podiumLines[] = "- 🥉 **#3 {$ranked[2]['name']}** — {$ranked[2]['cracked_formatted']} gekraakte kluiscodes *(Bronzen podiumplaats)*";
+        }
+
+        $podiumMarkdown = implode("\n", $podiumLines);
+
+        $authorChar = Character::where('name', 'Daniël')
+            ->orWhere('name', 'Daniel')
+            ->orWhere('name', 'like', '%daniel%')
+            ->orWhere('name', 'like', '%daniël%')
+            ->orWhere('name', 'like', '%directie%')
+            ->orWhereHas('user', function ($q) {
+                $q->where('email', 'danielunutan@icloud.com')
+                    ->orWhere('email', 'like', '%daniel%')
+                    ->orWhereIn('role', ['owner', 'admin']);
+            })
+            ->first() ?? Character::first();
+
+        $publishDate = Carbon::parse(self::WINNER_PUBLISH_AT, self::TIMEZONE);
+        $winnerTitle = "Winnaar Bekend: De Grote Kluiscode Challenge — {$winnerName} Kroont Zich Tot Meesterkraker!";
+
+        $winnerContent = <<<MARKDOWN
+Beste patiënten, bendeleden en meesterkrakers,
+
+Na drie dagen vol spanning bij de kluisdeuren is **De Grote Kluiscode Challenge** op woensdagavond om **23:59:59 uur** officieel tot een einde gekomen! 🔐⚡
+
+De kluisadministratie heeft alle ingewisselde codes en gekraakte kluizen binnen de looptijd definitief geteld en gecontroleerd.
+
+---
+
+### 👑 De Officiële Winnaar & Meesterkraker
+
+De absolute nummer 1 van de kliniek op basis van de definitieve resultaten is geworden:
+
+[winner={$winnerName}|{$winnerCracked} codes|2.500 Sterren ⭐|100 Kluiscodes 🔐]
+
+Van harte gefeliciteerd, **{$winnerName}**! De hoofdprijs van **2.500 Sterren ⭐** én **100 unieke Kluiscodes 🔐** is direct bijgeschreven op jouw account en staat klaar in [url=/kluis-kraak]Kluis Kraak[/url]!
+
+---
+
+### 📊 De Definitieve Eindstand & Podium
+
+Hieronder vind je de officiële topklassering van de definitieve resultaten:
+
+{$podiumMarkdown}
+
+In totaal hebben alle deelnemers tijdens de challenge gezamenlijk **{$totalCodesFormatted} kluiscodes** weten te kraken!
+
+Bedankt aan alle codekrakers voor een geweldige strijd!
+
+*Met criminele groet,*  
+**Daniël**  
+*Directie TBS Kliniek*
+MARKDOWN;
+
+        $article = NewsArticle::updateOrCreate(
+            ['slug' => self::WINNER_ARTICLE_SLUG],
+            [
+                'character_id' => $authorChar?->id,
+                'title' => $winnerTitle,
+                'emoji' => '🏆',
+                'image_url' => null,
+                'content' => $winnerContent,
+                'is_pinned' => false,
+                'is_published' => true,
+                'comments_enabled' => true,
+                'published_at' => $publishDate,
+                'created_at' => $publishDate,
+            ]
+        );
+
+        if ($article->created_at?->format('Y-m-d H:i:s') !== $publishDate->format('Y-m-d H:i:s')) {
+            $article->forceFill([
+                'created_at' => $publishDate,
+                'published_at' => $publishDate,
+            ])->saveQuietly();
+        }
+
+        return $article;
     }
 }

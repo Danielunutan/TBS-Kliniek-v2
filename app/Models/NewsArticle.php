@@ -23,6 +23,7 @@ class NewsArticle extends Model
         'is_published',
         'views_count',
         'published_at',
+        'created_at',
     ];
 
     protected function casts(): array

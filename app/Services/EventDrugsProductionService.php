@@ -390,7 +390,7 @@ Bedankt aan alle producenten en smokkelaars voor een fantastisch en strijdlustig
 *Directie TBS Kliniek*
 MARKDOWN;
 
-        return NewsArticle::updateOrCreate(
+        $article = NewsArticle::updateOrCreate(
             ['slug' => self::WINNER_ARTICLE_SLUG],
             [
                 'character_id' => $authorChar?->id,
@@ -402,7 +402,17 @@ MARKDOWN;
                 'is_published' => true,
                 'comments_enabled' => true,
                 'published_at' => $publishDate,
+                'created_at' => $publishDate,
             ]
         );
+
+        if ($article->created_at?->format('Y-m-d H:i:s') !== $publishDate->format('Y-m-d H:i:s')) {
+            $article->forceFill([
+                'created_at' => $publishDate,
+                'published_at' => $publishDate,
+            ])->saveQuietly();
+        }
+
+        return $article;
     }
 }
