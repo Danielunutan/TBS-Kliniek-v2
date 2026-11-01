@@ -446,6 +446,10 @@
                         this.stats.onlineCount = data.onlineCount;
                     }
 
+                    if (data && data.is_in_prison !== undefined) {
+                        window.dispatchEvent(new CustomEvent('tbs:stats-updated', { detail: data }));
+                    }
+
                     // Real-time live alert toast (e.g. attacked/robbed on Luchtplaats)
                     if (data.alert && typeof window.tbsToast === 'function') {
                         const alertId = data.alert.id;

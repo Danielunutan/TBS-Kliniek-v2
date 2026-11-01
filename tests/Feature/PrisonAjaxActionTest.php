@@ -163,4 +163,16 @@ class PrisonAjaxActionTest extends TestCase
             $this->assertTrue($data['same_page']);
         }
     }
+
+    public function test_prison_index_page_disables_cache_headers(): void
+    {
+        $actor = $this->createInmate(['is_in_prison' => false]);
+
+        $response = $this->actingAs($actor->user)->get(route('prison'));
+
+        $response->assertOk();
+        $cacheControl = (string) $response->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-cache', $cacheControl);
+        $this->assertStringContainsString('no-store', $cacheControl);
+    }
 }

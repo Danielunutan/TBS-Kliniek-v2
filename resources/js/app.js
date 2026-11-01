@@ -319,6 +319,10 @@ if (!window.tbsFormInterceptorInitialized) {
                         const newMain = doc.querySelector('main#tbs-main-container');
                         const curMain = document.querySelector('main#tbs-main-container');
                         if (newMain && curMain) {
+                            if (window._prisonCountdownInterval) {
+                                clearInterval(window._prisonCountdownInterval);
+                                window._prisonCountdownInterval = null;
+                            }
                             curMain.innerHTML = newMain.innerHTML;
                             if (window.Alpine && window.Alpine.initTree) {
                                 window.Alpine.initTree(curMain);
@@ -350,6 +354,10 @@ if (!window.tbsFormInterceptorInitialized) {
             const curMain = document.querySelector('main#tbs-main-container');
 
             if (newMain && curMain) {
+                if (window._prisonCountdownInterval) {
+                    clearInterval(window._prisonCountdownInterval);
+                    window._prisonCountdownInterval = null;
+                }
                 curMain.innerHTML = newMain.innerHTML;
                 if (window.Alpine && window.Alpine.initTree) {
                     window.Alpine.initTree(curMain);

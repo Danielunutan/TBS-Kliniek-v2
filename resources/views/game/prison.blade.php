@@ -23,31 +23,68 @@ window.prisonPageController = function prisonPageController(config) {
         reduceCooldownSecs: config.reduceCooldownSecs || 0,
         watchingAd: false,
         timerInterval: null,
+        isReloading: false,
         feedbackMessage: config.initialMessage || '',
         feedbackType: config.initialType || 'info',
 
         init() {
+            this.cleanupTimers();
             this.startCountdown();
+
             window.addEventListener('tbs-action-feedback', (e) => {
                 if (e.detail && e.detail.message) {
                     this.feedbackMessage = e.detail.message;
                     this.feedbackType = e.detail.type || 'info';
                 }
             });
+
+            // Listen for global real-time stats update to catch release from another player/admin
+            window.addEventListener('tbs:stats-updated', (e) => {
+                if (e.detail && e.detail.is_in_prison === false && this.isImprisoned) {
+                    this.isImprisoned = false;
+                    this.remainingSecs = 0;
+                    this.cleanupTimers();
+                    if (typeof window.tbsToast === 'function') {
+                        window.tbsToast('🔓 Je straf in de isoleercel is beëindigd! Je bent weer vrij.', 'success', 6000);
+                    }
+                    this.refreshPrisonPage();
+                }
+            });
+        },
+
+        destroy() {
+            this.cleanupTimers();
+        },
+
+        cleanupTimers() {
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+            }
+            if (window._prisonCountdownInterval) {
+                clearInterval(window._prisonCountdownInterval);
+                window._prisonCountdownInterval = null;
+            }
         },
 
         startCountdown() {
-            this.timerInterval = setInterval(() => {
+            this.cleanupTimers();
+
+            window._prisonCountdownInterval = setInterval(() => {
                 if (this.reduceCooldownSecs > 0) {
                     this.reduceCooldownSecs--;
                 }
+
                 if (this.isImprisoned && this.remainingSecs > 0) {
                     this.remainingSecs--;
                     if (this.remainingSecs <= 0) {
                         this.isImprisoned = false;
-                        window.location.reload();
+                        this.cleanupTimers();
+                        this.refreshPrisonPage();
+                        return;
                     }
                 }
+
                 document.querySelectorAll('[data-inmate-timer]').forEach((el) => {
                     let s = parseInt(el.getAttribute('data-inmate-timer') || '0', 10);
                     if (s > 0) {
@@ -57,6 +94,38 @@ window.prisonPageController = function prisonPageController(config) {
                     }
                 });
             }, 1000);
+            this.timerInterval = window._prisonCountdownInterval;
+        },
+
+        refreshPrisonPage() {
+            if (this.isReloading) return;
+            this.isReloading = true;
+            this.cleanupTimers();
+
+            if (typeof window.tbsRefreshStats === 'function') {
+                window.tbsRefreshStats(true);
+            }
+
+            // Clear Turbo cache so Turbo never renders the cached imprisoned view
+            if (window.Turbo) {
+                if (typeof window.Turbo.clearCache === 'function') {
+                    window.Turbo.clearCache();
+                } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
+                    window.Turbo.cache.clear();
+                } else if (window.Turbo.session && typeof window.Turbo.session.clearCache === 'function') {
+                    window.Turbo.session.clearCache();
+                }
+            }
+
+            // Append timestamp to bust browser HTTP cache, Cloudflare cache, and bfcache
+            const targetUrl = new URL(window.location.href);
+            targetUrl.searchParams.set('_ts', String(Date.now()));
+
+            if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                window.Turbo.visit(targetUrl.toString(), { action: 'replace' });
+            } else {
+                window.location.replace(targetUrl.toString());
+            }
         },
 
         formatTime(secs) {
@@ -70,15 +139,15 @@ window.prisonPageController = function prisonPageController(config) {
             if (typeof window.tbsOpenSponsorAd === 'function') {
                 this.watchingAd = true;
                 window.tbsOpenSponsorAd('prison', () => {
-                    window.location.reload();
+                    this.refreshPrisonPage();
                 });
             } else if (typeof window.openSponsorVideoModal === 'function') {
                 this.watchingAd = true;
                 window.openSponsorVideoModal('prison', () => {
-                    window.location.reload();
+                    this.refreshPrisonPage();
                 });
             } else {
-                window.location.reload();
+                this.refreshPrisonPage();
             }
         }
     };

@@ -13,9 +13,9 @@ use App\Services\PrisonService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\View\View;
 
 class PrisonController extends Controller
 {
@@ -155,7 +155,7 @@ class PrisonController extends Controller
     /**
      * Show prison status, sentence reduction dashboard, and interactive cellblock cards.
      */
-    public function index(): View
+    public function index(): Response
     {
         /** @var User $user */
         $user = Auth::user();
@@ -270,19 +270,23 @@ class PrisonController extends Controller
         $breakoutMethods = self::BREAKOUT_METHODS;
         $reduceActions = self::REDUCE_ACTIONS;
 
-        return view('game.prison', compact(
-            'character',
-            'isImprisoned',
-            'remainingMinutes',
-            'remainingSeconds',
-            'jailList',
-            'stats',
-            'topBreakers',
-            'topRankings',
-            'breakoutMethods',
-            'reduceActions',
-            'prisonActionCooldownRemaining'
-        ));
+        return response()
+            ->view('game.prison', compact(
+                'character',
+                'isImprisoned',
+                'remainingMinutes',
+                'remainingSeconds',
+                'jailList',
+                'stats',
+                'topBreakers',
+                'topRankings',
+                'breakoutMethods',
+                'reduceActions',
+                'prisonActionCooldownRemaining'
+            ))
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     /**
