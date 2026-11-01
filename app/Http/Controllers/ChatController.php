@@ -128,6 +128,7 @@ class ChatController extends Controller
                 return response()->json([
                     'success' => true,
                     'messages' => [],
+                    'deleted_ids' => array_values(Cache::get("chat_deleted_ids_{$channel}", [])),
                     'last_id' => (int) $cachedLastId,
                 ]);
             }
@@ -155,30 +156,39 @@ class ChatController extends Controller
             Cache::put("chat_last_id_{$channel}", $afterId, now()->addHours(24));
         }
 
-        $formatted = $messages->map(function (ChatMessage $msg) use ($character) {
+        $isViewerStaff = (bool) (
+            $user->isStaff()
+            || $user->canModerate()
+            || $user->isModerator()
+            || $user->isAdmin()
+            || $user->isOwner()
+            || in_array($user->role, ['moderator', 'admin', 'owner'], true)
+        );
+
+        $formatted = $messages->map(function (ChatMessage $msg) use ($character, $isViewerStaff) {
             $char = $msg->character;
-            $user = $char?->user;
+            $authorUser = $char?->user;
             $gang = $char?->gang;
 
-            $isOwner = (bool) ($user?->isOwner());
-            $isAdmin = (bool) ($user?->isAdmin());
-            $isMod = (bool) ($user?->isModerator() || $user?->canModerate());
+            $isOwner = (bool) ($authorUser?->isOwner());
+            $isAdmin = (bool) ($authorUser?->isAdmin());
+            $isMod = (bool) ($authorUser?->isModerator() || $authorUser?->canModerate());
 
             $staffRole = $isOwner ? 'Eigenaar' : ($isAdmin ? 'Directie' : ($isMod ? 'Moderator' : null));
             $staffBadgeColor = $isOwner ? 'amber' : ($isAdmin ? 'purple' : ($isMod ? 'blue' : null));
             $vipBadge = $char?->vip_badge;
 
             return [
-                'id' => $msg->id,
-                'character_id' => $msg->character_id,
+                'id' => (int) $msg->id,
+                'character_id' => (int) $msg->character_id,
                 'name' => $char?->name ?? 'Onbekende Inmate',
                 'avatar' => $char?->avatar_url ?? asset('characters/avatar-default.png'),
-                'level' => $char?->level ?? 1,
-                'respect' => $char?->respect ?? 0,
+                'level' => (int) ($char?->level ?? 1),
+                'respect' => (int) ($char?->respect ?? 0),
                 'is_owner' => $isOwner,
                 'is_admin' => $isAdmin,
                 'is_moderator' => $isMod,
-                'is_staff' => (bool) ($user?->isStaff() || $isMod),
+                'is_staff' => (bool) ($authorUser?->isStaff() || $isMod),
                 'staff_role' => $staffRole,
                 'staff_badge_color' => $staffBadgeColor,
                 'is_vip' => (bool) ($char?->isVip()),
@@ -197,16 +207,17 @@ class ChatController extends Controller
                 'gang_color' => $gang?->color ?? 'purple',
                 'message' => $msg->message,
                 'time' => $msg->created_at->format('H:i'),
-                'is_me' => $msg->character_id === $character->id,
-                'reply_to_id' => $msg->reply_to_id,
+                'is_me' => (int) $msg->character_id === (int) $character->id,
+                'reply_to_id' => $msg->reply_to_id ? (int) $msg->reply_to_id : null,
                 'reply_to_name' => $msg->reply_to_name,
                 'reply_to_snippet' => $msg->reply_to_snippet,
                 'hearts_count' => (int) ($msg->hearts_count ?? 0),
                 'has_hearted' => in_array($character->id, $msg->hearts_users ?? [], true),
+                'can_delete' => (bool) ($msg->character_id === $character->id || $isViewerStaff),
             ];
         });
 
-        $deletedIds = Cache::get("chat_deleted_ids_{$channel}", []);
+        $deletedIds = array_values(Cache::get("chat_deleted_ids_{$channel}", []));
 
         return response()->json([
             'success' => true,
@@ -380,7 +391,9 @@ class ChatController extends Controller
         $replyToName = null;
         $replyToSnippet = null;
         if ($replyToId > 0) {
-            $targetMsg = ChatMessage::with('character')->find($replyToId);
+            $targetMsg = ChatMessage::with('character')
+                ->where('channel', $channel)
+                ->find($replyToId);
             if ($targetMsg) {
                 $replyToName = $targetMsg->character?->name ?? 'Onbekend';
                 $replyToSnippet = Str::limit($targetMsg->message, 80);
@@ -417,12 +430,12 @@ class ChatController extends Controller
         return response()->json([
             'success' => true,
             'message' => [
-                'id' => $chatMsg->id,
-                'character_id' => $character->id,
+                'id' => (int) $chatMsg->id,
+                'character_id' => (int) $character->id,
                 'name' => $character->name,
                 'avatar' => $character->avatar_url,
-                'level' => $character->level,
-                'respect' => $character->respect ?? 0,
+                'level' => (int) $character->level,
+                'respect' => (int) ($character->respect ?? 0),
                 'is_owner' => $isOwner,
                 'is_admin' => $isAdmin,
                 'is_moderator' => $isMod,
@@ -446,11 +459,12 @@ class ChatController extends Controller
                 'message' => $chatMsg->message,
                 'time' => $chatMsg->created_at->format('H:i'),
                 'is_me' => true,
-                'reply_to_id' => $chatMsg->reply_to_id,
+                'reply_to_id' => $chatMsg->reply_to_id ? (int) $chatMsg->reply_to_id : null,
                 'reply_to_name' => $chatMsg->reply_to_name,
                 'reply_to_snippet' => $chatMsg->reply_to_snippet,
                 'hearts_count' => 0,
                 'has_hearted' => false,
+                'can_delete' => (bool) ($chatMsg->character_id === $character->id || $user?->isStaff() || $user?->canModerate() || $user?->isModerator() || $user?->isAdmin() || $user?->isOwner()),
             ],
         ]);
     }
@@ -462,7 +476,11 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.', 'conversations' => []], 403);
+        }
 
         // 1. Pinned Kliniek Directie Bot Conversation
         $botLastMessage = DirectMessage::whereNull('sender_id')
@@ -524,10 +542,12 @@ class ChatController extends Controller
                     continue;
                 }
 
-                $lastMsg = DirectMessage::where(function ($q) use ($character, $pId) {
-                    $q->where('sender_id', $character->id)->where('recipient_id', $pId);
-                })->orWhere(function ($q) use ($character, $pId) {
-                    $q->where('sender_id', $pId)->where('recipient_id', $character->id);
+                $lastMsg = DirectMessage::where(function ($outer) use ($character, $pId) {
+                    $outer->where(function ($q) use ($character, $pId) {
+                        $q->where('sender_id', $character->id)->where('recipient_id', $pId);
+                    })->orWhere(function ($q) use ($character, $pId) {
+                        $q->where('sender_id', $pId)->where('recipient_id', $character->id);
+                    });
                 })
                     ->latest('id')
                     ->first();
@@ -584,7 +604,11 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
 
         $afterId = (int) $request->query('after_id', 0);
 
@@ -629,10 +653,12 @@ class ChatController extends Controller
             }
 
             $query = DirectMessage::with('sender')
-                ->where(function ($q) use ($character, $partnerId) {
-                    $q->where('sender_id', $character->id)->where('recipient_id', $partnerId);
-                })->orWhere(function ($q) use ($character, $partnerId) {
-                    $q->where('sender_id', $partnerId)->where('recipient_id', $character->id);
+                ->where(function ($outer) use ($character, $partnerId) {
+                    $outer->where(function ($q) use ($character, $partnerId) {
+                        $q->where('sender_id', $character->id)->where('recipient_id', $partnerId);
+                    })->orWhere(function ($q) use ($character, $partnerId) {
+                        $q->where('sender_id', $partnerId)->where('recipient_id', $character->id);
+                    });
                 });
 
             if ($afterId > 0) {
@@ -669,12 +695,12 @@ class ChatController extends Controller
                 : ($msg->sender?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg'));
 
             return [
-                'id' => $msg->id,
-                'sender_id' => $msg->sender_id,
+                'id' => (int) $msg->id,
+                'sender_id' => $msg->sender_id !== null ? (int) $msg->sender_id : null,
                 'sender_name' => $senderName,
                 'sender_avatar' => $senderAvatar,
                 'is_bot' => $msg->sender_id === null,
-                'recipient_id' => $msg->recipient_id,
+                'recipient_id' => (int) $msg->recipient_id,
                 'message' => $msg->message,
                 'type' => $msg->type,
                 'metadata' => $msg->metadata,
@@ -682,19 +708,20 @@ class ChatController extends Controller
                 'date' => $msg->created_at->format('d-m-Y'),
                 'created_at' => $msg->created_at->format('d-m-Y H:i'),
                 'timestamp' => $msg->created_at->timestamp,
-                'is_me' => $msg->sender_id === $character->id,
+                'is_me' => (int) $msg->sender_id === (int) $character->id,
                 'is_read' => (bool) $msg->is_read,
                 'read_at' => $msg->read_at ? $msg->read_at->format('H:i') : null,
-                'reply_to_id' => $msg->reply_to_id,
+                'reply_to_id' => $msg->reply_to_id ? (int) $msg->reply_to_id : null,
                 'reply_to_name' => $msg->reply_to_name,
                 'reply_to_snippet' => $msg->reply_to_snippet,
                 'hearts_count' => (int) ($msg->hearts_count ?? 0),
                 'has_hearted' => in_array($character->id, $msg->hearts_users ?? [], true),
+                'can_delete' => true,
             ];
         });
 
         $convKey = min($character->id, (int) $partnerId).'_'.max($character->id, (int) $partnerId);
-        $deletedIds = Cache::get("dm_deleted_ids_{$convKey}", []);
+        $deletedIds = array_values(Cache::get("dm_deleted_ids_{$convKey}", []));
 
         return response()->json([
             'success' => true,
@@ -770,7 +797,16 @@ class ChatController extends Controller
         $replyToName = null;
         $replyToSnippet = null;
         if ($replyToId > 0) {
-            $targetDm = DirectMessage::with('sender')->find($replyToId);
+            $targetDm = DirectMessage::with('sender')
+                ->where(function ($outer) use ($character, $partner) {
+                    $outer->where(function ($q) use ($character, $partner) {
+                        $q->where('sender_id', $character->id)->where('recipient_id', $partner->id);
+                    })->orWhere(function ($q) use ($character, $partner) {
+                        $q->where('sender_id', $partner->id)->where('recipient_id', $character->id);
+                    });
+                })
+                ->find($replyToId);
+
             if ($targetDm) {
                 $replyToName = $targetDm->sender?->name ?? 'Kliniek Directie';
                 $replyToSnippet = Str::limit($targetDm->message, 80);
@@ -800,9 +836,9 @@ class ChatController extends Controller
         return response()->json([
             'success' => true,
             'message' => [
-                'id' => $msg->id,
-                'sender_id' => $character->id,
-                'recipient_id' => $partner->id,
+                'id' => (int) $msg->id,
+                'sender_id' => (int) $character->id,
+                'recipient_id' => (int) $partner->id,
                 'message' => $msg->message,
                 'type' => 'chat',
                 'metadata' => null,
@@ -810,11 +846,12 @@ class ChatController extends Controller
                 'is_me' => true,
                 'is_read' => false,
                 'read_at' => null,
-                'reply_to_id' => $msg->reply_to_id,
+                'reply_to_id' => $msg->reply_to_id ? (int) $msg->reply_to_id : null,
                 'reply_to_name' => $msg->reply_to_name,
                 'reply_to_snippet' => $msg->reply_to_snippet,
                 'hearts_count' => 0,
                 'has_hearted' => false,
+                'can_delete' => true,
             ],
         ]);
     }
@@ -864,8 +901,8 @@ class ChatController extends Controller
         if ($latestDm) {
             $sender = $latestDm->sender;
             $dmData = [
-                'id' => $latestDm->id,
-                'sender_id' => $latestDm->sender_id ?? 0,
+                'id' => (int) $latestDm->id,
+                'sender_id' => $latestDm->sender_id !== null ? (int) $latestDm->sender_id : 0,
                 'sender_name' => $sender ? $sender->name : '🏥 Kliniek Directie',
                 'sender_avatar' => $sender ? $sender->avatar_url : null,
                 'message' => Str::limit($latestDm->message, 80),
@@ -875,7 +912,7 @@ class ChatController extends Controller
                 'time' => $latestDm->created_at->format('H:i'),
                 'timestamp' => $latestDm->created_at->timestamp,
                 'is_bot' => $latestDm->sender_id === null,
-                'reply_to_id' => $latestDm->reply_to_id,
+                'reply_to_id' => $latestDm->reply_to_id ? (int) $latestDm->reply_to_id : null,
                 'reply_to_name' => $latestDm->reply_to_name,
                 'reply_to_snippet' => $latestDm->reply_to_snippet,
             ];
@@ -958,11 +995,11 @@ class ChatController extends Controller
             $staffRole = $isOwner ? 'Eigenaar' : ($isAdmin ? 'Directie' : ($isMod ? 'Moderator' : null));
 
             return [
-                'id' => $p->id,
+                'id' => (int) $p->id,
                 'name' => $p->name,
                 'avatar' => $p->avatar_url,
-                'level' => $p->level,
-                'respect' => $p->respect,
+                'level' => (int) $p->level,
+                'respect' => (int) $p->respect,
                 'is_online' => $p->isOnline(),
                 'is_staff' => (bool) ($user?->isStaff() || $isMod),
                 'staff_role' => $staffRole,
@@ -984,10 +1021,33 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
 
         return DB::transaction(function () use ($id, $character): JsonResponse {
             $msg = ChatMessage::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if (str_starts_with($msg->channel, 'gang_')) {
+                $gangId = (int) str_replace('gang_', '', $msg->channel);
+                if (! $character->gang_id || (int) $character->gang_id !== $gangId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Je hebt geen toegang tot deze bende chat.',
+                    ], 403);
+                }
+
+                $gang = Gang::find($gangId);
+                if (! $gang || ! $gang->has_gang_chat) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Deze bende heeft de gang chat nog niet ontgrendeld.',
+                    ], 403);
+                }
+            }
+
             $hearts = is_array($msg->hearts_users) ? $msg->hearts_users : [];
 
             if (in_array($character->id, $hearts, true)) {
@@ -1017,7 +1077,11 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
 
         return DB::transaction(function () use ($id, $character): JsonResponse {
             $msg = DirectMessage::where('id', $id)->lockForUpdate()->firstOrFail();
@@ -1057,16 +1121,20 @@ class ChatController extends Controller
         $user = Auth::user();
         $character = $user?->character;
 
-        $msg = ChatMessage::findOrFail($id);
-
         $isModeratorOrStaff = (bool) (
-            $user->isStaff()
-            || $user->canModerate()
-            || $user->isModerator()
-            || $user->isAdmin()
-            || $user->isOwner()
-            || ($user->role === 'moderator' || $user->role === 'admin' || $user->role === 'owner')
+            $user?->isStaff()
+            || $user?->canModerate()
+            || $user?->isModerator()
+            || $user?->isAdmin()
+            || $user?->isOwner()
+            || in_array($user?->role, ['moderator', 'admin', 'owner'], true)
         );
+
+        if (! $character && ! $isModeratorOrStaff) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
+
+        $msg = ChatMessage::findOrFail($id);
 
         $isAuthor = $character && ((int) $msg->character_id === (int) $character->id);
 
@@ -1077,10 +1145,20 @@ class ChatController extends Controller
             ], 403);
         }
 
+        if (str_starts_with($msg->channel, 'gang_') && ! $isModeratorOrStaff) {
+            $gangId = (int) str_replace('gang_', '', $msg->channel);
+            if (! $isAuthor && (! $character?->gang_id || (int) $character->gang_id !== $gangId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt geen toegang tot deze bende chat.',
+                ], 403);
+            }
+        }
+
         $channel = $msg->channel;
         $deleted = Cache::get("chat_deleted_ids_{$channel}", []);
-        $deleted[] = $id;
-        $deleted = array_slice(array_unique($deleted), -50);
+        $deleted[] = (int) $id;
+        $deleted = array_values(array_slice(array_unique(array_map('intval', $deleted)), -50));
         Cache::put("chat_deleted_ids_{$channel}", $deleted, now()->addHours(2));
 
         $msg->delete();
@@ -1098,16 +1176,27 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        $isModeratorOrStaff = (bool) (
+            $user?->isStaff()
+            || $user?->canModerate()
+            || $user?->isModerator()
+            || $user?->isAdmin()
+            || $user?->isOwner()
+            || in_array($user?->role, ['moderator', 'admin', 'owner'], true)
+        );
+
+        if (! $character && ! $isModeratorOrStaff) {
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
 
         $msg = DirectMessage::findOrFail($id);
 
-        $canDelete = ((int) $msg->sender_id === (int) $character->id)
-            || ((int) $msg->recipient_id === (int) $character->id)
-            || $user->isStaff()
-            || $user->canModerate();
+        $isSender = $character && ((int) $msg->sender_id === (int) $character->id);
+        $isRecipient = $character && ((int) $msg->recipient_id === (int) $character->id);
 
-        if (! $canDelete) {
+        if (! ($isSender || $isRecipient || $isModeratorOrStaff)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Geen bevoegdheid om dit bericht te verwijderen.',
@@ -1118,9 +1207,11 @@ class ChatController extends Controller
         $recipientId = (int) $msg->recipient_id;
         $convKey = min($senderId, $recipientId).'_'.max($senderId, $recipientId);
         $deleted = Cache::get("dm_deleted_ids_{$convKey}", []);
-        $deleted[] = $id;
-        $deleted = array_slice(array_unique($deleted), -50);
+        $deleted[] = (int) $id;
+        $deleted = array_values(array_slice(array_unique(array_map('intval', $deleted)), -50));
         Cache::put("dm_deleted_ids_{$convKey}", $deleted, now()->addHours(2));
+
+        Cache::forget("dm_unread_count_{$recipientId}");
 
         $msg->delete();
 

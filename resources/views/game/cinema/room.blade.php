@@ -158,13 +158,15 @@
                                     <i class="fa-solid fa-play text-[10px]"></i>
                                     <span class="hidden sm:inline">Nu Afspelen</span>
                                 </button>
-
-                                <button type="button" @click="removeQueueItem(item.id)"
-                                        class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 dark:text-rose-300 font-bold text-xs transition-all duration-150 border border-rose-200/80 dark:border-rose-800/70 cursor-pointer active:scale-95"
-                                        title="Verwijder uit wachtrij">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
                                 @endif
+
+                                <template x-if="isHost || {{ Auth::user()?->isStaff() ? 'true' : 'false' }} || (item.added_by_name && item.added_by_name === @js($character?->name))">
+                                    <button type="button" @click="removeQueueItem(item.id)"
+                                            class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 dark:text-rose-300 font-bold text-xs transition-all duration-150 border border-rose-200/80 dark:border-rose-800/70 cursor-pointer active:scale-95"
+                                            title="Verwijder uit wachtrij">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </template>
                             </div>
                         </div>
                     </template>
@@ -196,7 +198,7 @@
             <!-- Messages Stream -->
             <div id="cinema-chat-box" @scroll="checkScrollPosition" class="flex-1 overflow-y-auto py-3 space-y-2.5 pr-1 text-xs custom-scrollbar">
                 <template x-for="msg in messages" :key="msg.id">
-                    <div class="flex items-start gap-2.5 p-2.5 rounded-xl border transition-all duration-150"
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-xl border transition-all duration-150 relative group"
                          :class="msg.pending ? 'bg-purple-50/60 dark:bg-purple-950/30 border-purple-200/80 dark:border-purple-800/70 opacity-70' : ((msg.is_me || msg.character_name === @js($character?->name)) ? 'bg-purple-50/70 dark:bg-purple-950/40 border-purple-200/80 dark:border-purple-800/70 shadow-2xs' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 shadow-2xs')">
                         <img :src="msg.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'"
                              onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'"
@@ -215,7 +217,17 @@
                                         <span class="px-1.5 py-0.5 rounded text-[8px] leading-none font-black bg-amber-400 text-slate-950 shrink-0">VIP</span>
                                     </template>
                                 </div>
-                                <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="msg.time"></span>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <span class="text-[10px] text-slate-400 font-mono" x-text="msg.time"></span>
+                                    <template x-if="msg.can_delete || isHost || {{ Auth::user()?->isStaff() ? 'true' : 'false' }} || msg.character_name === @js($character?->name)">
+                                        <button type="button" 
+                                                @click.stop="deleteMessage(msg.id)"
+                                                class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-0.5 transition cursor-pointer opacity-80 sm:opacity-0 sm:group-hover:opacity-100"
+                                                title="Bericht Verwijderen">
+                                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                        </button>
+                                    </template>
+                                </div>
                             </div>
 
                             <!-- Text Message -->
@@ -560,7 +572,8 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
             div.textContent = text;
             let safe = div.innerHTML;
 
-            const buildMentionPill = (username) => {
+            const buildMentionPill = (rawUsername) => {
+                const username = (rawUsername || '').replace(/[<>"']/g, '');
                 const url = '/speler/' + encodeURIComponent(username);
                 return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
             };
@@ -683,7 +696,7 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
 
             // Direct URL / ID check
             const patterns = [
-                /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^&?\/ ]{11})/i,
+                /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts|live)\/|.*[?&]v=)|youtu\.be\/)([^&?\/ ]{11})/i,
                 /^[a-zA-Z0-9_-]{11}$/
             ];
             for (const p of patterns) {
@@ -944,10 +957,18 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
                     const data = await res.json();
                     if (data.success && data.queue) {
                         this.queue = data.queue;
+                        if (window.tbsToast) {
+                            window.tbsToast('Video toegevoegd aan wachtrij!', 'success');
+                        }
                     }
                 } else {
                     const err = await res.json();
-                    alert(err.message || 'Kon video niet toevoegen aan de wachtrij.');
+                    const errMsg = err.message || 'Kon video niet toevoegen aan de wachtrij.';
+                    if (window.tbsToast) {
+                        window.tbsToast(errMsg, 'danger');
+                    } else if (window.tbsAlert) {
+                        window.tbsAlert(errMsg, 'danger');
+                    }
                 }
             } catch (e) {
                 console.error('Queue add error:', e);
@@ -981,6 +1002,9 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
                                 startSeconds: 0
                             });
                         }
+                        if (window.tbsToast) {
+                            window.tbsToast(data.message || 'Video gestart.', 'success');
+                        }
                     }
                 }
             } catch (e) {
@@ -989,24 +1013,86 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
         },
 
         async removeQueueItem(queueId) {
-            try {
-                const res = await fetch(`/cinema/${this.roomSlug}/queue/remove/${queueId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                    },
-                });
+            const doRemove = async () => {
+                try {
+                    const res = await fetch(`/cinema/${this.roomSlug}/queue/remove/${queueId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                    });
 
-                if (res.ok) {
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success) {
+                            this.queue = data.queue;
+                            if (window.tbsToast) {
+                                window.tbsToast('Video verwijderd uit wachtrij.', 'info');
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Remove queue item error:', e);
+                }
+            };
+
+            if (window.tbsConfirm) {
+                window.tbsConfirm({
+                    title: 'Video Verwijderen',
+                    message: 'Weet je zeker dat je deze video uit de wachtrij wilt verwijderen?',
+                    confirmBtn: 'Verwijderen',
+                    type: 'danger',
+                    icon: 'fa-trash-can',
+                    onConfirm: doRemove
+                });
+            } else {
+                doRemove();
+            }
+        },
+
+        async deleteMessage(messageId) {
+            const doDelete = async () => {
+                try {
+                    const res = await fetch(`/cinema/${this.roomId}/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'delete',
+                            delete_id: messageId,
+                        }),
+                    });
+
                     const data = await res.json();
                     if (data.success) {
-                        this.queue = data.queue;
+                        this.messages = this.messages.filter(m => Number(m.id) !== Number(messageId));
+                        if (window.tbsToast) {
+                            window.tbsToast('Bericht verwijderd.', 'success');
+                        }
+                    } else if (window.tbsToast) {
+                        window.tbsToast(data.message || 'Kon bericht niet verwijderen.', 'danger');
                     }
+                } catch (e) {
+                    console.error('Delete cinema message error:', e);
                 }
-            } catch (e) {
-                console.error('Remove queue item error:', e);
+            };
+
+            if (window.tbsConfirm) {
+                window.tbsConfirm({
+                    title: 'Bericht Verwijderen',
+                    message: 'Weet je zeker dat je dit chatbericht wilt verwijderen?',
+                    confirmBtn: 'Verwijderen',
+                    type: 'danger',
+                    icon: 'fa-trash-can',
+                    onConfirm: doDelete
+                });
+            } else {
+                doDelete();
             }
         },
 
@@ -1023,7 +1109,9 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
                     if (data.is_closed) {
                         this.pollStatus = 'Zaal Gesloten';
                         if (this.pollTimer) clearInterval(this.pollTimer);
-                        alert('De bioscoopzaal is gesloten door de zaalhost.');
+                        if (window.tbsToast) {
+                            window.tbsToast('De bioscoopzaal is gesloten door de zaalhost.', 'warning');
+                        }
                         window.location.href = "{{ route('cinema.index') }}";
                         return;
                     }
@@ -1054,13 +1142,19 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
                         this.queue = data.video_queue;
                     }
 
+                    // Synchronize Deleted Messages
+                    if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                        const deletedSet = new Set(data.deleted_ids.map(Number));
+                        this.messages = this.messages.filter(m => !deletedSet.has(Number(m.id)));
+                    }
+
                     // Append new incoming messages
                     if (data.messages && data.messages.length > 0) {
                         let hasNew = false;
                         data.messages.forEach(m => {
-                            if (!this.messages.some(existing => existing.id === m.id)) {
+                            if (!this.messages.some(existing => Number(existing.id) === Number(m.id))) {
                                 this.messages.push(m);
-                                this.lastId = Math.max(this.lastId, m.id);
+                                this.lastId = Math.max(Number(this.lastId) || 0, Number(m.id) || 0);
                                 hasNew = true;
                             }
                         });

@@ -566,7 +566,6 @@
                                     data-confirm-btn="Ja, Aannemen"
                                     data-confirm-type="success"
                                     data-confirm-icon="fa-user-plus"
-                                    onclick="return confirm(@js('Weet je zeker dat je ' . $npcDef['name'] . ' wilt aannemen voor €' . number_format($npcDef['cost'], 0, ',', '.') . ' uit de bendekas?'))"
                                     class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i>
                                 @if(! $hasFreeSlot)

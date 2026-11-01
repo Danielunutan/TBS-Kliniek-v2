@@ -276,39 +276,80 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
             .then(data => {
                 this.sending = false;
                 if (data.ok) {
-                    alert('📧 E-mail succesvol verzonden via Brevo!');
+                    if (window.tbsToast) {
+                        window.tbsToast('📧 E-mail succesvol verzonden via Brevo!', 'success');
+                    } else if (window.tbsAlert) {
+                        window.tbsAlert({ title: 'E-mail Verzonden', message: '📧 E-mail succesvol verzonden via Brevo!', type: 'success' });
+                    } else {
+                        alert('📧 E-mail succesvol verzonden via Brevo!');
+                    }
                     this.composeOpen = false;
                     this.fetchFeed();
                 } else {
-                    alert('Fout: ' + (data.error || 'Verzenden mislukt.'));
+                    if (window.tbsAlert) {
+                        window.tbsAlert({ title: 'Fout bij verzenden', message: data.error || 'Verzenden mislukt.', type: 'danger' });
+                    } else {
+                        alert('Fout: ' + (data.error || 'Verzenden mislukt.'));
+                    }
                 }
             })
             .catch(err => {
                 this.sending = false;
                 console.error('Send mail error:', err);
-                alert('Er is een netwerkfout opgetreden bij het verzenden.');
+                if (window.tbsAlert) {
+                    window.tbsAlert({ title: 'Netwerkfout', message: 'Er is een netwerkfout opgetreden bij het verzenden.', type: 'danger' });
+                } else {
+                    alert('Er is een netwerkfout opgetreden bij het verzenden.');
+                }
             });
         },
 
         deleteCurrent() {
-            if (!this.selectedMessage || !confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) return;
-            const uid = this.selectedMessage.uid;
-            const params = new URLSearchParams({ folder: this.activeFolder });
+            if (!this.selectedMessage) return;
 
-            fetch(config.messageBaseUrl + '/' + uid + '?' + params.toString(), {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': config.csrfToken,
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                this.selectedMessage = null;
-                this.mobileView = 'list';
-                this.fetchFeed();
-            });
+            const executeDelete = () => {
+                if (!this.selectedMessage) return;
+                const uid = this.selectedMessage.uid;
+                const params = new URLSearchParams({ folder: this.activeFolder });
+
+                fetch(config.messageBaseUrl + '/' + uid + '?' + params.toString(), {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': config.csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    this.selectedMessage = null;
+                    this.mobileView = 'list';
+                    this.fetchFeed();
+                    if (window.tbsToast) {
+                        window.tbsToast('Bericht succesvol verwijderd.', 'success');
+                    }
+                })
+                .catch(err => {
+                    console.error('Delete message error:', err);
+                    if (window.tbsAlert) {
+                        window.tbsAlert({ title: 'Fout bij verwijderen', message: 'Het bericht kon niet worden verwijderd.', type: 'danger' });
+                    }
+                });
+            };
+
+            if (window.tbsConfirm) {
+                window.tbsConfirm({
+                    title: 'Bericht Verwijderen',
+                    message: 'Weet je zeker dat je dit e-mailbericht wilt verwijderen?',
+                    confirmBtn: 'Ja, Verwijderen',
+                    cancelBtn: 'Annuleren',
+                    type: 'danger',
+                    icon: 'fa-trash-can',
+                    onConfirm: executeDelete
+                });
+            } else if (confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) {
+                executeDelete();
+            }
         },
 
         markSpamCurrent() {

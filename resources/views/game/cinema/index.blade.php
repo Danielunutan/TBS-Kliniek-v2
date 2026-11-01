@@ -191,7 +191,7 @@
 
                         <div class="flex items-center gap-2 shrink-0">
                             @if(($character && $room->host_character_id === $character->id) || Auth::user()?->isStaff())
-                            <form action="{{ route('cinema.close', $room->slug) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze zaal wilt sluiten?');">
+                            <form action="{{ route('cinema.close', $room->slug) }}" method="POST" data-confirm="Weet je zeker dat je deze zaal wilt sluiten?">
                                 @csrf
                                 <button type="submit" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 dark:text-rose-300 font-bold text-xs transition border border-rose-200/80 dark:border-rose-800/70 cursor-pointer" title="Zaal Sluiten">
                                     <i class="fa-solid fa-power-off"></i>
@@ -303,7 +303,7 @@
 
                         <div class="flex items-center gap-1.5 shrink-0">
                             @if(($character && $pRoom->host_character_id === $character->id) || Auth::user()?->isStaff())
-                            <form action="{{ route('cinema.close', $pRoom->slug) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze zaal wilt sluiten?');">
+                            <form action="{{ route('cinema.close', $pRoom->slug) }}" method="POST" data-confirm="Weet je zeker dat je deze zaal wilt sluiten?">
                                 @csrf
                                 <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 dark:text-rose-300 font-bold text-xs transition border border-rose-200/80 dark:border-rose-800/70 cursor-pointer" title="Zaal Sluiten">
                                     <i class="fa-solid fa-power-off text-[11px]"></i>
@@ -348,7 +348,7 @@
 
                 // Check if user pasted a direct YouTube link
                 const patterns = [
-                    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^&?\/ ]{11})/i,
+                    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts|live)\/|.*[?&]v=)|youtu\.be\/)([^&?\/ ]{11})/i,
                     /^[a-zA-Z0-9_-]{11}$/
                 ];
                 for (const p of patterns) {

@@ -320,7 +320,11 @@
 
                                 @if($order->character_id && $order->status !== 'cancelled')
                                 <form action="{{ route('admin.buymeacoffee.regrant', $order) }}" method="POST"
-                                      onsubmit="return confirm(@js('Weet je zeker dat je de beloningen opnieuw wilt uitkeren aan '.($order->character?->name ?? 'deze speler').'?'));">
+                                      data-confirm="Weet je zeker dat je de beloningen opnieuw wilt uitkeren aan {{ $order->character?->name ?? 'deze speler' }}?"
+                                      data-confirm-title="Beloningen Opnieuw Uitkeren"
+                                      data-confirm-btn="Ja, Uitkeren"
+                                      data-confirm-type="success"
+                                      data-confirm-icon="fa-gift">
                                     @csrf
                                     <button type="submit" title="Beloningen opnieuw uitkeren aan speler"
                                             class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-extrabold text-[11px] transition flex items-center gap-1 cursor-pointer">
@@ -331,7 +335,11 @@
 
                                 @if($order->character_id && $order->is_membership && $order->status !== 'cancelled')
                                 <form action="{{ route('admin.buymeacoffee.cancel', $order) }}" method="POST"
-                                      onsubmit="return confirm('Weet je zeker dat je dit lidmaatschap wilt beëindigen? De VIP status en voordelen van de speler worden direct ingetrokken.');">
+                                      data-confirm="Weet je zeker dat je dit lidmaatschap wilt beëindigen? De VIP status en voordelen van de speler worden direct ingetrokken."
+                                      data-confirm-title="Lidmaatschap Beëindigen"
+                                      data-confirm-btn="Ja, Stopzetten"
+                                      data-confirm-type="danger"
+                                      data-confirm-icon="fa-ban">
                                     @csrf
                                     <button type="submit" title="Zet VIP stop / Opzeggen"
                                             class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-extrabold text-[11px] transition flex items-center gap-1 cursor-pointer">

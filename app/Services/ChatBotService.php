@@ -15,7 +15,9 @@ class ChatBotService
     public function broadcast(string $message, string $channel = 'global'): ?ChatMessage
     {
         $botCharacter = Character::whereHas('user', function ($query) {
-            $query->whereIn('role', ['owner', 'admin'])->orWhere('is_staff', true);
+            $query->where(function ($sub) {
+                $sub->whereIn('role', ['owner', 'admin'])->orWhere('is_staff', true);
+            });
         })->orderBy('id')->first() ?? Character::orderBy('id')->first();
 
         if (! $botCharacter) {

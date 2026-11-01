@@ -88,6 +88,25 @@ class GameMessage extends Model
                 // Silently ignore push failure
             }
         });
+
+        static::updated(function (GameMessage $gameMsg) {
+            if ($gameMsg->wasChanged('is_read')) {
+                try {
+                    DirectMessage::where('metadata->game_message_id', $gameMsg->id)
+                        ->update(['is_read' => (bool) $gameMsg->is_read]);
+                } catch (\Throwable) {
+                    // Silently ignore
+                }
+            }
+        });
+
+        static::deleted(function (GameMessage $gameMsg) {
+            try {
+                DirectMessage::where('metadata->game_message_id', $gameMsg->id)->delete();
+            } catch (\Throwable) {
+                // Silently ignore
+            }
+        });
     }
 
     public function recipient(): BelongsTo

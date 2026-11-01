@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\ChatMessage;
+use App\Models\DirectMessage;
 use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\Report;
@@ -21,7 +22,7 @@ class ReportController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'reported_type' => 'required|in:character,gang,chat_message',
+            'reported_type' => 'required|in:character,gang,chat_message,direct_message',
             'reported_id' => 'required|integer',
             'reason' => 'required|string|max:255',
             'details' => 'nullable|string|max:1000',
@@ -29,7 +30,7 @@ class ReportController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
 
         if (! $character) {
             return response()->json([
@@ -47,20 +48,18 @@ class ReportController extends Controller
             ], 429);
         }
 
-        // Self-reporting check
-        if ($validated['reported_type'] === 'character' && (int) $validated['reported_id'] === $character->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Je kunt jezelf niet rapporteren.',
-            ], 422);
-        }
-
-        // Resolve snapshot of target name
+        // Resolve snapshot of target name & enforce self-reporting and access checks
         $targetName = null;
         if ($validated['reported_type'] === 'character') {
             $target = Character::find($validated['reported_id']);
             if (! $target) {
                 return response()->json(['success' => false, 'message' => 'Patiënt niet gevonden.'], 404);
+            }
+            if ($target->id === $character->id || $target->user_id === $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je kunt jezelf niet rapporteren.',
+                ], 422);
             }
             $targetName = $target->name;
         } elseif ($validated['reported_type'] === 'gang') {
@@ -68,16 +67,50 @@ class ReportController extends Controller
             if (! $target) {
                 return response()->json(['success' => false, 'message' => 'Bende niet gevonden.'], 404);
             }
+            if ($target->leader_character_id === $character->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je kunt je eigen bende niet rapporteren.',
+                ], 422);
+            }
             $targetName = $target->name;
         } elseif ($validated['reported_type'] === 'chat_message') {
             $target = ChatMessage::with('character')->find($validated['reported_id']);
             if (! $target) {
                 return response()->json(['success' => false, 'message' => 'Chatbericht niet gevonden.'], 404);
             }
+            if ($target->character_id === $character->id || ($target->character && $target->character->user_id === $user->id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je kunt je eigen chatbericht niet rapporteren.',
+                ], 422);
+            }
             $targetName = $target->character?->name ?? 'Inmate #'.$target->character_id;
             // Append message excerpt into details if empty
             if (empty($validated['details'])) {
-                $validated['details'] = 'Geraporteerd bericht: "'.$target->message.'"';
+                $validated['details'] = 'Gerapporteerd bericht: "'.$target->message.'"';
+            }
+        } elseif ($validated['reported_type'] === 'direct_message') {
+            $target = DirectMessage::with(['sender', 'recipient'])->find($validated['reported_id']);
+            if (! $target) {
+                return response()->json(['success' => false, 'message' => 'Privébericht niet gevonden.'], 404);
+            }
+            if ($target->sender_id !== $character->id && $target->recipient_id !== $character->id && ! $user->isStaff()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt geen toegang tot dit privébericht.',
+                ], 403);
+            }
+            if ($target->sender_id === $character->id || ($target->sender && $target->sender->user_id === $user->id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je kunt je eigen privébericht niet rapporteren.',
+                ], 422);
+            }
+            $targetName = $target->sender?->name ?? 'Inmate #'.$target->sender_id;
+            // Append message excerpt into details if empty
+            if (empty($validated['details'])) {
+                $validated['details'] = 'Gerapporteerd privébericht: "'.$target->message.'"';
             }
         }
 
@@ -100,8 +133,8 @@ class ReportController extends Controller
             'reported_type' => $validated['reported_type'],
             'reported_id' => $validated['reported_id'],
             'reported_name' => $targetName,
-            'reason' => $validated['reason'],
-            'details' => $validated['details'],
+            'reason' => strip_tags($validated['reason']),
+            'details' => ! empty($validated['details']) ? strip_tags($validated['details']) : null,
             'status' => 'pending',
         ]);
 
@@ -117,6 +150,7 @@ class ReportController extends Controller
                 'character' => 'Patiënt',
                 'gang' => 'Bende',
                 'chat_message' => 'Chatbericht',
+                'direct_message' => 'Privébericht',
                 default => 'Melding',
             };
 

@@ -18,6 +18,11 @@ class CinemaMessage extends Model
         'sticker_key',
     ];
 
+    protected $casts = [
+        'room_id' => 'integer',
+        'character_id' => 'integer',
+    ];
+
     public function room(): BelongsTo
     {
         return $this->belongsTo(CinemaRoom::class, 'room_id');

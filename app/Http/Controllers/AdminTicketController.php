@@ -21,6 +21,11 @@ class AdminTicketController extends Controller
      */
     public function index(Request $request): View
     {
+        $currentUser = Auth::user();
+        if (! $currentUser || ! $currentUser->isStaff()) {
+            abort(403, 'Alleen staff medewerkers hebben toegang tot support tickets.');
+        }
+
         $query = SupportTicket::with(['character', 'user', 'lastMessage']);
 
         $currentStatus = $request->input('status', 'actief');
@@ -76,6 +81,11 @@ class AdminTicketController extends Controller
      */
     public function show(SupportTicket $ticket): View
     {
+        $currentUser = Auth::user();
+        if (! $currentUser || ! $currentUser->isStaff()) {
+            abort(403, 'Alleen staff medewerkers hebben toegang tot support tickets.');
+        }
+
         $ticket->load(['messages.user.character', 'character.gang', 'user']);
 
         return view('admin.tickets.show', compact('ticket'));
@@ -86,6 +96,11 @@ class AdminTicketController extends Controller
      */
     public function reply(Request $request, SupportTicket $ticket): RedirectResponse
     {
+        $currentUser = Auth::user();
+        if (! $currentUser || ! $currentUser->isStaff()) {
+            abort(403, 'Alleen staff medewerkers kunnen reageren op support tickets.');
+        }
+
         $validated = $request->validate([
             'message' => ['required', 'string', 'min:2', 'max:5000'],
             'status' => ['required', 'string', 'in:open,in_behandeling,beantwoord,gesloten'],
@@ -94,12 +109,18 @@ class AdminTicketController extends Controller
             'status.required' => 'Selecteer een status.',
         ]);
 
+        $cleanMessage = preg_replace('#<script(.*?)>(.*?)</script>#is', '', (string) $validated['message']);
+        $cleanMessage = trim(strip_tags($cleanMessage));
+        if ($cleanMessage === '') {
+            return back()->with('error', 'Vul een geldig antwoordbericht in voor de speler.');
+        }
+
         SupportTicketMessage::create([
             'support_ticket_id' => $ticket->id,
             'user_id' => Auth::id(),
             'character_id' => Auth::user()?->character?->id,
             'is_staff' => true,
-            'message' => $validated['message'],
+            'message' => $cleanMessage,
         ]);
 
         $ticket->update([
@@ -117,6 +138,11 @@ class AdminTicketController extends Controller
      */
     public function updateStatus(Request $request, SupportTicket $ticket): RedirectResponse
     {
+        $currentUser = Auth::user();
+        if (! $currentUser || ! $currentUser->isStaff()) {
+            abort(403, 'Alleen staff medewerkers kunnen ticket statussen wijzigen.');
+        }
+
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:open,in_behandeling,beantwoord,gesloten'],
         ]);

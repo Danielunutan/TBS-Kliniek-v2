@@ -62,6 +62,10 @@ class SupportTicketController extends Controller
         $category = $request->input('category');
 
         if ($category === 'gang_overstap') {
+            if (! $character) {
+                return back()->with('error', 'Je hebt een actieve patiënt nodig om een bende overstap aan te vragen.');
+            }
+
             $validated = $request->validate([
                 'category' => ['required', 'string', 'in:gang_overstap'],
                 'priority' => ['nullable', 'string', 'in:laag,normaal,hoog,spoed'],
@@ -81,10 +85,15 @@ class SupportTicketController extends Controller
             $subject = "Bende Overstap Bonus: {$gangName} [{$gangTag}]";
             $priority = $validated['priority'] ?? 'normaal';
 
+            $extLink = trim(strip_tags($validated['external_gang_link']));
+            if (! preg_match('~^https?://~i', $extLink)) {
+                $extLink = 'https://'.$extLink;
+            }
+
             $metadata = [
                 'gang_name' => $gangName,
                 'gang_tag' => $gangTag,
-                'external_gang_link' => strip_tags($validated['external_gang_link']),
+                'external_gang_link' => $extLink,
                 'member_names' => ! empty($validated['member_names']) ? strip_tags($validated['member_names']) : null,
                 'proof_details' => ! empty($validated['proof_details']) ? strip_tags($validated['proof_details']) : null,
             ];
@@ -108,17 +117,27 @@ class SupportTicketController extends Controller
                 'message.min' => 'Je bericht moet minimaal 5 tekens bevatten.',
             ]);
 
-            $subject = $validated['subject'];
+            $cleanSubject = preg_replace('#<script(.*?)>(.*?)</script>#is', '', (string) $validated['subject']);
+            $subject = trim(strip_tags($cleanSubject));
             $priority = $validated['priority'];
             $metadata = null;
-            $messageContent = $validated['message'];
+            $cleanMsg = preg_replace('#<script(.*?)>(.*?)</script>#is', '', (string) $validated['message']);
+            $messageContent = trim(strip_tags($cleanMsg));
+
+            if ($subject === '') {
+                return back()->with('error', 'Vul een geldig onderwerp in.');
+            }
+
+            if ($messageContent === '') {
+                return back()->with('error', 'Vul een geldig bericht in.');
+            }
         }
 
         $ticketNumber = 'TBS-'.strtoupper(Str::random(3)).'-'.rand(100, 999);
 
         $ticket = SupportTicket::create([
             'user_id' => $user->id,
-            'character_id' => $character->id,
+            'character_id' => $character?->id,
             'ticket_number' => $ticketNumber,
             'subject' => $subject,
             'category' => $category,
@@ -132,7 +151,7 @@ class SupportTicketController extends Controller
         SupportTicketMessage::create([
             'support_ticket_id' => $ticket->id,
             'user_id' => $user->id,
-            'character_id' => $character->id,
+            'character_id' => $character?->id,
             'is_staff' => false,
             'message' => $messageContent,
         ]);
@@ -182,12 +201,18 @@ class SupportTicketController extends Controller
             'message.required' => 'Vul een reactiebericht in.',
         ]);
 
+        $cleanMessage = preg_replace('#<script(.*?)>(.*?)</script>#is', '', (string) $validated['message']);
+        $cleanMessage = trim(strip_tags($cleanMessage));
+        if ($cleanMessage === '') {
+            return back()->with('error', 'Vul een geldig reactiebericht in.');
+        }
+
         SupportTicketMessage::create([
             'support_ticket_id' => $ticket->id,
             'user_id' => $user->id,
             'character_id' => $character?->id,
             'is_staff' => false,
-            'message' => $validated['message'],
+            'message' => $cleanMessage,
         ]);
 
         $ticket->update([

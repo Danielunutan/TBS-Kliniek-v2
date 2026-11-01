@@ -16,6 +16,9 @@ class DirectMessage extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
+        'sender_id' => 'integer',
+        'recipient_id' => 'integer',
+        'reply_to_id' => 'integer',
         'metadata' => 'array',
         'is_read' => 'boolean',
         'read_at' => 'datetime',
@@ -55,6 +58,13 @@ class DirectMessage extends Model
             if ($model->recipient_id) {
                 Cache::forget("dm_unread_count_{$model->recipient_id}");
             }
+            $senderId = (int) ($model->sender_id ?? 0);
+            $recipientId = (int) $model->recipient_id;
+            $convKey = min($senderId, $recipientId).'_'.max($senderId, $recipientId);
+            $deleted = Cache::get("dm_deleted_ids_{$convKey}", []);
+            $deleted[] = (int) $model->id;
+            $deleted = array_values(array_slice(array_unique(array_map('intval', $deleted)), -50));
+            Cache::put("dm_deleted_ids_{$convKey}", $deleted, now()->addHours(2));
         });
     }
 

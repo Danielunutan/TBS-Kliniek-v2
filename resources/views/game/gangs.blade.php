@@ -15,6 +15,19 @@
     $rawBeheerTab = (string) session('beheer_tab', request('beheer_tab', 'leden'));
     $safeBeheerTab = in_array($rawBeheerTab, $allowedBeheerTabs, true) ? $rawBeheerTab : 'leden';
     $hasExplicitBeheerTab = session()->has('beheer_tab') || in_array((string) request('beheer_tab'), $allowedBeheerTabs, true);
+
+    $gangLeaveConfirmMsg = '';
+    if ($myGang) {
+        if ($character->gang_role === 'leader') {
+            $gangLeaveConfirmMsg = $myGang->members->count() > 1
+                ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.'
+                : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!';
+        } else {
+            $gangLeaveConfirmMsg = ($myLeaveFee ?? 0) > 0
+                ? 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . ($myLeaveMultiplier ?? 0) . 'x uurloon) en wordt overgemaakt naar de bende kluis.'
+                : 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten?';
+        }
+    }
 @endphp
 <div class="space-y-6" x-data="{ 
     activeGangTab: '{{ $safeGangTab }}',
@@ -216,7 +229,11 @@
 
                     <!-- Bende Verlaten Knop (Discreet & Beveiligd) -->
                     <form action="{{ route('gangs.leave') }}" method="POST"
-                          onsubmit="return confirm(@js($character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten?')));">
+                          data-confirm="{{ $gangLeaveConfirmMsg }}"
+                          data-confirm-title="Bende Verlaten"
+                          data-confirm-btn="Ja, Bende Verlaten"
+                          data-confirm-type="warning"
+                          data-confirm-icon="fa-arrow-right-from-bracket">
                         @csrf
                         <button type="submit" 
                                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-transparent hover:border-rose-200 dark:hover:border-rose-900 transition cursor-pointer"
@@ -482,7 +499,11 @@
                                 <span class="hidden sm:inline">Rapporteer</span>
                             </button>
                             <form action="{{ route('gangs.leave') }}" method="POST"
-                                  onsubmit="return confirm(@js($character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten?')));">
+                                  data-confirm="{{ $gangLeaveConfirmMsg }}"
+                                  data-confirm-title="Bende Verlaten"
+                                  data-confirm-btn="Ja, Bende Verlaten"
+                                  data-confirm-type="warning"
+                                  data-confirm-icon="fa-arrow-right-from-bracket">
                                 @csrf
                                 <button type="submit" 
                                         class="px-3 py-1.5 rounded-xl bg-black/60 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
@@ -1187,7 +1208,11 @@
                             </div>
 
                             <form action="{{ route('gangs.leave') }}" method="POST"
-                                  onsubmit="return confirm(@js($character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten? Er wordt een vertrekboete van €' . number_format($myLeaveFee, 0, ',', '.') . ' overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten?')));">
+                                  data-confirm="{{ $gangLeaveConfirmMsg }}"
+                                  data-confirm-title="Bende Verlaten"
+                                  data-confirm-btn="Ja, Bende Verlaten"
+                                  data-confirm-type="warning"
+                                  data-confirm-icon="fa-arrow-right-from-bracket">
                                 @csrf
                                 <button type="submit" 
                                         @if($character->gang_role !== 'leader' && ! $hasEnoughCashToLeave) disabled @endif
@@ -2688,7 +2713,13 @@
                             </span>
 
                             @if($myGang->isOfficer($character) && (int)($myGang->masks ?? 0) > 0)
-                            <form action="{{ route('gangs.sell-masks') }}" method="POST" onsubmit="return confirm('Weet je zeker dat je bende maskers wilt verkopen aan de heler? De opbrengst van €1.500 per stuk wordt direct gestort in de Bende Kas.');" class="flex items-center gap-1.5">
+                            <form action="{{ route('gangs.sell-masks') }}" method="POST"
+                                  data-confirm="Weet je zeker dat je bende maskers wilt verkopen aan de heler? De opbrengst van €1.500 per stuk wordt direct gestort in de Bende Kas."
+                                  data-confirm-title="Bende Maskers Verkopen"
+                                  data-confirm-btn="Verkopen (€1.500 p/s)"
+                                  data-confirm-type="warning"
+                                  data-confirm-icon="fa-coins"
+                                  class="flex items-center gap-1.5">
                                 @csrf
                                 <input type="number" name="quantity" value="{{ min(10, (int)($myGang->masks ?? 0)) }}" min="1" max="{{ (int)($myGang->masks ?? 0) }}" class="w-16 px-2 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-center" title="Aantal te verkopen">
                                 <button type="submit" 
@@ -2738,7 +2769,13 @@
                                 </div>
 
                                 @if($myGang->isOfficer($character))
-                                <form action="{{ route('gangs.sell-item', $gItem->id) }}" method="POST" onsubmit="return confirm('Item verkopen (€{{ number_format($gangItemSellPrice, 0, ',', '.') }} p/s) en opbrengst storten in de bende kas?');" class="flex items-center gap-1">
+                                <form action="{{ route('gangs.sell-item', $gItem->id) }}" method="POST"
+                                      data-confirm="Item verkopen (€{{ number_format($gangItemSellPrice, 0, ',', '.') }} p/s) en opbrengst storten in de bende kas?"
+                                      data-confirm-title="Bende Item Verkopen"
+                                      data-confirm-btn="Verkopen"
+                                      data-confirm-type="warning"
+                                      data-confirm-icon="fa-coins"
+                                      class="flex items-center gap-1">
                                     @csrf
                                     <input type="number" name="quantity" value="1" min="1" max="{{ $gItem->quantity }}" class="w-12 px-1 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-xs text-center">
                                     <button type="submit" 

@@ -773,8 +773,6 @@ function tbsLiveMessenger(config) {
                             window.tbsToast(errMsg, 'error');
                         } else if (window.tbsAlert) {
                             window.tbsAlert(errMsg);
-                        } else {
-                            alert(errMsg);
                         }
                     }
                 } catch(e) {
@@ -828,8 +826,6 @@ function tbsLiveMessenger(config) {
                             window.tbsToast(errMsg, 'error');
                         } else if (window.tbsAlert) {
                             window.tbsAlert(errMsg);
-                        } else {
-                            alert(errMsg);
                         }
                     }
                 } catch(e) {
@@ -1830,7 +1826,12 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                         <i class="fa-solid fa-crosshairs"></i>
                                                         <span x-text="dm.metadata?.title || 'Liquidatie Incidentenrapport'"></span>
                                                     </span>
-                                                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold font-mono" x-text="dm.time || dm.created_at"></span>
+                                                    <span class="inline-flex items-center gap-1 shrink-0">
+                                                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold font-mono" x-text="dm.time || dm.created_at"></span>
+                                                        <button type="button" @click="deleteDirectMessage(dm.id)" title="Verwijder dit rapport" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </span>
                                                 </div>
                                                 <div class="text-xs sm:text-[13px] text-slate-800 dark:text-rose-100 leading-snug break-words whitespace-pre-line" x-html="formatMessage(dm.message, false)"></div>
                                             </div>
@@ -1844,7 +1845,12 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 <span class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
                                                     <i class="fa-solid fa-vault"></i> Geheime Kluiscode
                                                 </span>
-                                                <span class="text-[10px] text-purple-300 font-mono" x-text="dm.time || dm.created_at"></span>
+                                                <span class="inline-flex items-center gap-1 shrink-0">
+                                                    <span class="text-[10px] text-purple-300 font-mono" x-text="dm.time || dm.created_at"></span>
+                                                    <button type="button" @click="deleteDirectMessage(dm.id)" title="Verwijder kluiscode bericht" class="text-purple-300 hover:text-rose-400 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </span>
                                             </div>
                                             <p class="text-xs text-purple-100 leading-snug break-words" x-text="dm.message"></p>
                                             <template x-if="dm.metadata && dm.metadata.code">
@@ -1861,7 +1867,12 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                     <i class="fa-solid fa-trophy"></i>
                                                     <span x-text="dm.metadata?.title || 'Level Omhoog!'"></span>
                                                 </div>
-                                                <span class="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-mono shrink-0" x-text="dm.time || dm.created_at"></span>
+                                                <span class="inline-flex items-center gap-1 shrink-0">
+                                                    <span class="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-mono shrink-0" x-text="dm.time || dm.created_at"></span>
+                                                    <button type="button" @click="deleteDirectMessage(dm.id)" title="Verwijder level up bericht" class="text-amber-600/70 hover:text-rose-500 dark:text-amber-400/70 dark:hover:text-rose-400 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </span>
                                             </div>
                                             <p class="text-xs text-slate-800 dark:text-amber-100 leading-snug break-words" x-text="dm.message"></p>
                                         </div>
@@ -1900,8 +1911,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                                 <i class="fa-solid fa-reply"></i>
                                                             </button>
                                                         </template>
-                                                        <template x-if="canModerate || dm.is_me">
-                                                            <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
+                                                        <template x-if="canModerate || dm.is_me || dm.can_delete || activeTab === 'direct'">
+                                                            <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
                                                                 <i class="fa-solid fa-trash-can"></i>
                                                             </button>
                                                         </template>

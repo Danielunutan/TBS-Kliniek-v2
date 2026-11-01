@@ -72,7 +72,13 @@
                         @method('DELETE')
                         <input type="hidden" name="scope" value="filter">
                         <input type="hidden" name="filter" value="{{ $filter }}">
-                        <button type="submit" class="w-full px-3 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 transition flex items-center gap-2 cursor-pointer">
+                        <button type="submit" 
+                                data-confirm="{{ $filter !== 'all' ? 'Weet je zeker dat je alle berichten in deze categorie wilt verwijderen?' : 'Weet je zeker dat je ALLE berichten definitief wilt verwijderen uit je berichtenbox?' }}"
+                                data-confirm-title="{{ $filter !== 'all' ? 'Categorie Berichten Verwijderen' : 'Alle Berichten Verwijderen' }}"
+                                data-confirm-btn="Verwijderen"
+                                data-confirm-type="danger"
+                                data-confirm-icon="fa-trash-can"
+                                class="w-full px-3 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 transition flex items-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-trash text-slate-400 w-4 text-center"></i>
                             <span>{{ $filter !== 'all' ? 'Verwijder huidige selectie' : 'Verwijder alle berichten' }}</span>
                         </button>
@@ -88,7 +94,13 @@
                         @csrf
                         @method('DELETE')
                         <input type="hidden" name="scope" value="read_only">
-                        <button type="submit" class="w-full px-3 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 transition flex items-center gap-2 cursor-pointer">
+                        <button type="submit" 
+                                data-confirm="Weet je zeker dat je alle reeds gelezen berichten wilt verwijderen? Ongelezen berichten blijven bewaard."
+                                data-confirm-title="Gelezen Berichten Verwijderen"
+                                data-confirm-btn="Verwijder Gelezen"
+                                data-confirm-type="danger"
+                                data-confirm-icon="fa-envelope-open"
+                                class="w-full px-3 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 transition flex items-center gap-2 cursor-pointer">
                             <i class="fa-regular fa-envelope-open text-slate-400 w-4 text-center"></i>
                             <span>Alleen gelezen berichten</span>
                         </button>
@@ -105,7 +117,13 @@
                         @csrf
                         @method('DELETE')
                         <input type="hidden" name="scope" value="everything">
-                        <button type="submit" class="w-full px-3 py-2 text-left text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-2 cursor-pointer border-t border-slate-100 dark:border-slate-800">
+                        <button type="submit" 
+                                data-confirm="Weet je zeker dat je je HELE berichtenbox (alle categorieën) definitief wilt legen?"
+                                data-confirm-title="Volledige Postvak Legen"
+                                data-confirm-btn="Alles Legen"
+                                data-confirm-type="danger"
+                                data-confirm-icon="fa-bomb"
+                                class="w-full px-3 py-2 text-left text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition flex items-center gap-2 cursor-pointer border-t border-slate-100 dark:border-slate-800">
                             <i class="fa-solid fa-bomb text-rose-500 w-4 text-center"></i>
                             <span>Volledige postvak legen</span>
                         </button>
@@ -235,7 +253,13 @@
                                   data-confirm-type="warning"
                                   data-confirm-icon="fa-user-slash">
                                 @csrf
-                                <button type="submit" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/40 text-slate-700 hover:text-rose-600 dark:text-slate-200 dark:hover:text-rose-400 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                                <button type="submit" 
+                                        data-confirm="Weet je zeker dat je dit vriendschapsverzoek wilt weigeren?"
+                                        data-confirm-title="Vriendschapsverzoek Weigeren"
+                                        data-confirm-btn="Weigeren"
+                                        data-confirm-type="warning"
+                                        data-confirm-icon="fa-user-slash"
+                                        class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/40 text-slate-700 hover:text-rose-600 dark:text-slate-200 dark:hover:text-rose-400 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
                                     <i class="fa-solid fa-xmark"></i> Weigeren
                                 </button>
                             </form>
@@ -254,7 +278,7 @@
                     @if(! $msg->is_read)
                     <form action="{{ route('messages.mark-read', $msg) }}" method="POST">
                         @csrf
-                        <button type="submit" class="text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer" title="Als gelezen markeren">
+                        <button type="submit" class="text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition cursor-pointer" title="Als gelezen markeren" aria-label="Als gelezen markeren">
                             <i class="fa-solid fa-check text-xs"></i>
                         </button>
                     </form>
@@ -268,7 +292,13 @@
                           data-confirm-icon="fa-trash-can">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer" title="Verwijderen">
+                        <button type="submit" 
+                                data-confirm="Weet je zeker dat je dit bericht definitief wilt verwijderen uit je dossier?"
+                                data-confirm-title="Bericht Verwijderen"
+                                data-confirm-btn="Verwijderen"
+                                data-confirm-type="danger"
+                                data-confirm-icon="fa-trash-can"
+                                class="text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer" title="Verwijderen" aria-label="Bericht verwijderen">
                             <i class="fa-regular fa-trash-can text-xs"></i>
                         </button>
                     </form>

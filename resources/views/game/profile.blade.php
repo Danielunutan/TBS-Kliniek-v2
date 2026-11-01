@@ -201,7 +201,11 @@
                     </button>
                 @else
                     <form action="{{ route('admin.moderation.unban', $profileCharacter->user) }}" method="POST" class="inline"
-                          onsubmit="return confirm(@js('Weet je zeker dat je de ban van '.$profileCharacter->name.' wilt opheffen?'));">
+                          data-confirm="Weet je zeker dat je de ban van {{ $profileCharacter->name }} wilt opheffen?"
+                          data-confirm-title="Ban Opheffen"
+                          data-confirm-btn="Ja, Ban Opheffen"
+                          data-confirm-type="success"
+                          data-confirm-icon="fa-lock-open">
                         @csrf
                         <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer shadow-xs flex items-center gap-1.5">
                             <i class="fa-solid fa-lock-open"></i>

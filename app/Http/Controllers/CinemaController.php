@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -185,7 +186,10 @@ class CinemaController extends Controller
             return back()->withInput()->with('error', 'Ongeldige YouTube URL of video ID! Plak een geldige YouTube link (bijv. https://www.youtube.com/watch?v=... of https://youtu.be/...).');
         }
 
-        $baseSlug = Str::slug($validated['title']) ?: 'cinema-zaal';
+        $cleanTitle = strip_tags(trim($validated['title']));
+        $cleanDesc = ! empty($validated['description']) ? strip_tags(trim($validated['description'])) : 'Gezellig samen kijken op de afdeling.';
+
+        $baseSlug = Str::slug($cleanTitle) ?: 'cinema-zaal';
         $slug = $baseSlug;
         $count = 1;
         while (CinemaRoom::where('slug', $slug)->exists()) {
@@ -198,9 +202,9 @@ class CinemaController extends Controller
         $isOfficial = $user->isAdmin() && $request->boolean('is_official');
 
         $room = CinemaRoom::create([
-            'title' => $validated['title'],
+            'title' => $cleanTitle,
             'slug' => $slug,
-            'description' => $validated['description'] ?? 'Gezellig samen kijken op de afdeling.',
+            'description' => $cleanDesc,
             'host_character_id' => $character->id,
             'youtube_url' => $validated['youtube_url'],
             'youtube_video_id' => $videoId,
@@ -268,13 +272,13 @@ class CinemaController extends Controller
      */
     protected function canAccessRoom(Request $request, CinemaRoom $room, User $user, Character $character): bool
     {
-        if (! $room->is_private || $room->host_character_id === $character->id || $user->isStaff()) {
+        if (! $room->is_private || (int) $room->host_character_id === (int) $character->id || $user->isStaff() || (method_exists($user, 'canModerate') && $user->canModerate())) {
             return true;
         }
 
         $providedPass = $request->input('pin', $request->query('pin', session("cinema_pin_{$room->id}")));
 
-        return ! empty($room->passcode) && $providedPass !== null && $providedPass === $room->passcode;
+        return ! empty($room->passcode) && $providedPass !== null && (string) $providedPass === (string) $room->passcode;
     }
 
     /**
@@ -295,9 +299,9 @@ class CinemaController extends Controller
         }
 
         // Check private room password
-        if ($room->is_private && $room->host_character_id !== $character->id && ! $user->isStaff()) {
-            $providedPass = $request->query('pin', session("cinema_pin_{$room->id}"));
-            if (empty($room->passcode) || $providedPass !== $room->passcode) {
+        if ($room->is_private && (int) $room->host_character_id !== (int) $character->id && ! $user->isStaff()) {
+            $providedPass = (string) $request->query('pin', session("cinema_pin_{$room->id}"));
+            if (empty($room->passcode) || $providedPass !== (string) $room->passcode) {
                 return redirect()->route('cinema.index')->with('error', 'Deze zaal is privé beveiligd met een toegangscode!');
             }
             session(["cinema_pin_{$room->id}" => $providedPass]);
@@ -312,7 +316,7 @@ class CinemaController extends Controller
         $room->increment('views_count');
 
         $messages = CinemaMessage::where('room_id', $room->id)
-            ->with('character')
+            ->with(['character.user'])
             ->latest()
             ->take(60)
             ->get()
@@ -325,9 +329,14 @@ class CinemaController extends Controller
         $queue = $room->getQueue();
         $initialPlaybackSeconds = $room->getCurrentPlaybackSeconds();
 
-        $initialMessages = $messages->map(function ($m) {
+        $canDeleteAny = (bool) ($user->isStaff() || (method_exists($user, 'canModerate') && $user->canModerate()) || ((int) $room->host_character_id === (int) $character->id));
+
+        $initialMessages = $messages->map(function ($m) use ($character, $canDeleteAny) {
+            $isAuthor = $character && ((int) $m->character_id === (int) $character->id);
+
             return [
-                'id' => $m->id,
+                'id' => (int) $m->id,
+                'character_id' => (int) $m->character_id,
                 'text' => $m->message,
                 'gif_url' => $m->gif_url,
                 'sticker_key' => $m->sticker_key,
@@ -335,6 +344,7 @@ class CinemaController extends Controller
                 'avatar' => asset($m->character?->avatar ?? 'characters/avatar-default.png'),
                 'is_staff' => (bool) ($m->character?->user?->isStaff()),
                 'time' => $m->created_at?->format('H:i') ?? '',
+                'can_delete' => (bool) ($isAuthor || $canDeleteAny),
             ];
         })->values();
 
@@ -354,7 +364,15 @@ class CinemaController extends Controller
             return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
         }
 
-        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
+        if ((int) $room->host_character_id !== (int) $character->id && ! $user->isStaff()) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Alleen de zaalhost of een stafflid kan deze zaal sluiten.'], 403);
             }
@@ -442,7 +460,7 @@ class CinemaController extends Controller
             return back()->with('error', 'Ongeldige YouTube video link!');
         }
 
-        $itemTitle = ! empty($validated['title']) ? trim($validated['title']) : "YouTube Video ({$videoId})";
+        $itemTitle = ! empty($validated['title']) ? strip_tags(trim($validated['title'])) : "YouTube Video ({$videoId})";
 
         $item = [
             'id' => (string) Str::uuid(),
@@ -451,6 +469,7 @@ class CinemaController extends Controller
             'youtube_video_id' => $videoId,
             'thumbnail' => "https://img.youtube.com/vi/{$videoId}/mqdefault.jpg",
             'added_by_name' => $character->name,
+            'added_by_character_id' => (int) $character->id,
             'added_by_avatar' => asset($character->avatar ?? 'characters/avatar-default.png'),
             'added_at' => now()->format('H:i'),
         ];
@@ -458,6 +477,9 @@ class CinemaController extends Controller
         $queue = DB::transaction(function () use ($room, $item) {
             /** @var CinemaRoom $lockedRoom */
             $lockedRoom = CinemaRoom::where('id', $room->id)->lockForUpdate()->firstOrFail();
+            if ($lockedRoom->is_closed) {
+                return false;
+            }
             $currentQueue = $lockedRoom->getQueue();
             if (count($currentQueue) >= 25) {
                 return null;
@@ -468,6 +490,14 @@ class CinemaController extends Controller
 
             return $currentQueue;
         });
+
+        if ($queue === false) {
+            $msg = 'Deze zaal is gesloten.';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
 
         if ($queue === null) {
             if ($request->wantsJson()) {
@@ -507,6 +537,22 @@ class CinemaController extends Controller
             return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
         }
 
+        if ($character->isImprisoned()) {
+            $msg = 'Vanuit de isoleercel kun je geen video\'s starten!';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
         if ($room->is_closed) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
@@ -515,7 +561,7 @@ class CinemaController extends Controller
             return back()->with('error', 'Deze zaal is gesloten.');
         }
 
-        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
+        if ((int) $room->host_character_id !== (int) $character->id && ! $user->isStaff()) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan video\'s starten.'], 403);
             }
@@ -529,6 +575,9 @@ class CinemaController extends Controller
         DB::transaction(function () use ($room, $queueId, &$target, &$remaining) {
             /** @var CinemaRoom $lockedRoom */
             $lockedRoom = CinemaRoom::where('id', $room->id)->lockForUpdate()->firstOrFail();
+            if ($lockedRoom->is_closed) {
+                return;
+            }
             $queue = $lockedRoom->getQueue();
 
             foreach ($queue as $item) {
@@ -591,6 +640,22 @@ class CinemaController extends Controller
             return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
         }
 
+        if ($character->isImprisoned()) {
+            $msg = 'Vanuit de isoleercel kun je geen items uit de wachtrij verwijderen!';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
         if ($room->is_closed) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
@@ -599,29 +664,50 @@ class CinemaController extends Controller
             return back()->with('error', 'Deze zaal is gesloten.');
         }
 
-        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
-            if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan items uit de wachtrij verwijderen.'], 403);
-            }
-
-            return back()->with('error', 'Alleen de zaalhost kan items uit de wachtrij verwijderen.');
-        }
-
-        $filtered = DB::transaction(function () use ($room, $queueId) {
+        $result = DB::transaction(function () use ($room, $queueId, $character, $user) {
             /** @var CinemaRoom $lockedRoom */
             $lockedRoom = CinemaRoom::where('id', $room->id)->lockForUpdate()->firstOrFail();
             $queue = $lockedRoom->getQueue();
+
+            $targetItem = null;
+            foreach ($queue as $item) {
+                if ($item['id'] === $queueId) {
+                    $targetItem = $item;
+                    break;
+                }
+            }
+
+            if (! $targetItem) {
+                return ['success' => false, 'status' => 404, 'message' => 'Video niet gevonden in wachtrij.'];
+            }
+
+            $isHost = ((int) $lockedRoom->host_character_id === (int) $character->id);
+            $isStaffOrMod = $user->isStaff() || (method_exists($user, 'canModerate') && $user->canModerate());
+            $isAdder = isset($targetItem['added_by_character_id']) && ((int) $targetItem['added_by_character_id'] === (int) $character->id);
+
+            if (! ($isHost || $isStaffOrMod || $isAdder)) {
+                return ['success' => false, 'status' => 403, 'message' => 'Alleen de zaalhost of de toevoeger kan deze video verwijderen.'];
+            }
+
             $remaining = array_values(array_filter($queue, fn ($item) => $item['id'] !== $queueId));
             $lockedRoom->video_queue = $remaining;
             $lockedRoom->save();
 
-            return $remaining;
+            return ['success' => true, 'queue' => $remaining];
         });
+
+        if (! $result['success']) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $result['message']], $result['status']);
+            }
+
+            return back()->with('error', $result['message']);
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'queue' => $filtered,
+                'queue' => $result['queue'],
                 'message' => 'Video verwijderd uit wachtrij.',
             ]);
         }
@@ -630,10 +716,17 @@ class CinemaController extends Controller
     }
 
     /**
-     * Send a message, reaction sticker, or GIF in the room chat.
+     * Send a message, reaction sticker, or GIF in the room chat, or delete a message.
      */
     public function sendMessage(Request $request, CinemaRoom $room): JsonResponse|RedirectResponse
     {
+        // Allow deleting chat messages via this endpoint
+        if ($request->input('action') === 'delete' || $request->filled('delete_id')) {
+            $deleteId = (int) ($request->input('delete_id') ?: $request->input('message_id'));
+
+            return $this->deleteMessage($request, $room, $deleteId);
+        }
+
         if ($room->is_closed) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
@@ -647,7 +740,9 @@ class CinemaController extends Controller
         $character = $user->character;
 
         if (! $character) {
-            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 401)
+                : redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
         }
 
         if ($character->isImprisoned()) {
@@ -680,7 +775,28 @@ class CinemaController extends Controller
             'sticker_key' => ['nullable', 'string', 'max:64'],
         ]);
 
-        if (empty($validated['message']) && empty($validated['gif_url']) && empty($validated['sticker_key'])) {
+        $rawMessage = $validated['message'] ?? null;
+        $cleanMessage = null;
+        if ($rawMessage !== null && trim((string) $rawMessage) !== '') {
+            $cleanMessage = strip_tags(trim((string) $rawMessage));
+            if ($cleanMessage === '') {
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Bericht bevat ongeldige HTML-tekens.'], 422);
+                }
+
+                return back()->with('error', 'Bericht bevat ongeldige HTML-tekens.');
+            }
+        }
+
+        if (! empty($validated['gif_url']) && ! str_starts_with($validated['gif_url'], 'https://')) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Alleen beveiligde HTTPS GIF links zijn toegestaan.'], 422);
+            }
+
+            return back()->with('error', 'Alleen beveiligde HTTPS GIF links zijn toegestaan.');
+        }
+
+        if (empty($cleanMessage) && empty($validated['gif_url']) && empty($validated['sticker_key'])) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Typ een bericht, selecteer een sticker of kies een GIF reactie!'], 422);
             }
@@ -688,33 +804,106 @@ class CinemaController extends Controller
             return back()->with('error', 'Bericht mag niet leeg zijn.');
         }
 
+        if (! empty($cleanMessage)) {
+            if ($linkError = $this->validateChatLinks($cleanMessage)) {
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $linkError], 422);
+                }
+
+                return back()->with('error', $linkError);
+            }
+
+            if ($spamError = $this->validateChatSpam($character, $cleanMessage)) {
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $spamError['message']], $spamError['status']);
+                }
+
+                return back()->with('error', $spamError['message']);
+            }
+        }
+
         $msg = CinemaMessage::create([
             'room_id' => $room->id,
             'character_id' => $character->id,
-            'message' => $validated['message'] ?? null,
+            'message' => $cleanMessage ?: null,
             'gif_url' => $validated['gif_url'] ?? null,
             'sticker_key' => $validated['sticker_key'] ?? null,
         ]);
 
-        $msg->load('character');
+        $msg->load(['character.user']);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => [
-                    'id' => $msg->id,
+                    'id' => (int) $msg->id,
+                    'character_id' => (int) $character->id,
                     'text' => $msg->message,
                     'gif_url' => $msg->gif_url,
                     'sticker_key' => $msg->sticker_key,
                     'character_name' => $character->name,
                     'avatar' => asset($character->avatar ?? 'characters/avatar-default.png'),
                     'is_staff' => (bool) $user->isStaff(),
-                    'time' => $msg->created_at->format('H:i'),
+                    'time' => $msg->created_at ? $msg->created_at->format('H:i') : now()->format('H:i'),
+                    'can_delete' => true,
                 ],
             ]);
         }
 
         return back();
+    }
+
+    /**
+     * Delete a cinema message (Author, Room Host, Staff or Moderator).
+     */
+    public function deleteMessage(Request $request, CinemaRoom $room, ?int $messageId = null): JsonResponse|RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character) {
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 401)
+                : redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+        }
+
+        $id = (int) ($messageId ?: $request->input('delete_id', $request->input('message_id', 0)));
+        $message = CinemaMessage::where('room_id', $room->id)->find($id);
+
+        if (! $message) {
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => 'Bericht niet gevonden.'], 404)
+                : back()->with('error', 'Bericht niet gevonden.');
+        }
+
+        $isAuthor = ((int) $message->character_id === (int) $character->id);
+        $isHost = ((int) $room->host_character_id === (int) $character->id);
+        $isStaffOrMod = $user->isStaff() || (method_exists($user, 'canModerate') && $user->canModerate());
+
+        if (! ($isAuthor || $isHost || $isStaffOrMod)) {
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => 'Je hebt geen rechten om dit bericht te verwijderen.'], 403)
+                : back()->with('error', 'Je hebt geen rechten om dit bericht te verwijderen.');
+        }
+
+        $cacheKey = "cinema_deleted_ids_{$room->id}";
+        $deleted = Cache::get($cacheKey, []);
+        $deleted[] = (int) $message->id;
+        $deleted = array_slice(array_unique(array_map('intval', $deleted)), -50);
+        Cache::put($cacheKey, $deleted, now()->addHours(2));
+
+        $message->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Bericht succesvol verwijderd.',
+                'deleted_id' => $id,
+            ]);
+        }
+
+        return back()->with('success', 'Bericht verwijderd.');
     }
 
     /**
@@ -727,7 +916,7 @@ class CinemaController extends Controller
         $character = $user->character;
 
         if (! $character) {
-            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 401);
         }
 
         if (! $this->canAccessRoom($request, $room, $user, $character)) {
@@ -735,23 +924,28 @@ class CinemaController extends Controller
         }
 
         $afterId = (int) $request->query('after_id', 0);
+        $canDeleteAny = (bool) ($user->isStaff() || (method_exists($user, 'canModerate') && $user->canModerate()) || ((int) $room->host_character_id === (int) $character->id));
 
         $messages = CinemaMessage::where('room_id', $room->id)
             ->where('id', '>', $afterId)
-            ->with('character')
+            ->with(['character.user'])
             ->oldest()
             ->take(50)
             ->get()
-            ->map(function ($m) {
+            ->map(function ($m) use ($character, $canDeleteAny) {
+                $isAuthor = $character && ((int) $m->character_id === (int) $character->id);
+
                 return [
-                    'id' => $m->id,
+                    'id' => (int) $m->id,
+                    'character_id' => (int) $m->character_id,
                     'text' => $m->message,
                     'gif_url' => $m->gif_url,
                     'sticker_key' => $m->sticker_key,
                     'character_name' => $m->character?->name ?? 'Onbekend',
                     'avatar' => asset($m->character?->avatar ?? 'characters/avatar-default.png'),
                     'is_staff' => (bool) ($m->character?->user?->isStaff()),
-                    'time' => $m->created_at->format('H:i'),
+                    'time' => $m->created_at?->format('H:i') ?? '',
+                    'can_delete' => (bool) ($isAuthor || $canDeleteAny),
                 ];
             });
 
@@ -763,6 +957,7 @@ class CinemaController extends Controller
             'video_queue' => $room->getQueue(),
             'views' => $room->views_count,
             'messages' => $messages,
+            'deleted_ids' => Cache::get("cinema_deleted_ids_{$room->id}", []),
         ]);
     }
 
@@ -776,14 +971,18 @@ class CinemaController extends Controller
         $character = $user->character;
 
         if (! $character) {
-            return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
+            return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 401);
+        }
+
+        if ($character->isImprisoned() || $character->isComatose()) {
+            return response()->json(['success' => false, 'message' => 'Actie niet toegestaan in jouw huidige staat.'], 422);
         }
 
         if ($room->is_closed) {
             return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
         }
 
-        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
+        if ((int) $room->host_character_id !== (int) $character->id && ! $user->isStaff()) {
             return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan synchroniseren.'], 403);
         }
 
@@ -811,11 +1010,19 @@ class CinemaController extends Controller
             return redirect()->route('dashboard')->with('error', 'Geen personage gevonden.');
         }
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je de bioscoopvideo niet wijzigen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($room->is_closed) {
             return back()->with('error', 'Deze zaal is gesloten.');
         }
 
-        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
+        if ((int) $room->host_character_id !== (int) $character->id && ! $user->isStaff()) {
             return back()->with('error', 'Alleen de zaalhost kan de video wijzigen!');
         }
 
@@ -841,5 +1048,85 @@ class CinemaController extends Controller
         ]);
 
         return back()->with('success', 'Video succesvol gewijzigd! Iedereen in de zaal kijkt nu mee.');
+    }
+
+    /**
+     * Validate chat links: regular players can only share discord invites or youtube links.
+     */
+    protected function validateChatLinks(string $message): ?string
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user && ($user->isStaff() || $user->isAdmin() || $user->isOwner() || $user->isModerator() || (method_exists($user, 'canModerate') && $user->canModerate()))) {
+            return null;
+        }
+
+        $hasUrlPattern = (bool) preg_match('/(?:https?:\/\/|www\.)[^\s]+/i', $message)
+            || (bool) preg_match('/\b[a-zA-Z0-9_\-]+\.(?:com|nl|be|net|org|io|gg|me|xyz|ru|co|de|info|online|site|app|link|top|tv)\b/i', $message);
+
+        if (! $hasUrlPattern) {
+            return null;
+        }
+
+        preg_match_all('/(?:https?:\/\/|www\.)?[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-\.\/]+/i', $message, $matches);
+        $tokens = $matches[0] ?? [];
+
+        foreach ($tokens as $token) {
+            $cleanToken = trim(rtrim($token, '.,!?):;'));
+            $isAllowed = (bool) preg_match('/^(?:https?:\/\/)?(?:www\.)?(?:discord\.gg|discord\.com\/invite|youtube\.com|youtu\.be)\/[a-zA-Z0-9_\-\.\/\?\=\&]+$/i', $cleanToken);
+            if (! $isAllowed) {
+                return 'Het delen van externe links of websites is niet toegestaan, behalve YouTube en officiële Discord invites!';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Anti-spam validation for cinema chat messages.
+     *
+     * @return array{message: string, status: int}|null
+     */
+    protected function validateChatSpam(Character $character, string $message): ?array
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user && ($user->isStaff() || $user->isAdmin() || $user->isOwner() || $user->isModerator() || (method_exists($user, 'canModerate') && $user->canModerate()))) {
+            return null;
+        }
+
+        $charId = $character->id;
+
+        // 1. Rapid-fire cooldown (2 seconds between messages)
+        $cooldownKey = "cinema_chat_cooldown_{$charId}";
+        if (Cache::has($cooldownKey)) {
+            return ['message' => 'Rustig aan! Wacht even 2 seconden voor je volgende bericht.', 'status' => 429];
+        }
+
+        // 2. Velocity burst limit: max 4 messages per 8 seconds
+        $velocityKey = "cinema_chat_velocity_{$charId}";
+        $count = (int) Cache::get($velocityKey, 0);
+        if ($count >= 4) {
+            return ['message' => 'Anti-spam: Je stuurt te snel berichten achter elkaar. Wacht even 8 seconden.', 'status' => 429];
+        }
+
+        // 3. Duplicate message spam protection (exact same text within 30 seconds)
+        $lastMsgKey = "cinema_chat_last_msg_{$charId}";
+        $lastMsg = Cache::get($lastMsgKey);
+        if ($lastMsg !== null && mb_strtolower(trim((string) $lastMsg)) === mb_strtolower(trim($message))) {
+            return ['message' => 'Anti-spam: Je hebt dit identieke bericht zojuist al verstuurd. Niet spammen a.u.b.!', 'status' => 422];
+        }
+
+        // 4. Repeated character flooding (e.g. "aaaaaa..." or "?????...")
+        if (preg_match('/(\S)\1{12,}/u', $message)) {
+            return ['message' => 'Anti-spam: Je bericht bevat te veel herhalende tekens achter elkaar.', 'status' => 422];
+        }
+
+        // Set cooldown and increment burst counter
+        Cache::put($cooldownKey, true, now()->addSeconds(2));
+        Cache::put($velocityKey, $count + 1, now()->addSeconds(8));
+        Cache::put($lastMsgKey, $message, now()->addSeconds(30));
+
+        return null;
     }
 }

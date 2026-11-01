@@ -28,7 +28,11 @@
             <form action="{{ route('admin.audit_log.sync') }}" method="POST" class="inline">
                 @csrf
                 <button type="submit" 
-                        onclick="return confirm('Wil je de complete database-historie (bank, diefstal, bendes, armdrukken en straffen) opnieuw analyseren op risico\'s?')"
+                        data-confirm="Wil je de complete database-historie (bank, diefstal, bendes, armdrukken en straffen) opnieuw analyseren op risico's?"
+                        data-confirm-title="Historie Synchroniseren &amp; Scannen"
+                        data-confirm-btn="Ja, Synchroniseren"
+                        data-confirm-type="warning"
+                        data-confirm-icon="fa-rotate"
                         class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-rotate"></i>
                     <span>Historie Synchroniseren &amp; Scannen</span>

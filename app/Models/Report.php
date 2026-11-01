@@ -52,12 +52,13 @@ class Report extends Model
             'character' => Character::find($this->reported_id),
             'gang' => Gang::find($this->reported_id),
             'chat_message' => ChatMessage::with('character')->find($this->reported_id),
+            'direct_message' => DirectMessage::with(['sender', 'recipient'])->find($this->reported_id),
             default => null,
         };
     }
 
     /**
-     * Get the reported character, whether reported directly or via a chat message.
+     * Get the reported character, whether reported directly or via a chat message / direct message.
      */
     public function getReportedCharacter(): ?Character
     {
@@ -70,6 +71,16 @@ class Report extends Model
             $msg = ChatMessage::with('character.user')->find($this->reported_id);
             if ($msg && $msg->character) {
                 return $msg->character;
+            }
+            if ($this->reported_name) {
+                return Character::with('user')->where('name', $this->reported_name)->first();
+            }
+        }
+
+        if ($this->reported_type === 'direct_message') {
+            $msg = DirectMessage::with('sender.user')->find($this->reported_id);
+            if ($msg && $msg->sender) {
+                return $msg->sender;
             }
             if ($this->reported_name) {
                 return Character::with('user')->where('name', $this->reported_name)->first();
@@ -94,6 +105,16 @@ class Report extends Model
     {
         if ($this->reported_type === 'gang') {
             return route('gangs.show', $this->reported_id);
+        }
+
+        if ($this->reported_type === 'direct_message') {
+            $msg = DirectMessage::find($this->reported_id);
+            if ($msg) {
+                $partnerId = ($msg->sender_id === $this->reporter_id) ? $msg->recipient_id : $msg->sender_id;
+                if ($partnerId) {
+                    return route('chat.index', ['tab' => 'direct', 'recipient' => $partnerId]);
+                }
+            }
         }
 
         $character = $this->getReportedCharacter();

@@ -30,6 +30,7 @@ class CinemaRoom extends Model
     ];
 
     protected $casts = [
+        'host_character_id' => 'integer',
         'video_started_at' => 'datetime',
         'seek_offset' => 'integer',
         'is_official' => 'boolean',
@@ -101,7 +102,7 @@ class CinemaRoom extends Model
     public static function extractYoutubeId(string $url): ?string
     {
         $patterns = [
-            '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i',
+            '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts|live)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i',
             '/^[a-zA-Z0-9_-]{11}$/',
         ];
 

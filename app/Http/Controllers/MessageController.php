@@ -41,7 +41,10 @@ class MessageController extends Controller
      */
     public function send(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return back()->with('error', 'Geen actieve patiënt gevonden.');
+        }
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen brieven versturen!');
@@ -49,6 +52,14 @@ class MessageController extends Controller
 
         if ($character->isComatose()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        // Support recipient_id if recipient_name was not provided
+        if ($request->filled('recipient_id') && ! $request->filled('recipient_name')) {
+            $recChar = Character::find($request->input('recipient_id'));
+            if ($recChar) {
+                $request->merge(['recipient_name' => $recChar->name]);
+            }
         }
 
         $validated = $request->validate([
@@ -63,21 +74,38 @@ class MessageController extends Controller
 
         $recipient = Character::where('name', $validated['recipient_name'])->firstOrFail();
 
-        if ($recipient->id === $character->id) {
+        if ($recipient->id === $character->id || $recipient->user_id === Auth::id()) {
             return back()->with('error', 'Je kunt geen brief naar jezelf sturen!');
         }
 
-        // Only allowed to send messages to accepted friends
-        if (! $character->isFriendWith($recipient)) {
+        // Only allowed to send messages to accepted friends (unless staff)
+        if (! $character->isFriendWith($recipient) && ! (Auth::user()?->isStaff())) {
             return back()->with('error', "Je kunt alleen brieven sturen naar patiënten die op je vriendenlijst staan! Voeg {$recipient->name} eerst toe als vriend via Vrienden.");
+        }
+
+        $cleanSubject = preg_replace('#<script(.*?)>(.*?)</script>#is', '', (string) $validated['subject']);
+        $cleanSubject = trim(strip_tags($cleanSubject));
+
+        $cleanContent = preg_replace('#<script(.*?)>(.*?)</script>#is', '', (string) $validated['content']);
+        $cleanContent = trim(strip_tags($cleanContent));
+
+        // Disarm dangerous schemes in content links
+        $cleanContent = preg_replace('/(javascript|vbscript|data):/i', '$1&#58;', $cleanContent);
+
+        if ($cleanSubject === '') {
+            return back()->with('error', 'Vul een geldig onderwerp in.');
+        }
+
+        if ($cleanContent === '') {
+            return back()->with('error', 'Vul een geldig bericht in.');
         }
 
         GameMessage::create([
             'recipient_id' => $recipient->id,
             'sender_id' => $character->id,
             'sender_name' => $character->name,
-            'subject' => strip_tags($validated['subject']),
-            'content' => strip_tags($validated['content']),
+            'subject' => $cleanSubject,
+            'content' => $cleanContent,
             'type' => 'player',
         ]);
 
@@ -85,11 +113,22 @@ class MessageController extends Controller
     }
 
     /**
+     * Alias for send() following RESTful store naming.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        return $this->send($request);
+    }
+
+    /**
      * Mark all unread messages as read.
      */
     public function markAllRead(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return back()->with('error', 'Geen actieve patiënt gevonden.');
+        }
 
         $query = GameMessage::where('recipient_id', $character->id)->where('is_read', false);
 
@@ -117,9 +156,8 @@ class MessageController extends Controller
      */
     public function markRead(GameMessage $message): RedirectResponse
     {
-        $character = Auth::user()->character;
-
-        if ($message->recipient_id !== $character->id) {
+        $character = Auth::user()?->character;
+        if (! $character || $message->recipient_id !== $character->id) {
             abort(403);
         }
 
@@ -133,7 +171,10 @@ class MessageController extends Controller
      */
     public function destroyAll(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return back()->with('error', 'Geen actieve patiënt gevonden.');
+        }
 
         $query = GameMessage::where('recipient_id', $character->id);
 
@@ -141,6 +182,8 @@ class MessageController extends Controller
 
         if ($scope === 'read_only') {
             $query->where('is_read', true);
+        } elseif ($scope === 'unread') {
+            $query->where('is_read', false);
         } elseif ($scope === 'filter' && $request->filled('filter') && $request->filter !== 'all') {
             if ($request->filter === 'theft') {
                 $query->where('type', 'theft');
@@ -163,18 +206,58 @@ class MessageController extends Controller
     }
 
     /**
-     * Delete a message.
+     * Delete a single message.
      */
     public function destroy(GameMessage $message): RedirectResponse
     {
-        $character = Auth::user()->character;
-
-        if ($message->recipient_id !== $character->id) {
+        $character = Auth::user()?->character;
+        if (! $character || $message->recipient_id !== $character->id) {
             abort(403);
         }
 
         $message->delete();
 
         return back()->with('success', 'Bericht verwijderd uit je dossier.');
+    }
+
+    /**
+     * Bulk actions on messages (delete or mark as read).
+     */
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        $character = ($request->user() ?? Auth::user())?->character;
+        if (! $character) {
+            return back()->with('error', 'Geen actieve patiënt gevonden.');
+        }
+
+        $action = $request->input('action');
+        $rawIds = (array) ($request->input('message_ids') ?? $request->input('ids') ?? []);
+        $ids = array_filter(array_map('intval', $rawIds), fn (int $id) => $id > 0);
+
+        if (empty($ids)) {
+            return back()->with('info', 'Geen berichten geselecteerd.');
+        }
+
+        $query = GameMessage::where('recipient_id', $character->id)->whereIn('id', $ids);
+
+        if ($action === 'delete') {
+            $count = $query->delete();
+            if ($count === 0) {
+                return back()->with('info', 'Er zijn geen berichten verwijderd.');
+            }
+
+            return back()->with('success', "{$count} ".($count === 1 ? 'bericht is' : 'berichten zijn').' succesvol verwijderd.');
+        }
+
+        if ($action === 'mark_read' || $action === 'read') {
+            $count = $query->update(['is_read' => true]);
+            if ($count === 0) {
+                return back()->with('info', 'Er zijn geen berichten gemarkeerd als gelezen.');
+            }
+
+            return back()->with('success', "{$count} ".($count === 1 ? 'bericht is' : 'berichten zijn').' als gelezen gemarkeerd.');
+        }
+
+        return back()->with('error', 'Ongeldige bulk actie opgegeven.');
     }
 }

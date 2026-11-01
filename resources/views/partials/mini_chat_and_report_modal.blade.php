@@ -161,6 +161,9 @@
         -webkit-overflow-scrolling: touch;
         touch-action: pan-y;
     }
+    #tbsConfirmModal, .tbs-confirm-modal, [x-data*="isAlert"] {
+        z-index: 999999 !important;
+    }
 </style>
 
     <!-- FLOATING NEW MESSAGE TOAST BANNER (TBS Kliniek Website Styling) -->
@@ -1097,10 +1100,15 @@
                                     <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400 dark:border-amber-600/60 space-y-1.5 text-slate-900 dark:text-amber-100 min-w-0 max-w-full">
                                         <div class="flex items-center justify-between text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">
                                             <span>🔐 Exclusieve Kluiscode</span>
-                                            <span x-text="dm.time"></span>
+                                            <div class="flex items-center gap-1.5">
+                                                <span x-text="dm.time"></span>
+                                                <button type="button" @click="deleteDirectMessage(dm.id)" title="Verwijder bericht" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                         <div class="p-1.5 bg-white dark:bg-slate-900 rounded-lg font-mono font-black text-xs text-amber-600 text-center select-all border border-amber-200/80 dark:border-amber-800/50" x-text="dm.metadata?.code"></div>
-                                        <a :href="'/kluis-kraak?code=' + encodeURIComponent(dm.metadata?.code)" class="block text-center py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-[10px] transition">
+                                        <a :href="'/kluis-kraak?code=' + encodeURIComponent(dm.metadata?.code || '')" class="block text-center py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-[10px] transition">
                                             Direct Inwisselen &raquo;
                                         </a>
                                     </div>
@@ -1114,7 +1122,12 @@
                                                 <i class="fa-solid fa-award"></i>
                                                 <span x-text="'Level ' + dm.metadata?.level + ' Bereikt!'"></span>
                                             </span>
-                                            <span class="text-slate-400 dark:text-slate-500 font-mono text-[9px]" x-text="dm.time"></span>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-slate-400 dark:text-slate-500 font-mono text-[9px]" x-text="dm.time"></span>
+                                                <button type="button" @click="deleteDirectMessage(dm.id)" title="Verwijder bericht" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                         <p class="text-[11px] leading-snug break-words" x-text="dm.message"></p>
                                     </div>
@@ -1128,7 +1141,12 @@
                                                 <i class="fa-solid fa-crosshairs text-rose-500"></i>
                                                 <span x-text="dm.metadata?.title || 'Liquidatie Incidentenrapport'"></span>
                                             </span>
-                                            <span class="text-slate-400 dark:text-slate-500 font-mono text-[9px]" x-text="dm.time"></span>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-slate-400 dark:text-slate-500 font-mono text-[9px]" x-text="dm.time"></span>
+                                                <button type="button" @click="deleteDirectMessage(dm.id)" title="Verwijder bericht" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                         <div class="text-[11px] leading-snug break-words whitespace-pre-line text-slate-800 dark:text-slate-200" x-html="formatMessage(dm.message, false)"></div>
                                     </div>
@@ -1188,7 +1206,7 @@
                                                      x-html="formatMessage(dm.message, dm.is_me)"></div>
 
                                                 <!-- Action Buttons: Heart, Reageer, Delete -->
-                                                <div class="flex items-center gap-0.5 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition shrink-0">
+                                                <div class="flex items-center gap-0.5 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 hover:opacity-100 transition shrink-0">
                                                     <!-- Paars Hartje Reactie 💜 -->
                                                     <button type="button" @click="toggleDirectHeart(dm)" 
                                                             :title="dm.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
@@ -1205,8 +1223,8 @@
                                                         </button>
                                                     </template>
 
-                                                    <!-- Verwijder -->
-                                                    <template x-if="dm.is_me || canModerate">
+                                                    <!-- Verwijder (auteur, ontvanger in privé, en moderatie) -->
+                                                    <template x-if="canModerate || dm.is_me || dm.can_delete || activeTab === 'direct'">
                                                         <button type="button" @click="deleteDirectMessage(dm.id)" title="Verwijder bericht" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
                                                             <i class="fa-solid fa-trash-can"></i>
                                                         </button>
@@ -1564,17 +1582,33 @@
                     });
                     const data = await res.json();
                     if (data.success) {
-                        if (window.tbsAlert) {
+                        if (window.tbsToast) {
+                            window.tbsToast(data.message, 'success');
+                        } else if (window.tbsAlert) {
                             window.tbsAlert({ message: data.message });
                         } else {
                             alert(data.message);
                         }
                         this.close();
                     } else {
-                        alert(data.message || 'Kon melding niet indienen.');
+                        const errMsg = data.message || 'Kon melding niet indienen.';
+                        if (window.tbsToast) {
+                            window.tbsToast(errMsg, 'error');
+                        } else if (window.tbsAlert) {
+                            window.tbsAlert({ message: errMsg });
+                        } else {
+                            alert(errMsg);
+                        }
                     }
                 } catch (e) {
-                    alert('Er is een fout opgetreden bij het indienen van de melding.');
+                    const errMsg = 'Er is een fout opgetreden bij het indienen van de melding.';
+                    if (window.tbsToast) {
+                        window.tbsToast(errMsg, 'error');
+                    } else if (window.tbsAlert) {
+                        window.tbsAlert({ message: errMsg });
+                    } else {
+                        alert(errMsg);
+                    }
                 } finally {
                     this.isSubmitting = false;
                 }
@@ -1899,6 +1933,10 @@
             },
 
             setTab(tab) {
+                if (this.activeTab !== tab) {
+                    this.cancelReply();
+                    this.cancelDirectReply();
+                }
                 this.activeTab = tab;
                 if (tab === 'global') {
                     this.scrollChatBottom();
@@ -2184,14 +2222,14 @@
             setReplyTo(msg, type = 'public') {
                 if (type === 'direct') {
                     this.directReplyingTo = {
-                        id: msg.id,
+                        id: Number(msg.id),
                         name: msg.is_me ? this.myName : (this.activeDirectPartner?.name || 'Inmate'),
                         text: msg.message,
                     };
                 } else {
                     this.replyingTo = {
-                        id: msg.id,
-                        character_id: msg.character_id,
+                        id: Number(msg.id),
+                        character_id: Number(msg.character_id),
                         name: msg.name,
                         text: msg.message,
                     };
@@ -2255,43 +2293,119 @@
                 } catch(e) {}
             },
 
-            async deletePublicMessage(msgId) {
-                if (!confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) return;
-                try {
-                    const res = await fetch(`/chat/openbaar/${msgId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': this.getCsrf(),
-                            'Accept': 'application/json',
+            deletePublicMessage(msgId) {
+                const doDelete = async () => {
+                    try {
+                        const res = await fetch(`/chat/openbaar/${msgId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': this.getCsrf(),
+                                'Accept': 'application/json',
+                            }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.publicMessages = this.publicMessages.filter(m => Number(m.id) !== Number(msgId));
+                            this.gangMessages = this.gangMessages.filter(m => Number(m.id) !== Number(msgId));
+                            if (this.replyingTo && Number(this.replyingTo.id) === Number(msgId)) {
+                                this.replyingTo = null;
+                            }
+                            this.syncToGlobalCache();
+                            if (window.tbsToast) {
+                                window.tbsToast('Bericht verwijderd.', 'info');
+                            }
+                        } else {
+                            const errorMsg = data.message || 'Kon bericht niet verwijderen.';
+                            if (window.tbsToast) {
+                                window.tbsToast(errorMsg, 'error');
+                            } else if (window.tbsAlert) {
+                                window.tbsAlert({ message: errorMsg });
+                            } else {
+                                alert(errorMsg);
+                            }
                         }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        this.publicMessages = this.publicMessages.filter(m => m.id !== msgId);
-                        this.gangMessages = this.gangMessages.filter(m => m.id !== msgId);
-                    } else {
-                        alert(data.message || 'Kon bericht niet verwijderen.');
+                    } catch (e) {
+                        const errMsg = 'Er is een fout opgetreden bij het verwijderen.';
+                        if (window.tbsToast) {
+                            window.tbsToast(errMsg, 'error');
+                        } else if (window.tbsAlert) {
+                            window.tbsAlert({ message: errMsg });
+                        } else {
+                            alert(errMsg);
+                        }
                     }
-                } catch(e) {
-                    alert('Er is een fout opgetreden.');
+                };
+
+                if (window.tbsConfirm) {
+                    window.tbsConfirm({
+                        title: 'Bericht Verwijderen',
+                        message: 'Weet je zeker dat je dit bericht wilt verwijderen?',
+                        confirmBtn: 'Verwijderen',
+                        cancelBtn: 'Annuleren',
+                        type: 'danger',
+                        icon: 'fa-trash-can',
+                        onConfirm: doDelete,
+                    });
+                } else {
+                    doDelete();
                 }
             },
 
-            async deleteDirectMessage(dmId) {
-                if (!confirm('Bericht verwijderen?')) return;
-                try {
-                    const res = await fetch(`/chat/prive-bericht/${dmId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': this.getCsrf(),
-                            'Accept': 'application/json',
+            deleteDirectMessage(dmId) {
+                const doDelete = async () => {
+                    try {
+                        const res = await fetch(`/chat/prive-bericht/${dmId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': this.getCsrf(),
+                                'Accept': 'application/json',
+                            }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.activeDirectMessages = this.activeDirectMessages.filter(m => Number(m.id) !== Number(dmId));
+                            if (this.directReplyingTo && Number(this.directReplyingTo.id) === Number(dmId)) {
+                                this.directReplyingTo = null;
+                            }
+                            this.loadConversations();
+                            if (window.tbsToast) {
+                                window.tbsToast('Bericht verwijderd.', 'info');
+                            }
+                        } else {
+                            const errorMsg = data.message || 'Kon bericht niet verwijderen.';
+                            if (window.tbsToast) {
+                                window.tbsToast(errorMsg, 'error');
+                            } else if (window.tbsAlert) {
+                                window.tbsAlert({ message: errorMsg });
+                            } else {
+                                alert(errorMsg);
+                            }
                         }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        this.activeDirectMessages = this.activeDirectMessages.filter(m => m.id !== dmId);
+                    } catch (e) {
+                        const errMsg = 'Er is een fout opgetreden bij het verwijderen.';
+                        if (window.tbsToast) {
+                            window.tbsToast(errMsg, 'error');
+                        } else if (window.tbsAlert) {
+                            window.tbsAlert({ message: errMsg });
+                        } else {
+                            alert(errMsg);
+                        }
                     }
-                } catch(e) {}
+                };
+
+                if (window.tbsConfirm) {
+                    window.tbsConfirm({
+                        title: 'Privébericht Verwijderen',
+                        message: 'Weet je zeker dat je dit privébericht wilt verwijderen?',
+                        confirmBtn: 'Verwijderen',
+                        cancelBtn: 'Annuleren',
+                        type: 'danger',
+                        icon: 'fa-trash-can',
+                        onConfirm: doDelete,
+                    });
+                } else {
+                    doDelete();
+                }
             },
 
             async loadPublicMessages(isFirst = false) {
@@ -2304,8 +2418,11 @@
                     const data = await res.json();
                     if (data.success && data.messages) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
-                            const delSet = new Set(data.deleted_ids);
-                            this.publicMessages = this.publicMessages.filter(m => !delSet.has(m.id));
+                            const delSet = new Set(data.deleted_ids.map(Number));
+                            this.publicMessages = this.publicMessages.filter(m => !delSet.has(Number(m.id)));
+                            if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {
+                                this.replyingTo = null;
+                            }
                         }
                         if (this.lastPublicId === 0) {
                             // Safe merge to avoid wiping out any locally-sent messages while initial fetch was in-flight
@@ -2388,8 +2505,11 @@
                     const data = await res.json();
                     if (data.success && data.messages) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
-                            const delSet = new Set(data.deleted_ids);
-                            this.gangMessages = this.gangMessages.filter(m => !delSet.has(m.id));
+                            const delSet = new Set(data.deleted_ids.map(Number));
+                            this.gangMessages = this.gangMessages.filter(m => !delSet.has(Number(m.id)));
+                            if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {
+                                this.replyingTo = null;
+                            }
                         }
                         if (this.lastGangId === 0) {
                             const existingMap = new Map();
@@ -2500,16 +2620,22 @@
                     if (data.success && data.message) {
                         this.inputMessage = '';
                         this.cancelReply();
-                        if (!this.publicMessages.some(m => m.id === data.message.id)) {
+                        if (!this.publicMessages.some(m => Number(m.id) === Number(data.message.id))) {
                             this.publicMessages.push(data.message);
                         }
-                        this.lastPublicId = Math.max(this.lastPublicId, data.message.id);
+                        this.lastPublicId = Math.max(this.lastPublicId, Number(data.message.id));
                         this.scrollChatBottom();
                     } else if (data.message) {
-                        alert(data.message);
+                        const errMsg = data.message;
+                        if (window.tbsToast) window.tbsToast(errMsg, 'error');
+                        else if (window.tbsAlert) window.tbsAlert({ message: errMsg });
+                        else alert(errMsg);
                     }
                 } catch (e) {
-                    alert('Kon bericht niet verzenden.');
+                    const errMsg = 'Kon bericht niet verzenden.';
+                    if (window.tbsToast) window.tbsToast(errMsg, 'error');
+                    else if (window.tbsAlert) window.tbsAlert({ message: errMsg });
+                    else alert(errMsg);
                 } finally {
                     this.isSending = false;
                 }
@@ -2538,16 +2664,22 @@
                     if (data.success && data.message) {
                         this.gangInputMessage = '';
                         this.cancelReply();
-                        if (!this.gangMessages.some(m => m.id === data.message.id)) {
+                        if (!this.gangMessages.some(m => Number(m.id) === Number(data.message.id))) {
                             this.gangMessages.push(data.message);
                         }
-                        this.lastGangId = Math.max(this.lastGangId, data.message.id);
+                        this.lastGangId = Math.max(this.lastGangId, Number(data.message.id));
                         this.scrollGangBottom();
                     } else if (data.message) {
-                        alert(data.message);
+                        const errMsg = data.message;
+                        if (window.tbsToast) window.tbsToast(errMsg, 'error');
+                        else if (window.tbsAlert) window.tbsAlert({ message: errMsg });
+                        else alert(errMsg);
                     }
                 } catch (e) {
-                    alert('Kon bendebericht niet verzenden.');
+                    const errMsg = 'Kon bendebericht niet verzenden.';
+                    if (window.tbsToast) window.tbsToast(errMsg, 'error');
+                    else if (window.tbsAlert) window.tbsAlert({ message: errMsg });
+                    else alert(errMsg);
                 } finally {
                     this.isSendingGang = false;
                 }
@@ -2569,6 +2701,7 @@
             },
 
             async openDirectChat(partner) {
+                this.cancelDirectReply();
                 this.activeDirectPartner = partner;
                 this.activeTab = 'direct';
                 this.activeDirectMessages = [];
@@ -2576,13 +2709,24 @@
                 try {
                     const res = await fetch(`/chat/prive/${pId}`, { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
+                    
+                    // Concurrency guard: verify user is still on partner pId
+                    const currentActiveId = this.activeDirectPartner ? (this.activeDirectPartner.partner_id !== undefined ? this.activeDirectPartner.partner_id : this.activeDirectPartner.id) : null;
+                    if (Number(currentActiveId) !== Number(pId)) {
+                        return;
+                    }
+
                     if (data.success) {
                         if (data.partner) {
                             this.activeDirectPartner = data.partner;
                         }
                         this.activeDirectMessages = data.messages || [];
+                        if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                            const delSet = new Set(data.deleted_ids.map(Number));
+                            this.activeDirectMessages = this.activeDirectMessages.filter(m => !delSet.has(Number(m.id)));
+                        }
                         if (data.messages && data.messages.length > 0) {
-                            const highestId = Math.max(...data.messages.map(m => m.id || 0));
+                            const highestId = Math.max(...data.messages.map(m => Number(m.id) || 0));
                             if (highestId > this.lastDirectDmId) {
                                 this.lastDirectDmId = highestId;
                             }
@@ -2590,7 +2734,7 @@
                         this.scrollDirectBottom();
                         setTimeout(() => this.scrollDirectBottom(), 100);
                         setTimeout(() => this.scrollDirectBottom(), 300);
-                        const conv = this.directConversations.find(c => c.partner_id === pId);
+                        const conv = this.directConversations.find(c => Number(c.partner_id) === Number(pId));
                         if (conv) conv.unread_count = 0;
                     }
                 } catch(e) {}
@@ -2616,7 +2760,8 @@
                 let maxDmId = 0;
                 if (this.activeDirectMessages && this.activeDirectMessages.length > 0) {
                     for (const m of this.activeDirectMessages) {
-                        if (m.id && m.id > maxDmId) maxDmId = m.id;
+                        const mid = Number(m.id) || 0;
+                        if (mid > maxDmId) maxDmId = mid;
                     }
                 }
 
@@ -2624,22 +2769,32 @@
                     const url = `/chat/prive/${pId}` + (maxDmId > 0 ? `?after_id=${maxDmId}` : '');
                     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
+
+                    // Concurrency guard: verify user is still chatting with pId
+                    const currentActiveId = this.activeDirectPartner ? (this.activeDirectPartner.partner_id !== undefined ? this.activeDirectPartner.partner_id : this.activeDirectPartner.id) : null;
+                    if (Number(currentActiveId) !== Number(pId)) {
+                        return;
+                    }
+
                     if (data && data.success) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
-                            const delSet = new Set(data.deleted_ids);
-                            this.activeDirectMessages = this.activeDirectMessages.filter(m => !delSet.has(m.id));
+                            const delSet = new Set(data.deleted_ids.map(Number));
+                            this.activeDirectMessages = this.activeDirectMessages.filter(m => !delSet.has(Number(m.id)));
+                            if (this.directReplyingTo && delSet.has(Number(this.directReplyingTo.id))) {
+                                this.directReplyingTo = null;
+                            }
                         }
                     }
                     if (data && data.success && Array.isArray(data.messages) && data.messages.length > 0) {
                         let hadNew = false;
                         let fromOther = false;
                         for (const msg of data.messages) {
-                            if (!this.activeDirectMessages.some(m => m.id === msg.id)) {
+                            if (!this.activeDirectMessages.some(m => Number(m.id) === Number(msg.id))) {
                                 this.activeDirectMessages.push(msg);
                                 hadNew = true;
                                 if (!msg.is_me) fromOther = true;
-                                if (msg.id > this.lastDirectDmId) {
-                                    this.lastDirectDmId = msg.id;
+                                if (Number(msg.id) > this.lastDirectDmId) {
+                                    this.lastDirectDmId = Number(msg.id);
                                 }
                             }
                         }
@@ -2648,7 +2803,7 @@
                                 this.playChime();
                             }
                             this.scrollDirectBottom();
-                            const conv = this.directConversations.find(c => c.partner_id === pId);
+                            const conv = this.directConversations.find(c => Number(c.partner_id) === Number(pId));
                             if (conv) conv.unread_count = 0;
                         }
                     }
@@ -2679,16 +2834,22 @@
                     if (data.success && data.message) {
                         this.directInput = '';
                         this.cancelDirectReply();
-                        if (!this.activeDirectMessages.some(m => m.id === data.message.id)) {
+                        if (!this.activeDirectMessages.some(m => Number(m.id) === Number(data.message.id))) {
                             this.activeDirectMessages.push(data.message);
                         }
                         this.scrollDirectBottom();
                         this.loadConversations();
                     } else if (data.message) {
-                        alert(data.message);
+                        const errMsg = data.message;
+                        if (window.tbsToast) window.tbsToast(errMsg, 'error');
+                        else if (window.tbsAlert) window.tbsAlert({ message: errMsg });
+                        else alert(errMsg);
                     }
                 } catch(e) {
-                    alert('Kon privébericht niet verzenden.');
+                    const errMsg = 'Kon privébericht niet verzenden.';
+                    if (window.tbsToast) window.tbsToast(errMsg, 'error');
+                    else if (window.tbsAlert) window.tbsAlert({ message: errMsg });
+                    else alert(errMsg);
                 } finally {
                     this.isSendingDirect = false;
                 }

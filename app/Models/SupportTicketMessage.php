@@ -67,7 +67,10 @@ class SupportTicketMessage extends Model
      */
     public function getFormattedMessageAttribute(): string
     {
-        $text = e($this->message);
+        $text = e((string) ($this->message ?? ''));
+
+        // Disarm dangerous schemes
+        $text = preg_replace('/(javascript|vbscript|data):/i', '$1&#58;', $text);
 
         // Bold **text**
         $text = preg_replace('/\*\*(.*?)\*\*/s', '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>', $text);
