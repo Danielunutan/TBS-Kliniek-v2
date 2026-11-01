@@ -61,4 +61,5 @@ Schedule::command('patients:pay-allowances')->everyFifteenMinutes()->withoutOver
 Schedule::command('vault:evening-drop')->dailyAt('22:00')->timezone('Europe/Amsterdam')->withoutOverlapping();
 Schedule::command('event:resolve-cash-hunt')->dailyAt('00:00')->timezone('Europe/Amsterdam')->withoutOverlapping();
 Schedule::command('event:resolve-drugs-production')->everyMinute()->withoutOverlapping();
+Schedule::command('event:resolve-vault-challenge')->everyMinute()->withoutOverlapping();
 Schedule::command('lottery:draw')->everyMinute()->withoutOverlapping();

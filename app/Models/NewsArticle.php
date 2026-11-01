@@ -37,6 +37,18 @@ class NewsArticle extends Model
     }
 
     /**
+     * Scope a query to only include published articles whose publish time has arrived.
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true)
+            ->where(function ($q) {
+                $q->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            });
+    }
+
+    /**
      * Get author of the article.
      */
     public function author(): BelongsTo
@@ -192,7 +204,12 @@ class NewsArticle extends Model
         $text = preg_replace('/\[center\](.*?)\[\/center\]/is', '<div class="text-center my-2">$1</div>', $text);
 
         // Strip special embed shortcodes from prose
-        $text = str_ireplace(['[cash_event_leaderboard]', '[drug_event_leaderboard]'], '', $text);
+        $text = str_ireplace([
+            '[cash_event_leaderboard]',
+            '[drug_event_leaderboard]',
+            '[vault_challenge_leaderboard]',
+            '[vault_event_leaderboard]',
+        ], '', $text);
 
         // Headers
         $text = preg_replace('/^####\s+(.*?)$/m', '<h4 class="text-sm font-extrabold text-slate-900 dark:text-white mt-4 mb-2 tracking-tight">$1</h4>', $text);

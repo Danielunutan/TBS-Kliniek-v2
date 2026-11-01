@@ -120,7 +120,7 @@ class DashboardController extends Controller
         $notifications = $character->notifications()->take(5)->get();
         $recentGuestbook = $character->guestbookEntries()->with('author')->take(3)->get();
 
-        $latestNews = NewsArticle::where('is_published', true)
+        $latestNews = NewsArticle::published()
             ->orderByDesc('is_pinned')
             ->latest()
             ->take(4)

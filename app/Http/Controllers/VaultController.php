@@ -8,6 +8,7 @@ use App\Models\VaultCode;
 use App\Services\ChatBotService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\EventVaultCrackingService;
 use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
@@ -243,6 +244,7 @@ class VaultController extends Controller
             $character->save();
 
             HalloweenService::record($character, 'vault', 1);
+            EventVaultCrackingService::record($character, 1, 'safe_guess');
 
             // Reset vault session
             session()->forget([
@@ -413,6 +415,7 @@ class VaultController extends Controller
 
             // Record Halloween Quest progress for cracking safes/codes
             HalloweenService::record($lockedCharacter, 'vault', $redeemedCount);
+            EventVaultCrackingService::record($lockedCharacter, $redeemedCount, 'code_redeem');
 
             $msg = "🎉 {$redeemedCount} kluiscode(s) succesvol gekraakt in de Suikerkluis!\n";
             $msg .= '• +€'.number_format($totalCash, 0, ',', '.')." wit geld op je Bankrekening 🏦\n";

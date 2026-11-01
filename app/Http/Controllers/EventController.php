@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\EventCashHuntService;
 use App\Services\EventDrugsProductionService;
+use App\Services\EventVaultCrackingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +29,17 @@ class EventController extends Controller
     {
         $character = Auth::user()?->character;
         $data = EventDrugsProductionService::getLeaderboardData($character?->id, 15);
+
+        return response()->json($data);
+    }
+
+    /**
+     * Get real-time leaderboard data for the Vault Challenge event.
+     */
+    public function vaultChallengeLeaderboard(Request $request): JsonResponse
+    {
+        $character = Auth::user()?->character;
+        $data = EventVaultCrackingService::getLeaderboardData($character?->id, 15);
 
         return response()->json($data);
     }

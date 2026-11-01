@@ -31,14 +31,14 @@ class NewsController extends Controller
 
         $pinnedArticles = NewsArticle::with(['author.gang', 'author.user'])
             ->withCount('comments')
-            ->where('is_published', true)
+            ->published()
             ->where('is_pinned', true)
             ->latest()
             ->get();
 
         $articles = NewsArticle::with(['author.gang', 'author.user'])
             ->withCount('comments')
-            ->where('is_published', true)
+            ->published()
             ->orderByDesc('is_pinned')
             ->latest()
             ->paginate(10);
@@ -59,10 +59,11 @@ class NewsController extends Controller
         $character = $user->character;
         $this->energyService->refresh($character);
 
+        $isStaff = $user->isStaff() || $user->isAdmin();
         $article = NewsArticle::with(['author.gang', 'author.user'])
             ->withCount('comments')
             ->where('slug', $slug)
-            ->where('is_published', true)
+            ->when(! $isStaff, fn ($q) => $q->published())
             ->firstOrFail();
 
         $article->increment('views_count');
@@ -73,7 +74,7 @@ class NewsController extends Controller
             ->paginate(15);
 
         $otherNews = NewsArticle::where('id', '!=', $article->id)
-            ->where('is_published', true)
+            ->published()
             ->latest()
             ->take(5)
             ->get();

@@ -101,6 +101,10 @@
                     @if($article->slug === 'de-grote-drugsproductie-5m-en-1000-sterren' || $article->slug === 'de-grote-drugsproductie' || str_contains($article->content, '[drug_event_leaderboard]'))
                         @include('game.news.partials.drugs_production_leaderboard')
                     @endif
+
+                    @if($article->slug === 'de-grote-kluiscode-challenge-2500-sterren-en-100-codes' || str_contains($article->slug, 'kluiscode-challenge') || str_contains($article->content, '[vault_challenge_leaderboard]') || str_contains($article->content, '[vault_event_leaderboard]'))
+                        @include('game.news.partials.vault_challenge_leaderboard')
+                    @endif
                 </div>
             </div>
         </div>

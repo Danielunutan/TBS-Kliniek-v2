@@ -427,6 +427,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/api/character/realtime-stats', [DashboardController::class, 'realtimeStats'])->name('character.realtime-stats');
     Route::get('/api/event/cash-hunt/leaderboard', [EventController::class, 'cashHuntLeaderboard'])->name('api.event.cash_hunt_leaderboard');
     Route::get('/api/event/drugs-production/leaderboard', [EventController::class, 'drugsProductionLeaderboard'])->name('api.event.drugs_production_leaderboard');
+    Route::get('/api/event/vault-challenge/leaderboard', [EventController::class, 'vaultChallengeLeaderboard'])->name('api.event.vault_challenge_leaderboard');
 
     // Travel (Reizen / Verplaatsen)
     Route::get('/essentials/verplaatsen', [TravelController::class, 'index'])->name('travel.index');
