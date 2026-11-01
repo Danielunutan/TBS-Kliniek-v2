@@ -261,4 +261,17 @@ class Pass10Bucket15AuditTest extends TestCase
     {
         $this->artisan('list')->assertSuccessful();
     }
+
+    public function test_chat_mention_pills_use_compact_single_line_styling(): void
+    {
+        $miniChatSource = file_get_contents(resource_path('views/partials/mini_chat_and_report_modal.blade.php'));
+        $fullChatSource = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+        $cinemaRoomSource = file_get_contents(resource_path('views/game/cinema/room.blade.php'));
+
+        foreach ([$miniChatSource, $fullChatSource, $cinemaRoomSource] as $source) {
+            $this->assertStringContainsString('inline-block whitespace-nowrap align-baseline leading-none', $source);
+            $this->assertStringContainsString('>@${username}</a>', $source);
+            $this->assertStringNotContainsString('[overflow-wrap:anywhere]', $source);
+        }
+    }
 }

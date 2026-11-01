@@ -119,9 +119,9 @@ function tbsLiveMessenger(config) {
             const buildMentionPill = (username) => {
                 const url = '/speler/' + encodeURIComponent(username);
                 if (isMe) {
-                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-white/20 hover:bg-white/30 dark:hover:bg-white/30 text-white transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
                 } else {
-                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
                 }
             };
 
@@ -1235,43 +1235,43 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 </button>
 
                                 <!-- MESSAGE BUBBLE & META -->
-                                <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="msg.is_me ? 'text-right' : 'text-left'">
+                                <div class="max-w-[88%] sm:max-w-xl min-w-0 space-y-1" :class="msg.is_me ? 'text-right' : 'text-left'">
                                     
                                     <!-- SENDER META HEADER -->
-                                    <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
+                                    <div class="flex items-center gap-x-1.5 gap-y-0.5 text-[11px] font-bold flex-wrap min-w-0 max-w-full leading-tight" :class="msg.is_me ? 'justify-end' : ''">
                                         <!-- EIGENAAR STYLING -->
                                         <template x-if="msg.is_owner">
-                                            <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
+                                            <span class="font-black hover:underline cursor-pointer inline-flex items-center gap-1"
                                                   @click="tagPlayer(msg.name)" title="Klik om te taggen">
                                                 <i class="fa-solid fa-crown text-[10px] text-amber-500"></i>
                                                 <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
                                                       :style="msg.name_style || ''"
                                                       x-text="msg.name"></span>
-                                                <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase">Eigenaar</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[8px] leading-none font-black uppercase">Eigenaar</span>
                                             </span>
                                         </template>
 
                                         <!-- DIRECTIE / ADMIN STYLING -->
                                         <template x-if="msg.is_admin && !msg.is_owner">
-                                            <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
+                                            <span class="font-black hover:underline cursor-pointer inline-flex items-center gap-1"
                                                   @click="tagPlayer(msg.name)" title="Klik om te taggen">
                                                 <i class="fa-solid fa-shield-halved text-[10px] text-purple-500"></i>
                                                 <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
                                                       :style="msg.name_style || ''"
                                                       x-text="msg.name"></span>
-                                                <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white text-[8px] font-black uppercase">Directie</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white text-[8px] leading-none font-black uppercase">Directie</span>
                                             </span>
                                         </template>
 
                                         <!-- MODERATOR STYLING -->
                                         <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
-                                            <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
+                                            <span class="font-black hover:underline cursor-pointer inline-flex items-center gap-1"
                                                   @click="tagPlayer(msg.name)" title="Klik om te taggen">
                                                 <i class="fa-solid fa-gavel text-[10px] text-cyan-500"></i>
                                                 <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
                                                       :style="msg.name_style || ''"
                                                       x-text="msg.name"></span>
-                                                <span class="px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[8px] font-black uppercase">Moderator</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[8px] leading-none font-black uppercase">Moderator</span>
                                             </span>
                                         </template>
 
@@ -1291,7 +1291,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                         <!-- VIP BADGE PILL -->
                                         <template x-if="msg.is_vip && msg.vip_badge_label">
-                                            <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase border inline-flex items-center gap-1 shrink-0"
+                                            <span class="px-1.5 py-0.5 rounded text-[8px] leading-none font-black uppercase border inline-flex items-center gap-1 shrink-0"
                                                   :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
                                                   :title="msg.vip_badge_full || 'VIP Lid'">
                                                 <i class="fa-solid text-[8px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
@@ -1300,57 +1300,59 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                         </template>
 
                                         <!-- LEVEL PILL -->
-                                        <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] font-black">
+                                        <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] leading-none font-black">
                                             L<span x-text="msg.level"></span>
                                         </span>
 
                                         <!-- RESPECT PILL -->
-                                        <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] font-black flex items-center gap-0.5">
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] leading-none font-black inline-flex items-center gap-0.5">
                                             <i class="fa-solid fa-fire text-amber-500 text-[8px]"></i>
                                             <span x-text="msg.respect"></span>
                                         </span>
 
                                         <!-- GANG TAG -->
                                         <template x-if="msg.gang_tag">
-                                            <span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[9px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                            <span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[9px] leading-none font-black" x-text="'[' + msg.gang_tag + ']'"></span>
                                         </template>
 
-                                        <!-- TIME -->
-                                        <span class="text-slate-400 text-[10px]" x-text="msg.time"></span>
+                                        <!-- TIME & ACTIONS -->
+                                        <span class="inline-flex items-center gap-1 shrink-0">
+                                            <span class="text-slate-400 text-[10px]" x-text="msg.time"></span>
 
-                                        <!-- REAGEER KNOP -->
-                                        <button type="button" @click="setReplyTo(msg)" title="Reageer op dit bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[10px] cursor-pointer">
-                                            <i class="fa-solid fa-reply"></i>
-                                        </button>
-
-                                        <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
-                                        <template x-if="canModerate || msg.is_me">
-                                            <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
-                                                <i class="fa-solid fa-trash-can"></i>
+                                            <!-- REAGEER KNOP -->
+                                            <button type="button" @click="setReplyTo(msg)" title="Reageer op dit bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[10px] cursor-pointer">
+                                                <i class="fa-solid fa-reply"></i>
                                             </button>
-                                        </template>
 
-                                        <!-- REPORT -->
-                                        <template x-if="!msg.is_me">
-                                            <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
-                                                <i class="fa-solid fa-flag"></i>
-                                            </button>
-                                        </template>
+                                            <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
+                                            <template x-if="canModerate || msg.is_me">
+                                                <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </template>
+
+                                            <!-- REPORT -->
+                                            <template x-if="!msg.is_me">
+                                                <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
+                                                    <i class="fa-solid fa-flag"></i>
+                                                </button>
+                                            </template>
+                                        </span>
                                     </div>
 
                                     <!-- REPLY QUOTE BUBBLE -->
                                     <template x-if="msg.reply_to_name">
-                                        <div class="text-[11px] text-purple-700 dark:text-purple-300 bg-purple-100/70 dark:bg-purple-950/60 px-2.5 py-1 rounded-xl border-l-2 border-purple-500 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0"
+                                        <div class="w-fit max-w-full text-[11px] text-purple-700 dark:text-purple-300 bg-purple-100/70 dark:bg-purple-950/60 px-2.5 py-1 rounded-xl border-l-2 border-purple-500 mb-1 inline-flex items-center gap-1.5 min-w-0"
                                              :class="msg.is_me ? 'ml-auto' : ''">
-                                            <i class="fa-solid fa-reply text-[9px] text-purple-500"></i>
-                                            <span class="font-extrabold text-purple-800 dark:text-purple-200 shrink-0" x-text="'@' + msg.reply_to_name"></span>
-                                            <span class="truncate opacity-80 italic" x-text="msg.reply_to_snippet"></span>
+                                            <i class="fa-solid fa-reply text-[9px] text-purple-500 shrink-0"></i>
+                                            <span class="font-extrabold text-purple-800 dark:text-purple-200 shrink-0 whitespace-nowrap" x-text="'@' + msg.reply_to_name"></span>
+                                            <span class="truncate min-w-0 opacity-80 italic" x-text="msg.reply_to_snippet"></span>
                                         </div>
                                     </template>
 
                                     <!-- BUBBLE & HEART REACTION (COLORS IDENTICAL TO MINI CHAT) -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                        <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
                                              :class="msg.is_me 
                                                 ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                 : (msg.is_owner 
@@ -1467,43 +1469,43 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                         </button>
 
                                         <!-- MESSAGE BUBBLE & META -->
-                                        <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="msg.is_me ? 'text-right' : 'text-left'">
+                                        <div class="max-w-[88%] sm:max-w-xl min-w-0 space-y-1" :class="msg.is_me ? 'text-right' : 'text-left'">
                                             
                                             <!-- SENDER META HEADER -->
-                                            <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
+                                            <div class="flex items-center gap-x-1.5 gap-y-0.5 text-[11px] font-bold flex-wrap min-w-0 max-w-full leading-tight" :class="msg.is_me ? 'justify-end' : ''">
                                                 <!-- EIGENAAR STYLING -->
                                                 <template x-if="msg.is_owner">
-                                                    <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                    <span class="font-black hover:underline cursor-pointer inline-flex items-center gap-1"
                                                           @click="tagPlayer(msg.name)" title="Klik om te taggen">
                                                         <i class="fa-solid fa-crown text-[10px] text-amber-500"></i>
                                                         <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
                                                               :style="msg.name_style || ''"
                                                               x-text="msg.name"></span>
-                                                        <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase">Eigenaar</span>
+                                                        <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[8px] leading-none font-black uppercase">Eigenaar</span>
                                                     </span>
                                                 </template>
 
                                                 <!-- DIRECTIE / ADMIN STYLING -->
                                                 <template x-if="msg.is_admin && !msg.is_owner">
-                                                    <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                    <span class="font-black hover:underline cursor-pointer inline-flex items-center gap-1"
                                                           @click="tagPlayer(msg.name)" title="Klik om te taggen">
                                                         <i class="fa-solid fa-shield-halved text-[10px] text-purple-500"></i>
                                                         <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
                                                               :style="msg.name_style || ''"
                                                               x-text="msg.name"></span>
-                                                        <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white text-[8px] font-black uppercase">Directie</span>
+                                                        <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white text-[8px] leading-none font-black uppercase">Directie</span>
                                                     </span>
                                                 </template>
 
                                                 <!-- MODERATOR STYLING -->
                                                 <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
-                                                    <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                    <span class="font-black hover:underline cursor-pointer inline-flex items-center gap-1"
                                                           @click="tagPlayer(msg.name)" title="Klik om te taggen">
                                                         <i class="fa-solid fa-gavel text-[10px] text-cyan-500"></i>
                                                         <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
                                                               :style="msg.name_style || ''"
                                                               x-text="msg.name"></span>
-                                                        <span class="px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[8px] font-black uppercase">Moderator</span>
+                                                        <span class="px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[8px] leading-none font-black uppercase">Moderator</span>
                                                     </span>
                                                 </template>
 
@@ -1523,7 +1525,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                                 <!-- VIP BADGE PILL -->
                                                 <template x-if="msg.is_vip && msg.vip_badge_label">
-                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase border inline-flex items-center gap-1 shrink-0"
+                                                    <span class="px-1.5 py-0.5 rounded text-[8px] leading-none font-black uppercase border inline-flex items-center gap-1 shrink-0"
                                                           :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
                                                           :title="msg.vip_badge_full || 'VIP Lid'">
                                                         <i class="fa-solid text-[8px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
@@ -1532,57 +1534,59 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 </template>
 
                                                 <!-- LEVEL PILL -->
-                                                <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] font-black">
+                                                <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] leading-none font-black">
                                                     L<span x-text="msg.level"></span>
                                                 </span>
 
                                                 <!-- RESPECT PILL -->
-                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] font-black flex items-center gap-0.5">
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] leading-none font-black inline-flex items-center gap-0.5">
                                                     <i class="fa-solid fa-fire text-amber-500 text-[8px]"></i>
                                                     <span x-text="msg.respect"></span>
                                                 </span>
 
                                                 <!-- GANG TAG -->
                                                 <template x-if="msg.gang_tag">
-                                                    <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[9px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                                    <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[9px] leading-none font-black" x-text="'[' + msg.gang_tag + ']'"></span>
                                                 </template>
 
-                                                <!-- TIME -->
-                                                <span class="text-slate-400 text-[10px]" x-text="msg.time"></span>
+                                                <!-- TIME & ACTIONS -->
+                                                <span class="inline-flex items-center gap-1 shrink-0">
+                                                    <span class="text-slate-400 text-[10px]" x-text="msg.time"></span>
 
-                                                <!-- REAGEER KNOP -->
-                                                <button type="button" @click="setReplyTo(msg)" title="Reageer op dit bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[10px] cursor-pointer">
-                                                    <i class="fa-solid fa-reply"></i>
-                                                </button>
-
-                                                <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
-                                                <template x-if="canModerate || msg.is_me">
-                                                    <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
-                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    <!-- REAGEER KNOP -->
+                                                    <button type="button" @click="setReplyTo(msg)" title="Reageer op dit bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[10px] cursor-pointer">
+                                                        <i class="fa-solid fa-reply"></i>
                                                     </button>
-                                                </template>
 
-                                                <!-- REPORT -->
-                                                <template x-if="!msg.is_me">
-                                                    <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
-                                                        <i class="fa-solid fa-flag"></i>
-                                                    </button>
-                                                </template>
+                                                    <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
+                                                    <template x-if="canModerate || msg.is_me">
+                                                        <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </template>
+
+                                                    <!-- REPORT -->
+                                                    <template x-if="!msg.is_me">
+                                                        <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
+                                                            <i class="fa-solid fa-flag"></i>
+                                                        </button>
+                                                    </template>
+                                                </span>
                                             </div>
 
                                             <!-- REPLY QUOTE BUBBLE -->
                                             <template x-if="msg.reply_to_name">
-                                                <div class="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2.5 py-1 rounded-xl border-l-2 border-amber-500 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0"
+                                                <div class="w-fit max-w-full text-[11px] text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2.5 py-1 rounded-xl border-l-2 border-amber-500 mb-1 inline-flex items-center gap-1.5 min-w-0"
                                                      :class="msg.is_me ? 'ml-auto' : ''">
-                                                    <i class="fa-solid fa-reply text-[9px] text-amber-500"></i>
-                                                    <span class="font-extrabold text-amber-800 dark:text-amber-200 shrink-0" x-text="'@' + msg.reply_to_name"></span>
-                                                    <span class="truncate opacity-80 italic" x-text="msg.reply_to_snippet"></span>
+                                                    <i class="fa-solid fa-reply text-[9px] text-amber-500 shrink-0"></i>
+                                                    <span class="font-extrabold text-amber-800 dark:text-amber-200 shrink-0 whitespace-nowrap" x-text="'@' + msg.reply_to_name"></span>
+                                                    <span class="truncate min-w-0 opacity-80 italic" x-text="msg.reply_to_snippet"></span>
                                                 </div>
                                             </template>
 
                                             <!-- BUBBLE & HEART REACTION -->
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                                <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                                <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
                                                      :class="msg.is_me 
                                                         ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                         : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'"
@@ -1650,7 +1654,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                     </span>
                                                     <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold font-mono" x-text="dm.time || dm.created_at"></span>
                                                 </div>
-                                                <div class="text-xs sm:text-sm text-slate-800 dark:text-rose-100 leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-line" x-html="formatMessage(dm.message, false)"></div>
+                                                <div class="text-xs sm:text-[13px] text-slate-800 dark:text-rose-100 leading-snug break-words whitespace-pre-line" x-html="formatMessage(dm.message, false)"></div>
                                             </div>
                                         </div>
                                     </template>
@@ -1668,8 +1672,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                      class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
                                                      onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                             </template>
-                                            <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                                <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="dm.is_me ? 'justify-end' : ''">
+                                            <div class="max-w-[88%] sm:max-w-xl min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                                <div class="flex items-center gap-1.5 text-[11px] font-bold leading-tight" :class="dm.is_me ? 'justify-end' : ''">
                                                     <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name || (dm.is_me ? myName : (activePartner?.name || 'Inmate'))"></span>
                                                     <span class="text-slate-400 text-[10px]" x-text="dm.time || dm.created_at"></span>
                                                     <template x-if="canModerate || dm.is_me">
@@ -1678,7 +1682,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                         </button>
                                                     </template>
                                                 </div>
-                                                <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                                <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
                                                      :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'"
                                                      x-html="formatMessage(dm.message, dm.is_me)"></div>
                                             </div>

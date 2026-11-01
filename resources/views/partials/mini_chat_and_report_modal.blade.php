@@ -342,9 +342,9 @@
                                  onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                         </button>
 
-                        <div class="max-w-[84%] min-w-0 space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
+                        <div class="max-w-[88%] min-w-0 space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
                             <!-- Sender Meta -->
-                            <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
+                            <div class="flex items-center gap-1 text-[10px] leading-tight font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
                                 <!-- EIGENAAR -->
                                 <template x-if="msg.is_owner">
                                     <span class="font-black inline-flex items-center gap-1 hover:underline cursor-pointer"
@@ -353,7 +353,7 @@
                                         <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
                                               :style="msg.name_style || ''"
                                               x-text="msg.name"></span>
-                                        <span class="px-1 py-0.5 rounded bg-amber-500 text-slate-950 text-[7px] font-black uppercase">Eigenaar</span>
+                                        <span class="px-1 py-0.5 leading-none rounded bg-amber-500 text-slate-950 text-[7px] font-black uppercase">Eigenaar</span>
                                     </span>
                                 </template>
                                 <!-- ADMIN / DIRECTIE -->
@@ -364,7 +364,7 @@
                                         <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
                                               :style="msg.name_style || ''"
                                               x-text="msg.name"></span>
-                                        <span class="px-1 py-0.5 rounded bg-purple-600 text-white text-[7px] font-black uppercase">Directie</span>
+                                        <span class="px-1 py-0.5 leading-none rounded bg-purple-600 text-white text-[7px] font-black uppercase">Directie</span>
                                     </span>
                                 </template>
                                 <!-- MODERATOR -->
@@ -375,7 +375,7 @@
                                         <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
                                               :style="msg.name_style || ''"
                                               x-text="msg.name"></span>
-                                        <span class="px-1 py-0.5 rounded bg-cyan-600 text-white text-[7px] font-black uppercase">Mod</span>
+                                        <span class="px-1 py-0.5 leading-none rounded bg-cyan-600 text-white text-[7px] font-black uppercase">Mod</span>
                                     </span>
                                 </template>
                                 <!-- REGULAR / VIP -->
@@ -395,65 +395,68 @@
 
                                 <!-- VIP BADGE PILL -->
                                 <template x-if="msg.is_vip && msg.vip_badge_label">
-                                    <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
+                                    <span class="px-1 py-0.5 leading-none rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
                                           :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
                                           :title="msg.vip_badge_full || 'VIP Lid'">
-                                        <i class="fa-solid text-[7px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
+                                        <i class="fa-solid text-[6.5px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
                                         <span x-text="msg.vip_badge_label"></span>
                                     </span>
                                 </template>
 
                                 <!-- LEVEL -->
-                                <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
+                                <span class="px-1 py-0.5 leading-none rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[7.5px] font-black shrink-0">
                                     L<span x-text="msg.level"></span>
                                 </span>
 
                                 <!-- RESPECT -->
-                                <span class="px-1 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[8px] font-black flex items-center gap-0.5">
+                                <span class="px-1 py-0.5 leading-none rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[7.5px] font-black inline-flex items-center gap-0.5 shrink-0">
                                     <i class="fa-solid fa-fire text-amber-500 text-[7px]"></i>
                                     <span x-text="msg.respect"></span>
                                 </span>
 
                                 <!-- GANG TAG -->
                                 <template x-if="msg.gang_tag">
-                                    <span class="px-1 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[8px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                    <span class="px-1 py-0.5 leading-none rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[7.5px] font-black shrink-0" x-text="'[' + msg.gang_tag + ']'"></span>
                                 </template>
 
-                                <!-- TIME -->
-                                <span class="text-slate-400 text-[9px]" x-text="msg.time"></span>
+                                <!-- TIME & ACTIONS -->
+                                <span class="inline-flex items-center gap-1 shrink-0">
+                                    <span class="text-slate-400 text-[8.5px]" x-text="msg.time"></span>
 
-                                <!-- REAGEER KNOP -->
-                                <button type="button" @click="setReplyTo(msg)" title="Reageer op dit bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
-                                    <i class="fa-solid fa-reply"></i>
-                                </button>
-
-                                <!-- MODERATOR / AUTHOR DELETE -->
-                                <template x-if="canModerate || msg.is_me">
-                                    <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <!-- REAGEER KNOP -->
+                                    <button type="button" @click="setReplyTo(msg)" title="Reageer op dit bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
+                                        <i class="fa-solid fa-reply"></i>
                                     </button>
-                                </template>
 
-                                <!-- REPORT -->
-                                <template x-if="!msg.is_me">
-                                    <button type="button" @click="window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message })" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer" title="Rapporteer">
-                                        <i class="fa-solid fa-flag"></i>
-                                    </button>
-                                </template>
+                                    <!-- MODERATOR / AUTHOR DELETE -->
+                                    <template x-if="canModerate || msg.is_me">
+                                        <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </template>
+
+                                    <!-- REPORT -->
+                                    <template x-if="!msg.is_me">
+                                        <button type="button" @click="window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message })" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer" title="Rapporteer">
+                                            <i class="fa-solid fa-flag"></i>
+                                        </button>
+                                    </template>
+                                </span>
                             </div>
 
                             <!-- Reply Quote Bubble (if replied) -->
                             <template x-if="msg.reply_to_name">
-                                <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
-                                    <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
+                                <div class="w-fit max-w-full inline-flex items-center gap-1.5 text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 min-w-0"
+                                     :class="msg.is_me ? 'ml-auto' : ''">
+                                    <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400 shrink-0"></i>
                                     <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
-                                    <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
+                                    <span class="truncate min-w-0 opacity-75 italic" x-text="msg.reply_to_snippet"></span>
                                 </div>
                             </template>
 
                             <!-- Message Bubble & Heart Reaction -->
                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
                                      :class="msg.is_me 
                                         ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                         : (msg.is_owner 
@@ -691,9 +694,9 @@
                                          onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                 </button>
 
-                                <div class="max-w-[84%] min-w-0 space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
+                                <div class="max-w-[88%] min-w-0 space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
                                     <!-- Sender Meta -->
-                                    <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
+                                    <div class="flex items-center gap-1 text-[10px] leading-tight font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
                                         <span class="font-extrabold hover:underline cursor-pointer"
                                               :class="msg.name_classes ? msg.name_classes : (msg.is_vip ? 'text-amber-500 dark:text-amber-400' : 'text-slate-900 dark:text-white')"
                                               :style="msg.name_style || (msg.name_color && !msg.has_sparkle ? 'color: ' + msg.name_color : '')"
@@ -705,45 +708,48 @@
                                         </template>
 
                                         <template x-if="msg.is_vip && msg.vip_badge_label">
-                                            <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
+                                            <span class="px-1 py-0.5 leading-none rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
                                                   :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
                                                   :title="msg.vip_badge_full || 'VIP Lid'">
-                                                <i class="fa-solid text-[7px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
+                                                <i class="fa-solid text-[6.5px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
                                                 <span x-text="msg.vip_badge_label"></span>
                                             </span>
                                         </template>
 
-                                        <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
+                                        <span class="px-1 py-0.5 leading-none rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[7.5px] font-black shrink-0">
                                             L<span x-text="msg.level"></span>
                                         </span>
 
-                                        <span class="text-slate-400 text-[9px]" x-text="msg.time"></span>
+                                        <span class="inline-flex items-center gap-1 shrink-0">
+                                            <span class="text-slate-400 text-[8.5px]" x-text="msg.time"></span>
 
-                                        <!-- Reageer -->
-                                        <button type="button" @click="setReplyTo(msg)" title="Reageer" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
-                                            <i class="fa-solid fa-reply"></i>
-                                        </button>
-
-                                        <!-- Moderator/Leader/Author Delete -->
-                                        <template x-if="canModerate || msg.is_me">
-                                            <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
-                                                <i class="fa-solid fa-trash-can"></i>
+                                            <!-- Reageer -->
+                                            <button type="button" @click="setReplyTo(msg)" title="Reageer" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                <i class="fa-solid fa-reply"></i>
                                             </button>
-                                        </template>
+
+                                            <!-- Moderator/Leader/Author Delete -->
+                                            <template x-if="canModerate || msg.is_me">
+                                                <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </template>
+                                        </span>
                                     </div>
 
                                     <!-- Reply Quote -->
                                     <template x-if="msg.reply_to_name">
-                                        <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
-                                            <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
+                                        <div class="w-fit max-w-full inline-flex items-center gap-1.5 text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 min-w-0"
+                                             :class="msg.is_me ? 'ml-auto' : ''">
+                                            <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400 shrink-0"></i>
                                             <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
-                                            <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
+                                            <span class="truncate min-w-0 opacity-75 italic" x-text="msg.reply_to_snippet"></span>
                                         </div>
                                     </template>
 
                                     <!-- Bubble & Heart -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                        <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
                                              :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left'"
                                              x-html="formatMessage(msg.message, msg.is_me)"></div>
 
@@ -1037,7 +1043,7 @@
                                             <i class="fa-solid fa-award"></i>
                                             <span x-text="'Level ' + dm.metadata?.level + ' Bereikt!'"></span>
                                         </div>
-                                        <p class="text-[11px] break-words [overflow-wrap:anywhere]" x-text="dm.message"></p>
+                                        <p class="text-[11px] leading-snug break-words" x-text="dm.message"></p>
                                     </div>
                                 </template>
 
@@ -1051,7 +1057,7 @@
                                             </span>
                                             <span class="text-slate-400 dark:text-slate-500 font-mono text-[9px]" x-text="dm.time"></span>
                                         </div>
-                                        <div class="text-[11px] leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-line text-slate-800 dark:text-slate-200" x-html="formatMessage(dm.message, false)"></div>
+                                        <div class="text-[11px] leading-snug break-words whitespace-pre-line text-slate-800 dark:text-slate-200" x-html="formatMessage(dm.message, false)"></div>
                                     </div>
                                 </template>
 
@@ -1075,30 +1081,31 @@
                                                  onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                         </template>
 
-                                        <div class="max-w-[82%] min-w-0 space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                        <div class="max-w-[88%] min-w-0 space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
                                             <!-- Sender Meta: Name, Level, Time -->
-                                            <div class="flex items-center gap-1.5 text-[10px] font-bold flex-wrap mb-0.5 min-w-0 max-w-full" :class="dm.is_me ? 'justify-end' : ''">
+                                            <div class="flex items-center gap-1.5 text-[10px] leading-tight font-bold flex-wrap mb-0.5 min-w-0 max-w-full" :class="dm.is_me ? 'justify-end' : ''">
                                                 <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.is_me ? myName : (activeDirectPartner?.name || 'Inmate')"></span>
                                                 <template x-if="!dm.is_me && activeDirectPartner && activeDirectPartner.level">
-                                                    <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
+                                                    <span class="px-1 py-0.5 leading-none rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[7.5px] font-black shrink-0">
                                                         L<span x-text="activeDirectPartner.level"></span>
                                                     </span>
                                                 </template>
-                                                <span class="text-slate-400 text-[9px]" x-text="dm.time"></span>
+                                                <span class="text-slate-400 text-[8.5px]" x-text="dm.time"></span>
                                             </div>
 
                                             <!-- Reply Quote if any -->
                                             <template x-if="dm.reply_to_name">
-                                                <div class="text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
-                                                    <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400"></i>
+                                                <div class="w-fit max-w-full inline-flex items-center gap-1.5 text-[10px] text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-500 dark:border-purple-400 mb-1 min-w-0"
+                                                     :class="dm.is_me ? 'ml-auto' : ''">
+                                                    <i class="fa-solid fa-reply text-[8px] text-purple-600 dark:text-purple-400 shrink-0"></i>
                                                     <span class="font-extrabold text-purple-800 dark:text-purple-300 shrink-0" x-text="'@' + dm.reply_to_name"></span>
-                                                    <span class="truncate opacity-75 italic" x-text="dm.reply_to_snippet"></span>
+                                                    <span class="truncate min-w-0 opacity-75 italic" x-text="dm.reply_to_snippet"></span>
                                                 </div>
                                             </template>
 
                                             <!-- Bubble & Reactions -->
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                                <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                                <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
                                                      :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left'"
                                                      x-html="formatMessage(dm.message, dm.is_me)"></div>
 
@@ -1293,8 +1300,8 @@
                 <template x-for="(msg, i) in helpMessages" :key="i">
                     <div :class="msg.from === 'bot' ? 'flex flex-col items-start' : 'flex flex-col items-end'">
                         <div :class="msg.from === 'bot' ? 'bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 text-slate-800 dark:text-slate-100' : 'bg-purple-600 text-white font-medium'"
-                             class="rounded-2xl p-2.5 max-w-[88%] space-y-1.5 shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word]">
-                            <p class="whitespace-pre-line leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word]" x-text="msg.text"></p>
+                             class="rounded-xl px-2.5 py-2 max-w-[88%] space-y-1.5 shadow-2xs break-words min-w-0">
+                            <p class="whitespace-pre-line leading-snug break-words" x-text="msg.text"></p>
                             <template x-if="msg.links && msg.links.length > 0">
                                 <div class="pt-1 flex flex-wrap gap-1 border-t border-slate-100 dark:border-slate-700/60">
                                     <template x-for="lnk in msg.links">
@@ -1849,13 +1856,26 @@
                 const buildMentionPill = (username) => {
                     const url = '/speler/' + encodeURIComponent(username);
                     if (isMe) {
-                        return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                        return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-white/20 hover:bg-white/30 dark:hover:bg-white/30 text-white transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
                     } else {
-                        return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-500 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                        return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-500/20 dark:hover:bg-purple-500/30 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-500/30 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
                     }
                 };
 
-                // Supports Unicode letters (e.g. ë, é, ï, etc.), digits, hyphens, underscores and dots
+                // 1. Match known participant names (supports multi-word names in active streams)
+                const knownNamesSet = new Set();
+                if (this.myName) knownNamesSet.add(this.myName);
+                (this.publicMessages || []).forEach(m => { if (m && m.name) knownNamesSet.add(m.name); });
+                (this.gangMessages || []).forEach(m => { if (m && m.name) knownNamesSet.add(m.name); });
+                (this.directConversations || []).forEach(c => { if (c && c.name) knownNamesSet.add(c.name); });
+                if (knownNamesSet.size > 0) {
+                    const sortedNames = Array.from(knownNamesSet).sort((a, b) => b.length - a.length);
+                    const escapedPatterns = sortedNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+                    const knownRegex = new RegExp('@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])', 'gu');
+                    safe = safe.replace(knownRegex, (match, username) => buildMentionPill(username));
+                }
+
+                // 2. Supports Unicode letters (e.g. ë, é, ï, etc.), digits, hyphens, underscores and dots
                 const mentionRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
                 safe = safe.replace(mentionRegex, (match, username) => buildMentionPill(username));
 

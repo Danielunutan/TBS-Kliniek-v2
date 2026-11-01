@@ -212,7 +212,7 @@
 
                             <!-- Text Message -->
                             <template x-if="msg.text">
-                                <p class="text-slate-800 dark:text-slate-200 break-words leading-relaxed font-medium" x-html="formatChatMessage(msg.text)"></p>
+                                <p class="text-slate-800 dark:text-slate-200 break-words leading-snug font-medium" x-html="formatChatMessage(msg.text)"></p>
                             </template>
 
                             <!-- Animated GIF -->
@@ -538,7 +538,7 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
             const mentionRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
             safe = safe.replace(mentionRegex, (match, username) => {
                 const url = '/speler/' + encodeURIComponent(username);
-                return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
             });
 
             return safe;

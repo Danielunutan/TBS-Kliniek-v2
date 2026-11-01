@@ -170,7 +170,7 @@
                                 <span class="text-[10px] text-slate-400 whitespace-nowrap">{{ $shout->created_at->diffForHumans() }}</span>
                             </div>
 
-                            <p class="text-xs text-slate-700 dark:text-slate-200 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 leading-relaxed font-medium">
+                            <p class="text-xs text-slate-700 dark:text-slate-200 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 leading-snug break-words font-medium">
                                 "{{ $shout->message }}"
                             </p>
 
