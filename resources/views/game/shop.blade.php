@@ -362,10 +362,15 @@
                                 @csrf
                                 <input type="hidden" name="quantity" value="1">
                                 <button type="submit"
-                                        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider transition active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-sm">
+                                        :disabled="itemBuying[{{ $dailyDealItem->id }}]"
+                                        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-wider transition active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-sm">
                                     <i class="fa-solid fa-bolt"></i>
-                                    <span>Pak Dagdeal (€{{ number_format($ddDiscountedPrice, 0, ',', '.') }})</span>
+                                    <span x-text="itemBuying[{{ $dailyDealItem->id }}] ? 'Afrekenen...' : 'Pak Dagdeal (€{{ number_format($ddDiscountedPrice, 0, ',', '.') }})'">Pak Dagdeal (€{{ number_format($ddDiscountedPrice, 0, ',', '.') }})</span>
                                 </button>
+                                <div x-show="itemToast[{{ $dailyDealItem->id }}]" x-cloak
+                                     class="mt-1.5 text-[11px] font-bold text-right"
+                                     :class="itemToast[{{ $dailyDealItem->id }}]?.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+                                     x-text="itemToast[{{ $dailyDealItem->id }}]?.msg"></div>
                             </form>
                         </div>
                     </div>
@@ -747,7 +752,7 @@
                                          if (this.isRestrictedStat) {
                                              return this.isOnCooldown ? 0 : (this.maxByMoney >= 1 ? 1 : 0);
                                          }
-                                         return Math.max(0, Math.min(100, Math.min(this.maxByMoney, this.maxByStorage)));
+                                         return Math.max(0, Math.min(50, Math.min(this.maxByMoney, this.maxByStorage)));
                                      },
                                      setQty(amount) {
                                          if (this.isEquipment || this.isRestrictedStat) {

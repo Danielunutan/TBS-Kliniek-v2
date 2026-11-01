@@ -503,8 +503,10 @@ class PrisonController extends Controller
     /**
      * Attempt to break out another inmate using a selected tactical approach ('stil' or 'geweld').
      */
-    public function breakout(Request $request, string $id): RedirectResponse
+    public function breakout(Request $request, string $prisoner): RedirectResponse
     {
+        $id = $prisoner;
+
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
@@ -567,8 +569,11 @@ class PrisonController extends Controller
             $statBonusMsg = '';
             if (random_int(1, 100) <= $methodMeta['stat_chance']) {
                 $statField = $methodMeta['stat_type'];
-                $character->{$statField} = min($character->getMaxStatForLevel(), ($character->{$statField} ?? 10) + 1);
-                $statBonusMsg = $statField === 'intelligence' ? ' (+1 Intelligentie 🧠)' : ' (+1 Kracht 💪)';
+                $currentStatVal = (int) ($character->{$statField} ?? 10);
+                if ($currentStatVal < $character->getMaxStatForLevel()) {
+                    $character->{$statField} = min($character->getMaxStatForLevel(), $currentStatVal + 1);
+                    $statBonusMsg = $statField === 'intelligence' ? ' (+1 Intelligentie 🧠)' : ' (+1 Kracht 💪)';
+                }
             }
             $character->save();
 
@@ -615,7 +620,8 @@ class PrisonController extends Controller
         // FOUTE UITBRAAK: Kom zelf direct in de isoleercel!
         $jailSeconds = random_int($methodMeta['fail_min_sec'], $methodMeta['fail_max_sec']);
         $this->prisonService->jailSeconds($character, $jailSeconds, "Onderschept tijdens '{$methodMeta['name']}' bij cel van {$targetName}.");
+        $actualJailSeconds = max(1, $character->fresh()->remainingPrisonSeconds());
 
-        return redirect()->route('prison')->with('error', "Operatie '{$methodMeta['name']}' onderschept! Je zit {$jailSeconds} sec vast in isolatie nadat het interventieteam toesloeg. Verkort je straf via de stoomwasserij of gebruik Sterren ⭐!");
+        return redirect()->route('prison')->with('error', "Operatie '{$methodMeta['name']}' onderschept! Je zit {$actualJailSeconds} sec vast in isolatie nadat het interventieteam toesloeg. Verkort je straf via de stoomwasserij of gebruik Sterren ⭐!");
     }
 }

@@ -209,9 +209,10 @@ class SmuggleController extends Controller
         $validated = $request->validate([
             'order_id' => ['required', 'string', 'in:order_1,order_2,order_3'],
             'transport_mode' => ['nullable', 'string', 'in:sluiproute,koerier,stormloop'],
+            'transport_route' => ['nullable', 'string', 'in:sluiproute,koerier,stormloop'],
         ]);
 
-        $routeKey = $validated['transport_mode'] ?? 'sluiproute';
+        $routeKey = $validated['transport_mode'] ?? $validated['transport_route'] ?? 'sluiproute';
         $routeConfig = self::TRANSPORT_ROUTES[$routeKey] ?? self::TRANSPORT_ROUTES['sluiproute'];
 
         $orders = $this->getActiveOrders($character->id);

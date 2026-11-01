@@ -120,7 +120,7 @@ class ShopController extends Controller
      */
     public function getDailyDealItem(?Collection $items = null): ?Item
     {
-        $buyable = $items ?? Item::where('is_buyable', true)->get();
+        $buyable = ($items ?? Item::where('is_buyable', true)->orderBy('id')->get())->sortBy('id')->values();
         if ($buyable->isEmpty()) {
             return null;
         }

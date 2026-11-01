@@ -26,6 +26,9 @@ class PrisonService
             $seconds = (int) max(15, round($seconds * 0.75));
         }
 
+        $perks = is_array($character->perks) ? $character->perks : [];
+        unset($perks['prison_action_cooldown_until']);
+
         $character->update([
             'is_in_prison' => true,
             'prison_until' => now()->addSeconds($seconds),
@@ -33,6 +36,7 @@ class PrisonService
             'prison_sentences' => $character->prison_sentences + 1,
             'prison_escape_attempted' => false,
             'ad_prison_progress' => 0,
+            'perks' => $perks,
         ]);
 
         $timeLabel = $seconds >= 60 ? (round($seconds / 60, 1).' min ('.$seconds.' sec)') : ($seconds.' sec');

@@ -193,6 +193,7 @@ class DailyBattleService
             'slay' => 'slay',
             'respect' => 'slay',
             'hustles' => 'hustles',
+            'crimes' => 'hustles',
             'payments' => 'payments',
             'spent' => 'payments',
             'donations' => 'payments',
@@ -550,19 +551,21 @@ class DailyBattleService
             $topScores = DailyBattleScore::whereDate('battle_date', $battleDate)
                 ->where($col, '>', 0)
                 ->orderByDesc($col)
+                ->orderBy('id')
                 ->take(3)
                 ->with('character')
                 ->get();
 
             $winnersLog[$key] = [];
+            $rank = 0;
 
-            foreach ($topScores as $index => $scoreRecord) {
-                $rank = $index + 1;
+            foreach ($topScores as $scoreRecord) {
                 $char = $scoreRecord->character;
                 if (! $char) {
                     continue;
                 }
 
+                $rank++;
                 $reward = $cat['rewards'][$rank] ?? null;
                 if (! $reward) {
                     continue;
@@ -618,19 +621,27 @@ class DailyBattleService
         }
         $locked->save();
 
+        $typeLabel = match ($type) {
+            'stars' => 'Sterren ⭐',
+            'masks' => 'Bivakmutsen 🎭',
+            'xxl_cases' => 'XXL Koffers 🧳',
+            'vault_codes' => 'Kluiscodes 🔑',
+            default => $type,
+        };
+
         GameNotification::create([
             'character_id' => $character->id,
             'type' => 'battle_prize',
             'icon' => 'fa-bolt',
             'title' => "⚡ Etmaal-Escalatie Uitkering: Rang #{$rank} bij {$categoryTitle}",
-            'message' => "De klok is rond! Met jouw prestatie behaalde je positie #{$rank} binnen de sector '{$categoryTitle}'. Jouw premie ({$amount} {$type}) staat nu klaar op je account.",
+            'message' => "De klok is rond! Met jouw prestatie behaalde je positie #{$rank} binnen de sector '{$categoryTitle}'. Jouw premie ({$amount} {$typeLabel}) staat nu klaar op je account.",
         ]);
 
         GameMessage::create([
             'recipient_id' => $character->id,
             'sender_name' => 'Kliniek Escalatie-Tribunaal',
             'subject' => "⚡ Eindafrekening Etmaal-Protocol: Rang #{$rank} ({$categoryTitle})",
-            'content' => "Gedetineerde {$character->name},\n\nHet afgelopen etmaal is afgesloten en de balans is opgemaakt. Binnen de discipline **{$categoryTitle}** heb jij **Klassering #{$rank}** weten te bemachtigen.\n\nDe bijbehorende buit ({$amount} {$type}) is direct aan je inventaris of saldo gekoppeld.\n\nKies vandaag opnieuw je Focus-Sector en verdedig je positie!",
+            'content' => "Gedetineerde {$character->name},\n\nHet afgelopen etmaal is afgesloten en de balans is opgemaakt. Binnen de discipline **{$categoryTitle}** heb jij **Klassering #{$rank}** weten te bemachtigen.\n\nDe bijbehorende buit ({$amount} {$typeLabel}) is direct aan je inventaris of saldo gekoppeld.\n\nKies vandaag opnieuw je Focus-Sector en verdedig je positie!",
             'type' => 'system',
         ]);
     }

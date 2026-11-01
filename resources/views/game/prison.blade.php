@@ -158,10 +158,10 @@
                                     {{ $index + 1 }}
                                 </div>
                                 <a href="{{ route('profile.show', $tb->name) }}" class="flex items-center gap-2.5 truncate group">
-                                    <div class="{{ $tb->avatar_border_class }} rounded-full shrink-0">
+                                    <div class="{{ $tb->getAvatarBorderClasses() }} rounded-full shrink-0">
                                         <img src="{{ $tb->avatar_url }}" class="w-7 h-7 rounded-full object-cover border border-white/15">
                                     </div>
-                                    <span class="{{ $tb->name_color_class }} font-bold text-xs group-hover:underline truncate">{{ $tb->name }}</span>
+                                    <span class="font-bold text-xs group-hover:underline truncate {{ $tb->isVip() && !$tb->getCustomNameColor() ? 'text-amber-300' : 'text-white' }}" @if($tb->getCustomNameColor()) style="color: {{ $tb->getCustomNameColor() }}" @endif>{{ $tb->name }}</span>
                                     @if($tb->isVip())
                                         <i class="fa-solid fa-gem text-cyan-400 text-[10px]"></i>
                                     @endif
@@ -385,7 +385,7 @@
                 <div class="px-5 py-4 border-b border-white/10 bg-[#151d30] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
-                            <i class="fa-solid fa-Border-all text-sm"></i>
+                            <i class="fa-solid fa-border-all text-sm"></i>
                         </div>
                         <div>
                             <h2 class="text-sm font-black uppercase tracking-wider text-white">Actieve Celdossiers in Sector Z-04</h2>
@@ -424,12 +424,12 @@
                                             <div class="flex items-center gap-3 min-w-0">
                                                 @if($rpModel)
                                                     <a href="{{ route('profile.show', $rpModel->name) }}" class="shrink-0">
-                                                        <div class="{{ $rpModel->avatar_border_class }} rounded-full">
+                                                        <div class="{{ $rpModel->getAvatarBorderClasses() }} rounded-full">
                                                             <img src="{{ $inmate['avatar'] }}" alt="{{ $inmate['name'] }}" class="w-11 h-11 rounded-full object-cover border border-white/15">
                                                         </div>
                                                     </a>
                                                     <div class="min-w-0">
-                                                        <a href="{{ route('profile.show', $rpModel->name) }}" class="{{ $rpModel->name_color_class }} font-black text-sm hover:underline truncate block">
+                                                        <a href="{{ route('profile.show', $rpModel->name) }}" class="font-black text-sm hover:underline truncate block {{ $rpModel->isVip() && !$rpModel->getCustomNameColor() ? 'text-amber-300' : 'text-white' }}" @if($rpModel->getCustomNameColor()) style="color: {{ $rpModel->getCustomNameColor() }}" @endif>
                                                             {{ $inmate['name'] }}
                                                         </a>
                                                         <span class="text-[11px] text-gray-400 block truncate">
@@ -477,7 +477,7 @@
                                     <!-- Formulier met Tactiek-Keuze (Stil vs Geweld) -->
                                     <form action="{{ route('prison.breakout', $inmate['id']) }}" method="POST" class="space-y-2.5 pt-2 border-t border-white/10">
                                         @csrf
-                                        <input type="hidden" name="method" :value="selectedMethod">
+                                        <input type="hidden" name="method" value="stil" :value="selectedMethod">
 
                                         <div class="grid grid-cols-2 gap-2">
                                             <button type="button"
@@ -542,11 +542,11 @@
                     <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 {{ $idx === 0 ? 'bg-amber-500 text-black' : ($idx === 1 ? 'bg-gray-300 text-black' : ($idx === 2 ? 'bg-amber-700 text-white' : 'bg-white/10 text-gray-400')) }}">
                         #{{ $idx + 1 }}
                     </div>
-                    <div class="{{ $ranked->avatar_border_class }} rounded-full shrink-0">
+                    <div class="{{ $ranked->getAvatarBorderClasses() }} rounded-full shrink-0">
                         <img src="{{ $ranked->avatar_url }}" alt="{{ $ranked->name }}" class="w-9 h-9 rounded-full object-cover border border-white/15">
                     </div>
                     <div class="min-w-0">
-                        <div class="{{ $ranked->name_color_class }} text-xs font-black truncate">{{ $ranked->name }}</div>
+                        <div class="text-xs font-black truncate {{ $ranked->isVip() && !$ranked->getCustomNameColor() ? 'text-amber-300' : 'text-white' }}" @if($ranked->getCustomNameColor()) style="color: {{ $ranked->getCustomNameColor() }}" @endif>{{ $ranked->name }}</div>
                         <div class="text-[10px] text-gray-400">Lvl {{ $ranked->level }} • {{ number_format($ranked->respect) }} Resp</div>
                     </div>
                 </a>
@@ -580,6 +580,14 @@ function prisonPageController(config) {
                         window.location.reload();
                     }
                 }
+                document.querySelectorAll('[data-inmate-timer]').forEach((el) => {
+                    let s = parseInt(el.getAttribute('data-inmate-timer') || '0', 10);
+                    if (s > 0) {
+                        s--;
+                        el.setAttribute('data-inmate-timer', String(s));
+                        el.innerHTML = '<i class="fa-regular fa-clock mr-1"></i>' + this.formatTime(s);
+                    }
+                });
             }, 1000);
         },
 
@@ -595,7 +603,12 @@ function prisonPageController(config) {
         },
 
         watchAdForFreedom() {
-            if (typeof window.openSponsorVideoModal === 'function') {
+            if (typeof window.tbsOpenSponsorAd === 'function') {
+                this.watchingAd = true;
+                window.tbsOpenSponsorAd('prison', () => {
+                    window.location.reload();
+                });
+            } else if (typeof window.openSponsorVideoModal === 'function') {
                 this.watchingAd = true;
                 window.openSponsorVideoModal('prison', () => {
                     window.location.reload();

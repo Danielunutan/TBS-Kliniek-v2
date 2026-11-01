@@ -35,19 +35,19 @@ Hieronder vind je een compleet en gedetailleerd overzicht van alles wat er is ve
 
 ### 🔥 1. 24 Uur Battle — Klinische Etmaal-Escalatie
 De [url=/24-uur-battle]24 Uur Battle[/url] is getransformeerd naar het **Klinische Etmaal-Escalatie** systeem met drie grote vernieuwingen:
-- **Dagelijkse Focus-Overdrive (1.5x / 2.0x Multiplier):** Kies elke dag één van de 4 disciplines (*Zwartgeld & Vermogen*, *Straatgezag & Eerbetoon*, *Buit & Zendingen* of *Celblok-Kraken*) als jouw primaire **Dagfocus**. Op die discipline ontvang je de hele dag **1.5x score-opbouw**!
+- **Dagelijkse Focus-Overdrive (1.5x / 2.0x Multiplier):** Kies elke dag één van de **7 disciplines** (*Straatgezag & Eerbetoon*, *Kleine Vergrijpen & Ritselwerk*, *Financiële Transacties*, *Celblok-Bevrijdingen*, *Laboratorium-Synthese*, *Zwarte-Markt Afzet* of *Eliminaties & Afrekeningen*) als jouw primaire **Dagfocus**. Op die discipline ontvang je de hele dag **1.5x score-opbouw**!
 - **Klinisch Spitsuur (12:00–14:00 & 20:00–22:00):** Tijdens de wisseling van de wacht schiet je gekozen Focus-discipline automatisch naar **2.0x Overdrive**!
-- **Persoonlijke Escalatie-Punten (EP) & 3 Mijlpaal-Kisten:** Elke actie levert nu gewogen **Escalatie-Punten (EP)** op, zelfs als je niet in de top 5 staat. Bereik **100 EP** (*Kist I: € 25.000 + 25 Energie*), **350 EP** (*Kist II: € 75.000 + 15 Sterren ⭐ + 15 Respect*) en **900 EP** (*Kist III: € 200.000 + 35 Sterren ⭐ + 1 Verzegelde Koffer*) en claim je beloningen direct op de pagina!
+- **Persoonlijke Escalatie-Punten (EP) & 3 Mijlpaal-Kisten:** Elke actie levert nu gewogen **Escalatie-Punten (EP)** op, zelfs als je niet in de top 5 staat. Bereik **100 EP** (*Kist I: € 15.000 + 2 Bivakmutsen 🎭*), **350 EP** (*Kist II: € 45.000 + 5 Bivakmutsen 🎭 + 5 Sterren ⭐*) en **900 EP** (*Kist III: € 100.000 + 10 Sterren ⭐ + 1 XXL Koffer 🧳*) en claim je beloningen direct op de pagina!
 - **Nieuw Eretribune-Podium:** Elke categorie toont nu een visueel Top-3 eretribune-podium én een persoonlijke voortgangsbalk richting de top 5.
 
 ---
 
 ### 🌿 2. Dealen & Smokkel — Contrabande-Lab & Koeriersnetwerk
 Het [url=/smokkelen]Smokkelen & Dealen[/url] scherm is vernieuwd naar een interactief laboratorium- en logistiekdashboard:
-- **Kies je Tactische Transportroute:** Bij elke verkoop aan een afdelingskooper kies je nu zelf hoe je de waar aflevert:
-- **Ondergrondse Sluiproute:** **100% veilig**, reguliere uitbetaling (`1.00x`) zonder onderscheppingsrisico.
-- **Gepantserde Koerier:** **85% slaagkans**, levert **+15% zwarte-marktpremie (`1.15x`)** én **+2 Respect** op (bij onderschepping gaat 50% van de zending verloren).
-- **Brute Stormloop:** **70% slaagkans**, levert **+25% toppremie (`1.25x`)**, **+5 Respect** én **+25% extra XP** op (bij onderschepping wordt de volledige lading in beslag genomen).
+- **Kies je Tactische Transportroute:** Bij elke verkoop aan een afdelingskoper kies je nu zelf hoe je de waar aflevert:
+- **Ondergrondse Sluiproute:** **100% veilig**, reguliere uitbetaling (**1.00x**) zonder onderscheppingsrisico.
+- **Gepantserde Koerier:** **85% slaagkans**, levert **+15% zwarte-marktpremie (1.15x)** én **+2 Respect** op (bij onderschepping gaat 50% van de zending verloren).
+- **Brute Stormloop:** **70% slaagkans**, levert **+25% toppremie (1.25x)**, **+5 Respect** én **+25% extra XP** op (bij onderschepping wordt de volledige lading in beslag genomen).
 - **Interactieve Slider & Opslagsilo's:** Bepaal met een live schuifregelaar exact hoeveel stuks je verhandelt en zie direct je verwachte contante opbrengst per transportroute.
 
 ---
@@ -56,21 +56,21 @@ Het [url=/smokkelen]Smokkelen & Dealen[/url] scherm is vernieuwd naar een intera
 Op de pagina [url=/pakketjes]Koffers & Pakketjes[/url] heb je voortaan volledige controle over hoe je buitgemaakte koffers openbreekt:
 - **Kies uit 3 Visuele Kisten:** Selecteer voor het kraken **Kist Alpha**, **Kist Beta** of **Kist Omega** in het Kraak-Laboratorium.
 - **3 Kraak-Methodes met Risico & Beloning:**
-- **Precisie-Ontgrendeling:** **100% veilig**, garandeert `1.00x` standaard bankbuit en intacte inhoud.
-- **Thermische Lans:** **75% kans** op een schone snede met **+35% extra bankgeld (`1.35x`)**; bij oververhitting (25%) blijft `0.40x` restwaarde over.
-- **Hydraulisch Forceren:** **60% kans** op een voltreffer met **+75% extra bankgeld (`1.75x`)** én verhoogde kans op een **Kluiscode of Sterren ⭐**; bij een verfpatroon-explosie (40%) blijft slechts `0.15x` restwaarde over.
+- **Precisie-Ontgrendeling:** **100% veilig**, garandeert **1.00x** standaard bankbuit en intacte inhoud.
+- **Thermische Lans:** **75% kans** op een schone snede met **+35% extra bankgeld (1.35x)**; bij oververhitting (25%) blijft **0.40x** restwaarde over.
+- **Hydraulisch Forceren:** **60% kans** op een voltreffer met **+75% extra bankgeld (1.75x)** én verhoogde kans op een **Kluiscode of Sterren ⭐**; bij een verfpatroon-explosie (40%) blijft slechts **0.15x** restwaarde over.
 - **Nieuwe Indeling:** De 5 goederensluis-doelwitten staan nu overzichtelijk bovenaan, gevolgd door het Kraak-Laboratorium en een forensische tijdlijn van de laatste onderscheppingen.
 
 ---
 
 ### 🧤 4. Zakkenrollen — Vingervlugheid & Corridor-Observatie
 [url=/zakkenrollen]Zakkenrollen[/url] is uitgebreid met een dynamische **Vleugel-Alertheid Meter** en drie gespecialiseerde greep-technieken:
-- **Vleugel-Alertheid (0%–100%) & Wachtpatroon Observeren:** Elke zakkenrolpoging verhoogt de waakzaamheid op de gang (en een mislukking laat deze flink stijgen). Is de alertheid laag (`≤ 25%`), dan krijg je **+6% extra slaagkans**; bij hoge alertheid (`≥ 70%`) daalt je kans met **-8%**.
+- **Vleugel-Alertheid (0%–100%) & Wachtpatroon Observeren:** Elke zakkenrolpoging verhoogt de waakzaamheid op de gang (en een mislukking laat deze flink stijgen). Is de alertheid laag (**≤ 25%**), dan krijg je **+6% extra slaagkans**; bij hoge alertheid (**≥ 70%**) daalt je kans met **-8%**.
 - **Nieuwe Actie — Observeren (2 Energie):** Verken de wachtposten om de **Vleugel-Alertheid direct met 25% te verlagen** én een **+5% Verkennings-Bonus** te activeren op je eerstvolgende greep!
 - **3 Vingervlugheid-Technieken:**
-- **Schaduwgreep:** **+8% extra slaagkans**, voorzichtige greep (`0.90x` contante buit).
-- **Afleidingsmanoeuvre:** **Standaard slaagkans**, volledige buit (`1.00x`) en **+15% extra XP**.
-- **Bliksemgreep:** **-6% slaagkans**, maar **+35% extra contante buit (`1.35x`)** én **+1 Respect** bij succes!
+- **Schaduwgreep:** **+8% extra slaagkans**, voorzichtige greep (**0.90x** contante buit).
+- **Afleidingsmanoeuvre:** **Standaard slaagkans**, volledige buit (**1.00x**) en **+15% extra XP**.
+- **Bliksemgreep:** **-6% slaagkans**, maar **+35% extra contante buit (1.35x)** én **+1 Respect** bij succes!
 
 ---
 
@@ -143,13 +143,17 @@ MARKDOWN;
                 $chatMessageText = "⚡ **[GROTE GAMEPLAY-UPDATE LIVE]**: 6 kliniek-onderdelen (**24 Uur Battle, Smokkelen, Pakketjes, Zakkenrollen, Winkel & Gevangenis**) zijn zojuist compleet vernieuwd met nieuwe tactieken, mijlpaal-kisten, dagdeals en strafverkorting! Lees het volledige overzicht in het nieuwsbericht: {$newsUrl}";
 
                 foreach (['global', 'algemeen'] as $ch) {
-                    ChatMessage::create([
-                        'character_id' => $senderChar->id,
-                        'channel' => $ch,
-                        'message' => $chatMessageText,
-                        'hearts_count' => 0,
-                        'hearts_users' => [],
-                    ]);
+                    ChatMessage::firstOrCreate(
+                        [
+                            'character_id' => $senderChar->id,
+                            'channel' => $ch,
+                            'message' => $chatMessageText,
+                        ],
+                        [
+                            'hearts_count' => 0,
+                            'hearts_users' => [],
+                        ]
+                    );
                     Cache::forget("chat_last_id_{$ch}");
                 }
             } catch (Throwable) {

@@ -279,9 +279,9 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Smuggle (Dealen/Produceren)
     Route::get('/smokkelen', [SmuggleController::class, 'index'])->name('smuggle.index');
-    Route::post('/smokkelen/produceren', [SmuggleController::class, 'produce'])->name('smuggle.produce');
-    Route::post('/smokkelen/verkopen', [SmuggleController::class, 'sell'])->name('smuggle.sell');
-    Route::post('/smokkelen/weigeren', [SmuggleController::class, 'reject'])->name('smuggle.reject');
+    Route::post('/smokkelen/produceren', [SmuggleController::class, 'produce'])->name('smuggle.produce')->middleware('throttle:30,1');
+    Route::post('/smokkelen/verkopen', [SmuggleController::class, 'sell'])->name('smuggle.sell')->middleware('throttle:30,1');
+    Route::post('/smokkelen/weigeren', [SmuggleController::class, 'reject'])->name('smuggle.reject')->middleware('throttle:30,1');
     Route::post('/smokkelen/cooldown-overslaan', [CooldownController::class, 'skip'])->name('smuggle.skip-cooldown');
 
     // Functie 2: Tennisbal & Drone Droppings
@@ -339,7 +339,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/24-uur-battle', [DailyBattleController::class, 'index'])->name('battle.index');
     Route::get('/24-uur-battle/categorie/{category}', [DailyBattleController::class, 'categoryDetails'])->name('battle.category');
     Route::post('/24-uur-battle/focus', [DailyBattleController::class, 'selectFocus'])->name('battle.focus')->middleware('throttle:20,1');
-    Route::post('/24-uur-battle/mijlpaal/{tier}', [DailyBattleController::class, 'claimMilestone'])->name('battle.milestone')->middleware('throttle:20,1');
+    Route::post('/24-uur-battle/mijlpaal/{tier}', [DailyBattleController::class, 'claimMilestone'])->whereNumber('tier')->name('battle.milestone')->middleware('throttle:20,1');
 
     // Rad van Fortuin & Dagelijkse Beloningen
     Route::get('/rad-van-fortuin', [DailyRewardController::class, 'index'])->name('daily.index');

@@ -421,8 +421,12 @@ class PackageController extends Controller
      */
     public function sellBag(Request $request): RedirectResponse
     {
+        $validated = $request->validate([
+            'amount' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
         $user = Auth::user();
-        $amount = max(1, min(100, (int) $request->input('amount', 1)));
+        $amount = max(1, min(100, (int) ($validated['amount'] ?? 1)));
 
         return DB::transaction(function () use ($user, $amount) {
             /** @var Character $character */

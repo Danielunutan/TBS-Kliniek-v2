@@ -231,7 +231,7 @@
                                 <form action="{{ route('smuggle.sell') }}" method="POST" class="flex-1">
                                     @csrf
                                     <input type="hidden" name="order_id" value="{{ $order['id'] }}">
-                                    <input type="hidden" name="transport_mode" :value="activeRoute.key">
+                                    <input type="hidden" name="transport_mode" value="sluiproute" :value="activeRoute.key">
                                     <button type="submit"
                                             @if(!$order['can_fulfill'] || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                             class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2">

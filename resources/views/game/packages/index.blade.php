@@ -282,8 +282,8 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <form action="{{ route('packages.open-bag') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="crack_method" :value="selectedMethod">
-                            <input type="hidden" name="chest_slot" :value="selectedChest">
+                            <input type="hidden" name="crack_method" value="precisie" :value="selectedMethod">
+                            <input type="hidden" name="chest_slot" value="1" :value="selectedChest">
                             <button type="submit"
                                     {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
                                     class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2">
@@ -294,7 +294,7 @@
 
                         <form action="{{ route('packages.open-bag-all') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="crack_method" :value="selectedMethod">
+                            <input type="hidden" name="crack_method" value="precisie" :value="selectedMethod">
                             <button type="submit"
                                     {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
                                     class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2">
@@ -417,7 +417,7 @@
                     <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
                         <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
                             <span class="font-bold text-indigo-600 dark:text-indigo-400">Registratie #{{ 150000 + $log->id }}</span>
-                            <span>{{ $log->created_at->format('d-m-Y H:i') }}</span>
+                            <span>{{ $log->created_at?->format('d-m-Y H:i') }}</span>
                         </div>
                         <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
                             {{ $log->loot_summary }}

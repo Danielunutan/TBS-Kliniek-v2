@@ -292,7 +292,7 @@
                             <form action="{{ route('pickpocket.steal') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="action_id" value="{{ $action['id'] }}">
-                                <input type="hidden" name="technique" :value="selectedTech">
+                                <input type="hidden" name="technique" value="schaduw" :value="selectedTech">
                                 <button type="submit"
                                         :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
                                         {{ $isDisabled ? 'disabled' : '' }}
