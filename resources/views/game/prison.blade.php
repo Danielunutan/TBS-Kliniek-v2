@@ -23,6 +23,18 @@ window.prisonPageController = function prisonPageController(config) {
         reduceCooldownSecs: config.reduceCooldownSecs || 0,
         watchingAd: false,
         timerInterval: null,
+        feedbackMessage: config.initialMessage || '',
+        feedbackType: config.initialType || 'info',
+
+        init() {
+            this.startCountdown();
+            window.addEventListener('tbs-action-feedback', (e) => {
+                if (e.detail && e.detail.message) {
+                    this.feedbackMessage = e.detail.message;
+                    this.feedbackType = e.detail.type || 'info';
+                }
+            });
+        },
 
         startCountdown() {
             this.timerInterval = setInterval(() => {
@@ -79,8 +91,10 @@ window.prisonPageController = function prisonPageController(config) {
     adsProgress: {{ $adsProgress }},
     adsRequired: {{ $adsRequired }},
     escapeAttempted: {{ ($character->prison_escape_attempted ?? false) ? 'true' : 'false' }},
-    reduceCooldownSecs: {{ max(0, (int) $prisonActionCooldownRemaining) }}
-})" x-init="startCountdown()">
+    reduceCooldownSecs: {{ max(0, (int) $prisonActionCooldownRemaining) }},
+    initialMessage: @js(session('success') ?? session('status') ?? session('error') ?? (isset($errors) && $errors->any() ? $errors->first() : session('info')) ?? ''),
+    initialType: @js(session('success') || session('status') ? 'success' : (session('error') || (isset($errors) && $errors->any()) ? 'error' : 'info'))
+})" x-init="init()">
 
     <!-- BOVENSTE TELEMETRIE BANNER -->
     <div class="relative rounded-2xl overflow-hidden border border-red-500/30 bg-[#0d111a] shadow-2xl">
@@ -148,6 +162,30 @@ window.prisonPageController = function prisonPageController(config) {
                     <span class="text-gray-300 block mt-0.5">Zit je zelf in de isoleercel? Dan verschijnt bovenaan direct het rode <strong>Zelf Uitbreken &amp; Ontsnappen</strong> paneel (Luchtschacht-Uitbraak, Stoomwasserij of Omkopen).</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- REALTIME ACTIE- & STATUSFEEDBACK BANNER -->
+    <div x-show="feedbackMessage" x-cloak class="transition-all duration-300">
+        <div class="p-4 rounded-2xl border shadow-2xl flex items-start justify-between gap-3.5"
+             :class="feedbackType === 'error' ? 'bg-red-950/75 border-red-500/60 text-red-200' : (feedbackType === 'success' ? 'bg-emerald-950/75 border-emerald-500/60 text-emerald-200' : 'bg-cyan-950/75 border-cyan-500/60 text-cyan-200')">
+            <div class="flex items-start gap-3.5">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                     :class="feedbackType === 'error' ? 'bg-red-500/20 text-red-400 border border-red-500/40' : (feedbackType === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40')">
+                    <i class="fa-solid text-xl"
+                       :class="feedbackType === 'error' ? 'fa-triangle-exclamation animate-bounce' : (feedbackType === 'success' ? 'fa-circle-check animate-pulse' : 'fa-circle-info')"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-black uppercase tracking-wider mb-0.5"
+                         :class="feedbackType === 'error' ? 'text-red-400' : (feedbackType === 'success' ? 'text-emerald-400' : 'text-cyan-400')"
+                         x-text="feedbackType === 'error' ? 'Gevangenis Melding — Mislukt' : (feedbackType === 'success' ? 'Gevangenis Melding — Geslaagd' : 'Gevangenis Bericht')">
+                    </div>
+                    <p class="text-xs md:text-sm font-bold leading-relaxed" x-text="feedbackMessage"></p>
+                </div>
+            </div>
+            <button type="button" @click="feedbackMessage = ''" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition" title="Sluiten">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
         </div>
     </div>
 
@@ -513,6 +551,17 @@ window.prisonPageController = function prisonPageController(config) {
                                     </div>
                                     <div class="text-[11px] font-bold text-emerald-400 mt-1">{{ $actMeta['subtitle'] }}</div>
                                     <p class="text-[11px] text-gray-400 mt-1 leading-relaxed">{{ $actMeta['description'] }}</p>
+                                    @if($actKey === 'wasserij')
+                                        <div class="mt-2 text-[10px] font-bold text-gray-400 flex items-center justify-between">
+                                            <span>Jouw Energie:</span>
+                                            <span class="{{ ($character->energy ?? 0) >= 10 ? 'text-cyan-300' : 'text-red-400' }}">{{ $character->energy ?? 0 }} / 10 ⚡</span>
+                                        </div>
+                                    @else
+                                        <div class="mt-2 text-[10px] font-bold text-gray-400 flex items-center justify-between">
+                                            <span>Jouw Contant Geld:</span>
+                                            <span class="{{ ($character->cash ?? 0) >= 25000 ? 'text-amber-300' : 'text-red-400' }}">€{{ number_format($character->cash ?? 0, 0, ',', '.') }} / €25.000</span>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <button type="submit"
@@ -700,6 +749,12 @@ window.prisonPageController = function prisonPageController(config) {
                                                 </span>
                                             @endif
                                         </button>
+                                        @if(!$isImprisoned && !$character->isComatose())
+                                            <div class="flex items-center justify-between text-[10px] text-gray-400 font-medium px-1 pt-1">
+                                                <span>Vereist: <strong class="text-white">15 ⚡</strong></span>
+                                                <span>Jouw Energie: <strong class="{{ ($character->energy ?? 0) >= 15 ? 'text-emerald-400' : 'text-red-400' }}">{{ $character->energy ?? 0 }} ⚡</strong></span>
+                                            </div>
+                                        @endif
                                         @if($isImprisoned)
                                             <p class="text-[10px] text-gray-500 text-center font-medium">
                                                 Breek eerst jezelf hierboven uit om andere patiënten te kunnen bevrijden.

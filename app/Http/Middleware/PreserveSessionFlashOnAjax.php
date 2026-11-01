@@ -102,7 +102,8 @@ class PreserveSessionFlashOnAjax
                 }
 
                 // Persist to bulletproof cache store for traditional full-page redirects.
-                // For in-app AJAX actions (isAction), the flash is delivered directly in the JSON payload!
+                // For in-app AJAX actions (isAction), the flash is delivered directly in the JSON payload
+                // unless navigating away to another route.
                 if (! $isAction) {
                     if ($successMsg) {
                         app(FlashNotificationService::class)->store($identifier, 'success', (string) $successMsg);
@@ -113,8 +114,6 @@ class PreserveSessionFlashOnAjax
                         $session->put('tbs_flash_error', $errorMsg);
                         $session->put('tbs_flash_time', now()->timestamp);
                     }
-                } else {
-                    $session->forget(['tbs_flash_success', 'tbs_flash_error', 'tbs_flash_time', 'success', 'error', 'status', 'errors']);
                 }
 
                 // If this action was dispatched via in-app AJAX (X-TBS-Action: true):
@@ -124,17 +123,32 @@ class PreserveSessionFlashOnAjax
 
                     $isNavigatingAway = false;
                     if ($targetUrl) {
-                        $targetPath = parse_url($targetUrl, PHP_URL_PATH) ?? '';
-                        $refererPath = $referer ? (parse_url($referer, PHP_URL_PATH) ?? '') : '';
+                        $targetPath = rtrim(parse_url($targetUrl, PHP_URL_PATH) ?? '', '/');
+                        $refererPath = $referer ? rtrim(parse_url($referer, PHP_URL_PATH) ?? '', '/') : '';
 
-                        if (str_contains($targetPath, '/gevangenis') || str_contains($targetPath, '/login') || str_contains($targetPath, '/battle/arena')) {
+                        if (str_contains($targetPath, '/login') || str_contains($targetPath, '/battle/arena')) {
                             $isNavigatingAway = true;
-                        } elseif ($refererPath && $targetPath !== $refererPath && ! empty($targetPath) && $targetPath !== '/') {
+                        } elseif (str_contains($targetPath, '/gevangenis') && ! str_contains($refererPath, '/gevangenis')) {
+                            // Player was sent to prison from another page (e.g., arrested during crime)
+                            $isNavigatingAway = true;
+                        } elseif ($refererPath && $targetPath !== $refererPath && ! empty($targetPath) && $targetPath !== '') {
+                            // Target path is different from referer (e.g. escaped to dashboard)
                             $isNavigatingAway = true;
                         }
                     }
 
                     if ($isNavigatingAway && $targetUrl) {
+                        // Persist flash to FlashNotificationService and session so the destination page has it!
+                        if ($successMsg) {
+                            app(FlashNotificationService::class)->store($identifier, 'success', (string) $successMsg);
+                            $session->put('tbs_flash_success', $successMsg);
+                            $session->put('tbs_flash_time', now()->timestamp);
+                        } elseif ($errorMsg) {
+                            app(FlashNotificationService::class)->store($identifier, 'error', (string) $errorMsg);
+                            $session->put('tbs_flash_error', $errorMsg);
+                            $session->put('tbs_flash_time', now()->timestamp);
+                        }
+
                         return response()->json([
                             'success' => ! (bool) $errorMsg,
                             'redirect' => $targetUrl,
@@ -144,6 +158,9 @@ class PreserveSessionFlashOnAjax
                             ],
                         ]);
                     }
+
+                    // Staying on the same page: consume session flash so it does not leak into subsequent calls
+                    $session->forget(['tbs_flash_success', 'tbs_flash_error', 'tbs_flash_time', 'success', 'error', 'status', 'errors']);
 
                     // Otherwise, return JSON with fresh character stats and flash message for in-app smooth updates
                     $character = $user?->character?->fresh();

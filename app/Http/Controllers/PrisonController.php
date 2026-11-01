@@ -295,10 +295,14 @@ class PrisonController extends Controller
         $character = $user->character;
 
         if (! $character->isImprisoned()) {
-            if ($request->expectsJson() || $request->ajax()) {
+            if ($request->expectsJson() && ! $request->header('X-TBS-Action')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Je zit momenteel niet in de isoleercel!',
+                    'flash' => [
+                        'type' => 'info',
+                        'message' => 'Je zit momenteel niet in de isoleercel!',
+                    ],
                     'redirect' => route('prison'),
                 ]);
             }
@@ -308,10 +312,14 @@ class PrisonController extends Controller
 
         if ($character->isComatose()) {
             $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
-            if ($request->expectsJson() || $request->ajax()) {
+            if ($request->expectsJson() && ! $request->header('X-TBS-Action')) {
                 return response()->json([
                     'success' => false,
                     'message' => $msg,
+                    'flash' => [
+                        'type' => 'error',
+                        'message' => $msg,
+                    ],
                 ], 422);
             }
 
@@ -329,10 +337,14 @@ class PrisonController extends Controller
 
             app(DailyBattleService::class)->record($character, 'breakouts', 1);
 
-            if ($request->expectsJson() || $request->ajax()) {
+            if ($request->expectsJson() && ! $request->header('X-TBS-Action')) {
                 return response()->json([
                     'success' => true,
                     'message' => $result['message'],
+                    'flash' => [
+                        'type' => 'success',
+                        'message' => $result['message'],
+                    ],
                     'redirect' => route('dashboard'),
                 ]);
             }
@@ -340,13 +352,17 @@ class PrisonController extends Controller
             return redirect()->route('dashboard')->with('success', $result['message']);
         }
 
-        if ($request->expectsJson() || $request->ajax()) {
+        if ($request->expectsJson() && ! $request->header('X-TBS-Action')) {
             $character->refresh();
             $remaining = $character->isImprisoned() ? max(0, (int) ceil(now()->diffInSeconds($character->prison_until, false))) : 0;
 
             return response()->json([
                 'success' => false,
                 'message' => $result['message'],
+                'flash' => [
+                    'type' => 'error',
+                    'message' => $result['message'],
+                ],
                 'remaining_seconds' => $remaining,
                 'escape_attempted' => true,
             ]);

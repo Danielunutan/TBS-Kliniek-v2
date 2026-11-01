@@ -227,6 +227,11 @@ if (!window.tbsFormInterceptorInitialized) {
             submitBtn.disabled = true;
             origHtml = submitBtn.innerHTML;
             submitBtn.classList.add('opacity-75', 'cursor-wait');
+
+            const icon = submitBtn.querySelector('i.fa-solid, i.fa-regular, i.fa-brands');
+            if (icon && !submitBtn.querySelector('.fa-spinner, .fa-circle-notch')) {
+                icon.className = 'fa-solid fa-circle-notch fa-spin mr-1.5';
+            }
         }
 
         try {
@@ -254,6 +259,11 @@ if (!window.tbsFormInterceptorInitialized) {
 
                 // Redirect away if needed (solitary confinement / arena / logout)
                 if (data.redirect) {
+                    const redirectFlashMsg = (data.flash && data.flash.message) ? data.flash.message : (data.message || null);
+                    const redirectFlashType = (data.flash && data.flash.type) ? data.flash.type : (data.success ? 'success' : 'error');
+                    if (redirectFlashMsg && window.tbsToast) {
+                        window.tbsToast(redirectFlashMsg, redirectFlashType);
+                    }
                     if (window.Turbo && typeof window.Turbo.visit === 'function') {
                         window.Turbo.visit(data.redirect);
                     } else {
@@ -268,9 +278,11 @@ if (!window.tbsFormInterceptorInitialized) {
                 }
 
                 // Display in-app toast notification with haptic feedback
-                if (data.flash && data.flash.message && window.tbsToast) {
-                    window.tbsToast(data.flash.message, data.flash.type || 'success');
-                    if (data.flash.type === 'error') {
+                const flashMsg = (data.flash && data.flash.message) ? data.flash.message : (data.message || null);
+                const flashType = (data.flash && data.flash.type) ? data.flash.type : (data.success ? 'success' : 'error');
+                if (flashMsg && window.tbsToast) {
+                    window.tbsToast(flashMsg, flashType);
+                    if (flashType === 'error') {
                         window.tbsVibrate([30, 40, 30]);
                     } else {
                         window.tbsVibrate(25);
@@ -278,6 +290,16 @@ if (!window.tbsFormInterceptorInitialized) {
                             window.tbsFireConfetti(actionAttr.includes('claim-all') ? 'mega' : 'normal');
                         }
                     }
+                }
+
+                if (flashMsg) {
+                    window.dispatchEvent(new CustomEvent('tbs-action-feedback', {
+                        detail: {
+                            message: flashMsg,
+                            type: flashType,
+                            success: Boolean(data.success)
+                        }
+                    }));
                 }
 
                 // Background refresh the main container to show updated counts/states without reload
