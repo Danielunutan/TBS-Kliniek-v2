@@ -212,7 +212,7 @@ body.dark .board-socket:hover,
                         </button>
                     </form>
                     @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
-                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                    <button type="button" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-play"></i>
                         <span>Overslaan via Sponsor-Ad (Direct Revanche)</span>
                     </button>
@@ -520,7 +520,7 @@ body.dark .board-socket:hover,
             </form>
 
             @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
-            <button type="button" onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+            <button type="button" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fa-solid fa-play"></i>
                 <span>Direct Revanche via Sponsor-Ad</span>
             </button>

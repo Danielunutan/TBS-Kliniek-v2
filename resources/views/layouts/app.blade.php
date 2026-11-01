@@ -2316,6 +2316,14 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
+                    @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+                    <button type="button"
+                            onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })"
+                            class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs transition-all duration-150 cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-95">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Gratis via Sponsor-Ad ({{ (int)($character->ad_coma_progress ?? 0) }}/3)</span>
+                    </button>
+                    @endif
                     <form method="POST" action="{{ route('hitman.revive_serum') }}" class="w-full sm:w-auto">
                         @csrf
                         <input type="hidden" name="currency" value="cash">
@@ -2405,8 +2413,9 @@
                 <div class="grid grid-cols-1 {{ \App\Http\Controllers\SponsorAdController::areAdsEnabled() ? 'sm:grid-cols-3' : 'sm:grid-cols-2' }} gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40">
                     @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
                     <button type="button"
+                            @disabled($character->isComatose() || $character->needsReviveSerum())
                             onclick="window.tbsOpenSponsorAd('prison')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
+                            class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Bekijk een sponsor-ad voor -3 min straftijd en vrijlating bij {{ $topReqPrisonAds }} ad(s)">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-play text-xs"></i>

@@ -16,20 +16,36 @@
             totalSeconds: 15,
             watchStartedAtMs: null,
             timerInterval: null,
+            abortController: null,
+            manualFallbackResolver: null,
+            lastFailedAction: 'start',
+            progressCurrent: 0,
+            progressRequired: 1,
+            lastClaimData: null,
             errorMsg: '',
             successMsg: '',
             onCompleteCallback: null,
 
             init() {
                 window.__tbsSponsorAdModalInstance = this;
-                window.tbsOpenSponsorAd = (rewardType = 'cash', callback = null) => {
-                    this.open(rewardType, callback);
-                };
+            },
+
+            destroy() {
+                this.close();
             },
 
             getCsrfToken() {
                 const meta = document.querySelector('meta[name="csrf-token"]');
                 return (meta && meta.getAttribute('content')) ? meta.getAttribute('content') : '{{ csrf_token() }}';
+            },
+
+            abortPendingRequest() {
+                if (this.abortController) {
+                    try {
+                        this.abortController.abort();
+                    } catch (e) {}
+                    this.abortController = null;
+                }
             },
 
             clearWatchTimer() {
@@ -38,6 +54,16 @@
                     this.timerInterval = null;
                 }
                 this.watchStartedAtMs = null;
+            },
+
+            triggerManualFallback() {
+                if (typeof this.manualFallbackResolver === 'function') {
+                    const resolve = this.manualFallbackResolver;
+                    this.manualFallbackResolver = null;
+                    resolve({ manualFallback: true });
+                } else if (this.isOpen && this.state === 'watching_interstitial') {
+                    this.startInScreenFallback();
+                }
             },
 
             syncWallClockTimer() {
@@ -80,19 +106,22 @@
                 }
 
                 const startWait = Date.now();
-                while (Date.now() - startWait < 3500) {
+                while (Date.now() - startWait < 1500) {
                     if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
                         return window.RobinAds;
                     }
                     if (window.__tbsRobinSdkBlocked) {
                         return null;
                     }
-                    await new Promise((resolve) => setTimeout(resolve, 120));
+                    await new Promise((resolve) => setTimeout(resolve, 100));
                 }
 
-                return (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function')
-                    ? window.RobinAds
-                    : null;
+                if (!(window.RobinAds && typeof window.RobinAds.showInterstitial === 'function')) {
+                    window.__tbsRobinSdkBlocked = true;
+                    return null;
+                }
+
+                return window.RobinAds;
             },
 
             getRewardTitle(type) {
@@ -132,12 +161,20 @@
             },
 
             async open(rewardType = 'cash', callback = null) {
+                if (this.isOpen && (this.state === 'starting' || this.state === 'watching' || this.state === 'watching_interstitial' || this.state === 'claiming')) {
+                    return;
+                }
+
                 this.clearWatchTimer();
+                this.abortPendingRequest();
                 this.rewardType = rewardType || 'cash';
                 this.rewardTitle = this.getRewardTitle(this.rewardType);
-                this.onCompleteCallback = typeof callback === 'function' ? callback : null;
+                if (typeof callback === 'function') {
+                    this.onCompleteCallback = callback;
+                }
                 this.isOpen = true;
                 this.state = 'starting';
+                this.lastFailedAction = 'start';
                 this.errorMsg = '';
                 this.successMsg = '';
                 this.token = null;
@@ -147,9 +184,12 @@
                 this.totalSeconds = 15;
                 this.secondsLeft = 15;
 
+                this.abortController = new AbortController();
+
                 try {
                     const response = await fetch('{{ route("sponsor.start") }}', {
                         method: 'POST',
+                        signal: this.abortController.signal,
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': this.getCsrfToken(),
@@ -158,6 +198,10 @@
                         },
                         body: JSON.stringify({ reward_type: this.rewardType })
                     });
+
+                    if (!this.isOpen) {
+                        return;
+                    }
 
                     const data = await response.json();
                     if (!response.ok || !data.success) {
@@ -174,22 +218,61 @@
 
                     await this.startWatchFlow(data);
                 } catch (e) {
+                    if (e && e.name === 'AbortError') {
+                        return;
+                    }
+                    if (!this.isOpen) {
+                        return;
+                    }
                     this.state = 'error';
                     this.errorMsg = 'Netwerkfout bij het verbinden met de Sponsorkamer. Controleer je verbinding en probeer het opnieuw.';
                 }
             },
 
             async startWatchFlow(data) {
+                if (!this.isOpen) {
+                    return;
+                }
                 const robinSdk = await this.ensureRobinAdsSdk();
+                if (!this.isOpen) {
+                    return;
+                }
 
                 if (robinSdk && typeof robinSdk.showInterstitial === 'function') {
                     this.state = 'watching_interstitial';
                     const watchStartMs = Date.now();
+                    let timeoutHandle = null;
 
                     try {
-                        const result = await robinSdk.showInterstitial({
-                            websiteId: '{{ config("services.robinads.website_id", "6ad2b8e95f70fee0a42a5496") }}'
+                        const timeoutPromise = new Promise((resolve) => {
+                            timeoutHandle = setTimeout(() => resolve({ timedOut: true }), 25000);
                         });
+                        const manualFallbackPromise = new Promise((resolve) => {
+                            this.manualFallbackResolver = resolve;
+                        });
+
+                        const result = await Promise.race([
+                            robinSdk.showInterstitial({
+                                websiteId: '{{ config("services.robinads.website_id", "6ad2b8e95f70fee0a42a5496") }}'
+                            }),
+                            timeoutPromise,
+                            manualFallbackPromise
+                        ]);
+
+                        if (timeoutHandle) {
+                            clearTimeout(timeoutHandle);
+                        }
+                        this.manualFallbackResolver = null;
+
+                        if (!this.isOpen) {
+                            return;
+                        }
+
+                        if (result && (result.timedOut || result.manualFallback)) {
+                            this.startInScreenFallback(data);
+                            return;
+                        }
+
                         const elapsedSec = (Date.now() - watchStartMs) / 1000;
 
                         if (result && (result.rewardGranted || (result.fallback && elapsedSec >= 12))) {
@@ -204,6 +287,7 @@
                         }
 
                         if (result && result.closed && !result.rewardGranted && elapsedSec < 12) {
+                            this.lastFailedAction = 'start';
                             this.state = 'error';
                             this.errorMsg = 'De advertentie is voortijdig gesloten. Bekijk de video volledig tot het einde om je beloning te ontvangen.';
                             return;
@@ -216,11 +300,17 @@
                             return;
                         }
                     } catch (err) {
+                        if (timeoutHandle) {
+                            clearTimeout(timeoutHandle);
+                        }
+                        this.manualFallbackResolver = null;
                         // Interstitial had no fill or failed to render; proceed to in-screen fallback
                     }
                 }
 
-                this.startInScreenFallback(data);
+                if (this.isOpen) {
+                    this.startInScreenFallback(data);
+                }
             },
 
             startInScreenFallback(data) {
@@ -237,15 +327,19 @@
             },
 
             async claim() {
-                if (this.state === 'claiming' || this.state === 'claimed') {
+                if (!this.isOpen || this.state === 'claiming' || this.state === 'claimed') {
                     return;
                 }
                 this.clearWatchTimer();
+                this.abortPendingRequest();
                 this.state = 'claiming';
+                this.lastFailedAction = 'claim';
+                this.abortController = new AbortController();
 
                 try {
                     const response = await fetch('{{ route("sponsor.claim") }}', {
                         method: 'POST',
+                        signal: this.abortController.signal,
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': this.getCsrfToken(),
@@ -260,6 +354,10 @@
                         })
                     });
 
+                    if (!this.isOpen) {
+                        return;
+                    }
+
                     const data = await response.json();
                     if (!response.ok || !data.success) {
                         this.state = 'error';
@@ -267,8 +365,11 @@
                         return;
                     }
 
-                    this.state = 'claimed';
+                    this.lastClaimData = data;
                     this.successMsg = data.reward_details || data.message || 'Beloning succesvol ontvangen!';
+                    this.progressCurrent = Number(data.progress_current) || 1;
+                    this.progressRequired = Number(data.progress_required) || 1;
+                    const isCompleted = data.reward_completed !== false;
 
                     if (typeof window.tbsToast === 'function') {
                         window.tbsToast(this.successMsg, 'success');
@@ -277,25 +378,56 @@
                         window.tbsRefreshStats(true);
                     }
 
+                    if (!isCompleted && this.progressRequired > 1) {
+                        this.state = 'progress_saved';
+                        return;
+                    }
+
+                    this.state = 'claimed';
+
                     setTimeout(() => {
-                        const cb = this.onCompleteCallback;
-                        this.close();
-                        if (typeof cb === 'function') {
-                            cb(data);
-                        } else if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                            window.Turbo.visit(window.location.href, { action: 'replace' });
-                        } else {
-                            window.location.reload();
+                        if (!this.isOpen) {
+                            return;
                         }
-                    }, 1000);
+                        this.finishAndClose();
+                    }, 1100);
                 } catch (e) {
+                    if (e && e.name === 'AbortError') {
+                        return;
+                    }
+                    if (!this.isOpen) {
+                        return;
+                    }
                     this.state = 'error';
-                    this.errorMsg = 'Er trad een verbindingsfout op bij het claimen. Probeer het opnieuw.';
+                    this.errorMsg = 'Er trad een verbindingsfout op bij het claimen. Klik op Opnieuw Claimen om je beloning alsnog op te halen.';
+                }
+            },
+
+            retryLastAction() {
+                if (this.lastFailedAction === 'claim' && this.token) {
+                    this.claim();
+                } else {
+                    this.open(this.rewardType, this.onCompleteCallback);
+                }
+            },
+
+            finishAndClose() {
+                const cb = this.onCompleteCallback;
+                const data = this.lastClaimData;
+                this.close();
+                if (typeof cb === 'function') {
+                    cb(data);
+                } else if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                    window.Turbo.visit(window.location.href, { action: 'replace' });
+                } else {
+                    window.location.reload();
                 }
             },
 
             close() {
                 this.clearWatchTimer();
+                this.abortPendingRequest();
+                this.manualFallbackResolver = null;
                 this.isOpen = false;
                 this.state = 'idle';
                 this.popupUrl = null;
@@ -312,16 +444,28 @@
             detail: { rewardType, callback }
         }));
     };
+
+    if (!window.__tbsSponsorTurboCleanupBound) {
+        window.__tbsSponsorTurboCleanupBound = true;
+        document.addEventListener('turbo:before-cache', () => {
+            if (window.__tbsSponsorAdModalInstance && typeof window.__tbsSponsorAdModalInstance.close === 'function') {
+                window.__tbsSponsorAdModalInstance.close();
+            }
+        });
+    }
     </script>
 
     <div x-data="tbsSponsorAdModal()"
          x-show="isOpen"
          x-cloak
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="tbs-sponsor-modal-title"
          @tbs-open-sponsor-ad.window="open($event.detail.rewardType, $event.detail.callback)"
          @visibilitychange.window="syncWallClockTimer()"
          @focus.window="syncWallClockTimer()"
          @keydown.escape.window="if (isOpen && state !== 'claiming' && state !== 'watching_interstitial') close()"
-         class="fixed inset-0 z-[80] flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-xs select-none">
+         class="fixed inset-0 z-[80] flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 backdrop-blur-xs">
 
         <div @click.away="if (state !== 'watching' && state !== 'watching_interstitial' && state !== 'claiming') close()"
              class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-4 text-slate-800 dark:text-slate-100 relative">
@@ -334,13 +478,13 @@
                     </div>
                     <div class="min-w-0">
                         <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block">TBS Sponsorkamer</span>
-                        <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate" x-text="rewardTitle">Sponsor Beloning</h3>
+                        <h3 id="tbs-sponsor-modal-title" class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate" x-text="rewardTitle">Sponsor Beloning</h3>
                     </div>
                 </div>
                 <button type="button"
                         @click="close()"
                         :disabled="state === 'claiming'"
-                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg cursor-pointer transition-colors disabled:opacity-40"
+                        class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg cursor-pointer transition-colors disabled:opacity-40"
                         aria-label="Sluiten">
                     &times;
                 </button>
@@ -364,6 +508,13 @@
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                     Bekijk de advertentie volledig tot de teller rechtsboven op 0 staat. Daarna wordt je beloning direct uitgekeerd!
                 </p>
+                <div class="pt-2">
+                    <button type="button"
+                            @click="triggerManualFallback()"
+                            class="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer">
+                        Advertentie verschijnt niet? Gebruik in-screen timer &raquo;
+                    </button>
+                </div>
             </div>
 
             <!-- State: Watching In-Screen Fallback (15s Countdown + Embedded Ad / Showcase) -->
@@ -394,7 +545,11 @@
                         </p>
                     </div>
                     <!-- Progress Bar -->
-                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden p-0.5">
+                    <div role="progressbar"
+                         :aria-valuenow="totalSeconds - secondsLeft"
+                         aria-valuemin="0"
+                         :aria-valuemax="totalSeconds"
+                         class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden p-0.5">
                         <div class="bg-gradient-to-r from-purple-600 to-amber-500 h-full rounded-full transition-all duration-300 ease-linear"
                              :style="'width: ' + Math.min(100, Math.max(0, ((totalSeconds - secondsLeft) / totalSeconds) * 100)) + '%'"></div>
                     </div>
@@ -429,13 +584,43 @@
                 </button>
             </div>
 
+            <!-- State: Multi-Ad Progress Saved (Seamless Chaining Without Page Reload) -->
+            <div x-show="state === 'progress_saved'" class="py-4 text-center space-y-4">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl shadow-xs">
+                    <i class="fa-solid fa-forward-step"></i>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-sm font-black text-purple-700 dark:text-purple-300" x-text="'Voortgang Opgeslagen (' + progressCurrent + '/' + progressRequired + ' Ads)'"></h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed select-text" x-text="successMsg"></p>
+                </div>
+                <div class="px-2">
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden p-0.5">
+                        <div class="bg-gradient-to-r from-purple-600 to-emerald-500 h-full rounded-full transition-all duration-300"
+                             :style="'width: ' + Math.min(100, Math.round((progressCurrent / Math.max(1, progressRequired)) * 100)) + '%'"></div>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                    <button type="button"
+                            @click="open(rewardType, onCompleteCallback)"
+                            class="w-full sm:flex-1 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition shadow-sm cursor-pointer flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-play text-[10px]"></i>
+                        <span x-text="'Volgende Ad Kijken (' + Math.min(progressRequired, progressCurrent + 1) + '/' + progressRequired + ')'"></span>
+                    </button>
+                    <button type="button"
+                            @click="finishAndClose()"
+                            class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition cursor-pointer">
+                        Sluiten
+                    </button>
+                </div>
+            </div>
+
             <!-- State: Claimed -->
             <div x-show="state === 'claimed'" class="py-5 text-center space-y-3">
                 <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl shadow-xs">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <h4 class="text-sm font-black text-emerald-700 dark:text-emerald-300">Beloning Geclaimd!</h4>
-                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed" x-text="successMsg"></p>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed select-text" x-text="successMsg"></p>
             </div>
 
             <!-- State: Error -->
@@ -443,11 +628,12 @@
                 <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
-                <p class="text-xs font-bold text-rose-600 dark:text-rose-400 leading-relaxed" x-text="errorMsg"></p>
+                <p class="text-xs font-bold text-rose-600 dark:text-rose-400 leading-relaxed select-text" x-text="errorMsg"></p>
                 <div class="flex items-center justify-center gap-2 pt-1">
                     <button type="button"
-                            @click="open(rewardType, onCompleteCallback)"
-                            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black transition cursor-pointer">
+                            @click="retryLastAction()"
+                            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black transition cursor-pointer"
+                            x-text="lastFailedAction === 'claim' ? 'Beloning Opnieuw Claimen' : 'Opnieuw Proberen'">
                         Opnieuw Proberen
                     </button>
                     <button type="button"
@@ -562,6 +748,9 @@
 
         <!-- COOKIE PREFERENCES MODAL -->
         <div x-show="showModal" x-cloak
+             role="dialog"
+             aria-modal="true"
+             @keydown.escape.window="if (showModal) showModal = false"
              class="fixed inset-0 z-[80] flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 select-none backdrop-blur-xs">
             
             <div @click.away="showModal = false"

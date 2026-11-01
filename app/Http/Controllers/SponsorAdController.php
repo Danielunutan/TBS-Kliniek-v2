@@ -112,8 +112,11 @@ class SponsorAdController extends Controller
             return redirect()->route('shop.index')->with('info', 'De sponsorkamer en advertenties zijn vervangen door de nieuwe TBS Donaties & VIP Winkel!');
         }
 
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return redirect()->route('onboarding.show');
+        }
         $this->energy->refresh($character);
 
         $adsToday = $character->getEffectiveAdsWatchedToday();
@@ -151,8 +154,14 @@ class SponsorAdController extends Controller
             ], 403);
         }
 
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maak eerst een karakter aan.',
+            ], 422);
+        }
 
         if ($character->getRemainingAdsToday() <= 0) {
             return response()->json([
@@ -218,7 +227,7 @@ class SponsorAdController extends Controller
 
         if ($apiKey && $websiteId) {
             try {
-                $response = Http::withoutVerifying()->withToken($apiKey)->timeout(5)->post('https://robinsads.com/api/v1/rewards', [
+                $response = Http::withoutVerifying()->withToken($apiKey)->connectTimeout(2)->timeout(2)->post('https://robinsads.com/api/v1/rewards', [
                     'website_id' => $websiteId,
                     'metadata' => [
                         'character_id' => (string) $character->id,
@@ -228,7 +237,10 @@ class SponsorAdController extends Controller
                 ]);
 
                 if ($response->successful()) {
-                    $popupUrl = $response->json('popup_url');
+                    $rawPopup = $response->json('popup_url');
+                    if (is_string($rawPopup) && str_starts_with($rawPopup, 'https://')) {
+                        $popupUrl = $rawPopup;
+                    }
                     $robinRewardId = $response->json('id');
                 }
             } catch (\Throwable $e) {
@@ -283,7 +295,7 @@ class SponsorAdController extends Controller
     public function status(Request $request): JsonResponse
     {
         /** @var Character|null $character */
-        $character = Auth::user()?->character;
+        $character = Auth::user()?->character?->fresh();
         if (! $character) {
             return response()->json(['success' => false, 'message' => 'Niet ingelogd.'], 401);
         }
@@ -302,6 +314,13 @@ class SponsorAdController extends Controller
             'needs_revive_serum' => $character->needsReviveSerum(),
             'has_vest' => $character->hasVest(),
             'vest_remaining_seconds' => $character->getVestRemainingSeconds(),
+            'ad_bullets_progress' => (int) ($character->ad_bullets_progress ?? 0),
+            'ad_vest_progress' => (int) ($character->ad_vest_progress ?? 0),
+            'ad_coma_progress' => (int) ($character->ad_coma_progress ?? 0),
+            'ad_prison_progress' => (int) ($character->ad_prison_progress ?? 0),
+            'ad_mask_progress' => (int) ($character->ad_mask_progress ?? 0),
+            'ad_lottery_progress' => (int) ($character->ad_lottery_progress ?? 0),
+            'ad_vault_progress' => (int) ($character->ad_vault_progress ?? 0),
             'daily_data' => $character->getAdDailyData(),
         ]);
     }
@@ -320,8 +339,14 @@ class SponsorAdController extends Controller
             ], 403);
         }
 
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maak eerst een karakter aan.',
+            ], 422);
+        }
 
         $claimLock = Cache::lock("tbs_ad_claim_{$character->id}", 15);
         if (! $claimLock->get()) {
@@ -396,10 +421,10 @@ class SponsorAdController extends Controller
         if ($robinToken) {
             $isVerified = true;
 
-            // Optional non-blocking verification ping to register impression on Robins Ads
+            // Optional verification ping to register impression on Robins Ads
             if ($apiKey && $robinRewardId) {
                 try {
-                    Http::withoutVerifying()->withToken($apiKey)->timeout(3)->post('https://robinsads.com/api/ads/reward/verify', [
+                    Http::withoutVerifying()->withToken($apiKey)->connectTimeout(2)->timeout(2)->post('https://robinsads.com/api/ads/reward/verify', [
                         'impressionId' => $robinRewardId,
                         'token' => $robinToken,
                     ]);
@@ -411,7 +436,7 @@ class SponsorAdController extends Controller
         // 2. If a Robins Ads reward ID exists, strictly verify with Robins Ads server whether the ad has been fully watched
         if (! $isVerified && $apiKey && $robinRewardId) {
             try {
-                $statusRes = Http::withoutVerifying()->withToken($apiKey)->timeout(4)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
+                $statusRes = Http::withoutVerifying()->withToken($apiKey)->connectTimeout(2)->timeout(2)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
                 if ($statusRes->successful() && $statusRes->json('status') === 'verified') {
                     $isVerified = true;
                 }
@@ -443,13 +468,18 @@ class SponsorAdController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->firstOrFail();
 
-            // Check daily limit inside locked transaction
-            if ($lockedCharacter->getRemainingAdsToday() <= 0) {
+            $evictSessionTokens = function () use ($adSession, $lockedCharacter): void {
                 if (! empty($adSession['token'])) {
                     Cache::forget("tbs_ad_token_{$adSession['token']}");
                 }
                 Cache::forget("tbs_ad_char_{$lockedCharacter->id}");
                 session()->forget('tbs_ad_session');
+                session()->save();
+            };
+
+            // Check daily limit inside locked transaction
+            if ($lockedCharacter->getRemainingAdsToday() <= 0) {
+                $evictSessionTokens();
 
                 return response()->json([
                     'success' => false,
@@ -460,31 +490,29 @@ class SponsorAdController extends Controller
             // Validate once-per-day reward caps before mutating ad counters
             $dailyData = $lockedCharacter->getAdDailyData();
             if ($rewardType === 'daily_xp' && ! empty($dailyData['xp_claimed'])) {
+                $evictSessionTokens();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Je hebt de dagelijkse +50 XP bonus voor vandaag al geclaimd!',
                 ], 422);
             }
             if ($rewardType === 'daily_cash' && ! empty($dailyData['cash_claimed'])) {
+                $evictSessionTokens();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Je hebt de dagelijkse € 50.000 cash bonus voor vandaag al geclaimd!',
                 ], 422);
             }
             if ($rewardType === 'daily_stars' && ! empty($dailyData['stars_claimed'])) {
+                $evictSessionTokens();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Je hebt de dagelijkse 5 Sterren bonus voor vandaag al geclaimd!',
                 ], 422);
             }
-
-            // Clean up cache and session tokens to prevent replay / double claiming
-            if (! empty($adSession['token'])) {
-                Cache::forget("tbs_ad_token_{$adSession['token']}");
-            }
-            Cache::forget("tbs_ad_char_{$lockedCharacter->id}");
-            session()->forget('tbs_ad_session');
-            session()->save();
 
             // Update ad counters on locked character
             $todayStr = now()->toDateString();
@@ -497,6 +525,9 @@ class SponsorAdController extends Controller
             $lockedCharacter->last_ad_date = $todayStr;
 
             $rewardDetails = '';
+            $progressCurrent = 1;
+            $progressRequired = 1;
+            $rewardCompleted = true;
 
             // Process reward
             if (str_starts_with($rewardType, 'cooldown:') && $rewardType !== 'cooldown:true_crime') {
@@ -527,14 +558,22 @@ class SponsorAdController extends Controller
                         /** @var CharacterTrueCrimeState $state */
                         $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $lockedCharacter->id]);
                         $current = ($state->cooldown_ads_watched ?? 0) + 1;
+                        $progressRequired = 5;
+                        $progressCurrent = min(5, $current);
                         if ($current >= 5) {
-                            $state->update([
+                            $rewardCompleted = true;
+                            $wasOnCooldown = $state->isOnCooldown();
+                            $updatePayload = [
                                 'cooldown_until' => null,
                                 'cooldown_ads_watched' => 0,
-                                'current_case_id' => null,
-                            ]);
+                            ];
+                            if ($wasOnCooldown) {
+                                $updatePayload['current_case_id'] = null;
+                            }
+                            $state->update($updatePayload);
                             $rewardDetails = '🔍 [5/5 Ads] GEFELICITEERD: Je hebt 5 advertenties bekeken! Caroline heeft direct een nieuw dossier voor je ontgrendeld!';
                         } else {
+                            $rewardCompleted = false;
                             $state->update([
                                 'cooldown_ads_watched' => $current,
                             ]);
@@ -578,8 +617,11 @@ class SponsorAdController extends Controller
                         if ($lockedCharacter->isImprisoned()) {
                             $required = $lockedCharacter->getRequiredPrisonAds();
                             $current = ($lockedCharacter->ad_prison_progress ?? 0) + 1;
+                            $progressRequired = $required;
+                            $progressCurrent = min($required, $current);
 
                             if ($current >= $required) {
+                                $rewardCompleted = true;
                                 $lockedCharacter->is_in_prison = false;
                                 $lockedCharacter->prison_until = null;
                                 $lockedCharacter->prison_reason = null;
@@ -587,6 +629,7 @@ class SponsorAdController extends Controller
                                 $lockedCharacter->prison_escape_attempted = false;
                                 $rewardDetails = "🎉 [{$current}/{$required} Ads] GEFELICITEERD: Je straftijd is volledig kwijtgescholden en je bent DIRECT VRIJGELATEN uit de isoleercel!";
                             } else {
+                                $rewardCompleted = false;
                                 $lockedCharacter->ad_prison_progress = $current;
                                 // Reduce remaining prison time by 3 minutes (180s) per ad watched
                                 if ($lockedCharacter->prison_until && now()->lt($lockedCharacter->prison_until)) {
@@ -608,13 +651,17 @@ class SponsorAdController extends Controller
 
                     case 'daily_xp':
                         $current = ($dailyData['xp_progress'] ?? 0) + 1;
+                        $progressRequired = 3;
+                        $progressCurrent = min(3, $current);
                         if ($current >= 3) {
+                            $rewardCompleted = true;
                             $dailyData['xp_progress'] = 3;
                             $dailyData['xp_claimed'] = true;
                             $lockedCharacter->ad_daily_data = $dailyData;
                             $this->levelService->addXp($lockedCharacter, 50);
                             $rewardDetails = '⚡ [3/3 Ads] GEFELICITEERD: +50 XP ontvangen! Je dagelijkse XP beloning is geclaimd.';
                         } else {
+                            $rewardCompleted = false;
                             $dailyData['xp_progress'] = $current;
                             $lockedCharacter->ad_daily_data = $dailyData;
                             $left = 3 - $current;
@@ -624,7 +671,10 @@ class SponsorAdController extends Controller
 
                     case 'daily_cash':
                         $current = ($dailyData['cash_progress'] ?? 0) + 1;
+                        $progressRequired = 3;
+                        $progressCurrent = min(3, $current);
                         if ($current >= 3) {
+                            $rewardCompleted = true;
                             $dailyData['cash_progress'] = 3;
                             $dailyData['cash_claimed'] = true;
                             $lockedCharacter->ad_daily_data = $dailyData;
@@ -632,6 +682,7 @@ class SponsorAdController extends Controller
                             $this->economy->addCash($lockedCharacter, 50000, 'sponsor_ad');
                             $rewardDetails = '💶 [3/3 Ads] GEFELICITEERD: € 50.000 contant geld ontvangen! Je dagelijkse cash beloning is geclaimd.';
                         } else {
+                            $rewardCompleted = false;
                             $dailyData['cash_progress'] = $current;
                             $lockedCharacter->ad_daily_data = $dailyData;
                             $left = 3 - $current;
@@ -641,13 +692,17 @@ class SponsorAdController extends Controller
 
                     case 'daily_stars':
                         $current = ($dailyData['stars_progress'] ?? 0) + 1;
+                        $progressRequired = 2;
+                        $progressCurrent = min(2, $current);
                         if ($current >= 2) {
+                            $rewardCompleted = true;
                             $dailyData['stars_progress'] = 2;
                             $dailyData['stars_claimed'] = true;
                             $lockedCharacter->ad_daily_data = $dailyData;
                             $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + 5;
                             $rewardDetails = '⭐ [2/2 Ads] GEFELICITEERD: +5 Sterren toegevoegd aan je profiel! Je dagelijkse sterren bonus is geclaimd.';
                         } else {
+                            $rewardCompleted = false;
                             $dailyData['stars_progress'] = $current;
                             $lockedCharacter->ad_daily_data = $dailyData;
                             $left = 2 - $current;
@@ -657,11 +712,15 @@ class SponsorAdController extends Controller
 
                     case 'mask':
                         $currentProgress = ($lockedCharacter->ad_mask_progress ?? 0) + 1;
+                        $progressRequired = 3;
+                        $progressCurrent = min(3, $currentProgress);
                         if ($currentProgress >= 3) {
+                            $rewardCompleted = true;
                             $lockedCharacter->ad_mask_progress = 0;
                             $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + 1;
                             $rewardDetails = '🎭 [3/3 Ads] GEFELICITEERD: +1 Bivakmuts / Masker toegevoegd aan je voorraad!';
                         } else {
+                            $rewardCompleted = false;
                             $lockedCharacter->ad_mask_progress = $currentProgress;
                             $left = 3 - $currentProgress;
                             $rewardDetails = "🎭 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw gratis Masker.';
@@ -670,7 +729,10 @@ class SponsorAdController extends Controller
 
                     case 'lottery_ticket':
                         $currentProgress = ($lockedCharacter->ad_lottery_progress ?? 0) + 1;
+                        $progressRequired = 15;
+                        $progressCurrent = min(15, $currentProgress);
                         if ($currentProgress >= 15) {
+                            $rewardCompleted = true;
                             $lockedCharacter->ad_lottery_progress = 0;
 
                             $round = LotteryRound::current();
@@ -691,6 +753,7 @@ class SponsorAdController extends Controller
 
                             $rewardDetails = "🎟️ [15/15 Ads] GEFELICITEERD: +1 Loterij Ticket ontvangen ({$ticketNumber}) voor de 14-daagse trekking! Je maakt nu kans op de jackpot!";
                         } else {
+                            $rewardCompleted = false;
                             $lockedCharacter->ad_lottery_progress = $currentProgress;
                             $left = 15 - $currentProgress;
                             $rewardDetails = "🎟️ [{$currentProgress}/15 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor een gratis Loterij Ticket.';
@@ -699,7 +762,10 @@ class SponsorAdController extends Controller
 
                     case 'vault_code':
                         $currentProgress = ($lockedCharacter->ad_vault_progress ?? 0) + 1;
+                        $progressRequired = 3;
+                        $progressCurrent = min(3, $currentProgress);
                         if ($currentProgress >= 3) {
+                            $rewardCompleted = true;
                             $lockedCharacter->ad_vault_progress = 0;
                             $bonusCode = VaultCode::generateUniqueCode('SPONSOR');
                             VaultCode::create([
@@ -721,6 +787,7 @@ class SponsorAdController extends Controller
 
                             $rewardDetails = "🔐 [3/3 Ads] GEFELICITEERD: Geheime Kluiscode voucher ontvangen: **{$bonusCode}** (ook bewaard in je inbox)!";
                         } else {
+                            $rewardCompleted = false;
                             $lockedCharacter->ad_vault_progress = $currentProgress;
                             $left = 3 - $currentProgress;
                             $rewardDetails = "🔐 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw Geheime Kluiscode voucher.';
@@ -729,11 +796,15 @@ class SponsorAdController extends Controller
 
                     case 'bullets':
                         $currentProgress = ($lockedCharacter->ad_bullets_progress ?? 0) + 1;
+                        $progressRequired = 3;
+                        $progressCurrent = min(3, $currentProgress);
                         if ($currentProgress >= 3) {
+                            $rewardCompleted = true;
                             $lockedCharacter->ad_bullets_progress = 0;
                             $lockedCharacter->bullets = ($lockedCharacter->bullets ?? 0) + 50;
                             $rewardDetails = '🔫 [3/3 Ads] GEFELICITEERD: +50 Kogels ontvangen! Je munitievoorraad is nu '.number_format($lockedCharacter->bullets, 0, ',', '.').' kogels!';
                         } else {
+                            $rewardCompleted = false;
                             $lockedCharacter->ad_bullets_progress = $currentProgress;
                             $left = 3 - $currentProgress;
                             $rewardDetails = "🔫 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw voorraad van 50 kogels.';
@@ -742,7 +813,10 @@ class SponsorAdController extends Controller
 
                     case 'vest':
                         $currentProgress = ($lockedCharacter->ad_vest_progress ?? 0) + 1;
+                        $progressRequired = 3;
+                        $progressCurrent = min(3, $currentProgress);
                         if ($currentProgress >= 3) {
+                            $rewardCompleted = true;
                             $lockedCharacter->ad_vest_progress = 0;
                             $currentVest = ($lockedCharacter->vest_until && $lockedCharacter->vest_until->isFuture())
                                 ? $lockedCharacter->vest_until->copy()
@@ -750,6 +824,7 @@ class SponsorAdController extends Controller
                             $lockedCharacter->vest_until = $currentVest->addHours(12);
                             $rewardDetails = '🛡️ [3/3 Ads] GEFELICITEERD: Kogelwerend Vest geactiveerd voor +12 uur! Je bent zwaar beschermd tegen schutters en vijanden riskeren backfire!';
                         } else {
+                            $rewardCompleted = false;
                             $lockedCharacter->ad_vest_progress = $currentProgress;
                             $left = 3 - $currentProgress;
                             $rewardDetails = "🛡️ [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor 12 uur Kogelwerend Vest bescherming.';
@@ -758,7 +833,10 @@ class SponsorAdController extends Controller
 
                     case 'coma_revive':
                         $currentProgress = ($lockedCharacter->ad_coma_progress ?? 0) + 1;
+                        $progressRequired = 3;
+                        $progressCurrent = min(3, $currentProgress);
                         if ($currentProgress >= 3) {
+                            $rewardCompleted = true;
                             $lockedCharacter->ad_coma_progress = 0;
                             $lockedCharacter->coma_until = null;
                             $lockedCharacter->health = max((int) $lockedCharacter->health, 25, (int) ($lockedCharacter->max_health * 0.5));
@@ -769,6 +847,7 @@ class SponsorAdController extends Controller
                             }
                             $rewardDetails = '💉 [3/3 Ads] GEFELICITEERD: Medisch ontwaakt uit Intensive Care Coma! Je bent weer op de been met minimaal 50% HP!';
                         } else {
+                            $rewardCompleted = false;
                             $lockedCharacter->ad_coma_progress = $currentProgress;
                             $left = 3 - $currentProgress;
                             $rewardDetails = "💉 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om per direct te ontwaken uit Intensive Care Coma.';
@@ -819,14 +898,17 @@ class SponsorAdController extends Controller
                 $rewardDetails .= " 🎁 + BONUS: Geheime kluiscode voucher gestuurd naar je chat en inbox ({$bonusCode})!";
             }
 
-            // Check 250-ad VIP milestone
+            // Check 250-ad VIP milestone (preserving permanent VIP when vip_expires_at === null)
             $vipUnlocked = false;
             if ($totalAds % 250 === 0) {
                 $vipUnlocked = true;
+                $isPermanentVip = $lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null;
                 $lockedCharacter->is_vip = true;
-                $lockedCharacter->vip_expires_at = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
-                    ? $lockedCharacter->vip_expires_at->addDay()
-                    : now()->addDay();
+                if (! $isPermanentVip) {
+                    $lockedCharacter->vip_expires_at = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                        ? $lockedCharacter->vip_expires_at->copy()->addDay()
+                        : now()->addDay();
+                }
 
                 GameMessage::create([
                     'recipient_id' => $lockedCharacter->id,
@@ -840,12 +922,16 @@ class SponsorAdController extends Controller
             }
 
             $lockedCharacter->save();
+            $evictSessionTokens();
 
             return response()->json([
                 'success' => true,
                 'message' => "Beloning succesvol geclaimd! {$rewardDetails}",
                 'reward_details' => $rewardDetails,
                 'reward_type' => $rewardType,
+                'progress_current' => $progressCurrent,
+                'progress_required' => $progressRequired,
+                'reward_completed' => $rewardCompleted,
                 'ads_today' => $lockedCharacter->getEffectiveAdsWatchedToday(),
                 'ads_left_today' => $lockedCharacter->getRemainingAdsToday(),
                 'ads_total' => $lockedCharacter->ads_watched_total,

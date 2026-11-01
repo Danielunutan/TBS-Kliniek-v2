@@ -3,6 +3,13 @@
 @section('title', 'Sponsorkamer - Bekijk Ads voor Gratis VIP & Beloningen')
 
 @section('content')
+@php
+    $isComaOrCodeBlauw = $character->isComatose() || $character->needsReviveSerum();
+    $cannotWatchStandardAd = ($adsLeftToday <= 0) || $isComaOrCodeBlauw;
+    $comaProgress = (int) ($character->ad_coma_progress ?? 0);
+    $bulletsProgress = (int) ($character->ad_bullets_progress ?? 0);
+    $vestProgress = (int) ($character->ad_vest_progress ?? 0);
+@endphp
 <div class="space-y-6">
 
     <!-- Top Hero Card -->
@@ -31,6 +38,41 @@
             </div>
         </div>
     </div>
+
+    @if($isComaOrCodeBlauw)
+    <!-- Urgent IC Coma / Code Blauw Reanimatie Banner -->
+    <div class="bg-emerald-50/90 dark:bg-emerald-950/40 border-2 border-emerald-500 dark:border-emerald-600 rounded-2xl p-5 sm:p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-2 flex-1">
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider">
+                <i class="fa-solid fa-heart-pulse animate-pulse"></i> Spoed IC Reanimatie Actief
+            </div>
+            <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                Je ligt momenteel op de Intensive Care! Ontwaak gratis via 3 Sponsor Ads
+            </h2>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Zolang je in coma of Code Blauw ligt zijn reguliere beloningen gepauzeerd. Bekijk 3 korte sponsor-ads om direct te ontwaken uit het coma!
+            </p>
+            <div class="max-w-xs pt-1">
+                <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                    <span class="text-slate-600 dark:text-slate-300">Reanimatie Voortgang:</span>
+                    <span class="text-emerald-700 dark:text-emerald-400 font-extrabold">{{ $comaProgress }} / 3 Ads</span>
+                </div>
+                <div class="w-full bg-white dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-emerald-200 dark:border-emerald-800">
+                    <div class="bg-emerald-600 h-full rounded-full transition-all duration-300" style="width: {{ min(100, ($comaProgress / 3) * 100) }}%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0 w-full md:w-auto">
+            <button type="button"
+                    @disabled($adsLeftToday <= 0)
+                    onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })"
+                    class="w-full sm:w-auto min-h-11 py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-sm transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-syringe text-xs"></i>
+                <span>Kijk Ad voor Ontwaken ({{ $comaProgress + 1 }}/3{{ $comaProgress === 2 ? ' - Claim!' : '' }})</span>
+            </button>
+        </div>
+    </div>
+    @endif
 
     <!-- VIP MILESTONE PROGRESS BAR (250 Ads = 24h VIP) -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
@@ -119,7 +161,7 @@
                             <span>Vandaag Al Geclaimd</span>
                         </button>
                     @else
-                        <button type="button" onclick="window.tbsOpenSponsorAd('daily_stars')" class="btn-star-gold w-full min-h-11 py-2 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                        <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('daily_stars')" class="btn-star-gold w-full min-h-11 py-2 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-star text-xs"></i>
                             <span>Kijk Ad voor 5 Sterren ({{ ($adDailyData['stars_progress'] ?? 0) + 1 }}/2{{ ($adDailyData['stars_progress'] ?? 0) === 1 ? ' - Claim!' : '' }})</span>
                         </button>
@@ -163,7 +205,7 @@
                             <span>Vandaag Al Geclaimd</span>
                         </button>
                     @else
-                        <button type="button" onclick="window.tbsOpenSponsorAd('daily_cash')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                        <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('daily_cash')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-sack-dollar text-xs"></i>
                             <span>Kijk Ad voor €50.000 ({{ ($adDailyData['cash_progress'] ?? 0) + 1 }}/3{{ ($adDailyData['cash_progress'] ?? 0) === 2 ? ' - Claim!' : '' }})</span>
                         </button>
@@ -207,7 +249,7 @@
                             <span>Vandaag Al Geclaimd</span>
                         </button>
                     @else
-                        <button type="button" onclick="window.tbsOpenSponsorAd('daily_xp')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                        <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('daily_xp')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-bolt text-xs"></i>
                             <span>Kijk Ad voor +50 XP ({{ ($adDailyData['xp_progress'] ?? 0) + 1 }}/3{{ ($adDailyData['xp_progress'] ?? 0) === 2 ? ' - Claim!' : '' }})</span>
                         </button>
@@ -240,7 +282,7 @@
                             @if($character->isImprisoned())
                                 <span class="text-rose-600 dark:text-rose-400 font-extrabold animate-pulse">Vast ({{ $currPrisonAds }} / {{ $reqPrisonAds }} Ads)</span>
                             @else
-                                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">Altijd Beschikbaar</span>
+                                <span class="text-slate-500 dark:text-slate-400 font-extrabold">Geen straf actief</span>
                             @endif
                         </div>
                         @if($character->isImprisoned())
@@ -260,7 +302,7 @@
                             <span>Alleen bij Isoleercel Straf</span>
                         </button>
                     @else
-                        <button type="button" onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" class="w-full min-h-11 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                        <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" class="w-full min-h-11 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-unlock text-xs"></i>
                             <span>Kijk Ad voor Vrijlating ({{ $currPrisonAds + 1 }}/{{ $reqPrisonAds }})</span>
                         </button>
@@ -280,7 +322,7 @@
             <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-full border border-rose-200/80 dark:border-rose-800/70">Geen echt geld nodig &bull; 100% via Sponsor Ads</span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Card 1: +50 Kogels -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between transition-all duration-200 group">
                 <div>
@@ -288,17 +330,27 @@
                         <i class="fa-solid fa-bomb"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ (int)($character->ad_bullets_progress ?? 0) }}/3] Voortgang</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ $bulletsProgress }}/3] Voortgang</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">+50 Scherpe Kogels 💣</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Laad je wapen door voor aanslagen en liquidaties op vijanden in de TBS kliniek. Momenteel in bezit: <strong class="text-rose-600 dark:text-rose-400">{{ number_format($character->bullets ?? 0, 0, ',', '.') }} kogels</strong>. Bekijk 3 korte sponsor ads voor +50 kogels.
                     </p>
+
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-rose-600 dark:text-rose-400 font-extrabold">{{ $bulletsProgress }} / 3 Ads</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-rose-600 h-full rounded-full transition-all duration-300" style="width: {{ min(100, ($bulletsProgress / 3) * 100) }}%;"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('bullets')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                    <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('bullets')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-play text-xs"></i>
-                        <span>Kijk Ad ({{ (int)($character->ad_bullets_progress ?? 0) }}/3 Ads)</span>
+                        <span>Kijk Ad voor Kogels ({{ $bulletsProgress + 1 }}/3{{ $bulletsProgress === 2 ? ' - Claim!' : '' }})</span>
                     </button>
                 </div>
             </div>
@@ -310,7 +362,7 @@
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ (int)($character->ad_vest_progress ?? 0) }}/3] &bull; 12 Uur</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ $vestProgress }}/3] &bull; 12 Uur</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 transition">Kogelwerend Vest 🛡️</h3>
                     @php
@@ -320,11 +372,21 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Verhoogt je verdediging met +150% en zorgt voor 45% ricochet-backfire gevaar voor schutters! Status: <strong class="{{ $character->hasVest() ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400' }}">{{ $character->hasVest() ? 'Actief (' . $vestFormatted . 'u)' : 'Niet actief' }}</strong>.
                     </p>
+
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-purple-600 dark:text-purple-400 font-extrabold">{{ $vestProgress }} / 3 Ads</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-purple-600 h-full rounded-full transition-all duration-300" style="width: {{ min(100, ($vestProgress / 3) * 100) }}%;"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('vest')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                    <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('vest')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-shield-halved text-xs"></i>
-                        <span>Kijk Ad ({{ (int)($character->ad_vest_progress ?? 0) }}/3 Ads)</span>
+                        <span>Kijk Ad voor Vest ({{ $vestProgress + 1 }}/3{{ $vestProgress === 2 ? ' - Claim!' : '' }})</span>
                     </button>
                 </div>
             </div>
@@ -336,27 +398,37 @@
                         <i class="fa-solid fa-heart-pulse"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ (int)($character->ad_coma_progress ?? 0) }}/3] &bull; IC Hulp</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ $comaProgress }}/3] &bull; IC Hulp</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 transition">Coma Ontwaken 💉</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Neergeschoten of ricochet gehad? Ontwaak direct uit het Intensive Care Coma en herstel naar 50% HP door 3 sponsor ads te kijken!
                     </p>
+
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">{{ $comaProgress }} / 3 Ads</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-emerald-600 h-full rounded-full transition-all duration-300" style="width: {{ min(100, ($comaProgress / 3) * 100) }}%;"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                    @if($character->isComatose() || $character->needsReviveSerum())
+                    @if($isComaOrCodeBlauw)
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full">
                                 @csrf
                                 <input type="hidden" name="action" value="coma">
-                                <button type="submit" class="btn-star-gold w-full h-11 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                                <button type="submit" class="btn-star-gold w-full min-h-11 py-2 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
                                     <i class="fa-solid fa-star text-xs"></i>
                                     <span>Ontwaken ({{ \App\Models\Character::REVIVE_SERUM_STARS }} ⭐)</span>
                                 </button>
                             </form>
-                            <button type="button" onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full h-11 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                            <button type="button" @disabled($adsLeftToday <= 0) onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full min-h-11 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-syringe text-xs"></i>
-                                <span>Kijk Ad ({{ (int)($character->ad_coma_progress ?? 0) }}/3)</span>
+                                <span>Kijk Ad ({{ $comaProgress + 1 }}/3{{ $comaProgress === 2 ? ' - Claim!' : '' }})</span>
                             </button>
                         </div>
                     @else
@@ -393,7 +465,7 @@
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('respect')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                    <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('respect')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-fire text-xs"></i>
                         <span>Kijk Ad voor +1 Respect</span>
                     </button>
@@ -427,7 +499,7 @@
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('lottery_ticket')" class="btn-star-gold w-full min-h-11 py-2 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                    <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('lottery_ticket')" class="btn-star-gold w-full min-h-11 py-2 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-ticket text-xs"></i>
                         <span>Kijk Ad voor Lot ({{ ($character->ad_lottery_progress ?? 0) + 1 }}/15{{ ($character->ad_lottery_progress ?? 0) === 14 ? ' - Claim Lot!' : '' }})</span>
                     </button>
@@ -461,7 +533,7 @@
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('mask')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                    <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('mask')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-masks-theater text-xs"></i>
                         <span>Kijk Ad voor Masker ({{ ($character->ad_mask_progress ?? 0) + 1 }}/3{{ ($character->ad_mask_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
                     </button>
@@ -495,7 +567,7 @@
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('vault_code')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                    <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('vault_code')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-key text-xs"></i>
                         <span>Kijk Ad voor Kluiscode ({{ ($character->ad_vault_progress ?? 0) + 1 }}/3{{ ($character->ad_vault_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
                     </button>
@@ -517,7 +589,7 @@
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('cash')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                    <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('cash')" class="w-full min-h-11 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-play text-xs"></i>
                         <span>Kijk Ad voor €2.500</span>
                     </button>
@@ -528,15 +600,31 @@
     </div>
 
     <!-- Extra Information Banner: 10-ad bonus code vouchers -->
-    <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl p-5 flex items-start gap-3.5 text-xs text-slate-700 dark:text-slate-300 shadow-xs">
-        <div class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-base shrink-0 font-bold border border-purple-200/80 dark:border-purple-800/70">
-            <i class="fa-solid fa-bullhorn"></i>
+    <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-slate-700 dark:text-slate-300 shadow-xs">
+        <div class="flex items-start gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-base shrink-0 font-bold border border-purple-200/80 dark:border-purple-800/70">
+                <i class="fa-solid fa-bullhorn"></i>
+            </div>
+            <div class="space-y-1">
+                <h4 class="font-extrabold text-slate-900 dark:text-white text-sm flex flex-wrap items-center gap-2">
+                    <span>Elke 10 Ads: Exclusieve Geheime Kluiscode Voucher in je Inbox!</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                        {{ $totalAds % 10 }} / 10 Ads
+                    </span>
+                </h4>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Als extra beloning ontvang je bij elke 10 bekeken advertenties automatisch een unieke kluiscode voucher in je in-game berichtenbox. Wissel deze code in op de MedicijnKluis voor <strong>€ 15.000 bankgeld en 3 Sterren ⭐</strong>!
+                </p>
+            </div>
         </div>
-        <div class="space-y-1">
-            <h4 class="font-extrabold text-slate-900 dark:text-white text-sm">Elke 10 Ads: Exclusieve Geheime Kluiscode Voucher in je Inbox!</h4>
-            <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
-                Als extra beloning ontvang je bij elke 10 bekeken advertenties automatisch een unieke kluiscode voucher in je in-game berichtenbox. Wissel deze code in op de MedicijnKluis voor <strong>€ 15.000 bankgeld en 3 Sterren ⭐</strong>!
-            </p>
+        <div class="w-full sm:w-44 shrink-0">
+            <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                <span class="text-slate-500 dark:text-slate-400">Volgende Voucher:</span>
+                <span class="text-purple-700 dark:text-purple-400 font-extrabold">Nog {{ 10 - ($totalAds % 10) }} ads</span>
+            </div>
+            <div class="w-full bg-slate-200/80 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                <div class="bg-purple-600 h-full rounded-full transition-all duration-300" style="width: {{ (($totalAds % 10) / 10) * 100 }}%;"></div>
+            </div>
         </div>
     </div>
 

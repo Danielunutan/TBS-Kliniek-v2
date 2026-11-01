@@ -151,6 +151,7 @@ document.addEventListener('alpine:init', () => {
             { id: 'geweld', name: 'Geweld', icon: '<i class="fa-solid fa-fire text-amber-500"></i>' },
             { id: 'voortgang', name: 'Voortgang', icon: '<i class="fa-solid fa-chart-line text-indigo-500"></i>' },
             { id: 'minigames', name: 'Minigames', icon: '<i class="fa-solid fa-gamepad text-fuchsia-500"></i>' },
+            { id: 'bonus', name: 'Bonus & Kluis', icon: '<i class="fa-solid fa-gift text-purple-500"></i>' },
         ],
         items: [
             // Dashboard & Algemeen

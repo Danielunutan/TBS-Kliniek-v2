@@ -621,4 +621,65 @@ class SponsorRewardsTest extends TestCase
         $response->assertSee('robinSdk.showInterstitial', false);
         $response->assertDontSee("window.location.href = '".route('sponsor.index')."'", false);
     }
+
+    public function test_claim_returns_structured_progress_fields_and_status_returns_all_progress_counters(): void
+    {
+        [$user, $character] = $this->createTestUser();
+
+        // Guest status check returns 401
+        $this->getJson(route('sponsor.status'))->assertStatus(401);
+
+        // First ad of 3 for bullets returns reward_completed=false, progress_current=1, progress_required=3
+        $res1 = $this->simulateAdWatch($user, $character, 'bullets');
+        $res1->assertStatus(200);
+        $res1->assertJson([
+            'success' => true,
+            'progress_current' => 1,
+            'progress_required' => 3,
+            'reward_completed' => false,
+        ]);
+
+        // Status endpoint returns all multi-ad progress counters
+        $statusRes = $this->actingAs($user)->getJson(route('sponsor.status'));
+        $statusRes->assertStatus(200);
+        $statusRes->assertJson([
+            'ads_enabled' => true,
+            'ad_bullets_progress' => 1,
+            'ad_vest_progress' => 0,
+            'ad_coma_progress' => 0,
+            'ad_prison_progress' => 0,
+            'ad_mask_progress' => 0,
+            'ad_lottery_progress' => 0,
+            'ad_vault_progress' => 0,
+        ]);
+
+        // Complete 2nd and 3rd ad -> reward_completed=true, progress_current=3
+        $this->simulateAdWatch($user, $character, 'bullets')->assertStatus(200);
+        $res3 = $this->simulateAdWatch($user, $character, 'bullets');
+        $res3->assertStatus(200);
+        $res3->assertJson([
+            'success' => true,
+            'progress_current' => 3,
+            'progress_required' => 3,
+            'reward_completed' => true,
+        ]);
+    }
+
+    public function test_vip_250_ad_milestone_preserves_lifetime_vip_without_setting_expiry(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $character->update([
+            'ads_watched_total' => 249,
+            'is_vip' => true,
+            'vip_expires_at' => null,
+        ]);
+
+        $res = $this->simulateAdWatch($user, $character, 'cash');
+        $res->assertStatus(200);
+
+        $character->refresh();
+        $this->assertEquals(250, $character->ads_watched_total);
+        $this->assertTrue((bool) $character->is_vip);
+        $this->assertNull($character->vip_expires_at);
+    }
 }

@@ -137,4 +137,43 @@ class CpaleadPostbackTest extends TestCase
         $this->assertEquals(251, $character->ads_watched_total);
         $this->assertFalse((bool) $character->is_vip);
     }
+
+    public function test_postback_rejects_invalid_password_and_grants_10_ad_milestone_vault_code_and_combat_rewards(): void
+    {
+        $character = Character::first();
+
+        // Wrong password returns 403
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'wrong_secret',
+            'subid' => $character->id,
+            'lead_id' => 'cpalead_unauth_01',
+        ]))->assertStatus(403);
+
+        // Set character to 9 total ads and 2/3 bullets progress
+        $initialBullets = $character->bullets ?? 0;
+        $character->update([
+            'ads_watched_total' => 9,
+            'ad_bullets_progress' => 2,
+        ]);
+
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'bullets',
+            'lead_id' => 'cpalead_milestone_10',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals(10, $character->ads_watched_total);
+        $this->assertEquals(0, $character->ad_bullets_progress);
+        $this->assertEquals($initialBullets + 50, $character->bullets);
+
+        $this->assertDatabaseHas('vault_codes', [
+            'character_id' => $character->id,
+            'reward_cash' => 15000,
+            'reward_stars' => 3,
+            'is_redeemed' => false,
+        ]);
+    }
 }
