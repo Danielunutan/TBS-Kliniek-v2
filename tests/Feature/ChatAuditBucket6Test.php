@@ -134,7 +134,7 @@ class ChatAuditBucket6Test extends TestCase
         $charA = $this->createCharacter($userA, [
             'name' => 'Coma_1',
             'health' => 0,
-            'hospital_until' => now()->addMinutes(15),
+            'coma_until' => now()->addMinutes(15),
         ]);
 
         $userB = User::factory()->create();
@@ -778,8 +778,9 @@ class ChatAuditBucket6Test extends TestCase
 
         $formatted = $msg->formatted_message;
 
-        $this->assertStringContainsString('<strong>Vetgedrukt</strong>', $formatted);
-        $this->assertStringContainsString('<em>schuingedrukt</em>', $formatted);
+        $this->assertStringContainsString('Vetgedrukt', $formatted);
+        $this->assertStringContainsString('font-extrabold', $formatted);
+        $this->assertStringContainsString('schuingedrukt', $formatted);
         $this->assertStringNotContainsString('<script>', $formatted);
         $this->assertStringContainsString('&lt;script&gt;', $formatted);
         $this->assertStringNotContainsString('javascript:', $formatted);
@@ -789,10 +790,11 @@ class ChatAuditBucket6Test extends TestCase
     public function test_non_staff_cannot_access_admin_ticket_controller(): void
     {
         $regularUser = User::factory()->create(['role' => 'user', 'is_staff' => false]);
-        $this->createCharacter($regularUser);
+        $char = $this->createCharacter($regularUser);
 
         $ticket = SupportTicket::create([
             'user_id' => $regularUser->id,
+            'character_id' => $char->id,
             'ticket_number' => 'TBS-ADM-001',
             'subject' => 'Ticket voor admin test',
             'category' => 'vraag',
