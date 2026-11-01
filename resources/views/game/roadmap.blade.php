@@ -29,9 +29,6 @@
                         <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800/60">
                             TBS Kliniek Ontwikkeling
                         </span>
-                        <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/60">
-                            Open Beta
-                        </span>
                     </div>
                     <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                         Toekomst & Roadmap
@@ -237,7 +234,7 @@
                 <div class="border-t border-slate-100 dark:border-slate-800 pt-3.5 mt-4 flex items-center justify-between gap-3">
                     <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                         <i class="fa-solid fa-check-double text-emerald-500"></i>
-                        <span>Actief in spelversie Open Beta</span>
+                        <span>Actief in het spel</span>
                     </span>
 
                     @if(\Illuminate\Support\Facades\Route::has($c['route']))

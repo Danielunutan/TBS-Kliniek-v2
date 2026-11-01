@@ -57,7 +57,7 @@ class SupportTicketTest extends TestCase
         $char = $this->createCharacter($user);
 
         $response = $this->actingAs($user)->post(route('help.tickets.store'), [
-            'subject' => 'Vraag over de isolatiecellen in Open Beta',
+            'subject' => 'Vraag over de isolatiecellen',
             'category' => 'vraag',
             'priority' => 'normaal',
             'message' => 'Hoeveel seconden zit je vast in de isoleercel bij een mislukte kluiskraak?',
@@ -66,7 +66,7 @@ class SupportTicketTest extends TestCase
         $this->assertDatabaseHas('support_tickets', [
             'user_id' => $user->id,
             'character_id' => $char->id,
-            'subject' => 'Vraag over de isolatiecellen in Open Beta',
+            'subject' => 'Vraag over de isolatiecellen',
             'category' => 'vraag',
             'status' => 'open',
         ]);
@@ -206,7 +206,7 @@ class SupportTicketTest extends TestCase
         $this->assertNotNull($ticket->closed_at);
     }
 
-    public function test_dashboard_displays_open_beta_announcement_banner(): void
+    public function test_dashboard_does_not_display_open_beta_announcement_banner(): void
     {
         /** @var User $user */
         $user = User::factory()->create();
@@ -215,9 +215,8 @@ class SupportTicketTest extends TestCase
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('Open Beta Testfase');
-        $response->assertSee('TBS Kliniek de Game is momenteel in Open Beta!');
-        $response->assertSee(route('help.tickets.create'));
+        $response->assertDontSee('Open Beta Testfase');
+        $response->assertDontSee('TBS Kliniek de Game is momenteel in Open Beta!');
     }
 
     public function test_user_can_submit_gang_transfer_bonus_ticket(): void

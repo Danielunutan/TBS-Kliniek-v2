@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <!-- Quick Stats & Open Beta Notice -->
+    <!-- Quick Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -167,7 +167,7 @@
             </div>
             <h3 class="text-sm font-extrabold text-slate-900 dark:text-white mb-1">Geen support tickets gevonden</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">
-                Heb je een vraag, bug of feedback tijdens deze Open Beta van TBS Kliniek? Ons supportteam staat voor je klaar!
+                Heb je een vraag, bug of feedback over TBS Kliniek? Ons supportteam staat voor je klaar!
             </p>
             <a href="{{ route('help.tickets.create') }}" 
                class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 inline-flex items-center gap-2 shadow-xs cursor-pointer">
