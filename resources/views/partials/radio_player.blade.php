@@ -82,7 +82,7 @@
          x-transition:leave-end="opacity-0 translate-y-2 scale-95"
          @click.outside="isExpanded = false"
          @keydown.escape.window="isExpanded = false"
-         class="absolute {{ $isMobile ? '-right-14 sm:right-0' : 'right-0' }} top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-24px)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 sm:p-4 z-50 space-y-3.5">
+         class="fixed left-3 right-3 sm:absolute sm:left-auto sm:right-0 top-16 sm:top-full mt-2 sm:w-96 max-w-[calc(100vw-24px)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 sm:p-4 z-50 space-y-3.5">
         
         <!-- Header -->
         <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
@@ -108,7 +108,7 @@
 
         <!-- Currently Playing Card with Live Album Art & Metadata -->
         <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 overflow-hidden">
+            <div class="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
                 <div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-900 shadow-xs border border-slate-200 dark:border-slate-700 shrink-0 relative">
                     <img :src="nowPlaying.cover || 'https://mixxr.nl/album-art.png'" 
                          alt="Cover" 
@@ -118,8 +118,8 @@
                         <span class="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-800 animate-pulse"></span>
                     </template>
                 </div>
-                <div class="truncate">
-                    <span class="text-[9px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block" x-text="nowPlaying.artist || 'MIXXR Radio Non-Stop'"></span>
+                <div class="min-w-0 flex-1 truncate">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block truncate" x-text="nowPlaying.artist || 'MIXXR Radio Non-Stop'"></span>
                     <h4 class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="nowPlaying.title || 'Live Stream'"></h4>
                     <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">24/7 Pop, R&amp;B &amp; House</span>
                 </div>
@@ -209,12 +209,12 @@
 
                 <template x-for="track in getVisibleAutoDjTracks()" :key="track.requestId || track.id">
                     <div class="p-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 hover:bg-purple-50/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-2.5 transition-all duration-150">
-                        <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
                             <img :src="track.cover || 'https://mixxr.nl/album-art.png'" 
                                  alt="Art" 
                                  class="w-8 h-8 rounded-lg object-cover bg-slate-900 border border-slate-200 dark:border-slate-700 shrink-0"
                                  x-on:error="$event.target.src = 'https://mixxr.nl/album-art.png'">
-                            <div class="min-w-0 truncate">
+                            <div class="min-w-0 flex-1 truncate">
                                 <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate" x-text="track.title"></h5>
                                 <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate" x-text="track.artist"></span>
                             </div>

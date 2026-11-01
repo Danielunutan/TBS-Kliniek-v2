@@ -20,7 +20,7 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
             <div class="flex items-start sm:items-center gap-4">
-                <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
                     <i class="fa-solid fa-clapperboard"></i>
                 </div>
                 <div>
@@ -71,7 +71,7 @@
     <!-- Filter & Search Bar -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <!-- Filter Tabs -->
-        <div class="bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/70 flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+        <div class="bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/70 flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
             <button type="button" @click="tab = 'all'"
                     :class="tab === 'all' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60 font-bold'"
                     class="px-3.5 py-1.5 rounded-lg text-xs uppercase tracking-wider transition-all duration-150 shrink-0 cursor-pointer">

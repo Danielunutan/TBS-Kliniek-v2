@@ -174,7 +174,7 @@
         </div>
 
         <!-- SESSION LIVE CHAT (4 cols) -->
-        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col h-[650px] sticky top-20">
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 sm:p-5 shadow-xs flex flex-col h-[480px] sm:h-[560px] lg:h-[650px] lg:sticky lg:top-20">
             
             <!-- Chat Header -->
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80 shrink-0">
@@ -194,20 +194,28 @@
             </div>
 
             <!-- Messages Stream -->
-            <div id="cinema-chat-box" @scroll="checkScrollPosition" class="flex-1 overflow-y-auto py-3 space-y-2.5 pr-1 text-xs">
+            <div id="cinema-chat-box" @scroll="checkScrollPosition" class="flex-1 overflow-y-auto py-3 space-y-2.5 pr-1 text-xs custom-scrollbar">
                 <template x-for="msg in messages" :key="msg.id">
                     <div class="flex items-start gap-2.5 p-2.5 rounded-xl border transition-all duration-150"
-                         :class="msg.pending ? 'bg-purple-50/60 dark:bg-purple-950/30 border-purple-200/80 dark:border-purple-800/70 opacity-70' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 shadow-2xs'">
-                        <img :src="msg.avatar" class="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5 border border-slate-200/80 dark:border-slate-700">
+                         :class="msg.pending ? 'bg-purple-50/60 dark:bg-purple-950/30 border-purple-200/80 dark:border-purple-800/70 opacity-70' : ((msg.is_me || msg.character_name === @js($character?->name)) ? 'bg-purple-50/70 dark:bg-purple-950/40 border-purple-200/80 dark:border-purple-800/70 shadow-2xs' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 shadow-2xs')">
+                        <img :src="msg.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'"
+                             onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'"
+                             class="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5 border border-slate-200/80 dark:border-slate-700">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between gap-1 mb-0.5">
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-1.5 min-w-0">
                                     <span class="font-black text-slate-900 dark:text-white truncate" x-text="msg.character_name"></span>
                                     <template x-if="msg.is_staff">
-                                        <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-purple-600 text-white">STAFF</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[8px] leading-none font-black bg-purple-600 text-white shrink-0">STAFF</span>
+                                    </template>
+                                    <template x-if="msg.is_host || msg.character_name === @js($room->host?->name)">
+                                        <span class="px-1.5 py-0.5 rounded text-[8px] leading-none font-black bg-amber-500 text-slate-950 shrink-0">HOST</span>
+                                    </template>
+                                    <template x-if="msg.is_vip && !msg.is_staff">
+                                        <span class="px-1.5 py-0.5 rounded text-[8px] leading-none font-black bg-amber-400 text-slate-950 shrink-0">VIP</span>
                                     </template>
                                 </div>
-                                <span class="text-[10px] text-slate-400 font-mono" x-text="msg.time"></span>
+                                <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="msg.time"></span>
                             </div>
 
                             <!-- Text Message -->
@@ -231,12 +239,12 @@
                 
                 <!-- GIF Picker Drawer -->
                 <div x-show="showGifPicker" x-cloak @click.away="showGifPicker = false"
-                     class="absolute bottom-16 inset-x-0 bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 rounded-2xl p-3 shadow-2xl z-30 max-h-64 overflow-y-auto space-y-2">
+                     class="absolute bottom-full mb-2 inset-x-0 bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 rounded-2xl p-3 shadow-2xl z-30 max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
                     <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800/80">
                         <span class="text-[11px] font-black text-purple-600 dark:text-purple-400">Kies een Meme GIF Reactie:</span>
                         <button type="button" @click="showGifPicker = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs cursor-pointer">&times;</button>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         @foreach(($gifs ?? []) as $gif)
                         <div @click="sendGif(@js($gif['url']))" 
                              class="rounded-xl overflow-hidden border border-slate-200/80 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-600 transition-all duration-150 cursor-pointer aspect-video bg-slate-950 group">
@@ -252,7 +260,7 @@
                     <div x-show="showMentionDropdown && mentionUsers.length > 0"
                          @click.away="showMentionDropdown = false"
                          x-cloak
-                         class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 max-w-[calc(100vw-3rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/80">
+                         class="absolute bottom-full inset-x-0 sm:inset-x-auto sm:left-0 mb-2 w-auto sm:w-80 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/80">
                         <div class="px-3.5 py-2 bg-slate-50/90 dark:bg-slate-800/60 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800/80">
                             <span class="flex items-center gap-1.5">
                                 <i class="fa-solid fa-at text-purple-600 dark:text-purple-400 text-xs"></i>
@@ -260,7 +268,7 @@
                             </span>
                             <span class="text-[10px] text-slate-400 font-normal">↑↓ navigeer • enter kies</span>
                         </div>
-                        <div class="max-h-52 overflow-y-auto p-1 space-y-0.5">
+                        <div class="max-h-52 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
                             <template x-for="(user, idx) in mentionUsers" :key="user.id">
                                 <div @click="selectMention(user)"
                                      @mouseenter="mentionSelectedIndex = idx"
@@ -292,16 +300,18 @@
                                @input="onChatInput($event)"
                                @keydown="onChatKeydown($event)"
                                placeholder="Typ je reactie of @speler..."
-                               class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-base sm:text-xs font-medium focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                               class="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-base sm:text-xs font-medium focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         
                         <button type="button" @click="showGifPicker = !showGifPicker"
-                                class="px-3 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-black text-xs transition-all duration-150 cursor-pointer border border-purple-200/80 dark:border-purple-800/70 active:scale-95"
+                                :class="showGifPicker ? 'bg-purple-600 text-white border-purple-600 shadow-xs' : 'bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/70'"
+                                class="px-3 py-2.5 rounded-xl font-black text-xs transition-all duration-150 cursor-pointer border active:scale-95 shrink-0"
                                 title="Kies een GIF reactie">
                             GIF
                         </button>
 
-                        <button type="submit" 
-                                class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center cursor-pointer active:scale-95">
+                        <button type="submit"
+                                :disabled="!chatInput.trim()"
+                                class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center cursor-pointer active:scale-95 shrink-0">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </div>
@@ -529,17 +539,51 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
         mentionUsers: [],
         mentionSelectedIndex: 0,
 
+        getKnownCharacterNames() {
+            const names = new Set();
+            if (Array.isArray(this.messages)) {
+                this.messages.forEach(m => {
+                    if (m && m.character_name) names.add(m.character_name);
+                });
+            }
+            if (Array.isArray(this.mentionUsers)) {
+                this.mentionUsers.forEach(u => {
+                    if (u && u.name) names.add(u.name);
+                });
+            }
+            return Array.from(names);
+        },
+
         formatChatMessage(text) {
             if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             let safe = div.innerHTML;
 
-            const mentionRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
-            safe = safe.replace(mentionRegex, (match, username) => {
+            const buildMentionPill = (username) => {
                 const url = '/speler/' + encodeURIComponent(username);
                 return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
+            };
+
+            const urlRegex = /(?<!href="|href=')(https?:\/\/[^\s<]+)/gi;
+            safe = safe.replace(urlRegex, (rawUrl) => {
+                const trailingMatch = rawUrl.match(/[.,!?;:)\]]+$/);
+                const trailing = trailingMatch ? trailingMatch[0] : '';
+                const url = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+                const cleanUrl = url.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold text-purple-700 dark:text-amber-400 hover:text-purple-900 dark:hover:text-amber-300 break-all transition">${cleanUrl}</a>${trailing}`;
             });
+
+            const knownNames = this.getKnownCharacterNames();
+            if (knownNames.length > 0) {
+                const sortedNames = [...knownNames].sort((a, b) => b.length - a.length);
+                const escapedPatterns = sortedNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+                const knownRegex = new RegExp('(?<!<a[^>]*>)@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])(?![^<]*<\\/a>)', 'gu');
+                safe = safe.replace(knownRegex, (match, username) => buildMentionPill(username));
+            }
+
+            const mentionRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
+            safe = safe.replace(mentionRegex, (match, username) => buildMentionPill(username));
 
             return safe;
         },
@@ -550,7 +594,7 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
 
             const cursorPos = inputEl.selectionStart || 0;
             const textBeforeCursor = this.chatInput.slice(0, cursorPos);
-            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]*)$/u);
+            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-\s]*)$/u);
 
             if (match) {
                 const query = match[1] || '';
@@ -609,7 +653,7 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
             const textBeforeCursor = this.chatInput.slice(0, cursorPos);
             const textAfterCursor = this.chatInput.slice(cursorPos);
 
-            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]*)$/u);
+            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-\s]*)$/u);
             if (match) {
                 const atIndex = match.index + (match[0].startsWith('@') ? 0 : 1);
                 const prefix = textBeforeCursor.slice(0, atIndex);

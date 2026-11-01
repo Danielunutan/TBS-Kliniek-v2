@@ -40,7 +40,7 @@
     <!-- Ticket Summary Card -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800/80">
-            <div>
+            <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2 mb-1">
                     <span class="font-mono text-xs font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-lg border border-purple-200/80 dark:border-purple-800/70">
                         {{ $ticket->ticket_number }}
@@ -57,7 +57,7 @@
                         {{ $ticket->category_label }}
                     </span>
                 </div>
-                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{{ $ticket->subject }}</h1>
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight break-words">{{ $ticket->subject }}</h1>
             </div>
 
             <div class="text-right text-xs text-slate-400 dark:text-slate-500 font-medium shrink-0">
@@ -125,7 +125,7 @@
             </div>
 
             <!-- Message Body -->
-            <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed font-medium {{ $msg->is_staff ? 'bg-purple-50/70 dark:bg-slate-800/60 p-4 sm:p-5 rounded-xl border border-purple-200/80 dark:border-purple-900/60' : 'p-1' }}">
+            <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed font-medium break-words {{ $msg->is_staff ? 'bg-purple-50/70 dark:bg-slate-800/60 p-4 sm:p-5 rounded-xl border border-purple-200/80 dark:border-purple-900/60' : 'bg-slate-50/80 dark:bg-slate-800/50 p-4 sm:p-5 rounded-xl border border-slate-200/70 dark:border-slate-800' }}">
                 {!! $msg->formatted_message !!}
             </div>
 
@@ -148,7 +148,7 @@
                 <textarea name="message" 
                           rows="4" 
                           placeholder="Typ hier je extra toelichting of reactie op de medewerker..."
-                          class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition resize-y"
+                          class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-base sm:text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition resize-y"
                           required></textarea>
                 @error('message')
                 <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 font-semibold">{{ $message }}</p>

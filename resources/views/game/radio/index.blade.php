@@ -52,14 +52,14 @@
     <!-- Top Hit van Vandaag (Indien aanwezig) -->
     @if($topShoutout)
     <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-amber-200/90 dark:border-amber-900/60 shadow-xs flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3.5">
+        <div class="flex items-center gap-3.5 min-w-0 flex-1">
             <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-lg shrink-0">
                 <i class="fa-solid fa-crown"></i>
             </div>
-            <div>
-                <span class="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">Meest Gewaardeerde Plaat Vandaag</span>
-                <h4 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">"{{ $topShoutout->track_title }}"</h4>
-                <p class="text-xs text-slate-600 dark:text-slate-300 italic mt-0.5">"{{ $topShoutout->message }}" — <strong class="text-slate-800 dark:text-slate-100">{{ $topShoutout->is_anonymous ? 'Anonieme Patiënt' : $topShoutout->character_name }}</strong></p>
+            <div class="min-w-0 flex-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Meest Gewaardeerde Plaat Vandaag</span>
+                <h4 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">"{{ $topShoutout->track_title }}"</h4>
+                <p class="text-xs text-slate-600 dark:text-slate-300 italic mt-0.5 break-words">"{{ $topShoutout->message }}" — <strong class="text-slate-800 dark:text-slate-100">{{ $topShoutout->is_anonymous ? 'Anonieme Patiënt' : $topShoutout->character_name }}</strong></p>
             </div>
         </div>
         <div class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 font-extrabold text-xs">
@@ -73,7 +73,7 @@
 
         <!-- Linker kolom: Formulier Plaat & Shoutout Aanvragen -->
         <div class="lg:col-span-5">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5 sticky top-20">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5 lg:sticky lg:top-20">
                 <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-microphone-lines text-purple-600 dark:text-purple-400"></i>
@@ -87,7 +87,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kies je Plaat:</label>
-                        <select name="track_title" required class="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 font-medium transition">
+                        <select name="track_title" required class="w-full text-base sm:text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 font-medium transition">
                             @foreach($tracks as $t)
                                 <option value="{{ $t }}">{{ $t }}</option>
                             @endforeach
@@ -96,7 +96,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Jouw Radio Shoutout (max 200 tekens):</label>
-                        <textarea name="message" rows="3" required maxlength="200" placeholder="Bijv: Groetjes aan Paviljoen 7, handjes thuis van de frikandelbroodjes!" class="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 p-3 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition"></textarea>
+                        <textarea name="message" rows="3" required maxlength="200" placeholder="Bijv: Groetjes aan Paviljoen 7, handjes thuis van de frikandelbroodjes!" class="w-full text-base sm:text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 p-3 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition resize-none"></textarea>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -146,28 +146,28 @@
                     @foreach($shoutouts as $shout)
                         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition flex flex-col justify-between gap-3">
                             <div class="flex items-start justify-between gap-3">
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-3 min-w-0 flex-1">
                                     <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 {{ $shout->is_anonymous ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70' }}">
                                         <i class="fa-solid {{ $shout->is_anonymous ? 'fa-user-secret' : 'fa-compact-disc' }}"></i>
                                     </div>
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs font-black text-slate-900 dark:text-white">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2 flex-wrap min-w-0">
+                                            <span class="text-xs font-black text-slate-900 dark:text-white truncate">
                                                 {{ $shout->is_anonymous ? 'Anonieme Patiënt' : $shout->character_name }}
                                             </span>
                                             @if($shout->gang_name && !$shout->is_anonymous)
-                                                <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50">
+                                                <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0">
                                                     {{ $shout->gang_name }}
                                                 </span>
                                             @endif
                                         </div>
-                                        <div class="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5 mt-0.5">
-                                            <i class="fa-solid fa-music text-[9px]"></i>
-                                            <span>{{ $shout->track_title }}</span>
+                                        <div class="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5 mt-0.5 min-w-0">
+                                            <i class="fa-solid fa-music text-[9px] shrink-0"></i>
+                                            <span class="truncate">{{ $shout->track_title }}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <span class="text-[10px] text-slate-400 whitespace-nowrap">{{ $shout->created_at->diffForHumans() }}</span>
+                                <span class="text-[10px] text-slate-400 whitespace-nowrap shrink-0">{{ $shout->created_at->diffForHumans() }}</span>
                             </div>
 
                             <p class="text-xs text-slate-700 dark:text-slate-200 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 leading-snug break-words font-medium">

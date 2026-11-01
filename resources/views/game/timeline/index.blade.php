@@ -67,7 +67,7 @@
                               rows="3" 
                               @disabled($character->isImprisoned() || $character->isComatose())
                               placeholder="{{ $character->isImprisoned() || $character->isComatose() ? 'Plaatsen van berichten is tijdelijk geblokkeerd...' : 'Wat gebeurt er op de afdeling, ' . $character->name . '? Deel een bericht (max 280 tekens)...' }}"
-                              class="w-full text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition disabled:opacity-50 disabled:cursor-not-allowed"></textarea>
+                              class="w-full text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition disabled:opacity-50 disabled:cursor-not-allowed"></textarea>
                 </div>
             </div>
 
@@ -135,13 +135,13 @@
                      }
                  }">
                 <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-start gap-3.5">
+                    <div class="flex items-start gap-3.5 min-w-0 flex-1">
                         <a href="{{ route('profile.show', $post->character->name) }}" class="shrink-0">
                             <img src="{{ $post->character->avatar_url }}" alt="{{ $post->character->name }}" class="w-11 h-11 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs hover:scale-105 transition-transform">
                         </a>
-                        <div>
+                        <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <a href="{{ route('profile.show', $post->character->name) }}" class="font-black text-xs sm:text-sm text-slate-900 dark:text-slate-100 hover:text-purple-600 dark:hover:text-purple-400 transition">
+                                <a href="{{ route('profile.show', $post->character->name) }}" class="font-black text-xs sm:text-sm text-slate-900 dark:text-slate-100 hover:text-purple-600 dark:hover:text-purple-400 transition truncate max-w-full">
                                     {{ $post->character->name }}
                                 </a>
                                 @if($post->character->user && $post->character->user->role !== 'user')
@@ -150,11 +150,11 @@
                                         <i class="fa-solid {{ $badge['icon'] }} text-[8px]"></i> {{ $badge['label'] }}
                                     </span>
                                 @endif
-                                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-full">
+                                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-full">
                                     Level {{ $post->character->level }}
                                 </span>
                                 @if($post->character->gang)
-                                <a href="{{ route('gangs.index') }}" class="text-[10px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2 py-0.5 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/60 transition">
+                                <a href="{{ route('gangs.index') }}" class="text-[10px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2 py-0.5 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/60 transition truncate max-w-[200px]">
                                     [{{ $post->character->gang->tag }}] {{ $post->character->gang->name }}
                                 </a>
                                 @endif
@@ -164,7 +164,7 @@
                             </div>
 
                             <!-- Post Content -->
-                            <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-2 font-medium leading-relaxed whitespace-pre-line">
+                            <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-2 font-medium leading-relaxed whitespace-pre-line break-words">
                                 {{ $post->content }}
                             </p>
                         </div>
@@ -195,7 +195,7 @@
 
                 <!-- Footer Actions: Like, Reacties, Privébericht -->
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-                    <div class="flex items-center gap-3 sm:gap-4 relative">
+                    <div class="flex flex-wrap items-center gap-3 sm:gap-4 relative">
                         
                         <!-- Like / Reaction Button with Emoji Tray -->
                         <div class="relative flex items-center" @mouseleave="showReactionTray = false">
@@ -283,13 +283,13 @@
                         @foreach($post->comments as $comment)
                         @if($comment->character)
                         <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 flex items-start justify-between gap-3">
-                            <div class="flex items-start gap-2.5">
+                            <div class="flex items-start gap-2.5 min-w-0 flex-1">
                                 <a href="{{ route('profile.show', $comment->character->name) }}" class="shrink-0">
                                     <img src="{{ $comment->character->avatar_url }}" alt="{{ $comment->character->name }}" class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shadow-2xs">
                                 </a>
-                                <div>
+                                <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-1.5 flex-wrap">
-                                        <a href="{{ route('profile.show', $comment->character->name) }}" class="font-extrabold text-xs text-slate-900 dark:text-slate-100 hover:text-purple-600 dark:hover:text-purple-400 transition">
+                                        <a href="{{ route('profile.show', $comment->character->name) }}" class="font-extrabold text-xs text-slate-900 dark:text-slate-100 hover:text-purple-600 dark:hover:text-purple-400 transition truncate max-w-full">
                                             {{ $comment->character->name }}
                                         </a>
                                         @if($comment->character->user && $comment->character->user->role !== 'user')
@@ -302,7 +302,7 @@
                                             &bull; {{ $comment->created_at?->diffForHumans() }}
                                         </span>
                                     </div>
-                                    <p class="text-xs text-slate-700 dark:text-slate-300 font-medium mt-1 leading-relaxed whitespace-pre-line">
+                                    <p class="text-xs text-slate-700 dark:text-slate-300 font-medium mt-1 leading-relaxed whitespace-pre-line break-words">
                                         {{ $comment->content }}
                                     </p>
                                 </div>
@@ -332,7 +332,7 @@
                         @csrf
                         <div class="flex items-start gap-2.5">
                             <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-8 h-8 rounded-xl object-cover border border-purple-200 dark:border-purple-700 shrink-0">
-                            <div class="flex-1">
+                            <div class="flex-1 min-w-0">
                                 <textarea x-ref="replyInput"
                                           name="content" 
                                           x-model="replyText"
@@ -341,11 +341,11 @@
                                           rows="2" 
                                           @disabled($character->isImprisoned() || $character->isComatose())
                                           placeholder="{{ $character->isImprisoned() || $character->isComatose() ? 'Reageren is tijdelijk geblokkeerd...' : 'Schrijf een reactie op ' . $post->character->name . '...' }}"
-                                          class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition disabled:opacity-50 disabled:cursor-not-allowed"></textarea>
+                                          class="w-full text-base sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-2.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition disabled:opacity-50 disabled:cursor-not-allowed"></textarea>
                                 
-                                <div class="flex items-center justify-between pt-1">
+                                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
                                     <!-- Mini Smiley Bar for Replies -->
-                                    <div class="flex items-center gap-1">
+                                    <div class="flex flex-wrap items-center gap-1">
                                         <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold mr-0.5"><i class="fa-regular fa-face-smile text-amber-500"></i>:</span>
                                         <template x-for="re in replyEmojis" :key="re">
                                             <button type="button" 
@@ -391,7 +391,7 @@
                 Volledige ranglijst bekijken &rarr;
             </a>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-3">
             @foreach($topRankings as $rank => $patient)
             <div class="flex flex-col items-center text-center p-2 rounded-xl border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600/60 bg-slate-50/90 dark:bg-slate-800/60 transition">
                 <div class="relative">

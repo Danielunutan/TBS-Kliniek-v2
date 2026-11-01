@@ -42,6 +42,7 @@ window.tbsChatConfig = {
     gangStars: {{ (int) ($gangStars ?? 0) }},
     characterStars: {{ (int) ($characterStars ?? 0) }},
     canModerate: {{ ($canModerate ?? false) ? "true" : "false" }},
+    totalUnreadDms: {{ (int) ($totalUnreadDms ?? 0) }},
     characterNames: @js($characterNames ?? [])
 };
 </script>
@@ -89,7 +90,7 @@ function tbsLiveMessenger(config) {
             status_label: 'Selecteer een gesprek uit de lijst'
         },
         loadingConversations: false,
-        totalUnread: 0,
+        totalUnread: config.totalUnreadDms || 0,
 
         // Input & Interactive state
         messageInput: '',
@@ -110,6 +111,23 @@ function tbsLiveMessenger(config) {
             return '{{ csrf_token() }}';
         },
 
+        registerCharacterNames(messages) {
+            if (!Array.isArray(messages) || messages.length === 0) return;
+            const known = new Set(this.characterNames);
+            let added = false;
+            messages.forEach(m => {
+                const candidate = m.name || m.sender_name;
+                if (candidate && typeof candidate === 'string' && !known.has(candidate)) {
+                    known.add(candidate);
+                    this.characterNames.push(candidate);
+                    added = true;
+                }
+            });
+            if (added) {
+                this.characterNames.sort((a, b) => b.length - a.length);
+            }
+        },
+
         formatMessage(text, isMe = false) {
             if (!text) return '';
             const tempDiv = document.createElement('div');
@@ -119,44 +137,48 @@ function tbsLiveMessenger(config) {
             const buildMentionPill = (username) => {
                 const url = '/speler/' + encodeURIComponent(username);
                 if (isMe) {
-                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-white/20 hover:bg-white/30 dark:hover:bg-white/30 text-white transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
+                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-white/20 hover:bg-white/30 dark:hover:bg-white/30 text-white border border-white/30 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
                 } else {
                     return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
                 }
             };
 
-            // 1. Highlight known player names (including multi-word / accented names like @OOHPA Arjan, @Daniël)
+            // 1. Convert links (https:// or http://) into safe clickable links first so @ inside URLs are preserved
+            const urlRegex = /(?<!href="|href=')(https?:\/\/[^\s<]+)/gi;
+            const linkColorClass = isMe
+                ? 'text-amber-200 hover:text-white'
+                : 'text-purple-700 dark:text-amber-400 hover:text-purple-900 dark:hover:text-amber-300';
+            safe = safe.replace(urlRegex, (rawUrl) => {
+                const trailingMatch = rawUrl.match(/[.,!?;:)\]]+$/);
+                const trailing = trailingMatch ? trailingMatch[0] : '';
+                const url = trailing ? rawUrl.slice(0, -trailing.length) : rawUrl;
+                const cleanUrl = url.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold ${linkColorClass} break-all transition">${cleanUrl}</a>${trailing}`;
+            });
+
+            // 2. Highlight known player names (including multi-word / accented names like @OOHPA Arjan, @Daniël)
             if (Array.isArray(this.characterNames) && this.characterNames.length > 0) {
                 const sortedNames = [...this.characterNames].sort((a, b) => b.length - a.length);
                 const escapedPatterns = sortedNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-                const knownRegex = new RegExp('@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])', 'gu');
+                const knownRegex = new RegExp('(?<!<a[^>]*>)@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])(?![^<]*<\\/a>)', 'gu');
                 safe = safe.replace(knownRegex, (match, username) => buildMentionPill(username));
             }
 
-            // 2. Fallback regex for single-word mentions with Unicode letters, numbers, dashes, underscores, dots
+            // 3. Fallback regex for single-word mentions with Unicode letters, numbers, dashes, underscores, dots
             // Only match @ if not inside an HTML tag or already wrapped in an <a> tag
             const fallbackRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
             safe = safe.replace(fallbackRegex, (match, username) => {
                 return buildMentionPill(username);
             });
 
-            // 3. Convert links (https:// or http://) into safe clickable links
-            const urlRegex = /(?<!href="|href=')(https?:\/\/[^\s<]+)/gi;
-            const linkColorClass = isMe
-                ? 'text-amber-200 hover:text-white'
-                : 'text-purple-700 dark:text-amber-400 hover:text-purple-900 dark:hover:text-amber-300';
-            safe = safe.replace(urlRegex, (url) => {
-                const cleanUrl = url.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold ${linkColorClass} break-all transition">${cleanUrl}</a>`;
-            });
-
             return safe;
         },
 
         setReplyTo(msg) {
+            const replyName = msg.name || msg.sender_name || (msg.is_me ? this.myName : (this.activePartner?.name || 'Inmate'));
             this.replyingTo = {
                 id: msg.id,
-                name: msg.name,
+                name: replyName,
                 text: (msg.message || '').slice(0, 70)
             };
             this.$nextTick(() => {
@@ -356,6 +378,7 @@ function tbsLiveMessenger(config) {
                 const res = await fetch('{{ route("chat.public.messages") }}?channel=global');
                 const data = await res.json();
                 if (data.success) {
+                    this.registerCharacterNames(data.messages);
                     if (this.publicMessagesList.length === 0) {
                         this.publicMessagesList = data.messages;
                     } else {
@@ -386,6 +409,7 @@ function tbsLiveMessenger(config) {
                 const res = await fetch(`{{ route("chat.public.messages") }}?channel=gang_${this.gangId}`);
                 const data = await res.json();
                 if (data.success) {
+                    this.registerCharacterNames(data.messages);
                     if (this.gangMessagesList.length === 0) {
                         this.gangMessagesList = data.messages;
                     } else {
@@ -430,6 +454,10 @@ function tbsLiveMessenger(config) {
                 const data = await res.json();
                 if (data.success) {
                     this.activePartner = data.partner;
+                    if (data.partner && data.partner.name) {
+                        this.registerCharacterNames([{ name: data.partner.name }]);
+                    }
+                    this.registerCharacterNames(data.messages);
                     if (this.directMessagesList.length === 0) {
                         this.directMessagesList = data.messages;
                     } else {
@@ -471,6 +499,7 @@ function tbsLiveMessenger(config) {
                             this.publicMessagesList = this.publicMessagesList.filter(m => !delSet.has(m.id));
                         }
                         if (data.messages && data.messages.length > 0) {
+                            this.registerCharacterNames(data.messages);
                             const newOthers = data.messages.filter(m => !m.is_me);
                             if (newOthers.length > 0) {
                                 const myNameLower = (this.authCharName || '').toLowerCase();
@@ -506,6 +535,7 @@ function tbsLiveMessenger(config) {
                             this.gangMessagesList = this.gangMessagesList.filter(m => !delSet.has(m.id));
                         }
                         if (data.messages && data.messages.length > 0) {
+                            this.registerCharacterNames(data.messages);
                             const newOthers = data.messages.filter(m => !m.is_me);
                             if (newOthers.length > 0) {
                                 const myNameLower = (this.authCharName || '').toLowerCase();
@@ -551,6 +581,7 @@ function tbsLiveMessenger(config) {
                             this.directMessagesList = this.directMessagesList.filter(m => !delSet.has(m.id));
                         }
                         if (data.messages) {
+                            this.registerCharacterNames(data.messages);
                             const existingIds = new Set(this.directMessagesList.map(m => m.id));
                             const toAdd = data.messages.filter(m => !existingIds.has(m.id));
                             if (toAdd.length > 0) {
@@ -613,13 +644,17 @@ function tbsLiveMessenger(config) {
                     }
                 } else {
                     if (this.activePartnerId === null || this.activePartnerId === undefined) return;
+                    const dmPayload = { message: text };
+                    if (this.replyingTo && this.replyingTo.id) {
+                        dmPayload.reply_to_id = this.replyingTo.id;
+                    }
                     const res = await fetch(`/chat/prive/${this.activePartnerId}/verzenden`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': this.getCsrf()
                         },
-                        body: JSON.stringify({ message: text })
+                        body: JSON.stringify(dmPayload)
                     });
                     const data = await res.json();
                     if (data.success) {
@@ -627,6 +662,7 @@ function tbsLiveMessenger(config) {
                             this.directMessagesList.push(data.message);
                         }
                         this.messageInput = '';
+                        this.replyingTo = null;
                         this.scrollToBottom();
                         this.loadConversations();
                     } else {
@@ -653,6 +689,23 @@ function tbsLiveMessenger(config) {
                 if (data.success) {
                     msg.hearts_count = data.hearts_count;
                     msg.has_hearted = data.has_hearted;
+                }
+            } catch(e) {}
+        },
+
+        async toggleDirectHeart(dm) {
+            try {
+                const res = await fetch(`/chat/prive-bericht/${dm.id}/hartje`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': this.getCsrf(),
+                        'Accept': 'application/json',
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    dm.hearts_count = data.hearts_count;
+                    dm.has_hearted = data.has_hearted;
                 }
             } catch(e) {}
         },
@@ -774,8 +827,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <!-- KLINIEK PLEIN TAB -->
                 <button type="button" 
                         @click="switchTab('global')" 
-                        :class="activeTab === 'global' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
+                        :class="activeTab === 'global' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'border border-transparent text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
                     <i class="fa-solid fa-bullhorn text-[11px]"></i>
                     <span>Plein</span>
                 </button>
@@ -783,8 +836,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <!-- BENDE CHAT TAB -->
                 <button type="button" 
                         @click="switchTab('gang')" 
-                        :class="activeTab === 'gang' ? 'bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative">
+                        :class="activeTab === 'gang' ? 'bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'border border-transparent text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative whitespace-nowrap">
                     <i class="fa-solid fa-walkie-talkie text-[11px]"></i>
                     <span>Bende</span>
                     @if($hasGang)
@@ -807,8 +860,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <!-- PRIVÉ CHATS TAB -->
                 <button type="button" 
                         @click="switchTab('direct')" 
-                        :class="activeTab === 'direct' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative">
+                        :class="activeTab === 'direct' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'border border-transparent text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative whitespace-nowrap">
                     <i class="fa-solid fa-user-lock text-[11px]"></i>
                     <span>Privé</span>
                     <span x-show="totalUnread > 0" 
@@ -1059,7 +1112,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                          class="w-11 h-11 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs"
                                          onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                 </template>
-                                <template x-if="conv.is_online">
+                                <template x-if="conv.is_online && !conv.is_bot">
                                     <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" title="Online"></span>
                                 </template>
                             </div>
@@ -1067,11 +1120,11 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                             <!-- CONTENT -->
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-1">
-                                    <h4 class="text-xs font-black text-slate-900 dark:text-white truncate flex items-center gap-1.5"
+                                    <h4 class="text-xs font-black text-slate-900 dark:text-white min-w-0 flex items-center gap-1.5"
                                         :class="conv.is_bot ? 'text-amber-600 dark:text-amber-400' : ''">
-                                        <span x-text="conv.name"></span>
+                                        <span class="truncate" x-text="conv.name"></span>
                                         <template x-if="conv.is_bot">
-                                            <i class="fa-solid fa-circle-check text-[10px] text-amber-500" title="Geverifieerd"></i>
+                                            <i class="fa-solid fa-circle-check text-[10px] text-amber-500 shrink-0" title="Geverifieerd"></i>
                                         </template>
                                     </h4>
                                     <span class="text-[10px] text-slate-400 shrink-0 font-medium" x-text="conv.last_time"></span>
@@ -1079,7 +1132,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <div class="flex items-center justify-between gap-2 mt-0.5">
                                     <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="conv.last_message"></p>
                                     <template x-if="conv.unread_count > 0">
-                                        <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black shrink-0" 
+                                        <span class="min-w-[18px] h-4 px-1.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black shrink-0 inline-flex items-center justify-center leading-none" 
                                               x-text="conv.unread_count"></span>
                                     </template>
                                 </div>
@@ -1140,10 +1193,10 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <i class="fa-solid fa-walkie-talkie"></i>
                             </div>
                             <div class="min-w-0">
-                                <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
-                                    <span x-text="gangName + ' Portofoon'"></span>
+                                <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight min-w-0 flex items-center gap-2">
+                                    <span class="truncate" x-text="gangName + ' Portofoon'"></span>
                                     <template x-if="gangTag">
-                                        <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-mono text-[9px] font-black" x-text="'[' + gangTag + ']'"></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-mono text-[9px] font-black shrink-0" x-text="'[' + gangTag + ']'"></span>
                                     </template>
                                 </h3>
                                 <div class="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-semibold truncate">
@@ -1178,18 +1231,25 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 </div>
                             </template>
                             <template x-if="activePartnerId !== null && !activePartner.is_bot">
-                                <img :src="activePartner.avatar" 
-                                     class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
-                                     onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                <div class="relative shrink-0">
+                                    <img :src="activePartner.avatar" 
+                                         class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs"
+                                         onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                    <span x-show="activePartner.is_online && !activePartner.is_bot"
+                                          class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"
+                                          title="Online"></span>
+                                </div>
                             </template>
                             <div class="min-w-0">
-                                <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 truncate">
-                                    <span x-text="activePartnerId === null ? 'Privéberichten' : activePartner.name"></span>
+                                <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight min-w-0 flex items-center gap-1.5">
+                                    <span class="truncate" x-text="activePartnerId === null ? 'Privéberichten' : activePartner.name"></span>
                                     <template x-if="activePartnerId !== null && activePartner.is_bot">
-                                        <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[9px] font-black uppercase">Systeem Bot</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[9px] font-black uppercase shrink-0">Systeem Bot</span>
                                     </template>
                                 </h3>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="activePartnerId === null ? 'Selecteer links een gesprek' : activePartner.status_label"></div>
+                                <div class="text-[11px] truncate font-medium"
+                                     :class="activePartnerId !== null && activePartner.is_online && !activePartner.is_bot ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-500 dark:text-slate-400'"
+                                     x-text="activePartnerId === null ? 'Selecteer links een gesprek' : activePartner.status_label"></div>
                             </div>
                         </div>
                     </template>
@@ -1227,7 +1287,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <!-- AVATAR -->
                                 <button type="button" 
                                         @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }"
-                                        class="shrink-0 cursor-pointer transition hover:scale-105"
+                                        class="shrink-0 transition"
+                                        :class="!msg.is_me ? 'cursor-pointer hover:scale-105' : 'cursor-default'"
                                         :title="!msg.is_me ? 'Klik om privé te chatten met ' + msg.name : ''">
                                     <img :src="msg.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
                                          class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/60 shadow-2xs"
@@ -1333,7 +1394,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                             <!-- REPORT -->
                                             <template x-if="!msg.is_me">
-                                                <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
+                                                <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-80 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
                                                     <i class="fa-solid fa-flag"></i>
                                                 </button>
                                             </template>
@@ -1342,11 +1403,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                     <!-- REPLY QUOTE BUBBLE -->
                                     <template x-if="msg.reply_to_name">
-                                        <div class="w-fit max-w-full text-[11px] text-purple-700 dark:text-purple-300 bg-purple-100/70 dark:bg-purple-950/60 px-2.5 py-1 rounded-xl border-l-2 border-purple-500 mb-1 inline-flex items-center gap-1.5 min-w-0"
-                                             :class="msg.is_me ? 'ml-auto' : ''">
-                                            <i class="fa-solid fa-reply text-[9px] text-purple-500 shrink-0"></i>
-                                            <span class="font-extrabold text-purple-800 dark:text-purple-200 shrink-0 whitespace-nowrap" x-text="'@' + msg.reply_to_name"></span>
-                                            <span class="truncate min-w-0 opacity-80 italic" x-text="msg.reply_to_snippet"></span>
+                                        <div class="flex min-w-0 max-w-full mb-1" :class="msg.is_me ? 'justify-end' : 'justify-start'">
+                                            <div class="w-fit max-w-full text-[11px] text-purple-700 dark:text-purple-300 bg-purple-100/70 dark:bg-purple-950/60 px-2.5 py-1 rounded-xl inline-flex items-center gap-1.5 min-w-0 text-left"
+                                                 :class="msg.is_me ? 'border-r-2 border-purple-400' : 'border-l-2 border-purple-500'">
+                                                <i class="fa-solid fa-reply text-[9px] text-purple-500 shrink-0"></i>
+                                                <span class="font-extrabold text-purple-800 dark:text-purple-200 shrink-0 whitespace-nowrap" x-text="'@' + msg.reply_to_name"></span>
+                                                <span class="truncate min-w-0 opacity-80 italic" x-text="msg.reply_to_snippet"></span>
+                                            </div>
                                         </div>
                                     </template>
 
@@ -1389,7 +1452,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <!-- 2. BENDE CHAT (GANG PORTOFOON)  -->
                 <!-- =============================== -->
                 <template x-if="activeTab === 'gang'">
-                    <div class="h-full flex flex-col min-h-0">
+                    <div class="min-h-full flex flex-col">
                         
                         <!-- SCENARIO A: NOT IN A GANG -->
                         <template x-if="!hasGang">
@@ -1461,7 +1524,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                         <!-- AVATAR -->
                                         <button type="button" 
                                                 @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }"
-                                                class="shrink-0 cursor-pointer transition hover:scale-105"
+                                                class="shrink-0 transition"
+                                                :class="!msg.is_me ? 'cursor-pointer hover:scale-105' : 'cursor-default'"
                                                 :title="!msg.is_me ? 'Klik om privé te chatten met ' + msg.name : ''">
                                             <img :src="msg.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
                                                  class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/60 shadow-2xs"
@@ -1567,7 +1631,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                                     <!-- REPORT -->
                                                     <template x-if="!msg.is_me">
-                                                        <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
+                                                        <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message }) : null" class="opacity-80 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
                                                             <i class="fa-solid fa-flag"></i>
                                                         </button>
                                                     </template>
@@ -1576,11 +1640,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                             <!-- REPLY QUOTE BUBBLE -->
                                             <template x-if="msg.reply_to_name">
-                                                <div class="w-fit max-w-full text-[11px] text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2.5 py-1 rounded-xl border-l-2 border-amber-500 mb-1 inline-flex items-center gap-1.5 min-w-0"
-                                                     :class="msg.is_me ? 'ml-auto' : ''">
-                                                    <i class="fa-solid fa-reply text-[9px] text-amber-500 shrink-0"></i>
-                                                    <span class="font-extrabold text-amber-800 dark:text-amber-200 shrink-0 whitespace-nowrap" x-text="'@' + msg.reply_to_name"></span>
-                                                    <span class="truncate min-w-0 opacity-80 italic" x-text="msg.reply_to_snippet"></span>
+                                                <div class="flex min-w-0 max-w-full mb-1" :class="msg.is_me ? 'justify-end' : 'justify-start'">
+                                                    <div class="w-fit max-w-full text-[11px] text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2.5 py-1 rounded-xl inline-flex items-center gap-1.5 min-w-0 text-left"
+                                                         :class="msg.is_me ? 'border-r-2 border-amber-400' : 'border-l-2 border-amber-500'">
+                                                        <i class="fa-solid fa-reply text-[9px] text-amber-500 shrink-0"></i>
+                                                        <span class="font-extrabold text-amber-800 dark:text-amber-200 shrink-0 whitespace-nowrap" x-text="'@' + msg.reply_to_name"></span>
+                                                        <span class="truncate min-w-0 opacity-80 italic" x-text="msg.reply_to_snippet"></span>
+                                                    </div>
                                                 </div>
                                             </template>
 
@@ -1589,7 +1655,11 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
                                                      :class="msg.is_me 
                                                         ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
-                                                        : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'"
+                                                        : (msg.is_owner 
+                                                            ? 'bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
+                                                            : (msg.is_admin || msg.is_moderator 
+                                                                ? 'bg-purple-50/70 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
+                                                                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'))"
                                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                                 <!-- PAARS HARTJE REACTIE KNOP 💜 -->
@@ -1597,14 +1667,14 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                         :title="msg.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
                                                         class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                         :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
-                                            <span>💜</span>
-                                            <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[10px] font-black font-mono"></span>
-                                        </button>
-                                    </div>
+                                                    <span>💜</span>
+                                                    <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[10px] font-black font-mono"></span>
+                                                </button>
+                                            </div>
 
-                                </div>
-                            </div>
-                        </template>
+                                        </div>
+                                    </div>
+                                </template>
 
                         <template x-if="gangMessagesList.length === 0">
                             <div class="py-16 text-center text-slate-400 text-xs">
@@ -1659,9 +1729,39 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                         </div>
                                     </template>
 
+                                    <!-- Kluiscode Special DM Card -->
+                                    <template x-if="dm.type === 'kluiscode'">
+                                        <div class="p-3 sm:p-4 rounded-2xl bg-purple-950/90 border border-purple-700/80 text-white space-y-2 shadow-lg max-w-md min-w-0 text-left">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                                    <i class="fa-solid fa-vault"></i> Geheime Kluiscode
+                                                </span>
+                                                <span class="text-[10px] text-purple-300 font-mono" x-text="dm.time || dm.created_at"></span>
+                                            </div>
+                                            <p class="text-xs text-purple-100 leading-snug break-words" x-text="dm.message"></p>
+                                            <template x-if="dm.metadata && dm.metadata.code">
+                                                <div class="p-2.5 rounded-xl bg-slate-950/80 border border-amber-500/40 text-center font-mono text-lg font-black tracking-[0.3em] text-amber-400" x-text="dm.metadata.code"></div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Level Up Special DM Card -->
+                                    <template x-if="dm.type === 'level_up'">
+                                        <div class="p-3 sm:p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/70 space-y-1.5 shadow-sm max-w-md min-w-0 text-left">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <div class="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-black text-xs uppercase">
+                                                    <i class="fa-solid fa-trophy"></i>
+                                                    <span x-text="dm.metadata?.title || 'Level Omhoog!'"></span>
+                                                </div>
+                                                <span class="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-mono shrink-0" x-text="dm.time || dm.created_at"></span>
+                                            </div>
+                                            <p class="text-xs text-slate-800 dark:text-amber-100 leading-snug break-words" x-text="dm.message"></p>
+                                        </div>
+                                    </template>
+
                                     <!-- Standard Direct Messages -->
-                                    <template x-if="dm.type !== 'liquidation'">
-                                        <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                    <template x-if="dm.type !== 'liquidation' && dm.type !== 'kluiscode' && dm.type !== 'level_up'">
+                                        <div class="flex items-start gap-2.5 sm:gap-3 group min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                             <template x-if="!dm.is_me && (dm.is_bot || dm.sender_id === null || activePartner?.is_bot)">
                                                 <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center text-sm shadow-2xs shrink-0">
                                                     <i class="fa-solid fa-building-shield"></i>
@@ -1673,18 +1773,71 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                      onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                             </template>
                                             <div class="max-w-[88%] sm:max-w-xl min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                                <div class="flex items-center gap-1.5 text-[11px] font-bold leading-tight" :class="dm.is_me ? 'justify-end' : ''">
-                                                    <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name || (dm.is_me ? myName : (activePartner?.name || 'Inmate'))"></span>
-                                                    <span class="text-slate-400 text-[10px]" x-text="dm.time || dm.created_at"></span>
-                                                    <template x-if="canModerate || dm.is_me">
-                                                        <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
-                                                            <i class="fa-solid fa-trash-can"></i>
-                                                        </button>
+                                                <div class="flex items-center gap-x-1.5 gap-y-0.5 text-[11px] font-bold flex-wrap min-w-0 max-w-full leading-tight" :class="dm.is_me ? 'justify-end' : ''">
+                                                    <span class="font-extrabold"
+                                                          :class="(!dm.is_me && (dm.is_bot || dm.sender_id === null || activePartner?.is_bot)) ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'"
+                                                          x-text="dm.sender_name || (dm.is_me ? myName : (activePartner?.name || 'Inmate'))"></span>
+                                                    <template x-if="!dm.is_me && (dm.is_bot || dm.sender_id === null || activePartner?.is_bot)">
+                                                        <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[8px] leading-none font-black uppercase">Directie</span>
                                                     </template>
+                                                    <template x-if="!dm.is_me && !(dm.is_bot || dm.sender_id === null || activePartner?.is_bot) && (dm.sender_level || activePartner?.level)">
+                                                        <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] leading-none font-black">
+                                                            L<span x-text="dm.sender_level || activePartner?.level"></span>
+                                                        </span>
+                                                    </template>
+                                                    <span class="inline-flex items-center gap-1 shrink-0">
+                                                        <span class="text-slate-400 text-[10px]" x-text="dm.time || dm.created_at"></span>
+                                                        <template x-if="!(dm.is_bot || dm.sender_id === null || activePartner?.is_bot)">
+                                                            <button type="button" @click="setReplyTo(dm)" title="Reageer op dit bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[10px] cursor-pointer">
+                                                                <i class="fa-solid fa-reply"></i>
+                                                            </button>
+                                                        </template>
+                                                        <template x-if="canModerate || dm.is_me">
+                                                            <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        </template>
+                                                        <template x-if="!dm.is_me && !(dm.is_bot || dm.sender_id === null || activePartner?.is_bot)">
+                                                            <button type="button" @click="window.tbsOpenReportModal ? window.tbsOpenReportModal({ type: 'direct_message', id: dm.id, name: dm.sender_name || activePartner?.name, text: dm.message }) : null" class="opacity-80 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[10px] cursor-pointer" title="Rapporteer">
+                                                                <i class="fa-solid fa-flag"></i>
+                                                            </button>
+                                                        </template>
+                                                        <template x-if="dm.is_me">
+                                                            <span :title="dm.is_read ? 'Gelezen' : 'Verzonden'">
+                                                                <i class="fa-solid text-[9px]" :class="dm.is_read ? 'fa-check-double text-purple-600 dark:text-purple-400' : 'fa-check text-slate-400'"></i>
+                                                            </span>
+                                                        </template>
+                                                    </span>
                                                 </div>
-                                                <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
-                                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'"
-                                                     x-html="formatMessage(dm.message, dm.is_me)"></div>
+
+                                                <template x-if="dm.reply_to_name">
+                                                    <div class="flex min-w-0 max-w-full mb-1" :class="dm.is_me ? 'justify-end' : 'justify-start'">
+                                                        <div class="w-fit max-w-full text-[11px] text-purple-700 dark:text-purple-300 bg-purple-100/70 dark:bg-purple-950/60 px-2.5 py-1 rounded-xl inline-flex items-center gap-1.5 min-w-0 text-left"
+                                                             :class="dm.is_me ? 'border-r-2 border-purple-400' : 'border-l-2 border-purple-500'">
+                                                            <i class="fa-solid fa-reply text-[9px] text-purple-500 shrink-0"></i>
+                                                            <span class="font-extrabold text-purple-800 dark:text-purple-200 shrink-0 whitespace-nowrap" x-text="'@' + dm.reply_to_name"></span>
+                                                            <span class="truncate min-w-0 opacity-80 italic" x-text="dm.reply_to_snippet"></span>
+                                                        </div>
+                                                    </div>
+                                                </template>
+
+                                                <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                                    <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
+                                                         :class="dm.is_me 
+                                                            ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
+                                                            : ((dm.is_bot || dm.sender_id === null || activePartner?.is_bot)
+                                                                ? 'bg-amber-50/90 dark:bg-amber-950/40 text-slate-900 dark:text-amber-100 rounded-tl-xs border border-amber-300/80 dark:border-amber-700/60 text-left'
+                                                                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left')"
+                                                         x-html="formatMessage(dm.message, dm.is_me)"></div>
+
+                                                    <button type="button" @click="toggleDirectHeart(dm)"
+                                                            :title="dm.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
+                                                            class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
+                                                            :class="dm.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
+                                                        <span>💜</span>
+                                                        <span x-show="dm.hearts_count > 0" x-text="dm.hearts_count" class="text-[10px] font-black font-mono"></span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </template>
@@ -1743,13 +1896,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     
                     <!-- REPLY QUOTE PREVIEW BANNER -->
                     <template x-if="replyingTo">
-                        <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-3 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
-                            <div class="flex items-center gap-1.5 truncate">
-                                <i class="fa-solid fa-reply text-purple-500"></i>
-                                <span class="font-bold">Reageren op <span class="font-black text-purple-600 dark:text-purple-300" x-text="'@' + replyingTo.name"></span>:</span>
-                                <span class="truncate italic opacity-80" x-text="'\"' + replyingTo.text + '\"'"></span>
+                        <div class="flex items-center justify-between gap-2 bg-purple-50 dark:bg-purple-950/80 px-3 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
+                            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                                <i class="fa-solid fa-reply text-purple-500 shrink-0"></i>
+                                <span class="font-bold shrink-0">Reageren op <span class="font-black text-purple-600 dark:text-purple-300" x-text="'@' + replyingTo.name"></span>:</span>
+                                <span class="truncate min-w-0 italic opacity-80" x-text="'\"' + replyingTo.text + '\"'"></span>
                             </div>
-                            <button type="button" @click="cancelReply()" class="text-slate-400 hover:text-rose-500 ml-2 font-black cursor-pointer text-xs" title="Annuleren">
+                            <button type="button" @click="cancelReply()" class="text-slate-400 hover:text-rose-500 shrink-0 font-black cursor-pointer text-xs" title="Annuleren">
                                 &times;
                             </button>
                         </div>

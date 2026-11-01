@@ -52,7 +52,7 @@
                     </span>
                 </div>
 
-                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight break-words">
                     {{ $ticket->subject }}
                 </h1>
 
@@ -130,14 +130,14 @@
                     @if(!empty($ticket->metadata['member_names']))
                     <div class="sm:col-span-2 p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1">
                         <span class="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 block">Aangemelde Overstappende Leden</span>
-                        <p class="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line font-medium">{{ $ticket->metadata['member_names'] }}</p>
+                        <p class="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line break-words font-medium">{{ $ticket->metadata['member_names'] }}</p>
                     </div>
                     @endif
 
                     @if(!empty($ticket->metadata['proof_details']))
                     <div class="sm:col-span-2 p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1">
                         <span class="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 block">Toelichting / Bewijs</span>
-                        <p class="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line font-medium">{{ $ticket->metadata['proof_details'] }}</p>
+                        <p class="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line break-words font-medium">{{ $ticket->metadata['proof_details'] }}</p>
                     </div>
                     @endif
                 </div>
@@ -261,7 +261,7 @@
                         </span>
                     </div>
 
-                    <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium {{ $msg->is_staff ? 'bg-purple-50/60 dark:bg-purple-950/30 p-4 sm:p-5 rounded-xl border border-purple-100 dark:border-purple-900/50' : 'p-1' }}">
+                    <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium break-words {{ $msg->is_staff ? 'bg-purple-50/60 dark:bg-purple-950/30 p-4 sm:p-5 rounded-xl border border-purple-100 dark:border-purple-900/50' : 'bg-slate-50/80 dark:bg-slate-800/50 p-4 sm:p-5 rounded-xl border border-slate-200/70 dark:border-slate-800' }}">
                         {!! $msg->formatted_message !!}
                     </div>
 
@@ -290,7 +290,7 @@
                         <textarea name="message" 
                                   rows="5" 
                                   placeholder="Typ hier het officiële antwoord namens TBS Kliniek staff..."
-                                  class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y"
+                                  class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 text-base sm:text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition resize-y"
                                   required></textarea>
                         @error('message')
                         <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 font-semibold">{{ $message }}</p>
@@ -303,7 +303,7 @@
                             <label for="status_select" class="text-xs font-bold text-slate-600 dark:text-slate-400">Status na verzenden:</label>
                             <select id="status_select" 
                                     name="status" 
-                                    class="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-purple-500 dark:focus:border-purple-500">
+                                    class="text-base sm:text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-purple-500 dark:focus:border-purple-500">
                                 <option value="beantwoord" selected>🟢 Beantwoord (Wacht op speler)</option>
                                 <option value="in_behandeling">🔵 In Behandeling (Wordt onderzocht)</option>
                                 <option value="gesloten">⚪ Gesloten (Volledig afgehandeld)</option>

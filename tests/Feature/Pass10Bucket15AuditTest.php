@@ -272,6 +272,10 @@ class Pass10Bucket15AuditTest extends TestCase
             $this->assertStringContainsString('inline-block whitespace-nowrap align-baseline leading-none', $source);
             $this->assertStringContainsString('>@${username}</a>', $source);
             $this->assertStringNotContainsString('[overflow-wrap:anywhere]', $source);
+            $this->assertStringContainsString('(https?:\/\/[^\s<]+)/gi', $source);
         }
+
+        $this->assertStringContainsString('registerCharacterNames(messages)', $fullChatSource);
+        $this->assertStringContainsString('toggleDirectHeart(dm)', $fullChatSource);
     }
 }

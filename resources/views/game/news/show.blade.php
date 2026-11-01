@@ -90,7 +90,7 @@
                     </div>
                     @endif
 
-                    <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed news-content prose dark:prose-invert max-w-none">
+                    <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed news-content prose dark:prose-invert max-w-none break-words">
                         {!! $article->formatted_content !!}
                     </div>
 
@@ -152,19 +152,20 @@
                                   maxlength="500" 
                                   required 
                                   rows="3" 
-                                  placeholder="Laat een respectvolle reactie achter op dit nieuwsbericht, {{ $character->name }}..."
-                                  class="w-full text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition"></textarea>
+                                  @disabled($character->isImprisoned() || $character->isComatose())
+                                  placeholder="{{ $character->isImprisoned() || $character->isComatose() ? 'Reageren is tijdelijk geblokkeerd...' : 'Laat een respectvolle reactie achter op dit nieuwsbericht, ' . $character->name . '...' }}"
+                                  class="w-full text-base sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition disabled:opacity-50 disabled:cursor-not-allowed"></textarea>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between pt-1 pl-13">
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1 sm:pl-14">
                     <div class="text-[11px] font-bold" :class="commentText.length > 450 ? 'text-rose-500 font-extrabold' : 'text-slate-400'">
                         <span x-text="commentText.length"></span> / 500 tekens
                     </div>
                     <button type="submit" 
                             {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
                             :disabled="commentText.trim().length === 0 || {{ $character->isImprisoned() || $character->isComatose() ? 'true' : 'false' }}" 
-                            class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white rounded-xl transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
+                            class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-paper-plane text-[10px]"></i>
                         <span>Plaats Reactie</span>
                     </button>
@@ -216,7 +217,7 @@
                                 • {{ $comment->created_at?->diffForHumans() }}
                             </span>
                         </div>
-                        <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium leading-relaxed mt-2 whitespace-pre-line">
+                        <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium leading-relaxed mt-2 whitespace-pre-line break-words">
                             {{ $comment->content }}
                         </p>
                     </div>

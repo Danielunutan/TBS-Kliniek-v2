@@ -270,7 +270,7 @@
                                 @endif
                             </td>
                             <td class="py-3 px-3 max-w-sm">
-                                <p class="text-slate-800 dark:text-slate-200 text-xs leading-relaxed font-semibold">
+                                <p class="text-slate-800 dark:text-slate-200 text-xs leading-relaxed font-semibold break-words">
                                     "{{ $warning->reason }}"
                                 </p>
                             </td>
@@ -413,13 +413,13 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-3 px-4 max-w-xs">
-                                <div class="font-bold text-rose-700 dark:text-rose-400">{{ $report->reason }}</div>
+                            <td class="py-3 px-4 max-w-xs" x-data="{ expanded: false }">
+                                <div class="font-bold text-rose-700 dark:text-rose-400 break-words">{{ $report->reason }}</div>
                                 @if($report->details)
-                                    <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 line-clamp-2 italic">"{{ $report->details }}"</p>
+                                    <p @click="expanded = !expanded" :class="expanded ? '' : 'line-clamp-2'" class="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 italic break-words cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition" title="Klik om volledig te lezen">"{{ $report->details }}"</p>
                                 @endif
                                 @if($report->mod_notes)
-                                    <div class="text-[10px] text-purple-700 dark:text-purple-300 font-semibold mt-1 bg-purple-50 dark:bg-purple-950/50 p-1 rounded border border-purple-100 dark:border-purple-800/70">
+                                    <div class="text-[10px] text-purple-700 dark:text-purple-300 font-semibold mt-1 bg-purple-50 dark:bg-purple-950/50 p-1 rounded border border-purple-100 dark:border-purple-800/70 break-words">
                                         Notitie: {{ $report->mod_notes }}
                                     </div>
                                 @endif
@@ -566,7 +566,7 @@
                         Annuleren
                     </button>
                     <button type="submit" 
-                            :class="quickMode === 'ban' ? 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white' : 'bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-400 text-white font-black'"
+                            :class="quickMode === 'ban' ? 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white' : 'bg-amber-500 hover:bg-amber-400 dark:bg-amber-500 dark:hover:bg-amber-400 text-slate-950 font-black'"
                             class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
                         <span x-text="quickMode === 'ban' ? 'Definitief Verbannen' : 'Waarschuwing Verzenden'"></span>
                     </button>

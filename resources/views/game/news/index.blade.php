@@ -54,27 +54,27 @@
                     </div>
                     <div class="flex items-start gap-3">
                         <span class="text-2xl shrink-0 group-hover:scale-110 transition-transform">{{ $pinned->emoji }}</span>
-                        <div>
-                            <h3 class="text-base font-black text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition leading-snug">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-base font-black text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition leading-snug break-words">
                                 {{ $pinned->title }}
                             </h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-2 mt-1">
+                            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-2 mt-1 break-words">
                                 {{ Str::limit(strip_tags($pinned->content), 120) }}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-t border-purple-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold">
-                    <div class="flex items-center gap-2">
+                <div class="mt-4 pt-3 border-t border-purple-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 font-bold">
+                    <div class="flex items-center gap-2 min-w-0">
                         @if($pinned->author)
-                            <img src="{{ $pinned->author->avatar_url }}" alt="{{ $pinned->author->name }}" class="w-5 h-5 rounded-full object-cover">
-                            <span class="text-slate-800 dark:text-slate-200 text-[11px]">{{ $pinned->author->name }}</span>
+                            <img src="{{ $pinned->author->avatar_url }}" alt="{{ $pinned->author->name }}" class="w-5 h-5 rounded-full object-cover shrink-0">
+                            <span class="text-slate-800 dark:text-slate-200 text-[11px] truncate">{{ $pinned->author->name }}</span>
                         @else
-                            <span class="text-slate-800 dark:text-slate-200 text-[11px]">Directie TBS Kliniek</span>
+                            <span class="text-slate-800 dark:text-slate-200 text-[11px] truncate">Directie TBS Kliniek</span>
                         @endif
                     </div>
-                    <div class="flex items-center gap-3 text-[11px]">
+                    <div class="flex items-center gap-3 text-[11px] shrink-0">
                         <span><i class="fa-regular fa-eye mr-1 text-slate-400"></i>{{ $pinned->views_count }}</span>
                         <span><i class="fa-regular fa-comments mr-1 text-purple-500"></i>{{ $pinned->comments_count }}</span>
                     </div>
@@ -120,26 +120,26 @@
                             {{ $article->created_at->diffForHumans() }}
                         </span>
                     </div>
-                    <div>
-                        <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition leading-snug">
+                    <div class="min-w-0">
+                        <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition leading-snug break-words">
                             {{ $article->title }}
                         </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium line-clamp-2 mt-1">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium line-clamp-2 mt-1 break-words">
                             {{ Str::limit(strip_tags($article->content), 120) }}
                         </p>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold">
-                    <div class="flex items-center gap-2">
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 font-bold">
+                    <div class="flex items-center gap-2 min-w-0">
                         @if($article->author)
-                            <img src="{{ $article->author->avatar_url }}" alt="{{ $article->author->name }}" class="w-5 h-5 rounded-full object-cover border border-slate-200 dark:border-slate-700">
-                            <span class="text-slate-800 dark:text-slate-200 text-[11px]">{{ $article->author->name }}</span>
+                            <img src="{{ $article->author->avatar_url }}" alt="{{ $article->author->name }}" class="w-5 h-5 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0">
+                            <span class="text-slate-800 dark:text-slate-200 text-[11px] truncate">{{ $article->author->name }}</span>
                         @else
-                            <span class="text-slate-800 dark:text-slate-200 text-[11px]">TBS Kliniek Staf</span>
+                            <span class="text-slate-800 dark:text-slate-200 text-[11px] truncate">TBS Kliniek Staf</span>
                         @endif
                     </div>
-                    <div class="flex items-center gap-3 text-[11px]">
+                    <div class="flex items-center gap-3 text-[11px] shrink-0">
                         <span><i class="fa-regular fa-eye mr-1 text-slate-400"></i>{{ $article->views_count }}</span>
                         <span class="text-purple-600 dark:text-purple-400"><i class="fa-regular fa-comments mr-1"></i>{{ $article->comments_count }}</span>
                     </div>
