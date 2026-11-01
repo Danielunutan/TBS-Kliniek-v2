@@ -2382,6 +2382,7 @@
                     }
                  }" 
                  x-show="sec > 0"
+                 @tbs-ad-claimed.window="if ($event.detail && $event.detail.reward_type === 'prison') { sec = Math.max(0, sec - 180); if (sec <= 0) onTimeExpired(); }"
                  class="mb-6 bg-white dark:bg-slate-900 border-2 border-rose-400 dark:border-rose-600/80 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4 relative z-20">
                 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

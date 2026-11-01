@@ -6,9 +6,12 @@ use App\Models\Character;
 use App\Models\CpaleadConversion;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
+use App\Models\LotteryRound;
+use App\Models\LotteryTicket;
 use App\Models\VaultCode;
 use App\Services\ChatBotService;
 use App\Services\EconomyService;
+use App\Services\LevelService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +21,7 @@ class CpaleadPostbackController extends Controller
 {
     public function __construct(
         protected EconomyService $economy,
+        protected LevelService $levelService,
     ) {}
 
     /**
@@ -240,6 +244,7 @@ class CpaleadPostbackController extends Controller
                     break;
 
                 case 'mask':
+                    $lockedCharacter->ad_mask_progress = 0;
                     $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + 1;
                     $rewardGranted = '+1 Zakkenrollers Masker 🎭';
                     break;
@@ -254,9 +259,82 @@ class CpaleadPostbackController extends Controller
                     $rewardGranted = '+1 Kluismunt 🪙';
                     break;
 
+                case 'daily_stars':
+                    $dailyData = $lockedCharacter->getAdDailyData();
+                    $dailyData['stars_claimed'] = true;
+                    $dailyData['stars_progress'] = 2;
+                    $lockedCharacter->ad_daily_data = $dailyData;
+                    $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + 5;
+                    $rewardGranted = '+5 Sterren Dagelijkse Bonus ⭐';
+                    break;
+
+                case 'daily_xp':
+                case 'xp':
+                    $dailyData = $lockedCharacter->getAdDailyData();
+                    $dailyData['xp_claimed'] = true;
+                    $dailyData['xp_progress'] = 3;
+                    $lockedCharacter->ad_daily_data = $dailyData;
+                    $this->levelService->addXp($lockedCharacter, 50);
+                    $rewardGranted = '+50 XP Boost ⚡';
+                    break;
+
+                case 'daily_cash':
+                    $dailyData = $lockedCharacter->getAdDailyData();
+                    $dailyData['cash_claimed'] = true;
+                    $dailyData['cash_progress'] = 3;
+                    $lockedCharacter->ad_daily_data = $dailyData;
+                    $lockedCharacter->save();
+                    $this->economy->addCash($lockedCharacter, 50000, 'sponsor_ad');
+                    $alreadySavedByEconomy = true;
+                    $rewardGranted = '€50.000 Dagelijkse Bonus 💶';
+                    break;
+
+                case 'vault_code':
+                case 'vault':
+                case 'kluiscode':
+                    $lockedCharacter->ad_vault_progress = 0;
+                    $bonusCode = VaultCode::generateUniqueCode('SPONSOR');
+                    VaultCode::create([
+                        'code' => $bonusCode,
+                        'reward_cash' => 5000,
+                        'reward_stars' => 2,
+                        'reward_tokens' => 2,
+                        'character_id' => $lockedCharacter->id,
+                        'is_redeemed' => false,
+                    ]);
+                    GameMessage::create([
+                        'recipient_id' => $lockedCharacter->id,
+                        'sender_name' => 'TBS Sponsor Directie',
+                        'subject' => '🎁 Geheime Kluiscode Voucher (CPAlead Offer)',
+                        'content' => "Beste {$lockedCharacter->name},\n\nGefeliciteerd! Omdat je een sponsor-opdracht hebt voltooid, ontvang je hierbij jouw unieke Geheime Kluiscode voucher:\n\n👉 **{$bonusCode}**\n\nWissel hem direct in op de MedicijnKluis voor €5.000 bankgeld, 2 sterren en 2 kluismunten!",
+                        'type' => 'reward',
+                    ]);
+                    $rewardGranted = "Geheime Kluiscode voucher ({$bonusCode}) 🔐";
+                    break;
+
+                case 'lottery_ticket':
+                case 'lottery':
+                case 'loterij':
+                case 'ticket':
+                    $lockedCharacter->ad_lottery_progress = 0;
+                    $round = LotteryRound::current();
+                    $round->increment('total_tickets_sold', 1);
+                    $round->increment('jackpot', 8000);
+                    do {
+                        $ticketNumber = 'CPA-'.str_pad((string) random_int(10000, 99999), 5, '0', STR_PAD_LEFT);
+                    } while (LotteryTicket::where('lottery_round_id', $round->id)->where('ticket_number', $ticketNumber)->exists());
+                    LotteryTicket::create([
+                        'lottery_round_id' => $round->id,
+                        'character_id' => $lockedCharacter->id,
+                        'ticket_number' => $ticketNumber,
+                        'currency' => 'ads',
+                        'price_paid' => 15,
+                    ]);
+                    $rewardGranted = "Loterij Ticket ({$ticketNumber}) 🎟️";
+                    break;
+
                 case 'star':
                 case 'stars':
-                case 'daily_stars':
                     $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + 1;
                     $rewardGranted = '+1 Ster ⭐';
                     break;

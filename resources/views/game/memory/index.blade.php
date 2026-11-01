@@ -87,8 +87,8 @@
                 <form action="{{ route('memory.skip_cooldown_stars') }}" method="POST">
                     @csrf
                     <button type="submit" 
-                            {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 10 ? 'disabled' : '' }}
-                            class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 10 ? 'opacity-50 cursor-not-allowed' : '' }}">
+                            @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->stars ?? 0) < 10)
+                            class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-star text-[12px]"></i>
                         <span>Direct Opnieuw Spelen (10 Sterren ⭐)</span>
                     </button>
@@ -96,10 +96,10 @@
                 @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
                 <button type="button"
                         onclick="window.tbsOpenSponsorAd('cooldown_memory')"
-                        {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                        @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum())
                         class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-play text-[12px]"></i>
-                    <span>Overslaan via Sponsor-Ad (Gratis)</span>
+                    <span>Overslaan via Sponsor-Ad (1 Ad &bull; Gratis)</span>
                 </button>
                 @endif
                 <p class="text-[10px] text-slate-500 dark:text-slate-400">Gebruik 10 Sterren ⭐ om de wachttijd over te slaan en onmiddellijk weer te spelen.</p>

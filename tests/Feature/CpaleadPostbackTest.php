@@ -176,4 +176,134 @@ class CpaleadPostbackTest extends TestCase
             'is_redeemed' => false,
         ]);
     }
+
+    public function test_postback_handles_vest_and_coma_revive_rewards(): void
+    {
+        $this->freezeTime();
+        $character = Character::first();
+        $character->update([
+            'health' => 0,
+            'coma_until' => now()->addMinutes(45),
+            'perks' => ['liquidation_streak_deaths' => 7],
+            'ad_coma_progress' => 2,
+            'vest_until' => now()->addHours(6),
+            'ad_vest_progress' => 1,
+        ]);
+
+        $vestResponse = $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'vest',
+            'lead_id' => 'cpalead_vest_lead_01',
+            'payout' => '0.80',
+        ]));
+
+        $vestResponse->assertOk();
+        $vestResponse->assertSee('OK');
+
+        $character->refresh();
+        $this->assertEquals(0, $character->ad_vest_progress);
+        $this->assertEquals(18 * 3600, $character->getVestRemainingSeconds());
+        $this->assertDatabaseHas('cpalead_conversions', [
+            'lead_id' => 'cpalead_vest_lead_01',
+            'reward_granted' => '12u Kogelwerend Vest 🛡️',
+        ]);
+
+        $comaResponse = $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'coma_revive',
+            'lead_id' => 'cpalead_coma_lead_02',
+            'payout' => '0.90',
+        ]));
+
+        $comaResponse->assertOk();
+        $comaResponse->assertSee('OK');
+
+        $character->refresh();
+        $this->assertEquals(0, $character->ad_coma_progress);
+        $this->assertNull($character->coma_until);
+        $this->assertFalse($character->isComatose());
+        $this->assertGreaterThanOrEqual(50, $character->health);
+        $this->assertEquals(0, $character->getLiquidationStreakDeaths());
+        $this->assertDatabaseHas('cpalead_conversions', [
+            'lead_id' => 'cpalead_coma_lead_02',
+            'reward_granted' => 'Ontwaakt uit Intensive Care Coma 💉',
+        ]);
+    }
+
+    public function test_postback_handles_daily_xp_daily_stars_vault_code_and_lottery_ticket(): void
+    {
+        $character = Character::first();
+        $initialTotalXp = $character->total_xp ?? 0;
+        $initialStars = $character->stars ?? 0;
+
+        // 1. daily_xp grants +50 XP and marks xp_claimed
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'daily_xp',
+            'lead_id' => 'cpalead_daily_xp_01',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals($initialTotalXp + 50, $character->total_xp);
+        $this->assertTrue($character->getAdDailyData()['xp_claimed']);
+
+        // 2. daily_stars grants +5 stars and marks stars_claimed
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'daily_stars',
+            'lead_id' => 'cpalead_daily_stars_02',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals($initialStars + 5, $character->stars);
+        $this->assertTrue($character->getAdDailyData()['stars_claimed']);
+
+        // 3. lottery_ticket creates an ads lottery ticket
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'lottery_ticket',
+            'lead_id' => 'cpalead_lottery_03',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $this->assertDatabaseHas('lottery_tickets', [
+            'character_id' => $character->id,
+            'currency' => 'ads',
+        ]);
+    }
+
+    public function test_postback_prison_reward_falls_back_to_cash_when_character_not_in_prison(): void
+    {
+        $character = Character::first();
+        $character->update([
+            'is_in_prison' => false,
+            'prison_until' => null,
+            'ad_prison_progress' => 1,
+        ]);
+        $initialCash = $character->cash;
+
+        $response = $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'prison',
+            'lead_id' => 'cpalead_prison_fallback_01',
+            'payout' => '0.50',
+        ]));
+
+        $response->assertOk();
+        $character->refresh();
+        $this->assertEquals($initialCash + 2500, $character->cash);
+        $this->assertEquals(0, $character->ad_prison_progress);
+        $this->assertDatabaseHas('cpalead_conversions', [
+            'lead_id' => 'cpalead_prison_fallback_01',
+            'reward_granted' => '€2.500 zakgeld (Niet in cel)',
+        ]);
+    }
 }

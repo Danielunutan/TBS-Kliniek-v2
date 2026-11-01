@@ -682,4 +682,98 @@ class SponsorRewardsTest extends TestCase
         $this->assertTrue((bool) $character->is_vip);
         $this->assertNull($character->vip_expires_at);
     }
+
+    public function test_early_prison_release_on_first_ad_when_remaining_prison_time_under_threshold(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->addSeconds(80),
+            'prison_reason' => 'Kort vergrijp',
+            'ad_prison_progress' => 0,
+        ]);
+
+        $this->assertEquals(1, $character->getRequiredPrisonAds());
+
+        $response = $this->simulateAdWatch($user, $character, 'prison');
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'reward_type' => 'prison',
+            'progress_current' => 1,
+            'progress_required' => 1,
+            'reward_completed' => true,
+            'is_in_prison' => false,
+        ]);
+
+        $character->refresh();
+        $this->assertFalse($character->isImprisoned());
+        $this->assertFalse((bool) $character->is_in_prison);
+        $this->assertNull($character->prison_until);
+        $this->assertNull($character->prison_reason);
+        $this->assertEquals(0, $character->ad_prison_progress);
+    }
+
+    public function test_prison_ad_claim_falls_back_to_cash_when_sentence_expired_during_ad_watch(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $initialCash = $character->cash;
+
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->subSeconds(5),
+            'prison_reason' => 'Verlopen straf',
+            'ad_prison_progress' => 1,
+        ]);
+
+        $response = $this->simulateAdWatch($user, $character, 'prison');
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'reward_type' => 'prison',
+            'progress_current' => 1,
+            'progress_required' => 1,
+            'reward_completed' => true,
+            'is_in_prison' => false,
+        ]);
+        $this->assertStringContainsString('€ 2.500 zakgeld', $response->json('reward_details'));
+
+        $character->refresh();
+        $this->assertEquals($initialCash + 2500, $character->cash);
+        $this->assertFalse($character->isImprisoned());
+        $this->assertEquals(0, $character->ad_prison_progress);
+    }
+
+    public function test_true_crime_5_ads_completion_preserves_current_case_id_when_not_on_cooldown(): void
+    {
+        [$user, $character] = $this->createTestUser();
+
+        $activeCaseId = 42;
+        $state = CharacterTrueCrimeState::create([
+            'character_id' => $character->id,
+            'current_case_id' => $activeCaseId,
+            'cooldown_until' => null,
+            'cooldown_ads_watched' => 4,
+        ]);
+
+        $this->assertFalse($state->isOnCooldown());
+
+        $response = $this->simulateAdWatch($user, $character, 'true_crime');
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'reward_type' => 'true_crime',
+            'progress_current' => 5,
+            'progress_required' => 5,
+            'reward_completed' => true,
+        ]);
+
+        $state->refresh();
+        $this->assertEquals(0, $state->cooldown_ads_watched);
+        $this->assertNull($state->cooldown_until);
+        $this->assertEquals($activeCaseId, $state->current_case_id);
+    }
 }

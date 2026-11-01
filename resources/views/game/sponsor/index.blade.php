@@ -32,7 +32,7 @@
                     <span class="text-slate-900 dark:text-white font-extrabold text-sm">{{ $adsToday }} / 500</span>
                 </div>
                 <div class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-xs font-bold text-purple-700 dark:text-purple-300 shadow-xs">
-                    <span class="text-purple-400 block text-[10px] uppercase tracking-wider">Totaal Bekeken</span>
+                    <span class="text-purple-700/80 dark:text-purple-400 block text-[10px] uppercase tracking-wider">Totaal Bekeken</span>
                     <span class="text-purple-900 dark:text-purple-200 font-black text-sm">{{ $totalAds }} ads</span>
                 </div>
             </div>
@@ -118,9 +118,9 @@
     <div class="space-y-3">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-check text-purple-600 dark:text-purple-400"></i> Exclusieve Dagelijkse Beloningen (1x per dag):
+                <i class="fa-solid fa-calendar-check text-purple-600 dark:text-purple-400"></i> Exclusieve Dagelijkse Beloningen &amp; Isoleercel Noodvrijlating:
             </h2>
-            <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500">Reset elke nacht om 00:00 uur</span>
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">Dagelijkse boosts resetten om 00:00 uur &bull; Vrijlating altijd direct beschikbaar</span>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -304,7 +304,7 @@
                     @else
                         <button type="button" @disabled($cannotWatchStandardAd) onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" class="w-full min-h-11 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-unlock text-xs"></i>
-                            <span>Kijk Ad voor Vrijlating ({{ $currPrisonAds + 1 }}/{{ $reqPrisonAds }})</span>
+                            <span>Kijk Ad voor Vrijlating ({{ min($reqPrisonAds, $currPrisonAds + 1) }}/{{ $reqPrisonAds }}{{ ($currPrisonAds + 1) >= $reqPrisonAds ? ' - Direct Vrij!' : '' }})</span>
                         </button>
                     @endif
                 </div>
@@ -330,9 +330,9 @@
                         <i class="fa-solid fa-bomb"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ $bulletsProgress }}/3] Voortgang</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 px-2 py-0.5 rounded-full">3 Ads &bull; [{{ $bulletsProgress }}/3] Voortgang</span>
                     </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">+50 Scherpe Kogels 💣</h3>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition">+50 Scherpe Kogels 💣</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Laad je wapen door voor aanslagen en liquidaties op vijanden in de TBS kliniek. Momenteel in bezit: <strong class="text-rose-600 dark:text-rose-400">{{ number_format($character->bullets ?? 0, 0, ',', '.') }} kogels</strong>. Bekijk 3 korte sponsor ads voor +50 kogels.
                     </p>
@@ -362,15 +362,15 @@
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ $vestProgress }}/3] &bull; 12 Uur</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-2 py-0.5 rounded-full">3 Ads &bull; [{{ $vestProgress }}/3] &bull; 12 Uur</span>
                     </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 transition">Kogelwerend Vest 🛡️</h3>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition">Kogelwerend Vest 🛡️</h3>
                     @php
                         $vestSecs = $character->getVestRemainingSeconds();
                         $vestFormatted = sprintf('%02d:%02d', intdiv($vestSecs, 3600), intdiv($vestSecs % 3600, 60));
                     @endphp
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Verhoogt je verdediging met +150% en zorgt voor 45% ricochet-backfire gevaar voor schutters! Status: <strong class="{{ $character->hasVest() ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400' }}">{{ $character->hasVest() ? 'Actief (' . $vestFormatted . 'u)' : 'Niet actief' }}</strong>.
+                        Verhoogt je verdediging met +150% en zorgt voor 45% ricochet-backfire gevaar voor schutters! Status: <strong class="{{ $character->hasVest() ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400' }}">{{ $character->hasVest() ? 'Actief (' . $vestFormatted . 'u)' : 'Niet actief' }}</strong>.
                     </p>
 
                     <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
@@ -398,9 +398,9 @@
                         <i class="fa-solid fa-heart-pulse"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 px-2 py-0.5 rounded-full font-black">3 Ads &bull; [{{ $comaProgress }}/3] &bull; IC Hulp</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 px-2 py-0.5 rounded-full">3 Ads &bull; [{{ $comaProgress }}/3] &bull; IC Hulp</span>
                     </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 transition">Coma Ontwaken 💉</h3>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">Coma Ontwaken 💉</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Neergeschoten of ricochet gehad? Ontwaak direct uit het Intensive Care Coma en herstel naar 50% HP door 3 sponsor ads te kijken!
                     </p>
@@ -421,7 +421,7 @@
                             <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full">
                                 @csrf
                                 <input type="hidden" name="action" value="coma">
-                                <button type="submit" class="btn-star-gold w-full min-h-11 py-2 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
+                                <button type="submit" @disabled(($character->stars ?? 0) < \App\Models\Character::REVIVE_SERUM_STARS) class="btn-star-gold w-full min-h-11 py-2 px-3 rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-star text-xs"></i>
                                     <span>Ontwaken ({{ \App\Models\Character::REVIVE_SERUM_STARS }} ⭐)</span>
                                 </button>

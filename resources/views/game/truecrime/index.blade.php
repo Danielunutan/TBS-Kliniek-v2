@@ -3,7 +3,7 @@
 @section('title', 'True Crime Dossiers met Caroline - TBS Kliniek')
 
 @section('content')
-<div class="space-y-6" x-data="tbsTrueCrime({{ (int) ($cooldownRemaining ?? 0) }}, {{ $character->isImprisoned() ? 'true' : 'false' }}, {{ $character->isComatose() ? 'true' : 'false' }})">
+<div class="space-y-6" x-data="tbsTrueCrime({{ (int) ($cooldownRemaining ?? 0) }}, {{ $character->isImprisoned() ? 'true' : 'false' }}, {{ ($character->isComatose() || $character->needsReviveSerum()) ? 'true' : 'false' }})">
 
     
 
@@ -80,7 +80,7 @@
                     @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
                     <button type="button"
                             onclick="window.tbsOpenSponsorAd('cooldown_true_crime')"
-                            @disabled($character->isImprisoned() || $character->isComatose())
+                            @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum())
                             class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-play text-[12px]"></i>
                         <span>Bekijk Sponsor-Ad ({{ $adsWatched }}/5 Bekeken)</span>
@@ -319,9 +319,9 @@
 
                 <!-- AD SKIP BUTTON (TO UNLOCK NEXT CASE IMMEDIATELY) -->
                 @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
-                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown_true_crime')" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown_true_crime')" @disabled($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-folder-open"></i>
-                    <span>Wachttijd Verkorten via Sponsor-Ad (5 Ads)</span>
+                    <span>Wachttijd Verkorten via Sponsor-Ad ({{ $adsWatched }}/5 Bekeken)</span>
                 </button>
                 @endif
 

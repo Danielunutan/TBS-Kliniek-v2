@@ -282,14 +282,17 @@ class TrueCrimeController extends Controller
                 ->with('error', 'Sponsor-advertenties zijn momenteel uitgeschakeld. Gebruik Sterren ⭐ om de wachttijd over te slaan.');
         }
 
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return redirect()->route('onboarding.show');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Je zit in de isoleercel!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -303,7 +306,7 @@ class TrueCrimeController extends Controller
         $claimResponse = app(SponsorAdController::class)->claim($request);
         $data = $claimResponse->getData(true);
 
-        if ($claimResponse->getStatusCode() !== 200 || empty($data['success'])) {
+        if ($claimResponse->getStatusCode() !== 200 || empty($data['success']) || ! in_array($data['reward_type'] ?? null, ['true_crime', 'cooldown:true_crime'], true)) {
             return redirect()->route('true_crime.index')
                 ->with('error', $data['message'] ?? 'Bekijk eerst de volledige sponsor-advertentie om Caroline\'s wachttijd te verkorten.');
         }

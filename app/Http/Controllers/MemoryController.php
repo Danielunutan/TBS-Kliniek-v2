@@ -436,14 +436,17 @@ class MemoryController extends Controller
                 ->with('error', 'Sponsor-advertenties zijn momenteel uitgeschakeld. Gebruik Sterren ⭐ om de wachttijd over te slaan.');
         }
 
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return redirect()->route('onboarding.show');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Je zit in de isoleercel!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -459,7 +462,7 @@ class MemoryController extends Controller
         $claimResponse = app(SponsorAdController::class)->claim($request);
         $data = $claimResponse->getData(true);
 
-        if ($claimResponse->getStatusCode() !== 200 || empty($data['success'])) {
+        if ($claimResponse->getStatusCode() !== 200 || empty($data['success']) || ($data['reward_type'] ?? null) !== 'cooldown_memory') {
             return redirect()->route('memory.index')
                 ->with('error', $data['message'] ?? 'Bekijk eerst de volledige sponsor-advertentie om de wachttijd te resetten.');
         }

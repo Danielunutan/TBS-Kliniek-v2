@@ -109,7 +109,15 @@
                 </p>
             </div>
         </div>
-        <div class="flex items-center gap-2 shrink-0 w-full md:w-auto">
+        <div class="flex flex-wrap items-center gap-2 shrink-0 w-full md:w-auto">
+            @if($needsSerum && \App\Http\Controllers\SponsorAdController::areAdsEnabled())
+            <button type="button"
+                    onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })"
+                    class="w-full md:w-auto py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-black transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
+                <i class="fa-solid fa-play text-xs"></i>
+                <span>Gratis via Sponsor-Ad ({{ (int)($character->ad_coma_progress ?? 0) }}/3)</span>
+            </button>
+            @endif
             <form action="{{ route('hitman.revive_serum') }}" method="POST" class="flex-1 md:flex-initial">
                 @csrf
                 <input type="hidden" name="currency" value="cash">
