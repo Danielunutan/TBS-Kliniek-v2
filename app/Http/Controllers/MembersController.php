@@ -64,6 +64,7 @@ class MembersController extends Controller
                 'gang_tag' => $c->gang?->tag,
                 'gang_role' => $c->gang_role,
                 'role_label' => $c->gang_role === 'leader' ? 'Bendeleider' : ($c->gang_role === 'co_leader' ? 'Co-Leider' : ($c->gang_id ? 'Bendelid' : 'Geen bende')),
+                'gang_url' => $c->gang_id ? route('gangs.show', $c->gang_id) : route('gangs.index'),
                 'last_active_human' => $c->last_active_at ? $c->last_active_at->diffForHumans() : 'Nooit actief',
                 'last_active_timestamp' => $c->last_active_at ? $c->last_active_at->timestamp : 0,
                 'profile_url' => route('profile.show', $c->name),

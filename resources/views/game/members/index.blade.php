@@ -334,7 +334,7 @@
                     <!-- Bende Badge on Top Right -->
                     <div class="shrink-0 text-right">
                         <template x-if="m.gang_id">
-                            <a :href="'{{ route('gangs.index') }}'" class="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-1 rounded-xl border border-purple-200/80 dark:border-purple-800/70 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition" :title="m.gang_name + ' (' + m.role_label + ')'">
+                            <a :href="m.gang_url" class="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-1 rounded-xl border border-purple-200/80 dark:border-purple-800/70 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition" :title="m.gang_name + ' (' + m.role_label + ')'">
                                 <i class="fa-solid fa-shield-halved text-[10px]"></i>
                                 <span class="font-mono font-extrabold" x-text="'[' + m.gang_tag + ']'"></span>
                             </a>

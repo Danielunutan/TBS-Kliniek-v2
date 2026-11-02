@@ -160,10 +160,27 @@
             height: 540px;
         }
     }
-    #tbsMiniDirectScroll, #tbsMiniChatScroll, #tbsMiniGangScroll, #tbsChatScrollContainer, .tbs-chat-touch-scroll {
+    #tbsMiniDirectScroll, #tbsMiniChatScroll, #tbsMiniGangScroll, #tbsChatScrollContainer, .tbs-chat-touch-scroll, .tbs-purple-scroll {
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
         touch-action: pan-y;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(147, 51, 234, 0.55) rgba(148, 163, 184, 0.15);
+    }
+    .tbs-purple-scroll::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+    .tbs-purple-scroll::-webkit-scrollbar-track {
+        background: rgba(148, 163, 184, 0.15);
+        border-radius: 9999px;
+    }
+    .tbs-purple-scroll::-webkit-scrollbar-thumb {
+        background: rgba(147, 51, 234, 0.55);
+        border-radius: 9999px;
+    }
+    .tbs-purple-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(147, 51, 234, 0.85);
     }
     .tbs-help-chips-scroll {
         scrollbar-width: thin;
@@ -340,9 +357,12 @@
             <div class="grid grid-cols-4 gap-1 bg-black/20 dark:bg-slate-900/80 p-1 rounded-xl text-[10px] font-extrabold text-center border border-white/10 dark:border-slate-800">
                 <button type="button" @click="setTab('global')" 
                         :class="activeTab === 'global' ? 'bg-white dark:bg-purple-600 text-purple-900 dark:text-white shadow-xs' : 'text-purple-200 dark:text-slate-400 hover:text-white'"
-                        class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1">
+                        class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1 relative">
                     <i class="fa-solid fa-bullhorn text-[9px]"></i>
                     <span>Plein</span>
+                    <template x-if="unreadMentionsCount > 0">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 ring-2 ring-purple-600 animate-pulse" title="Nieuwe vermelding op het plein"></span>
+                    </template>
                 </button>
                 <button type="button" @click="setTab('gang')" 
                         :class="activeTab === 'gang' ? 'bg-white dark:bg-purple-600 text-purple-900 dark:text-white shadow-xs' : 'text-purple-200 dark:text-slate-400 hover:text-white'"
@@ -351,6 +371,9 @@
                     <span>Bende</span>
                     <template x-if="!gangHasChat && hasGang">
                         <i class="fa-solid fa-lock text-[8px] text-amber-300"></i>
+                    </template>
+                    <template x-if="unreadGangMentionsCount > 0">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 ring-2 ring-purple-600 animate-pulse" title="Nieuwe bende vermelding"></span>
                     </template>
                 </button>
                 <button type="button" @click="setTab('direct')" 
@@ -510,13 +533,15 @@
                             <!-- Message Bubble & Heart Reaction -->
                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                 <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
-                                     :class="msg.is_me 
-                                        ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
-                                        : (msg.is_owner 
-                                            ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
-                                            : (msg.is_admin || msg.is_moderator 
-                                                ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
-                                                : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left'))"
+                                     :class="isMessageMentioningMe(msg)
+                                        ? 'bg-amber-100 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-500 text-amber-950 dark:text-amber-100 rounded-tl-xs text-left ring-2 ring-amber-400/30'
+                                        : (msg.is_me 
+                                            ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
+                                            : (msg.is_owner 
+                                                ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
+                                                : (msg.is_admin || msg.is_moderator 
+                                                    ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
+                                                    : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left')))"
                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                 <!-- Paars Hartje Reactie Knop 💜 -->
@@ -927,13 +952,15 @@
                                     <!-- Bubble & Heart -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                         <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
-                                             :class="msg.is_me 
-                                                ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
-                                                : (msg.is_owner 
-                                                    ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
-                                                    : (msg.is_admin || msg.is_moderator 
-                                                        ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
-                                                        : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left'))"
+                                             :class="isMessageMentioningMe(msg)
+                                                ? 'bg-amber-100 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-500 text-amber-950 dark:text-amber-100 rounded-tl-xs text-left ring-2 ring-amber-400/30'
+                                                : (msg.is_me 
+                                                    ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
+                                                    : (msg.is_owner 
+                                                        ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
+                                                        : (msg.is_admin || msg.is_moderator 
+                                                            ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
+                                                            : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left')))"
                                              x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                         <!-- Paars Hartje Reactie Knop 💜 -->
@@ -1671,7 +1698,7 @@
                 </div>
             </div>
 
-            <div x-ref="helpBox" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs bg-slate-50/70 dark:bg-slate-950/50">
+            <div x-ref="helpBox" class="tbs-purple-scroll flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs bg-slate-50/70 dark:bg-slate-950/50">
                 <template x-for="(msg, i) in helpMessages" :key="i">
                     <div class="flex items-start gap-2 min-w-0 max-w-full" :class="msg.from !== 'bot' ? 'flex-row-reverse' : ''">
                         <!-- Avatar Image -->
@@ -1846,10 +1873,16 @@
         <div class="relative w-5 h-5 shrink-0 flex items-center justify-center">
             <i class="fa-solid fa-comments text-white text-sm" x-show="!isOpen"></i>
             <i class="fa-solid fa-xmark text-white text-sm" x-show="isOpen"></i>
-            <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-purple-600 animate-pulse"></span>
+            <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full ring-2 ring-purple-600"
+                  :class="(unreadMentionsCount > 0 || unreadGangMentionsCount > 0) ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'"></span>
         </div>
         <span class="tracking-wide" x-text="isOpen ? 'Sluit Chat' : 'Live Chat'">Live Chat</span>
-        <template x-if="unreadDmsCount > 0">
+        <template x-if="unreadMentionsCount > 0 || unreadGangMentionsCount > 0">
+            <span class="bg-amber-400 text-slate-950 text-[9px] font-black min-w-[18px] h-4 px-1 inline-flex items-center justify-center rounded-full font-mono animate-bounce shadow-xs" 
+                  title="Je bent vermeld in de chat (@jou)"
+                  x-text="'@' + (unreadMentionsCount + unreadGangMentionsCount)"></span>
+        </template>
+        <template x-if="unreadDmsCount > 0 && !(unreadMentionsCount > 0 || unreadGangMentionsCount > 0)">
             <span class="bg-rose-500 text-white text-[9px] font-extrabold min-w-[18px] h-4 px-1 inline-flex items-center justify-center rounded-full font-mono animate-bounce" x-text="unreadDmsCount"></span>
         </template>
     </button>
@@ -2075,6 +2108,8 @@
             showDirectEmojiPicker: false,
 
             unreadDmsCount: 0,
+            unreadMentionsCount: 0,
+            unreadGangMentionsCount: 0,
             toastNotification: null,
             lastDirectDmId: 0,
             isSoundMuted: localStorage.getItem('tbs_chat_muted') === '1',
@@ -2320,6 +2355,15 @@
                 }
             },
 
+            isMessageMentioningMe(msg) {
+                if (!msg || msg.is_me) return false;
+                const myNameLower = (this.myName || '').toLowerCase();
+                if (!myNameLower) return false;
+                const isTagged = msg.message && msg.message.toLowerCase().includes('@' + myNameLower);
+                const isReplied = (msg.reply_to_name && msg.reply_to_name.toLowerCase() === myNameLower);
+                return Boolean(isTagged || isReplied);
+            },
+
             setTab(tab) {
                 if (this.activeTab !== tab) {
                     this.cancelReply();
@@ -2327,8 +2371,10 @@
                 }
                 this.activeTab = tab;
                 if (tab === 'global') {
+                    this.unreadMentionsCount = 0;
                     this.scrollChatBottom();
                 } else if (tab === 'gang') {
+                    this.unreadGangMentionsCount = 0;
                     if (this.hasGang && this.gangHasChat) {
                         this.loadGangMessages();
                     }
@@ -2976,6 +3022,9 @@
 
                                 if (notifyMsg) {
                                     this.playChime();
+                                    if (!this.isOpen || this.activeTab !== 'global') {
+                                        this.unreadMentionsCount = (this.unreadMentionsCount || 0) + 1;
+                                    }
                                     if (!this.isOpen) {
                                         const isTagged = myNameLower && notifyMsg.message.toLowerCase().includes('@' + myNameLower);
                                         this.toastNotification = {
@@ -3060,6 +3109,9 @@
 
                                 if (notifyMsg) {
                                     this.playChime();
+                                    if (!this.isOpen || this.activeTab !== 'gang') {
+                                        this.unreadGangMentionsCount = (this.unreadGangMentionsCount || 0) + 1;
+                                    }
                                     if (!this.isOpen) {
                                         const isTagged = myNameLower && notifyMsg.message.toLowerCase().includes('@' + myNameLower);
                                         this.toastNotification = {
