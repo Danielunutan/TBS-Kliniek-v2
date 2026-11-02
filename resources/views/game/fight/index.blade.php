@@ -52,7 +52,7 @@
     @endif
 
     @if($character->hasIsolationProtection())
-    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/70 flex items-center justify-between gap-3 shadow-xs">
+    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -60,14 +60,14 @@
             <div>
                 <div class="text-xs font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider flex items-center gap-1.5">
                     <span>Vrijwillige Isolatie Actief</span>
-                    <span class="px-2 py-2 rounded-full bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 text-[10px]">100% Beschermd</span>
+                    <span class="px-2 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 text-[10px]">100% Beschermd</span>
                 </div>
                 <p class="text-xs text-amber-900 dark:text-amber-300 mt-0.5">
                     Je cel is vergrendeld tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>. Als je iemand berooft, vraagt het spel eerst een bevestiging en vervalt je isolatie.
                 </p>
             </div>
         </div>
-        <a href="{{ route('isolation.index') }}" class="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shrink-0 transition shadow-xs">
+        <a href="{{ route('isolation.index') }}" class="inline-flex items-center justify-center px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shrink-0 transition shadow-xs">
             Bekijk Isolatie &raquo;
         </a>
     </div>

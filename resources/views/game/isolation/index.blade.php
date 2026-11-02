@@ -73,7 +73,7 @@
              }
          }"
          :class="sec > 0 && sec <= 1800 ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/70' : (sec <= 0 ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800/70' : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60')"
-         class="border-2 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs transition">
+         class="border-2 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs transition">
         <div class="flex items-start sm:items-center gap-3.5">
             <div :class="sec > 0 && sec <= 1800 ? 'bg-amber-500' : (sec <= 0 ? 'bg-rose-600' : 'bg-emerald-600')"
                  class="w-11 h-11 rounded-xl text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
@@ -119,6 +119,20 @@
                     ({{ intdiv((int) ($remainingSeconds ?? 0), 3600) }}u {{ sprintf('%02d', intdiv(((int) ($remainingSeconds ?? 0)) % 3600, 60)) }}m {{ sprintf('%02d', ((int) ($remainingSeconds ?? 0)) % 60) }}s)
                 </span>
             </div>
+        </div>
+
+        <!-- Early Termination Option -->
+        <div class="w-full pt-3 mt-1 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                Wil je je celdeur vroegtijdig ontgrendelen om weer aan te vallen of op pad te gaan?
+            </span>
+            <form method="POST" action="{{ route('isolation.terminate') }}" onsubmit="return confirm('Weet je zeker dat je je Vrijwillige Isolatie nu wilt beëindigen? Je celdeur gaat direct open en je verliest je 100% bescherming!');">
+                @csrf
+                <button type="submit" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0">
+                    <i class="fa-solid fa-door-open text-xs"></i>
+                    <span>Beëindig Isolatie Voortijdig</span>
+                </button>
+            </form>
         </div>
     </div>
     @else

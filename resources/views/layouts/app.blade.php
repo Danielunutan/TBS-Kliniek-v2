@@ -3968,6 +3968,11 @@
         if (session()->has('tbs_flash_error')) {
             session()->forget(['tbs_flash_error', 'tbs_flash_time']);
         }
+
+        $flashErrorUrl = session('error_url');
+        if (! $flashErrorUrl && $flashError && str_contains($flashError, 'Vrijwillige Isolatie')) {
+            $flashErrorUrl = route('isolation.index');
+        }
     @endphp
 
     @if($flashSuccess)
@@ -3994,7 +3999,7 @@
         (function() {
             function fireToast() {
                 if (typeof window.tbsToast === 'function') {
-                    window.tbsToast(@js($flashError), 'error');
+                    window.tbsToast(@js($flashError), 'error', 8000, @js($flashErrorUrl));
                 } else {
                     setTimeout(fireToast, 50);
                 }

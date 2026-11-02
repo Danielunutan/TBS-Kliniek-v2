@@ -50,6 +50,7 @@ class TheftController extends Controller
         $validated = $request->validate([
             'tier' => ['required', 'string'],
             'victim_id' => ['nullable', 'integer', 'exists:characters,id'],
+            'confirm_break_isolation' => ['nullable', 'boolean'],
         ]);
 
         /** @var User $user */
@@ -76,6 +77,7 @@ class TheftController extends Controller
                 return app(FightController::class)->attack(new Request([
                     'opponent_id' => $victim->id,
                     'from_profile' => true,
+                    'confirm_break_isolation' => $request->boolean('confirm_break_isolation'),
                 ]));
             }
         }

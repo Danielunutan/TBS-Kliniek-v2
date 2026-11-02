@@ -147,4 +147,29 @@ class IsolationController extends Controller
 
         return back()->with('success', "🛡️ Vrijwillige isolatie geactiveerd voor {$hours} uur! Je bent volledig beschermd tot {$character->protection_until->format('d-m H:i')} (Betaald: {$paidLabel}).");
     }
+
+    /**
+     * Voluntarily end active isolation early.
+     */
+    public function terminate(): RedirectResponse
+    {
+        /** @var Character $character */
+        $character = Auth::user()->character;
+
+        if (! $character->hasIsolationProtection()) {
+            return back()->with('info', 'Je cel zit momenteel niet op slot in vrijwillige isolatie.');
+        }
+
+        $character->breakProtection();
+
+        GameNotification::create([
+            'character_id' => $character->id,
+            'type' => 'protection',
+            'icon' => 'fa-door-open',
+            'title' => 'Isolatie Vroegtijdig Beëindigd',
+            'message' => 'Je hebt je vrijwillige isolatie handmatig beëindigd. Je celdeur is weer van het slot.',
+        ]);
+
+        return back()->with('success', '🔓 Vrijwillige isolatie beëindigd! Je celdeur is ontgrendeld en je kunt weer deelnemen aan gevechten en overvallen.');
+    }
 }

@@ -180,4 +180,83 @@ class RevertUnauthorizedIsolationTheftTest extends TestCase
         $this->assertEquals(400000, $defender->cash);
         $this->assertEquals(500000, $attacker->cash);
     }
+
+    public function test_inmate_theft_requires_confirmation_to_break_isolation(): void
+    {
+        $attacker = $this->createCharacter([
+            'level' => 15,
+            'energy' => 100,
+            'protection_until' => now()->addHours(20),
+        ]);
+
+        $defender = $this->createCharacter([
+            'level' => 12,
+            'cash' => 300000,
+        ]);
+
+        $response = $this->actingAs($attacker->user)->post(route('theft.steal'), [
+            'tier' => 'pocket',
+            'victim_id' => $defender->id,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('Vrijwillige Isolatie', session('error'));
+        $this->assertEquals(route('isolation.index'), session('error_url'));
+
+        $attacker->refresh();
+        $this->assertTrue($attacker->hasIsolationProtection());
+    }
+
+    public function test_inmate_theft_breaks_isolation_when_confirmed(): void
+    {
+        $attacker = $this->createCharacter([
+            'level' => 15,
+            'energy' => 100,
+            'protection_until' => now()->addHours(20),
+        ]);
+
+        $defender = $this->createCharacter([
+            'level' => 12,
+            'cash' => 300000,
+        ]);
+
+        $response = $this->actingAs($attacker->user)->post(route('theft.steal'), [
+            'tier' => 'pocket',
+            'victim_id' => $defender->id,
+            'confirm_break_isolation' => 1,
+        ]);
+
+        $response->assertRedirect();
+        $attacker->refresh();
+
+        $this->assertNull($attacker->protection_until);
+        $this->assertFalse($attacker->hasIsolationProtection());
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $attacker->id,
+            'title' => 'Isolatie Vroegtijdig Beëindigd',
+        ]);
+    }
+
+    public function test_voluntary_isolation_early_termination(): void
+    {
+        $character = $this->createCharacter([
+            'protection_until' => now()->addHours(12),
+        ]);
+
+        $this->assertTrue($character->hasIsolationProtection());
+
+        $response = $this->actingAs($character->user)->post(route('isolation.terminate'));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $character->refresh();
+        $this->assertNull($character->protection_until);
+        $this->assertFalse($character->hasIsolationProtection());
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $character->id,
+            'title' => 'Isolatie Vroegtijdig Beëindigd',
+        ]);
+    }
 }

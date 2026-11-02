@@ -397,6 +397,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     // Isolation (Vrijwillige Isolatie)
     Route::get('/vrijwillige-isolatie', [IsolationController::class, 'index'])->name('isolation.index');
     Route::post('/vrijwillige-isolatie/activeren', [IsolationController::class, 'activate'])->name('isolation.activate');
+    Route::post('/vrijwillige-isolatie/beeindigen', [IsolationController::class, 'terminate'])->name('isolation.terminate');
 
     // Murder Stats (Moordstatistieken)
     Route::get('/geweldsstatistieken', [MurderStatsController::class, 'index'])->name('murder_stats.index');

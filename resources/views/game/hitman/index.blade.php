@@ -31,6 +31,32 @@
     searchQuery: '',
     searchResults: [],
     isSearching: false,
+    hasIsolation: {{ $character->hasIsolationProtection() ? 'true' : 'false' }},
+    isolationModalOpen: false,
+    pendingForm: null,
+    handleHitmanAction(event) {
+        if (this.hasIsolation) {
+            event.preventDefault();
+            this.pendingForm = event.target;
+            this.isolationModalOpen = true;
+            return false;
+        }
+        return true;
+    },
+    confirmBreakAndHit() {
+        if (!this.pendingForm) return;
+        let hidden = this.pendingForm.querySelector('input[name=confirm_break_isolation]');
+        if (!hidden) {
+            hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'confirm_break_isolation';
+            this.pendingForm.appendChild(hidden);
+        }
+        hidden.value = '1';
+        this.isolationModalOpen = false;
+        this.hasIsolation = false;
+        this.pendingForm.submit();
+    },
     selectTarget(id, name, sameWing, revealedWing) {
         this.selectedTargetId = String(id);
         this.selectedTargetName = name;
@@ -60,6 +86,28 @@
         }
     }
 }">
+
+    @if($character->hasIsolationProtection())
+    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+                <div class="text-xs font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>Vrijwillige Isolatie Actief</span>
+                    <span class="px-2 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 text-[10px]">100% Beschermd</span>
+                </div>
+                <p class="text-xs text-amber-900 dark:text-amber-300 mt-0.5">
+                    Je cel is vergrendeld tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>. Als je een liquidatie uitvoert of een contract uitzet, vraagt het spel eerst een bevestiging en vervalt je isolatie.
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('isolation.index') }}" class="inline-flex items-center justify-center px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shrink-0 transition shadow-xs">
+            Bekijk Isolatie &raquo;
+        </a>
+    </div>
+    @endif
 
     <!-- Header Card (Clean Light & Dark Mode) -->
     <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
@@ -509,8 +557,11 @@
                 </div>
 
                 <!-- Shooting Form -->
-                <form action="{{ route('hitman.shoot') }}" method="POST" class="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <form action="{{ route('hitman.shoot') }}" method="POST"
+                      @submit="if (!handleHitmanAction($event)) return false;"
+                      class="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800">
                     @csrf
+                    <input type="hidden" name="confirm_break_isolation" value="0">
                     <input type="hidden" name="target_id" :value="selectedTargetId" value="{{ $initialTarget?->id ?? '' }}">
                     <input type="hidden" name="target_name" :value="selectedTargetName" value="{{ $initialTarget?->name ?? '' }}">
 
@@ -1141,8 +1192,10 @@
                     </div>
                 </div>
 
-                <form action="{{ route('hitman.contract') }}" method="POST">
+                <form action="{{ route('hitman.contract') }}" method="POST"
+                      @submit="if (!handleHitmanAction($event)) return false;">
                     @csrf
+                    <input type="hidden" name="confirm_break_isolation" value="0">
                     <input type="hidden" name="target_id" :value="selectedTargetId">
                     <input type="hidden" name="target_name" :value="selectedTargetName">
                     <input type="hidden" name="contract_id" value="{{ $c['id'] }}">
@@ -1154,6 +1207,56 @@
                 </form>
             </div>
             @endforeach
+        </div>
+    </div>
+
+    <!-- MODAL: ISOLATIE VERBREKEN BEVESTIGING -->
+    <div x-show="isolationModalOpen"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs transition-opacity duration-200"
+         x-transition:enter="ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        <div class="bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-700 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 relative"
+             @click.away="isolationModalOpen = false"
+             x-transition:enter="ease-out duration-200"
+             x-transition:enter-start="scale-95 opacity-0"
+             x-transition:enter-end="scale-100 opacity-100">
+            
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Isolatie Vroegtijdig Beëindigen?</h3>
+                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400">Let op: je verlaat je veilige cel!</span>
+                </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                <p>
+                    Je hebt momenteel <strong>Vrijwillige Isolatie</strong> aanstaan (tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>).
+                </p>
+                <p>
+                    Als je nu <span class="font-extrabold text-slate-900 dark:text-white" x-text="selectedTargetName ? selectedTargetName : 'dit doelwit'"></span> aanvalt of liquideert, verlaat je je cel en <strong>vervalt je isolatiebescherming direct</strong>. Andere patiënten kunnen jou daarna ook weer aanvallen!
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button"
+                        @click="isolationModalOpen = false"
+                        class="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition cursor-pointer">
+                    Nee, veilig blijven
+                </button>
+                <button type="button"
+                        @click="confirmBreakAndHit()"
+                        class="py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs transition shadow-xs active:scale-95 cursor-pointer">
+                    Ja, val toch aan!
+                </button>
+            </div>
         </div>
     </div>
 

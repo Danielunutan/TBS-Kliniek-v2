@@ -351,7 +351,9 @@ class FightController extends Controller
         if ($wasInIsolation && ! $request->boolean('confirm_break_isolation')) {
             $remaining = $attacker->protection_until->diffForHumans(null, true);
 
-            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een aanval uit te voeren.");
+            return back()
+                ->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een aanval uit te voeren.")
+                ->with('error_url', route('isolation.index'));
         }
 
         if ($attacker->isComatose()) {
