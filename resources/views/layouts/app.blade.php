@@ -1793,33 +1793,41 @@
                             @endif
                         </div>
                     </a>
-                    <div class="flex flex-col gap-1 min-w-0">
-                        <div class="flex items-center gap-1.5">
-                            <a href="{{ route('profile.me') }}" class="font-black text-sm hover:opacity-90 transition leading-tight py-0.5 px-1 -mx-1 truncate max-w-[145px] {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">
-                                {{ $character->name }}
-                            </a>
-                            @if($character->isSparkleActive())
-                                <i class="fa-solid fa-sparkles text-[10px] text-amber-400 animate-pulse shrink-0" title="VIP Glitter Shimmer"></i>
-                            @endif
-                            <span class="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black text-[9px] px-2 py-0.5 rounded-lg uppercase tracking-wider shadow-2xs shrink-0 leading-none">
-                                <span>Level</span> <span>{{ $character->level }}</span>
-                            </span>
+                    <div class="flex flex-col justify-center min-w-0">
+                        <!-- Top Row: Name + Level Label in clean hierarchy -->
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <a href="{{ route('profile.me') }}" class="font-black text-sm hover:opacity-90 transition leading-tight py-0.5 px-1 -mx-1 truncate max-w-[150px] {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">
+                                    {{ $character->name }}
+                                </a>
+                                @if($character->isSparkleActive())
+                                    <i class="fa-solid fa-sparkles text-[10px] text-amber-400 animate-pulse shrink-0" title="VIP Glitter Shimmer"></i>
+                                @endif
+                            </div>
+                            <div class="flex items-center gap-1 font-mono text-[10px] shrink-0 leading-none">
+                                <span class="text-slate-400 dark:text-purple-300/60 uppercase font-black tracking-wider text-[9px]">Level</span>
+                                <span class="font-black text-purple-600 dark:text-purple-300 bg-purple-500/10 dark:bg-purple-400/15 border border-purple-500/20 dark:border-purple-400/30 px-1.5 py-0.5 rounded-md min-w-[1.25rem] text-center">{{ $character->level }}</span>
+                            </div>
                         </div>
+
+                        <!-- Progress Bar -->
                         <div class="w-48 sm:w-56 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
                             <div class="bg-purple-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.xp_pct + '%'" style="width: {{ $pctXp }}%"></div>
                         </div>
-                        <div class="flex items-center justify-between gap-2 text-[10px] leading-normal pt-0.5">
+
+                        <!-- Bottom Row: Gang / Title + XP Values -->
+                        <div class="flex items-center justify-between gap-2 text-[10px] leading-normal pt-1">
                             @if($character->gang)
-                                <a href="{{ route('gangs.index') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300 font-extrabold truncate max-w-[125px] py-0.5 hover:underline" title="Bende: {{ $character->gang->name }}">
+                                <a href="{{ route('gangs.index') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300 font-extrabold truncate max-w-[125px] hover:underline" title="Bende: {{ $character->gang->name }}">
                                     <i class="fa-solid fa-shield-halved text-[9px] opacity-75 shrink-0"></i>
                                     <span class="truncate">{{ $character->gang->name }}</span>
                                 </a>
                             @else
-                                <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[125px] py-0.5 block" title="{{ $character->title ?? '#TBS-'.$character->id }}">
+                                <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[125px] block" title="{{ $character->title ?? '#TBS-'.$character->id }}">
                                     {{ $character->title ?? '#TBS-'.$character->id }}
                                 </span>
                             @endif
-                            <span class="font-medium text-slate-400 dark:text-purple-300/70 font-mono py-0.5 shrink-0 whitespace-nowrap text-right" x-text="stats.xpFormatted">
+                            <span class="font-medium text-slate-400 dark:text-purple-300/70 font-mono shrink-0 whitespace-nowrap text-right" x-text="stats.xpFormatted">
                                 {{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP
                             </span>
                         </div>
