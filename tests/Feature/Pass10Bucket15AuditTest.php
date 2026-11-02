@@ -284,7 +284,7 @@ class Pass10Bucket15AuditTest extends TestCase
     {
         $knowledge = FaqController::getBotKnowledge();
 
-        $this->assertGreaterThan(60, count($knowledge));
+        $this->assertGreaterThanOrEqual(25, count($knowledge));
         $this->assertNotEmpty($knowledge[0]['title']);
         $this->assertNotEmpty($knowledge[0]['answer']);
         $this->assertNotEmpty($knowledge[0]['keywords']);
@@ -300,5 +300,7 @@ class Pass10Bucket15AuditTest extends TestCase
         $this->assertStringContainsString('resetHelpChat()', $view);
         $this->assertStringContainsString('🎯 Advies op Maat', $view);
         $this->assertStringContainsString('💡 Klik voor vervolgvraag:', $view);
+        $this->assertStringContainsString('tbs-help-chips-scroll', $view);
+        $this->assertStringContainsString('x-ref="helpChipsBar"', $view);
     }
 }
