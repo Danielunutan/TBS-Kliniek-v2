@@ -560,6 +560,8 @@ class LiveChatTest extends TestCase
             $this->assertStringContainsString('role="tooltip"', $source);
             $this->assertStringContainsString(':title="getHeartsTooltip(', $source);
             $this->assertStringContainsString('select-text', $source);
+            // Ensure the native title tooltip does not duplicate the names list when hearts_count > 0
+            $this->assertStringNotContainsString("item.hearts_names.map(name => '- ' + name).join('\\n')", $source);
         }
     }
 

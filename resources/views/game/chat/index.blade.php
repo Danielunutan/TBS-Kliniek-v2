@@ -795,8 +795,8 @@ function tbsLiveMessenger(config) {
         },
 
         getHeartsTooltip(item) {
-            if (item && item.hearts_count > 0 && Array.isArray(item.hearts_names) && item.hearts_names.length > 0) {
-                return item.hearts_names.map(name => '- ' + name).join('\n');
+            if (item && item.hearts_count > 0) {
+                return null;
             }
             return item && item.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)';
         },
