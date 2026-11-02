@@ -3,7 +3,7 @@
 @section('content')
 <div class="space-y-6" x-data="{
     activeCategory: 'beginners',
-    openQuestion: null,
+    openQuestion: 'beginners_0',
     searchQuery: @js($search ?? ''),
     showSimulator: false,
     allOpen: false,
@@ -18,7 +18,7 @@
 
     selectCategory(catKey) {
         this.activeCategory = catKey;
-        this.openQuestion = null;
+        this.openQuestion = catKey + '_0';
         this.allOpen = false;
         if (this.searchQuery) {
             this.searchQuery = '';
@@ -53,23 +53,23 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <div class="inline-flex items-center gap-1.5 bg-purple-500/20 text-purple-200 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/30 mb-2.5 backdrop-blur-xs">
-                    <i class="fa-solid fa-book-bookmark text-amber-300"></i> Interactief Handboek &amp; Kennisbank
+                    <i class="fa-solid fa-book-bookmark text-amber-300"></i> Simpel &amp; Stap-voor-Stap Uitgelegd
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white font-['Outfit']">
                     Kliniek Kennisbank & FAQ
                 </h1>
                 <p class="text-xs sm:text-sm text-purple-200/90 mt-1 max-w-xl leading-relaxed">
-                    Alles van start tot einde beginner-friendly uitgelegd: geld sparen, missies, training, gevechten, de isoleercel, smokkel, heists en bendes. Kies links een thema of zoek direct.
+                    Van je allereerste minuut als groentje tot ervaren bendeleider: hier staat alles in gewone, simpele taal uitgelegd. Elk antwoord heeft een korte samenvatting én een pro-tip!
                 </p>
                 <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-purple-300 font-bold">
                     <span class="inline-flex items-center gap-1 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
-                        <i class="fa-solid fa-layer-group text-amber-300"></i> {{ count($categories) }} Categorieën
+                        <i class="fa-solid fa-layer-group text-amber-300"></i> {{ count($categories) }} Thema's
                     </span>
                     <span class="inline-flex items-center gap-1 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
-                        <i class="fa-solid fa-circle-check text-emerald-400"></i> 100% Compleet Handboek
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i> Beginner t/m Pro
                     </span>
                     <span class="inline-flex items-center gap-1 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
-                        <i class="fa-solid fa-graduation-cap text-cyan-300"></i> Beginnersgids Inbegrepen
+                        <i class="fa-solid fa-bolt text-cyan-300"></i> Directe Snelkoppelingen
                     </span>
                 </div>
             </div>
@@ -78,17 +78,17 @@
                 <div class="relative">
                     <input type="text" 
                            x-model="searchQuery" 
-                           placeholder="Typ een zoekwoord (bijv. bank, coma, heists)..." 
+                           placeholder="Wat zoek je? (bijv. bank, vip, cel, masker)..." 
                            class="w-full bg-white/10 dark:bg-black/40 border border-white/20 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-purple-200/60 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white/20 transition backdrop-blur-md">
                     <button type="button" class="absolute right-3.5 top-3 text-purple-300">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </button>
                 </div>
                 <div class="flex items-center justify-between mt-2 text-[10px] text-purple-300">
-                    <span x-show="!searchQuery">Filter per categorie of typ om live te zoeken</span>
+                    <span x-show="!searchQuery">Kies een thema of typ een woord in</span>
                     <span x-show="searchQuery" class="text-amber-300 font-bold">Zoekmodus actief</span>
                     <button type="button" x-show="searchQuery" @click="searchQuery = ''" class="hover:underline text-amber-300 cursor-pointer">
-                        Wis filter
+                        Wis zoektekst
                     </button>
                 </div>
             </div>
@@ -103,10 +103,10 @@
             </div>
             <div>
                 <h4 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
-                    TBS Intake Rondleiding &amp; Uitleg (+ €1.000 Bonus)
+                    TBS Intake Rondleiding &amp; Uitleg (+ €1.000 Gratis Startbonus)
                 </h4>
                 <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Nieuw in de inrichting? Volg de interactieve 5-stappen rondleiding en leer alle basissystemen direct kennen.
+                    Net begonnen? Start de korte 5-stappen rondleiding door de kliniek en ontvang direct €1.000 cadeau!
                 </p>
             </div>
         </div>
@@ -118,17 +118,55 @@
         </button>
     </div>
 
+    <!-- DE 5 GOUDEN REGELS VOOR BEGINNERS (30-SECONDEN SPIEKBRIEFJE) -->
+    <div class="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl p-4 sm:p-5 shadow-xs">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-black shrink-0">
+                <i class="fa-solid fa-star"></i>
+            </span>
+            <h2 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide font-['Outfit']">
+                De 5 Gouden Regels (30-Seconden Spiekbriefje voor Beginners)
+            </h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-xs">
+            <a href="{{ route('bank.index') }}" class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 hover:border-purple-400 transition block">
+                <span class="font-black text-emerald-600 dark:text-emerald-400 block mb-0.5">1. 🏦 Zet Geld op de Bank</span>
+                <span class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug block">Geld in je broekzak kan gestolen worden. Op De Bank staat het veilig!</span>
+            </a>
+            <a href="{{ route('daycare.index') }}" class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 hover:border-purple-400 transition block">
+                <span class="font-black text-purple-600 dark:text-purple-400 block mb-0.5">2. 🔨 Werk bij Henk (0% Straf)</span>
+                <span class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug block">In de Werkplaats verdien je veilig geld zonder kans op de isoleercel.</span>
+            </a>
+            <a href="{{ route('infirmary.index') }}" class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 hover:border-purple-400 transition block">
+                <span class="font-black text-rose-600 dark:text-rose-400 block mb-0.5">3. 🏥 Gratis Genezen</span>
+                <span class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug block">Gewond? Zuster Brenda in de Ziekenboeg geneest je altijd 100% gratis.</span>
+            </a>
+            <a href="{{ route('pickpocket.index') }}" class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 hover:border-purple-400 transition block">
+                <span class="font-black text-indigo-600 dark:text-indigo-400 block mb-0.5">4. 🥷 Scoor een Masker</span>
+                <span class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug block">Steel een masker bij Zakkenrollen: dit halveert je kans om gepakt te worden!</span>
+            </a>
+            <a href="{{ route('dashboard') }}" class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 hover:border-purple-400 transition block">
+                <span class="font-black text-amber-600 dark:text-amber-400 block mb-0.5">5. 🎁 Pak €35.000+ Startgeld</span>
+                <span class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug block">Doe de 5 Rookie Taken op je Dashboard, koppel Discord &amp; zet meldingen aan!</span>
+            </a>
+        </div>
+    </div>
+
     <!-- BEGINNER ROADMAP: VAN START TOT EINDE (INTERACTIVE STEPPER) -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
-                <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">Chronologische Beginnersgids</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">Stap-voor-Stap Groeipad</span>
                 <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white font-['Outfit'] flex items-center gap-2">
                     <i class="fa-solid fa-route text-purple-500"></i>
                     <span>Van Binnenkomst tot Kliniekbaas: Het Complete Stappenplan</span>
                 </h2>
             </div>
-            <span class="text-xs text-slate-400 font-bold">Stap <span x-text="activeRoadmapStep"></span> van 6</span>
+            <div class="flex items-center gap-2">
+                <button type="button" @click="activeRoadmapStep = Math.max(1, activeRoadmapStep - 1)" :disabled="activeRoadmapStep === 1" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold disabled:opacity-40 cursor-pointer">&laquo; Vorige</button>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-black">Stap <span x-text="activeRoadmapStep"></span> / 6</span>
+                <button type="button" @click="activeRoadmapStep = Math.min(6, activeRoadmapStep + 1)" :disabled="activeRoadmapStep === 6" class="px-2.5 py-1 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-40 cursor-pointer">Volgende &raquo;</button>
+            </div>
         </div>
 
         <!-- 6 Step Stepper Tabs -->
@@ -136,37 +174,37 @@
             <button type="button" @click="activeRoadmapStep = 1"
                     :class="activeRoadmapStep === 1 ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'"
                     class="p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col gap-1">
-                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 1</span>
-                <span class="text-xs font-black truncate">Dag 1: Start</span>
+                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 1 (Beginner)</span>
+                <span class="text-xs font-black truncate">Dag 1: Veilig Starten</span>
             </button>
             <button type="button" @click="activeRoadmapStep = 2"
                     :class="activeRoadmapStep === 2 ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'"
                     class="p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col gap-1">
-                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 2</span>
-                <span class="text-xs font-black truncate">Veilig Werken</span>
+                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 2 (Level 1-3)</span>
+                <span class="text-xs font-black truncate">Veilig Geld &amp; XP</span>
             </button>
             <button type="button" @click="activeRoadmapStep = 3"
                     :class="activeRoadmapStep === 3 ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'"
                     class="p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col gap-1">
-                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 3</span>
-                <span class="text-xs font-black truncate">Fitness &amp; Stats</span>
+                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 3 (Level 3-6)</span>
+                <span class="text-xs font-black truncate">Gym &amp; Uitrusting</span>
             </button>
             <button type="button" @click="activeRoadmapStep = 4"
                     :class="activeRoadmapStep === 4 ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'"
                     class="p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col gap-1">
-                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 4</span>
+                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 4 (Level 6-8)</span>
                 <span class="text-xs font-black truncate">Misdaad &amp; Maskers</span>
             </button>
             <button type="button" @click="activeRoadmapStep = 5"
                     :class="activeRoadmapStep === 5 ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'"
                     class="p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col gap-1">
-                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 5</span>
+                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 5 (Gevorderd)</span>
                 <span class="text-xs font-black truncate">Vechten &amp; Reizen</span>
             </button>
             <button type="button" @click="activeRoadmapStep = 6"
                     :class="activeRoadmapStep === 6 ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'"
                     class="p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col gap-1">
-                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 6</span>
+                <span class="text-[10px] font-extrabold uppercase opacity-75">Stap 6 (Pro Baas)</span>
                 <span class="text-xs font-black truncate">Bendes &amp; Heists</span>
             </button>
         </div>
@@ -176,26 +214,27 @@
             <div class="flex items-center gap-3">
                 <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm shrink-0">1</span>
                 <div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Binnenkomst &amp; Veiligheid (Eerste 10 Minuten)</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Voorkom direct dat je geld verliest of gewond raakt.</p>
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Je Eerste 10 Minuten: Gratis Bonussen &amp; Geld Veiligstellen</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Zo pak je direct een vliegende start zonder een cent te verliezen.</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-700 dark:text-slate-300">
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🏥 1. Gratis Genezen</strong>
-                    <p>Ga direct naar de Ziekenboeg. Zuster Brenda lapt je direct 100% gratis op naar volle Gezondheid (HP).</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🏥 1. Gratis Genezen &amp; Rad</strong>
+                    <p>Haal gratis 100% HP bij Zuster Brenda in de Ziekenboeg en draai 1x gratis aan het Rad van Fortuin.</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🎁 2. Gratis Draai</strong>
-                    <p>Draai 1x gratis aan het Rad van Fortuin voor een mooie startersbonus aan contant geld of energie.</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🎯 2. De 5 Rookie Taken</strong>
+                    <p>Vink de 5 makkelijke beginnersopdrachten op je Dashboard af voor <strong>€6.500 cash, 30 kogels en 1 dag gratis VIP</strong>!</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
                     <strong class="text-rose-600 dark:text-rose-400 block font-black">🏦 3. ALLES OP DE BANK</strong>
-                    <p>Stort AL je contante geld op De Bank! Contant zakgeld kan anders worden geroofd via de Respectlijst.</p>
+                    <p>Stort je contante geld altijd direct op De Bank. Op de bank kan niemand het van je stelen op de Luchtplaats!</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
-                <a href="{{ route('infirmary.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Naar Ziekenboeg</a>
+                <a href="{{ route('dashboard') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Dashboard (Rookie Taken)</a>
+                <a href="{{ route('infirmary.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Ziekenboeg</a>
                 <a href="{{ route('daily.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Rad van Fortuin</a>
                 <a href="{{ route('bank.index') }}" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] transition">Naar De Bank</a>
             </div>
@@ -206,18 +245,18 @@
             <div class="flex items-center gap-3">
                 <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm shrink-0">2</span>
                 <div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Risicoloos Geld &amp; XP Verdienen (Level 1 t/m 3)</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Bouw je eerste kapitaal op zónder het risico om in de isoleercel te belanden.</p>
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Risicoloos Geld &amp; Ervaring (XP) Verdienen (Level 1 t/m 3)</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Verdien je eerste duizenden euro's met 0% kans op de isoleercel.</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-700 dark:text-slate-300">
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🔨 Dagbesteding bij Henk (0% Pakkans!)</strong>
-                    <p>In de werkplaats werk je 100% legaal. Je verdient gegarandeerd eerlijk dagloon, bouwt Discipline op en vindt af en toe kluiscodes!</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🔨 Dagbesteding bij Henk (100% Veilig)</strong>
+                    <p>In de Werkplaats werk je legaal. Je wordt nooit gearresteerd, krijgt altijd geld en vindt soms gratis kluiscodes en zaagjes!</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
                     <strong class="text-purple-600 dark:text-purple-400 block font-black">📜 Missies &amp; Opdrachten</strong>
-                    <p>Voltooi beginnersmissies onder 'Voortgang > Missies'. Je krijgt royale contante beloningen en schiet vliegensvlug in levels omhoog.</p>
+                    <p>Voltooi de missies onder 'Voortgang > Missies'. Ze wijzen je de weg en geven veel startgeld en XP.</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
@@ -231,27 +270,27 @@
             <div class="flex items-center gap-3">
                 <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm shrink-0">3</span>
                 <div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Fitnessruimte &amp; Karakter Uitrusten (Level 3 t/m 6)</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Gebruik je energie slim om je vechtstatistieken op te bouwen.</p>
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Sterker Worden in de Gym &amp; Winkel (Level 3 t/m 6)</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Bereid jezelf voor op gevechten door te trainen en een wapen uit te rusten.</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-700 dark:text-slate-300">
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-rose-600 dark:text-rose-400 block font-black">🥊 Kracht (Push-ups)</strong>
-                    <p>Bepaalt hoeveel schade jij toebrengt. Richt op minstens 25 Kracht voor je eerste gevechten.</p>
+                    <strong class="text-rose-600 dark:text-rose-400 block font-black">🥊 Kracht (Harder Slaan)</strong>
+                    <p>Doe push-ups in de Gym om meer schade te doen als je aanvalt.</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-indigo-600 dark:text-indigo-400 block font-black">🛡️ Verdediging (Bankdrukken)</strong>
-                    <p>Bepaalt hoeveel schade jij incasseert. Een hoge verdediging schrikt potentiële aanvallers af.</p>
+                    <strong class="text-indigo-600 dark:text-indigo-400 block font-black">🛡️ Verdediging (Pantser)</strong>
+                    <p>Doe bankdrukken zodat andere spelers bijna geen schade op jou doen.</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-amber-600 dark:text-amber-400 block font-black">🏃 Snelheid (Loopband)</strong>
-                    <p>Verhoogt je ontwijkkans in gevechten en helpt je sneller uit de isoleercel te ontsnappen.</p>
+                    <strong class="text-amber-600 dark:text-amber-400 block font-black">🏃 Snelheid (Ontwijken &amp; Cel)</strong>
+                    <p>Hardlopen zorgt dat je klappen ontwijkt en sneller uit de isoleercel ontsnapt.</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
-                <a href="{{ route('training.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Direct Trainen</a>
-                <a href="{{ route('shop.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Winkel (Wapens &amp; EHBO)</a>
+                <a href="{{ route('training.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Naar de Gym</a>
+                <a href="{{ route('shop.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Kliniek Winkel</a>
             </div>
         </div>
 
@@ -260,24 +299,24 @@
             <div class="flex items-center gap-3">
                 <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm shrink-0">4</span>
                 <div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Illegale Zaakjes, Zakkenrollen &amp; Maskers (Level 6 t/m 8)</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Verdien grote cashbedragen en bemachtig bivakmutsen tegen herkenning.</p>
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Hosselen, Zakkenrollen &amp; Maskers Scoren (Level 6 t/m 8)</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Pak grotere bedragen en halveer je celkans met een bivakmuts.</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-700 dark:text-slate-300">
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🥷 Zakkenrollen voor Maskers</strong>
-                    <p>Besluip zaalwachten of patiënten. Bivakmutsen/maskers die je steelt <strong>halveren automatisch je pakkans</strong> bij alle toekomstige misdrijven!</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🥷 Zakkenrollen voor een Masker</strong>
+                    <p>Steel een bivakmuts (masker) bij Zakkenrollen. Zolang je een masker hebt, <strong>halveert je kans om opgepakt te worden</strong> bij al je misdaden!</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
                     <strong class="text-purple-600 dark:text-purple-400 block font-black">🚬 Hosselen &amp; Koffers Kraken</strong>
-                    <p>Rol shag op de gang voor snelle cash en onderschep smokkelkoffers op het perron. Breek ze open met lockpicks of een breekijzer.</p>
+                    <p>Doe snelle deals op de gang en breek onderschepte smokkelkoffers open met een breekijzer of lockpick.</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
                 <a href="{{ route('pickpocket.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Zakkenrollen</a>
                 <a href="{{ route('hustle.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Hosselen</a>
-                <a href="{{ route('packages.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Koffers Onderscheppen</a>
+                <a href="{{ route('packages.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Koffers Kraken</a>
             </div>
         </div>
 
@@ -286,27 +325,27 @@
             <div class="flex items-center gap-3">
                 <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm shrink-0">5</span>
                 <div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Luchtplaats, Reizen &amp; 3 Uur Verlof (Level 8 t/m 12)</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Verover reputatie, reis tussen paviljoens en ga buiten de poorten.</p>
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Luchtplaats Gevechten, Reizen (+35 XP) &amp; Verlof (Level 8 t/m 12)</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Steel contant geld van rivalen en stijg razendsnel in level.</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-700 dark:text-slate-300">
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🥊 Respectlijst Duels</strong>
-                    <p>Vecht in de 5-seconden Showdown arena. Bij winst steel je respect én tot 15% contant geld van je slachtoffer!</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🥊 Luchtplaats (Respectlijst)</strong>
+                    <p>Win het 5-seconden gevecht en steel direct Respect én tot 15% van het contante geld van je tegenstander!</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🗺️ Reizen (+35 XP!)</strong>
-                    <p>Reis via 'Verplaatsen' tussen Paviljoens en Het Kookhuis. Elke succesvolle verplaatsing levert direct +35 XP op.</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🗺️ Reizen = +35 XP</strong>
+                    <p>Reis tussen de gebouwen via 'Verplaatsen'. Elke reis geeft je meteen +35 XP voor snelle level-ups.</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
                     <strong class="text-purple-600 dark:text-purple-400 block font-black">🧠 3 Uur Verlof (00:00)</strong>
-                    <p>Scoor &ge;60% bij het dagelijkse Behandelaarsgesprek om 3 uur Begeleid Verlof buiten de kliniek te verdienen met topmissies!</p>
+                    <p>Geef een net antwoord bij het Behandelaarsgesprek en doe de 3 buiten-missies voor €19.500 + een XXL Koffer!</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
                 <a href="{{ route('fight.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Naar Luchtplaats</a>
-                <a href="{{ route('travel.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Verplaatsen (Reizen)</a>
+                <a href="{{ route('travel.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Verplaatsen (+35 XP)</a>
                 <a href="{{ route('treatment.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Behandelaarsgesprek</a>
             </div>
         </div>
@@ -316,27 +355,28 @@
             <div class="flex items-center gap-3">
                 <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm shrink-0">6</span>
                 <div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Bendes, Grote Heists &amp; Heerschappij (Level 12+)</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Sluit je aan bij het syndicaat, koop snelle wagens en domineer de 24 Uur Battle.</p>
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Pro Endgame: Bendes, Grote Heists, Controlepunten &amp; Liquidatie (Level 12+)</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Bouw een miljoenenimperium en heers over de kliniek.</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-700 dark:text-slate-300">
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">👥 Bende &amp; Uurloon</strong>
-                    <p>Richt een gang op of claim de €5.000.000 Overstap Bonus! Ontvang elk uur automatisch passief bende-uurloon uit vastgoed.</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">👥 Bendes &amp; Controlepunten</strong>
+                    <p>Sluit je aan bij een Bende voor automatisch Bende-Uurloon en verover Controlepunten voor geld per minuut + gratis Sterren ⭐!</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🏎️ Smokkel Garage &amp; Heists</strong>
-                    <p>Koop een snelle vluchtwagen (GTI, M5, G63) en pleeg Grote Heists op juweliers, casino's en de Centrale Bank.</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🏎️ Garage &amp; Grote Heists</strong>
+                    <p>Koop een snelle vluchtwagen en pleeg gewapende overvallen op juweliers, casino's en de Centrale Bank.</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🎯 Liquidatie 2.0 &amp; Battle</strong>
-                    <p>Schiet met kogels op rivalen op dezelfde afdeling, draag een Backfire-vest en win elke nacht gratis Sterren ⭐ in de 24u Battle!</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🎯 Liquidatie 2.0 &amp; 24u Battle</strong>
+                    <p>Schiet met kogels op rivalen op dezelfde afdeling, draag een Backfire-vest en win elke nacht gratis Sterren in de 24 Uur Battle!</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
-                <a href="{{ route('gangs.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Mijn Bende</a>
-                <a href="{{ route('garage.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Smokkel Garage</a>
+                <a href="{{ route('gangs.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Bendes</a>
+                <a href="{{ route('control-points.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Controlepunten</a>
+                <a href="{{ route('garage.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Garage</a>
                 <a href="{{ route('heists.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Grote Heists</a>
                 <a href="{{ route('battle.index') }}" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-[11px] transition">24 Uur Battle</a>
             </div>
@@ -350,7 +390,7 @@
                 <i class="fa-solid fa-bolt text-amber-500"></i>
                 <span>Snelle Probleemoplosser voor Gevangenen</span>
             </h2>
-            <span class="text-[11px] text-slate-400">Klik voor de directe oplossing</span>
+            <span class="text-[11px] text-slate-400">Klik op je probleem voor de directe oplossing</span>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3" x-data="{ activeSolver: null }">
@@ -370,7 +410,7 @@
                 </div>
                 <div x-show="activeSolver === 'energie'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
                     <p>• <strong>Wachten:</strong> +1 energie per 5 min (elke 3 min voor VIP, tot 2 min voor Lifetime).</p>
-                    <p>• <strong>Kantine:</strong> Koop snacks zoals chocoladerepen en energiedrankjes in de winkel.</p>
+                    <p>• <strong>Kantine:</strong> Eet chocolade of energiedrank uit je inventaris.</p>
                     <p>• <strong>Rad:</strong> Draai gratis aan het Rad van Fortuin.</p>
                     <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" class="inline-block mt-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Naar Kantine &raquo;</a>
                 </div>
@@ -390,8 +430,8 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'bank'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>De Bank:</strong> Stort contant geld altijd direct op de bank. Bankgeld kan NOOIT worden gestolen via de Respectlijst of zakkenrollen!</p>
-                    <p>• <strong>Liquidatie:</strong> Activeer 24u Cash Bescherming in de VIP Shop tegen liquidaties.</p>
+                    <p>• <strong>De Bank:</strong> Zet al je contant geld altijd direct op De Bank. Bankgeld kan niet gestolen worden op de Luchtplaats!</p>
+                    <p>• <strong>Liquidatie:</strong> Activeer 24u Cash Bescherming in de VIP Shop.</p>
                     <a href="{{ route('bank.index') }}" class="inline-block mt-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Naar De Bank &raquo;</a>
                 </div>
             </div>
@@ -410,9 +450,9 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'gevangenis'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>IJzerzaagje:</strong> -30 min straftijd per zaagje.</p>
-                    <p>• <strong>Luchtschacht:</strong> Waag 1x per straf een directe uitbraakpoging (20 energie).</p>
-                    <p>• <strong>Vrijkoopakte:</strong> Koop jezelf vrij voor 25 Sterren ⭐ of kijk een sponsorvideo.</p>
+                    <p>• <strong>IJzerzaagje:</strong> Haalt direct 30 min van je straf af.</p>
+                    <p>• <strong>Luchtschacht:</strong> Probeer zelf te ontsnappen (20 energie).</p>
+                    <p>• <strong>Video / Sterren:</strong> Kijk een korte sponsorvideo of betaal 25 ⭐.</p>
                     <a href="{{ route('prison') }}" class="inline-block mt-1 px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Naar Isoleercel &raquo;</a>
                 </div>
             </div>
@@ -431,8 +471,8 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'gezondheid'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>Zuster Brenda:</strong> Ga naar de Ziekenboeg. Brenda lapt je direct 100% GRATIS op!</p>
-                    <p>• <strong>EHBO-kits:</strong> Gebruik verbanddozen uit je inventaris als je snel moet vechten.</p>
+                    <p>• <strong>Zuster Brenda:</strong> Ga naar de Ziekenboeg voor direct 100% GRATIS herstel!</p>
+                    <p>• <strong>EHBO-kits:</strong> Gebruik een verbanddoos uit je inventaris.</p>
                     <a href="{{ route('infirmary.index') }}" class="inline-block mt-1 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Naar Ziekenboeg &raquo;</a>
                 </div>
             </div>
@@ -451,8 +491,9 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'vip'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>Sponsorkamer:</strong> Bekijk 250 korte 15s ads voor 24u GRATIS VIP!</p>
-                    <p>• <strong>Discord:</strong> Koppel je account voor 3 DAGEN GRATIS VIP + €2.500 cash.</p>
+                    <p>• <strong>Discord:</strong> Koppel je account voor 3 DAGEN GRATIS VIP + €2.500.</p>
+                    <p>• <strong>Rookie Taak:</strong> Kijk 1 video voor 1 DAG GRATIS VIP.</p>
+                    <p>• <strong>Sponsorkamer:</strong> 250 korte video's = 24u GRATIS VIP!</p>
                     <a href="{{ route('sponsor.index') }}" class="inline-block mt-1 px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Naar Sponsorkamer &raquo;</a>
                 </div>
             </div>
@@ -471,10 +512,10 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'doel'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>Respectlijst:</strong> Strijd om de #1 positie van de kliniek.</p>
-                    <p>• <strong>24-Uurs Battle:</strong> Doe dagelijks mee aan de afdelingsslag.</p>
-                    <p>• <strong>Bendes:</strong> Richt je eigen clan op en hef bende-uurloon.</p>
-                    <a href="{{ route('leaderboard.index') }}" class="inline-block mt-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Respectlijst Bekijken &raquo;</a>
+                    <p>• <strong>Respectlijst:</strong> Word de #1 van de hele kliniek.</p>
+                    <p>• <strong>24-Uurs Battle:</strong> Win elke nacht gratis Sterren ⭐.</p>
+                    <p>• <strong>Bendes:</strong> Richt een gang op en incasseer uurloon.</p>
+                    <a href="{{ route('leaderboard.index') }}" class="inline-block mt-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Ranglijst Bekijken &raquo;</a>
                 </div>
             </div>
 
@@ -493,7 +534,7 @@
                         Interactieve Gevecht Simulator
                     </h3>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                        Bereken direct je winstkans op basis van jouw Kracht en de Verdediging van een tegenstander.
+                        Twijfel je of je iemand kunt verslaan? Bereken hier vooraf je winstkans!
                     </p>
                 </div>
             </div>
@@ -519,7 +560,7 @@
                         <span class="font-mono font-black text-rose-600 text-sm" x-text="calcStrength"></span>
                     </div>
                     <input type="range" min="10" max="150" step="5" x-model.number="calcStrength" class="w-full accent-rose-600 cursor-pointer">
-                    <p class="text-[10px] text-slate-400">Verhoog je kracht door te trainen in de fitnessruimte ('/training').</p>
+                    <p class="text-[10px] text-slate-400">Verhoog je kracht door push-ups te doen in de Gym ('/training').</p>
                 </div>
 
                 <!-- Slider 2: Tegenstander Verdediging -->
@@ -531,7 +572,7 @@
                         <span class="font-mono font-black text-indigo-600 text-sm" x-text="calcOppDefense"></span>
                     </div>
                     <input type="range" min="10" max="150" step="5" x-model.number="calcOppDefense" class="w-full accent-indigo-600 cursor-pointer">
-                    <p class="text-[10px] text-slate-400">Kogelwerende vesten en bepantsering verhogen de verdediging.</p>
+                    <p class="text-[10px] text-slate-400">Kogelwerende vesten en bankdrukken verhogen de verdediging.</p>
                 </div>
             </div>
 
@@ -540,10 +581,10 @@
                  :class="winChance >= 60 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200' : (winChance >= 40 ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200')">
                 <i class="fa-solid text-lg shrink-0" :class="winChance >= 60 ? 'fa-circle-check text-emerald-600' : (winChance >= 40 ? 'fa-triangle-exclamation text-amber-600' : 'fa-skull-crossbones text-rose-600')"></i>
                 <div>
-                    <strong x-show="winChance >= 60">Uitstekende kans op overwinning!</strong>
-                    <strong x-show="winChance >= 40 && winChance < 60">Gewaagd duel! Goede kans op winst, maar train voor extra zekerheid.</strong>
-                    <strong x-show="winChance < 40">Hoog risico op verlies en ziekenboegopname! Train eerst je kracht.</strong>
-                    <p class="text-[11px] opacity-90 mt-0.5">Bij winst steel je respect én tot 15% van zijn contante geld op zak!</p>
+                    <strong x-show="winChance >= 60">Grote kans op winst! Dit doelwit kun je veilig aanvallen.</strong>
+                    <strong x-show="winChance >= 40 && winChance < 60">Spannend gevecht! Je maakt een redelijke kans, maar een extra training helpt.</strong>
+                    <strong x-show="winChance < 40">Gevaarlijk! Deze speler is nog te sterk. Train eerst je Kracht in de Gym.</strong>
+                    <p class="text-[11px] opacity-90 mt-0.5">Bij winst steel je respect én tot 15% van zijn contante zakgeld!</p>
                 </div>
             </div>
         </div>
@@ -615,7 +656,7 @@
                         <span>Zoekresultaten voor '<span x-text="searchQuery" class="text-purple-600 dark:text-purple-400"></span>'</span>
                     </h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Hieronder zie je alle vragen en antwoorden die overeenkomen met je zoekopdracht.
+                        Klik op een vraag om het antwoord en de directe snelkoppelingen te openen.
                     </p>
                 </div>
                 <button type="button" 
@@ -687,7 +728,7 @@
                                     {{ $category['title'] }}
                                 </h3>
                                 <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                                    {{ count($category['questions']) }} veelgestelde vragen over dit onderwerp
+                                    {{ count($category['questions']) }} duidelijke vragen &amp; antwoorden in dit hoofdstuk
                                 </p>
                             </div>
                         </div>
@@ -762,8 +803,8 @@
                 <i class="fa-solid fa-headset"></i>
             </div>
             <div>
-                <h4 class="text-sm font-black text-slate-900 dark:text-white">Niet gevonden wat je zocht?</h4>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Stel je vraag direct in de Live Chat of open een officieel ticket bij het beheerdersteam.</p>
+                <h4 class="text-sm font-black text-slate-900 dark:text-white">Staat je vraag er niet tussen?</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Vraag het direct aan Zaalwacht Arjan in de Live Chat (rechtsonder) of open een Support Ticket bij het team.</p>
             </div>
         </div>
         <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
