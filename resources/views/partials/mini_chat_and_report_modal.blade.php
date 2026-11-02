@@ -523,40 +523,82 @@
 
                         <!-- Clean Emoji Drawer Popup -->
                         <div x-show="showEmojiPicker" @click.outside="showEmojiPicker = false" x-cloak
-                             class="absolute bottom-full left-0 mb-2 w-72 sm:w-80 max-w-[calc(100vw-3rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
-                            <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
-                                <div class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-icons text-purple-600 dark:text-purple-400 text-xs"></i>
-                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300" x-text="emojiCategories[activeEmojiTab]?.label || 'Kies Emoji'"></span>
+                             class="absolute bottom-full left-0 mb-2 w-72 sm:w-88 max-w-[calc(100vw-2.5rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 flex flex-col gap-2">
+                            <!-- Search & Close -->
+                            <div class="flex items-center gap-1.5">
+                                <div class="relative flex-1">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                    <input type="text" 
+                                           x-model="emojiSearchQuery" 
+                                           placeholder="Zoek emoji... (bijv. pistool, lach, vuur)" 
+                                           class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl pl-7 pr-6 py-1 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500 transition">
+                                    <button type="button" 
+                                            x-show="emojiSearchQuery.length > 0" 
+                                            @click="emojiSearchQuery = ''" 
+                                            class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-0.5 cursor-pointer">
+                                        &times;
+                                    </button>
                                 </div>
-                                <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-0.5 cursor-pointer" title="Sluiten">&times;</button>
+                                <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-1 cursor-pointer" title="Sluiten">&times;</button>
                             </div>
 
-                            <!-- Category Tabs -->
-                            <div class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800">
-                                <template x-for="(cat, key) in emojiCategories" :key="key">
+                            <!-- Category Tabs (Hidden while searching) -->
+                            <div x-show="!emojiSearchQuery.trim()" class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800">
+                                <button type="button" 
+                                        @click="activeEmojiTab = 'recent'"
+                                        :class="activeEmojiTab === 'recent' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                                        class="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
+                                        title="Vaak gebruikt">
+                                    <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                                </button>
+                                <template x-for="(cat, key) in (window.TBS_EMOJI_LIBRARY || {})" :key="key">
                                     <button type="button" 
                                             @click="activeEmojiTab = key"
-                                            :class="activeEmojiTab === key ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                                            class="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
+                                            :class="activeEmojiTab === key 
+                                                ? (key === 'tbs' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs' : 'bg-purple-600 text-white shadow-xs') 
+                                                : (key === 'tbs' ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-black' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold')"
+                                            class="px-2 py-0.5 rounded-lg text-xs flex items-center gap-1 transition shrink-0 cursor-pointer"
                                             :title="cat.label">
-                                        <i :class="cat.icon"></i>
-                                        <span class="text-[10px] hidden sm:inline" x-text="cat.label.split(' ')[0]"></span>
+                                        <i :class="cat.icon" class="text-[10px]"></i>
+                                        <span class="text-[9.5px] hidden sm:inline" x-text="cat.shortLabel || cat.label.split(' ')[0]"></span>
+                                        <template x-if="cat.badge && activeEmojiTab !== key">
+                                            <span class="text-[7px] bg-amber-400 text-slate-900 font-black px-0.5 rounded-xs" x-text="cat.badge"></span>
+                                        </template>
                                     </button>
                                 </template>
                             </div>
 
+                            <!-- Subheader / Label -->
+                            <div class="flex items-center justify-between text-[9.5px] px-0.5 text-slate-400">
+                                <span class="font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                                      x-text="emojiSearchQuery.trim() ? ('Zoekresultaten (' + getEmojiList().length + ')') : (activeEmojiTab === 'recent' ? 'Recent gebruikt' : (window.TBS_EMOJI_LIBRARY[activeEmojiTab]?.label || ''))"></span>
+                                <span x-show="!emojiSearchQuery.trim() && activeEmojiTab === 'recent'" 
+                                      @click="localStorage.removeItem('tbs_recent_emojis'); activeEmojiTab = 'tbs'" 
+                                      class="text-[9px] text-rose-500 hover:underline cursor-pointer">Wissen</span>
+                            </div>
+
                             <!-- Emoji Grid -->
-                            <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                                <div class="grid grid-cols-7 sm:grid-cols-8 gap-1">
-                                    <template x-for="s in (emojiCategories[activeEmojiTab]?.emojis || [])" :key="s">
+                            <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar min-h-[120px]">
+                                <div class="grid grid-cols-7 gap-1">
+                                    <template x-for="(item, idx) in getEmojiList()" :key="idx">
                                         <button type="button" 
-                                                @click="insertEmoji(s)" 
-                                                class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 text-base flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
-                                                :title="s"
-                                                x-text="s"></button>
+                                                @click="item.isCustom ? insertEmoji(item.item.shortcode + ' ') : insertEmoji(item.char)" 
+                                                class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
+                                                :title="item.isCustom ? (item.item.name + ' (' + item.item.shortcode + ')') : item.char">
+                                            <template x-if="item.isCustom">
+                                                <img :src="item.item.url" :alt="item.item.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
+                                            </template>
+                                            <template x-if="!item.isCustom">
+                                                <span class="leading-none select-none text-base" x-text="item.char"></span>
+                                            </template>
+                                        </button>
                                     </template>
                                 </div>
+                                <template x-if="getEmojiList().length === 0">
+                                    <div class="py-4 text-center text-slate-400 text-xs">
+                                        Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -869,40 +911,82 @@
                                 </button>
 
                                 <div x-show="showGangEmojiPicker" @click.outside="showGangEmojiPicker = false" x-cloak
-                                     class="absolute bottom-full left-0 mb-2 w-72 sm:w-80 max-w-[calc(100vw-3rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
-                                    <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
-                                        <div class="flex items-center gap-1.5">
-                                            <i class="fa-solid fa-icons text-purple-600 dark:text-purple-400 text-xs"></i>
-                                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300" x-text="emojiCategories[activeEmojiTab]?.label || 'Kies Emoji'"></span>
+                                     class="absolute bottom-full left-0 mb-2 w-72 sm:w-88 max-w-[calc(100vw-2.5rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 flex flex-col gap-2">
+                                    <!-- Search & Close -->
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="relative flex-1">
+                                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                            <input type="text" 
+                                                   x-model="emojiSearchQuery" 
+                                                   placeholder="Zoek emoji... (bijv. mes, bende, vuur)" 
+                                                   class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl pl-7 pr-6 py-1 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500 transition">
+                                            <button type="button" 
+                                                    x-show="emojiSearchQuery.length > 0" 
+                                                    @click="emojiSearchQuery = ''" 
+                                                    class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-0.5 cursor-pointer">
+                                                &times;
+                                            </button>
                                         </div>
-                                        <button type="button" @click="showGangEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-0.5 cursor-pointer" title="Sluiten">&times;</button>
+                                        <button type="button" @click="showGangEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-1 cursor-pointer" title="Sluiten">&times;</button>
                                     </div>
 
-                                    <!-- Category Tabs -->
-                                    <div class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800">
-                                        <template x-for="(cat, key) in emojiCategories" :key="key">
+                                    <!-- Category Tabs (Hidden while searching) -->
+                                    <div x-show="!emojiSearchQuery.trim()" class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800">
+                                        <button type="button" 
+                                                @click="activeEmojiTab = 'recent'"
+                                                :class="activeEmojiTab === 'recent' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                                                class="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
+                                                title="Vaak gebruikt">
+                                            <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                                        </button>
+                                        <template x-for="(cat, key) in (window.TBS_EMOJI_LIBRARY || {})" :key="key">
                                             <button type="button" 
                                                     @click="activeEmojiTab = key"
-                                                    :class="activeEmojiTab === key ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                                                    class="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
+                                                    :class="activeEmojiTab === key 
+                                                        ? (key === 'tbs' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs' : 'bg-purple-600 text-white shadow-xs') 
+                                                        : (key === 'tbs' ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-black' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold')"
+                                                    class="px-2 py-0.5 rounded-lg text-xs flex items-center gap-1 transition shrink-0 cursor-pointer"
                                                     :title="cat.label">
-                                                <i :class="cat.icon"></i>
-                                                <span class="text-[10px] hidden sm:inline" x-text="cat.label.split(' ')[0]"></span>
+                                                <i :class="cat.icon" class="text-[10px]"></i>
+                                                <span class="text-[9.5px] hidden sm:inline" x-text="cat.shortLabel || cat.label.split(' ')[0]"></span>
+                                                <template x-if="cat.badge && activeEmojiTab !== key">
+                                                    <span class="text-[7px] bg-amber-400 text-slate-900 font-black px-0.5 rounded-xs" x-text="cat.badge"></span>
+                                                </template>
                                             </button>
                                         </template>
                                     </div>
 
+                                    <!-- Subheader / Label -->
+                                    <div class="flex items-center justify-between text-[9.5px] px-0.5 text-slate-400">
+                                        <span class="font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                                              x-text="emojiSearchQuery.trim() ? ('Zoekresultaten (' + getEmojiList().length + ')') : (activeEmojiTab === 'recent' ? 'Recent gebruikt' : (window.TBS_EMOJI_LIBRARY[activeEmojiTab]?.label || ''))"></span>
+                                        <span x-show="!emojiSearchQuery.trim() && activeEmojiTab === 'recent'" 
+                                              @click="localStorage.removeItem('tbs_recent_emojis'); activeEmojiTab = 'tbs'" 
+                                              class="text-[9px] text-rose-500 hover:underline cursor-pointer">Wissen</span>
+                                    </div>
+
                                     <!-- Emoji Grid -->
-                                    <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                                        <div class="grid grid-cols-7 sm:grid-cols-8 gap-1">
-                                            <template x-for="s in (emojiCategories[activeEmojiTab]?.emojis || [])" :key="s">
+                                    <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar min-h-[120px]">
+                                        <div class="grid grid-cols-7 gap-1">
+                                            <template x-for="(item, idx) in getEmojiList()" :key="idx">
                                                 <button type="button" 
-                                                        @click="insertGangEmoji(s)" 
-                                                        class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 text-base flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
-                                                        :title="s"
-                                                        x-text="s"></button>
+                                                        @click="item.isCustom ? insertGangEmoji(item.item.shortcode + ' ') : insertGangEmoji(item.char)" 
+                                                        class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
+                                                        :title="item.isCustom ? (item.item.name + ' (' + item.item.shortcode + ')') : item.char">
+                                                    <template x-if="item.isCustom">
+                                                        <img :src="item.item.url" :alt="item.item.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
+                                                    </template>
+                                                    <template x-if="!item.isCustom">
+                                                        <span class="leading-none select-none text-base" x-text="item.char"></span>
+                                                    </template>
+                                                </button>
                                             </template>
                                         </div>
+                                        <template x-if="getEmojiList().length === 0">
+                                            <div class="py-4 text-center text-slate-400 text-xs">
+                                                Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -1300,40 +1384,82 @@
                                     </button>
 
                                     <div x-show="showDirectEmojiPicker" @click.outside="showDirectEmojiPicker = false" x-cloak
-                                         class="absolute bottom-full left-0 mb-2 w-72 sm:w-80 max-w-[calc(100vw-3rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
-                                        <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
-                                            <div class="flex items-center gap-1.5">
-                                                <i class="fa-solid fa-icons text-purple-600 dark:text-purple-400 text-xs"></i>
-                                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300" x-text="emojiCategories[activeEmojiTab]?.label || 'Kies Emoji'"></span>
+                                         class="absolute bottom-full left-0 mb-2 w-72 sm:w-88 max-w-[calc(100vw-2.5rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-2xl z-50 flex flex-col gap-2">
+                                        <!-- Search & Close -->
+                                        <div class="flex items-center gap-1.5">
+                                            <div class="relative flex-1">
+                                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                                <input type="text" 
+                                                       x-model="emojiSearchQuery" 
+                                                       placeholder="Zoek emoji... (bijv. vlam, kus, hart)" 
+                                                       class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl pl-7 pr-6 py-1 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500 transition">
+                                                <button type="button" 
+                                                        x-show="emojiSearchQuery.length > 0" 
+                                                        @click="emojiSearchQuery = ''" 
+                                                        class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-0.5 cursor-pointer">
+                                                    &times;
+                                                </button>
                                             </div>
-                                            <button type="button" @click="showDirectEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-0.5 cursor-pointer" title="Sluiten">&times;</button>
+                                            <button type="button" @click="showDirectEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-1 cursor-pointer" title="Sluiten">&times;</button>
                                         </div>
 
-                                        <!-- Category Tabs -->
-                                        <div class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800">
-                                            <template x-for="(cat, key) in emojiCategories" :key="key">
+                                        <!-- Category Tabs (Hidden while searching) -->
+                                        <div x-show="!emojiSearchQuery.trim()" class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800">
+                                            <button type="button" 
+                                                    @click="activeEmojiTab = 'recent'"
+                                                    :class="activeEmojiTab === 'recent' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                                                    class="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
+                                                    title="Vaak gebruikt">
+                                                <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                                            </button>
+                                            <template x-for="(cat, key) in (window.TBS_EMOJI_LIBRARY || {})" :key="key">
                                                 <button type="button" 
                                                         @click="activeEmojiTab = key"
-                                                        :class="activeEmojiTab === key ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                                                        class="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
+                                                        :class="activeEmojiTab === key 
+                                                            ? (key === 'tbs' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs' : 'bg-purple-600 text-white shadow-xs') 
+                                                            : (key === 'tbs' ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 font-black' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold')"
+                                                        class="px-2 py-0.5 rounded-lg text-xs flex items-center gap-1 transition shrink-0 cursor-pointer"
                                                         :title="cat.label">
-                                                    <i :class="cat.icon"></i>
-                                                    <span class="text-[10px] hidden sm:inline" x-text="cat.label.split(' ')[0]"></span>
+                                                    <i :class="cat.icon" class="text-[10px]"></i>
+                                                    <span class="text-[9.5px] hidden sm:inline" x-text="cat.shortLabel || cat.label.split(' ')[0]"></span>
+                                                    <template x-if="cat.badge && activeEmojiTab !== key">
+                                                        <span class="text-[7px] bg-amber-400 text-slate-900 font-black px-0.5 rounded-xs" x-text="cat.badge"></span>
+                                                    </template>
                                                 </button>
                                             </template>
                                         </div>
 
+                                        <!-- Subheader / Label -->
+                                        <div class="flex items-center justify-between text-[9.5px] px-0.5 text-slate-400">
+                                            <span class="font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                                                  x-text="emojiSearchQuery.trim() ? ('Zoekresultaten (' + getEmojiList().length + ')') : (activeEmojiTab === 'recent' ? 'Recent gebruikt' : (window.TBS_EMOJI_LIBRARY[activeEmojiTab]?.label || ''))"></span>
+                                            <span x-show="!emojiSearchQuery.trim() && activeEmojiTab === 'recent'" 
+                                                  @click="localStorage.removeItem('tbs_recent_emojis'); activeEmojiTab = 'tbs'" 
+                                                  class="text-[9px] text-rose-500 hover:underline cursor-pointer">Wissen</span>
+                                        </div>
+
                                         <!-- Emoji Grid -->
-                                        <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                                            <div class="grid grid-cols-7 sm:grid-cols-8 gap-1">
-                                                <template x-for="s in (emojiCategories[activeEmojiTab]?.emojis || [])" :key="s">
+                                        <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar min-h-[120px]">
+                                            <div class="grid grid-cols-7 gap-1">
+                                                <template x-for="(item, idx) in getEmojiList()" :key="idx">
                                                     <button type="button" 
-                                                            @click="insertDirectEmoji(s)" 
-                                                            class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 text-base flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
-                                                            :title="s"
-                                                            x-text="s"></button>
+                                                            @click="item.isCustom ? insertDirectEmoji(item.item.shortcode + ' ') : insertDirectEmoji(item.char)" 
+                                                            class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
+                                                            :title="item.isCustom ? (item.item.name + ' (' + item.item.shortcode + ')') : item.char">
+                                                        <template x-if="item.isCustom">
+                                                            <img :src="item.item.url" :alt="item.item.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
+                                                        </template>
+                                                        <template x-if="!item.isCustom">
+                                                            <span class="leading-none select-none text-base" x-text="item.char"></span>
+                                                        </template>
+                                                    </button>
                                                 </template>
                                             </div>
+                                            <template x-if="getEmojiList().length === 0">
+                                                <div class="py-4 text-center text-slate-400 text-xs">
+                                                    Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".
+                                                </div>
+                                            </template>
                                         </div>
                                     </div>
                                 </div>
@@ -1720,33 +1846,13 @@
             isSending: false,
             isLoadingPublic: false,
             showEmojiPicker: false,
-            activeEmojiTab: 'crime',
-            emojiCategories: {
-                crime: {
-                    label: 'Misdaad & TBS',
-                    icon: 'fa-solid fa-handcuffs',
-                    emojis: ['🔥','💰','💉','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊','🚓','🚨','🔫','💎','💀','👑','⭐','⚡','🎉','🏆','💸','🕵️','👀','🎯','💯','🏴‍☠️','🧨','🪙','🍻']
-                },
-                faces: {
-                    label: 'Smileys & Gezichten',
-                    icon: 'fa-regular fa-face-smile',
-                    emojis: ['😀','😃','😄','😁','😆','😅','😂','🤣','🥲','🥹','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😋','😛','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🫣','🤭','🤫','🫠','🤥','😶','😐','😑','😬','🙄','😯','😴','🤤','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','👹','🤡','💩','👻','💀','☠️','👽','👾','🤖','🎃']
-                },
-                gestures: {
-                    label: 'Handen & Mensen',
-                    icon: 'fa-solid fa-hand',
-                    emojis: ['👋','🤚','🖐️','✋','🖖','🫱','🫲','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦵','🦶','👂','👃','🧠','🫀','🫁','👀','👁️','👅','👄']
-                },
-                food: {
-                    label: 'Eten & Feest',
-                    icon: 'fa-solid fa-burger',
-                    emojis: ['🍕','🍔','🍟','🌭','🍿','🥓','🥞','🧇','🧀','🥩','🍗','🍖','🥪','🌮','🌯','🍜','🍝','🍣','🍱','🍩','🍪','🎂','🍰','🍫','🍬','🍭','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🍾','☕','🧃','🥤','🧊']
-                },
-                symbols: {
-                    label: 'Symbolen & Harten',
-                    icon: 'fa-solid fa-heart',
-                    emojis: ['💜','❤️','🧡','💛','💚','💙','🖤','🤍','🤎','💔','❤️‍🔥','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☯️','⚠️','🛑','⛔','🚫','💯','💢','❗','❓','‼️','⁉️','⚜️','🔰','♻️','✅','❎','🌐','💤','🏧','🚻','📶','🆗','🆙','🆒','🆕','🆓']
+            activeEmojiTab: 'tbs',
+            emojiSearchQuery: '',
+            getEmojiList() {
+                if (window.searchTbsEmojis) {
+                    return window.searchTbsEmojis(this.emojiSearchQuery, this.activeEmojiTab);
                 }
+                return [];
             },
 
             // Bende chat state
@@ -2111,6 +2217,11 @@
                 const mentionRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
                 safe = safe.replace(mentionRegex, (match, username) => buildMentionPill(username));
 
+                // 4. Parse custom game emojis (:tbs_shank:, etc.)
+                if (window.parseTbsChatEmojis) {
+                    safe = window.parseTbsChatEmojis(safe);
+                }
+
                 return safe;
             },
 
@@ -2286,14 +2397,17 @@
 
             insertEmoji(emoji) {
                 this.inputMessage += emoji;
+                if (window.addTbsRecentEmoji) window.addTbsRecentEmoji(emoji.trim());
             },
 
             insertGangEmoji(emoji) {
                 this.gangInputMessage += emoji;
+                if (window.addTbsRecentEmoji) window.addTbsRecentEmoji(emoji.trim());
             },
 
             insertDirectEmoji(emoji) {
                 this.directInput += emoji;
+                if (window.addTbsRecentEmoji) window.addTbsRecentEmoji(emoji.trim());
             },
 
             async togglePublicHeart(msg) {

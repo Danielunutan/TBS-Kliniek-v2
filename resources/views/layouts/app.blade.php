@@ -113,6 +113,7 @@
         }
     </script>
     <script src="{{ asset('assets/js/tbs-push.js') }}" defer></script>
+    <script src="{{ asset('assets/js/tbs-chat-emojis.js') }}"></script>
 
     <!-- GOOGLE ADSENSE (Tijdelijk uitgeschakeld) -->
     {{--
