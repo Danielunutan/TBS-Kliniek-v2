@@ -1805,20 +1805,20 @@
                                 LVL {{ $character->level }}
                             </span>
                         </div>
-                        <div class="w-36 sm:w-44 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
+                        <div class="w-48 sm:w-56 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
                             <div class="bg-purple-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.xp_pct + '%'" style="width: {{ $pctXp }}%"></div>
                         </div>
-                        <div class="flex items-center justify-between text-[10px] leading-normal pt-0.5">
+                        <div class="flex items-center justify-between gap-2 text-[10px] leading-normal pt-0.5">
                             @if($character->gang)
-                                <a href="{{ route('gangs.index') }}" class="text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300 font-extrabold truncate max-w-[105px] py-0.5 block hover:underline" title="{{ $character->gang->name }}">
+                                <a href="{{ route('gangs.index') }}" class="text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300 font-extrabold truncate max-w-[120px] py-0.5 block hover:underline" title="{{ $character->gang->name }}">
                                     {{ $character->gang->name }}
                                 </a>
                             @else
-                                <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[105px] py-0.5 block" title="{{ $character->title ?? '#TBS-'.$character->id }}">
+                                <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[120px] py-0.5 block" title="{{ $character->title ?? '#TBS-'.$character->id }}">
                                     {{ $character->title ?? '#TBS-'.$character->id }}
                                 </span>
                             @endif
-                            <span class="font-medium text-slate-400 dark:text-purple-300/70 font-mono py-0.5 shrink-0 whitespace-nowrap" x-text="stats.xpFormatted">
+                            <span class="font-medium text-slate-400 dark:text-purple-300/70 font-mono py-0.5 shrink-0 whitespace-nowrap text-right" x-text="stats.xpFormatted">
                                 {{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP
                             </span>
                         </div>
