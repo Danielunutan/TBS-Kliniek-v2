@@ -340,7 +340,9 @@
         <!-- 1. TAB: ALGEMENE CHAT (KLINIEK PLEIN) -->
         <div x-show="activeTab === 'global'" class="flex-1 flex flex-col min-h-0">
             <!-- Messages Stream -->
-            <div x-ref="miniChatScroll" id="tbsMiniChatScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-slate-950/50 max-w-full">
+            <div x-ref="miniChatScroll" id="tbsMiniChatScroll" 
+                 @scroll.passive="hideHeartsPopup()"
+                 class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-slate-950/50 max-w-full">
                 <template x-for="msg in publicMessages" :key="msg.id">
                     <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                         <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
@@ -438,6 +440,11 @@
                                         <i class="fa-solid fa-reply"></i>
                                     </button>
 
+                                    <!-- KOPIEER KNOP -->
+                                    <button type="button" @click="copyMessageText(msg.message)" title="Kopieer bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+
                                     <!-- MODERATOR / AUTHOR DELETE -->
                                     <template x-if="canModerate || msg.is_me">
                                         <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
@@ -468,7 +475,7 @@
 
                             <!-- Message Bubble & Heart Reaction -->
                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
+                                <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
                                      :class="msg.is_me 
                                         ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                         : (msg.is_owner 
@@ -479,43 +486,19 @@
                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                 <!-- Paars Hartje Reactie Knop 💜 -->
-                                <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
-                                    <button type="button" @click="togglePublicHeart(msg)" 
-                                            @mouseenter="showTooltip = true"
-                                            @mouseleave="showTooltip = false"
-                                            @focus="showTooltip = true"
-                                            @blur="showTooltip = false"
+                                <div class="relative inline-flex items-center">
+                                    <button type="button" 
+                                            @click="togglePublicHeart(msg); hideHeartsPopup()" 
+                                            @mouseenter="showTooltip = true; showHeartsPopup($event, msg)"
+                                            @mouseleave="showTooltip = false; hideHeartsPopup()"
+                                            @focus="showTooltip = true; showHeartsPopup($event, msg)"
+                                            @blur="showTooltip = false; hideHeartsPopup()"
                                             :title="getHeartsTooltip(msg)"
                                             class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                             :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                         <span>💜</span>
                                         <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
                                     </button>
-                                    <div x-show="showTooltip && msg.hearts_count > 0 && msg.hearts_names && msg.hearts_names.length > 0"
-                                         x-transition:enter="transition ease-out duration-150"
-                                         x-transition:enter-start="opacity-0 translate-y-1"
-                                         x-transition:enter-end="opacity-100 translate-y-0"
-                                         x-transition:leave="transition ease-in duration-100"
-                                         x-transition:leave-start="opacity-100 translate-y-0"
-                                         x-transition:leave-end="opacity-0 translate-y-1"
-                                         x-cloak
-                                         role="tooltip"
-                                         class="pointer-events-none absolute bottom-full mb-1 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[120px] max-w-[190px] text-left"
-                                         :class="msg.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
-                                        <div class="text-[9px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1 pb-1 mb-1 border-b border-slate-800">
-                                            <span>💜</span>
-                                            <span x-text="msg.hearts_count === 1 ? '1 paars hartje' : (msg.hearts_count + ' hartjes')"></span>
-                                        </div>
-                                        <ul class="space-y-0.5 text-[10px] leading-tight max-h-28 overflow-y-auto">
-                                            <template x-for="name in (msg.hearts_names || [])" :key="name">
-                                                <li class="flex items-center gap-1 text-slate-200 truncate">
-                                                    <span class="text-purple-400 font-bold select-none shrink-0">-</span>
-                                                    <span class="font-semibold truncate" x-text="name"></span>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                        <span class="sr-only" x-text="formatHeartsNames(msg.hearts_names)"></span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -692,7 +675,18 @@
                                :placeholder="isInPrison ? 'Je zit in de isoleercel en kunt niet chatten...' : (isComatose ? 'Je ligt in coma in de ziekenboeg...' : 'Typ @naam of een bericht... (Enter)')"
                                :disabled="isInPrison || isComatose"
                                maxlength="250"
-                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                               style="user-select: text; -webkit-user-select: text;"
+                               class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-16 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
+                        
+                        <!-- Quick Clear Button -->
+                        <button type="button" 
+                                x-show="inputMessage.length > 0" 
+                                @click="inputMessage = ''; if ($refs.publicInputField) $refs.publicInputField.focus();"
+                                class="absolute right-10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 text-xs cursor-pointer"
+                                title="Invoer wissen (Esc)">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
+
                         <span x-show="inputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
                               :class="inputMessage.length >= 240 ? 'text-rose-500 font-black' : (inputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
@@ -777,7 +771,9 @@
                     </div>
 
                     <!-- Gang Messages Stream -->
-                    <div x-ref="miniGangScroll" id="tbsMiniGangScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-slate-950/50 max-w-full">
+                    <div x-ref="miniGangScroll" id="tbsMiniGangScroll" 
+                         @scroll.passive="hideHeartsPopup()"
+                         class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-slate-950/50 max-w-full">
                         <template x-for="msg in gangMessages" :key="msg.id">
                             <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                 <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
@@ -866,6 +862,11 @@
                                                 <i class="fa-solid fa-reply"></i>
                                             </button>
 
+                                            <!-- Kopieer -->
+                                            <button type="button" @click="copyMessageText(msg.message)" title="Kopieer bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                <i class="fa-regular fa-copy"></i>
+                                            </button>
+
                                             <!-- Moderator/Leader/Author Delete -->
                                             <template x-if="canModerate || msg.is_me">
                                                 <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
@@ -896,7 +897,7 @@
 
                                     <!-- Bubble & Heart -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
+                                        <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
                                              :class="msg.is_me 
                                                 ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                 : (msg.is_owner 
@@ -907,43 +908,19 @@
                                              x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                         <!-- Paars Hartje Reactie Knop 💜 -->
-                                        <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
-                                            <button type="button" @click="togglePublicHeart(msg)" 
-                                                    @mouseenter="showTooltip = true"
-                                                    @mouseleave="showTooltip = false"
-                                                    @focus="showTooltip = true"
-                                                    @blur="showTooltip = false"
+                                        <div class="relative inline-flex items-center">
+                                            <button type="button" 
+                                                    @click="togglePublicHeart(msg); hideHeartsPopup()" 
+                                                    @mouseenter="showTooltip = true; showHeartsPopup($event, msg)"
+                                                    @mouseleave="showTooltip = false; hideHeartsPopup()"
+                                                    @focus="showTooltip = true; showHeartsPopup($event, msg)"
+                                                    @blur="showTooltip = false; hideHeartsPopup()"
                                                     :title="getHeartsTooltip(msg)"
                                                     class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                                     :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                 <span>💜</span>
                                                 <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
                                             </button>
-                                            <div x-show="showTooltip && msg.hearts_count > 0 && msg.hearts_names && msg.hearts_names.length > 0"
-                                                 x-transition:enter="transition ease-out duration-150"
-                                                 x-transition:enter-start="opacity-0 translate-y-1"
-                                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                                 x-transition:leave="transition ease-in duration-100"
-                                                 x-transition:leave-start="opacity-100 translate-y-0"
-                                                 x-transition:leave-end="opacity-0 translate-y-1"
-                                                 x-cloak
-                                                 role="tooltip"
-                                                 class="pointer-events-none absolute bottom-full mb-1 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[120px] max-w-[190px] text-left"
-                                                 :class="msg.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
-                                                <div class="text-[9px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1 pb-1 mb-1 border-b border-slate-800">
-                                                    <span>💜</span>
-                                                    <span x-text="msg.hearts_count === 1 ? '1 paars hartje' : (msg.hearts_count + ' hartjes')"></span>
-                                                </div>
-                                                <ul class="space-y-0.5 text-[10px] leading-tight max-h-28 overflow-y-auto">
-                                                    <template x-for="name in (msg.hearts_names || [])" :key="name">
-                                                        <li class="flex items-center gap-1 text-slate-200 truncate">
-                                                            <span class="text-purple-400 font-bold select-none shrink-0">-</span>
-                                                            <span class="font-semibold truncate" x-text="name"></span>
-                                                        </li>
-                                                    </template>
-                                                </ul>
-                                                <span class="sr-only" x-text="formatHeartsNames(msg.hearts_names)"></span>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1113,7 +1090,18 @@
                                :placeholder="isInPrison ? 'Je zit in de isoleercel en kunt niet chatten...' : (isComatose ? 'Je ligt in coma in de ziekenboeg...' : 'Typ @naam of een bendebericht... (Enter)')"
                                :disabled="isInPrison || isComatose"
                                maxlength="250"
-                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                               style="user-select: text; -webkit-user-select: text;"
+                               class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-16 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
+                        
+                        <!-- Quick Clear Button -->
+                        <button type="button" 
+                                x-show="gangInputMessage.length > 0" 
+                                @click="gangInputMessage = ''; if ($refs.gangInputField) $refs.gangInputField.focus();"
+                                class="absolute right-10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 text-xs cursor-pointer"
+                                title="Invoer wissen (Esc)">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
+
                         <span x-show="gangInputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
                               :class="gangInputMessage.length >= 240 ? 'text-rose-500 font-black' : (gangInputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
@@ -1256,7 +1244,9 @@
                     </div>
 
                     <!-- Direct Messages Stream -->
-                    <div x-ref="miniDirectScroll" id="tbsMiniDirectScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs max-w-full tbs-chat-touch-scroll">
+                    <div x-ref="miniDirectScroll" id="tbsMiniDirectScroll" 
+                         @scroll.passive="hideHeartsPopup()"
+                         class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs max-w-full tbs-chat-touch-scroll">
                         <template x-for="dm in activeDirectMessages" :key="dm.id">
                             <div class="space-y-1">
                                 <!-- Kluiscode Card -->
@@ -1365,50 +1355,26 @@
 
                                             <!-- Bubble & Reactions -->
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                                <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
+                                                <div class="inline-block px-2.5 py-1.5 rounded-xl text-xs leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
                                                      :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : ((dm.is_bot || activeDirectPartner?.is_bot) ? 'bg-amber-50/80 dark:bg-amber-950/30 border border-amber-300/80 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left' : 'bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700/70 text-left')"
                                                      x-html="formatMessage(dm.message, dm.is_me)"></div>
 
                                                 <!-- Action Buttons: Heart, Reageer, Delete -->
                                                 <div class="flex items-center gap-0.5 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 hover:opacity-100 transition shrink-0">
                                                     <!-- Paars Hartje Reactie 💜 -->
-                                                    <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
-                                                        <button type="button" @click="toggleDirectHeart(dm)" 
-                                                                @mouseenter="showTooltip = true"
-                                                                @mouseleave="showTooltip = false"
-                                                                @focus="showTooltip = true"
-                                                                @blur="showTooltip = false"
+                                                    <div class="relative inline-flex items-center">
+                                                        <button type="button" 
+                                                                @click="toggleDirectHeart(dm); hideHeartsPopup()" 
+                                                                @mouseenter="showTooltip = true; showHeartsPopup($event, dm)"
+                                                                @mouseleave="showTooltip = false; hideHeartsPopup()"
+                                                                @focus="showTooltip = true; showHeartsPopup($event, dm)"
+                                                                @blur="showTooltip = false; hideHeartsPopup()"
                                                                 :title="getHeartsTooltip(dm)"
                                                                 class="p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                                                 :class="dm.has_hearted ? 'text-purple-400 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                             <span>💜</span>
                                                             <span x-show="dm.hearts_count > 0" x-text="dm.hearts_count" class="text-[9px] font-black font-mono"></span>
                                                         </button>
-                                                        <div x-show="showTooltip && dm.hearts_count > 0 && dm.hearts_names && dm.hearts_names.length > 0"
-                                                             x-transition:enter="transition ease-out duration-150"
-                                                             x-transition:enter-start="opacity-0 translate-y-1"
-                                                             x-transition:enter-end="opacity-100 translate-y-0"
-                                                             x-transition:leave="transition ease-in duration-100"
-                                                             x-transition:leave-start="opacity-100 translate-y-0"
-                                                             x-transition:leave-end="opacity-0 translate-y-1"
-                                                             x-cloak
-                                                             role="tooltip"
-                                                             class="pointer-events-none absolute bottom-full mb-1 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[120px] max-w-[190px] text-left"
-                                                             :class="dm.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
-                                                            <div class="text-[9px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1 pb-1 mb-1 border-b border-slate-800">
-                                                                <span>💜</span>
-                                                                <span x-text="dm.hearts_count === 1 ? '1 paars hartje' : (dm.hearts_count + ' hartjes')"></span>
-                                                            </div>
-                                                            <ul class="space-y-0.5 text-[10px] leading-tight max-h-28 overflow-y-auto">
-                                                                <template x-for="name in (dm.hearts_names || [])" :key="name">
-                                                                    <li class="flex items-center gap-1 text-slate-200 truncate">
-                                                                        <span class="text-purple-400 font-bold select-none shrink-0">-</span>
-                                                                        <span class="font-semibold truncate" x-text="name"></span>
-                                                                    </li>
-                                                                </template>
-                                                            </ul>
-                                                            <span class="sr-only" x-text="formatHeartsNames(dm.hearts_names)"></span>
-                                                        </div>
                                                     </div>
 
                                                     <!-- Reageer -->
@@ -1417,6 +1383,11 @@
                                                             <i class="fa-solid fa-reply"></i>
                                                         </button>
                                                     </template>
+
+                                                    <!-- Kopieer -->
+                                                    <button type="button" @click="copyMessageText(dm.message)" title="Kopieer bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                        <i class="fa-regular fa-copy"></i>
+                                                    </button>
 
                                                     <!-- Verwijder (auteur, ontvanger in privé, en moderatie) -->
                                                     <template x-if="canModerate || dm.is_me || dm.can_delete || activeTab === 'direct'">
@@ -1622,7 +1593,18 @@
                                            :placeholder="isInPrison ? 'Je zit in de isoleercel en kunt geen privéberichten sturen...' : (isComatose ? 'Je ligt in coma in de ziekenboeg...' : 'Typ @naam of een privébericht... (Enter)')"
                                            :disabled="isInPrison || isComatose"
                                            maxlength="500"
-                                           class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-14 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                                           style="user-select: text; -webkit-user-select: text;"
+                                           class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-18 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
+                                    
+                                    <!-- Quick Clear Button -->
+                                    <button type="button" 
+                                            x-show="directInput.length > 0" 
+                                            @click="directInput = ''; if ($refs.directInputField) $refs.directInputField.focus();"
+                                            class="absolute right-10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 text-xs cursor-pointer"
+                                            title="Invoer wissen (Esc)">
+                                        <i class="fa-solid fa-circle-xmark"></i>
+                                    </button>
+
                                     <span x-show="directInput.length > 350" x-cloak
                                           class="absolute right-2 text-[10px] font-mono pointer-events-none"
                                           :class="directInput.length >= 490 ? 'text-rose-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
@@ -1757,6 +1739,33 @@
             </form>
         </div>
 
+    </div>
+
+    <!-- FLOATING HEARTS POPUP (FIXED POSITIONED TO VIEWPORT - PREVENTS ANY OVERFLOW CLIPPING) -->
+    <div x-show="heartsPopup && heartsPopup.visible"
+         x-cloak
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         role="tooltip"
+         class="pointer-events-none fixed z-[9999999] p-3 rounded-2xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-2xl border border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[300px] text-left"
+         :style="'left: ' + (heartsPopup ? heartsPopup.left : 0) + 'px; ' + 
+                 (heartsPopup && heartsPopup.placeBelow ? ('top: ' + heartsPopup.top + 'px;') : ('bottom: ' + (window.innerHeight - (heartsPopup ? heartsPopup.top : 0)) + 'px;'))">
+        <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-slate-800">
+            <span>💜</span>
+            <span x-text="heartsPopup?.count === 1 ? '1 paars hartje' : (heartsPopup?.count + ' hartjes')"></span>
+        </div>
+        <ul class="space-y-1 text-xs leading-snug max-h-52 overflow-y-auto custom-scrollbar">
+            <template x-for="name in (heartsPopup?.names || [])" :key="name">
+                <li class="flex items-center gap-1.5 text-slate-200">
+                    <span class="text-purple-400 font-bold select-none shrink-0">-</span>
+                    <span class="font-bold text-slate-100 whitespace-nowrap" x-text="name"></span>
+                </li>
+            </template>
+        </ul>
     </div>
 
     <!-- FLOATING LAUNCHER BUTTON (Bottom Right Corner) -->
@@ -1953,6 +1962,7 @@
             inputMessage: '',
             isSending: false,
             isLoadingPublic: false,
+            heartsPopup: null,
             showEmojiPicker: false,
             activeEmojiTab: 'tbs',
             emojiSearchQuery: '',
@@ -2413,6 +2423,20 @@
                         return;
                     }
                 }
+
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    if (this.replyingTo) {
+                        this.cancelReply();
+                    } else if (fieldType === 'gang') {
+                        this.gangInputMessage = '';
+                    } else if (fieldType === 'direct') {
+                        this.directInput = '';
+                    } else {
+                        this.inputMessage = '';
+                    }
+                    return;
+                }
             },
 
             selectMention(user) {
@@ -2587,6 +2611,76 @@
                     return item.hearts_names.map(name => '- ' + name).join('\n');
                 }
                 return item && item.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)';
+            },
+
+            showHeartsPopup(event, item) {
+                if (!item || !item.hearts_count || !Array.isArray(item.hearts_names) || item.hearts_names.length === 0) {
+                    this.heartsPopup = null;
+                    return;
+                }
+                const rect = event.currentTarget.getBoundingClientRect();
+                let maxNameLen = 10;
+                for (const n of item.hearts_names) {
+                    if (typeof n === 'string' && n.length > maxNameLen) {
+                        maxNameLen = n.length;
+                    }
+                }
+                const tooltipWidth = Math.min(300, Math.max(160, maxNameLen * 9 + 40));
+                const tooltipHeight = Math.min(260, 48 + item.hearts_names.length * 24);
+                const placeBelow = rect.top < (tooltipHeight + 16);
+                let left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+                if (left + tooltipWidth > window.innerWidth - 12) {
+                    left = window.innerWidth - tooltipWidth - 12;
+                }
+                if (left < 12) {
+                    left = 12;
+                }
+                const top = placeBelow ? (rect.bottom + 8) : (rect.top - 8);
+                this.heartsPopup = {
+                    visible: true,
+                    count: item.hearts_count,
+                    names: item.hearts_names,
+                    left: Math.round(left),
+                    top: Math.round(top),
+                    placeBelow: placeBelow
+                };
+            },
+
+            hideHeartsPopup() {
+                this.heartsPopup = null;
+            },
+
+            copyMessageText(text) {
+                if (!text) return;
+                const plainText = text.replace(/<[^>]*>?/gm, '').trim();
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(plainText).then(() => {
+                        if (window.tbsToast) {
+                            window.tbsToast('Bericht gekopieerd naar klembord!', 'success');
+                        }
+                    }).catch(() => {
+                        this.fallbackCopyText(plainText);
+                    });
+                } else {
+                    this.fallbackCopyText(plainText);
+                }
+            },
+
+            fallbackCopyText(text) {
+                const el = document.createElement('textarea');
+                el.value = text;
+                el.setAttribute('readonly', '');
+                el.style.position = 'fixed';
+                el.style.opacity = '0';
+                document.body.appendChild(el);
+                el.select();
+                try {
+                    document.execCommand('copy');
+                    if (window.tbsToast) {
+                        window.tbsToast('Bericht gekopieerd naar klembord!', 'success');
+                    }
+                } catch (err) {}
+                document.body.removeChild(el);
             },
 
             deletePublicMessage(msgId) {

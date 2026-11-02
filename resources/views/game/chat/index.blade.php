@@ -99,6 +99,7 @@ function tbsLiveMessenger(config) {
         isPolling: false,
         pollTimer: null,
         replyingTo: null,
+        heartsPopup: null,
         showEmojiPicker: false,
         activeEmojiTab: 'tbs',
         emojiSearchQuery: '',
@@ -302,6 +303,16 @@ function tbsLiveMessenger(config) {
                     this.showMentionDropdown = false;
                     return;
                 }
+            }
+
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (this.replyingTo) {
+                    this.cancelReply();
+                } else if (this.messageInput) {
+                    this.messageInput = '';
+                }
+                return;
             }
 
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -788,6 +799,76 @@ function tbsLiveMessenger(config) {
                 return item.hearts_names.map(name => '- ' + name).join('\n');
             }
             return item && item.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)';
+        },
+
+        showHeartsPopup(event, item) {
+            if (!item || !item.hearts_count || !Array.isArray(item.hearts_names) || item.hearts_names.length === 0) {
+                this.heartsPopup = null;
+                return;
+            }
+            const rect = event.currentTarget.getBoundingClientRect();
+            let maxNameLen = 10;
+            for (const n of item.hearts_names) {
+                if (typeof n === 'string' && n.length > maxNameLen) {
+                    maxNameLen = n.length;
+                }
+            }
+            const tooltipWidth = Math.min(300, Math.max(160, maxNameLen * 9 + 40));
+            const tooltipHeight = Math.min(260, 48 + item.hearts_names.length * 24);
+            const placeBelow = rect.top < (tooltipHeight + 16);
+            let left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+            if (left + tooltipWidth > window.innerWidth - 12) {
+                left = window.innerWidth - tooltipWidth - 12;
+            }
+            if (left < 12) {
+                left = 12;
+            }
+            const top = placeBelow ? (rect.bottom + 8) : (rect.top - 8);
+            this.heartsPopup = {
+                visible: true,
+                count: item.hearts_count,
+                names: item.hearts_names,
+                left: Math.round(left),
+                top: Math.round(top),
+                placeBelow: placeBelow
+            };
+        },
+
+        hideHeartsPopup() {
+            this.heartsPopup = null;
+        },
+
+        copyMessageText(text) {
+            if (!text) return;
+            const plainText = text.replace(/<[^>]*>?/gm, '').trim();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(plainText).then(() => {
+                    if (window.tbsToast) {
+                        window.tbsToast('Bericht gekopieerd naar klembord!', 'success');
+                    }
+                }).catch(() => {
+                    this.fallbackCopyText(plainText);
+                });
+            } else {
+                this.fallbackCopyText(plainText);
+            }
+        },
+
+        fallbackCopyText(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            el.setAttribute('readonly', '');
+            el.style.position = 'fixed';
+            el.style.opacity = '0';
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                if (window.tbsToast) {
+                    window.tbsToast('Bericht gekopieerd naar klembord!', 'success');
+                }
+            } catch (err) {}
+            document.body.removeChild(el);
         },
 
         async deleteDirectMessage(dmId) {
@@ -1422,6 +1503,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
             <!-- CHAT STREAM CONTAINER (CONSTRAINED WITH AUTO-SCROLL) -->
             <div id="tbsChatScrollContainer" 
+                 @scroll.passive="hideHeartsPopup()"
                  class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden max-w-full p-4 sm:p-5 space-y-3.5 custom-scrollbar">
                 
                 <!-- =============================== -->
@@ -1532,6 +1614,11 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 <i class="fa-solid fa-reply"></i>
                                             </button>
 
+                                            <!-- KOPIEER KNOP -->
+                                            <button type="button" @click="copyMessageText(msg.message)" title="Kopieer bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[10px] cursor-pointer">
+                                                <i class="fa-regular fa-copy"></i>
+                                            </button>
+
                                             <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
                                             <template x-if="canModerate || msg.is_me">
                                                 <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
@@ -1562,7 +1649,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                     <!-- BUBBLE & HEART REACTION (COLORS IDENTICAL TO MINI CHAT) -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
+                                        <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
                                              :class="msg.is_me 
                                                 ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                 : (msg.is_owner 
@@ -1573,43 +1660,19 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                              x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                         <!-- PAARS HARTJE REACTIE KNOP 💜 -->
-                                        <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
-                                            <button type="button" @click="togglePublicHeart(msg)" 
-                                                    @mouseenter="showTooltip = true"
-                                                    @mouseleave="showTooltip = false"
-                                                    @focus="showTooltip = true"
-                                                    @blur="showTooltip = false"
+                                        <div class="relative inline-flex items-center">
+                                            <button type="button" 
+                                                    @click="togglePublicHeart(msg); hideHeartsPopup()" 
+                                                    @mouseenter="showTooltip = true; showHeartsPopup($event, msg)"
+                                                    @mouseleave="showTooltip = false; hideHeartsPopup()"
+                                                    @focus="showTooltip = true; showHeartsPopup($event, msg)"
+                                                    @blur="showTooltip = false; hideHeartsPopup()"
                                                     :title="getHeartsTooltip(msg)"
                                                     class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                     :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                 <span>💜</span>
                                                 <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[10px] font-black font-mono"></span>
                                             </button>
-                                            <div x-show="showTooltip && msg.hearts_count > 0 && msg.hearts_names && msg.hearts_names.length > 0"
-                                                 x-transition:enter="transition ease-out duration-150"
-                                                 x-transition:enter-start="opacity-0 translate-y-1"
-                                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                                 x-transition:leave="transition ease-in duration-100"
-                                                 x-transition:leave-start="opacity-100 translate-y-0"
-                                                 x-transition:leave-end="opacity-0 translate-y-1"
-                                                 x-cloak
-                                                 role="tooltip"
-                                                 class="pointer-events-none absolute bottom-full mb-1.5 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[130px] max-w-[210px] text-left"
-                                                 :class="msg.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
-                                                <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1 mb-1 border-b border-slate-800">
-                                                    <span>💜</span>
-                                                    <span x-text="msg.hearts_count === 1 ? '1 paars hartje' : (msg.hearts_count + ' hartjes')"></span>
-                                                </div>
-                                                <ul class="space-y-0.5 text-[11px] leading-tight max-h-32 overflow-y-auto">
-                                                    <template x-for="name in (msg.hearts_names || [])" :key="name">
-                                                        <li class="flex items-center gap-1.5 text-slate-200 truncate">
-                                                            <span class="text-purple-400 font-bold select-none shrink-0">-</span>
-                                                            <span class="font-semibold truncate" x-text="name"></span>
-                                                        </li>
-                                                    </template>
-                                                </ul>
-                                                <span class="sr-only" x-text="formatHeartsNames(msg.hearts_names)"></span>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -1800,6 +1863,11 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                         <i class="fa-solid fa-reply"></i>
                                                     </button>
 
+                                                    <!-- KOPIEER KNOP -->
+                                                    <button type="button" @click="copyMessageText(msg.message)" title="Kopieer bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[10px] cursor-pointer">
+                                                        <i class="fa-regular fa-copy"></i>
+                                                    </button>
+
                                                     <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
                                                     <template x-if="canModerate || msg.is_me">
                                                         <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
@@ -1830,7 +1898,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                             <!-- BUBBLE & HEART REACTION -->
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                                <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
+                                                <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
                                                      :class="msg.is_me 
                                                         ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                         : (msg.is_owner 
@@ -1841,43 +1909,19 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                                 <!-- PAARS HARTJE REACTIE KNOP 💜 -->
-                                                <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
-                                                    <button type="button" @click="togglePublicHeart(msg)" 
-                                                            @mouseenter="showTooltip = true"
-                                                            @mouseleave="showTooltip = false"
-                                                            @focus="showTooltip = true"
-                                                            @blur="showTooltip = false"
+                                                <div class="relative inline-flex items-center">
+                                                    <button type="button" 
+                                                            @click="togglePublicHeart(msg); hideHeartsPopup()" 
+                                                            @mouseenter="showTooltip = true; showHeartsPopup($event, msg)"
+                                                            @mouseleave="showTooltip = false; hideHeartsPopup()"
+                                                            @focus="showTooltip = true; showHeartsPopup($event, msg)"
+                                                            @blur="showTooltip = false; hideHeartsPopup()"
                                                             :title="getHeartsTooltip(msg)"
                                                             class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                             :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                         <span>💜</span>
                                                         <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[10px] font-black font-mono"></span>
                                                     </button>
-                                                    <div x-show="showTooltip && msg.hearts_count > 0 && msg.hearts_names && msg.hearts_names.length > 0"
-                                                         x-transition:enter="transition ease-out duration-150"
-                                                         x-transition:enter-start="opacity-0 translate-y-1"
-                                                         x-transition:enter-end="opacity-100 translate-y-0"
-                                                         x-transition:leave="transition ease-in duration-100"
-                                                         x-transition:leave-start="opacity-100 translate-y-0"
-                                                         x-transition:leave-end="opacity-0 translate-y-1"
-                                                         x-cloak
-                                                         role="tooltip"
-                                                         class="pointer-events-none absolute bottom-full mb-1.5 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[130px] max-w-[210px] text-left"
-                                                         :class="msg.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
-                                                        <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1 mb-1 border-b border-slate-800">
-                                                            <span>💜</span>
-                                                            <span x-text="msg.hearts_count === 1 ? '1 paars hartje' : (msg.hearts_count + ' hartjes')"></span>
-                                                        </div>
-                                                        <ul class="space-y-0.5 text-[11px] leading-tight max-h-32 overflow-y-auto">
-                                                            <template x-for="name in (msg.hearts_names || [])" :key="name">
-                                                                <li class="flex items-center gap-1.5 text-slate-200 truncate">
-                                                                    <span class="text-purple-400 font-bold select-none shrink-0">-</span>
-                                                                    <span class="font-semibold truncate" x-text="name"></span>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                        <span class="sr-only" x-text="formatHeartsNames(msg.hearts_names)"></span>
-                                                    </div>
                                                 </div>
                                             </div>
 
@@ -2016,6 +2060,10 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                                 <i class="fa-solid fa-reply"></i>
                                                             </button>
                                                         </template>
+                                                        <!-- KOPIEER KNOP -->
+                                                        <button type="button" @click="copyMessageText(dm.message)" title="Kopieer bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[10px] cursor-pointer">
+                                                            <i class="fa-regular fa-copy"></i>
+                                                        </button>
                                                         <template x-if="canModerate || dm.is_me || dm.can_delete || activeTab === 'direct'">
                                                             <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
                                                                 <i class="fa-solid fa-trash-can"></i>
@@ -2046,7 +2094,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 </template>
 
                                                 <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                                    <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0"
+                                                    <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
                                                          :class="dm.is_me 
                                                             ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                             : ((dm.is_bot || dm.sender_id === null || activePartner?.is_bot)
@@ -2054,43 +2102,18 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                                 : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left')"
                                                          x-html="formatMessage(dm.message, dm.is_me)"></div>
 
-                                                    <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
-                                                        <button type="button" @click="toggleDirectHeart(dm)"
-                                                                @mouseenter="showTooltip = true"
-                                                                @mouseleave="showTooltip = false"
-                                                                @focus="showTooltip = true"
-                                                                @blur="showTooltip = false"
+                                                    <div class="relative inline-flex items-center">
+                                                        <button type="button" @click="toggleDirectHeart(dm); hideHeartsPopup()"
+                                                                @mouseenter="showTooltip = true; showHeartsPopup($event, dm)"
+                                                                @mouseleave="showTooltip = false; hideHeartsPopup()"
+                                                                @focus="showTooltip = true; showHeartsPopup($event, dm)"
+                                                                @blur="showTooltip = false; hideHeartsPopup()"
                                                                 :title="getHeartsTooltip(dm)"
                                                                 class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                                 :class="dm.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                             <span>💜</span>
                                                             <span x-show="dm.hearts_count > 0" x-text="dm.hearts_count" class="text-[10px] font-black font-mono"></span>
                                                         </button>
-                                                        <div x-show="showTooltip && dm.hearts_count > 0 && dm.hearts_names && dm.hearts_names.length > 0"
-                                                             x-transition:enter="transition ease-out duration-150"
-                                                             x-transition:enter-start="opacity-0 translate-y-1"
-                                                             x-transition:enter-end="opacity-100 translate-y-0"
-                                                             x-transition:leave="transition ease-in duration-100"
-                                                             x-transition:leave-start="opacity-100 translate-y-0"
-                                                             x-transition:leave-end="opacity-0 translate-y-1"
-                                                             x-cloak
-                                                             role="tooltip"
-                                                             class="pointer-events-none absolute bottom-full mb-1.5 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[130px] max-w-[210px] text-left"
-                                                             :class="dm.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
-                                                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1 mb-1 border-b border-slate-800">
-                                                                <span>💜</span>
-                                                                <span x-text="dm.hearts_count === 1 ? '1 paars hartje' : (dm.hearts_count + ' hartjes')"></span>
-                                                            </div>
-                                                            <ul class="space-y-0.5 text-[11px] leading-tight max-h-32 overflow-y-auto">
-                                                                <template x-for="name in (dm.hearts_names || [])" :key="name">
-                                                                    <li class="flex items-center gap-1.5 text-slate-200 truncate">
-                                                                        <span class="text-purple-400 font-bold select-none shrink-0">-</span>
-                                                                        <span class="font-semibold truncate" x-text="name"></span>
-                                                                    </li>
-                                                                </template>
-                                                            </ul>
-                                                            <span class="sr-only" x-text="formatHeartsNames(dm.hearts_names)"></span>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2359,7 +2382,19 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                    autocorrect="on"
                                    :placeholder="activeTab === 'direct' ? 'Stuur een privébericht of @speler... (max 500 tekens)' : (activeTab === 'gang' ? 'Typ een bericht voor je bende... (max 250 tekens)' : 'Typ een bericht of @speler... (max 250 tekens)')"
                                    :maxlength="activeTab === 'direct' ? 500 : 250"
-                                   class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-3.5 sm:px-4 py-2 sm:py-3 pr-14 sm:pr-16 text-base sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                                   style="user-select: text; -webkit-user-select: text;"
+                                   class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-3.5 sm:px-4 py-2 sm:py-3 pr-20 sm:pr-24 text-base sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition selection:bg-purple-600 selection:text-white">
+                            
+                            <!-- QUICK CLEAR BUTTON -->
+                            <button type="button" 
+                                    x-show="messageInput.length > 0" 
+                                    @click="messageInput = ''; if ($refs.messageInputField) $refs.messageInputField.focus();"
+                                    class="absolute right-14 sm:right-16 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 text-xs cursor-pointer"
+                                    title="Invoer wissen (Esc)">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </button>
+
+                            <!-- CHARACTER COUNTER -->
                             <span x-show="messageInput.length > (activeTab === 'direct' ? 350 : 150)" x-cloak
                                   class="absolute right-3 text-[10px] sm:text-[11px] font-mono pointer-events-none"
                                   :class="messageInput.length >= (activeTab === 'direct' ? 500 : 250) ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
@@ -2380,6 +2415,33 @@ window.tbsLiveMessenger = tbsLiveMessenger;
             @endif
         </div>
 
+    </div>
+
+    <!-- FLOATING HEARTS POPUP (FIXED POSITIONED TO VIEWPORT - PREVENTS ANY OVERFLOW CLIPPING) -->
+    <div x-show="heartsPopup && heartsPopup.visible"
+         x-cloak
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         role="tooltip"
+         class="pointer-events-none fixed z-[999999] p-3 rounded-2xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-2xl border border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[320px] text-left"
+         :style="'left: ' + (heartsPopup ? heartsPopup.left : 0) + 'px; ' + 
+                 (heartsPopup && heartsPopup.placeBelow ? ('top: ' + heartsPopup.top + 'px;') : ('bottom: ' + (window.innerHeight - (heartsPopup ? heartsPopup.top : 0)) + 'px;'))">
+        <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-slate-800">
+            <span>💜</span>
+            <span x-text="heartsPopup?.count === 1 ? '1 paars hartje' : (heartsPopup?.count + ' hartjes')"></span>
+        </div>
+        <ul class="space-y-1 text-xs leading-snug max-h-56 overflow-y-auto custom-scrollbar">
+            <template x-for="name in (heartsPopup?.names || [])" :key="name">
+                <li class="flex items-center gap-1.5 text-slate-200">
+                    <span class="text-purple-400 font-bold select-none shrink-0">-</span>
+                    <span class="font-bold text-slate-100 whitespace-nowrap" x-text="name"></span>
+                </li>
+            </template>
+        </ul>
     </div>
 
 </div>

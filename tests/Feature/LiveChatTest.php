@@ -555,10 +555,11 @@ class LiveChatTest extends TestCase
         foreach ([$chatIndexView, $miniChatView] as $source) {
             $this->assertStringContainsString('formatHeartsNames', $source);
             $this->assertStringContainsString('getHeartsTooltip', $source);
-            $this->assertStringContainsString('@mouseenter="showTooltip = true"', $source);
-            $this->assertStringContainsString('@mouseleave="showTooltip = false"', $source);
+            $this->assertStringContainsString('showHeartsPopup', $source);
+            $this->assertStringContainsString('hideHeartsPopup', $source);
             $this->assertStringContainsString('role="tooltip"', $source);
             $this->assertStringContainsString(':title="getHeartsTooltip(', $source);
+            $this->assertStringContainsString('select-text', $source);
         }
     }
 

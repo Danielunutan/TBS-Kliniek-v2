@@ -868,9 +868,26 @@ html.dark .news-content li {
 /* ======================================================== */
 /* NATIVE MOBILE APP TOUCH & PERFORMANCE OPTIMIZATIONS      */
 /* ======================================================== */
-html, body, button, a, input, select, textarea {
+html, body, button, a, select {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+}
+
+input, textarea, [contenteditable="true"] {
+    touch-action: auto;
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+    background-color: #9333ea !important; /* purple-600 */
+    color: #ffffff !important;
+}
+
+input::selection, textarea::selection {
+    background-color: #9333ea !important;
+    color: #ffffff !important;
 }
 
 /* Safe-area insets helper classes for iPhone notch / home bar */
