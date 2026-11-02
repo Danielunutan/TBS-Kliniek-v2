@@ -100,6 +100,34 @@ function tbsLiveMessenger(config) {
         pollTimer: null,
         replyingTo: null,
         showEmojiPicker: false,
+        activeEmojiTab: 'crime',
+        emojiCategories: {
+            crime: {
+                label: 'Misdaad & TBS',
+                icon: 'fa-solid fa-handcuffs',
+                emojis: ['🔥','💰','💉','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊','🚓','🚨','🔫','💎','💀','👑','⭐','⚡','🎉','🏆','💸','🕵️','👀','🎯','💯','🏴‍☠️','🧨','🪙','🍻']
+            },
+            faces: {
+                label: 'Smileys & Gezichten',
+                icon: 'fa-regular fa-face-smile',
+                emojis: ['😀','😃','😄','😁','😆','😅','😂','🤣','🥲','🥹','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😋','😛','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🫣','🤭','🤫','🫠','🤥','😶','😐','😑','😬','🙄','😯','😴','🤤','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','👹','🤡','💩','👻','💀','☠️','👽','👾','🤖','🎃']
+            },
+            gestures: {
+                label: 'Handen & Mensen',
+                icon: 'fa-solid fa-hand',
+                emojis: ['👋','🤚','🖐️','✋','🖖','🫱','🫲','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦵','🦶','👂','👃','🧠','🫀','🫁','👀','👁️','👅','👄']
+            },
+            food: {
+                label: 'Eten & Feest',
+                icon: 'fa-solid fa-burger',
+                emojis: ['🍕','🍔','🍟','🌭','🍿','🥓','🥞','🧇','🧀','🥩','🍗','🍖','🥪','🌮','🌯','🍜','🍝','🍣','🍱','🍩','🍪','🎂','🍰','🍫','🍬','🍭','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🍾','☕','🧃','🥤','🧊']
+            },
+            symbols: {
+                label: 'Symbolen & Harten',
+                icon: 'fa-solid fa-heart',
+                emojis: ['💜','❤️','🧡','💛','💚','💙','🖤','🤍','🤎','💔','❤️‍🔥','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☯️','⚠️','🛑','⛔','🚫','💯','💢','❗','❓','‼️','⁉️','⚜️','🔰','♻️','✅','❎','🌐','💤','🏧','🚻','📶','🆗','🆙','🆒','🆕','🆓']
+            }
+        },
 
         // Mention autocomplete
         showMentionDropdown: false,
@@ -2029,7 +2057,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                     <!-- QUICK EMOJI TOOLBAR -->
                     <div class="flex items-center gap-1 overflow-x-auto pb-1 text-sm select-none custom-scrollbar">
-                        <template x-for="s in ['💜','🔥','😂','👑','💀','🔫','💊','💉','💰','👊','👀','💯','🚨','⭐']" :key="s">
+                        <template x-for="s in ['💜','🔥','😂','👑','💀','🔫','💊','💉','💰','👊','👀','💯','🚨','⭐','😎','🤣','🍾','🏆','🤫','💸']" :key="s">
                             <button type="button" 
                                     @click="insertEmoji(s)" 
                                     class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/60 transition cursor-pointer shrink-0" 
@@ -2050,35 +2078,39 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                             <!-- Emoji Drawer Popup -->
                             <div x-show="showEmojiPicker" @click.outside="showEmojiPicker = false" x-cloak
-                                 class="absolute bottom-full left-0 mb-3 w-64 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 shadow-2xl z-50 space-y-2.5">
+                                 class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 shadow-2xl z-50 space-y-2.5">
                                 <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
-                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys & Misdaad</span>
-                                    <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-icons text-purple-600 dark:text-purple-400 text-xs"></i>
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300" x-text="emojiCategories[activeEmojiTab]?.label || 'Kies Emoji'"></span>
+                                    </div>
+                                    <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-0.5 cursor-pointer" title="Sluiten">&times;</button>
                                 </div>
-                                <div class="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                                    <div>
-                                        <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Gezichten</span>
-                                        <div class="grid grid-cols-6 gap-1">
-                                            <template x-for="s in ['😀','😂','🤣','😎','😍','🤫','😡','💀','🤡','😈','😱','🥳']" :key="s">
-                                                <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span class="text-[9px] font-bold text-slate-400 block mb-0.5">TBS & Misdaad</span>
-                                        <div class="grid grid-cols-6 gap-1">
-                                            <template x-for="s in ['🔥','💰','💉','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊']" :key="s">
-                                                <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Symbolen</span>
-                                        <div class="grid grid-cols-6 gap-1">
-                                            <template x-for="s in ['💜','❤️','👑','⭐','⚡','🎉','👍','👎','🖕','💯','🎯','👀']" :key="s">
-                                                <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
-                                            </template>
-                                        </div>
+
+                                <!-- Category Tabs -->
+                                <div class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800">
+                                    <template x-for="(cat, key) in emojiCategories" :key="key">
+                                        <button type="button" 
+                                                @click="activeEmojiTab = key"
+                                                :class="activeEmojiTab === key ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                                                class="px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
+                                                :title="cat.label">
+                                            <i :class="cat.icon"></i>
+                                            <span class="text-[10px] hidden sm:inline" x-text="cat.label.split(' ')[0]"></span>
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <!-- Emoji Grid -->
+                                <div class="max-h-52 overflow-y-auto pr-1 custom-scrollbar">
+                                    <div class="grid grid-cols-7 sm:grid-cols-8 gap-1">
+                                        <template x-for="s in (emojiCategories[activeEmojiTab]?.emojis || [])" :key="s">
+                                            <button type="button" 
+                                                    @click="insertEmoji(s)" 
+                                                    class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 text-base flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
+                                                    :title="s"
+                                                    x-text="s"></button>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
