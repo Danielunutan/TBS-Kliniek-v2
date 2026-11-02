@@ -2059,21 +2059,31 @@ class GangController extends Controller
                 return back()->with('error', "Bende {$targetGang->name} heeft nog een actief verdedigingsschild na een eerdere overval (".gmdate('i:s', $targetGang->shieldSecondsRemaining()).').');
             }
 
-            // Actual attack power & protection points calculation
             $attackerPower = max(500, (int) ($myGang->attack_power ?? 500));
             $targetDefense = max(500, (int) ($targetGang->protection_points ?? 1000));
 
-            // Randomized battle rolls (+/- 15% variance)
-            $attackRoll = (int) round($attackerPower * (mt_rand(85, 115) / 100));
-            $defenseRoll = (int) round($targetDefense * (mt_rand(85, 115) / 100));
+            // Apply a 15% variance so evenly matched gangs do not have a deterministic outcome.
+            $attackRollPercent = mt_rand(85, 115);
+            $defenseRollPercent = mt_rand(85, 115);
+            $attackRoll = (int) round($attackerPower * ($attackRollPercent / 100));
+            $defenseRoll = (int) round($targetDefense * ($defenseRollPercent / 100));
+
+            $attackModifier = ($attackRollPercent >= 100 ? '+' : '').($attackRollPercent - 100).'%';
+            $defenseModifier = ($defenseRollPercent >= 100 ? '+' : '').($defenseRollPercent - 100).'%';
+
+            $formattedAttackerPower = number_format($attackerPower, 0, ',', '.');
+            $formattedTargetDefense = number_format($targetDefense, 0, ',', '.');
+            $formattedAttackRoll = number_format($attackRoll, 0, ',', '.');
+            $formattedDefenseRoll = number_format($defenseRoll, 0, ',', '.');
 
             if ($attackRoll > $defenseRoll) {
-                // Victory: Loot cash, reduce defender's protection points, earn respect
+                $lootPercent = $targetGang->treasury > 0 ? mt_rand(8, 16) : 0;
                 $stolenCash = $targetGang->treasury > 0
-                    ? (int) round($targetGang->treasury * (mt_rand(8, 16) / 100))
+                    ? (int) round($targetGang->treasury * ($lootPercent / 100))
                     : 0;
-                $defenseDamage = max(250, (int) round($targetDefense * (mt_rand(10, 20) / 100)));
-                $respectGain = round(mt_rand(25, 60) / 10, 2); // 2.5 - 6.0 respect
+                $damagePercent = mt_rand(10, 20);
+                $defenseDamage = max(250, (int) round($targetDefense * ($damagePercent / 100)));
+                $respectGain = round(mt_rand(25, 60) / 10, 2);
 
                 $targetGang->treasury = max(0, $targetGang->treasury - $stolenCash);
                 $targetGang->protection_points = max(250, $targetGang->protection_points - $defenseDamage);
@@ -2091,7 +2101,11 @@ class GangController extends Controller
                     $lockedCharacter->save();
                 }
 
-                $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! (Power: {$attackerPower} vs Bescherming: {$targetDefense}). Buit: €".number_format($stolenCash, 0, ',', '.')." geplunderd, verdediging van tegenstander -{$defenseDamage} punten, +{$respectGain} respect!";
+                $formattedStolenCash = number_format($stolenCash, 0, ',', '.');
+                $formattedDefenseDamage = number_format($defenseDamage, 0, ',', '.');
+                $formattedRemainingDefense = number_format((int) $targetGang->protection_points, 0, ',', '.');
+
+                $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming). Buit: €{$formattedStolenCash} ({$lootPercent}% kas) geplunderd, verdediging van tegenstander -{$formattedDefenseDamage} punten (-{$damagePercent}%, nieuw: {$formattedRemainingDefense}), +{$respectGain} respect!";
 
                 GangAttack::create([
                     'attacker_gang_id' => $myGang->id,
@@ -2113,7 +2127,16 @@ class GangController extends Controller
                         'sender_id' => $character->id,
                         'sender_name' => "{$character->name} [{$myGang->name}]",
                         'subject' => "🚨 [Bende Oorlog] Bende {$myGang->name} heeft jullie aangevallen!",
-                        'content' => "Patiënt {$targetGang->leader->name},\n\nJullie bende '{$targetGang->name}' is zojuist aangevallen door '{$myGang->name}' onder leiding van {$character->name}.\nHun power ({$attackerPower}) brak door jullie verdediging ({$targetDefense}) heen!\nZe hebben €".number_format($stolenCash, 0, ',', '.')." uit de kas geplunderd en jullie verdediging met {$defenseDamage} punten verlaagd.\nJullie bende geniet nu 15 minuten schildbescherming.",
+                        'content' => "Patiënt {$targetGang->leader->name},\n\n"
+                            ."Jullie bende '{$targetGang->name}' is zojuist aangevallen door '{$myGang->name}' onder leiding van {$character->name}.\n\n"
+                            ."📊 GEVECHTSBEREKENING (elke aanval heeft -15% tot +15% gevechtsrol):\n"
+                            ."• Aanval {$myGang->name}: {$formattedAttackerPower} basispower × {$attackRollPercent}% ({$attackModifier}) = {$formattedAttackRoll} gevechtskracht\n"
+                            ."• Verdediging {$targetGang->name}: {$formattedTargetDefense} basisverdediging × {$defenseRollPercent}% ({$defenseModifier}) = {$formattedDefenseRoll} verdedigingskracht\n"
+                            ."👉 Hun gerolde aanval ({$formattedAttackRoll}) viel hoger uit dan jullie gerolde verdediging ({$formattedDefenseRoll}) en brak door jullie linie heen!\n\n"
+                            ."💥 SCHADE & BUIT:\n"
+                            ."• Geplunderde Bende Kas ({$lootPercent}% van kas, marge 8%-16%): €{$formattedStolenCash}\n"
+                            ."• Verdedigingsschade ({$damagePercent}% van {$formattedTargetDefense}, marge 10%-20%): -{$formattedDefenseDamage} punten (resterend: {$formattedRemainingDefense} punten)\n"
+                            .'• Schildbescherming: Jullie bende is nu 15 minuten beschermd tegen nieuwe aanvallen.',
                         'type' => 'gang',
                     ]);
                 }
@@ -2123,13 +2146,16 @@ class GangController extends Controller
                     ->with('success', $summary);
             }
 
-            // Defeat: Target defense held, attacker loses some attack power
-            $powerDamage = max(150, (int) round($attackerPower * (mt_rand(5, 12) / 100)));
+            $powerLossPercent = mt_rand(5, 12);
+            $powerDamage = max(150, (int) round($attackerPower * ($powerLossPercent / 100)));
             $myGang->attack_power = max(250, $myGang->attack_power - $powerDamage);
             $myGang->last_attack_at = now();
             $myGang->save();
 
-            $summary = "🛡️ AANVAL AFGESLAGEN! Bende {$targetGang->name} verdedigde zich met succes tegen {$myGang->name}! (Power: {$attackerPower} vs Bescherming: {$targetDefense}). Jullie leden verliezen (-{$powerDamage} power).";
+            $formattedPowerDamage = number_format($powerDamage, 0, ',', '.');
+            $formattedRemainingPower = number_format((int) $myGang->attack_power, 0, ',', '.');
+
+            $summary = "🛡️ AANVAL AFGESLAGEN! Bende {$targetGang->name} verdedigde zich met succes tegen {$myGang->name}! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming). Jullie leden verliezen -{$formattedPowerDamage} power (-{$powerLossPercent}%, nieuw: {$formattedRemainingPower}).";
 
             GangAttack::create([
                 'attacker_gang_id' => $myGang->id,
@@ -2157,7 +2183,16 @@ class GangController extends Controller
                         'sender_id' => $character->id,
                         'sender_name' => "{$character->name} [{$myGang->name}]",
                         'subject' => "🛡️ [Bende Oorlog] Aanval van {$myGang->name} afgeslagen!",
-                        'content' => "Patiënt {$lockedLeader->name},\n\nBende '{$myGang->name}' probeerde jullie bende aan te vallen, maar jullie verdediging ({$targetDefense} punten) hield stand!\nDe vijand verloor {$powerDamage} aanvalskracht. Je hebt +2.0 respect verdiend voor de verdediging.",
+                        'content' => "Patiënt {$lockedLeader->name},\n\n"
+                            ."Bende '{$myGang->name}' (onder leiding van {$character->name}) probeerde jullie bende '{$targetGang->name}' aan te vallen, maar jullie verdediging hield stand!\n\n"
+                            ."📊 GEVECHTSBEREKENING (elke aanval heeft -15% tot +15% gevechtsrol):\n"
+                            ."• Aanval {$myGang->name}: {$formattedAttackerPower} basispower × {$attackRollPercent}% ({$attackModifier}) = {$formattedAttackRoll} gevechtskracht\n"
+                            ."• Verdediging {$targetGang->name}: {$formattedTargetDefense} basisverdediging × {$defenseRollPercent}% ({$defenseModifier}) = {$formattedDefenseRoll} verdedigingskracht\n"
+                            ."👉 Jullie gerolde verdediging ({$formattedDefenseRoll}) hield stand tegen hun gerolde aanval ({$formattedAttackRoll})!\n\n"
+                            ."🛡️ RESULTAAT:\n"
+                            ."• Schade aan vijand ({$powerLossPercent}% van hun power, marge 5%-12%): -{$formattedPowerDamage} aanvalskracht\n"
+                            ."• Jullie verdedigingsschade: 0 punten\n"
+                            .'• Beloning: +2.0 respect verdiend voor de succesvolle verdediging.',
                         'type' => 'gang',
                     ]);
                 }

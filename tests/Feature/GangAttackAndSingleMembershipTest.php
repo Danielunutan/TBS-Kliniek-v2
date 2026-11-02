@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\GameMessage;
 use App\Models\Gang;
 use App\Models\GangAlliance;
 use App\Models\User;
@@ -181,6 +182,83 @@ class GangAttackAndSingleMembershipTest extends TestCase
             'target_gang_id' => $defenderGang->id,
             'won' => true,
         ]);
+
+        $message = GameMessage::where('recipient_id', $defenderLeader->id)
+            ->where('type', 'gang')
+            ->latest('id')
+            ->first();
+
+        $this->assertNotNull($message);
+        $this->assertStringContainsString('GEVECHTSBEREKENING', $message->content);
+        $this->assertStringContainsString('100.000', $message->content);
+        $this->assertStringContainsString('SCHADE & BUIT', $message->content);
+    }
+
+    public function test_defeated_gang_attack_sends_detailed_defense_report(): void
+    {
+        $attackerUser = User::factory()->create();
+        $attackerLeader = Character::create([
+            'user_id' => $attackerUser->id,
+            'name' => 'UnderdogLeader',
+            'gender' => 'male',
+            'level' => 12,
+            'respect' => 50,
+        ]);
+
+        $attackerGang = Gang::create([
+            'name' => 'UnderdogGang',
+            'tag' => 'UG',
+            'specialty' => 'Vleugel C',
+            'leader_character_id' => $attackerLeader->id,
+            'attack_power' => 1000,
+            'protection_points' => 1000,
+            'treasury' => 10000,
+        ]);
+        $attackerLeader->update(['gang_id' => $attackerGang->id, 'gang_role' => 'leader']);
+
+        $defenderLeaderUser = User::factory()->create();
+        $defenderLeader = Character::create([
+            'user_id' => $defenderLeaderUser->id,
+            'name' => 'FortressLeader',
+            'gender' => 'female',
+            'level' => 25,
+            'respect' => 200,
+        ]);
+
+        $defenderGang = Gang::create([
+            'name' => 'FortressGang',
+            'tag' => 'FG',
+            'specialty' => 'Bunker',
+            'leader_character_id' => $defenderLeader->id,
+            'attack_power' => 50000,
+            'protection_points' => 500000,
+            'treasury' => 300000,
+        ]);
+        $defenderLeader->update(['gang_id' => $defenderGang->id, 'gang_role' => 'leader']);
+
+        $this->actingAs($attackerUser);
+
+        $response = $this->post(route('gangs.attack'), [
+            'target_gang_id' => $defenderGang->id,
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('Gevechtsrol (±15%)', (string) session('error'));
+
+        $this->assertDatabaseHas('gang_attacks', [
+            'attacker_gang_id' => $attackerGang->id,
+            'target_gang_id' => $defenderGang->id,
+            'won' => false,
+        ]);
+
+        $message = GameMessage::where('recipient_id', $defenderLeader->id)
+            ->where('type', 'gang')
+            ->latest('id')
+            ->first();
+
+        $this->assertNotNull($message);
+        $this->assertStringContainsString('GEVECHTSBEREKENING', $message->content);
+        $this->assertStringContainsString('500.000', $message->content);
     }
 
     public function test_cannot_attack_ally_gang(): void
@@ -264,17 +342,34 @@ class GangAttackAndSingleMembershipTest extends TestCase
     public function test_gangs_page_renders_balanced_divs_inside_main_container(): void
     {
         $user = User::factory()->create();
-        Character::create([
+        $character = Character::create([
             'user_id' => $user->id,
             'name' => 'LayoutPatient',
             'gender' => 'male',
             'level' => 10,
         ]);
 
+        $gang = Gang::create([
+            'name' => 'LayoutGang',
+            'tag' => 'LG',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $character->id,
+            'attack_power' => 25000,
+            'protection_points' => 40000,
+            'treasury' => 100000,
+        ]);
+        $character->update(['gang_id' => $gang->id, 'gang_role' => 'leader']);
+
         $this->actingAs($user);
+
+        $gangWarPage = $this->get(route('gangs.index', ['tab' => 'oorlog']));
+        $gangWarPage->assertOk();
+        $gangWarPage->assertSee('Hoe werkt een Bende Oorlog?');
+        $gangWarPage->assertSee('Gevechtsrol van 85% tot 115%');
 
         foreach ([
             route('gangs.index', ['tab' => 'alle_bendes']),
+            route('gangs.index', ['tab' => 'oorlog']),
             route('training.index'),
             route('daycare.index'),
             route('droppings.index'),

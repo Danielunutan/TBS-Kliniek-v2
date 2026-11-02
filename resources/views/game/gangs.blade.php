@@ -4196,6 +4196,14 @@
                     </div>
 
                     <!-- Battle Stats Bar -->
+                    @php
+                        $myBasePower = max(500, (int) ($myGang->attack_power ?? 500));
+                        $myBaseDef = max(500, (int) ($myGang->protection_points ?? 1000));
+                        $myMinPowerRoll = (int) round($myBasePower * 0.85);
+                        $myMaxPowerRoll = (int) round($myBasePower * 1.15);
+                        $myMinDefRoll = (int) round($myBaseDef * 0.85);
+                        $myMaxDefRoll = (int) round($myBaseDef * 1.15);
+                    @endphp
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                         <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-3.5 border border-slate-200/80 dark:border-slate-700/70 flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 text-amber-700 dark:text-amber-300 flex items-center justify-center text-lg font-black shrink-0">
@@ -4203,7 +4211,8 @@
                             </div>
                             <div>
                                 <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">Jullie Power (Aanval)</span>
-                                <span class="text-base font-black text-amber-800 dark:text-amber-300 font-mono">{{ number_format($myGang->attack_power ?? 500, 0, ',', '.') }}</span>
+                                <span class="text-base font-black text-amber-800 dark:text-amber-300 font-mono block">{{ number_format($myBasePower, 0, ',', '.') }}</span>
+                                <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 font-mono block">Rol (±15%): {{ number_format($myMinPowerRoll, 0, ',', '.') }} – {{ number_format($myMaxPowerRoll, 0, ',', '.') }}</span>
                             </div>
                         </div>
 
@@ -4213,7 +4222,8 @@
                             </div>
                             <div>
                                 <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">Jullie Bescherming (Def)</span>
-                                <span class="text-base font-black text-indigo-800 dark:text-indigo-300 font-mono">{{ number_format($myGang->protection_points ?? 1000, 0, ',', '.') }}</span>
+                                <span class="text-base font-black text-indigo-800 dark:text-indigo-300 font-mono block">{{ number_format($myBaseDef, 0, ',', '.') }}</span>
+                                <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 font-mono block">Rol (±15%): {{ number_format($myMinDefRoll, 0, ',', '.') }} – {{ number_format($myMaxDefRoll, 0, ',', '.') }}</span>
                             </div>
                         </div>
 
@@ -4235,6 +4245,25 @@
                                         Gereed voor aanval!
                                     </span>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Battle Calculation Explanation -->
+                    <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/70 space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+                        <div class="flex items-center gap-2 font-extrabold text-slate-900 dark:text-white uppercase tracking-wide text-[11px]">
+                            <i class="fa-solid fa-scale-balanced text-purple-600 dark:text-purple-400"></i>
+                            <span>Hoe werkt een Bende Oorlog? (Uitleg &amp; Berekening)</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-[11px] leading-relaxed">
+                            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800">
+                                <strong class="text-slate-900 dark:text-white block mb-0.5"><i class="fa-solid fa-dice text-amber-500 mr-1"></i> 1. Gevechtsrol van 85% tot 115% (±15%)</strong>
+                                Elke niet-bevriende bende zonder schild kan worden aangevallen. Tijdens het gevecht krijgen zowel de <strong>Power</strong> van de aanvaller als de <strong>Bescherming</strong> van de verdediger een willekeurige gevechtsrol van <strong>85% tot 115%</strong>. Liggen twee bendes dicht bij elkaar, dan kan een iets lagere basis-power met een hogere rol alsnog door de verdediging breken.
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800">
+                                <strong class="text-slate-900 dark:text-white block mb-0.5"><i class="fa-solid fa-burst text-rose-500 mr-1"></i> 2. Schade, Buit &amp; Schild (Procentueel)</strong>
+                                <strong>Bij overwinning (Aanvalsrol &gt; Verdedigingsrol):</strong> aanvaller plundert <strong>8%–16%</strong> uit de Bende Kas en verlaagt de totale verdediging van het doelwit met <strong>10%–20%</strong> (+15 min schild).<br>
+                                <strong>Bij afgeslagen aanval:</strong> verdediger verliest <strong>0 punten</strong> (+2 respect) en aanvaller verliest zelf <strong>5%–12%</strong> van zijn eigen Power.
                             </div>
                         </div>
                     </div>
@@ -4296,19 +4325,27 @@
                                                     </span>
                                                 @endif
                                             </div>
+                                            @php
+                                                $rgPower = max(500, (int) ($rg->attack_power ?? 500));
+                                                $rgDef = max(500, (int) ($rg->protection_points ?? 1000));
+                                                $rgMinDefRoll = (int) round($rgDef * 0.85);
+                                                $rgMaxDefRoll = (int) round($rgDef * 1.15);
+                                            @endphp
                                             <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-3 flex-wrap">
                                                 <span>Leider: <strong class="text-slate-800 dark:text-slate-200">{{ $rg->leader?->name ?? 'Onbekend' }}</strong></span>
                                                 <span>&bull;</span>
                                                 <span>Kas: <strong class="text-emerald-700 dark:text-emerald-400 font-mono">€{{ number_format($rg->treasury, 0, ',', '.') }}</strong></span>
                                                 <span>&bull;</span>
-                                                <span>Verdediging: <strong class="text-indigo-700 dark:text-indigo-400 font-mono">{{ number_format($rg->protection_points ?? 1000, 0, ',', '.') }}</strong></span>
+                                                <span>Power: <strong class="text-amber-700 dark:text-amber-400 font-mono">{{ number_format($rgPower, 0, ',', '.') }}</strong></span>
+                                                <span>&bull;</span>
+                                                <span>Verdediging: <strong class="text-indigo-700 dark:text-indigo-400 font-mono">{{ number_format($rgDef, 0, ',', '.') }}</strong> <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">(Rol ±15%: {{ number_format($rgMinDefRoll, 0, ',', '.') }} – {{ number_format($rgMaxDefRoll, 0, ',', '.') }})</span></span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="shrink-0 flex items-center justify-end">
                                         <form action="{{ route('gangs.attack') }}" method="POST"
-                                              data-confirm="Weet je zeker dat je bende '{{ $rg->name }}' wilt overvallen? Breek door hun verdediging heen om de buit te plunderen!"
+                                              data-confirm="Weet je zeker dat je bende '{{ $rg->name }}' wilt overvallen? Jullie aanvalsrol (±15%: {{ number_format($myMinPowerRoll, 0, ',', '.') }} – {{ number_format($myMaxPowerRoll, 0, ',', '.') }}) neemt het op tegen hun verdedigingsrol (±15%: {{ number_format($rgMinDefRoll, 0, ',', '.') }} – {{ number_format($rgMaxDefRoll, 0, ',', '.') }}). Bij winst plunder je 8%–16% kas en sloop je 10%–20% verdediging; bij verlies kost dit 5%–12% van jullie Power!"
                                               data-confirm-title="Bende Oorlog Overval"
                                               data-confirm-btn="Overval Bende"
                                               data-confirm-type="attack"
