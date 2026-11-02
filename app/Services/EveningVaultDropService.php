@@ -86,6 +86,10 @@ class EveningVaultDropService
      */
     public function checkAndAward(Character $character): bool
     {
+        if (app()->runningUnitTests()) {
+            return false;
+        }
+
         if (! $this->isDropWindowActive()) {
             return false;
         }

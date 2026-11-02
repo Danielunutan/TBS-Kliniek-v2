@@ -785,7 +785,7 @@ function tbsLiveMessenger(config) {
 
         getHeartsTooltip(item) {
             if (item && item.hearts_count > 0 && Array.isArray(item.hearts_names) && item.hearts_names.length > 0) {
-                return item.hearts_names.join(', ');
+                return item.hearts_names.map(name => '- ' + name).join('\n');
             }
             return item && item.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)';
         },
@@ -1594,9 +1594,21 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                  x-transition:leave-end="opacity-0 translate-y-1"
                                                  x-cloak
                                                  role="tooltip"
-                                                 class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-40 px-2.5 py-1 rounded-lg bg-slate-900/95 dark:bg-slate-800 text-white text-[11px] font-semibold shadow-md border border-slate-700/60 whitespace-nowrap max-w-xs truncate flex items-center gap-1.5">
-                                                <span class="text-xs">💜</span>
-                                                <span x-text="formatHeartsNames(msg.hearts_names)"></span>
+                                                 class="pointer-events-none absolute bottom-full mb-1.5 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[130px] max-w-[210px] text-left"
+                                                 :class="msg.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
+                                                <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1 mb-1 border-b border-slate-800">
+                                                    <span>💜</span>
+                                                    <span x-text="msg.hearts_count === 1 ? '1 paars hartje' : (msg.hearts_count + ' hartjes')"></span>
+                                                </div>
+                                                <ul class="space-y-0.5 text-[11px] leading-tight max-h-32 overflow-y-auto">
+                                                    <template x-for="name in (msg.hearts_names || [])" :key="name">
+                                                        <li class="flex items-center gap-1.5 text-slate-200 truncate">
+                                                            <span class="text-purple-400 font-bold select-none shrink-0">-</span>
+                                                            <span class="font-semibold truncate" x-text="name"></span>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                                <span class="sr-only" x-text="formatHeartsNames(msg.hearts_names)"></span>
                                             </div>
                                         </div>
                                     </div>
@@ -1850,9 +1862,21 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                          x-transition:leave-end="opacity-0 translate-y-1"
                                                          x-cloak
                                                          role="tooltip"
-                                                         class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-40 px-2.5 py-1 rounded-lg bg-slate-900/95 dark:bg-slate-800 text-white text-[11px] font-semibold shadow-md border border-slate-700/60 whitespace-nowrap max-w-xs truncate flex items-center gap-1.5">
-                                                        <span class="text-xs">💜</span>
-                                                        <span x-text="formatHeartsNames(msg.hearts_names)"></span>
+                                                         class="pointer-events-none absolute bottom-full mb-1.5 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[130px] max-w-[210px] text-left"
+                                                         :class="msg.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
+                                                        <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1 mb-1 border-b border-slate-800">
+                                                            <span>💜</span>
+                                                            <span x-text="msg.hearts_count === 1 ? '1 paars hartje' : (msg.hearts_count + ' hartjes')"></span>
+                                                        </div>
+                                                        <ul class="space-y-0.5 text-[11px] leading-tight max-h-32 overflow-y-auto">
+                                                            <template x-for="name in (msg.hearts_names || [])" :key="name">
+                                                                <li class="flex items-center gap-1.5 text-slate-200 truncate">
+                                                                    <span class="text-purple-400 font-bold select-none shrink-0">-</span>
+                                                                    <span class="font-semibold truncate" x-text="name"></span>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                        <span class="sr-only" x-text="formatHeartsNames(msg.hearts_names)"></span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2051,9 +2075,21 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                              x-transition:leave-end="opacity-0 translate-y-1"
                                                              x-cloak
                                                              role="tooltip"
-                                                             class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-40 px-2.5 py-1 rounded-lg bg-slate-900/95 dark:bg-slate-800 text-white text-[11px] font-semibold shadow-md border border-slate-700/60 whitespace-nowrap max-w-xs truncate flex items-center gap-1.5">
-                                                            <span class="text-xs">💜</span>
-                                                            <span x-text="formatHeartsNames(dm.hearts_names)"></span>
+                                                             class="pointer-events-none absolute bottom-full mb-1.5 z-50 p-2 rounded-xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-xl border border-purple-500/30 backdrop-blur-xs w-max min-w-[130px] max-w-[210px] text-left"
+                                                             :class="dm.is_me ? 'right-0 origin-bottom-right' : 'left-0 origin-bottom-left'">
+                                                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1 mb-1 border-b border-slate-800">
+                                                                <span>💜</span>
+                                                                <span x-text="dm.hearts_count === 1 ? '1 paars hartje' : (dm.hearts_count + ' hartjes')"></span>
+                                                            </div>
+                                                            <ul class="space-y-0.5 text-[11px] leading-tight max-h-32 overflow-y-auto">
+                                                                <template x-for="name in (dm.hearts_names || [])" :key="name">
+                                                                    <li class="flex items-center gap-1.5 text-slate-200 truncate">
+                                                                        <span class="text-purple-400 font-bold select-none shrink-0">-</span>
+                                                                        <span class="font-semibold truncate" x-text="name"></span>
+                                                                    </li>
+                                                                </template>
+                                                            </ul>
+                                                            <span class="sr-only" x-text="formatHeartsNames(dm.hearts_names)"></span>
                                                         </div>
                                                     </div>
                                                 </div>
