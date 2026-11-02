@@ -132,9 +132,9 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'energie'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>Wachten</strong> Je energie herstelt automatisch elke 3 minuten.</p>
+                    <p>• <strong>Wachten</strong> Je energie herstelt automatisch: 1 punt per 5 minuten (elke 3 minuten voor VIP, tot 2 minuten voor Baas/Lifetime).</p>
                     <p>• <strong>Sterren Shop</strong> Koop direct 100% Energie herstel met Sterren ⭐.</p>
-                    <p>• <strong>Kantine</strong> Koop snacks in de kliniekwinkel.</p>
+                    <p>• <strong>Kantine</strong> Koop snacks zoals chocoladerepen en energiedrankjes in de kliniekwinkel.</p>
                     <a href="{{ route('shop.index') }}" class="inline-block mt-1 px-3 py-1 btn-star-gold rounded-xl font-black text-[10px] transition-all duration-150 active:scale-95 cursor-pointer">Naar Sterren Shop &raquo;</a>
                 </div>
             </div>
@@ -153,8 +153,8 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'bank'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>De Bank</strong> Stort al je contanten altijd op de bank. Bankgeld kan <em>nooit</em> worden gestolen.</p>
-                    <p>• <strong>Rente</strong> Je ontvangt elke dag om 00:00 uur rente over je banksaldo.</p>
+                    <p>• <strong>De Bank</strong> Stort contant geld altijd op de bank. Bankgeld kan niet worden gestolen via de Respectlijst of zakkenrollen.</p>
+                    <p>• <strong>Liquidatie &amp; Cash Bescherming</strong> Tegen PvP Liquidaties beschermt 24u Cash Bescherming uit de VIP Shop zowel contant als bankgeld.</p>
                     <a href="{{ route('bank.index') }}" class="inline-block mt-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl font-black text-[10px] transition-all duration-150 active:scale-95 cursor-pointer">Naar de Bank &raquo;</a>
                 </div>
             </div>
@@ -173,9 +173,10 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'gevangenis'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>IJzerzaagje</strong> Zaag tralies door met een zaagje uit je inventaris of de kantine.</p>
-                    <p>• <strong>Vrienden</strong> Vraag een mede-gedetineerde om je celdeur te forceren.</p>
-                    <p>• <strong>Borgtocht</strong> Betaal 10 Sterren in de winkel voor een directe celuitbraak.</p>
+                    <p>• <strong>IJzerzaagje</strong> Zaag spijlen door met een ijzerzaagje (-30 minuten straftijd per zaagje).</p>
+                    <p>• <strong>Luchtschacht of Wasserij</strong> Waag 1x per straf een luchtschacht-uitbraak (20 energie) of draai wasserijdienst (-45s).</p>
+                    <p>• <strong>Vrijkoopakte</strong> Koop jezelf direct vrij voor 25 Sterren ⭐ of bekijk een sponsorvideo.</p>
+                    <p>• <strong>Vrienden</strong> Vraag een vrije medespeler om je celdeur open te breken.</p>
                     <a href="{{ route('prison') }}" class="inline-block mt-1 px-3 py-1 btn-star-gold rounded-xl font-black text-[10px] transition-all duration-150 active:scale-95 cursor-pointer">Naar Isoleercel &raquo;</a>
                 </div>
             </div>
