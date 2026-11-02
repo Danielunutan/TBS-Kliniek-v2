@@ -9,67 +9,69 @@ use Illuminate\Database\QueryException;
 
 class HalloweenService
 {
-    public const EVENT_END_DATE = '2026-11-05 23:59:59';
+    public const EVENT_NAME = '🍂 De Gouden Herfstoogst 2026';
+
+    public const EVENT_END_DATE = '2026-11-30 23:59:59';
 
     public const DAILY_QUESTS = [
         'daily_theft_3' => [
             'key' => 'daily_theft_3',
             'type' => 'daily',
             'category' => 'theft',
-            'title' => 'Zakkenroller Spooktocht',
-            'desc' => 'Voer minimaal 3 geslaagde diefstallen of zakkenrollerijen uit.',
+            'title' => 'Vallende Bladeren, Losse Zakken',
+            'desc' => 'Voer minimaal 3 geslaagde diefstallen of zakkenrollerijen uit tijdens de herfststorm.',
             'target' => 3,
-            'icon' => 'fa-mask',
+            'icon' => 'fa-leaf',
             'seeds' => 25,
-            'xp' => 50,
-            'respect' => 1,
+            'xp' => 60,
+            'respect' => 2,
         ],
         'daily_brawl_2' => [
             'key' => 'daily_brawl_2',
             'type' => 'daily',
             'category' => 'brawl',
-            'title' => 'Luchtplaats Terreur',
-            'desc' => 'Val 2 medepatiënten aan op de luchtplaats om angst te zaaien.',
+            'title' => 'Storm op de Luchtplaats',
+            'desc' => 'Daag 2 medepatiënten uit op de winderige luchtplaats tussen de dwarrelende herfstbladeren.',
             'target' => 2,
-            'icon' => 'fa-skull-crossbones',
+            'icon' => 'fa-wind',
             'seeds' => 30,
-            'xp' => 60,
-            'respect' => 2,
+            'xp' => 75,
+            'respect' => 3,
         ],
         'daily_hustle_5' => [
             'key' => 'daily_hustle_5',
             'type' => 'daily',
             'category' => 'hustle',
-            'title' => 'Spookachtige Hossels',
-            'desc' => 'Voltooi 5 hossels op de afdeling om contanten binnen te halen.',
+            'title' => 'De Oogst Binnenhalen',
+            'desc' => 'Voltooi 5 hossels op de afdeling om je wintervoorraad en contanten veilig te stellen.',
             'target' => 5,
-            'icon' => 'fa-handshake',
+            'icon' => 'fa-wheat-awn',
             'seeds' => 25,
-            'cash' => 1500,
-            'xp' => 45,
+            'cash' => 2500,
+            'xp' => 60,
         ],
         'daily_training_3' => [
             'key' => 'daily_training_3',
             'type' => 'daily',
             'category' => 'training',
-            'title' => 'Zombie Krachttraining',
-            'desc' => 'Train 3 keer in de fitnessruimte om je spieren op te pompen.',
+            'title' => 'Houthakkers Krachttraining',
+            'desc' => 'Train 3 keer in de fitnessruimte om je lichaam te harden tegen de gure herfstkou.',
             'target' => 3,
             'icon' => 'fa-dumbbell',
             'seeds' => 20,
-            'xp' => 40,
+            'xp' => 50,
         ],
         'daily_vault_1' => [
             'key' => 'daily_vault_1',
             'type' => 'daily',
             'category' => 'vault',
-            'title' => 'Nachtelijke Kluisjacht',
-            'desc' => 'Kraak 1 kluis of vind een kluiscode voucher in de kliniek.',
+            'title' => 'De Gouden Oogstkluis',
+            'desc' => 'Kraak 1 kluis of verzilver een kluiscode voucher voor de grote najaarsbuit.',
             'target' => 1,
             'icon' => 'fa-vault',
             'seeds' => 35,
             'tokens' => 1,
-            'xp' => 50,
+            'xp' => 75,
         ],
     ];
 
@@ -78,160 +80,189 @@ class HalloweenService
             'key' => 'weekly_thefts_15',
             'type' => 'weekly',
             'category' => 'theft',
-            'title' => 'Griezelige Zakkenroller Meester',
-            'desc' => 'Voer 15 succesvolle diefstallen of zakkenrollerijen uit.',
+            'title' => 'Meester van de Herfstnevel',
+            'desc' => 'Voer 15 succesvolle diefstallen of zakkenrollerijen uit in de dichte herfstmist.',
             'target' => 15,
             'icon' => 'fa-sack-dollar',
-            'seeds' => 120,
-            'xp' => 250,
-            'respect' => 5,
+            'seeds' => 140,
+            'xp' => 350,
+            'respect' => 8,
         ],
         'weekly_fights_8' => [
             'key' => 'weekly_fights_8',
             'type' => 'weekly',
             'category' => 'brawl_win',
-            'title' => 'Het Grote Kliniek Bloedbad',
-            'desc' => 'Win 8 gevechten of berovingen op de luchtplaats.',
+            'title' => 'Heerser van het Stormplein',
+            'desc' => 'Win 8 gevechten of berovingen op de herfstige luchtplaats.',
             'target' => 8,
             'icon' => 'fa-fire-flame-curved',
-            'seeds' => 150,
-            'xp' => 350,
-            'respect' => 10,
+            'seeds' => 160,
+            'xp' => 450,
+            'respect' => 12,
         ],
         'weekly_cash_35k' => [
             'key' => 'weekly_cash_35k',
             'type' => 'weekly',
             'category' => 'cash_earned',
-            'title' => 'Het Grote Pompoen Fortuin',
-            'desc' => 'Verdien in totaal minimaal €35.000 contant aan buit of misdaad.',
+            'title' => 'De Gouden Oogstkas',
+            'desc' => 'Verdien in totaal minimaal €35.000 contant aan buit en smokkelhandel tijdens de herfst.',
             'target' => 35000,
             'icon' => 'fa-coins',
-            'seeds' => 180,
-            'xp' => 400,
+            'seeds' => 200,
+            'xp' => 500,
             'respect' => 15,
         ],
         'weekly_hustles_25' => [
             'key' => 'weekly_hustles_25',
             'type' => 'weekly',
             'category' => 'hustle',
-            'title' => 'Heerser van de Onderwereld',
-            'desc' => 'Voer 25 succesvolle hossels of smokkelacties uit.',
+            'title' => 'Baronnen van het Najaar',
+            'desc' => 'Voer 25 succesvolle hossels of smokkelacties uit voor het herfstkartel.',
             'target' => 25,
-            'icon' => 'fa-ghost',
-            'seeds' => 140,
-            'xp' => 300,
-            'respect' => 8,
+            'icon' => 'fa-seedling',
+            'seeds' => 150,
+            'xp' => 400,
+            'respect' => 10,
         ],
     ];
 
+    /**
+     * Retired Halloween 2026 items and borders.
+     * Kept as permanent collector metadata so owners retain them forever, while new purchases are blocked.
+     */
+    public const RETIRED_HALLOWEEN_ITEMS = [
+        'pumpkin_glow',
+        'vampire_blood',
+        'phantom_mist',
+        'gothic_king',
+        'candy_bag',
+        'voodoo_doll',
+        'pet_bat',
+        'witch_brew',
+        'pumpkin_mask',
+        'grim_blessing',
+    ];
+
     public const SHOP_ITEMS = [
-        // Borders
-        'pumpkin_glow' => [
-            'key' => 'pumpkin_glow',
+        // Active Autumn 2026 Borders (Haalbaar)
+        'autumn_ember' => [
+            'key' => 'autumn_ember',
             'type' => 'border',
             'category' => 'borders',
-            'name' => '🎃 Spooky Pumpkin Glow',
-            'description' => 'Verlicht je profiel met een vurige neon-oranje pompoen aura en gloeiend rand-effect.',
+            'name' => '🍂 Vallende Herfstbladeren',
+            'description' => 'Omring je profielfoto met een warme koper- en ambergloed en dwarrelende gouden herfstbladeren.',
             'price_seeds' => 120,
-            'badge' => 'Exclusief',
-            'icon' => 'fa-jack-o-lantern',
-            'preview_class' => 'ring-4 ring-orange-500 shadow-[0_0_22px_rgba(249,115,22,0.85)] border-amber-400',
+            'badge' => 'Haalbaar',
+            'obtainable' => true,
+            'status_label' => 'Haalbaar',
+            'event_name' => '🍂 De Gouden Herfstoogst 2026',
+            'icon' => 'fa-leaf',
+            'preview_class' => 'ring-4 ring-amber-500 shadow-[0_0_22px_rgba(245,158,11,0.85)] border-orange-400',
         ],
-        'vampire_blood' => [
-            'key' => 'vampire_blood',
+        'harvest_moon' => [
+            'key' => 'harvest_moon',
             'type' => 'border',
             'category' => 'borders',
-            'name' => '🩸 Bloederige Vampier Rand',
-            'description' => 'Duistere karmijnrode bloedspatten en een angstaanjagende vampieren gloed rondom je avatar.',
+            'name' => '🌕 Bloedrode Oogstmaan',
+            'description' => 'Een diepe karmozijnrode en goudgele aura geïnspireerd op de heldere volle oogstmaan boven de kliniek.',
             'price_seeds' => 180,
-            'badge' => 'Gothic',
-            'icon' => 'fa-droplet',
-            'preview_class' => 'ring-4 ring-rose-700 shadow-[0_0_22px_rgba(225,29,72,0.85)] border-rose-900',
+            'badge' => 'Haalbaar',
+            'obtainable' => true,
+            'status_label' => 'Haalbaar',
+            'event_name' => '🍂 De Gouden Herfstoogst 2026',
+            'icon' => 'fa-moon',
+            'preview_class' => 'ring-4 ring-orange-600 shadow-[0_0_22px_rgba(234,88,12,0.85)] border-rose-500',
         ],
-        'phantom_mist' => [
-            'key' => 'phantom_mist',
+        'storm_oak' => [
+            'key' => 'storm_oak',
             'type' => 'border',
             'category' => 'borders',
-            'name' => '👻 Spookhuis Paarse Mist',
-            'description' => 'Geanimeerde ectoplasma nevel met oplichtende spookogen rondom je avatar.',
-            'price_seeds' => 220,
-            'badge' => 'Geanimeerd',
-            'icon' => 'fa-ghost',
-            'preview_class' => 'ring-4 ring-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.85)] border-purple-300',
+            'name' => '🌾 Gouden Stormeik',
+            'description' => 'Smaragdgroene bosgloed met bronzen eikenbladeren voor de onverzettelijke overlevers van het najaar.',
+            'price_seeds' => 240,
+            'badge' => 'Haalbaar',
+            'obtainable' => true,
+            'status_label' => 'Haalbaar',
+            'event_name' => '🍂 De Gouden Herfstoogst 2026',
+            'icon' => 'fa-tree',
+            'preview_class' => 'ring-4 ring-emerald-500 shadow-[0_0_25px_rgba(16,185,129,0.85)] border-amber-300',
         ],
-        'gothic_king' => [
-            'key' => 'gothic_king',
+        'crimson_harvest_king' => [
+            'key' => 'crimson_harvest_king',
             'type' => 'border',
             'category' => 'borders',
-            'name' => '👑 Magere Hein Kroon Rand',
-            'description' => 'Het ultieme Halloween meester-frame met gouden skeletvleugels en sinistere kroongloed.',
+            'name' => '🍁 Keizer van de Herfstoogst',
+            'description' => 'Het ultieme herfst-meesterkader met vurige esdoornbladeren en een koninklijke gouden oogstgloed.',
             'price_seeds' => 350,
-            'badge' => 'Legendarisch',
+            'badge' => 'Haalbaar',
+            'obtainable' => true,
+            'status_label' => 'Haalbaar',
+            'event_name' => '🍂 De Gouden Herfstoogst 2026',
             'icon' => 'fa-crown',
-            'preview_class' => 'ring-4 ring-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] border-amber-200',
+            'preview_class' => 'ring-4 ring-yellow-400 shadow-[0_0_28px_rgba(250,204,21,0.95)] border-orange-300',
         ],
 
-        // Collectibles
-        'candy_bag' => [
-            'key' => 'candy_bag',
+        // Active Autumn 2026 Collectibles
+        'spiced_cider' => [
+            'key' => 'spiced_cider',
             'type' => 'collectible',
             'category' => 'collectibles',
-            'name' => '🍬 Snoep of Je Leven Zakje',
-            'description' => 'Griezelig snoepzakje vol lekkers. Geeft bij consumptie direct +35 Energie!',
+            'name' => '🍎 Warme Kruidencider',
+            'description' => 'Ambachtelijke beker warme appelcider met kaneel en kruidnagel. Geeft bij consumptie direct +35 Energie!',
             'price_seeds' => 40,
-            'badge' => 'Snoepgoed',
-            'icon' => 'fa-candy-cane',
+            'badge' => 'Oogstdrank',
+            'icon' => 'fa-mug-hot',
             'consumable' => true,
         ],
-        'voodoo_doll' => [
-            'key' => 'voodoo_doll',
+        'golden_acorn_totem' => [
+            'key' => 'golden_acorn_totem',
             'type' => 'collectible',
             'category' => 'collectibles',
-            'name' => '🕯️ Behekste Voodoo Pop',
-            'description' => 'Zeldzame handgemaakte pop vol naalden om rivalen op de gangen mee te vervloeken.',
+            'name' => '🌰 Gouden Eikel Trofee',
+            'description' => 'Zeldzaam handgesneden eikenhouten beeldje met echt bladgoud. Een waardevol pronkstuk voor in je cel en depot.',
             'price_seeds' => 90,
             'badge' => 'Zeldzaam',
-            'icon' => 'fa-wand-magic-sparkles',
+            'icon' => 'fa-award',
             'consumable' => false,
         ],
-        'pet_bat' => [
-            'key' => 'pet_bat',
+        'harvest_owl' => [
+            'key' => 'harvest_owl',
             'type' => 'collectible',
             'category' => 'collectibles',
-            'name' => '🦇 Vampier Vleermuis in Kooitje',
-            'description' => 'Een levende vleermuis die rusteloos fladdert in een ijzeren celkooitje. Uniek Halloween pronkstuk!',
+            'name' => '🦉 Koperen Bosuil',
+            'description' => 'Een majestueuze bosuil die vanuit je celraam over de herfsttuin van de kliniek waakt. Uniek Herfstoogst verzamelobject!',
             'price_seeds' => 160,
-            'badge' => 'Huisdier',
-            'icon' => 'fa-crow',
+            'badge' => 'Metgezel',
+            'icon' => 'fa-feather-pointed',
             'consumable' => false,
         ],
 
-        // Boosts
-        'witch_brew' => [
-            'key' => 'witch_brew',
+        // Active Autumn 2026 Boosts
+        'autumn_stew' => [
+            'key' => 'autumn_stew',
             'type' => 'boost',
             'category' => 'boosts',
-            'name' => '🧪 Groen Heksenbrouwsel',
-            'description' => 'Borrelend elixer uit de heksenketel. Herstelt direct 100% Gezondheid en geeft +75 Energie!',
+            'name' => '🍲 Krachtige Wildstoofpot',
+            'description' => 'Dampende ketel herfststoofpot uit de kliniekkeuken. Herstelt direct 100% Gezondheid en geeft +75 Energie!',
             'price_seeds' => 60,
             'badge' => 'Direct Effect',
-            'icon' => 'fa-flask-vial',
+            'icon' => 'fa-bowl-food',
         ],
-        'pumpkin_mask' => [
-            'key' => 'pumpkin_mask',
+        'mist_cloak_pack' => [
+            'key' => 'mist_cloak_pack',
             'type' => 'boost',
             'category' => 'boosts',
-            'name' => '🎭 Jack-O\'-Lantern Maskers (x5)',
-            'description' => 'Bundel van 5 exclusieve Halloween maskers voor gegarandeerd ongemerkt zakkenrollen!',
+            'name' => '🧣 Herfstnevel Maskers (x5)',
+            'description' => 'Bundel van 5 donkere herfststorm-maskers om ongezien toe te slaan bij het zakkenrollen en overvallen!',
             'price_seeds' => 85,
             'badge' => '5x Maskers',
             'icon' => 'fa-masks-theater',
         ],
-        'grim_blessing' => [
-            'key' => 'grim_blessing',
+        'harvest_blessing' => [
+            'key' => 'harvest_blessing',
             'type' => 'boost',
             'category' => 'boosts',
-            'name' => '💀 Magere Hein Zegening (24 Uur)',
+            'name' => '🌾 Zegening van de Oogst (24 Uur)',
             'description' => 'Ontvang 24 uur lang +15% extra Kracht & Verdediging bij alle gevechten op de luchtplaats!',
             'price_seeds' => 200,
             'badge' => '24u Perk',
@@ -240,20 +271,119 @@ class HalloweenService
     ];
 
     /**
-     * Get rich configuration and styling tokens for all avatar borders/frames.
+     * Get rich configuration and styling tokens for all avatar borders/frames in the game.
+     * Includes both active ("Haalbaar") borders and retired collector borders ("Niet meer haalbaar").
      *
-     * @return array<string, array{key: string, name: string, emoji: string, badge_title: string, price_seeds: int, badge: string, description: string, ring: string, border: string, glow: string, badge_gradient: string, preview_class: string}>
+     * @return array<string, array{key: string, name: string, emoji: string, badge_title: string, price_seeds: int, badge: string, obtainable: bool, status_label: string, overview_status_label: string, event_key: string, event_name: string, currency_emoji: string, how_to_get: string, description: string, ring: string, border: string, glow: string, badge_gradient: string, preview_class: string}>
      */
     public static function getBorders(): array
     {
         return [
+            // =========================================================================
+            // 🍂 DE GOUDEN HERFSTOOGST 2026 (ACTIEF EVENT — HAALBAAR)
+            // =========================================================================
+            'autumn_ember' => [
+                'key' => 'autumn_ember',
+                'name' => 'Vallende Herfstbladeren',
+                'emoji' => '🍂',
+                'badge_title' => 'Vallende Herfstbladeren Rand',
+                'price_seeds' => 120,
+                'badge' => 'Herfstoogst',
+                'obtainable' => true,
+                'status_label' => 'Haalbaar',
+                'overview_status_label' => 'Haalbaar',
+                'event_key' => 'autumn_2026',
+                'event_name' => '🍂 De Gouden Herfstoogst 2026',
+                'currency_emoji' => '🍂',
+                'how_to_get' => 'Nu verkrijgbaar in de Herfstoogst Winkel voor 120 Gouden Eikels (🍂).',
+                'description' => 'Omring je profielfoto met een warme koper- en ambergloed en dwarrelende gouden herfstbladeren.',
+                'ring' => 'ring-4 ring-amber-500 ring-offset-2 ring-offset-slate-900',
+                'border' => 'border-orange-400',
+                'glow' => 'shadow-[0_0_25px_rgba(245,158,11,0.9)]',
+                'badge_gradient' => 'from-amber-500 via-orange-500 to-amber-700',
+                'preview_class' => 'ring-4 ring-amber-500 shadow-[0_0_22px_rgba(245,158,11,0.85)] border-orange-400',
+            ],
+            'harvest_moon' => [
+                'key' => 'harvest_moon',
+                'name' => 'Bloedrode Oogstmaan',
+                'emoji' => '🌕',
+                'badge_title' => 'Bloedrode Oogstmaan Rand',
+                'price_seeds' => 180,
+                'badge' => 'Oogstmaan',
+                'obtainable' => true,
+                'status_label' => 'Haalbaar',
+                'overview_status_label' => 'Haalbaar',
+                'event_key' => 'autumn_2026',
+                'event_name' => '🍂 De Gouden Herfstoogst 2026',
+                'currency_emoji' => '🍂',
+                'how_to_get' => 'Nu verkrijgbaar in de Herfstoogst Winkel voor 180 Gouden Eikels (🍂).',
+                'description' => 'Een diepe karmozijnrode en goudgele aura geïnspireerd op de heldere volle oogstmaan boven de kliniek.',
+                'ring' => 'ring-4 ring-orange-600 ring-offset-2 ring-offset-slate-900',
+                'border' => 'border-rose-500',
+                'glow' => 'shadow-[0_0_25px_rgba(234,88,12,0.9)]',
+                'badge_gradient' => 'from-orange-500 via-rose-600 to-amber-800',
+                'preview_class' => 'ring-4 ring-orange-600 shadow-[0_0_22px_rgba(234,88,12,0.85)] border-rose-500',
+            ],
+            'storm_oak' => [
+                'key' => 'storm_oak',
+                'name' => 'Gouden Stormeik',
+                'emoji' => '🌾',
+                'badge_title' => 'Gouden Stormeik Rand',
+                'price_seeds' => 240,
+                'badge' => 'Geanimeerd',
+                'obtainable' => true,
+                'status_label' => 'Haalbaar',
+                'overview_status_label' => 'Haalbaar',
+                'event_key' => 'autumn_2026',
+                'event_name' => '🍂 De Gouden Herfstoogst 2026',
+                'currency_emoji' => '🍂',
+                'how_to_get' => 'Nu verkrijgbaar in de Herfstoogst Winkel voor 240 Gouden Eikels (🍂).',
+                'description' => 'Smaragdgroene bosgloed met bronzen eikenbladeren voor de onverzettelijke overlevers van het najaar.',
+                'ring' => 'ring-4 ring-emerald-500 ring-offset-2 ring-offset-slate-900',
+                'border' => 'border-amber-300',
+                'glow' => 'shadow-[0_0_28px_rgba(16,185,129,0.9)]',
+                'badge_gradient' => 'from-emerald-500 via-teal-600 to-amber-600',
+                'preview_class' => 'ring-4 ring-emerald-500 shadow-[0_0_25px_rgba(16,185,129,0.85)] border-amber-300',
+            ],
+            'crimson_harvest_king' => [
+                'key' => 'crimson_harvest_king',
+                'name' => 'Keizer van de Herfstoogst',
+                'emoji' => '🍁',
+                'badge_title' => 'Keizer van de Herfstoogst Rand',
+                'price_seeds' => 350,
+                'badge' => 'Legendarisch',
+                'obtainable' => true,
+                'status_label' => 'Haalbaar',
+                'overview_status_label' => 'Haalbaar',
+                'event_key' => 'autumn_2026',
+                'event_name' => '🍂 De Gouden Herfstoogst 2026',
+                'currency_emoji' => '🍂',
+                'how_to_get' => 'Nu verkrijgbaar in de Herfstoogst Winkel voor 350 Gouden Eikels (🍂).',
+                'description' => 'Het ultieme herfst-meesterkader met vurige esdoornbladeren en een koninklijke gouden oogstgloed.',
+                'ring' => 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-slate-900',
+                'border' => 'border-orange-300',
+                'glow' => 'shadow-[0_0_30px_rgba(250,204,21,0.95)]',
+                'badge_gradient' => 'from-yellow-400 via-amber-500 to-red-600',
+                'preview_class' => 'ring-4 ring-yellow-400 shadow-[0_0_28px_rgba(250,204,21,0.95)] border-orange-300',
+            ],
+
+            // =========================================================================
+            // 🎃 HALLOWEEN EVENT 2026 (AFGELOPEN — NIET MEER HAALBAAR / VERZAMELOBJECT)
+            // =========================================================================
             'pumpkin_glow' => [
                 'key' => 'pumpkin_glow',
                 'name' => 'Spooky Pumpkin Glow',
                 'emoji' => '🎃',
                 'badge_title' => 'Halloween Pompoen Gloed',
                 'price_seeds' => 120,
-                'badge' => 'Exclusief',
+                'badge' => 'Verzamelobject',
+                'obtainable' => false,
+                'status_label' => 'Niet meer haalbaar',
+                'overview_status_label' => 'Niet haalbaar',
+                'event_key' => 'halloween_2026',
+                'event_name' => '🎃 Halloween Event 2026',
+                'currency_emoji' => '🎃',
+                'how_to_get' => 'Exclusief verzamelobject uit het Halloween Event 2026 — Niet meer haalbaar voor nieuwe spelers.',
                 'description' => 'Verlicht je profiel met een vurige neon-oranje pompoen aura en gloeiend rand-effect.',
                 'ring' => 'ring-4 ring-orange-500 ring-offset-2 ring-offset-slate-900',
                 'border' => 'border-orange-400',
@@ -267,7 +397,14 @@ class HalloweenService
                 'emoji' => '🩸',
                 'badge_title' => 'Bloederige Vampier Rand',
                 'price_seeds' => 180,
-                'badge' => 'Gothic',
+                'badge' => 'Verzamelobject',
+                'obtainable' => false,
+                'status_label' => 'Niet meer haalbaar',
+                'overview_status_label' => 'Niet haalbaar',
+                'event_key' => 'halloween_2026',
+                'event_name' => '🎃 Halloween Event 2026',
+                'currency_emoji' => '🎃',
+                'how_to_get' => 'Exclusief verzamelobject uit het Halloween Event 2026 — Niet meer haalbaar voor nieuwe spelers.',
                 'description' => 'Duistere karmijnrode bloedspatten en een angstaanjagende vampieren gloed rondom je avatar.',
                 'ring' => 'ring-4 ring-rose-700 ring-offset-2 ring-offset-slate-900',
                 'border' => 'border-rose-600',
@@ -281,7 +418,14 @@ class HalloweenService
                 'emoji' => '👻',
                 'badge_title' => 'Spookhuis Paarse Mist Rand',
                 'price_seeds' => 220,
-                'badge' => 'Geanimeerd',
+                'badge' => 'Verzamelobject',
+                'obtainable' => false,
+                'status_label' => 'Niet meer haalbaar',
+                'overview_status_label' => 'Niet haalbaar',
+                'event_key' => 'halloween_2026',
+                'event_name' => '🎃 Halloween Event 2026',
+                'currency_emoji' => '🎃',
+                'how_to_get' => 'Exclusief verzamelobject uit het Halloween Event 2026 — Niet meer haalbaar voor nieuwe spelers.',
                 'description' => 'Geanimeerde ectoplasma nevel met oplichtende spookogen rondom je avatar.',
                 'ring' => 'ring-4 ring-purple-500 ring-offset-2 ring-offset-slate-900',
                 'border' => 'border-purple-300',
@@ -295,7 +439,14 @@ class HalloweenService
                 'emoji' => '👑',
                 'badge_title' => 'Magere Hein Kroon Rand',
                 'price_seeds' => 350,
-                'badge' => 'Legendarisch',
+                'badge' => 'Verzamelobject',
+                'obtainable' => false,
+                'status_label' => 'Niet meer haalbaar',
+                'overview_status_label' => 'Niet haalbaar',
+                'event_key' => 'halloween_2026',
+                'event_name' => '🎃 Halloween Event 2026',
+                'currency_emoji' => '🎃',
+                'how_to_get' => 'Exclusief verzamelobject uit het Halloween Event 2026 — Niet meer haalbaar voor nieuwe spelers.',
                 'description' => 'Het ultieme Halloween meester-frame met gouden skeletvleugels en sinistere kroongloed.',
                 'ring' => 'ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-900',
                 'border' => 'border-amber-200',
@@ -304,6 +455,26 @@ class HalloweenService
                 'preview_class' => 'ring-4 ring-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] border-amber-200',
             ],
         ];
+    }
+
+    /**
+     * Get only borders that are currently obtainable ("Haalbaar").
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function getObtainableBorders(): array
+    {
+        return array_filter(self::getBorders(), fn (array $b): bool => (bool) ($b['obtainable'] ?? false));
+    }
+
+    /**
+     * Get only borders that are retired ("Niet meer haalbaar").
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function getRetiredBorders(): array
+    {
+        return array_filter(self::getBorders(), fn (array $b): bool => ! ($b['obtainable'] ?? false));
     }
 
     /**

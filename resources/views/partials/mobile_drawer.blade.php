@@ -166,30 +166,34 @@
                 <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-200/80 dark:bg-amber-900/60 px-2 py-0.5 rounded-md border border-amber-300/80 dark:border-amber-700/60">Exclusief</span>
             </a>
 
-            <!-- 🎃 EVENT: HALLOWEEN 2026 (Collapsible Accordion) -->
-            <div class="rounded-xl border border-orange-500/20 bg-orange-500/5 overflow-hidden">
+            <!-- 🍂 EVENT: DE GOUDEN HERFSTOOGST 2026 (Collapsible Accordion) -->
+            <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 overflow-hidden">
                 <button @click="toggleCategory('event')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 transition cursor-pointer">
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 transition cursor-pointer">
                     <span class="flex items-center gap-2">
-                        <span>🎃</span>
-                        <span>Halloween Event</span>
+                        <span>🍂</span>
+                        <span>Herfstoogst Event</span>
                     </span>
                     <div class="flex items-center gap-1.5">
                         <span class="text-[9px] font-bold text-amber-500 flex items-center gap-0.5">
-                            <i class="fa-solid fa-seedling text-[9px]"></i> {{ number_format($character?->pumpkin_seeds ?? 0, 0, ',', '.') }}
+                            <i class="fa-solid fa-leaf text-[9px]"></i> {{ number_format($character?->pumpkin_seeds ?? 0, 0, ',', '.') }}
                         </span>
                         <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('event') ? 'rotate-180' : ''"></i>
                     </div>
                 </button>
                 <div x-show="isOpen('event')" class="space-y-0.5 px-2 pb-2">
-                    <a href="{{ route('halloween.quests') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.quests*') ? 'bg-orange-500/20 text-orange-700 dark:text-orange-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-orange-500/10' }}">
-                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-scroll text-orange-500 w-4"></i> Quests</span>
-                        <span class="text-[9px] bg-orange-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Quests</span>
+                    <a href="{{ route('halloween.quests') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.quests*', 'autumn.quests*') ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-amber-500/10' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-leaf text-amber-500 w-4"></i> Herfstoogst Quests</span>
+                        <span class="text-[9px] bg-amber-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Quests</span>
                     </a>
-                    <a href="{{ route('halloween.shop') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.shop*') ? 'bg-orange-500/20 text-orange-700 dark:text-orange-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-orange-500/10' }}">
-                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-store text-orange-500 w-4"></i> Halloween Shop</span>
-                        <span class="text-[9px] bg-amber-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Shop</span>
+                    <a href="{{ route('halloween.shop') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.shop*', 'autumn.shop*') ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-amber-500/10' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-store text-amber-500 w-4"></i> Herfstoogst Winkel</span>
+                        <span class="text-[9px] bg-orange-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Winkel</span>
+                    </a>
+                    <a href="{{ route('borders.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('borders.*') ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-amber-500/10' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-id-badge text-emerald-500 w-4"></i> Profielkaders Overzicht</span>
+                        <span class="text-[9px] bg-emerald-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Kaders</span>
                     </a>
                 </div>
             </div>

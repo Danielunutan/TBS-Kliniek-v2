@@ -88,7 +88,7 @@ class Pass10Bucket11AuditTest extends TestCase
             'weeklyQuests' => [],
         ])->render();
 
-        $this->assertStringContainsString('Halloween Quests & Mijlpalen', $questsView);
+        $this->assertStringContainsString('Herfstoogst Quests &amp; Mijlpalen', $questsView);
 
         $this->character->equipped_border = 'pumpkin_glow';
         $this->character->save();
@@ -110,7 +110,7 @@ class Pass10Bucket11AuditTest extends TestCase
             'boosts' => [],
         ])->render();
 
-        $this->assertStringContainsString('Halloween Spook-Winkel', $shopView);
+        $this->assertStringContainsString('Herfstoogst Oogstwinkel', $shopView);
         $this->assertStringContainsString('Rand Uitschakelen', $shopView);
     }
 

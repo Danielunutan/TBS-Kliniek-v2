@@ -247,7 +247,7 @@
             $quickFoodItems = $character->getConsumableInventoryItems();
         }
         $activeCategory = '';
-        if (request()->routeIs('halloween.*') || request()->is('event*', 'halloween*')) {
+        if (request()->routeIs('halloween.*', 'autumn.*', 'borders.*') || request()->is('event*', 'halloween*', 'herfst*', 'profielkaders*')) {
             $activeCategory = 'event';
         } elseif (request()->routeIs('gangs.*') || request()->is('gangs*', 'bendes*')) {
             $activeCategory = 'bende';
@@ -1148,38 +1148,45 @@
                 </div>
             </div>
 
-            <!-- 🎃 EVENT: HALLOWEEN 2026 -->
+            <!-- 🍂 EVENT: DE GOUDEN HERFSTOOGST 2026 -->
             <div class="space-y-1">
                 <button @click="toggleCategory('event')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-orange-600 dark:text-orange-400 hover:text-orange-500 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 rounded-xl transition group">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 hover:text-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-ghost"></i></span>
+                        <span class="w-5 h-5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-leaf"></i></span>
                         <span class="font-black">Event</span>
                     </span>
                     <div class="flex items-center gap-1.5">
-                        <span class="text-[8px] font-black uppercase text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-950/80 px-1.5 py-0.5 rounded border border-orange-300 dark:border-orange-800 tracking-wider">
-                            HALLOWEEN
+                        <span class="text-[8px] font-black uppercase text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-800 tracking-wider">
+                            HERFSTOOGST
                         </span>
                         <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('event') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'event') style="transform: rotate(180deg);" @endif></i>
                     </div>
                 </button>
                 <div x-show="isOpen('event')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'event') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('halloween.quests') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.quests*') ? 'nav-item-active bg-orange-500/10 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('halloween.quests') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.quests*', 'autumn.quests*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-scroll w-4 text-center text-orange-500"></i>
-                            <span>Halloween Quests</span>
+                            <i class="fa-solid fa-leaf w-4 text-center text-amber-500"></i>
+                            <span>Herfstoogst Quests</span>
                         </div>
                         <span class="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">Quests</span>
                     </a>
-                    <a href="{{ route('halloween.shop') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.shop*') ? 'nav-item-active bg-orange-500/10 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('halloween.shop') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.shop*', 'autumn.shop*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-store w-4 text-center text-purple-500 dark:text-purple-400"></i>
-                            <span>Halloween Shop</span>
+                            <i class="fa-solid fa-store w-4 text-center text-orange-500 dark:text-orange-400"></i>
+                            <span>Herfstoogst Winkel</span>
                         </div>
-                        <span class="text-[9px] font-black text-orange-600 dark:text-orange-400">
-                            {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }} 🎃
+                        <span class="text-[9px] font-black text-amber-600 dark:text-amber-400">
+                            {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }} 🍂
                         </span>
+                    </a>
+                    <a href="{{ route('borders.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('borders.*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-id-badge w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <span>Profielkaders Overzicht</span>
+                        </div>
+                        <span class="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">Kaders</span>
                     </a>
                 </div>
             </div>
@@ -2117,14 +2124,14 @@
                         <span class="sr-only">Respect: {{ $character->formatted_respect }} Vandaag: {{ $character->formatted_today_respect }}</span>
                     </div>
 
-                    <!-- 🎃 HALLOWEEN POMPOENPITTEN -->
+                    <!-- 🍂 HERFSTOOGST GOUDEN EIKELS -->
                     @if(\App\Services\HalloweenService::isEventActive() || ($character->pumpkin_seeds ?? 0) > 0)
-                    <a href="{{ route('halloween.shop') }}" class="flex flex-col items-center gap-1 group" title="Halloween Pompoenpitten &bull; Klik voor Shop">
-                        <span class="text-[8px] font-black uppercase tracking-wider text-orange-800 dark:text-orange-300 bg-orange-100 dark:bg-orange-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-orange-800/40 flex items-center gap-0.5">
-                            <span>🎃</span> PITTEN
+                    <a href="{{ route('halloween.shop') }}" class="flex flex-col items-center gap-1 group" title="Gouden Eikels &bull; Klik voor Herfstoogst Winkel">
+                        <span class="text-[8px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-amber-800/40 flex items-center gap-0.5">
+                            <span>🍂</span> EIKELS
                         </span>
-                        <div class="flex items-center gap-1 text-orange-600 dark:text-orange-400 font-black text-xs sm:text-sm leading-none group-hover:scale-105 transition-transform">
-                            <i class="fa-solid fa-seedling text-amber-500 text-xs"></i>
+                        <div class="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-black text-xs sm:text-sm leading-none group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-leaf text-amber-500 text-xs"></i>
                             <span>{{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }}</span>
                         </div>
                     </a>

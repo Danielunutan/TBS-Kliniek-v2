@@ -259,11 +259,14 @@ class NewsArticle extends Model
         $text = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3 class="text-base font-black text-slate-900 dark:text-white mt-5 mb-2.5 tracking-tight">$1</h3>', $text);
         $text = preg_replace('/\[h4\](.*?)\[\/h4\]/i', '<h4 class="text-sm font-extrabold text-slate-900 dark:text-white mt-4 mb-2 tracking-tight">$1</h4>', $text);
 
+        // Unordered list items (parse before single-asterisk italics so '* ' bullets are not treated as italics)
+        $text = preg_replace('/^[ \t]*[\-\*]\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 dark:text-slate-300 font-medium leading-relaxed">$1</li>', $text);
+
         // Bold, italic, underline, strikethrough
         $text = preg_replace('/\[b\](.*?)\[\/b\]/i', '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>', $text);
         $text = preg_replace('/\*\*(.*?)\*\*/s', '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>', $text);
         $text = preg_replace('/\[i\](.*?)\[\/i\]/i', '<em class="italic text-slate-700 dark:text-slate-300">$1</em>', $text);
-        $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/s', '<em class="italic text-slate-700 dark:text-slate-300">$1</em>', $text);
+        $text = preg_replace('/(?<!\*)\*(?!\*|\s)([^\*\n]+?)(?<!\*|\s)\*(?!\*)/', '<em class="italic text-slate-700 dark:text-slate-300">$1</em>', $text);
         $text = preg_replace('/\[u\](.*?)\[\/u\]/i', '<span class="underline decoration-slate-400">$1</span>', $text);
         $text = preg_replace('/\[s\](.*?)\[\/s\]/i', '<del class="line-through text-slate-400">$1</del>', $text);
         $text = preg_replace('/~~(.*?)~~/s', '<del class="line-through text-slate-400">$1</del>', $text);

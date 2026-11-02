@@ -46,6 +46,7 @@ class DepotController extends Controller
             ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'not like', 'halloween_%')
+                    ->where('slug', 'not like', 'autumn_%')
                     ->where('category', '!=', 'special');
             })
             ->with('item')
@@ -56,6 +57,7 @@ class DepotController extends Controller
             ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'like', 'halloween_%')
+                    ->orWhere('slug', 'like', 'autumn_%')
                     ->orWhere('category', 'special');
             })
             ->with('item')
@@ -89,8 +91,8 @@ class DepotController extends Controller
         $pumpkinSeeds = (int) ($character->pumpkin_seeds ?? 0);
         $unlockedBorders = $character->unlocked_borders ?? [];
         $equippedBorder = $character->equipped_border;
-        $borderCatalog = array_filter(HalloweenService::SHOP_ITEMS, fn ($i) => $i['category'] === 'borders');
-        $collectibleCatalog = array_filter(HalloweenService::SHOP_ITEMS, fn ($i) => $i['category'] === 'collectibles');
+        $borderCatalog = HalloweenService::getBorders();
+        $collectibleCatalog = array_filter(HalloweenService::SHOP_ITEMS, fn ($i) => $i['category'] === 'borders' ? false : $i['category'] === 'collectibles');
         $activePerks = $character->active_perks ?? [];
         $unredeemedCodes = VaultCode::where('character_id', $character->id)->where('is_redeemed', false)->get();
 
@@ -155,6 +157,12 @@ class DepotController extends Controller
                 return back()->with('error', 'Item gegevens niet gevonden.');
             }
 
+            if (str_starts_with((string) $item->slug, 'halloween_')) {
+                return back()
+                    ->with('tab', 'varia')
+                    ->with('error', '🎃 Halloween-items zijn exclusieve, permanente verzamelobjecten (Niet meer haalbaar) en worden nooit verwijderd of verkocht!');
+            }
+
             $requestedQty = max(1, (int) $request->input('quantity', 1));
             $quantity = min($requestedQty, $lockedItem->quantity);
 
@@ -175,7 +183,7 @@ class DepotController extends Controller
             $this->economyService->addCash($lockedCharacter, $totalEarned);
 
             $formattedCash = number_format($totalEarned, 0, ',', '.');
-            $returnTab = (str_starts_with((string) $item->slug, 'halloween_') || $item->category === 'special')
+            $returnTab = (str_starts_with((string) $item->slug, 'halloween_') || str_starts_with((string) $item->slug, 'autumn_') || $item->category === 'special')
                 ? 'varia'
                 : 'storage';
 

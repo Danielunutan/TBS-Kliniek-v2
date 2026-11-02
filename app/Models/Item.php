@@ -56,9 +56,12 @@ class Item extends Model
      */
     public function getDepotSellPrice(): int
     {
+        $slug = (string) $this->slug;
+        $isEventItem = str_starts_with($slug, 'halloween_') || str_starts_with($slug, 'autumn_');
+
         $basePrice = $this->price_kc > 0
             ? $this->price_kc
-            : (str_starts_with((string) $this->slug, 'halloween_') ? 2500 : 1000);
+            : ($isEventItem ? 2500 : 1000);
 
         return max(1, (int) round($basePrice * 0.6));
     }
@@ -87,6 +90,7 @@ class Item extends Model
             'smokkelpakketje',
             'ijzerzaagje',
             'halloween_candy_bag',
+            'autumn_spiced_cider',
         ], true)) {
             return true;
         }

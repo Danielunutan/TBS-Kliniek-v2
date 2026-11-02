@@ -58,9 +58,10 @@ class MarketplaceController extends Controller
             ->where('is_redeemed', false)
             ->get();
 
-        // Assets available to sell from Depot, Garage and Panden
+        // Assets available to sell from Depot, Garage and Panden (excluding permanent Halloween collector items)
         $inventoryItems = CharacterItem::where('character_id', $character->id)
             ->where('quantity', '>', 0)
+            ->whereHas('item', fn ($q) => $q->where('slug', 'not like', 'halloween_%'))
             ->with('item')
             ->get();
 
@@ -142,6 +143,10 @@ class MarketplaceController extends Controller
 
                     if (! $charItem || ! $charItem->item) {
                         throw new \RuntimeException('Selecteer een geldig item uit je depot.');
+                    }
+
+                    if (str_starts_with((string) $charItem->item->slug, 'halloween_')) {
+                        throw new \RuntimeException('🎃 Halloween-items zijn exclusieve, permanente verzamelobjecten (Niet meer haalbaar) en kunnen niet worden verkocht of verhandeld!');
                     }
 
                     // Unique equipment only stacks to 1 on purchase; cap listing amount to 1 so surplus copies are not lost.

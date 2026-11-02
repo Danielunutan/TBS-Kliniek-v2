@@ -257,6 +257,10 @@ class Character extends Model
             'vampire_blood' => 'ring-4 ring-rose-700 shadow-[0_0_22px_rgba(225,29,72,0.85)] border-rose-900',
             'phantom_mist' => 'ring-4 ring-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.85)] border-purple-300',
             'gothic_king' => 'ring-4 ring-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] border-amber-200',
+            'autumn_ember' => 'ring-4 ring-amber-500 shadow-[0_0_22px_rgba(245,158,11,0.85)] border-orange-400',
+            'harvest_moon' => 'ring-4 ring-orange-600 shadow-[0_0_22px_rgba(234,88,12,0.85)] border-rose-500',
+            'storm_oak' => 'ring-4 ring-emerald-500 shadow-[0_0_25px_rgba(16,185,129,0.85)] border-amber-300',
+            'crimson_harvest_king' => 'ring-4 ring-yellow-400 shadow-[0_0_28px_rgba(250,204,21,0.95)] border-orange-300',
             default => '',
         };
     }
@@ -1467,7 +1471,7 @@ class Character extends Model
             })
             ->with('item')
             ->get()
-            ->filter(fn ($ci) => ! in_array($ci->item?->slug, ['bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje'], true))
+            ->filter(fn ($ci) => ! str_starts_with((string) ($ci->item?->slug ?? ''), 'halloween_') && ! str_starts_with((string) ($ci->item?->slug ?? ''), 'autumn_') && ! in_array($ci->item?->slug, ['bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje'], true))
             ->values();
     }
 
@@ -1489,12 +1493,24 @@ class Character extends Model
 
     public function getEffectiveStrength(): int
     {
-        return (int) ($this->strength ?? 10) + $this->getItemBonus('strength');
+        $base = (int) ($this->strength ?? 10) + $this->getItemBonus('strength');
+
+        if ($this->hasPerk('magere_hein_zegening')) {
+            return (int) round($base * 1.15);
+        }
+
+        return $base;
     }
 
     public function getEffectiveDefense(): int
     {
-        return (int) ($this->defense ?? 10) + $this->getItemBonus('defense');
+        $base = (int) ($this->defense ?? 10) + $this->getItemBonus('defense');
+
+        if ($this->hasPerk('magere_hein_zegening')) {
+            return (int) round($base * 1.15);
+        }
+
+        return $base;
     }
 
     public function getEffectiveStamina(): int
@@ -3570,6 +3586,7 @@ class Character extends Model
             ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'not like', 'halloween_%')
+                    ->where('slug', 'not like', 'autumn_%')
                     ->where('slug', '!=', 'bivakmuts-masker')
                     ->where('category', '!=', 'special');
             })

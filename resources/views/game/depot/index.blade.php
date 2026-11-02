@@ -531,67 +531,67 @@
     <div x-show="tab === 'varia'" class="space-y-6">
 
         <!-- INTRO BANNER MET LIVE STATUS & COUNTDOWN -->
-        <div class="p-6 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-purple-600/10 border border-orange-500/30 dark:border-orange-500/40 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-emerald-600/10 border border-amber-500/30 dark:border-amber-500/40 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-orange-500 text-slate-950 flex items-center justify-center text-3xl shadow-sm shrink-0">
-                    <i class="fa-solid fa-pumpkin animate-pulse"></i>
+                <div class="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-3xl shadow-sm shrink-0">
+                    <i class="fa-solid fa-leaf animate-pulse"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <h3 class="text-base font-black text-slate-900 dark:text-white">Persoonlijk Varia & Event Kluis</h3>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500 text-white shadow-2xs">
-                            🎃 Halloween 2026 Actief
+                        <h3 class="text-base font-black text-slate-900 dark:text-white">Persoonlijk Varia &amp; Event Kluis</h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-600 text-white shadow-2xs">
+                            🍂 De Gouden Herfstoogst 2026 Actief
                         </span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60">
-                            Onbeperkte Capaciteit ♾️
+                            Onbeperkte Capaciteit &bull; Verzamelobjecten Blijven Voor Altijd ♾️
                         </span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-2xl leading-relaxed">
                         In tegenstelling tot je reguliere Opbergplaats heeft de Event Kluis <strong>geen maximum opslaglimiet</strong>.
-                        Alle speciale feestdag-drops, seizoensmunten, profielranden en unieke collectibles worden hier veilig bewaard zonder je normale voorraad te belasten!
+                        Alle geclaimde <strong>Halloween-items, profielkaders en seizoens-collectibles</strong> zijn permanente verzamelobjecten en worden hier voor altijd veilig bewaard!
                     </p>
                 </div>
             </div>
 
-            <div class="shrink-0 text-left md:text-right w-full md:w-auto p-3 md:p-0 rounded-xl bg-white/60 dark:bg-slate-900/60 md:bg-transparent border md:border-0 border-orange-200 dark:border-orange-950/60">
+            <div class="shrink-0 text-left md:text-right w-full md:w-auto p-3 md:p-0 rounded-xl bg-white/60 dark:bg-slate-900/60 md:bg-transparent border md:border-0 border-amber-200 dark:border-amber-950/60">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Resterende Event Tijd</span>
-                <span class="text-sm font-black text-orange-600 dark:text-orange-400 flex items-center gap-1.5 md:justify-end">
+                <span class="text-sm font-black text-amber-600 dark:text-amber-400 flex items-center gap-1.5 md:justify-end">
                     <i class="fa-solid fa-hourglass-half animate-spin text-xs"></i>
                     <span>{{ $timeRemaining['formatted'] ?? 'Actief' }}</span>
                 </span>
-                <span class="text-[10px] text-slate-400 font-medium block mt-0.5">Tot 5 november 23:59u</span>
+                <span class="text-[10px] text-slate-400 font-medium block mt-0.5">Tot 30 november 23:59u</span>
             </div>
         </div>
 
         <!-- EVENT VALUTA & QUICK METRICS -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             
-            <!-- POMPOENPITTEN SALDO -->
-            <div class="bg-white dark:bg-slate-900 border border-orange-500/30 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+            <!-- GOUDEN EIKELS SALDO -->
+            <div class="bg-white dark:bg-slate-900 border border-amber-500/30 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-500 flex items-center gap-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
                             <i class="fa-solid fa-coins"></i> Evenement Valuta
                         </span>
-                        <span class="px-2 py-0.5 rounded text-[9px] font-black bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200/80 dark:border-orange-800/70">
-                            Pitten
+                        <span class="px-2 py-0.5 rounded text-[9px] font-black bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70">
+                            Gouden Eikels
                         </span>
                     </div>
                     <div class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <span>{{ number_format($pumpkinSeeds, 0, ',', '.') }}</span>
-                        <span class="text-xl">🎃</span>
+                        <span class="text-xl">🍂</span>
                     </div>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                        Verdiend met Halloween Quests, zakkenrollen, vechten en trainingen.
+                        Verdiend met Herfstoogst Quests, zakkenrollen, vechten en trainingen.
                     </p>
                 </div>
                 <div class="pt-4 mt-4 border-t border-slate-200/80 dark:border-slate-800 flex items-center gap-2">
-                    <a href="{{ route('halloween.shop') }}" class="flex-1 py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition text-center shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                    <a href="{{ route('halloween.shop') }}" class="flex-1 py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition text-center shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-store text-xs"></i>
-                        <span>Shop</span>
+                        <span>Winkel</span>
                     </a>
                     <a href="{{ route('halloween.quests') }}" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 text-center flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-scroll text-xs text-orange-500"></i>
+                        <i class="fa-solid fa-leaf text-xs text-amber-500"></i>
                         <span>Quests</span>
                     </a>
                 </div>
@@ -685,33 +685,33 @@
         <div class="space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-ghost text-orange-500 text-base"></i>
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white">Fysieke Event Items &amp; Collectibles ({{ $eventItems->count() }})</h3>
+                    <i class="fa-solid fa-box-archive text-amber-500 text-base"></i>
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white">Fysieke Event Items &amp; Permanente Collectibles ({{ $eventItems->count() }})</h3>
                 </div>
-                <a href="{{ route('halloween.shop') }}" class="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
-                    <span>Meer scoren in Shop</span> &raquo;
+                <a href="{{ route('halloween.shop') }}" class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1">
+                    <span>Meer scoren in Herfstoogst Winkel</span> &raquo;
                 </a>
             </div>
 
             @if($eventItems->isEmpty())
             <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-8 text-center shadow-xs space-y-4">
-                <div class="w-14 h-14 rounded-2xl bg-orange-100 dark:bg-orange-950/60 text-orange-500 flex items-center justify-center text-2xl mx-auto">
-                    <i class="fa-solid fa-candy-cane"></i>
+                <div class="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center text-2xl mx-auto">
+                    <i class="fa-solid fa-leaf"></i>
                 </div>
                 <div class="max-w-md mx-auto">
                     <h4 class="text-sm font-black text-slate-900 dark:text-white">Geen fysieke event-items in bezit</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                        Scoor unieke Halloween collectibles zoals het <strong>Snoepzakje (+35 Energie)</strong>, 
-                        de <strong>Behekste Voodoo Pop</strong> of de <strong>Vampier Vleermuis</strong> in de Halloween Shop!
+                        Scoor unieke Herfstoogst collectibles zoals de <strong>Warme Kruidencider (+35 Energie)</strong>,
+                        de <strong>Gouden Eikel Trofee</strong> of de <strong>Koperen Bosuil</strong> in de Herfstoogst Winkel!
                     </p>
                 </div>
                 <div class="flex items-center justify-center gap-3 pt-2">
-                    <a href="{{ route('halloween.shop') }}" class="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
+                    <a href="{{ route('halloween.shop') }}" class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-store"></i>
-                        <span>Naar Halloween Shop</span>
+                        <span>Naar Herfstoogst Winkel</span>
                     </a>
                     <a href="{{ route('halloween.quests') }}" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-scroll text-orange-500"></i>
+                        <i class="fa-solid fa-leaf text-amber-500"></i>
                         <span>Quests Spelen</span>
                     </a>
                 </div>
@@ -722,21 +722,26 @@
                 @php
                     $eItem = $eRow->item;
                     $eventSellPrice = $eItem->getDepotSellPrice();
+                    $isHalloweenItem = str_starts_with((string) ($eItem->slug ?? ''), 'halloween_');
                 @endphp
-                <div class="bg-white dark:bg-slate-900 border border-orange-500/30 rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-orange-500/60 transition-all duration-200">
+                <div class="bg-white dark:bg-slate-900 border border-amber-500/30 rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-amber-500/60 transition-all duration-200">
                     <div>
                         <!-- ITEM HEADER -->
                         <div class="flex items-start justify-between gap-2 mb-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-500 flex items-center justify-center text-lg shrink-0">
-                                    <i class="fa-solid {{ $eItem->icon ?? 'fa-ghost' }}"></i>
+                                <div class="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                                    <i class="fa-solid {{ $eItem->icon ?? 'fa-leaf' }}"></i>
                                 </div>
                                 <div>
                                     <h4 class="text-xs font-black text-slate-900 dark:text-white leading-snug">{{ $eItem->name }}</h4>
-                                    <span class="text-[10px] uppercase font-bold text-orange-500">Event Collectible</span>
+                                    @if($isHalloweenItem)
+                                        <span class="text-[10px] uppercase font-bold text-rose-500">🎃 Halloween Verzamelobject</span>
+                                    @else
+                                        <span class="text-[10px] uppercase font-bold text-amber-500">🍂 Event Collectible</span>
+                                    @endif
                                 </div>
                             </div>
-                            <span class="px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 border border-orange-200/80 dark:border-orange-800/70 font-black text-[11px] shrink-0">
+                            <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-black text-[11px] shrink-0">
                                 {{ $eRow->quantity }}x
                             </span>
                         </div>
@@ -752,12 +757,18 @@
                                 <i class="fa-solid fa-bolt text-[9px]"></i> +{{ $eItem->energy_restore }} Energie
                             </span>
                             @endif
+                            @if($isHalloweenItem)
+                            <span class="px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70">
+                                Niet meer haalbaar &bull; Blijft voor altijd behouden
+                            </span>
+                            @else
                             <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
                                 Zeldzaamheid: Legendarisch
                             </span>
                             <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 font-mono">
                                 Verkoop: €{{ number_format($eventSellPrice, 0, ',', '.') }} / stuk
                             </span>
+                            @endif
                         </div>
                     </div>
 
@@ -767,13 +778,19 @@
                         <form action="{{ route('shop.consume', $eRow->id) }}" method="POST" class="flex-1">
                             @csrf
                             <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="w-full py-2 px-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-[11px] transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-candy-cane"></i>
+                            <button type="submit" class="w-full py-2 px-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-[11px] transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-bolt"></i>
                                 <span>Consumeren</span>
                             </button>
                         </form>
                         @endif
 
+                        @if($isHalloweenItem)
+                        <div class="py-2 px-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-bold text-[10px] flex items-center justify-center gap-1 {{ $eItem->isConsumableItem() ? '' : 'flex-1' }}">
+                            <i class="fa-solid fa-shield-heart"></i>
+                            <span>Permanent Verzamelobject</span>
+                        </div>
+                        @else
                         <a href="{{ route('marketplace.index', ['type' => 'depot_item']) }}" 
                            class="py-2 px-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/70 font-bold text-[11px] transition-all duration-150 active:scale-95 flex items-center justify-center gap-1 {{ $eItem->isConsumableItem() ? '' : 'flex-1' }}">
                             <i class="fa-solid fa-shop text-[10px]"></i>
@@ -786,6 +803,7 @@
                             <i class="fa-solid fa-coins text-amber-500"></i>
                             <span>Verkopen</span>
                         </button>
+                        @endif
                     </div>
 
                 </div>
@@ -795,20 +813,26 @@
         </div>
 
         <!-- ============================================== -->
-        <!-- 2. HALLOWEEN PROFIELRANDEN (FRAMES) SHOWCASE   -->
+        <!-- 2. PROFIELKADERS (FRAMES) SHOWCASE             -->
         <!-- ============================================== -->
         <div class="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-palette text-purple-500 text-base"></i>
+                    <i class="fa-solid fa-palette text-amber-500 text-base"></i>
                     <div>
-                        <h3 class="text-sm font-black text-slate-900 dark:text-white">Halloween Profielranden &amp; Frames</h3>
-                        <p class="text-[11px] text-slate-400">Verlicht je avatar met griezelige borders en speciale neon animaties.</p>
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white">Profielkaders &amp; Avatar Frames Collectie</h3>
+                        <p class="text-[11px] text-slate-400">Inclusief jouw permanente Halloween-verzamelobjecten (Niet meer haalbaar) en nieuwe Herfstoogst-kaders (Haalbaar).</p>
                     </div>
                 </div>
-                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">
-                    {{ count($unlockedBorders) }} / {{ count($borderCatalog) }} Vrijgespeeld
-                </span>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                        {{ count($unlockedBorders) }} / {{ count($borderCatalog) }} Vrijgespeeld
+                    </span>
+                    <a href="{{ route('borders.index') }}" class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-xs font-black hover:bg-amber-100 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-id-badge"></i>
+                        <span>Overzichtspagina Profielkaders &raquo;</span>
+                    </a>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -816,8 +840,10 @@
                 @php
                     $isUnlocked = in_array($bKey, $unlockedBorders, true);
                     $isEquipped = ($equippedBorder === $bKey);
+                    $isObtainable = (bool) ($border['obtainable'] ?? true);
+                    $statusLabel = $border['status_label'] ?? ($isObtainable ? 'Haalbaar' : 'Niet meer haalbaar');
                 @endphp
-                <div class="bg-white dark:bg-slate-900 border {{ $isEquipped ? 'border-orange-500 ring-2 ring-orange-500/30' : ($isUnlocked ? 'border-slate-200/90 dark:border-slate-700' : 'border-slate-200/90 dark:border-slate-800 opacity-80') }} rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
+                <div class="bg-white dark:bg-slate-900 border {{ $isEquipped ? 'border-amber-500 ring-2 ring-amber-500/30' : ($isUnlocked ? 'border-slate-200/90 dark:border-slate-700' : 'border-slate-200/90 dark:border-slate-800 opacity-80') }} rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-amber-300 dark:hover:border-amber-700/80 transition-all duration-200">
                     <div>
                         <!-- BORDER PREVIEW WITH AVATAR -->
                         <div class="relative w-20 h-20 mx-auto my-3 flex items-center justify-center">
@@ -826,17 +852,25 @@
                                  alt="{{ $border['name'] }}"
                                  onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                             @if($isEquipped)
-                            <span class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs shadow-md">
+                            <span class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs shadow-md">
                                 <i class="fa-solid fa-check"></i>
                             </span>
                             @endif
                         </div>
 
                         <div class="text-center mt-2">
-                            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full {{ $isUnlocked ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}">
-                                {{ $border['badge'] ?? 'Event' }}
-                            </span>
-                            <h4 class="text-xs font-black text-slate-900 dark:text-white mt-1.5">{{ $border['name'] }}</h4>
+                            <div class="flex items-center justify-center gap-1 flex-wrap">
+                                @if($isObtainable)
+                                    <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-700/60">
+                                        Haalbaar
+                                    </span>
+                                @else
+                                    <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300/60 dark:border-rose-700/60">
+                                        {{ $statusLabel }}
+                                    </span>
+                                @endif
+                            </div>
+                            <h4 class="text-xs font-black text-slate-900 dark:text-white mt-1.5">{{ $border['emoji'] ?? '' }} {{ $border['name'] }}</h4>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                                 {{ $border['description'] }}
                             </p>
@@ -859,17 +893,22 @@
                             <form action="{{ route('halloween.equip-border') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="border_key" value="{{ $bKey }}">
-                                <button type="submit" class="w-full py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-[11px] transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                <button type="submit" class="w-full py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-[11px] transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                                     <span>Activeer Rand</span>
                                 </button>
                             </form>
                             @endif
-                        @else
-                            <a href="{{ route('halloween.shop') }}" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-orange-500 hover:text-white dark:bg-slate-800 dark:hover:bg-orange-500 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 font-bold text-[11px] transition-all duration-150 active:scale-95 text-center flex items-center justify-center gap-1.5 cursor-pointer">
+                        @elseif($isObtainable)
+                            <a href="{{ route('halloween.shop') }}" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-amber-600 hover:text-white dark:bg-slate-800 dark:hover:bg-amber-600 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 font-bold text-[11px] transition-all duration-150 active:scale-95 text-center flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-lock text-[10px]"></i>
-                                <span>Kopen ({{ $border['price_seeds'] }} 🎃)</span>
+                                <span>Kopen ({{ $border['price_seeds'] }} 🍂)</span>
                             </a>
+                        @else
+                            <div class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700 font-bold text-[11px] text-center flex items-center justify-center gap-1.5 select-none">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Niet meer haalbaar</span>
+                            </div>
                         @endif
                     </div>
                 </div>

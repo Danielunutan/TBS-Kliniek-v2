@@ -26,7 +26,7 @@ class HalloweenController extends Controller
     ) {}
 
     /**
-     * Show Halloween Quests (Daily & Weekly).
+     * Show Autumn Event Quests (Daily & Weekly).
      */
     public function quests(): View
     {
@@ -47,7 +47,41 @@ class HalloweenController extends Controller
     }
 
     /**
-     * Claim reward for a completed Halloween Quest.
+     * Show the complete Profile Borders Overview page (/profielkaders).
+     */
+    public function bordersIndex(Request $request): View
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+        $this->energyService->refresh($character);
+
+        $allBorders = HalloweenService::getBorders();
+        $obtainableBorders = HalloweenService::getObtainableBorders();
+        $retiredBorders = HalloweenService::getRetiredBorders();
+        $unlockedBorders = $character->unlocked_borders ?? [];
+
+        $sort = in_array($request->query('sort'), ['event', 'status'], true)
+            ? (string) $request->query('sort')
+            : 'event';
+
+        $filter = in_array($request->query('filter'), ['all', 'obtainable', 'unobtainable', 'owned'], true)
+            ? (string) $request->query('filter')
+            : 'all';
+
+        return view('game.borders.index', [
+            'character' => $character,
+            'allBorders' => $allBorders,
+            'obtainableBorders' => $obtainableBorders,
+            'retiredBorders' => $retiredBorders,
+            'unlockedBorders' => $unlockedBorders,
+            'sort' => $sort,
+            'filter' => $filter,
+        ]);
+    }
+
+    /**
+     * Claim reward for a completed Autumn Event Quest.
      */
     public function claimQuest(Request $request, string $questKey): RedirectResponse
     {
@@ -56,7 +90,7 @@ class HalloweenController extends Controller
         $character = $user->character;
 
         if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen Halloween quests claimen!');
+            return back()->with('error', 'Vanuit de isoleercel kun je geen Herfstoogst quests claimen!');
         }
 
         if ($character->isComatose()) {
@@ -65,7 +99,7 @@ class HalloweenController extends Controller
 
         $allQuests = array_merge(HalloweenService::DAILY_QUESTS, HalloweenService::WEEKLY_QUESTS);
         if (! array_key_exists($questKey, $allQuests)) {
-            return back()->with('error', 'Onbekende Halloween quest.');
+            return back()->with('error', 'Onbekende evenement quest.');
         }
 
         $quest = $allQuests[$questKey];
@@ -122,11 +156,11 @@ class HalloweenController extends Controller
             return back()->with('info', 'Je hebt de beloning voor deze quest al geclaimd.');
         }
 
-        return back()->with('success', "🎉 Quest voltooid! Je hebt +{$quest['seeds']} Pompoenpitten 🎃 en alle quest-bonussen geclaimd!");
+        return back()->with('success', "🍂 Quest voltooid! Je hebt +{$quest['seeds']} Gouden Eikels 🍂 en alle quest-bonussen geclaimd!");
     }
 
     /**
-     * Show Halloween Shop.
+     * Show Autumn Event Shop.
      */
     public function shop(): View
     {
@@ -141,18 +175,20 @@ class HalloweenController extends Controller
         $borders = array_filter($items, fn ($i) => $i['category'] === 'borders');
         $collectibles = array_filter($items, fn ($i) => $i['category'] === 'collectibles');
         $boosts = array_filter($items, fn ($i) => $i['category'] === 'boosts');
+        $retiredBorders = HalloweenService::getRetiredBorders();
 
         return view('game.halloween.shop', [
             'character' => $character,
             'timeRemaining' => $timeRemaining,
             'borders' => $borders,
+            'retiredBorders' => $retiredBorders,
             'collectibles' => $collectibles,
             'boosts' => $boosts,
         ]);
     }
 
     /**
-     * Buy an item from the Halloween Shop using Pumpkin Seeds.
+     * Buy an item from the Autumn Event Shop using Golden Acorns (Gouden Eikels).
      */
     public function buy(Request $request): RedirectResponse
     {
@@ -165,7 +201,7 @@ class HalloweenController extends Controller
         $character = $user->character;
 
         if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen Halloween items kopen!');
+            return back()->with('error', 'Vanuit de isoleercel kun je geen evenement-items kopen!');
         }
 
         if ($character->isComatose()) {
@@ -173,18 +209,27 @@ class HalloweenController extends Controller
         }
 
         $itemKey = $validated['item_key'];
+
+        if (in_array($itemKey, HalloweenService::RETIRED_HALLOWEEN_ITEMS, true)) {
+            return back()->with('error', 'Dit Halloween-onderdeel maakt deel uit van het afgelopen Halloween-event en is niet meer haalbaar! Spelers die het hebben geclaimd behouden het als permanent verzamelobject.');
+        }
+
         if (! array_key_exists($itemKey, HalloweenService::SHOP_ITEMS)) {
-            return back()->with('error', 'Dit Halloween item is niet te vinden in de shop.');
+            return back()->with('error', 'Dit item is niet te vinden in de Herfstoogst Winkel.');
         }
 
         $item = HalloweenService::SHOP_ITEMS[$itemKey];
         $price = $item['price_seeds'];
 
-        if ($item['type'] === 'border' && $character->hasBorder($itemKey)) {
-            return back()->with('info', 'Je bezit deze Halloween profielrand al!');
+        if ($item['type'] === 'border' && ! ($item['obtainable'] ?? true)) {
+            return back()->with('error', 'Dit profielkader is niet meer haalbaar.');
         }
 
-        $isKnownBoost = $item['type'] === 'boost' && in_array($itemKey, ['witch_brew', 'pumpkin_mask', 'grim_blessing'], true);
+        if ($item['type'] === 'border' && $character->hasBorder($itemKey)) {
+            return back()->with('info', 'Je bezit dit profielkader al!');
+        }
+
+        $isKnownBoost = $item['type'] === 'boost' && in_array($itemKey, ['autumn_stew', 'mist_cloak_pack', 'harvest_blessing'], true);
         if (! in_array($item['type'], ['border', 'collectible'], true) && ! $isKnownBoost) {
             return back()->with('error', 'Kon aankoop niet verwerken.');
         }
@@ -194,13 +239,13 @@ class HalloweenController extends Controller
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
             if ($item['type'] === 'border' && $locked->hasBorder($itemKey)) {
-                return back()->with('info', 'Je bezit deze Halloween profielrand al!');
+                return back()->with('info', 'Je bezit dit profielkader al!');
             }
 
             if (($locked->pumpkin_seeds ?? 0) < $price) {
                 $short = $price - ($locked->pumpkin_seeds ?? 0);
 
-                return back()->with('error', "Onvoldoende Pompoenpitten! Je hebt {$price} 🎃 nodig (je komt er {$short} te kort). Voltooi Halloween Quests om meer pitten te verdienen!");
+                return back()->with('error', "Onvoldoende Gouden Eikels! Je hebt {$price} 🍂 nodig (je komt er {$short} te kort). Voltooi Herfstoogst Quests om meer eikels te verdienen!");
             }
 
             $locked->pumpkin_seeds -= $price;
@@ -210,17 +255,17 @@ class HalloweenController extends Controller
                 $locked->equipped_border = $itemKey;
                 $locked->save();
 
-                return back()->with('success', "🎃 {$item['name']} succesvol gekocht en direct geactiveerd op je profiel!");
+                return back()->with('success', "🍂 {$item['name']} succesvol gekocht en direct geactiveerd op je profiel!");
             }
 
             if ($item['type'] === 'collectible') {
                 $locked->save();
 
                 $dbItem = Item::firstOrCreate(
-                    ['slug' => 'halloween_'.$itemKey],
+                    ['slug' => 'autumn_'.$itemKey],
                     [
                         'name' => $item['name'],
-                        'slug' => 'halloween_'.$itemKey,
+                        'slug' => 'autumn_'.$itemKey,
                         'description' => $item['description'],
                         'category' => $item['consumable'] ? 'consumable' : 'special',
                         'rarity' => 'legendary',
@@ -247,28 +292,28 @@ class HalloweenController extends Controller
                     ]);
                 }
 
-                return back()->with('success', "🎃 {$item['name']} toegevoegd aan je inventaris en cel!");
+                return back()->with('success', "🍂 {$item['name']} toegevoegd aan je inventaris en cel!");
             }
 
-            if ($itemKey === 'witch_brew') {
+            if ($itemKey === 'autumn_stew') {
                 $locked->health = $locked->max_health;
                 $locked->energy = min($locked->max_energy, $locked->energy + 75);
                 $locked->save();
 
-                return back()->with('success', '🧪 Je dronk het Heksenbrouwsel! 100% Gezondheid hersteld en direct +75 Energie ontvangen!');
+                return back()->with('success', '🍲 Je at de Krachtige Wildstoofpot! 100% Gezondheid hersteld en direct +75 Energie ontvangen!');
             }
 
-            if ($itemKey === 'pumpkin_mask') {
+            if ($itemKey === 'mist_cloak_pack') {
                 $locked->masks = ($locked->masks ?? 0) + 5;
                 $locked->save();
 
-                return back()->with('success', "🎭 +5 Jack-O'-Lantern maskers ontvangen! Je kunt nu 5x ongemerkt zakkenrollen.");
+                return back()->with('success', '🧣 +5 Herfstnevel maskers ontvangen! Je kunt nu 5x ongemerkt zakkenrollen.');
             }
 
             $locked->addPerk('magere_hein_zegening', 24);
             $locked->save();
 
-            return back()->with('success', '💀 Magere Hein Zegening actief! Je ontvangt de komende 24 uur +15% extra Kracht & Verdediging!');
+            return back()->with('success', '🌾 Zegening van de Oogst actief! Je ontvangt de komende 24 uur +15% extra Kracht & Verdediging!');
         });
     }
 
@@ -303,12 +348,17 @@ class HalloweenController extends Controller
         }
 
         if (! $character->hasBorder($key)) {
-            return back()->with('error', 'Je hebt deze profielrand nog niet vrijgespeeld in de Halloween Shop.');
+            return back()->with('error', 'Je hebt dit profielkader niet in je bezit.');
         }
+
+        $allBorders = HalloweenService::getBorders();
+        $borderInfo = $allBorders[$key] ?? null;
+        $emoji = $borderInfo['emoji'] ?? '🍂';
+        $name = $borderInfo['name'] ?? 'Profielkader';
 
         $character->equipped_border = $key;
         $character->save();
 
-        return back()->with('success', '🎃 Jouw Halloween profielrand is succesvol ingesteld!');
+        return back()->with('success', "{$emoji} Jouw profielkader '{$name}' is succesvol ingesteld!");
     }
 }

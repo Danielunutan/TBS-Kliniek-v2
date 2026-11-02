@@ -190,12 +190,15 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/rookie/claim/{taskKey}', [RookieQuestController::class, 'claim'])->middleware('throttle:30,1')->name('rookie.claim');
     Route::post('/rookie/tour/complete', [RookieQuestController::class, 'completeTour'])->middleware('throttle:10,1')->name('rookie.tour.complete');
 
-    // Halloween Event 🎃 (Quests & Shop) - Active until 5 November
+    // Herfstoogst Event 🍂 (Quests, Shop & Profielkaders Overzicht)
     Route::get('/event/quests', [HalloweenController::class, 'quests'])->name('halloween.quests');
+    Route::get('/herfst/quests', [HalloweenController::class, 'quests'])->name('autumn.quests');
     Route::post('/event/quests/{questKey}/claim', [HalloweenController::class, 'claimQuest'])->name('halloween.claim-quest');
     Route::get('/event/shop', [HalloweenController::class, 'shop'])->name('halloween.shop');
+    Route::get('/herfst/shop', [HalloweenController::class, 'shop'])->name('autumn.shop');
     Route::post('/event/shop/buy', [HalloweenController::class, 'buy'])->name('halloween.buy');
     Route::post('/event/shop/equip-border', [HalloweenController::class, 'equipBorder'])->name('halloween.equip-border');
+    Route::get('/profielkaders', [HalloweenController::class, 'bordersIndex'])->name('borders.index');
 
     // Live Openbare Chat & Privé Messenger (Nieuw)
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');

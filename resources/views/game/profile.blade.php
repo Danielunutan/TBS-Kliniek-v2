@@ -298,13 +298,18 @@
                             @endif
 
                             @if($profileBorder)
-                            <a href="{{ route('halloween.shop') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-orange-500/10 text-orange-700 dark:text-orange-300 border border-orange-400/50 hover:border-orange-500 hover:scale-105 transition shadow-xs" title="Halloween Frame: {{ $profileBorder['name'] }}">
+                            <a href="{{ route('borders.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-400/50 hover:border-amber-500 hover:scale-105 transition shadow-xs" title="Profielkader: {{ $profileBorder['name'] }} ({{ $profileBorder['status_label'] ?? 'Haalbaar' }})">
                                 <span class="text-sm">{{ $profileBorder['emoji'] }}</span>
                                 <span>{{ $profileBorder['name'] }}</span>
+                                @if(!($profileBorder['obtainable'] ?? true))
+                                    <span class="ml-1 px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                                        Niet meer haalbaar
+                                    </span>
+                                @endif
                             </a>
                             @elseif($isOwnProfile && count($unlockedBorders ?? []) > 0)
-                            <button type="button" @click="customizeModalOpen = true; activeCustomTab = 'frame'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition text-[11px] font-bold cursor-pointer" title="Kies een Halloween avatar frame">
-                                <span>🎃</span>
+                            <button type="button" @click="customizeModalOpen = true; activeCustomTab = 'frame'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-dashed border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition text-[11px] font-bold cursor-pointer" title="Kies een profielkader">
+                                <span>🍂</span>
                                 <span>Frame Kiezen</span>
                             </button>
                             @endif
@@ -352,6 +357,34 @@
                                 {{ $profileCharacter->current_location ?? 'Paviljoen 1 (Gesloten)' }}
                             </span>
                         </p>
+
+                        @php
+                            $profileUnlockedBorders = $profileCharacter->unlocked_borders ?? [];
+                            $catalogBorders = \App\Services\HalloweenService::getBorders();
+                        @endphp
+                        @if(count($profileUnlockedBorders) > 0)
+                            <div class="mt-2.5 flex flex-wrap items-center justify-center md:justify-start gap-1.5">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 mr-1">Geclaimde Kaders:</span>
+                                @foreach($profileUnlockedBorders as $uBorderKey)
+                                    @php $uBorder = $catalogBorders[$uBorderKey] ?? null; @endphp
+                                    @if($uBorder)
+                                        <a href="{{ route('borders.index') }}" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-amber-400 transition">
+                                            <span>{{ $uBorder['emoji'] }}</span>
+                                            <span>{{ $uBorder['name'] }}</span>
+                                            @if(!($uBorder['obtainable'] ?? true))
+                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300/70 dark:border-rose-700/70">
+                                                    Niet meer haalbaar
+                                                </span>
+                                            @else
+                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300/70 dark:border-emerald-700/70">
+                                                    Haalbaar
+                                                </span>
+                                            @endif
+                                        </a>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                     
                     @if(Auth::user()->character->id === $profileCharacter->id)
@@ -2036,21 +2069,26 @@
 
                 <!-- TAB: PROFIEL RANDEN / FRAMES -->
                 <div x-show="activeCustomTab === 'frame'" class="space-y-4">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
                         <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                            Kies jouw actieve Halloween Avatar Frame:
+                            Kies jouw actieve Profielkader (Avatar Frame):
                         </label>
-                        <a href="{{ route('halloween.shop') }}" class="text-xs text-orange-600 dark:text-orange-400 hover:underline font-extrabold flex items-center gap-1">
-                            <span>🎃 Halloween Shop</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </a>
+                        <div class="flex items-center gap-3">
+                            <a href="{{ route('borders.index') }}" class="text-xs text-amber-600 dark:text-amber-400 hover:underline font-extrabold flex items-center gap-1">
+                                <span>🖼️ Overzichtspagina Profielkaders</span>
+                            </a>
+                            <a href="{{ route('halloween.shop') }}" class="text-xs text-orange-600 dark:text-orange-400 hover:underline font-extrabold flex items-center gap-1">
+                                <span>🍂 Herfstoogst Winkel</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </a>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
                         <!-- Option: Geen Rand -->
                         <label @click="selectedBorder = 'none'" 
                                class="p-3.5 rounded-2xl border-2 cursor-pointer transition flex items-center justify-between gap-3"
-                               :class="selectedBorder === 'none' ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/40 shadow-xs ring-2 ring-orange-500/40' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'">
+                               :class="selectedBorder === 'none' ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/40 shadow-xs ring-2 ring-amber-500/40' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'">
                             <div class="flex items-center gap-3 min-w-0">
                                 <input type="radio" name="equipped_border" value="none" x-model="selectedBorder" class="sr-only">
                                 <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-sm shrink-0">
@@ -2061,17 +2099,19 @@
                                     <span class="text-[11px] text-slate-400">Gebruik de standaard stijl zonder gloed</span>
                                 </div>
                             </div>
-                            <i x-show="selectedBorder === 'none'" class="fa-solid fa-circle-check text-orange-600 dark:text-orange-400 text-sm"></i>
+                            <i x-show="selectedBorder === 'none'" class="fa-solid fa-circle-check text-amber-600 dark:text-amber-400 text-sm"></i>
                         </label>
 
-                        <!-- All Halloween Borders -->
+                        <!-- All Profile Borders (Herfstoogst Haalbaar + Geclaimde Halloween Verzamelobjecten) -->
                         @foreach($allBorders as $bKey => $border)
                             @php 
                                 $isOwned = in_array($bKey, $unlockedBorders ?? [], true);
+                                $isObtainable = (bool) ($border['obtainable'] ?? true);
+                                $statusLabel = $border['status_label'] ?? ($isObtainable ? 'Haalbaar' : 'Niet meer haalbaar');
                             @endphp
                             <label @if($isOwned) @click="selectedBorder = '{{ $bKey }}'" @endif
                                    class="p-3.5 rounded-2xl border-2 transition flex items-start justify-between gap-3 relative"
-                                   :class="!{{ $isOwned ? 'true' : 'false' }} ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30' : (selectedBorder === '{{ $bKey }}' ? 'cursor-pointer border-orange-500 bg-orange-50/50 dark:bg-orange-950/40 shadow-xs ring-2 ring-orange-500/40' : 'cursor-pointer border-slate-200 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-700')">
+                                   :class="!{{ $isOwned ? 'true' : 'false' }} ? 'opacity-55 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30' : (selectedBorder === '{{ $bKey }}' ? 'cursor-pointer border-amber-500 bg-amber-50/50 dark:bg-amber-950/40 shadow-xs ring-2 ring-amber-500/40' : 'cursor-pointer border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700')">
                                 <div class="flex items-start gap-3 min-w-0 flex-1">
                                     <input type="radio" name="equipped_border" value="{{ $bKey }}" x-model="selectedBorder" {{ !$isOwned ? 'disabled' : '' }} class="sr-only">
                                     <!-- Mini Avatar Preview with Frame and Badge -->
@@ -2082,24 +2122,40 @@
                                         <span class="absolute -bottom-1 -right-1 text-sm select-none drop-shadow">{{ $border['emoji'] }}</span>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="flex items-center justify-between gap-1">
+                                        <div class="flex items-center justify-between gap-1 flex-wrap">
                                             <span class="font-black text-xs text-slate-900 dark:text-white truncate">{{ $border['name'] }}</span>
-                                            <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300">
-                                                {{ $border['badge'] }}
-                                            </span>
+                                            @if($isObtainable)
+                                                <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-700/60">
+                                                    Haalbaar
+                                                </span>
+                                            @else
+                                                <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300/60 dark:border-rose-700/60">
+                                                    {{ $statusLabel }}
+                                                </span>
+                                            @endif
                                         </div>
                                         <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
                                             {{ $border['description'] }}
                                         </p>
-                                        @if(!$isOwned)
+                                        @if($isOwned && !$isObtainable)
+                                            <div class="mt-1 flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                                                <i class="fa-solid fa-shield-heart text-[9px]"></i>
+                                                <span>Geclaimd Verzamelobject &bull; Niet meer haalbaar</span>
+                                            </div>
+                                        @elseif(!$isOwned && $isObtainable)
                                             <div class="mt-1 flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-bold">
                                                 <i class="fa-solid fa-lock text-[9px]"></i>
-                                                <span>{{ $border['price_seeds'] }} 🎃 in Halloween Shop</span>
+                                                <span>{{ $border['price_seeds'] }} 🍂 in Herfstoogst Winkel</span>
+                                            </div>
+                                        @elseif(!$isOwned && !$isObtainable)
+                                            <div class="mt-1 flex items-center gap-1.5 text-[10px] text-rose-600 dark:text-rose-400 font-bold">
+                                                <i class="fa-solid fa-lock text-[9px]"></i>
+                                                <span>Niet meer haalbaar (Halloween 2026)</span>
                                             </div>
                                         @endif
                                     </div>
                                 </div>
-                                <i x-show="selectedBorder === '{{ $bKey }}'" class="fa-solid fa-circle-check text-orange-600 dark:text-orange-400 text-sm shrink-0 mt-1"></i>
+                                <i x-show="selectedBorder === '{{ $bKey }}'" class="fa-solid fa-circle-check text-amber-600 dark:text-amber-400 text-sm shrink-0 mt-1"></i>
                             </label>
                         @endforeach
                     </div>

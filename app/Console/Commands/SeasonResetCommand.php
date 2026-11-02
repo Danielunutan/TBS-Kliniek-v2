@@ -169,9 +169,20 @@ class SeasonResetCommand extends Command
             foreach ($tablesToTruncate as $table) {
                 if (Schema::hasTable($table)) {
                     if (! $isDryRun) {
-                        DB::table($table)->delete();
+                        if ($table === 'character_items' && Schema::hasTable('items')) {
+                            $preserveItemIds = DB::table('items')
+                                ->where('slug', 'like', 'halloween_%')
+                                ->orWhere('slug', 'like', 'autumn_%')
+                                ->orWhere('category', 'special')
+                                ->pluck('id');
+                            DB::table('character_items')
+                                ->whereNotIn('item_id', $preserveItemIds)
+                                ->delete();
+                        } else {
+                            DB::table($table)->delete();
+                        }
                     }
-                    $this->line("   -> Tabel [{$table}] geleegd.");
+                    $this->line("   -> Tabel [{$table}] geleegd (exclusieve event-verzamelobjecten behouden).");
                 }
             }
 

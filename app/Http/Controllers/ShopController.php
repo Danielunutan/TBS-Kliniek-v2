@@ -1240,7 +1240,11 @@ class ShopController extends Controller
                     if (! $item || $item->category === 'equipment') {
                         return false;
                     }
-                    if (in_array($item->slug, ['bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje', 'eiwitshake-bodybuilder', 'multivitaminen-focus'], true)) {
+                    if (
+                        str_starts_with((string) $item->slug, 'halloween_') ||
+                        str_starts_with((string) $item->slug, 'autumn_') ||
+                        in_array($item->slug, ['bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje', 'eiwitshake-bodybuilder', 'multivitaminen-focus'], true)
+                    ) {
                         return false;
                     }
 

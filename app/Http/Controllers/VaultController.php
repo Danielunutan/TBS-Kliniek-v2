@@ -413,7 +413,7 @@ class VaultController extends Controller
             $lockedCharacter->claimed_level_rewards = $claimedRewards;
             $lockedCharacter->save();
 
-            // Record Halloween Quest progress for cracking safes/codes
+            // Record Autumn Event Quest progress for cracking safes/codes
             HalloweenService::record($lockedCharacter, 'vault', $redeemedCount);
             EventVaultCrackingService::record($lockedCharacter, $redeemedCount, 'code_redeem');
 
@@ -422,7 +422,7 @@ class VaultController extends Controller
             $msg .= "• +{$totalStars} Exclusieve Sterren ⭐\n";
             $msg .= "• +{$masksGranted} Maskers 🎭 (voor zakkenrollen)\n";
             $msg .= "• +{$totalRespect} Respect 🔥\n";
-            $msg .= "• 🎃 Halloween Quest: +{$redeemedCount} kluis voortgang geregistreerd!";
+            $msg .= "• 🍂 Herfstoogst Quest: +{$redeemedCount} kluis voortgang geregistreerd!";
 
             return back()->with('success', $msg);
         });
