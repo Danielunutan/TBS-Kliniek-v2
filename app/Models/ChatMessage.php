@@ -42,4 +42,27 @@ class ChatMessage extends Model
     {
         return $this->belongsTo(self::class, 'reply_to_id');
     }
+
+    /**
+     * Get the names of the characters who reacted with a purple heart.
+     *
+     * @return array<int, string>
+     */
+    public function getHeartNames(): array
+    {
+        $ids = is_array($this->hearts_users) ? $this->hearts_users : [];
+        if (empty($ids)) {
+            return [];
+        }
+
+        $namesMap = Character::whereIn('id', $ids)->pluck('name', 'id')->all();
+        $names = [];
+        foreach ($ids as $id) {
+            if (isset($namesMap[$id])) {
+                $names[] = $namesMap[$id];
+            }
+        }
+
+        return $names;
+    }
 }

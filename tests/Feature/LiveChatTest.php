@@ -9,6 +9,7 @@ use App\Models\Gang;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\ChatBotService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -16,6 +17,18 @@ use Tests\TestCase;
 class LiveChatTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Carbon::setTestNow('2026-11-02 14:00:00');
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
+    }
 
     private function createInmate(array $attributes = []): array
     {
@@ -435,24 +448,118 @@ class LiveChatTest extends TestCase
 
     public function test_chat_toggle_purple_heart(): void
     {
-        [$user1, $char1] = $this->createInmate();
-        [$user2, $char2] = $this->createInmate();
+        [$user1, $char1] = $this->createInmate(['name' => 'PosterChar']);
+        [$user2, $char2] = $this->createInmate(['name' => 'ReactorChar1']);
+        [$user3, $char3] = $this->createInmate(['name' => 'ReactorChar2']);
 
-        $msgRes = $this->actingAs($user1)->postJson(route('chat.public.send'), [
+        $msgRes1 = $this->actingAs($user1)->postJson(route('chat.public.send'), [
             'channel' => 'global',
             'message' => 'Lekker bezig!',
         ]);
-        $msgId = $msgRes->json('message.id');
+        $msgId1 = $msgRes1->json('message.id');
 
-        // User 2 hearts message
-        $heart1 = $this->actingAs($user2)->postJson(route('chat.public.heart', $msgId));
+        Cache::flush();
+
+        $msgRes2 = $this->actingAs($user1)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Tweede losse bericht',
+        ]);
+        $msgId2 = $msgRes2->json('message.id');
+
+        // User 2 hearts message 1
+        $heart1 = $this->actingAs($user2)->postJson(route('chat.public.heart', $msgId1));
         $heart1->assertOk();
-        $heart1->assertJson(['success' => true, 'hearts_count' => 1, 'has_hearted' => true]);
+        $heart1->assertJson([
+            'success' => true,
+            'hearts_count' => 1,
+            'has_hearted' => true,
+            'hearts_names' => ['ReactorChar1'],
+        ]);
 
-        // User 2 unhearts message
-        $heart2 = $this->actingAs($user2)->postJson(route('chat.public.heart', $msgId));
+        // User 3 also hearts message 1
+        $heart2 = $this->actingAs($user3)->postJson(route('chat.public.heart', $msgId1));
         $heart2->assertOk();
-        $heart2->assertJson(['success' => true, 'hearts_count' => 0, 'has_hearted' => false]);
+        $heart2->assertJson([
+            'success' => true,
+            'hearts_count' => 2,
+            'has_hearted' => true,
+            'hearts_names' => ['ReactorChar1', 'ReactorChar2'],
+        ]);
+
+        // Verify message 2 remains unhearted (isolation per separate chat message)
+        $fetchRes = $this->actingAs($user1)->getJson(route('chat.public.messages', ['channel' => 'global']));
+        $fetchRes->assertOk();
+        $messages = collect($fetchRes->json('messages'));
+        $fetchedMsg1 = $messages->firstWhere('id', $msgId1);
+        $fetchedMsg2 = $messages->firstWhere('id', $msgId2);
+
+        $this->assertEquals(2, $fetchedMsg1['hearts_count']);
+        $this->assertEquals(['ReactorChar1', 'ReactorChar2'], $fetchedMsg1['hearts_names']);
+        $this->assertEquals(0, $fetchedMsg2['hearts_count']);
+        $this->assertEquals([], $fetchedMsg2['hearts_names']);
+
+        // User 2 unhearts message 1
+        $heart3 = $this->actingAs($user2)->postJson(route('chat.public.heart', $msgId1));
+        $heart3->assertOk();
+        $heart3->assertJson([
+            'success' => true,
+            'hearts_count' => 1,
+            'has_hearted' => false,
+            'hearts_names' => ['ReactorChar2'],
+        ]);
+    }
+
+    public function test_direct_message_toggle_purple_heart_shows_reacting_user(): void
+    {
+        [$user1, $char1] = $this->createInmate(['name' => 'DmSender']);
+        [$user2, $char2] = $this->createInmate(['name' => 'DmRecipient']);
+
+        $sendDm = $this->actingAs($user1)->postJson(route('chat.direct.send', $char2->id), [
+            'message' => 'Zie je straks bij de kluis',
+        ]);
+        $dmId = $sendDm->json('message.id');
+
+        // Recipient hearts the DM
+        $heart1 = $this->actingAs($user2)->postJson(route('chat.direct.heart', $dmId));
+        $heart1->assertOk();
+        $heart1->assertJson([
+            'success' => true,
+            'hearts_count' => 1,
+            'has_hearted' => true,
+            'hearts_names' => ['DmRecipient'],
+        ]);
+
+        // Thread includes hearts_names
+        $thread = $this->actingAs($user1)->getJson(route('chat.direct.messages', $char2->id));
+        $thread->assertOk();
+        $dmItem = collect($thread->json('messages'))->firstWhere('id', $dmId);
+        $this->assertEquals(1, $dmItem['hearts_count']);
+        $this->assertEquals(['DmRecipient'], $dmItem['hearts_names']);
+
+        // Recipient unhearts DM
+        $heart2 = $this->actingAs($user2)->postJson(route('chat.direct.heart', $dmId));
+        $heart2->assertOk();
+        $heart2->assertJson([
+            'success' => true,
+            'hearts_count' => 0,
+            'has_hearted' => false,
+            'hearts_names' => [],
+        ]);
+    }
+
+    public function test_chat_views_contain_heart_hover_tooltip_and_popup(): void
+    {
+        $chatIndexView = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+        $miniChatView = file_get_contents(resource_path('views/partials/mini_chat_and_report_modal.blade.php'));
+
+        foreach ([$chatIndexView, $miniChatView] as $source) {
+            $this->assertStringContainsString('formatHeartsNames', $source);
+            $this->assertStringContainsString('getHeartsTooltip', $source);
+            $this->assertStringContainsString('@mouseenter="showTooltip = true"', $source);
+            $this->assertStringContainsString('@mouseleave="showTooltip = false"', $source);
+            $this->assertStringContainsString('role="tooltip"', $source);
+            $this->assertStringContainsString(':title="getHeartsTooltip(', $source);
+        }
     }
 
     public function test_moderator_can_delete_messages(): void

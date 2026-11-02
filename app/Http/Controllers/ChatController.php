@@ -172,7 +172,15 @@ class ChatController extends Controller
             || in_array($user->role, ['moderator', 'admin', 'owner'], true)
         );
 
-        $formatted = $messages->map(function (ChatMessage $msg) use ($character, $isViewerStaff) {
+        $allHeartUserIds = $messages->flatMap(function (ChatMessage $m) {
+            return is_array($m->hearts_users) ? $m->hearts_users : [];
+        })->filter()->unique()->values();
+
+        $heartUserNames = $allHeartUserIds->isNotEmpty()
+            ? Character::whereIn('id', $allHeartUserIds)->pluck('name', 'id')->all()
+            : [];
+
+        $formatted = $messages->map(function (ChatMessage $msg) use ($character, $isViewerStaff, $heartUserNames) {
             $char = $msg->character;
             $authorUser = $char?->user;
             $gang = $char?->gang;
@@ -184,6 +192,14 @@ class ChatController extends Controller
             $staffRole = $isOwner ? 'Eigenaar' : ($isAdmin ? 'Directie' : ($isMod ? 'Moderator' : null));
             $staffBadgeColor = $isOwner ? 'amber' : ($isAdmin ? 'purple' : ($isMod ? 'blue' : null));
             $vipBadge = $char?->vip_badge;
+
+            $heartUserIds = is_array($msg->hearts_users) ? $msg->hearts_users : [];
+            $heartNames = [];
+            foreach ($heartUserIds as $uId) {
+                if (isset($heartUserNames[$uId])) {
+                    $heartNames[] = $heartUserNames[$uId];
+                }
+            }
 
             return [
                 'id' => (int) $msg->id,
@@ -219,7 +235,10 @@ class ChatController extends Controller
                 'reply_to_name' => $msg->reply_to_name,
                 'reply_to_snippet' => $msg->reply_to_snippet,
                 'hearts_count' => (int) ($msg->hearts_count ?? 0),
-                'has_hearted' => in_array($character->id, $msg->hearts_users ?? [], true),
+                'has_hearted' => in_array($character->id, $heartUserIds, true),
+                'hearts_users' => array_values($heartUserIds),
+                'hearts_names' => $heartNames,
+                'hearts_text' => implode(', ', $heartNames),
                 'can_delete' => (bool) ($msg->character_id === $character->id || $isViewerStaff),
             ];
         });
@@ -477,6 +496,9 @@ class ChatController extends Controller
                 'reply_to_snippet' => $chatMsg->reply_to_snippet,
                 'hearts_count' => 0,
                 'has_hearted' => false,
+                'hearts_users' => [],
+                'hearts_names' => [],
+                'hearts_text' => '',
                 'can_delete' => (bool) ($chatMsg->character_id === $character->id || $user?->isStaff() || $user?->canModerate() || $user?->isModerator() || $user?->isAdmin() || $user?->isOwner()),
             ],
         ]);
@@ -701,11 +723,27 @@ class ChatController extends Controller
             ];
         }
 
-        $formatted = $messages->map(function (DirectMessage $msg) use ($character) {
+        $allHeartUserIds = $messages->flatMap(function (DirectMessage $m) {
+            return is_array($m->hearts_users) ? $m->hearts_users : [];
+        })->filter()->unique()->values();
+
+        $heartUserNames = $allHeartUserIds->isNotEmpty()
+            ? Character::whereIn('id', $allHeartUserIds)->pluck('name', 'id')->all()
+            : [];
+
+        $formatted = $messages->map(function (DirectMessage $msg) use ($character, $heartUserNames) {
             $senderName = $msg->sender_id === null ? '🏥 Kliniek Directie' : ($msg->sender?->name ?? 'Patiënt');
             $senderAvatar = $msg->sender_id === null
                 ? null
                 : ($msg->sender?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg'));
+
+            $heartUserIds = is_array($msg->hearts_users) ? $msg->hearts_users : [];
+            $heartNames = [];
+            foreach ($heartUserIds as $uId) {
+                if (isset($heartUserNames[$uId])) {
+                    $heartNames[] = $heartUserNames[$uId];
+                }
+            }
 
             return [
                 'id' => (int) $msg->id,
@@ -728,7 +766,10 @@ class ChatController extends Controller
                 'reply_to_name' => $msg->reply_to_name,
                 'reply_to_snippet' => $msg->reply_to_snippet,
                 'hearts_count' => (int) ($msg->hearts_count ?? 0),
-                'has_hearted' => in_array($character->id, $msg->hearts_users ?? [], true),
+                'has_hearted' => in_array($character->id, $heartUserIds, true),
+                'hearts_users' => array_values($heartUserIds),
+                'hearts_names' => $heartNames,
+                'hearts_text' => implode(', ', $heartNames),
                 'can_delete' => true,
             ];
         });
@@ -864,6 +905,9 @@ class ChatController extends Controller
                 'reply_to_snippet' => $msg->reply_to_snippet,
                 'hearts_count' => 0,
                 'has_hearted' => false,
+                'hearts_users' => [],
+                'hearts_names' => [],
+                'hearts_text' => '',
                 'can_delete' => true,
             ],
         ]);
@@ -1075,10 +1119,15 @@ class ChatController extends Controller
             $msg->hearts_count = count($hearts);
             $msg->save();
 
+            $heartNames = $msg->getHeartNames();
+
             return response()->json([
                 'success' => true,
                 'hearts_count' => $msg->hearts_count,
                 'has_hearted' => $hasHearted,
+                'hearts_users' => $hearts,
+                'hearts_names' => $heartNames,
+                'hearts_text' => implode(', ', $heartNames),
             ]);
         });
     }
@@ -1117,10 +1166,15 @@ class ChatController extends Controller
             $msg->hearts_count = count($hearts);
             $msg->save();
 
+            $heartNames = $msg->getHeartNames();
+
             return response()->json([
                 'success' => true,
                 'hearts_count' => $msg->hearts_count,
                 'has_hearted' => $hasHearted,
+                'hearts_users' => $hearts,
+                'hearts_names' => $heartNames,
+                'hearts_text' => implode(', ', $heartNames),
             ]);
         });
     }

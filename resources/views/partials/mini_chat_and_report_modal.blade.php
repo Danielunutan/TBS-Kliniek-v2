@@ -479,13 +479,32 @@
                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                 <!-- Paars Hartje Reactie Knop 💜 -->
-                                <button type="button" @click="togglePublicHeart(msg)" 
-                                        :title="msg.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
-                                        class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
-                                        :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
-                                    <span>💜</span>
-                                    <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
-                                </button>
+                                <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
+                                    <button type="button" @click="togglePublicHeart(msg)" 
+                                            @mouseenter="showTooltip = true"
+                                            @mouseleave="showTooltip = false"
+                                            @focus="showTooltip = true"
+                                            @blur="showTooltip = false"
+                                            :title="getHeartsTooltip(msg)"
+                                            class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
+                                            :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
+                                        <span>💜</span>
+                                        <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                    </button>
+                                    <div x-show="showTooltip && msg.hearts_count > 0 && msg.hearts_names && msg.hearts_names.length > 0"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0 translate-y-1"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         x-transition:leave="transition ease-in duration-100"
+                                         x-transition:leave-start="opacity-100 translate-y-0"
+                                         x-transition:leave-end="opacity-0 translate-y-1"
+                                         x-cloak
+                                         role="tooltip"
+                                         class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 z-40 px-2 py-0.5 rounded-lg bg-slate-900/95 dark:bg-slate-800 text-white text-[10px] font-semibold shadow-md border border-slate-700/60 whitespace-nowrap max-w-[200px] truncate flex items-center gap-1">
+                                        <span class="text-[10px]">💜</span>
+                                        <span x-text="formatHeartsNames(msg.hearts_names)"></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -876,13 +895,32 @@
                                              x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                         <!-- Paars Hartje Reactie Knop 💜 -->
-                                        <button type="button" @click="togglePublicHeart(msg)" 
-                                                :title="msg.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
-                                                class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
-                                                :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
-                                            <span>💜</span>
-                                            <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
-                                        </button>
+                                        <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
+                                            <button type="button" @click="togglePublicHeart(msg)" 
+                                                    @mouseenter="showTooltip = true"
+                                                    @mouseleave="showTooltip = false"
+                                                    @focus="showTooltip = true"
+                                                    @blur="showTooltip = false"
+                                                    :title="getHeartsTooltip(msg)"
+                                                    class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
+                                                    :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
+                                                <span>💜</span>
+                                                <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                            </button>
+                                            <div x-show="showTooltip && msg.hearts_count > 0 && msg.hearts_names && msg.hearts_names.length > 0"
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                                 x-transition:leave-end="opacity-0 translate-y-1"
+                                                 x-cloak
+                                                 role="tooltip"
+                                                 class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 z-40 px-2 py-0.5 rounded-lg bg-slate-900/95 dark:bg-slate-800 text-white text-[10px] font-semibold shadow-md border border-slate-700/60 whitespace-nowrap max-w-[200px] truncate flex items-center gap-1">
+                                                <span class="text-[10px]">💜</span>
+                                                <span x-text="formatHeartsNames(msg.hearts_names)"></span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1310,13 +1348,32 @@
                                                 <!-- Action Buttons: Heart, Reageer, Delete -->
                                                 <div class="flex items-center gap-0.5 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 hover:opacity-100 transition shrink-0">
                                                     <!-- Paars Hartje Reactie 💜 -->
-                                                    <button type="button" @click="toggleDirectHeart(dm)" 
-                                                            :title="dm.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
-                                                            class="p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
-                                                            :class="dm.has_hearted ? 'text-purple-400 font-black' : 'text-slate-400/70 hover:text-purple-400'">
-                                                        <span>💜</span>
-                                                        <span x-show="dm.hearts_count > 0" x-text="dm.hearts_count" class="text-[9px] font-black font-mono"></span>
-                                                    </button>
+                                                    <div class="relative inline-flex items-center" x-data="{ showTooltip: false }">
+                                                        <button type="button" @click="toggleDirectHeart(dm)" 
+                                                                @mouseenter="showTooltip = true"
+                                                                @mouseleave="showTooltip = false"
+                                                                @focus="showTooltip = true"
+                                                                @blur="showTooltip = false"
+                                                                :title="getHeartsTooltip(dm)"
+                                                                class="p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
+                                                                :class="dm.has_hearted ? 'text-purple-400 font-black' : 'text-slate-400/70 hover:text-purple-400'">
+                                                            <span>💜</span>
+                                                            <span x-show="dm.hearts_count > 0" x-text="dm.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                                        </button>
+                                                        <div x-show="showTooltip && dm.hearts_count > 0 && dm.hearts_names && dm.hearts_names.length > 0"
+                                                             x-transition:enter="transition ease-out duration-150"
+                                                             x-transition:enter-start="opacity-0 translate-y-1"
+                                                             x-transition:enter-end="opacity-100 translate-y-0"
+                                                             x-transition:leave="transition ease-in duration-100"
+                                                             x-transition:leave-start="opacity-100 translate-y-0"
+                                                             x-transition:leave-end="opacity-0 translate-y-1"
+                                                             x-cloak
+                                                             role="tooltip"
+                                                             class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 z-40 px-2 py-0.5 rounded-lg bg-slate-900/95 dark:bg-slate-800 text-white text-[10px] font-semibold shadow-md border border-slate-700/60 whitespace-nowrap max-w-[200px] truncate flex items-center gap-1">
+                                                            <span class="text-[10px]">💜</span>
+                                                            <span x-text="formatHeartsNames(dm.hearts_names)"></span>
+                                                        </div>
+                                                    </div>
 
                                                     <!-- Reageer -->
                                                     <template x-if="!activeDirectPartner?.is_bot && !dm.is_bot">
@@ -2455,6 +2512,9 @@
                     if (data.success) {
                         msg.hearts_count = data.hearts_count;
                         msg.has_hearted = data.has_hearted;
+                        if (data.hearts_names !== undefined) {
+                            msg.hearts_names = data.hearts_names;
+                        }
                     }
                 } catch(e) {}
             },
@@ -2472,8 +2532,25 @@
                     if (data.success) {
                         dm.hearts_count = data.hearts_count;
                         dm.has_hearted = data.has_hearted;
+                        if (data.hearts_names !== undefined) {
+                            dm.hearts_names = data.hearts_names;
+                        }
                     }
                 } catch(e) {}
+            },
+
+            formatHeartsNames(names) {
+                if (!names || !Array.isArray(names) || names.length === 0) {
+                    return '';
+                }
+                return names.join(', ');
+            },
+
+            getHeartsTooltip(item) {
+                if (item && item.hearts_count > 0 && Array.isArray(item.hearts_names) && item.hearts_names.length > 0) {
+                    return item.hearts_names.join(', ');
+                }
+                return item && item.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)';
             },
 
             deletePublicMessage(msgId) {
