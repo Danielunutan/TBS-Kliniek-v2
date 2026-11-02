@@ -102,7 +102,9 @@ function tbsLiveMessenger(config) {
         showEmojiPicker: false,
         activeEmojiTab: 'tbs',
         emojiSearchQuery: '',
+        emojiRecentVersion: 0,
         getEmojiList() {
+            void this.emojiRecentVersion;
             if (window.searchTbsEmojis) {
                 return window.searchTbsEmojis(this.emojiSearchQuery, this.activeEmojiTab);
             }
@@ -219,9 +221,14 @@ function tbsLiveMessenger(config) {
         },
 
         insertEmoji(emoji) {
+            const maxLen = this.activeTab === 'direct' ? 500 : 250;
+            if ((this.messageInput + emoji).length > maxLen) {
+                return;
+            }
             this.messageInput += emoji;
             if (window.addTbsRecentEmoji) {
                 window.addTbsRecentEmoji(emoji.trim());
+                this.emojiRecentVersion++;
             }
             this.$nextTick(() => {
                 if (this.$refs.messageInputField) {
@@ -2132,20 +2139,20 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                     <span class="font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400"
                                           x-text="emojiSearchQuery.trim() ? ('Zoekresultaten (' + getEmojiList().length + ')') : (activeEmojiTab === 'recent' ? 'Recent gebruikt' : (window.TBS_EMOJI_LIBRARY[activeEmojiTab]?.label || ''))"></span>
                                     <span x-show="!emojiSearchQuery.trim() && activeEmojiTab === 'recent'" 
-                                          @click="localStorage.removeItem('tbs_recent_emojis'); activeEmojiTab = 'tbs'" 
+                                          @click="localStorage.removeItem('tbs_recent_emojis'); emojiRecentVersion++; activeEmojiTab = 'tbs'" 
                                           class="text-[9px] text-rose-500 hover:underline cursor-pointer">Wissen</span>
                                 </div>
 
                                 <!-- Emoji Grid -->
                                 <div class="max-h-56 sm:max-h-64 overflow-y-auto pr-1 custom-scrollbar min-h-[140px]">
                                     <div class="grid grid-cols-7 sm:grid-cols-8 gap-1">
-                                        <template x-for="(item, idx) in getEmojiList()" :key="idx">
+                                        <template x-for="(item, idx) in getEmojiList()" :key="(item.isCustom ? (item.item?.code || 'c') : item.char) + '_' + idx">
                                             <button type="button" 
-                                                    @click="item.isCustom ? insertEmoji(item.item.shortcode + ' ') : insertEmoji(item.char)" 
+                                                    @click="item.isCustom ? insertEmoji((item.item?.shortcode || '') + ' ') : insertEmoji(item.char)" 
                                                     class="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-120 active:scale-90" 
-                                                    :title="item.isCustom ? (item.item.name + ' (' + item.item.shortcode + ')') : item.char">
-                                                <template x-if="item.isCustom">
-                                                    <img :src="item.item.url" :alt="item.item.shortcode" class="w-6 h-6 object-contain pointer-events-none" loading="lazy" />
+                                                    :title="item.isCustom ? ((item.item?.name || '') + ' (' + (item.item?.shortcode || '') + ')') : item.char">
+                                                <template x-if="item.isCustom && item.item">
+                                                    <img :src="item.item?.url" :alt="item.item?.shortcode" class="w-6 h-6 object-contain pointer-events-none" loading="lazy" />
                                                 </template>
                                                 <template x-if="!item.isCustom">
                                                     <span class="leading-none select-none text-lg sm:text-xl" x-text="item.char"></span>
@@ -2155,7 +2162,12 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                     </div>
                                     <template x-if="getEmojiList().length === 0">
                                         <div class="py-6 text-center text-slate-400 text-xs">
-                                            Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".
+                                            <template x-if="emojiSearchQuery.trim()">
+                                                <span>Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".</span>
+                                            </template>
+                                            <template x-if="!emojiSearchQuery.trim()">
+                                                <span>Nog geen recent gebruikte emoji's.</span>
+                                            </template>
                                         </div>
                                     </template>
                                 </div>

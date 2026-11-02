@@ -573,20 +573,20 @@
                                 <span class="font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400"
                                       x-text="emojiSearchQuery.trim() ? ('Zoekresultaten (' + getEmojiList().length + ')') : (activeEmojiTab === 'recent' ? 'Recent gebruikt' : (window.TBS_EMOJI_LIBRARY[activeEmojiTab]?.label || ''))"></span>
                                 <span x-show="!emojiSearchQuery.trim() && activeEmojiTab === 'recent'" 
-                                      @click="localStorage.removeItem('tbs_recent_emojis'); activeEmojiTab = 'tbs'" 
+                                      @click="localStorage.removeItem('tbs_recent_emojis'); emojiRecentVersion++; activeEmojiTab = 'tbs'" 
                                       class="text-[9px] text-rose-500 hover:underline cursor-pointer">Wissen</span>
                             </div>
 
                             <!-- Emoji Grid -->
                             <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar min-h-[120px]">
                                 <div class="grid grid-cols-7 gap-1">
-                                    <template x-for="(item, idx) in getEmojiList()" :key="idx">
+                                    <template x-for="(item, idx) in getEmojiList()" :key="(item.isCustom ? (item.item?.code || 'c') : item.char) + '_' + idx">
                                         <button type="button" 
-                                                @click="item.isCustom ? insertEmoji(item.item.shortcode + ' ') : insertEmoji(item.char)" 
+                                                @click="item.isCustom ? insertEmoji((item.item?.shortcode || '') + ' ') : insertEmoji(item.char)" 
                                                 class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
-                                                :title="item.isCustom ? (item.item.name + ' (' + item.item.shortcode + ')') : item.char">
-                                            <template x-if="item.isCustom">
-                                                <img :src="item.item.url" :alt="item.item.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
+                                                :title="item.isCustom ? ((item.item?.name || '') + ' (' + (item.item?.shortcode || '') + ')') : item.char">
+                                            <template x-if="item.isCustom && item.item">
+                                                <img :src="item.item?.url" :alt="item.item?.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
                                             </template>
                                             <template x-if="!item.isCustom">
                                                 <span class="leading-none select-none text-base" x-text="item.char"></span>
@@ -596,7 +596,12 @@
                                 </div>
                                 <template x-if="getEmojiList().length === 0">
                                     <div class="py-4 text-center text-slate-400 text-xs">
-                                        Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".
+                                        <template x-if="emojiSearchQuery.trim()">
+                                            <span>Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".</span>
+                                        </template>
+                                        <template x-if="!emojiSearchQuery.trim()">
+                                            <span>Nog geen recent gebruikte emoji's.</span>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
@@ -961,20 +966,20 @@
                                         <span class="font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400"
                                               x-text="emojiSearchQuery.trim() ? ('Zoekresultaten (' + getEmojiList().length + ')') : (activeEmojiTab === 'recent' ? 'Recent gebruikt' : (window.TBS_EMOJI_LIBRARY[activeEmojiTab]?.label || ''))"></span>
                                         <span x-show="!emojiSearchQuery.trim() && activeEmojiTab === 'recent'" 
-                                              @click="localStorage.removeItem('tbs_recent_emojis'); activeEmojiTab = 'tbs'" 
+                                              @click="localStorage.removeItem('tbs_recent_emojis'); emojiRecentVersion++; activeEmojiTab = 'tbs'" 
                                               class="text-[9px] text-rose-500 hover:underline cursor-pointer">Wissen</span>
                                     </div>
 
                                     <!-- Emoji Grid -->
                                     <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar min-h-[120px]">
                                         <div class="grid grid-cols-7 gap-1">
-                                            <template x-for="(item, idx) in getEmojiList()" :key="idx">
+                                            <template x-for="(item, idx) in getEmojiList()" :key="(item.isCustom ? (item.item?.code || 'c') : item.char) + '_' + idx">
                                                 <button type="button" 
-                                                        @click="item.isCustom ? insertGangEmoji(item.item.shortcode + ' ') : insertGangEmoji(item.char)" 
+                                                        @click="item.isCustom ? insertGangEmoji((item.item?.shortcode || '') + ' ') : insertGangEmoji(item.char)" 
                                                         class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
-                                                        :title="item.isCustom ? (item.item.name + ' (' + item.item.shortcode + ')') : item.char">
-                                                    <template x-if="item.isCustom">
-                                                        <img :src="item.item.url" :alt="item.item.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
+                                                        :title="item.isCustom ? ((item.item?.name || '') + ' (' + (item.item?.shortcode || '') + ')') : item.char">
+                                                    <template x-if="item.isCustom && item.item">
+                                                        <img :src="item.item?.url" :alt="item.item?.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
                                                     </template>
                                                     <template x-if="!item.isCustom">
                                                         <span class="leading-none select-none text-base" x-text="item.char"></span>
@@ -984,7 +989,12 @@
                                         </div>
                                         <template x-if="getEmojiList().length === 0">
                                             <div class="py-4 text-center text-slate-400 text-xs">
-                                                Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".
+                                                <template x-if="emojiSearchQuery.trim()">
+                                                    <span>Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".</span>
+                                                </template>
+                                                <template x-if="!emojiSearchQuery.trim()">
+                                                    <span>Nog geen recent gebruikte emoji's.</span>
+                                                </template>
                                             </div>
                                         </template>
                                     </div>
@@ -1434,20 +1444,20 @@
                                             <span class="font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400"
                                                   x-text="emojiSearchQuery.trim() ? ('Zoekresultaten (' + getEmojiList().length + ')') : (activeEmojiTab === 'recent' ? 'Recent gebruikt' : (window.TBS_EMOJI_LIBRARY[activeEmojiTab]?.label || ''))"></span>
                                             <span x-show="!emojiSearchQuery.trim() && activeEmojiTab === 'recent'" 
-                                                  @click="localStorage.removeItem('tbs_recent_emojis'); activeEmojiTab = 'tbs'" 
+                                                  @click="localStorage.removeItem('tbs_recent_emojis'); emojiRecentVersion++; activeEmojiTab = 'tbs'" 
                                                   class="text-[9px] text-rose-500 hover:underline cursor-pointer">Wissen</span>
                                         </div>
 
                                         <!-- Emoji Grid -->
                                         <div class="max-h-48 overflow-y-auto pr-1 custom-scrollbar min-h-[120px]">
                                             <div class="grid grid-cols-7 gap-1">
-                                                <template x-for="(item, idx) in getEmojiList()" :key="idx">
+                                                <template x-for="(item, idx) in getEmojiList()" :key="(item.isCustom ? (item.item?.code || 'c') : item.char) + '_' + idx">
                                                     <button type="button" 
-                                                            @click="item.isCustom ? insertDirectEmoji(item.item.shortcode + ' ') : insertDirectEmoji(item.char)" 
+                                                            @click="item.isCustom ? insertDirectEmoji((item.item?.shortcode || '') + ' ') : insertDirectEmoji(item.char)" 
                                                             class="h-7 w-7 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 flex items-center justify-center transition cursor-pointer shrink-0 hover:scale-115 active:scale-90" 
-                                                            :title="item.isCustom ? (item.item.name + ' (' + item.item.shortcode + ')') : item.char">
-                                                        <template x-if="item.isCustom">
-                                                            <img :src="item.item.url" :alt="item.item.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
+                                                            :title="item.isCustom ? ((item.item?.name || '') + ' (' + (item.item?.shortcode || '') + ')') : item.char">
+                                                        <template x-if="item.isCustom && item.item">
+                                                            <img :src="item.item?.url" :alt="item.item?.shortcode" class="w-5 h-5 object-contain pointer-events-none" loading="lazy" />
                                                         </template>
                                                         <template x-if="!item.isCustom">
                                                             <span class="leading-none select-none text-base" x-text="item.char"></span>
@@ -1457,7 +1467,12 @@
                                             </div>
                                             <template x-if="getEmojiList().length === 0">
                                                 <div class="py-4 text-center text-slate-400 text-xs">
-                                                    Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".
+                                                    <template x-if="emojiSearchQuery.trim()">
+                                                        <span>Geen emoji's gevonden voor "<span class="font-bold" x-text="emojiSearchQuery"></span>".</span>
+                                                    </template>
+                                                    <template x-if="!emojiSearchQuery.trim()">
+                                                        <span>Nog geen recent gebruikte emoji's.</span>
+                                                    </template>
                                                 </div>
                                             </template>
                                         </div>
@@ -1848,7 +1863,9 @@
             showEmojiPicker: false,
             activeEmojiTab: 'tbs',
             emojiSearchQuery: '',
+            emojiRecentVersion: 0,
             getEmojiList() {
+                void this.emojiRecentVersion;
                 if (window.searchTbsEmojis) {
                     return window.searchTbsEmojis(this.emojiSearchQuery, this.activeEmojiTab);
                 }
@@ -2396,18 +2413,33 @@
             },
 
             insertEmoji(emoji) {
+                if (this.isInPrison || this.isComatose) return;
+                if ((this.inputMessage + emoji).length > 250) return;
                 this.inputMessage += emoji;
-                if (window.addTbsRecentEmoji) window.addTbsRecentEmoji(emoji.trim());
+                if (window.addTbsRecentEmoji) {
+                    window.addTbsRecentEmoji(emoji.trim());
+                    this.emojiRecentVersion++;
+                }
             },
 
             insertGangEmoji(emoji) {
+                if (this.isInPrison || this.isComatose) return;
+                if ((this.gangInputMessage + emoji).length > 250) return;
                 this.gangInputMessage += emoji;
-                if (window.addTbsRecentEmoji) window.addTbsRecentEmoji(emoji.trim());
+                if (window.addTbsRecentEmoji) {
+                    window.addTbsRecentEmoji(emoji.trim());
+                    this.emojiRecentVersion++;
+                }
             },
 
             insertDirectEmoji(emoji) {
+                if (this.isInPrison || this.isComatose) return;
+                if ((this.directInput + emoji).length > 500) return;
                 this.directInput += emoji;
-                if (window.addTbsRecentEmoji) window.addTbsRecentEmoji(emoji.trim());
+                if (window.addTbsRecentEmoji) {
+                    window.addTbsRecentEmoji(emoji.trim());
+                    this.emojiRecentVersion++;
+                }
             },
 
             async togglePublicHeart(msg) {

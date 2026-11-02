@@ -707,10 +707,6 @@
                 "k": "leugenaar lange neus pinokkio liegen onzin leugen"
             },
             {
-                "e": "😌",
-                "k": "tevreden kalm vredig voldaan relax"
-            },
-            {
                 "e": "😔",
                 "k": "somber terneergeslagen verdrietig peinzend sip"
             },
@@ -2555,13 +2551,16 @@
             return list;
         }
 
-        // Mode 2: Global real-time search
+        // Mode 2: Global real-time search (supports colons like :tbs_shank: and multi-word queries)
+        const cleanQ = q.replace(/^:+|:+$/g, '').trim();
+        const tokens = (cleanQ || q).split(/\s+/).filter(Boolean);
         const results = [];
         const seen = new Set();
 
         // 2a. Match custom game emojis first
         window.TBS_CUSTOM_EMOJIS.forEach(item => {
-            if (item.code.includes(q) || item.name.toLowerCase().includes(q) || item.keywords.includes(q)) {
+            const haystack = item.code + ' ' + item.shortcode + ' ' + item.name.toLowerCase() + ' ' + item.keywords;
+            if (tokens.every(t => haystack.includes(t))) {
                 seen.add(item.code);
                 results.push({ isCustom: true, item: item });
             }
@@ -2574,7 +2573,7 @@
             if (!list) continue;
             for (let j = 0; j < list.length; j++) {
                 const item = list[j];
-                if ((item.e === q || item.k.includes(q)) && !seen.has(item.e)) {
+                if (!seen.has(item.e) && (item.e === q || tokens.every(t => item.k.includes(t)))) {
                     seen.add(item.e);
                     results.push({ isCustom: false, char: item.e });
                     if (results.length >= cap) return results;
@@ -2592,14 +2591,22 @@
         try {
             const stored = localStorage.getItem('tbs_recent_emojis');
             const arr = stored ? JSON.parse(stored) : [];
-            return arr.map(val => {
-                if (typeof val === 'string' && val.startsWith(':') && val.endsWith(':')) {
-                    const code = val.slice(1, -1);
+            if (!Array.isArray(arr)) return [];
+            const output = [];
+            for (let i = 0; i < arr.length; i++) {
+                const val = arr[i];
+                if (typeof val !== 'string' || !val) continue;
+                if (val.startsWith(':') && val.endsWith(':')) {
+                    const code = val.slice(1, -1).toLowerCase();
                     const custom = customCodeMap.get(code);
-                    if (custom) return { isCustom: true, item: custom };
+                    if (custom) {
+                        output.push({ isCustom: true, item: custom });
+                    }
+                } else {
+                    output.push({ isCustom: false, char: val });
                 }
-                return { isCustom: false, char: val };
-            });
+            }
+            return output;
         } catch(e) {
             return [];
         }
