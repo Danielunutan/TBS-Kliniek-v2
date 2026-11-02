@@ -173,10 +173,10 @@
                         @csrf
                         <input type="hidden" name="action" value="treatment_session">
                         <button type="submit" 
-                                @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 35)
+                                @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < ($treatmentSkipCost ?? 35))
                                 class="btn-star-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-star text-[11px]"></i>
-                            <span>Omzeilen (35 Sterren)</span>
+                            <span>Omzeilen ({{ $treatmentSkipCost ?? 35 }} Sterren)</span>
                         </button>
                     </form>
                 </div>

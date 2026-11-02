@@ -102,7 +102,7 @@
                 @csrf
                 <input type="hidden" name="action" value="hustle">
                 <button type="submit" 
-                        {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 10 ? 'disabled' : '' }}
+                        @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 10)
                         class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl font-black text-slate-900 dark:text-white text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-star text-[11px]"></i>
                     <span>Omzeilen (10 Sterren)</span>

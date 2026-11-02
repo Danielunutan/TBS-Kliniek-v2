@@ -101,9 +101,7 @@ class PickpocketController extends Controller
         $isScouted = (bool) session("pickpocket_scouted_{$character->id}", false);
         $alertMod = $this->calculateAlertnessModifier($alertness, $isScouted);
         $techniques = self::TECHNIQUES;
-        $ppSkipCost = $this->cooldownService->isOnCooldown($character, 'pickpocket')
-            ? $this->cooldownService->calculateDynamicSkipCost($character, 'pickpocket')
-            : $this->cooldownService->getSkipCost('pickpocket');
+        $ppSkipCost = $this->cooldownService->getSkipCost('pickpocket');
 
         return view('game.pickpocket.index', compact(
             'character',

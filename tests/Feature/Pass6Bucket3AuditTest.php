@@ -38,11 +38,11 @@ class Pass6Bucket3AuditTest extends TestCase
 
         $first = $service->skipWithStars($character, 'hustle');
         $this->assertTrue($first['success']);
-        $this->assertSame(38, $character->fresh()->stars);
+        $this->assertSame(40, $character->fresh()->stars);
 
         $second = $service->skipWithStars($character, 'hustle');
         $this->assertFalse($second['success']);
-        $this->assertSame(38, $character->fresh()->stars);
+        $this->assertSame(40, $character->fresh()->stars);
     }
 
     public function test_connect_four_stat_returns_integer_cooldown_seconds(): void

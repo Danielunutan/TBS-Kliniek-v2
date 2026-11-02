@@ -91,9 +91,11 @@
             <form method="POST" action="{{ route('cooldown.skip') }}">
                 @csrf
                 <input type="hidden" name="action" value="extort">
-                <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <button type="submit" 
+                        @disabled($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < ($extortSkipCost ?? 20))
+                        class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-star text-[11px]"></i>
-                    <span>Omzeilen ({{ $extortSkipCost ?? 10 }} Sterren)</span>
+                    <span>Omzeilen ({{ $extortSkipCost ?? 20 }} Sterren)</span>
                 </button>
             </form>
         </div>

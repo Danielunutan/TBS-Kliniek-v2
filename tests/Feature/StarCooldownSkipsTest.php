@@ -7,6 +7,7 @@ use App\Models\CharacterConnectFourStat;
 use App\Models\CharacterMemoryStat;
 use App\Models\CharacterTrueCrimeState;
 use App\Models\User;
+use App\Services\CooldownService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,7 +26,7 @@ class StarCooldownSkipsTest extends TestCase
         $user = User::factory()->create();
         $character = Character::create([
             'user_id' => $user->id,
-            'name' => 'SkipTester',
+            'name' => 'SkipTester_'.uniqid(),
             'level' => 3,
             'energy' => 100,
             'max_energy' => 100,
@@ -124,5 +125,88 @@ class StarCooldownSkipsTest extends TestCase
 
         $memStat->refresh();
         $this->assertNotNull($memStat->cooldown_until);
+    }
+
+    public function test_treatment_session_skip_costs_visually_stated_35_stars_and_clears_cooldown(): void
+    {
+        [$user, $character] = $this->createCharacterWithStars(72);
+
+        $service = app(CooldownService::class);
+        // Simulate a fresh 2-hour treatment session cooldown (~7129 seconds remaining like in screenshot)
+        $service->setCooldown($character, 'treatment_session', 7129);
+        $this->assertTrue($service->isOnCooldown($character, 'treatment_session'));
+
+        // Skip via cooldown.skip route
+        $response = $this->actingAs($user)
+            ->from(route('treatment.index'))
+            ->post(route('cooldown.skip'), ['action' => 'treatment_session']);
+
+        $response->assertRedirect(route('treatment.index'));
+        $response->assertSessionHas('success');
+        $this->assertStringContainsString('35 Sterren', session('success'));
+
+        $character->refresh();
+        // 72 starting stars - 35 stars = 37 stars
+        $this->assertEquals(37, $character->stars);
+        $this->assertFalse($service->isOnCooldown($character, 'treatment_session'));
+    }
+
+    public function test_treatment_session_skip_fails_with_exact_cost_when_stars_insufficient(): void
+    {
+        [$user, $character] = $this->createCharacterWithStars(20);
+
+        $service = app(CooldownService::class);
+        $service->setCooldown($character, 'treatment_session', 7129);
+
+        $response = $this->actingAs($user)
+            ->from(route('treatment.index'))
+            ->post(route('cooldown.skip'), ['action' => 'treatment_session']);
+
+        $response->assertRedirect(route('treatment.index'));
+        $response->assertSessionHas('error');
+        // Error message must mention the actual cost (35), not an inflated dynamic cost (273)
+        $this->assertStringContainsString('35 Sterren', session('error'));
+        $this->assertStringNotContainsString('273', session('error'));
+
+        $character->refresh();
+        $this->assertEquals(20, $character->stars);
+        $this->assertTrue($service->isOnCooldown($character, 'treatment_session'));
+    }
+
+    public function test_all_cooldown_actions_deduct_exact_base_skip_costs(): void
+    {
+        $service = app(CooldownService::class);
+
+        $cases = [
+            'hustle' => 10,
+            'pickpocket' => 10,
+            'locker' => 10,
+            'package' => 10,
+            'dagbesteding' => 10,
+            'infirmary_palm' => 10,
+            'infirmary_take' => 10,
+            'extort' => 20,
+            'produce_sigaretten' => 20,
+            'produce_ritalin' => 35,
+            'produce_wiet' => 40,
+            'produce_telefoon' => 50,
+            'treatment_session' => 35,
+        ];
+
+        foreach ($cases as $action => $expectedCost) {
+            [$user, $character] = $this->createCharacterWithStars(100);
+            $service->setCooldown($character, $action, 3600);
+
+            $res = $this->actingAs($user)->post(route('cooldown.skip'), ['action' => $action]);
+            $res->assertSessionHas('success');
+
+            $character->refresh();
+            $this->assertEquals(
+                100 - $expectedCost,
+                $character->stars,
+                "Action '{$action}' should deduct exactly {$expectedCost} stars."
+            );
+            $this->assertFalse($service->isOnCooldown($character, $action));
+        }
     }
 }

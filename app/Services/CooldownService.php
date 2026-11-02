@@ -61,6 +61,7 @@ class CooldownService
         'package' => 10,
         'dagbesteding' => 10,
         'infirmary_palm' => 10,
+        'infirmary_take' => 10,
         'tunnel_dig' => 15,
         'dropping_tennisball' => 15,
         'radar_sweep' => 10,
@@ -149,22 +150,16 @@ class CooldownService
     }
 
     /**
-     * Calculate dynamic Star cost based on base cost plus remaining cooldown duration.
-     * Prevents devaluation of Stars for skipping long cooldowns.
+     * Calculate Star cost to skip cooldown instantly.
+     * Matches the fixed base cost shown visually in the UI.
      */
     public function calculateDynamicSkipCost(Character $character, string $action): int
     {
-        $base = $this->getSkipCost($action);
-        $remainingSeconds = $this->getRemainingSeconds($character, $action);
-
-        if ($remainingSeconds <= 0) {
+        if ($this->getRemainingSeconds($character, $action) <= 0) {
             return 0;
         }
 
-        // 1 Star per 30 seconds remaining, plus base cost
-        $timeAddition = (int) ceil($remainingSeconds / 30);
-
-        return max($base, $base + $timeAddition);
+        return $this->getSkipCost($action);
     }
 
     /**
@@ -212,16 +207,16 @@ class CooldownService
             ];
         }
 
-        $cost = $this->calculateDynamicSkipCost($character, $action);
+        $cost = $this->getSkipCost($action);
 
-        if ($cost <= 0) {
+        if ($this->getRemainingSeconds($character, $action) <= 0 || $cost <= 0) {
             return [
                 'success' => false,
                 'message' => 'Er is momenteel geen actieve cooldown voor deze actie!',
             ];
         }
 
-        $deducted = DB::transaction(function () use ($character, $action, &$cost): string {
+        $deducted = DB::transaction(function () use ($character, $action, $cost): string {
             /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
             if (! $locked) {
@@ -230,7 +225,6 @@ class CooldownService
             if ($this->getRemainingSeconds($locked, $action) <= 0) {
                 return 'expired';
             }
-            $cost = $this->calculateDynamicSkipCost($locked, $action);
             if (($locked->stars ?? 0) < $cost) {
                 return 'insufficient';
             }
