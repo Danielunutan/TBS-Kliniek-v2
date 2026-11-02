@@ -170,7 +170,7 @@ Nu de spokentijd achter ons ligt, kleurt het binnenplein van de TBS Kliniek goud
 
 Wat kun je verwachten tijdens **De Gouden Herfstoogst**?
 
-- 🍂 **Nieuwe Herfst-Activiteiten & Oogstmijlpalen:** Trotseer dagelijkse en wekelijkse herfstopdrachten zoals *Vallende Bladeren, Losse Zakken*, *Storm op de Luchtplaats*, *Houthakkers Krachttraining* en *De Gouden Oogstkluis* om **Gouden Eikels (🍂)** te verzamelen!
+- 🌰 **Nieuwe Herfst-Activiteiten & Oogstmijlpalen:** Trotseer dagelijkse en wekelijkse herfstopdrachten zoals *Vallende Bladeren, Losse Zakken*, *Storm op de Luchtplaats*, *Houthakkers Krachttraining* en *De Gouden Oogstkluis* om **Gouden Eikels (🌰)** te verzamelen!
 - 🖼️ **4 Nieuwe "Haalbaar" Herfst-Profielkaders:** Verlicht je profielfoto met warme najaarskleuren en bladeren:
 - 🍂 **Vallende Herfstbladeren** *(Warme koper- en ambergloed)*
 - 🌕 **Bloedrode Oogstmaan** *(Karmozijnrode en goudgele oogstmaangloed)*

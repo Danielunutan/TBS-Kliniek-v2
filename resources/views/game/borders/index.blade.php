@@ -258,7 +258,7 @@
                                         class="w-full py-2 rounded-xl font-black text-xs shadow-xs transition flex items-center justify-center gap-1.5 {{ ($canAfford && !$character->isImprisoned() && !$character->isComatose()) ? 'bg-amber-600 hover:bg-amber-700 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed' }}">
                                     <span>Vrijschakelen voor</span>
                                     <span class="font-mono font-black">{{ $border['price_seeds'] }}</span>
-                                    <span>🍂</span>
+                                    <span>🌰</span>
                                 </button>
                             </form>
                         @endif

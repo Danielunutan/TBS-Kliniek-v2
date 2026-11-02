@@ -177,7 +177,7 @@
                     </span>
                     <div class="flex items-center gap-1.5">
                         <span class="text-[9px] font-bold text-amber-500 flex items-center gap-0.5">
-                            <i class="fa-solid fa-leaf text-[9px]"></i> {{ number_format($character?->pumpkin_seeds ?? 0, 0, ',', '.') }}
+                            <span>🌰</span> {{ number_format($character?->pumpkin_seeds ?? 0, 0, ',', '.') }}
                         </span>
                         <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('event') ? 'rotate-180' : ''"></i>
                     </div>

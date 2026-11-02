@@ -156,7 +156,7 @@ class HalloweenController extends Controller
             return back()->with('info', 'Je hebt de beloning voor deze quest al geclaimd.');
         }
 
-        return back()->with('success', "🍂 Quest voltooid! Je hebt +{$quest['seeds']} Gouden Eikels 🍂 en alle quest-bonussen geclaimd!");
+        return back()->with('success', "🌰 Quest voltooid! Je hebt +{$quest['seeds']} Gouden Eikels 🌰 en alle quest-bonussen geclaimd!");
     }
 
     /**
@@ -245,7 +245,7 @@ class HalloweenController extends Controller
             if (($locked->pumpkin_seeds ?? 0) < $price) {
                 $short = $price - ($locked->pumpkin_seeds ?? 0);
 
-                return back()->with('error', "Onvoldoende Gouden Eikels! Je hebt {$price} 🍂 nodig (je komt er {$short} te kort). Voltooi Herfstoogst Quests om meer eikels te verdienen!");
+                return back()->with('error', "Onvoldoende Gouden Eikels! Je hebt {$price} 🌰 nodig (je komt er {$short} te kort). Voltooi Herfstoogst Quests om meer eikels te verdienen!");
             }
 
             $locked->pumpkin_seeds -= $price;

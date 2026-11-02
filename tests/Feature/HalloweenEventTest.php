@@ -216,6 +216,7 @@ class HalloweenEventTest extends TestCase
         $response->assertSee('Populairste Beloning in de Shop');
         $response->assertSee('Niet meer haalbaar');
         $response->assertSee('De Gouden Herfstoogst');
+        $response->assertSee('Gouden Eikels (🌰)');
         $response->assertSee('/profielkaders');
 
         // Also verify harvest_blessing (+15% combat boost)

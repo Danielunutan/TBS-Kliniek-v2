@@ -2145,7 +2145,7 @@
                                         @elseif(!$isOwned && $isObtainable)
                                             <div class="mt-1 flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-bold">
                                                 <i class="fa-solid fa-lock text-[9px]"></i>
-                                                <span>{{ $border['price_seeds'] }} 🍂 in Herfstoogst Winkel</span>
+                                                <span>{{ $border['price_seeds'] }} 🌰 in Herfstoogst Winkel</span>
                                             </div>
                                         @elseif(!$isOwned && !$isObtainable)
                                             <div class="mt-1 flex items-center gap-1.5 text-[10px] text-rose-600 dark:text-rose-400 font-bold">

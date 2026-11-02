@@ -27,7 +27,7 @@
                         Herfstoogst Winkel &amp; Beloningen
                     </h1>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl leading-relaxed">
-                        Wissel je verdiende <strong class="text-amber-600 dark:text-amber-400">Gouden Eikels 🍂</strong> in voor warme herfst-profielkaders (<span class="text-emerald-600 dark:text-emerald-400 font-bold">Haalbaar</span>), zeldzame oogst-collectibles en krachtige najaarsboosts. Eerder geclaimde Halloween-items en kaders blijven voor altijd behouden in jouw collectie!
+                        Wissel je verdiende <strong class="text-amber-600 dark:text-amber-400">Gouden Eikels 🌰</strong> in voor warme herfst-profielkaders (<span class="text-emerald-600 dark:text-emerald-400 font-bold">Haalbaar</span>), zeldzame oogst-collectibles en krachtige najaarsboosts. Eerder geclaimde Halloween-items en kaders blijven voor altijd behouden in jouw collectie!
                     </p>
                 </div>
             </div>
@@ -36,7 +36,7 @@
             <div class="flex items-center gap-3 shrink-0">
                 <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-2xs">
                     <div class="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-lg shrink-0">
-                        🍂
+                        🌰
                     </div>
                     <div>
                         <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 block">Gouden Eikels</span>
@@ -193,7 +193,7 @@
                                         class="w-full py-2 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ ($canAfford && !$character->isImprisoned() && !$character->isComatose()) ? 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                     <span>Koop voor</span>
                                     <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-200' : 'text-slate-400 dark:text-slate-500' }}">{{ $border['price_seeds'] }}</span>
-                                    <span>🍂</span>
+                                    <span>🌰</span>
                                 </button>
                             </form>
                         @endif
@@ -259,7 +259,7 @@
                                     class="w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ ($canAfford && !$character->isImprisoned() && !$character->isComatose()) ? 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <span>Koop Item voor</span>
                                 <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-200' : 'text-slate-400 dark:text-slate-500' }}">{{ $item['price_seeds'] }}</span>
-                                <span>🍂</span>
+                                <span>🌰</span>
                             </button>
                         </form>
                     </div>
@@ -325,7 +325,7 @@
                                     class="w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ ($canAfford && !$character->isImprisoned() && !$character->isComatose()) ? 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <span>Koop Boost voor</span>
                                 <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-200' : 'text-slate-400 dark:text-slate-500' }}">{{ $boost['price_seeds'] }}</span>
-                                <span>🍂</span>
+                                <span>🌰</span>
                             </button>
                         </form>
                     </div>

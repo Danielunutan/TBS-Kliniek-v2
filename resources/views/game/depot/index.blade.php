@@ -579,7 +579,7 @@
                     </div>
                     <div class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <span>{{ number_format($pumpkinSeeds, 0, ',', '.') }}</span>
-                        <span class="text-xl">🍂</span>
+                        <span class="text-xl">🌰</span>
                     </div>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                         Verdiend met Herfstoogst Quests, zakkenrollen, vechten en trainingen.
@@ -902,7 +902,7 @@
                         @elseif($isObtainable)
                             <a href="{{ route('halloween.shop') }}" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-amber-600 hover:text-white dark:bg-slate-800 dark:hover:bg-amber-600 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 font-bold text-[11px] transition-all duration-150 active:scale-95 text-center flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-lock text-[10px]"></i>
-                                <span>Kopen ({{ $border['price_seeds'] }} 🍂)</span>
+                                <span>Kopen ({{ $border['price_seeds'] }} 🌰)</span>
                             </a>
                         @else
                             <div class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700 font-bold text-[11px] text-center flex items-center justify-center gap-1.5 select-none">

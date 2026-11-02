@@ -1178,7 +1178,7 @@
                             <span>Herfstoogst Winkel</span>
                         </div>
                         <span class="text-[9px] font-black text-amber-600 dark:text-amber-400">
-                            {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }} 🍂
+                            {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }} 🌰
                         </span>
                     </a>
                     <a href="{{ route('borders.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('borders.*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
@@ -2124,14 +2124,14 @@
                         <span class="sr-only">Respect: {{ $character->formatted_respect }} Vandaag: {{ $character->formatted_today_respect }}</span>
                     </div>
 
-                    <!-- 🍂 HERFSTOOGST GOUDEN EIKELS -->
+                    <!-- 🌰 HERFSTOOGST GOUDEN EIKELS -->
                     @if(\App\Services\HalloweenService::isEventActive() || ($character->pumpkin_seeds ?? 0) > 0)
                     <a href="{{ route('halloween.shop') }}" class="flex flex-col items-center gap-1 group" title="Gouden Eikels &bull; Klik voor Herfstoogst Winkel">
                         <span class="text-[8px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-amber-800/40 flex items-center gap-0.5">
-                            <span>🍂</span> EIKELS
+                            <span>🌰</span> EIKELS
                         </span>
                         <div class="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-black text-xs sm:text-sm leading-none group-hover:scale-105 transition-transform">
-                            <i class="fa-solid fa-leaf text-amber-500 text-xs"></i>
+                            <span class="text-xs leading-none">🌰</span>
                             <span>{{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }}</span>
                         </div>
                     </a>

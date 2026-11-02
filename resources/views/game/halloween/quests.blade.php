@@ -27,7 +27,7 @@
                         Herfstoogst Quests &amp; Mijlpalen
                     </h1>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl leading-relaxed">
-                        Voltooi dagelijkse en wekelijkse najaarsopdrachten in de kliniek en verzamel <strong class="text-amber-600 dark:text-amber-400">Gouden Eikels 🍂</strong>, contant geld, XP en respect om warme herfstbeloningen en nieuwe profielkaders vrij te spelen!
+                        Voltooi dagelijkse en wekelijkse najaarsopdrachten in de kliniek en verzamel <strong class="text-amber-600 dark:text-amber-400">Gouden Eikels 🌰</strong>, contant geld, XP en respect om warme herfstbeloningen en nieuwe profielkaders vrij te spelen!
                     </p>
                 </div>
             </div>
@@ -36,7 +36,7 @@
             <div class="flex items-center gap-3 shrink-0">
                 <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-2xs">
                     <div class="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-lg shrink-0">
-                        🍂
+                        🌰
                     </div>
                     <div>
                         <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 block">Gouden Eikels</span>
@@ -122,7 +122,7 @@
                             <div class="min-w-0">
                                 <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-snug truncate">{{ $quest['title'] }}</h3>
                                 <span class="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider block mt-0.5">
-                                    +{{ $quest['seeds'] }} Gouden Eikels 🍂
+                                    +{{ $quest['seeds'] }} Gouden Eikels 🌰
                                 </span>
                             </div>
                         </div>
@@ -151,7 +151,7 @@
                             <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Beloningen</span>
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-mono text-[10px] font-black border border-amber-200 dark:border-amber-800/60">
-                                    +{{ $quest['seeds'] }} 🍂
+                                    +{{ $quest['seeds'] }} 🌰
                                 </span>
                                 @if(!empty($quest['xp']))
                                     <span class="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 font-mono text-[10px] font-bold border border-purple-200 dark:border-purple-800/60">
@@ -197,7 +197,7 @@
                                         @if($character->isImprisoned() || $character->isComatose()) disabled @endif
                                         class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-gift"></i>
-                                    <span>Claim {{ $quest['seeds'] }} Gouden Eikels 🍂</span>
+                                    <span>Claim {{ $quest['seeds'] }} Gouden Eikels 🌰</span>
                                 </button>
                             </form>
                         @elseif($isClaimed)
@@ -265,7 +265,7 @@
                             <div class="min-w-0">
                                 <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-snug">{{ $quest['title'] }}</h3>
                                 <span class="text-xs font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider block mt-0.5">
-                                    +{{ $quest['seeds'] }} Gouden Eikels 🍂
+                                    +{{ $quest['seeds'] }} Gouden Eikels 🌰
                                 </span>
                             </div>
                         </div>
@@ -294,7 +294,7 @@
                             <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Beloningen</span>
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="px-2.5 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-mono text-xs font-black border border-amber-200 dark:border-amber-800/60">
-                                    +{{ $quest['seeds'] }} 🍂
+                                    +{{ $quest['seeds'] }} 🌰
                                 </span>
                                 @if(!empty($quest['xp']))
                                     <span class="px-2.5 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 font-mono text-xs font-bold border border-purple-200 dark:border-purple-800/60">
@@ -340,7 +340,7 @@
                                         @if($character->isImprisoned() || $character->isComatose()) disabled @endif
                                         class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-trophy"></i>
-                                    <span>Claim Mijlpaal: +{{ $quest['seeds'] }} Eikels 🍂</span>
+                                    <span>Claim Mijlpaal: +{{ $quest['seeds'] }} Eikels 🌰</span>
                                 </button>
                             </form>
                         @elseif($isClaimed)
