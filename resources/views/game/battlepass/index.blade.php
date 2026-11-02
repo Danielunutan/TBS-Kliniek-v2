@@ -594,7 +594,7 @@
                     <div class="flex items-center gap-3.5">
                         <div class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-black shrink-0"
                              :class="isCurrentUnlocked ? 'bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white border-2 border-purple-200/60 shadow-md' : 'bg-slate-800 text-slate-400 border border-slate-700'">
-                            <span class="text-[9px] uppercase tracking-widest opacity-80 leading-none">LVL</span>
+                            <span class="text-[8px] uppercase tracking-wider opacity-80 leading-none">Level</span>
                             <span class="text-lg leading-tight" x-text="activeLevel"></span>
                         </div>
 

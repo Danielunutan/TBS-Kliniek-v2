@@ -46,7 +46,7 @@
                     <div class="min-w-0">
                         <div class="font-black text-sm leading-tight truncate px-1 -mx-1 {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</div>
                         <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="text-[10px] bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-extrabold px-1.5 py-0.5 rounded-lg border border-purple-200/80 dark:border-purple-800/70 uppercase">LVL {{ $character->level }}</span>
+                            <span class="text-[10px] bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-extrabold px-1.5 py-0.5 rounded-lg border border-purple-200/80 dark:border-purple-800/70 uppercase">Level {{ $character->level }}</span>
                             <span class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $character->title ?? 'Patiënt' }}</span>
                         </div>
                     </div>

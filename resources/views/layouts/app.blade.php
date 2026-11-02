@@ -1646,7 +1646,7 @@
                         <div class="flex flex-col min-w-0 flex-1">
                             <div class="flex items-center gap-1.5 min-w-0">
                                 <span class="text-xs font-black truncate leading-tight {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</span>
-                                <span class="shrink-0 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 leading-none">LVL {{ $character->level }}</span>
+                                <span class="shrink-0 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 leading-none">Level {{ $character->level }}</span>
                             </div>
                             <div class="w-16 bg-slate-200/90 dark:bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
                                 <div class="bg-purple-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.xp_pct)) + '%'" style="width: {{ $pctXp }}%"></div>
@@ -1801,8 +1801,8 @@
                             @if($character->isSparkleActive())
                                 <i class="fa-solid fa-sparkles text-[10px] text-amber-400 animate-pulse shrink-0" title="VIP Glitter Shimmer"></i>
                             @endif
-                            <span class="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black text-[9px] px-2 py-0.5 rounded-lg uppercase tracking-wider shadow-2xs shrink-0">
-                                LVL {{ $character->level }}
+                            <span class="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-black text-[9px] px-2 py-0.5 rounded-lg uppercase tracking-wider shadow-2xs shrink-0 leading-none">
+                                <span>Level</span> <span>{{ $character->level }}</span>
                             </span>
                         </div>
                         <div class="w-48 sm:w-56 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
@@ -1810,11 +1810,12 @@
                         </div>
                         <div class="flex items-center justify-between gap-2 text-[10px] leading-normal pt-0.5">
                             @if($character->gang)
-                                <a href="{{ route('gangs.index') }}" class="text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300 font-extrabold truncate max-w-[120px] py-0.5 block hover:underline" title="{{ $character->gang->name }}">
-                                    {{ $character->gang->name }}
+                                <a href="{{ route('gangs.index') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300 font-extrabold truncate max-w-[125px] py-0.5 hover:underline" title="Bende: {{ $character->gang->name }}">
+                                    <i class="fa-solid fa-shield-halved text-[9px] opacity-75 shrink-0"></i>
+                                    <span class="truncate">{{ $character->gang->name }}</span>
                                 </a>
                             @else
-                                <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[120px] py-0.5 block" title="{{ $character->title ?? '#TBS-'.$character->id }}">
+                                <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[125px] py-0.5 block" title="{{ $character->title ?? '#TBS-'.$character->id }}">
                                     {{ $character->title ?? '#TBS-'.$character->id }}
                                 </span>
                             @endif
@@ -2806,7 +2807,7 @@
                         </div>
                         <div class="min-w-0">
                             <div class="font-black text-sm text-slate-900 dark:text-white leading-tight truncate">{{ $character->name }}</div>
-                            <div class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold truncate">LVL {{ $character->level }} &bull; {{ $character->formatted_respect }} Respect &bull; <span x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span> ⭐</div>
+                            <div class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold truncate">Level {{ $character->level }} &bull; {{ $character->formatted_respect }} Respect &bull; <span x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span> ⭐</div>
                         </div>
                     </div>
                     <button @click="mobileQuickSheetOpen = false" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-sm transition-all duration-150 cursor-pointer shrink-0">
