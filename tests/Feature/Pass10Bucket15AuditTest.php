@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\FaqController;
 use App\Models\Character;
 use App\Models\User;
 use Carbon\Carbon;
@@ -277,5 +278,27 @@ class Pass10Bucket15AuditTest extends TestCase
         $this->assertStringContainsString('registerCharacterNames(messages)', $fullChatSource);
         $this->assertStringContainsString('toggleDirectHeart(dm)', $fullChatSource);
         $this->assertStringContainsString('assets/characters/oohpa_arjan_transparent.png', $miniChatSource);
+    }
+
+    public function test_zaalwacht_arjan_bot_knowledge_and_personal_advice_features(): void
+    {
+        $knowledge = FaqController::getBotKnowledge();
+
+        $this->assertGreaterThan(60, count($knowledge));
+        $this->assertNotEmpty($knowledge[0]['title']);
+        $this->assertNotEmpty($knowledge[0]['answer']);
+        $this->assertNotEmpty($knowledge[0]['keywords']);
+        $this->assertNotEmpty($knowledge[0]['links']);
+        $this->assertNotEmpty($knowledge[0]['suggestions']);
+
+        $this->actingAs($this->user);
+        $view = view('partials.mini_chat_and_report_modal', [
+            'character' => $this->character,
+        ])->render();
+
+        $this->assertStringContainsString('givePersonalAdvice()', $view);
+        $this->assertStringContainsString('resetHelpChat()', $view);
+        $this->assertStringContainsString('🎯 Advies op Maat', $view);
+        $this->assertStringContainsString('💡 Klik voor vervolgvraag:', $view);
     }
 }

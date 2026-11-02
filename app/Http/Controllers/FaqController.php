@@ -512,185 +512,432 @@ class FaqController extends Controller
     }
 
     /**
-     * Get rich, highly indexed knowledge base specifically for the AI Helpbot widget.
-     * Includes extensive keywords, synonyms, newb-friendly explanations and direct navigation links.
+     * Get rich, highly indexed knowledge base specifically for the AI Helpbot widget (Zaalwacht Arjan).
+     * Includes extensive keywords, synonyms, newb-friendly explanations, follow-up suggestions, and direct navigation links.
      */
     public static function getBotKnowledge(): array
     {
-        return [
+        $coreKnowledge = [
             [
                 'title' => '🗺️ Beginnersgids: Stappenplan van Start tot Einde',
-                'keywords' => ['beginnen', 'nieuw', 'start', 'begin', 'starten', 'uitleg', 'hoe werkt', 'eerste stappen', 'wat moet ik doen', 'tips', 'beginner', 'overleven', 'stappenplan', 'start tot einde', 'rookie', 'startgeld'],
-                'answer' => "Welkom in de TBS Kliniek! Volg deze simpele eerste stappen:\n1. Ga naar de Ziekenboeg: Zuster Brenda geneest je 100% gratis.\n2. Draai gratis aan het Rad van Fortuin.\n3. GOUDEN REGEL: Zet AL je contant geld direct op De Bank zodat niemand je berooft!\n4. Doe de 5 Rookie Taken op je Dashboard voor €6.500 cash, 30 kogels en 1 dag gratis VIP!\n5. Werk veilig bij Werkmeester Henk in de Dagbesteding (0% kans op de isoleercel).",
+                'keywords' => ['beginnen', 'nieuw', 'start', 'begin', 'starten', 'uitleg', 'eerste stappen', 'tips', 'beginner', 'overleven', 'stappenplan', 'start tot einde', 'doel', 'spel uitleg'],
+                'answer' => "💡 IN HET KORT: Welkom in FPC De Balk! Volg deze 5 simpele stappen om direct veilig rijk en sterk te worden:\n\n1. 🏥 Ziekenboeg: Zuster Brenda geneest je 100% gratis naar 100 HP.\n2. 🎡 Rad van Fortuin: Draai elke dag gratis voor cash, energie of sterren.\n3. 🏦 De Bank (GOUDEN REGEL): Stort AL je contant geld direct op de bank zodat niemand je berooft!\n4. 🎯 Rookie Taken: Voltooi de 5 startopdrachten op je Dashboard voor €6.500 cash, 30 kogels en 1 dag gratis VIP.\n5. 🔨 Dagbesteding: Werk veilig bij Werkmeester Henk (0% kans op de isoleercel!).\n\n🔥 PRO-TIP: Klik op '🎯 Advies op Maat' onderin de chat voor een persoonlijke check van jouw karakter!",
                 'links' => [
-                    ['text' => 'Naar Dashboard', 'url' => route('dashboard')],
-                    ['text' => 'Naar De Bank', 'url' => route('bank.index')],
-                    ['text' => 'Naar Dagbesteding', 'url' => route('daycare.index')],
+                    ['text' => '🎯 Naar Dashboard', 'url' => route('dashboard')],
+                    ['text' => '🏦 Naar De Bank', 'url' => route('bank.index')],
+                    ['text' => '🔨 Dagbesteding', 'url' => route('daycare.index')],
+                ],
+                'suggestions' => [
+                    'Hoe pak ik €35.000 gratis startgeld?',
+                    'Hoe beveilig ik mijn geld op de bank?',
+                    'Hoe verdien ik 100% gratis VIP?',
                 ],
             ],
             [
-                'title' => '⚡ Energie & Herstel',
-                'keywords' => ['energie', 'energy', 'herstellen', 'op', 'leeg', 'weinig energie', 'kracht', 'snack', 'eten', 'chocola'],
-                'answer' => 'Je hebt Energie nodig voor misdaden, vechten en trainen. Energie vult vanzelf aan: +1 punt per 5 minuten (elke 3 min voor VIP). Direct energie nodig? Eet een snack uit je inventaris, draai aan het Rad van Fortuin of haal een refill in de Sterren/VIP Shop!',
+                'title' => '🎁 €35.000+ Gratis Startgeld op Dag 1',
+                'keywords' => ['startgeld', 'rookie', 'rookie taken', 'gratis geld', 'eerste dag', '35000', '35k', 'push', 'meldingen', 'notificaties', 'rad van fortuin', 'bonus', 'welkomstbonus'],
+                'answer' => "💡 IN HET KORT: Op je allereerste dag ligt er voor meer dan €35.000 aan gratis geld, 30 kogels en gratis VIP voor je klaar!\n\n📋 ZO PAK JE ALLES OP DAG 1:\n• 🎯 5 Rookie Taken (Dashboard): Geeft €6.500 cash + 30 kogels + 150 XP + 1 dag gratis VIP.\n• 🔔 Push-Meldingen aanzetten (Dashboard): Geeft éénmalig €10.000 cash + 25 Gouden Sterren.\n• 🧠 Behandelaarsgesprek + 3u Verlof: Geeft tot €19.500 cash + een XXL Koffer.\n• 💬 Discord koppelen (Account): Geeft direct 3 dagen gratis VIP!\n\n🔥 PRO-TIP: Stort na elke beloning je cash meteen op De Bank!",
                 'links' => [
-                    ['text' => 'Kantine & Snacks', 'url' => route('shop.index', ['tab' => 'inventaris'])],
-                    ['text' => 'VIP Shop', 'url' => route('vip.index')],
+                    ['text' => '🎯 Rookie Taken & Push Bonus', 'url' => route('dashboard')],
+                    ['text' => '🧠 Behandelaarsgesprek', 'url' => route('treatment.index')],
+                    ['text' => '🏦 Storten op De Bank', 'url' => route('bank.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werkt het Behandelaarsgesprek?',
+                    'Hoe verdien ik 100% gratis VIP?',
+                    'Hoe beveilig ik mijn geld op de bank?',
                 ],
             ],
             [
-                'title' => '❤️ Gezondheid (HP) & Ziekenboeg',
-                'keywords' => ['gezondheid', 'health', 'hp', 'dood', 'gewond', 'genezen', 'healen', 'ziekenboeg', 'dokter', 'zuster', 'brenda', 'verband', 'ehbo', 'pillen'],
-                'answer' => 'Is je Gezondheid (HP) laag? Ga naar de Ziekenboeg! Zuster Brenda geneest je daar direct en 100% GRATIS naar 100 HP. Je kunt ook EHBO-kits kopen in de winkel.',
+                'title' => '⚡ Energie & Snel Herstellen',
+                'keywords' => ['energie', 'energy', 'herstellen', 'leeg', 'weinig energie', 'kracht', 'snack', 'snacks', 'eten', 'chocola', 'kantine', 'refill', 'moe'],
+                'answer' => "💡 IN HET KORT: Energie heb je nodig voor werken, misdaden, trainen en vechten. Het vult vanzelf aan én via snacks.\n\n📋 ZO KRIJG JE ENERGIE TERUG:\n• ⏱️ Automatisch: +1 Energie per 5 minuten (+1 per 3 minuten als VIP).\n• 🍫 Kantine Snacks: Koop en gebruik eten in de Kliniek Winkel (onder je Inventaris-tabblad).\n• 🎡 Rad van Fortuin & Dagelijkse Beloning: Gratis kans op directe energie.\n• ⭐ Sterren / VIP Shop: Koop een directe 100% Energie Refill.\n\n🔥 PRO-TIP: Laat je energie nooit urenlang op 100/100 vol staan; geef het uit in de Werkplaats of het Krachthonk!",
                 'links' => [
-                    ['text' => 'Gratis Genezen bij Brenda', 'url' => route('infirmary.index')],
-                    ['text' => 'Kliniek Winkel', 'url' => route('shop.index')],
+                    ['text' => '🍫 Kantine & Inventaris', 'url' => route('shop.index', ['tab' => 'inventaris'])],
+                    ['text' => '🎡 Rad van Fortuin', 'url' => route('daily.index')],
+                    ['text' => '👑 VIP Shop', 'url' => route('vip.index')],
+                ],
+                'suggestions' => [
+                    'Hoe genees ik gratis mijn gezondheid (HP)?',
+                    'Hoe werkt veilig geld verdienen in de Dagbesteding?',
+                    'Hoe train ik mijn Kracht en Verdediging?',
                 ],
             ],
             [
-                'title' => '🏦 De Bank, Zakgeld & Leningen',
-                'keywords' => ['bank', 'geld', 'storten', 'sparen', 'veilig', 'rente', 'beroofd', 'gestolen', 'kwijt', 'contant', 'cash', 'lening', 'lenen', 'zakgeld'],
-                'answer' => 'Bewaar NOOIT contant geld in je broekzak! Op De Bank kan niemand je geld stelen via de Respectlijst of zakkenrollen. Zit je niet in een bende? Dan krijg je elke 15 minuten automatisch €1.000 gratis zakgeld op je bank (tot €25.000 voor VIP)!',
+                'title' => '❤️ Gezondheid (HP), Pillen Palmen & Ziekenboeg',
+                'keywords' => ['gezondheid', 'health', 'levens', 'dood', 'gewond', 'genezen', 'healen', 'ziekenboeg', 'dokter', 'zuster', 'brenda', 'verband', 'ehbo', 'pillen', 'pillen palmen'],
+                'answer' => "💡 IN HET KORT: Is je Gezondheid (HP) onder de 100? Zuster Brenda in de Ziekenboeg geneest je 100% GRATIS!\n\n📋 WAT KUN JE DOEN IN DE ZIEKENBOEG?\n• 💖 Gratis Verpleging: Klik bij Zuster Brenda op verzorgen en je hebt direct weer 100 HP.\n• 💊 Pillen Palmen: Smokkel stiekem medicatie achterover voor €350 tot €1.200 winst (kost 15 energie).\n• 🤝 Patiënten Verplegen: Help gewonde medepatiënten uit de brand voor extra beloningen.\n\n🔥 PRO-TIP: Vecht nooit op de Luchtplaats met lage HP. Als je 0 HP bereikt, raak je in coma!",
                 'links' => [
-                    ['text' => 'Naar De Bank', 'url' => route('bank.index')],
+                    ['text' => '🏥 Gratis Genezen bij Brenda', 'url' => route('infirmary.index')],
+                    ['text' => '🛒 EHBO & Winkel', 'url' => route('shop.index')],
+                ],
+                'suggestions' => [
+                    'Wat is Code Blauw en een coma?',
+                    'Hoe bescherm ik mezelf met Vrijwillige Isolatie?',
+                    'Hoe werkt vechten op de Respectlijst?',
                 ],
             ],
             [
-                'title' => '⛓️ Isoleercel & Ontsnappen',
-                'keywords' => ['isoleercel', 'gevangenis', 'cel', 'vast', 'straf', 'straftijd', 'gepakt', 'betrapt', 'vrijkopen', 'ontsnappen', 'deur forceren'],
-                'answer' => "Zit je in de isoleercel? Je komt sneller vrij op 6 manieren:\n1. Luchtschacht-uitbraak proberen (20 energie);\n2. IJzerzaagje gebruiken (-30 min straf);\n3. Stoomwasserij werken (-45 sec);\n4. Bewaker omkopen (€2.500 voor -90 sec);\n5. Kijk een gratis video in de Sponsorkamer of koop je vrij met 25 Sterren;\n6. Vraag een vriend in de chat om je deur open te breken!",
+                'title' => '🏦 De Bank, Gratis Zakgeld & Leningen',
+                'keywords' => ['bank', 'geld', 'storten', 'sparen', 'veilig', 'rente', 'beroofd', 'gestolen', 'kwijt', 'contant', 'cash', 'lening', 'lenen', 'zakgeld', 'beveiligen', 'overmaken'],
+                'answer' => "💡 IN HET KORT: Bewaar NOOIT contant geld op zak! Op De Bank is je geld veilig tegen straatroof, zakkenrollers en de Luchtplaats.\n\n📋 ALLE VOORDELEN VAN DE BANK:\n• 🔒 Veilig Storten: Je hebt 5 gratis bankacties per dag (als VIP onbeperkt gratis storten).\n• 💶 Gratis Zakgeld (Zonder Bende): Zit je nog niet in een bende? Dan krijg je elke 15 minuten automatisch €1.000 gratis op je bank (tot €5.000 max, of €25.000 voor VIP)!\n• 💳 Leningen (vanaf Level 2): Leen €2.500 tot €25.000 voor een wapen, auto of schep. Let op: los op tijd af, anders houdt de bank 50% van je inkomsten in!\n\n🔥 PRO-TIP: Maak er een gewoonte van om vóór je uitlogt altijd op 'Alles Storten' te klikken.",
                 'links' => [
-                    ['text' => 'Naar Isoleercel', 'url' => route('prison')],
-                    ['text' => 'Sponsorkamer', 'url' => route('sponsor.index')],
+                    ['text' => '🏦 Naar De Bank', 'url' => route('bank.index')],
+                ],
+                'suggestions' => [
+                    'Hoe verdien ik snel en veilig geld?',
+                    'Hoe werken Bendes en het Bende-Uurloon?',
+                    'Hoe voorkom ik dat ik word aangevallen?',
                 ],
             ],
             [
-                'title' => '🥊 Respectlijst & Luchtplaats Vechten',
-                'keywords' => ['respectlijst', 'vechten', 'luchtplaats', 'slaylist', 'slay', 'aanvallen', 'duel', 'arena', 'showdown', '100 aanvallen', 'respect'],
-                'answer' => 'Op de Luchtplaats (Respectlijst) vecht je 5 seconden tegen een andere patiënt. Als je wint steel je zijn Respect én tot 15% van zijn contante zakgeld! Je mag 100 keer per dag aanvallen (VIP 1.000 keer).',
+                'title' => '⛓️ Isoleercel & 6 Manieren om Snel te Ontsnappen',
+                'keywords' => ['isoleercel', 'gevangenis', 'bajes', 'cel', 'vast', 'straf', 'straftijd', 'gepakt', 'betrapt', 'vrijkopen', 'ontsnappen', 'uitbreken', 'deur forceren', 'ijzerzaagje'],
+                'answer' => "💡 IN HET KORT: Zit je vast na een mislukte misdaad? Je hoeft niet te wachten tot de klok op 0 staat!\n\n📋 6 MANIEREN OM SNELLER VRIJ TE KOMEN:\n1. 🌀 Luchtschacht-Uitbraak: Kost 20 energie; bij succes ben je meteen vrij.\n2. 🪚 IJzerzaagje: Haalt direct 30 minuten van je straf af.\n3. 🧺 Stoomwasserij: Werk in je cel om elke keer 45 seconden straf weg te spelen.\n4. 💵 Bewaker Omkopen: Betaal €2.500 voor 90 seconden strafvermindering.\n5. 📺 Sponsorkamer / Sterren: Kijk een korte video voor -30 min straf of koop jezelf direct vrij met Sterren ⭐.\n6. 🤝 Vrienden / BFF: Laat een medepatiënt of je BFF je celdeur van buitenaf openbreken!\n\n🔥 PRO-TIP: Draag een bivakmuts bij misdaden om je kans op de isoleercel met tot 50% te verlagen!",
                 'links' => [
-                    ['text' => 'Naar Luchtplaats', 'url' => route('fight.index')],
+                    ['text' => '⛓️ Naar Isoleercel', 'url' => route('prison')],
+                    ['text' => '📺 Sponsorkamer', 'url' => route('sponsor.index')],
+                ],
+                'suggestions' => [
+                    'Hoe kom ik aan een bivakmuts (masker)?',
+                    'Wat doet een BFF (Best Friend Forever)?',
+                    'Waar kan ik 100% veilig werken zonder celkans?',
                 ],
             ],
             [
-                'title' => '🛡️ Vrijwillige Isolatie (Bescherming)',
-                'keywords' => ['vrijwillige isolatie', 'bescherming', 'bunker', 'veiligheid', 'aangevallen', 'te veel aanvallen', 'stop aanvallen', 'shield'],
-                'answer' => "Word je steeds aangevallen? Zet al je geld op de bank én zet Vrijwillige Isolatie aan onder 'Geweld & Strijd'. Zolang je in de bunker zit, kan niemand op de Luchtplaats jou aanvallen!",
+                'title' => '🥊 Respectlijst, Luchtplaats & 24u Battles',
+                'keywords' => ['respectlijst', 'vechten', 'luchtplaats', 'slaylist', 'slay', 'aanvallen', 'duel', 'arena', 'showdown', 'respect', 'battle', 'slaan', 'winnen'],
+                'answer' => "💡 IN HET KORT: Op de Luchtplaats vecht je tegen andere spelers om hun Respect en tot 15% van hun contante zakgeld te roven!\n\n📋 ZO WIN JE GEVECHTEN:\n• ⚔️ Jouw Gevechtskracht = Kracht + Verdediging + Snelheid + Wapen + Pantser.\n• 🔢 Aanvalslimiet: Gratis spelers mogen 100x per dag aanvallen, VIPs 1.000x per dag (max 5x dezelfde speler per dag).\n• 🏆 24u Respect Battle: Daag een rivaal uit voor een 24-uurs wedstrijd wie het meeste Respect verdient voor een geldpot!\n\n🔥 PRO-TIP: Val spelers aan die veel contant geld op zak hebben én een lagere kracht dan jij!",
                 'links' => [
-                    ['text' => 'Vrijwillige Isolatie', 'url' => route('isolation.index')],
+                    ['text' => '🥊 Naar Luchtplaats', 'url' => route('fight.index')],
+                    ['text' => '🏋️ Trainen in Krachthonk', 'url' => route('training.index')],
+                    ['text' => '🛒 Wapens & Pantsers', 'url' => route('shop.index')],
+                ],
+                'suggestions' => [
+                    'Hoe train ik mijn Kracht en Verdediging?',
+                    'Hoe bescherm ik mezelf tegen aanvallen?',
+                    'Hoe werkt Liquidatie 2.0 met kogels?',
                 ],
             ],
             [
-                'title' => '🔨 Veilige Dagbesteding & Werkplaats',
-                'keywords' => ['dagbesteding', 'werkplaats', 'werken', 'veilig werk', 'geen isoleercel', 'henk', 'loon', 'salaris', 'houtbewerking', 'wasserette', 'discipline'],
-                'answer' => 'Bij Werkmeester Henk in de Werkplaats werk je 100% veilig en legaal! Je hebt 0% kans op de isoleercel, verdient altijd geld, bouwt Discipline op en kunt gratis kluiscodes vinden.',
+                'title' => '🛡️ Vrijwillige Isolatie & Cash Bescherming',
+                'keywords' => ['vrijwillige isolatie', 'bescherming', 'bunker', 'veiligheid', 'aangevallen', 'stop aanvallen', 'shield', 'cash bescherming', 'met rust gelaten', 'veilig spelen'],
+                'answer' => "💡 IN HET KORT: Word je steeds aangevallen? Gebruik de Bank, Vrijwillige Isolatie of 24u Cash Bescherming!\n\n📋 3 MANIEREN OM VEILIG TE SPELEN:\n1. 🏦 Alles op De Bank: Wie €0 contant op zak heeft, levert aanvallers niets op.\n2. 🛡️ Vrijwillige Isolatie: Zet dit gratis aan onder 'Geweld & Strijd > Vrijwillige Isolatie'. Zolang je in de bunker zit, kan niemand op de Luchtplaats je aanvallen!\n3. 👑 24u Cash Bescherming (VIP Shop): Beschermt je 24 uur lang tegen geldroof bij liquidaties.\n\n🔥 PRO-TIP: Train rustig je Verdediging in het Krachthonk terwijl je geld veilig op de bank staat.",
                 'links' => [
-                    ['text' => 'Naar Dagbesteding', 'url' => route('daycare.index')],
+                    ['text' => '🛡️ Vrijwillige Isolatie', 'url' => route('isolation.index')],
+                    ['text' => '🏦 Naar De Bank', 'url' => route('bank.index')],
+                    ['text' => '👑 VIP Shop Bescherming', 'url' => route('vip.index')],
+                ],
+                'suggestions' => [
+                    'Wat doet een Backfire-vest tegen kogels?',
+                    'Hoe train ik mijn Verdediging?',
+                    'Hoe werkt veilig werken in de Dagbesteding?',
                 ],
             ],
             [
-                'title' => '🧠 Behandelaarsgesprek & 3 Uur Verlof',
-                'keywords' => ['behandelaar', 'behandelaarsgesprek', 'gesprek', 'verlof', 'psychiater', 'sedatie', 'buiten', 'supermarkt', 'station', 'dilemma'],
-                'answer' => 'Geef elke dag na 00:00 uur een net en rustig antwoord bij het Behandelaarsgesprek. Scoor je 60% of hoger? Dan krijg je 3 UUR BEGELEID VERLOF met 3 speciale buiten-missies (tot €19.500 cash + een XXL Koffer)!',
+                'title' => '🏋️ Krachthonk, Boksring & Discipline Trainen',
+                'keywords' => ['trainen', 'training', 'krachthonk', 'sportschool', 'gym', 'kracht', 'verdediging', 'snelheid', 'discipline', 'sterker', 'stats', 'statistieken'],
+                'answer' => "💡 IN HET KORT: In het Krachthonk zet je Energie om in blijvende Kracht, Verdediging, Snelheid en Discipline!\n\n📋 WAT DOET ELKE STAT?\n• 💪 Kracht: Je deelt veel hardere klappen uit in gevechten.\n• 🛡️ Verdediging: Je vangt klappen op en verliest minder snel HP.\n• ⚡ Snelheid: Je slaat als eerste toe en ontwijkt aanvallen makkelijker.\n• 🧠 Discipline: Verhoogt je slaagkans bij de Behandelaar, Werkplaats en Heists.\n\n🔥 PRO-TIP: Koop ook een goed Wapen en Pantser in de Kliniek Winkel voor een enorme directe boost!",
                 'links' => [
-                    ['text' => 'Behandelaarsgesprek', 'url' => route('treatment.index')],
+                    ['text' => '🏋️ Naar Krachthonk', 'url' => route('training.index')],
+                    ['text' => '🛒 Wapens & Pantsers', 'url' => route('shop.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werkt vechten op de Respectlijst?',
+                    'Hoe kom ik snel aan meer Energie?',
+                    'Wat zijn 24-uurs Perks (Boosters)?',
                 ],
             ],
             [
-                'title' => '🕵️ Illegale Acties: Hosselen, Smokkel & Diefstal',
-                'keywords' => ['hosselen', 'smokkelen', 'dealen', 'wiet', 'drugs', 'diefstal', 'klusjes', 'afpersen', 'misdaad', 'misdrijf', 'perks'],
-                'answer' => "• Hosselen: Snelle klusjes op de gang voor beginners.\n• Zakkenrollen: Steel geld én bivakmutsen (een masker halveert je pakkans!).\n• Smokkelen: Koop goederen in en verkoop ze met grote winst.\n• Perks: Activeer 24-uurs boosters zoals Grotere Broekzakken (+10% cash).",
+                'title' => '🔨 Veilige Dagbesteding & Werkplaats (0% Celkans)',
+                'keywords' => ['dagbesteding', 'werkplaats', 'werken', 'veilig werk', 'geen isoleercel', 'henk', 'werkmeester', 'loon', 'salaris', 'houtbewerking', 'wasserette'],
+                'answer' => "💡 IN HET KORT: Bij Werkmeester Henk in de Dagbesteding verdien je 100% veilig geld zonder ooit in de isoleercel te belanden!\n\n📋 WAAROM WERKEN IN DE WERKPLAATS?\n• ✅ 0% kans op straf of de isoleercel.\n• 💶 Altijd gegarandeerd loon + XP + extra Discipline.\n• 🔑 Kans om tijdens het werk geheime cijfers voor de Medicijnkluis of voorwerpen te vinden!\n\n🔥 PRO-TIP: Ideaal voor beginners én wanneer je even zonder risico wilt sparen voor een wapen of auto.",
                 'links' => [
-                    ['text' => 'Hosselen', 'url' => route('hustle.index')],
-                    ['text' => 'Zakkenrollen', 'url' => route('pickpocket.index')],
-                    ['text' => 'Smokkelen', 'url' => route('smuggle.index')],
+                    ['text' => '🔨 Naar Dagbesteding', 'url' => route('daycare.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werkt het Behandelaarsgesprek en Verlof?',
+                    'Hoe kraak ik de Centrale Medicijnkluis?',
+                    'Hoe werkt Hosselen en Zakkenrollen?',
                 ],
             ],
             [
-                'title' => '🔐 MedicijnKluis & Geheime Codes',
-                'keywords' => ['kluis', 'kluis kraak', 'code', 'raden', 'medicijnkluis', 'jammer', 'alarm jammer', 'kluiscode', 'voucher'],
-                'answer' => 'Raad de 4-cijferige code van de Centrale Medicijnkluis met de hoger/lager hints! Koop eerst een Alarm Jammer zodat het alarm niet afgaat. Ook kun je hier vouchers inwisselen.',
+                'title' => '🧠 Behandelaarsgesprek & 3 Uur Begeleid Verlof',
+                'keywords' => ['behandelaar', 'behandelaarsgesprek', 'gesprek', 'verlof', 'psychiater', 'sedatie', 'buiten', 'supermarkt', 'station', 'dilemma', 'begeleid verlof'],
+                'answer' => "💡 IN HET KORT: Doe elke dag na 00:00 uur je Behandelaarsgesprek. Kies het rustige antwoord voor 3 uur Begeleid Verlof (€19.500+ buit)!\n\n📋 ZO WERKT HET:\n1. 🗣️ Kies bij de psychiater altijd het beleefde, meewerkende en rustige antwoord.\n2. 🎫 Scoor je 60% of hoger? Dan krijg je 3 UUR BEGELEID VERLOF buiten de kliniek!\n3. 🌆 Tijdens je verlof kun je 3 exclusieve buiten-missies doen (Supermarkt, Station en Juwelier) voor tot €19.500 cash én een XXL Koffer!\n\n🔥 PRO-TIP: Word niet brutaal tegen de behandelaar, anders krijg je 30 minuten Sedatie (-20% energieherstel).",
                 'links' => [
-                    ['text' => 'Kluis Kraken', 'url' => route('vault.index')],
+                    ['text' => '🧠 Naar Behandelaarsgesprek', 'url' => route('treatment.index')],
+                ],
+                'suggestions' => [
+                    'Wat zit er in een XXL Koffer?',
+                    'Hoe pak ik €35.000 gratis startgeld?',
+                    'Hoe werkt de Uitbraaktunnel?',
                 ],
             ],
             [
-                'title' => '⛏️ Uitbraaktunnel Graven',
-                'keywords' => ['tunnel', 'graven', 'uitbraaktunnel', 'schep', 'ontsnappingstunnel', 'zand dumpen', 'vrijheid', '100 meter'],
-                'answer' => 'Koop een schep en graaf onder je celvloer. Dump het zand stiekem buiten. Bij 100 meter slaagt de Grote Uitbraak en win je veel geld + 25 gratis Sterren ⭐!',
+                'title' => '🕵️ Hosselen, Zakkenrollen & Bivakmutsen (Maskers)',
+                'keywords' => ['hosselen', 'zakkenrollen', 'stelen', 'beroven', 'bivakmuts', 'masker', 'maskers', 'skibril', 'gasmasker', 'pakkans', 'diefstal', 'klusjes', 'misdaad'],
+                'answer' => "💡 IN HET KORT: Met Hosselen en Zakkenrollen verdien je snel zwart geld, XP en bivakmutsen die je pakkans tot 50% verlagen!\n\n📋 HOE WERKT HET SLIMST?\n• 🧢 Hosselen: Snelle klusjes op de afdeling voor cash en XP.\n• 🧤 Zakkenrollen: Steel cash én Bivakmutsen van doelwitten.\n• 🥷 Bivakmuts opzetten: Een masker verbergt je gezicht op camera's (tot -50% kans op de isoleercel) en is verplicht voor Grote Heists!\n\n🔥 PRO-TIP: Zet eerst een masker op in je inventaris voordat je zware klussen of Heists uitvoert.",
                 'links' => [
-                    ['text' => 'Naar Uitbraaktunnel', 'url' => route('tunnel.index')],
+                    ['text' => '🧢 Naar Hosselen', 'url' => route('hustle.index')],
+                    ['text' => '🧤 Naar Zakkenrollen', 'url' => route('pickpocket.index')],
+                    ['text' => '🛒 Maskers & Winkel', 'url' => route('shop.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werken Grote Heists en vluchtauto\'s?',
+                    'Hoe werkt Smokkelen en Perks?',
+                    'Hoe kom ik snel uit de isoleercel?',
                 ],
             ],
             [
-                'title' => '👥 Bendes, Uurloon, Controlepunten & Overstap Bonus',
-                'keywords' => ['gang', 'bende', 'bendes', 'uurloon', 'gang kluis', 'bende kluis', 'gang wars', 'oorlog', 'bendeleider', 'oprichten', 'overstap', 'gang overstap', 'controlepunten', 'controlepunt'],
-                'answer' => 'Vanaf Level 3 kun je een bende oprichten of joinen voor automatisch Bende-Uurloon uit panden! Verover ook Controlepunten voor geld per minuut (+1 Ster na 30 min). Kom je van een ander spel? Vraag via een ticket de Gang Overstap Bonus aan (€5 miljoen + 31 dagen VIP)!',
+                'title' => '💊 Smokkelen, Koersen & 24-Uurs Perks (Boosters)',
+                'keywords' => ['smokkelen', 'smokkel', 'dealen', 'wiet', 'drugs', 'handel', 'koers', 'perks', 'perk', 'booster', 'boosters', 'broekzakken', ' handelaar'],
+                'answer' => "💡 IN HET KORT: Koop smokkelwaar goedkoop in wanneer de koers laag staat, en verkoop het met dikke winst als de prijs hoog is!\n\n📋 SLIM HANDELEN & PERKS:\n• 📈 Smokkelmarkt: Prijzen wisselen continu. Koop laag in en verkoop hoog.\n• ⚡ 24-Uurs Perks: Activeer tijdelijke boosters zoals 'Grotere Broekzakken' (+10% meer cash uit klussen), ' gladde praatjes' (lagere pakkans) of 'Scherpschutter'.\n\n🔥 PRO-TIP: Combineer Smokkelen met Verplaatsen (+35 XP per reis) tussen de gebouwen!",
                 'links' => [
-                    ['text' => 'Naar Bendes', 'url' => route('gangs.index')],
-                    ['text' => 'Controlepunten', 'url' => route('control-points.index')],
+                    ['text' => '💊 Naar Smokkelen', 'url' => route('smuggle.index')],
+                    ['text' => '⚡ Naar Perks', 'url' => route('perks.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werkt Verplaatsen (+35 XP per reis)?',
+                    'Hoe werkt de Smokkel Garage?',
+                    'Hoe beveilig ik mijn winst op de bank?',
                 ],
             ],
             [
-                'title' => '🗺️ Verplaatsen (Reizen) & +35 XP',
-                'keywords' => ['reizen', 'verplaatsen', 'paviljoen', 'locatie', 'kookhuis', 'luchtplaats', 'omkopen', 'bewaker omkopen', '35 xp'],
-                'answer' => "Reis onder 'Economie > Verplaatsen' tussen de kliniekgebouwen. Elke reis geeft je direct +35 XP! VIPs betalen maar de helft.",
+                'title' => '🔐 MedicijnKluis Kraken, Alarm Jammer & Vouchers',
+                'keywords' => ['kluis', 'kluis kraken', 'medicijnkluis', 'code', 'raden', 'jammer', 'alarm jammer', 'kluiscode', 'voucher', 'vouchers', 'promocode'],
+                'answer' => "💡 IN HET KORT: Raad de geheime 4-cijferige code van de Centrale Medicijnkluis met de Hoger/Lager hints en win de hele jackpot!\n\n📋 ZO KRAAK JE DE KLUIS:\n1. 📡 Koop eerst een Alarm Jammer in de winkel zodat je niet in de isoleercel belandt bij een foute poging.\n2. 🔢 Vul 4 cijfers in en volg de Hoger/Lager aanwijzingen om de code te vinden.\n3. 🎟️ Heb je een actiecode of Voucher uit Discord? Die kun je ook op de Kluis-pagina inwisselen voor gratis buit!",
                 'links' => [
-                    ['text' => 'Verplaatsen (+35 XP)', 'url' => route('travel.index')],
+                    ['text' => '🔐 Kluis Kraken & Vouchers', 'url' => route('vault.index')],
+                    ['text' => '🛒 Koop Alarm Jammer', 'url' => route('shop.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werkt de Uitbraaktunnel graven?',
+                    'Hoe onderschep ik XXL Koffers?',
+                    'Hoe verdien ik gratis Gouden Sterren?',
                 ],
             ],
             [
-                'title' => '👑 Gratis VIP & Sponsorkamer',
-                'keywords' => ['vip', 'gratis', 'ads', 'advertenties', 'sponsorkamer', 'vip punten', 'gouden naam', 'voordelen', 'kosten', 'prijs', 'donatie', 'buymeacoffee'],
-                'answer' => "VIP is 100% GRATIS te verdienen! Koppel je Discord (3 dagen gratis VIP), voltooi de Rookie Taak op het Dashboard (1 dag VIP) of kijk korte 15s video's in de Sponsorkamer (24 uur gratis VIP per 250 ads + €2.500 per video)!",
+                'title' => '⛏️ Uitbraaktunnel Graven (100 Meter & +25 Sterren)',
+                'keywords' => ['tunnel', 'graven', 'uitbraaktunnel', 'schep', 'ontsnappingstunnel', 'zand', 'zand dumpen', '100 meter', 'grote uitbraak'],
+                'answer' => "💡 IN HET KORT: Graaf onder je celvloer een tunnel van 100 meter naar buiten voor een enorme geldbeloning én +25 gratis Gouden Sterren ⭐!\n\n📋 STAP VOOR STAP GRAVEN:\n1.  🛠️ Koop een Schep in de winkel.\n2. ⛏️ Graaf elke dag meters onder je celvloer.\n3. 🪣 Zand Dumpen: Zitten je broekzakken vol met zand? Dump het zand eerst stiekem buiten op de Luchtplaats voordat de bewakers het zien!\n4. 🏆 Bij 100 meter slaagt de Grote Uitbraak: je wint een grote som cash + 25 Sterren!",
                 'links' => [
-                    ['text' => 'Sponsorkamer', 'url' => route('sponsor.index')],
-                    ['text' => 'VIP Shop', 'url' => route('vip.index')],
+                    ['text' => '⛏️ Naar Uitbraaktunnel', 'url' => route('tunnel.index')],
+                    ['text' => '🛒 Koop een Schep', 'url' => route('shop.index')],
+                ],
+                'suggestions' => [
+                    'Waarvoor gebruik ik Gouden Sterren?',
+                    'Hoe werkt het Behandelaarsgesprek?',
+                    'Hoe kraak ik de Medicijnkluis?',
                 ],
             ],
             [
-                'title' => '🎰 Casino, Loterij & Minigames',
-                'keywords' => ['casino', 'gokhal', 'gokken', 'roulette', 'hoger lager', 'nummerspel', 'slots', 'loterij', 'jackpot', 'memory', 'true crime', 'vier op een rij'],
-                'answer' => 'Speel Roulette en Slots in het Casino, koop loten voor de 14-daagse Afdelingsloterij (50% korting in de laatste 15 minuten!) of speel Memory, True Crime en Vier-op-een-rij.',
+                'title' => '👥 Bendes, Automatisch Uurloon & Gang Wars',
+                'keywords' => ['gang', 'bende', 'bendes', 'uurloon', 'bende uurloon', 'gang kluis', 'bende kluis', 'gang wars', 'oorlog', 'bendeleider', 'oprichten', 'joinen', 'clan'],
+                'answer' => "💡 IN HET KORT: Vanaf Level 3 kun je een Bende joinen of oprichten. Leden krijgen elk uur automatisch Bende-Uurloon uit de panden van de bende!\n\n📋 WAAROM EEN BENDE JOINEN?\n• 💶 Automatisch Bende-Uurloon: Hoe meer panden en upgrades jullie bende bezit, hoe meer geld elk lid ieder uur automatisch ontvangt.\n• 💬 Eigen Bende-Chat & Kluis: Overleg privé met je team en spaar samen.\n• ⚔️ Gang Wars & Controlepunten: Vecht samen tegen rivaliserende bendes voor roem en terrein!\n\n🔥 PRO-TIP: Nog geen Level 3? Tot die tijd krijg je op De Bank elke 15 minuten €1.000 gratis zakgeld!",
                 'links' => [
-                    ['text' => 'Casino', 'url' => route('casino.index')],
-                    ['text' => 'Afdelingsloterij', 'url' => route('lottery.index')],
+                    ['text' => '👥 Naar Bendes', 'url' => route('gangs.index')],
+                    ['text' => '🚩 Controlepunten', 'url' => route('control-points.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werken Controlepunten veroveren?',
+                    'Wat is de Gang Overstap Bonus (€5 miljoen)?',
+                    'Hoe kom ik snel op Level 3?',
                 ],
             ],
             [
-                'title' => '🏎️ Smokkel Garage & Grote Heists',
-                'keywords' => ['garage', 'voertuig', 'auto', 'wagen', 'vluchtwagen', 'scooter', 'heist', 'heists', 'overval', 'repareren', 'conditie'],
-                'answer' => 'Koop een vluchtvoertuig in de Smokkel Garage, houd de conditie op 100% door te repareren en voer met een bivakmuts Grote Heists uit op juweliers en banken!',
+                'title' => '🚩 Controlepunten Veroveren (Geld per Minuut & Sterren)',
+                'keywords' => ['controlepunt', 'controlepunten', 'veroveren', 'territorium', 'gebied', 'geld per minuut', '30 minuten', 'bewaken'],
+                'answer' => "💡 IN HET KORT: Verover Controlepunten in de kliniek om elke minuut automatisch contant geld te verdienen én gratis Gouden Sterren te pakken!\n\n📋 ZO WERKEN CONTROLEPUNTEN:\n• 🏴 Veroveren: Neem een locatie over onder 'Geweld & Strijd > Controlepunten'.\n• 💸 Passief Inkomen: Zolang jij (of je bende) het punt vasthoudt, tikt er elke minuut geld binnen.\n• ⭐ Bonus na 30 Minuten: Houd je een controlepunt 30 minuten achter elkaar vast? Dan krijg je +1 gratis Gouden Ster!",
                 'links' => [
-                    ['text' => 'Smokkel Garage', 'url' => route('garage.index')],
-                    ['text' => 'Grote Heists', 'url' => route('heists.index')],
+                    ['text' => '🚩 Naar Controlepunten', 'url' => route('control-points.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werken Bendes en Bende-Uurloon?',
+                    'Hoe train ik mijn gevechtskracht?',
+                    'Wat is de Gang Overstap Bonus?',
                 ],
             ],
             [
-                'title' => '🎯 Liquidatie 2.0, Backfire-Vesten & Code Blauw',
-                'keywords' => ['liquidatie', 'kogels', 'bullets', 'schieten', 'hitman', 'coma', 'code blauw', 'vest', 'backfire', 'ricochet', 'bloedwraak'],
-                'answer' => 'Schaduw je doelwit, reis naar dezelfde afdeling en vuur kogels af om 45% contant + 7% bankgeld te roven! Draag een Backfire-vest om kogels terug te kaatsen of koop 24u Cash Bescherming in de VIP Shop.',
+                'title' => '🚚 Gang Overstap Bonus (€5 Miljoen + 31 Dagen VIP)',
+                'keywords' => ['overstap', 'gang overstap', 'overstap bonus', '5 miljoen', 'ander spel', 'vriendengroep', 'overstappen', 'clan bonus'],
+                'answer' => "💡 IN HET KORT: Kom je met je vriendengroep of bende (minimaal 4 spelers) overstappen vanuit een ander tekst- of maffiaspel? Dan krijgen jullie de Gang Overstap Bonus!\n\n📋 WAT KRIJGEN JULLIE GRATIS?\n• 💰 €5.000.000 (€5 miljoen) startkapitaal in jullie Bende-kluis!\n• 👑 31 Dagen GRATIS VIP voor de overstappende bendeleden!\n• 🎫 Aanvragen: Maak met je leider even een Support Ticket aan en noem de namen van je teamleden.",
                 'links' => [
-                    ['text' => 'Naar Liquidatie 2.0', 'url' => route('hitman.index')],
+                    ['text' => '🎫 Overstap Bonus Aanvragen', 'url' => route('help.tickets.create')],
+                    ['text' => '👥 Bende Overzicht', 'url' => route('gangs.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werken Bendes en Bende-Uurloon?',
+                    'Wat zijn alle voordelen van VIP?',
+                    'Wat zijn de spelregels van TBS Kliniek?',
+                ],
+            ],
+            [
+                'title' => '🗺️ Verplaatsen (Reizen tussen Gebouwen voor +35 XP)',
+                'keywords' => ['reizen', 'verplaatsen', 'paviljoen', 'locatie', 'kookhuis', 'afdeling', 'gebouwen', '35 xp', 'snel levelen', 'xp verdienen'],
+                'answer' => "💡 IN HET KORT: Reis onder 'Economie > Verplaatsen' tussen de kliniekgebouwen. Elke reis geeft je direct +35 XP!\n\n📋 WAAROM VERPLAATSEN?\n• 🚀 Snel Levelen: +35 XP bij elke verplaatsing is de snelste manier om Level 3 (Bendes) te halen.\n• 🎯 Liquidatie 2.0: Om op een doelwit te schieten moet je eerst naar zijn of haar gebouw reizen.\n• 👑 VIP Voordeel: VIP-spelers betalen 50% minder reiskosten!",
+                'links' => [
+                    ['text' => '🗺️ Verplaatsen (+35 XP)', 'url' => route('travel.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werkt Liquidatie 2.0?',
+                    'Hoe verdien ik 100% gratis VIP?',
+                    'Hoe werken Bendes vanaf Level 3?',
+                ],
+            ],
+            [
+                'title' => '👑 100% Gratis VIP, Sterren & Sponsorkamer',
+                'keywords' => ['vip', 'gratis vip', 'ads', 'advertenties', 'sponsorkamer', 'vip punten', 'gouden naam', 'voordelen', 'sterren', 'gouden sterren', 'donatie', 'video'],
+                'answer' => "💡 IN HET KORT: Je hoeft in TBS Kliniek nooit echt geld uit te geven: VIP en Gouden Sterren zijn 100% gratis in het spel te verdienen!\n\n📋 4 MANIEREN VOOR GRATIS VIP:\n1. 💬 Discord Koppelen (Account): Geeft direct 3 dagen gratis VIP!\n2. 🎯 Rookie Taken (Dashboard): Geeft direct 1 dag gratis VIP!\n3. 📺 Sponsorkamer: Kijk korte video's van 15s voor €2.500 cash per video én 24 uur gratis VIP bij 250 video's.\n4. ⭐ Gouden Sterren: Verdien sterren via het Rad, Koffers, Controlepunten en de Tunnel en wissel ze in bij de VIP Shop!\n\n🔥 VIP VOORDELEN: Sneller energieherstel (elke 3 min), 1.000x per dag aanvallen, onbeperkt bankstorten en 50% reiskorting!",
+                'links' => [
+                    ['text' => '📺 Naar Sponsorkamer', 'url' => route('sponsor.index')],
+                    ['text' => '👑 VIP & Sterren Shop', 'url' => route('vip.index')],
+                    ['text' => '⚙️ Koppel Discord (+3d VIP)', 'url' => route('settings.account')],
+                ],
+                'suggestions' => [
+                    'Hoe pak ik €35.000 gratis startgeld?',
+                    'Wat is de Gang Overstap Bonus?',
+                    'Hoe graaf ik de Uitbraaktunnel voor +25 Sterren?',
+                ],
+            ],
+            [
+                'title' => '🎰 Casino, Afdelingsloterij (50% Korting!) & Minigames',
+                'keywords' => ['casino', 'gokhal', 'gokken', 'roulette', 'hoger lager', 'nummerspel', 'slots', 'loterij', 'afdelingsloterij', 'jackpot', 'memory', 'true crime', 'vier op een rij', 'minigames'],
+                'answer' => "💡 IN HET KORT: Waag een gokje in het Casino, speel hersenspellen of pak de 14-daagse Afdelingsloterij jackpot!\n\n📋 ALLE SPELLEN & GEHEIME TIPS:\n• 🎟️ Afdelingsloterij: Elke 14 dagen valt de megapot. GEHEIME TIP: In de laatste 15 minuten vóór de trekking zijn loten 50% GOEDKOPER (€500 i.p.v. €1.000)!\n• 🎰 Casino: Speel Roulette, Slots, Hoger/Lager en het Nummerspel.\n• 🧠 Minigames: Speel Kliniek Memory, True Crime Detective of daag een speler uit voor Vier-op-een-rij!",
+                'links' => [
+                    ['text' => '🎰 Naar Casino', 'url' => route('casino.index')],
+                    ['text' => '🎟️ Afdelingsloterij', 'url' => route('lottery.index')],
+                    ['text' => '🧠 Kliniek Memory', 'url' => route('memory.index')],
+                ],
+                'suggestions' => [
+                    'Hoe beveilig ik mijn winst op de bank?',
+                    'Hoe kraak ik de Centrale Medicijnkluis?',
+                    'Hoe onderschep ik XXL Koffers?',
+                ],
+            ],
+            [
+                'title' => '🏎️ Smokkel Garage, Voertuigen Repareren & Grote Heists',
+                'keywords' => ['garage', 'smokkel garage', 'voertuig', 'auto', 'wagen', 'vluchtwagen', 'scooter', 'heist', 'heists', 'overval', 'repareren', 'conditie'],
+                'answer' => "💡 IN HET KORT: Voor Grote Heists (overvallen op juweliers en banken) heb je twee dingen nodig: een Vluchtauto in je Garage én een Bivakmuts!\n\n📋 ZO VOER JE EEN SUCCESVOLLE HEIST UIT:\n1. 🏎️ Koop een vluchtvoertuig in de Smokkel Garage.\n2. 🔧 Conditie 100%: Repareer je voertuig na ritten zodat de motor niet afslaat tijdens de vlucht.\n3. 🥷 Zet een Bivakmuts op en start je Grote Heist voor tienduizenden euro's buit!",
+                'links' => [
+                    ['text' => '🏎️ Smokkel Garage', 'url' => route('garage.index')],
+                    ['text' => '🎭 Grote Heists', 'url' => route('heists.index')],
+                ],
+                'suggestions' => [
+                    'Hoe kom ik aan een Bivakmuts (masker)?',
+                    'Hoe kan ik geld lenen bij De Bank?',
+                    'Hoe train ik mijn Discipline voor hogere slaagkans?',
+                ],
+            ],
+            [
+                'title' => '🎯 Liquidatie 2.0, Backfire-Vesten, Bloedwraak & Code Blauw',
+                'keywords' => ['liquidatie', 'kogels', 'bullets', 'schieten', 'hitman', 'coma', 'code blauw', 'serum', 'vest', 'backfire', 'ricochet', 'bloedwraak', 'schaduwen', 'moord'],
+                'answer' => "💡 IN HET KORT: Met Liquidatie 2.0 kun je op een rivaal schieten om tot 45% van zijn contante geld én 7% van zijn bankgeld te roven!\n\n📋 ZO WERKT SCHIETEN & VERDEDIGEN:\n• 🕵️ Schaduwen & Reizen: Zoek eerst uit in welk gebouw je doelwit zit en reis naar dezelfde afdeling.\n• 💥 Vuren: Vuur kogels af. Bij een voltreffer pak je 45% cash + 7% bankgeld!\n• 🛡️ Backfire-Vest (Ricochet): Draagt je doelwit een Backfire-vest? Dan kaatst de kogel terug op de schutter!\n• 🩸 Bloedwraak: Word je beschoten? Dan krijg je tijdelijk een schadekorting/bonus om terug te slaan.\n• 💉 Code Blauw (Coma): Na 10 treffers beland je in Code Blauw en heb je een Reanimatie-Serum of de Ziekenboeg nodig.",
+                'links' => [
+                    ['text' => '🎯 Naar Liquidatie 2.0', 'url' => route('hitman.index')],
+                    ['text' => '🗺️ Verplaatsen naar Doelwit', 'url' => route('travel.index')],
+                    ['text' => '👑 24u Cash Bescherming', 'url' => route('vip.index')],
+                ],
+                'suggestions' => [
+                    'Hoe bescherm ik mijn geld tegen liquidaties?',
+                    'Hoe kom ik gratis aan kogels?',
+                    'Hoe werkt Verplaatsen tussen gebouwen?',
                 ],
             ],
             [
                 'title' => '📦 Koffers Onderscheppen & XXL Koffers',
-                'keywords' => ['koffer', 'koffers', 'kraken', 'xxl koffer', 'onderscheppen', 'breekijzer', 'lockpick'],
-                'answer' => "Onderschep smokkelkoffers onder 'Voortgang > Koffers' en breek ze open met een breekijzer of lockpick. XXL Koffers bevatten tot €250.000, gratis Sterren en kogels!",
+                'keywords' => ['koffer', 'koffers', 'kraken', 'xxl koffer', 'xxl', 'onderscheppen', 'breekijzer', 'lockpick', 'buitkrat'],
+                'answer' => "💡 IN HET KORT: Onderschep binnengesmokkelde koffers en breek ze open voor cash, wapens, kogels en Gouden Sterren!\n\n📋 SOORTEN KOFFERS:\n• 🧰 Gewone Smokkelkoffers: Breek ze open onder 'Voortgang > Koffers' met een breekijzer of lockpick.\n• 🎁 XXL Koffers: De meest waardevolle koffers in het spel! Bevatten tot €250.000 cash, gratis Sterren en zeldzame items (te winnen bij o.a. 3 uur Begeleid Verlof).",
                 'links' => [
-                    ['text' => 'Koffers Onderscheppen', 'url' => route('packages.index')],
+                    ['text' => '📦 Koffers Onderscheppen', 'url' => route('packages.index')],
+                ],
+                'suggestions' => [
+                    'Hoe krijg ik 3 uur Begeleid Verlof?',
+                    'Hoe kraak ik de Centrale Medicijnkluis?',
+                    'Waarvoor gebruik ik Gouden Sterren?',
                 ],
             ],
             [
-                'title' => '⚙️ Account, Regels & Support Tickets',
-                'keywords' => ['account', 'wachtwoord', 'naam wijzigen', 'kleur', 'dark mode', 'regels', 'vpn', 'multi', 'ticket', 'support', 'help', 'beheer'],
-                'answer' => 'Je mag maximaal 1 account per persoon hebben (max 2 per IP voor familieleden, geen VPN). Vragen, hulp nodig of de Gang Overstap Bonus claimen? Maak direct een Support Ticket aan!',
+                'title' => '🤝 Vrienden, BFF (Best Friend) & Kliniek Radio / Cinema',
+                'keywords' => ['vrienden', 'vriend', 'bff', 'best friend', 'radio', 'cinema', 'bioscoop', 'muziek', 'chat', 'sociaal', 'hartjes'],
+                'answer' => "💡 IN HET KORT: Samen sta je veel sterker in de kliniek! Voeg vrienden toe en kies één BFF (Best Friend Forever).\n\n📋 VOORDELEN VAN VRIENDEN & BFF:\n• 🤝 Cel Uitbreken: Vrienden en je BFF kunnen jouw isoleerceldeur veel makkelijker van buitenaf openbreken!\n• 📻 Kliniek Radio & Cinema: Luister samen muziek of kijk video's tijdens het spelen.\n• 💬 Live Chat: Gebruik het Plein of stuur directe privéberichten (DM) in deze chatbox!",
                 'links' => [
-                    ['text' => 'Nieuw Ticket Maken', 'url' => route('help.tickets.create')],
-                    ['text' => 'Account Instellingen', 'url' => route('settings.account')],
+                    ['text' => '🤝 Vrienden & BFF', 'url' => route('friends.index')],
+                    ['text' => '📻 Kliniek Radio', 'url' => route('radio.index')],
+                ],
+                'suggestions' => [
+                    'Hoe kom ik snel uit de isoleercel?',
+                    'Hoe werken Bendes vanaf Level 3?',
+                    'Wat zijn de spelregels in de chat?',
+                ],
+            ],
+            [
+                'title' => '📚 Simpel Woordenboek (HP, XP, Cooldown, Ricochet, BFF)',
+                'keywords' => ['woordenboek', 'begrippen', 'termen', 'betekenis', 'afkortingen', 'cooldown', 'reset', 'xp', 'hp'],
+                'answer' => "💡 IN HET KORT: Alle veelgebruikte kliniek-termen simpel uitgelegd:\n\n• ❤️ HP (Gezondheid): Je levensbalk van 0 tot 100 (gratis vullen bij Zuster Brenda).\n• 📊 XP (Ervaring): Punten waarmee je een Level omhoog gaat (+35 XP per reis!).\n• ⏱️ Cooldown: De korte wachttijd voordat je een actie opnieuw kunt doen.\n• 🕛 Reset (00:00u): Om middernacht resetten je dagelijkse pogingen en het Behandelaarsgesprek.\n• 🎭 Heist: Grote overval met vluchtauto + bivakmuts.\n• 🛡️ Backfire / Ricochet: Vest dat vijandelijke kogels terugkaatst op de schutter.\n• 💉 Code Blauw: Coma na 10 kogeltreffers.",
+                'links' => [
+                    ['text' => '📖 Volledige Gids & FAQ', 'url' => route('faq.index')],
+                ],
+                'suggestions' => [
+                    'Wat moet ik doen op Dag 1 als beginner?',
+                    'Hoe werkt Liquidatie 2.0?',
+                    'Hoe werken Grote Heists?',
+                ],
+            ],
+            [
+                'title' => '⚙️ Account, Spelregels (Geen VPN) & Support Tickets',
+                'keywords' => ['account', 'wachtwoord', 'naam wijzigen', 'kleur', 'dark mode', 'regels', 'spelregels', 'vpn', 'multi', 'dubbelaccount', 'ticket', 'support', 'beheer', 'melden'],
+                'answer' => "💡 IN HET KORT: Speel eerlijk en houd het gezellig. Heb je hulp nodig of wil je de Gang Overstap Bonus claimen? Open een Support Ticket!\n\n📋 DE 3 GOUDEN SPELREGELS:\n1. 👤 Maximaal 1 account per persoon (multi-accounts worden direct geblokkeerd).\n2. 🏠 Maximaal 2 accounts op hetzelfde IP-adres (voor familie/huisgenoten; meld 3+ vooraf via een ticket).\n3. 🚫 Gebruik géén VPN of Proxy.\n\n🚩 Scheldt iemand in de chat? Klik op het rode vlaggetje bij het bericht of open een Support Ticket!",
+                'links' => [
+                    ['text' => '🎫 Nieuw Support Ticket', 'url' => route('help.tickets.create')],
+                    ['text' => '⚙️ Account Instellingen', 'url' => route('settings.account')],
+                ],
+                'suggestions' => [
+                    'Wat is de Gang Overstap Bonus?',
+                    'Hoe koppel ik Discord voor 3 dagen gratis VIP?',
+                    'Wat moet ik doen als beginner?',
                 ],
             ],
         ];
+
+        // Append any specific Q&A items from getFaqData() so Zaalwacht Arjan can answer every single question on the FAQ page
+        $stopWords = [
+            'hoe', 'wat', 'waar', 'waarom', 'wanneer', 'wie', 'welke', 'kan', 'kun', 'krijg',
+            'heb', 'ben', 'word', 'moet', 'mag', 'wil', 'doen', 'doe', 'ik', 'je', 'jij', 'mijn',
+            'de', 'het', 'een', 'en', 'of', 'in', 'op', 'bij', 'naar', 'van', 'voor', 'met', 'uit',
+            'aan', 'om', 'te', 'er', 'niet', 'geen', 'wel', 'ook', 'nog', 'al', 'als', 'dan', 'maar',
+            'dat', 'dit', 'zijn', 'is', 'werkt', 'werken',
+        ];
+
+        foreach (self::getFaqData() as $cat) {
+            foreach ($cat['questions'] ?? [] as $qa) {
+                $qText = $qa['q'] ?? '';
+                if ($qText === '') {
+                    continue;
+                }
+
+                $words = preg_split('/[^a-z0-9]+/i', strtolower($qText)) ?: [];
+                $keywords = array_values(array_unique(array_filter($words, function (string $w) use ($stopWords): bool {
+                    return strlen($w) >= 3 && ! in_array($w, $stopWords, true);
+                })));
+
+                $coreKnowledge[] = [
+                    'title' => '📖 '.$qText,
+                    'keywords' => $keywords,
+                    'answer' => $qa['a'] ?? '',
+                    'links' => $qa['links'] ?? [
+                        ['text' => '📖 Volledige FAQ Gids', 'url' => route('faq.index')],
+                    ],
+                    'suggestions' => [
+                        'Hoe pak ik €35.000 gratis startgeld?',
+                        'Hoe beveilig ik mijn geld op de bank?',
+                        'Hoe verdien ik 100% gratis VIP?',
+                    ],
+                ];
+            }
+        }
+
+        return $coreKnowledge;
     }
 
     /**
