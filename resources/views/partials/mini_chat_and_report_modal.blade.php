@@ -103,7 +103,7 @@
     isInPrison: @js((bool) ($authCharacter?->isImprisoned() ?? false)),
     isComatose: @js((bool) ($authCharacter?->isComatose() ?? false)),
     cash: {{ (int) ($authCharacter?->cash ?? 0) }},
-})" x-effect="document.body.classList.toggle('tbs-chat-open', isOpen)" class="z-[9990]">
+})" x-effect="document.body.classList.toggle('tbs-chat-open', isOpen)" @click.window="if(heartsPopup) hideHeartsPopup()" class="z-[9990]">
 
 <style>
     .tbs-mini-chat-btn {
@@ -266,6 +266,7 @@
 
     <!-- FLOATING CHAT WINDOW POPUP -->
     <div x-show="isOpen" x-cloak style="display: none;"
+         @keydown.escape.window="if(isOpen && !replyingTo && !inputMessage && !gangInputMessage && !directInput && !showEmojiPicker && !showGangEmojiPicker && !showDirectEmojiPicker) { isOpen = false; }"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-4 scale-95"
          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -275,29 +276,40 @@
          class="tbs-mini-chat-popup bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100">
         
         <!-- HEADER WITH TABS -->
-        <div class="bg-purple-600 dark:bg-slate-950 p-2.5 border-b border-purple-700 dark:border-slate-800 text-white shrink-0 space-y-2 shadow-xs">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center p-1 shadow-xs overflow-hidden">
+        <div class="bg-purple-600 dark:bg-slate-950 px-3 py-2.5 sm:px-3.5 sm:py-3 border-b border-purple-700 dark:border-slate-800 text-white shrink-0 space-y-2.5 shadow-xs">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center p-1 shadow-xs overflow-hidden shrink-0">
                         <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Logo" class="w-full h-full object-contain">
                     </div>
-                    <div>
-                        <h4 class="text-xs font-black tracking-tight flex items-center gap-1.5">
+                    <div class="min-w-0">
+                        <h4 class="text-xs font-black tracking-tight flex items-center gap-1.5 truncate">
                             <span>TBS Kliniek Chat</span>
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" title="Verbonden"></span>
                         </h4>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-1">
-                    <button type="button" @click="toggleSound()" :title="isSoundMuted ? 'Geluid aanzetten' : 'Geluid dempen'" class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 dark:hover:bg-white/15 text-xs transition cursor-pointer">
+                <div class="flex items-center gap-1 shrink-0">
+                    <button type="button" 
+                            @click="toggleSound()" 
+                            :title="isSoundMuted ? 'Geluid aanzetten' : 'Geluid dempen'" 
+                            :aria-label="isSoundMuted ? 'Geluid aanzetten' : 'Geluid dempen'" 
+                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/15 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/40 flex items-center justify-center text-xs transition cursor-pointer shrink-0">
                         <i :class="isSoundMuted ? 'fa-solid fa-volume-xmark text-rose-300' : 'fa-solid fa-volume-high text-white'"></i>
                     </button>
-                    <a href="{{ route('chat.index') }}" title="Volledig scherm openen" class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 dark:hover:bg-white/15 text-xs transition">
-                        <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                    <a href="{{ route('chat.index') }}" 
+                       title="Volledig scherm openen" 
+                       aria-label="Volledig scherm openen" 
+                       class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/15 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/40 flex items-center justify-center text-xs transition shrink-0">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center text-[11px]"></i>
                     </a>
-                    <button type="button" @click="isOpen = false" class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 dark:hover:bg-white/15 text-sm transition cursor-pointer" title="Sluiten">
-                        &times;
+                    <button type="button" 
+                            @click="isOpen = false" 
+                            aria-label="Sluit chatvenster" 
+                            title="Sluiten (Esc)" 
+                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/15 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/40 flex items-center justify-center text-xs transition cursor-pointer shrink-0 ml-0.5">
+                        <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
@@ -497,7 +509,7 @@
                                             class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                             :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                         <span>💜</span>
-                                        <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                        <span x-show="msg.hearts_count > 0" @click.stop="toggleHeartsPopup($event, msg)" x-text="msg.hearts_count" class="text-[9px] font-black font-mono px-0.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/60" title="Bekijk wie er reageerde"></span>
                                     </button>
                                 </div>
                             </div>
@@ -668,7 +680,7 @@
                         </div>
                     </div>
 
-                    <div class="flex-1 relative flex items-center">
+                    <div class="flex-1 relative flex items-center min-w-0">
                         <input type="text" x-ref="publicInputField" x-model="inputMessage" 
                                @input="onChatInput($event, 'global')"
                                @keydown="onChatKeydown($event, 'global')"
@@ -676,24 +688,19 @@
                                :disabled="isInPrison || isComatose"
                                maxlength="250"
                                style="user-select: text; -webkit-user-select: text;"
-                               class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-16 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
-                        
-                        <!-- Quick Clear Button -->
-                        <button type="button" 
-                                x-show="inputMessage.length > 0" 
-                                @click="inputMessage = ''; if ($refs.publicInputField) $refs.publicInputField.focus();"
-                                class="absolute right-10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 text-xs cursor-pointer"
-                                title="Invoer wissen (Esc)">
-                            <i class="fa-solid fa-circle-xmark"></i>
-                        </button>
+                               class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-14 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
 
                         <span x-show="inputMessage.length > 150" 
-                              class="absolute right-2 text-[9px] font-mono pointer-events-none"
+                              class="absolute right-2.5 text-[9px] font-mono pointer-events-none"
                               :class="inputMessage.length >= 240 ? 'text-rose-500 font-black' : (inputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
                               x-text="inputMessage.length + '/250'"></span>
                     </div>
-                    <button type="submit" :disabled="isSending || !inputMessage.trim() || isInPrison || isComatose" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
-                        <i class="fa-solid fa-paper-plane"></i>
+                    <button type="submit" 
+                            :disabled="isSending || !inputMessage.trim() || isInPrison || isComatose" 
+                            aria-label="Verstuur bericht" 
+                            title="Versturen (Enter)" 
+                            class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0 focus:outline-none focus:ring-2 focus:ring-purple-500/30">
+                        <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
                     </button>
                 </form>
             </div>
@@ -919,7 +926,7 @@
                                                     class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                                     :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                 <span>💜</span>
-                                                <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                                <span x-show="msg.hearts_count > 0" @click.stop="toggleHeartsPopup($event, msg)" x-text="msg.hearts_count" class="text-[9px] font-black font-mono px-0.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/60" title="Bekijk wie er reageerde"></span>
                                             </button>
                                         </div>
                                     </div>
@@ -1083,7 +1090,7 @@
                         </div>
                     </div>
 
-                    <div class="flex-1 relative flex items-center">
+                    <div class="flex-1 relative flex items-center min-w-0">
                         <input type="text" x-ref="gangInputField" x-model="gangInputMessage" 
                                @input="onChatInput($event, 'gang')"
                                @keydown="onChatKeydown($event, 'gang')"
@@ -1091,25 +1098,20 @@
                                :disabled="isInPrison || isComatose"
                                maxlength="250"
                                style="user-select: text; -webkit-user-select: text;"
-                               class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-16 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
-                        
-                        <!-- Quick Clear Button -->
-                        <button type="button" 
-                                x-show="gangInputMessage.length > 0" 
-                                @click="gangInputMessage = ''; if ($refs.gangInputField) $refs.gangInputField.focus();"
-                                class="absolute right-10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 text-xs cursor-pointer"
-                                title="Invoer wissen (Esc)">
-                            <i class="fa-solid fa-circle-xmark"></i>
-                        </button>
+                               class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-14 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
 
                         <span x-show="gangInputMessage.length > 150" 
-                              class="absolute right-2 text-[9px] font-mono pointer-events-none"
+                              class="absolute right-2.5 text-[9px] font-mono pointer-events-none"
                               :class="gangInputMessage.length >= 240 ? 'text-rose-500 font-black' : (gangInputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
                               x-text="gangInputMessage.length + '/250'"></span>
                     </div>
-                            <button type="submit" :disabled="isSendingGang || !gangInputMessage.trim() || isInPrison || isComatose" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </button>
+                    <button type="submit" 
+                            :disabled="isSendingGang || !gangInputMessage.trim() || isInPrison || isComatose" 
+                            aria-label="Verstuur bendebericht" 
+                            title="Versturen (Enter)" 
+                            class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0 focus:outline-none focus:ring-2 focus:ring-purple-500/30">
+                        <i class="fa-solid fa-paper-plane" :class="isSendingGang ? 'animate-pulse' : ''"></i>
+                    </button>
                         </form>
                     </div>
                 </div>
@@ -1373,7 +1375,7 @@
                                                                 class="p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                                                 :class="dm.has_hearted ? 'text-purple-400 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                             <span>💜</span>
-                                                            <span x-show="dm.hearts_count > 0" x-text="dm.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                                            <span x-show="dm.hearts_count > 0" @click.stop="toggleHeartsPopup($event, dm)" x-text="dm.hearts_count" class="text-[9px] font-black font-mono px-0.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/60" title="Bekijk wie er reageerde"></span>
                                                         </button>
                                                     </div>
 
@@ -1594,24 +1596,19 @@
                                            :disabled="isInPrison || isComatose"
                                            maxlength="500"
                                            style="user-select: text; -webkit-user-select: text;"
-                                           class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-18 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
-                                    
-                                    <!-- Quick Clear Button -->
-                                    <button type="button" 
-                                            x-show="directInput.length > 0" 
-                                            @click="directInput = ''; if ($refs.directInputField) $refs.directInputField.focus();"
-                                            class="absolute right-10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 text-xs cursor-pointer"
-                                            title="Invoer wissen (Esc)">
-                                        <i class="fa-solid fa-circle-xmark"></i>
-                                    </button>
+                                           class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 pr-14 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition disabled:opacity-60 disabled:cursor-not-allowed selection:bg-purple-600 selection:text-white">
 
                                     <span x-show="directInput.length > 350" x-cloak
-                                          class="absolute right-2 text-[10px] font-mono pointer-events-none"
+                                          class="absolute right-2.5 text-[10px] font-mono pointer-events-none"
                                           :class="directInput.length >= 490 ? 'text-rose-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
                                           x-text="directInput.length + '/500'"></span>
                                 </div>
-                                <button type="submit" :disabled="isSendingDirect || !directInput.trim() || isInPrison || isComatose" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
-                                    <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                                <button type="submit" 
+                                        :disabled="isSendingDirect || !directInput.trim() || isInPrison || isComatose" 
+                                        aria-label="Verstuur privébericht" 
+                                        title="Versturen (Enter)" 
+                                        class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0 focus:outline-none focus:ring-2 focus:ring-purple-500/30">
+                                    <i class="fa-solid fa-paper-plane text-[10px]" :class="isSendingDirect ? 'animate-pulse' : ''"></i>
                                 </button>
                             </form>
                         </div>
@@ -1751,18 +1748,18 @@
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
          role="tooltip"
-         class="pointer-events-none fixed z-[9999999] p-3 rounded-2xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-2xl border border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[300px] text-left"
+         class="pointer-events-none fixed z-[9999999] p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 shadow-xl shadow-purple-950/10 dark:shadow-2xl border border-purple-200/90 dark:border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[min(300px,calc(100vw-24px))] text-left select-none"
          :style="'left: ' + (heartsPopup ? heartsPopup.left : 0) + 'px; ' + 
-                 (heartsPopup && heartsPopup.placeBelow ? ('top: ' + heartsPopup.top + 'px;') : ('bottom: ' + (window.innerHeight - (heartsPopup ? heartsPopup.top : 0)) + 'px;'))">
-        <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-slate-800">
+                 (heartsPopup && heartsPopup.placeBelow ? ('top: ' + heartsPopup.top + 'px;') : ('bottom: ' + (heartsPopup ? heartsPopup.bottom : 0) + 'px;'))">
+        <div class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-purple-100 dark:border-slate-800">
             <span>💜</span>
             <span x-text="heartsPopup?.count === 1 ? '1 paars hartje' : (heartsPopup?.count + ' hartjes')"></span>
         </div>
         <ul class="space-y-1 text-xs leading-snug max-h-52 overflow-y-auto custom-scrollbar">
             <template x-for="name in (heartsPopup?.names || [])" :key="name">
-                <li class="flex items-center gap-1.5 text-slate-200">
-                    <span class="text-purple-400 font-bold select-none shrink-0">-</span>
-                    <span class="font-bold text-slate-100 whitespace-nowrap" x-text="name"></span>
+                <li class="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                    <span class="text-purple-600 dark:text-purple-400 font-bold select-none shrink-0">-</span>
+                    <span class="font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap" x-text="name"></span>
                 </li>
             </template>
         </ul>
@@ -2625,7 +2622,8 @@
                         maxNameLen = n.length;
                     }
                 }
-                const tooltipWidth = Math.min(300, Math.max(160, maxNameLen * 9 + 40));
+                const maxAllowedWidth = Math.min(300, window.innerWidth - 24);
+                const tooltipWidth = Math.min(maxAllowedWidth, Math.max(140, maxNameLen * 9 + 40));
                 const tooltipHeight = Math.min(260, 48 + item.hearts_names.length * 24);
                 const placeBelow = rect.top < (tooltipHeight + 16);
                 let left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
@@ -2635,15 +2633,27 @@
                 if (left < 12) {
                     left = 12;
                 }
-                const top = placeBelow ? (rect.bottom + 8) : (rect.top - 8);
+                const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                const top = placeBelow ? Math.max(12, Math.round(rect.bottom + 8)) : 0;
+                const bottom = !placeBelow ? Math.max(12, Math.round(viewportHeight - rect.top + 8)) : 0;
                 this.heartsPopup = {
                     visible: true,
+                    targetId: item.id,
                     count: item.hearts_count,
                     names: item.hearts_names,
                     left: Math.round(left),
-                    top: Math.round(top),
+                    top: top,
+                    bottom: bottom,
                     placeBelow: placeBelow
                 };
+            },
+
+            toggleHeartsPopup(event, item) {
+                if (this.heartsPopup && this.heartsPopup.visible && this.heartsPopup.targetId === item.id) {
+                    this.hideHeartsPopup();
+                } else {
+                    this.showHeartsPopup(event, item);
+                }
             },
 
             hideHeartsPopup() {

@@ -813,7 +813,8 @@ function tbsLiveMessenger(config) {
                     maxNameLen = n.length;
                 }
             }
-            const tooltipWidth = Math.min(300, Math.max(160, maxNameLen * 9 + 40));
+            const maxAllowedWidth = Math.min(300, window.innerWidth - 24);
+            const tooltipWidth = Math.min(maxAllowedWidth, Math.max(140, maxNameLen * 9 + 40));
             const tooltipHeight = Math.min(260, 48 + item.hearts_names.length * 24);
             const placeBelow = rect.top < (tooltipHeight + 16);
             let left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
@@ -823,15 +824,27 @@ function tbsLiveMessenger(config) {
             if (left < 12) {
                 left = 12;
             }
-            const top = placeBelow ? (rect.bottom + 8) : (rect.top - 8);
+            const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            const top = placeBelow ? Math.max(12, Math.round(rect.bottom + 8)) : 0;
+            const bottom = !placeBelow ? Math.max(12, Math.round(viewportHeight - rect.top + 8)) : 0;
             this.heartsPopup = {
                 visible: true,
+                targetId: item.id,
                 count: item.hearts_count,
                 names: item.hearts_names,
                 left: Math.round(left),
-                top: Math.round(top),
+                top: top,
+                bottom: bottom,
                 placeBelow: placeBelow
             };
+        },
+
+        toggleHeartsPopup(event, item) {
+            if (this.heartsPopup && this.heartsPopup.visible && this.heartsPopup.targetId === item.id) {
+                this.hideHeartsPopup();
+            } else {
+                this.showHeartsPopup(event, item);
+            }
         },
 
         hideHeartsPopup() {
@@ -1028,7 +1041,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
 </script>
 
-<div class="space-y-4" x-data="tbsLiveMessenger(window.tbsChatConfig)" x-init="initMessenger()">
+<div class="space-y-4" x-data="tbsLiveMessenger(window.tbsChatConfig)" x-init="initMessenger()" @click.window="if(heartsPopup) hideHeartsPopup()">
 
     <!-- HEADER BAR (Mobile-Optimized Compact & Desktop Rich) -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 sm:p-5 shadow-xs relative overflow-hidden">
@@ -1671,7 +1684,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                     class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                     :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                 <span>💜</span>
-                                                <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[10px] font-black font-mono"></span>
+                                                <span x-show="msg.hearts_count > 0" @click.stop="toggleHeartsPopup($event, msg)" x-text="msg.hearts_count" class="text-[10px] font-black font-mono px-0.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/60" title="Bekijk wie er reageerde"></span>
                                             </button>
                                         </div>
                                     </div>
@@ -1920,7 +1933,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                             class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                             :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                         <span>💜</span>
-                                                        <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[10px] font-black font-mono"></span>
+                                                        <span x-show="msg.hearts_count > 0" @click.stop="toggleHeartsPopup($event, msg)" x-text="msg.hearts_count" class="text-[10px] font-black font-mono px-0.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/60" title="Bekijk wie er reageerde"></span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -2112,7 +2125,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                                 class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                                 :class="dm.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
                                                             <span>💜</span>
-                                                            <span x-show="dm.hearts_count > 0" x-text="dm.hearts_count" class="text-[10px] font-black font-mono"></span>
+                                                            <span x-show="dm.hearts_count > 0" @click.stop="toggleHeartsPopup($event, dm)" x-text="dm.hearts_count" class="text-[10px] font-black font-mono px-0.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/60" title="Bekijk wie er reageerde"></span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -2383,16 +2396,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                    :placeholder="activeTab === 'direct' ? 'Stuur een privébericht of @speler... (max 500 tekens)' : (activeTab === 'gang' ? 'Typ een bericht voor je bende... (max 250 tekens)' : 'Typ een bericht of @speler... (max 250 tekens)')"
                                    :maxlength="activeTab === 'direct' ? 500 : 250"
                                    style="user-select: text; -webkit-user-select: text;"
-                                   class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-3.5 sm:px-4 py-2 sm:py-3 pr-20 sm:pr-24 text-base sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition selection:bg-purple-600 selection:text-white">
-                            
-                            <!-- QUICK CLEAR BUTTON -->
-                            <button type="button" 
-                                    x-show="messageInput.length > 0" 
-                                    @click="messageInput = ''; if ($refs.messageInputField) $refs.messageInputField.focus();"
-                                    class="absolute right-14 sm:right-16 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition p-1 text-xs cursor-pointer"
-                                    title="Invoer wissen (Esc)">
-                                <i class="fa-solid fa-circle-xmark"></i>
-                            </button>
+                                   class="select-text w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-3.5 sm:px-4 py-2 sm:py-3 pr-16 sm:pr-20 text-base sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition selection:bg-purple-600 selection:text-white">
 
                             <!-- CHARACTER COUNTER -->
                             <span x-show="messageInput.length > (activeTab === 'direct' ? 350 : 150)" x-cloak
@@ -2427,18 +2431,18 @@ window.tbsLiveMessenger = tbsLiveMessenger;
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
          role="tooltip"
-         class="pointer-events-none fixed z-[999999] p-3 rounded-2xl bg-slate-900/95 dark:bg-slate-950/95 text-slate-100 shadow-2xl border border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[320px] text-left"
+         class="pointer-events-none fixed z-[999999] p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 shadow-xl shadow-purple-950/10 dark:shadow-2xl border border-purple-200/90 dark:border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[min(320px,calc(100vw-24px))] text-left select-none"
          :style="'left: ' + (heartsPopup ? heartsPopup.left : 0) + 'px; ' + 
-                 (heartsPopup && heartsPopup.placeBelow ? ('top: ' + heartsPopup.top + 'px;') : ('bottom: ' + (window.innerHeight - (heartsPopup ? heartsPopup.top : 0)) + 'px;'))">
-        <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300 dark:text-purple-400 flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-slate-800">
+                 (heartsPopup && heartsPopup.placeBelow ? ('top: ' + heartsPopup.top + 'px;') : ('bottom: ' + (heartsPopup ? heartsPopup.bottom : 0) + 'px;'))">
+        <div class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-purple-100 dark:border-slate-800">
             <span>💜</span>
             <span x-text="heartsPopup?.count === 1 ? '1 paars hartje' : (heartsPopup?.count + ' hartjes')"></span>
         </div>
         <ul class="space-y-1 text-xs leading-snug max-h-56 overflow-y-auto custom-scrollbar">
             <template x-for="name in (heartsPopup?.names || [])" :key="name">
-                <li class="flex items-center gap-1.5 text-slate-200">
-                    <span class="text-purple-400 font-bold select-none shrink-0">-</span>
-                    <span class="font-bold text-slate-100 whitespace-nowrap" x-text="name"></span>
+                <li class="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                    <span class="text-purple-600 dark:text-purple-400 font-bold select-none shrink-0">-</span>
+                    <span class="font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap" x-text="name"></span>
                 </li>
             </template>
         </ul>

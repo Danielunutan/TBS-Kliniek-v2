@@ -560,9 +560,25 @@ class LiveChatTest extends TestCase
             $this->assertStringContainsString('role="tooltip"', $source);
             $this->assertStringContainsString(':title="getHeartsTooltip(', $source);
             $this->assertStringContainsString('select-text', $source);
+            $this->assertStringContainsString('toggleHeartsPopup', $source);
+            $this->assertStringContainsString('bg-white/95', $source);
+            $this->assertStringContainsString('dark:bg-slate-900/95', $source);
             // Ensure the native title tooltip does not duplicate the names list when hearts_count > 0
             $this->assertStringNotContainsString("item.hearts_names.map(name => '- ' + name).join('\\n')", $source);
         }
+    }
+
+    public function test_chat_window_has_accessible_close_button_in_header_and_clean_input_fields(): void
+    {
+        $miniChatView = file_get_contents(resource_path('views/partials/mini_chat_and_report_modal.blade.php'));
+        $chatIndexView = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+
+        $this->assertStringContainsString('aria-label="Sluit chatvenster"', $miniChatView);
+        $this->assertStringContainsString('title="Sluiten (Esc)"', $miniChatView);
+        $this->assertStringContainsString('fa-solid fa-xmark', $miniChatView);
+
+        $this->assertStringNotContainsString('fa-solid fa-circle-xmark', $miniChatView);
+        $this->assertStringNotContainsString('fa-solid fa-circle-xmark', $chatIndexView);
     }
 
     public function test_moderator_can_delete_messages(): void
