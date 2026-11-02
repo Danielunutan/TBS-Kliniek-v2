@@ -323,41 +323,4 @@ class Pass10Bucket12AuditTest extends TestCase
         // Give Respect button must be disabled when authenticated character is in prison
         $this->assertMatchesRegularExpression('/<button[^>]+disabled[^>]*>[\s\S]*?Geef Respect/i', $view);
     }
-
-    public function test_roadmap_view_renders_cleanly_with_phase_matching(): void
-    {
-        $this->actingAs($this->user);
-
-        $view = view('game.roadmap', [
-            'character' => $this->character,
-            'features' => [
-                'casino_upgrade' => [
-                    'phase' => 'fase1',
-                    'icon' => 'fa-dice',
-                    'icon_style' => 'bg-emerald-500 text-white',
-                    'status' => 'In Ontwikkeling',
-                    'status_badge' => 'bg-emerald-100 text-emerald-800',
-                    'category' => 'Minigames',
-                    'title' => 'Casino Upgrade',
-                    'subtitle' => 'Nieuwe spellen',
-                    'description' => 'Roulette en Blackjack revisie',
-                    'has_voted' => false,
-                    'votes' => 12,
-                    'votes_count' => 12,
-                    'progress_pct' => 60,
-                    'highlights' => ['Casino upgrade', 'Nieuwe spellen'],
-                ],
-            ],
-            'categories' => ['Minigames'],
-            'stats' => [
-                'total_features' => 1,
-                'total_votes' => 12,
-                'completed' => 0,
-                'in_progress' => 1,
-            ],
-        ])->render();
-
-        $this->assertMatchesRegularExpression('/matches\(\{\s*phase:\s*(&#039;|&quot;|"|\')fase1(&#039;|&quot;|"|\')\s*\}\)/', $view);
-        $this->assertStringContainsString('Casino Upgrade', $view);
-    }
 }

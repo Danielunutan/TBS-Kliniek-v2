@@ -69,7 +69,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RadioController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\RookieQuestController;
 use App\Http\Controllers\RouletteController;
 use App\Http\Controllers\RpsController;
@@ -617,10 +616,6 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/nieuws/{slug}', [NewsController::class, 'show'])->name('news.show');
     Route::post('/nieuws/{article}/reactie', [NewsController::class, 'comment'])->middleware('throttle:15,1')->name('news.comment');
     Route::delete('/nieuws/reactie/{comment}', [NewsController::class, 'destroyComment'])->name('news.comment.destroy');
-
-    // Toekomst & Roadmap (De 6 Nieuwe Features)
-    Route::get('/roadmap', [RoadmapController::class, 'index'])->name('roadmap.index');
-    Route::post('/roadmap/stem/{featureKey}', [RoadmapController::class, 'vote'])->middleware('throttle:20,1')->name('roadmap.vote');
 
     // De Illegale Armpjedruk Arena (Kracht Showdown & PvP Tafel)
     Route::get('/armpjedrukken', [ArmWrestleController::class, 'index'])->name('armwrestling.index');

@@ -236,7 +236,6 @@ class Pass10Bucket15AuditTest extends TestCase
             'hustle.attempt' => 'throttle:60,1',
             'combat_training.train' => 'throttle:60,1',
             'news.comment' => 'throttle:15,1',
-            'roadmap.vote' => 'throttle:20,1',
             'armwrestling.challenge.create' => 'throttle:20,1',
             'armwrestling.challenge.cancel' => 'throttle:30,1',
             'armwrestling.challenge.accept' => 'throttle:30,1',

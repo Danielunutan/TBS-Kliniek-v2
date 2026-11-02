@@ -47,7 +47,6 @@ window.tbsDashboardCustomizer = function() {
         },
 
         widgets: {
-            roadmap: true,
             quickToolbar: true,
             weather: true,
             radio: true,
@@ -80,8 +79,7 @@ window.tbsDashboardCustomizer = function() {
             { key: 'activities', title: 'Recente Activiteiten Feed', desc: 'Log van recente overvallen, missies en winsten', icon: 'fa-clock-rotate-left', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 },
             { key: 'clinicNews', title: 'TBS Kliniek Berichten', desc: 'Officiële aankondigingen van de inrichting', icon: 'fa-bullhorn', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
             { key: 'gang', title: 'Mijn Bende Kaart', desc: 'Overzicht van je factie, kas en leden', icon: 'fa-users', bg: 'bg-slate-200 text-slate-800', isPremium: false, cost: 0 },
-            { key: 'missions', title: 'Snelle Missies Lijst', desc: 'Overzicht van beschikbare missies voor cash & XP', icon: 'fa-list-check', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
-            { key: 'roadmap', title: 'Roadmap & Toekomst Kaart', desc: 'Stemmen op nieuwe kliniek features', icon: 'fa-compass', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 }
+            { key: 'missions', title: 'Snelle Missies Lijst', desc: 'Overzicht van beschikbare missies voor cash & XP', icon: 'fa-list-check', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 }
         ],
 
         quickActions: ['crimes', 'arena', 'marketplace', 'radio', 'bank', 'daily'],
@@ -129,7 +127,7 @@ window.tbsDashboardCustomizer = function() {
         },
 
         isUnlocked(key) {
-            const freeWidgets = ['quickToolbar', 'attributes', 'activities', 'lottery', 'referral', 'loginBonus', 'gang', 'missions', 'clinicNews', 'roadmap'];
+            const freeWidgets = ['quickToolbar', 'attributes', 'activities', 'lottery', 'referral', 'loginBonus', 'gang', 'missions', 'clinicNews'];
             if (freeWidgets.includes(key)) return true;
             return Array.isArray(this.unlockedWidgets) && this.unlockedWidgets.includes(key);
         },
@@ -383,7 +381,6 @@ window.tbsDashboardCustomizer = function() {
             localStorage.removeItem('tbs_dashboard_actions');
             this.theme = 'clinical';
             this.widgets = {
-                roadmap: true,
                 quickToolbar: true,
                 weather: true,
                 radio: true,
@@ -548,41 +545,6 @@ function tbsDashboardCustomizer() {
                     </div>
                 </div>
             @endif
-
-            <!-- Roadmap & Updates Teaser Card (Toggleable) -->
-            <div x-show="widgets.roadmap" 
-                 x-transition
-                 class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
-                <button type="button" 
-                        @click="toggleWidget('roadmap')" 
-                        class="absolute top-2 right-2 text-slate-400 hover:text-slate-600 text-xs w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-                        title="Verberg deze melding">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-                <div class="flex items-start gap-3.5 pr-6 sm:pr-0">
-                    <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 mt-0.5 sm:mt-0 shadow-2xs">
-                        <i class="fa-solid fa-compass"></i>
-                    </div>
-                    <div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                                10 Grote Updates
-                            </span>
-                            <span class="text-xs font-black text-slate-900 dark:text-white">Toekomst van de Kliniek: Stem mee op nieuwe functies!</span>
-                        </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                            Van de <strong>Medicijnkluis Bende Heist</strong> en <strong>Armpjedruk Arena</strong> tot het <strong>Behandelaarsgesprek</strong> en de <strong>Peukeneconomie</strong>.
-                        </p>
-                    </div>
-                </div>
-
-                <a href="{{ route('roadmap.index') }}" 
-                   class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition shadow-xs inline-flex items-center justify-center gap-2 shrink-0 cursor-pointer">
-                    <i class="fa-solid fa-thumbs-up text-amber-300 text-xs"></i>
-                    <span>Bekijk & Stem Nu</span>
-                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                </a>
-            </div>
 
             <!-- Welcome Hero Card (Themed) -->
             <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border transition-all duration-300 overflow-hidden relative"

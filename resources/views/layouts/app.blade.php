@@ -251,7 +251,7 @@
             $activeCategory = 'event';
         } elseif (request()->routeIs('gangs.*') || request()->is('gangs*', 'bendes*')) {
             $activeCategory = 'bende';
-        } elseif (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'news.*', 'newspaper.*', 'roadmap.*', 'sponsor.*', 'community.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'nieuws*', 'afdelingsblad*', 'roadmap*', 'sponsorkamer*', 'community*')) {
+        } elseif (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'news.*', 'newspaper.*', 'sponsor.*', 'community.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'nieuws*', 'afdelingsblad*', 'sponsorkamer*', 'community*')) {
             $activeCategory = 'algemeen';
         } elseif (request()->routeIs('depot.*', 'missions.*', 'training.*', 'treatment.*', 'infirmary.*', 'daycare.*') || request()->is('depot*', 'missies*', 'training*', 'behandeling*', 'ziekenboeg*', 'dagbesteding*')) {
             $activeCategory = 'voortgang';
@@ -1053,10 +1053,6 @@
                         <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800">Gratis</span>
                     </a>
                     @endif
-                    <a href="{{ route('roadmap.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('roadmap.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-compass w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                        <span>Toekomst & Roadmap</span>
-                    </a>
                 </div>
             </div>
 
@@ -2639,7 +2635,6 @@
                                 <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i> VIP & Donaties
                             </a></li>
                             <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">VIP Donaties & Voordelen</a></li>
-                            <li><a href="{{ route('roadmap.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Roadmap & Updates</a></li>
                         </ul>
                     </div>
 
