@@ -29,14 +29,34 @@ class PrisonIsolationTest extends TestCase
             'stars' => 5,
         ]);
 
+        $user2 = User::factory()->create();
+        $targetInmate = Character::create([
+            'user_id' => $user2->id,
+            'name' => 'CellMate Fail Target',
+            'title' => 'Patiënt',
+            'avatar' => 'characters/henkie.jpg',
+            'gender' => 'male',
+            'level' => 1,
+            'cash' => 100,
+            'bank' => 0,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(10),
+            'prison_reason' => 'Test straf',
+        ]);
+
         $this->actingAs($user);
 
-        // Attempt breakout (failure rate is ~92%, ensure caught branch triggers)
+        // Attempt breakout (failure rate is ~75-80%, loop up to 30 times to ensure caught branch triggers)
         $jailed = false;
         $response = null;
-        for ($i = 0; $i < 5; $i++) {
-            $char->update(['is_in_prison' => false, 'energy' => 100]);
-            $response = $this->post(route('prison.breakout', 'sim_1'));
+        for ($i = 0; $i < 30; $i++) {
+            Character::where('id', $char->id)->update(['is_in_prison' => false, 'prison_until' => null, 'prison_reason' => null, 'energy' => 100]);
+            Character::where('id', $targetInmate->id)->update(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
+            $response = $this->post(route('prison.breakout', $targetInmate->id), ['method' => 'geweld']);
             $char->refresh();
             if ($char->isImprisoned()) {
                 $jailed = true;
@@ -229,7 +249,7 @@ class PrisonIsolationTest extends TestCase
         $this->assertTrue($succeeded, 'Should have achieved at least one successful breakout');
     }
 
-    public function test_prison_page_always_lists_simulated_inmates_and_clear_breakout_navigation(): void
+    public function test_prison_page_only_lists_real_inmates_and_shows_empty_state_when_no_real_inmates(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $character = $user->character;
@@ -245,10 +265,37 @@ class PrisonIsolationTest extends TestCase
         $prisonResponse = $this->get(route('prison'));
         $prisonResponse->assertOk();
         $prisonResponse->assertSee('Gevangenis &amp; Uitbreken', false);
-        $prisonResponse->assertSee('Kliniek Patiënt met schulden');
-        $prisonResponse->assertSee('Roxy Deluxe');
-        $prisonResponse->assertSee('Amber Savage');
-        $prisonResponse->assertSee('Uitbreken: Stille Sluipuitbraak (15 ⚡)');
+        $prisonResponse->assertSee('Alle Isoleercellen Staan Leeg');
+        $prisonResponse->assertDontSee('Kliniek Patiënt met schulden');
+        $prisonResponse->assertDontSee('Roxy Deluxe');
+        $prisonResponse->assertDontSee('Amber Savage');
+
+        // Create a real inmate in prison and verify they appear
+        $user2 = User::factory()->create();
+        $realInmate = Character::create([
+            'user_id' => $user2->id,
+            'name' => 'Real Prisoner Henk',
+            'title' => 'Patiënt',
+            'avatar' => 'characters/henkie.jpg',
+            'gender' => 'male',
+            'level' => 1,
+            'cash' => 100,
+            'bank' => 0,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(5),
+            'prison_reason' => 'Overtreding',
+        ]);
+
+        $withInmateResponse = $this->get(route('prison'));
+        $withInmateResponse->assertOk();
+        $withInmateResponse->assertSee('Real Prisoner Henk');
+        $withInmateResponse->assertSee('Uitbreken: Stille Sluipuitbraak (15 ⚡)');
+        $withInmateResponse->assertDontSee('Alle Isoleercellen Staan Leeg');
+        $withInmateResponse->assertDontSee('Kliniek Patiënt met schulden');
 
         $tunnelResponse = $this->get(route('tunnel.index'));
         $tunnelResponse->assertOk();

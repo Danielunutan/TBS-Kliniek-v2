@@ -108,7 +108,7 @@ class PrisonController extends Controller
     public const REDUCE_COOLDOWN_SECONDS = 90;
 
     /**
-     * Permanent simulated clinic inmates available for breakout attempts when cells are otherwise empty.
+     * Permanent simulated clinic inmates catalog (deprecated: only real human characters are imprisoned).
      *
      * @var array<string, array{
      *     id: string,
@@ -119,32 +119,7 @@ class PrisonController extends Controller
      *     avatar: string
      * }>
      */
-    public const SIMULATED_INMATES = [
-        'sim_1' => [
-            'id' => 'sim_1',
-            'name' => 'Kliniek Patiënt met schulden',
-            'cell_label' => 'Cel #Z-101 • Kliniek-Gedetineerde',
-            'reason' => 'Schulden en diefstal in de kliniek',
-            'remaining_seconds' => 125,
-            'avatar' => 'assets/characters/avatar_female_1.jpg',
-        ],
-        'sim_2' => [
-            'id' => 'sim_2',
-            'name' => 'Roxy Deluxe',
-            'cell_label' => 'Cel #Z-102 • Kliniek-Gedetineerde',
-            'reason' => 'Contrabande gesmokkeld tijdens bezoekuur',
-            'remaining_seconds' => 149,
-            'avatar' => 'assets/characters/avatar_female_2.jpg',
-        ],
-        'sim_3' => [
-            'id' => 'sim_3',
-            'name' => 'Amber Savage',
-            'cell_label' => 'Cel #Z-103 • Kliniek-Gedetineerde',
-            'reason' => 'Betrapt bij kantoorkluis kraak in Sector B',
-            'remaining_seconds' => 238,
-            'avatar' => 'assets/characters/avatar_female_3.jpg',
-        ],
-    ];
+    public const SIMULATED_INMATES = [];
 
     public function __construct(
         protected PrisonService $prisonService,
@@ -224,23 +199,6 @@ class PrisonController extends Controller
                 'avatar' => $rp->avatar_url,
                 'is_simulated' => false,
                 'model' => $rp,
-            ]);
-        }
-
-        foreach (self::SIMULATED_INMATES as $simInmate) {
-            $jailList->push([
-                'id' => $simInmate['id'],
-                'name' => $simInmate['name'],
-                'cell_label' => $simInmate['cell_label'],
-                'reason' => $simInmate['reason'],
-                'time' => gmdate('i:s', $simInmate['remaining_seconds']),
-                'remaining_seconds' => $simInmate['remaining_seconds'],
-                'chance' => $chanceStil,
-                'chance_stil' => $chanceStil,
-                'chance_geweld' => $chanceGeweld,
-                'avatar' => asset($simInmate['avatar']),
-                'is_simulated' => true,
-                'model' => null,
             ]);
         }
 
@@ -615,23 +573,22 @@ class PrisonController extends Controller
         $methodMeta = self::BREAKOUT_METHODS[$methodKey];
 
         // Validate the target before energy is spent so an invalid attempt costs nothing.
-        $isSimulatedTarget = array_key_exists($id, self::SIMULATED_INMATES);
-        if (! $isSimulatedTarget && ! is_numeric($id)) {
+        if (! is_numeric($id)) {
             return back()->with('error', 'Ongeldig celdossier geselecteerd voor deze bevrijdingsactie.');
         }
 
-        $targetInmate = is_numeric($id) ? Character::find($id) : null;
-        $targetName = $targetInmate
-            ? $targetInmate->name
-            : ($isSimulatedTarget ? self::SIMULATED_INMATES[$id]['name'] : 'deze patiënt');
+        /** @var Character|null $targetInmate */
+        $targetInmate = Character::find($id);
 
-        if (is_numeric($id) && (! $targetInmate || ! $targetInmate->isImprisoned())) {
+        if (! $targetInmate || ! $targetInmate->isImprisoned()) {
             return back()->with('info', 'Deze patiënt is inmiddels al vrijgelaten uit het celblok!');
         }
 
-        if ($targetInmate && $targetInmate->id === $character->id) {
+        if ($targetInmate->id === $character->id) {
             return back()->with('error', 'Je kunt niet je eigen cel van buitenaf openbreken; gebruik het ontsnappingspaneel!');
         }
+
+        $targetName = $targetInmate->name;
 
         $energyCost = 15;
         if (! $this->energyService->consume($character, $energyCost)) {
@@ -671,39 +628,37 @@ class PrisonController extends Controller
             app(DailyBattleService::class)->record($character, 'breakouts', 1);
 
             // Release real inmate under lock
-            if ($targetInmate) {
-                DB::transaction(function () use ($targetInmate, $character, $methodMeta) {
-                    /** @var Character|null $lockedInmate */
-                    $lockedInmate = Character::where('id', $targetInmate->id)->lockForUpdate()->first();
-                    if (! $lockedInmate || ! $lockedInmate->isImprisoned()) {
-                        return;
-                    }
+            DB::transaction(function () use ($targetInmate, $character, $methodMeta) {
+                /** @var Character|null $lockedInmate */
+                $lockedInmate = Character::where('id', $targetInmate->id)->lockForUpdate()->first();
+                if (! $lockedInmate || ! $lockedInmate->isImprisoned()) {
+                    return;
+                }
 
-                    $lockedInmate->is_in_prison = false;
-                    $lockedInmate->prison_until = null;
-                    $lockedInmate->prison_reason = null;
-                    $lockedInmate->prison_escape_attempted = false;
-                    $lockedInmate->ad_prison_progress = 0;
-                    $lockedInmate->save();
+                $lockedInmate->is_in_prison = false;
+                $lockedInmate->prison_until = null;
+                $lockedInmate->prison_reason = null;
+                $lockedInmate->prison_escape_attempted = false;
+                $lockedInmate->ad_prison_progress = 0;
+                $lockedInmate->save();
 
-                    GameNotification::create([
-                        'character_id' => $lockedInmate->id,
-                        'type' => 'prison',
-                        'icon' => 'fa-door-open',
-                        'title' => 'Bevrijd uit het Celblok!',
-                        'message' => "{$character->name} heeft je via '{$methodMeta['name']}' uit de isoleercel bevrijd!",
-                    ]);
+                GameNotification::create([
+                    'character_id' => $lockedInmate->id,
+                    'type' => 'prison',
+                    'icon' => 'fa-door-open',
+                    'title' => 'Bevrijd uit het Celblok!',
+                    'message' => "{$character->name} heeft je via '{$methodMeta['name']}' uit de isoleercel bevrijd!",
+                ]);
 
-                    GameMessage::create([
-                        'recipient_id' => $lockedInmate->id,
-                        'sender_id' => $character->id,
-                        'sender_name' => $character->name,
-                        'subject' => '🔓 CELDOORBRAAK: Je bent op vrije voeten!',
-                        'content' => "Patiënt {$lockedInmate->name},\n\n{$character->name} heeft zojuist via de tactiek '{$methodMeta['name']}' je celvergrendeling gekraakt en je uit de isolatievleugel gehaald!",
-                        'type' => 'jail',
-                    ]);
-                });
-            }
+                GameMessage::create([
+                    'recipient_id' => $lockedInmate->id,
+                    'sender_id' => $character->id,
+                    'sender_name' => $character->name,
+                    'subject' => '🔓 CELDOORBRAAK: Je bent op vrije voeten!',
+                    'content' => "Patiënt {$lockedInmate->name},\n\n{$character->name} heeft zojuist via de tactiek '{$methodMeta['name']}' je celvergrendeling gekraakt en je uit de isolatievleugel gehaald!",
+                    'type' => 'jail',
+                ]);
+            });
 
             return back()->with('success', "🔓 Operatie '{$methodMeta['name']}' geslaagd! De celvergrendeling bezwijkt en {$targetName} staat op vrije voeten! Beloning: +{$methodMeta['respect']} Respect 🔥 en +{$methodMeta['xp']} XP{$statBonusMsg}.");
         }
