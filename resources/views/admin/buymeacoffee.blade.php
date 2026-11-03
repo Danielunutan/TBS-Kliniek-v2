@@ -319,16 +319,20 @@
                                 @endif
 
                                 @if($order->character_id && $order->status !== 'cancelled')
+                                @php
+                                    $alreadyGranted = ! empty($order->payload['rewards_granted']);
+                                @endphp
                                 <form action="{{ route('admin.buymeacoffee.regrant', $order) }}" method="POST"
                                       data-confirm="Weet je zeker dat je de beloningen opnieuw wilt uitkeren aan {{ $order->character?->name ?? 'deze speler' }}?"
                                       data-confirm-title="Beloningen Opnieuw Uitkeren"
                                       data-confirm-btn="Ja, Uitkeren"
-                                      data-confirm-type="success"
+                                      data-confirm-type="{{ $alreadyGranted ? 'warning' : 'success' }}"
                                       data-confirm-icon="fa-gift">
                                     @csrf
-                                    <button type="submit" title="Beloningen opnieuw uitkeren aan speler"
-                                            class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-extrabold text-[11px] transition flex items-center gap-1 cursor-pointer">
-                                        <i class="fa-solid fa-gift"></i> Uitkeren
+                                    <button type="submit" title="{{ $alreadyGranted ? 'Beloningen zijn al toegekend. Klik om opnieuw uit te keren.' : 'Beloningen uitkeren aan speler' }}"
+                                            class="px-2.5 py-1 rounded-lg {{ $alreadyGranted ? 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700' : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' }} font-extrabold text-[11px] transition flex items-center gap-1 cursor-pointer">
+                                        <i class="fa-solid {{ $alreadyGranted ? 'fa-rotate-right' : 'fa-gift' }}"></i>
+                                        {{ $alreadyGranted ? 'Opnieuw Uitkeren' : 'Uitkeren' }}
                                     </button>
                                 </form>
                                 @endif
@@ -481,7 +485,7 @@
                 <button type="button" @click="manualModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg">&times;</button>
             </div>
 
-            <form action="{{ route('admin.buymeacoffee.manual') }}" method="POST" class="space-y-3.5 text-xs">
+            <form action="{{ route('admin.buymeacoffee.manual') }}" method="POST" x-data="{ submitting: false }" @submit="submitting = true" class="space-y-3.5 text-xs">
                 @csrf
 
                 <div class="grid grid-cols-2 gap-3">
@@ -547,8 +551,9 @@
                     <button type="button" @click="manualModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold transition active:scale-95 cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-400 text-white font-black shadow-xs transition active:scale-95 cursor-pointer">
-                        Toevoegen &amp; Activeren
+                    <button type="submit" :disabled="submitting" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5">
+                        <span x-show="!submitting">Toevoegen &amp; Activeren</span>
+                        <span x-show="submitting" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> Bezig...</span>
                     </button>
                 </div>
             </form>

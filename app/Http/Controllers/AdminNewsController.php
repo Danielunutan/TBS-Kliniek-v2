@@ -60,18 +60,24 @@ class AdminNewsController extends Controller
             $counter++;
         }
 
-        NewsArticle::create([
-            'character_id' => $character?->id,
-            'title' => $validated['title'],
-            'slug' => $slug,
-            'emoji' => $validated['emoji'] ?: '📰',
-            'image_url' => $validated['image_url'] ?? null,
-            'content' => $validated['content'],
-            'is_pinned' => $request->boolean('is_pinned'),
-            'comments_enabled' => $request->boolean('comments_enabled'),
-            'is_published' => $request->boolean('is_published', true),
-            'published_at' => now(),
-        ]);
+        try {
+            NewsArticle::create([
+                'character_id' => $character?->id,
+                'title' => $validated['title'],
+                'slug' => $slug,
+                'emoji' => $validated['emoji'] ?: '📰',
+                'image_url' => $validated['image_url'] ?? null,
+                'content' => $validated['content'],
+                'is_pinned' => $request->boolean('is_pinned'),
+                'comments_enabled' => $request->boolean('comments_enabled'),
+                'is_published' => $request->boolean('is_published', true),
+                'published_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to create news article: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het publiceren: '.$e->getMessage())->withInput();
+        }
 
         return redirect()->route('admin.news.index')->with('success', 'Nieuwsartikel succesvol gepubliceerd!');
     }
@@ -105,15 +111,21 @@ class AdminNewsController extends Controller
             && $article->updated_at
             && $article->updated_at->timestamp > (int) $request->input('original_updated_at');
 
-        $article->update([
-            'title' => $validated['title'],
-            'emoji' => $validated['emoji'] ?: '📰',
-            'image_url' => $validated['image_url'] ?? null,
-            'content' => $validated['content'],
-            'is_pinned' => $request->boolean('is_pinned'),
-            'comments_enabled' => $request->boolean('comments_enabled'),
-            'is_published' => $request->boolean('is_published'),
-        ]);
+        try {
+            $article->update([
+                'title' => $validated['title'],
+                'emoji' => $validated['emoji'] ?: '📰',
+                'image_url' => $validated['image_url'] ?? null,
+                'content' => $validated['content'],
+                'is_pinned' => $request->boolean('is_pinned'),
+                'comments_enabled' => $request->boolean('comments_enabled'),
+                'is_published' => $request->boolean('is_published'),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Failed to update news article #{$article->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het bijwerken van het artikel: '.$e->getMessage())->withInput();
+        }
 
         $redirect = redirect()->route('admin.news.index')->with('success', 'Nieuwsartikel succesvol bijgewerkt!');
         if ($wasModifiedConcurrently) {
@@ -128,8 +140,14 @@ class AdminNewsController extends Controller
      */
     public function toggleComments(NewsArticle $article): RedirectResponse
     {
-        $article->comments_enabled = ! $article->comments_enabled;
-        $article->save();
+        try {
+            $article->comments_enabled = ! $article->comments_enabled;
+            $article->save();
+        } catch (\Throwable $e) {
+            Log::error("Failed to toggle comments on news article #{$article->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Fout bij wijzigen van reactie-status: '.$e->getMessage());
+        }
 
         $status = $article->comments_enabled ? 'geopend voor reacties' : 'gesloten voor reacties';
 
@@ -147,7 +165,13 @@ class AdminNewsController extends Controller
             return back()->with('error', 'Alleen administrators kunnen nieuwsberichten verwijderen.');
         }
 
-        $article->delete();
+        try {
+            $article->delete();
+        } catch (\Throwable $e) {
+            Log::error("Failed to delete news article #{$article->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Fout bij verwijderen van artikel: '.$e->getMessage());
+        }
 
         return redirect()->route('admin.news.index')->with('success', 'Nieuwsartikel is definitief verwijderd.');
     }

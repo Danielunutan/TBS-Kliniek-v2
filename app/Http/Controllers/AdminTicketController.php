@@ -117,20 +117,28 @@ class AdminTicketController extends Controller
             return back()->with('error', 'Vul een geldig antwoordbericht in voor de speler.');
         }
 
-        SupportTicketMessage::create([
-            'support_ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'character_id' => Auth::user()?->character?->id,
-            'is_staff' => true,
-            'message' => $cleanMessage,
-        ]);
+        try {
+            DB::transaction(function () use ($ticket, $cleanMessage, $validated): void {
+                SupportTicketMessage::create([
+                    'support_ticket_id' => $ticket->id,
+                    'user_id' => Auth::id(),
+                    'character_id' => Auth::user()?->character?->id,
+                    'is_staff' => true,
+                    'message' => $cleanMessage,
+                ]);
 
-        $ticket->update([
-            'status' => $validated['status'],
-            'last_reply_at' => now(),
-            'last_reply_by_staff' => true,
-            'closed_at' => $validated['status'] === 'gesloten' ? now() : null,
-        ]);
+                $ticket->update([
+                    'status' => $validated['status'],
+                    'last_reply_at' => now(),
+                    'last_reply_by_staff' => true,
+                    'closed_at' => $validated['status'] === 'gesloten' ? now() : null,
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error("Failed to post reply on ticket #{$ticket->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het verzenden van de reactie: '.$e->getMessage());
+        }
 
         return back()->with('success', 'Reactie succesvol verzonden naar '.($ticket->character?->name ?? 'de speler').' en status geüpdatet naar '.$ticket->status_label.'!');
     }
@@ -149,10 +157,16 @@ class AdminTicketController extends Controller
             'status' => ['required', 'string', 'in:open,in_behandeling,beantwoord,gesloten'],
         ]);
 
-        $ticket->update([
-            'status' => $validated['status'],
-            'closed_at' => $validated['status'] === 'gesloten' ? now() : null,
-        ]);
+        try {
+            $ticket->update([
+                'status' => $validated['status'],
+                'closed_at' => $validated['status'] === 'gesloten' ? now() : null,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Failed to update status on ticket #{$ticket->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het bijwerken van de status: '.$e->getMessage());
+        }
 
         return back()->with('success', 'Ticket status gewijzigd naar: '.$ticket->status_label);
     }
@@ -199,151 +213,157 @@ class AdminTicketController extends Controller
         $staffUser = Auth::user();
         $staffName = $staffUser?->name ? ucfirst($staffUser->name) : 'Daniel';
 
-        $gang = DB::transaction(function () use ($character, $ticket, $gangName, $gangTag, $bonusCash, $vipDays, $vipBoostUntil, $validated, $staffName): ?Gang {
-            /** @var SupportTicket|null $lockedTicket */
-            $lockedTicket = SupportTicket::where('id', $ticket->id)->lockForUpdate()->first();
-            if (! $lockedTicket || $lockedTicket->isGangTransferApproved()) {
-                return null;
-            }
+        try {
+            $gang = DB::transaction(function () use ($character, $ticket, $gangName, $gangTag, $bonusCash, $vipDays, $vipBoostUntil, $validated, $staffName): ?Gang {
+                /** @var SupportTicket|null $lockedTicket */
+                $lockedTicket = SupportTicket::where('id', $ticket->id)->lockForUpdate()->first();
+                if (! $lockedTicket || $lockedTicket->isGangTransferApproved()) {
+                    return null;
+                }
 
-            /** @var Character|null $lockedCharacter */
-            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-            if (! $lockedCharacter) {
-                return null;
-            }
+                /** @var Character|null $lockedCharacter */
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+                if (! $lockedCharacter) {
+                    return null;
+                }
 
-            // Leave existing gang if any and return stored vehicles
-            if ($lockedCharacter->gang_id) {
-                $oldGang = Gang::find($lockedCharacter->gang_id);
-                CharacterVehicle::where('character_id', $lockedCharacter->id)
-                    ->where('in_gang_garage', true)
-                    ->update([
-                        'in_gang_garage' => false,
-                        'gang_id' => null,
-                        'stored_at' => null,
-                        'stored_by_character_id' => null,
-                    ]);
+                // Leave existing gang if any and return stored vehicles
+                if ($lockedCharacter->gang_id) {
+                    $oldGang = Gang::find($lockedCharacter->gang_id);
+                    CharacterVehicle::where('character_id', $lockedCharacter->id)
+                        ->where('in_gang_garage', true)
+                        ->update([
+                            'in_gang_garage' => false,
+                            'gang_id' => null,
+                            'stored_at' => null,
+                            'stored_by_character_id' => null,
+                        ]);
 
-                if ($oldGang) {
-                    if ($oldGang->treasurer_id === $lockedCharacter->id) {
-                        $oldGang->treasurer_id = null;
-                    }
-                    if ($oldGang->underboss_id === $lockedCharacter->id) {
-                        $oldGang->underboss_id = null;
-                    }
-                    if ($oldGang->leader_character_id === $lockedCharacter->id) {
-                        $nextLeader = Character::where('gang_id', $oldGang->id)
-                            ->where('id', '!=', $lockedCharacter->id)
-                            ->orderByRaw("CASE WHEN gang_role = 'coleader' THEN 0 ELSE 1 END")
-                            ->first();
-                        if ($nextLeader) {
-                            $oldGang->leader_character_id = $nextLeader->id;
-                            $nextLeader->gang_role = 'leader';
-                            $nextLeader->save();
-                            $oldGang->save();
+                    if ($oldGang) {
+                        if ($oldGang->treasurer_id === $lockedCharacter->id) {
+                            $oldGang->treasurer_id = null;
+                        }
+                        if ($oldGang->underboss_id === $lockedCharacter->id) {
+                            $oldGang->underboss_id = null;
+                        }
+                        if ($oldGang->leader_character_id === $lockedCharacter->id) {
+                            $nextLeader = Character::where('gang_id', $oldGang->id)
+                                ->where('id', '!=', $lockedCharacter->id)
+                                ->orderByRaw("CASE WHEN gang_role = 'coleader' THEN 0 ELSE 1 END")
+                                ->first();
+                            if ($nextLeader) {
+                                $oldGang->leader_character_id = $nextLeader->id;
+                                $nextLeader->gang_role = 'leader';
+                                $nextLeader->save();
+                                $oldGang->save();
+                            } else {
+                                CharacterVehicle::where('gang_id', $oldGang->id)
+                                    ->update([
+                                        'in_gang_garage' => false,
+                                        'gang_id' => null,
+                                        'stored_at' => null,
+                                        'stored_by_character_id' => null,
+                                    ]);
+                                $oldGang->delete();
+                            }
                         } else {
-                            CharacterVehicle::where('gang_id', $oldGang->id)
-                                ->update([
-                                    'in_gang_garage' => false,
-                                    'gang_id' => null,
-                                    'stored_at' => null,
-                                    'stored_by_character_id' => null,
-                                ]);
-                            $oldGang->delete();
+                            $oldGang->save();
                         }
-                    } else {
-                        $oldGang->save();
                     }
+
+                    $lockedCharacter->gang_id = null;
+                    $lockedCharacter->gang_role = 'member';
+                    $lockedCharacter->save();
                 }
 
-                $lockedCharacter->gang_id = null;
-                $lockedCharacter->gang_role = 'member';
+                // Create the new Gang
+                $newGang = Gang::create([
+                    'name' => $gangName,
+                    'tag' => $gangTag,
+                    'leader_character_id' => $lockedCharacter->id,
+                    'specialty' => 'Kantine Controle',
+                    'description' => 'Officiële overstapbende in TBS Kliniek. Gestart met €'.number_format($bonusCash, 0, ',', '.').' overstapbonus!',
+                    'treasury' => $bonusCash,
+                    'emblem' => 'fa-crown',
+                    'vip_boost_until' => $vipBoostUntil,
+                ]);
+
+                // Assign leader and grant personal VIP as well
+                $lockedCharacter->gang_id = $newGang->id;
+                $lockedCharacter->gang_role = 'leader';
+                $lockedCharacter->last_gang_wage_at = now()->startOfHour();
+                $leaderHasPermanentVip = ($lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null)
+                    || $lockedCharacter->getVipTier() === 4;
+                $lockedCharacter->is_vip = true;
+                if (! $leaderHasPermanentVip) {
+                    $leaderBaseExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                        ? $lockedCharacter->vip_expires_at->copy()
+                        : now();
+                    $lockedCharacter->vip_expires_at = $leaderBaseExpiry->addDays($vipDays);
+                }
                 $lockedCharacter->save();
-            }
 
-            // Create the new Gang
-            $newGang = Gang::create([
-                'name' => $gangName,
-                'tag' => $gangTag,
-                'leader_character_id' => $lockedCharacter->id,
-                'specialty' => 'Kantine Controle',
-                'description' => 'Officiële overstapbende in TBS Kliniek. Gestart met €'.number_format($bonusCash, 0, ',', '.').' overstapbonus!',
-                'treasury' => $bonusCash,
-                'emblem' => 'fa-crown',
-                'vip_boost_until' => $vipBoostUntil,
-            ]);
-
-            // Assign leader and grant personal VIP as well
-            $lockedCharacter->gang_id = $newGang->id;
-            $lockedCharacter->gang_role = 'leader';
-            $lockedCharacter->last_gang_wage_at = now()->startOfHour();
-            $leaderHasPermanentVip = ($lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null)
-                || $lockedCharacter->getVipTier() === 4;
-            $lockedCharacter->is_vip = true;
-            if (! $leaderHasPermanentVip) {
-                $leaderBaseExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
-                    ? $lockedCharacter->vip_expires_at->copy()
-                    : now();
-                $lockedCharacter->vip_expires_at = $leaderBaseExpiry->addDays($vipDays);
-            }
-            $lockedCharacter->save();
-
-            // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
-            $memberNames = $lockedTicket->metadata['member_names'] ?? null;
-            if (! empty($memberNames)) {
-                $names = array_filter(array_map('trim', explode(',', str_replace(["\n", "\r", ';'], ',', $memberNames))));
-                if (! empty($names)) {
-                    $matchedChars = Character::whereIn('name', $names)->get();
-                    foreach ($matchedChars as $mc) {
-                        $mcHasPermanentVip = ($mc->is_vip && $mc->vip_expires_at === null)
-                            || $mc->getVipTier() === 4;
-                        $mc->is_vip = true;
-                        if (! $mcHasPermanentVip) {
-                            $mcBaseExpiry = ($mc->vip_expires_at && $mc->vip_expires_at->isFuture())
-                                ? $mc->vip_expires_at->copy()
-                                : now();
-                            $mc->vip_expires_at = $mcBaseExpiry->addDays($vipDays);
+                // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
+                $memberNames = $lockedTicket->metadata['member_names'] ?? null;
+                if (! empty($memberNames)) {
+                    $names = array_filter(array_map('trim', explode(',', str_replace(["\n", "\r", ';'], ',', $memberNames))));
+                    if (! empty($names)) {
+                        $matchedChars = Character::whereIn('name', $names)->get();
+                        foreach ($matchedChars as $mc) {
+                            $mcHasPermanentVip = ($mc->is_vip && $mc->vip_expires_at === null)
+                                || $mc->getVipTier() === 4;
+                            $mc->is_vip = true;
+                            if (! $mcHasPermanentVip) {
+                                $mcBaseExpiry = ($mc->vip_expires_at && $mc->vip_expires_at->isFuture())
+                                    ? $mc->vip_expires_at->copy()
+                                    : now();
+                                $mc->vip_expires_at = $mcBaseExpiry->addDays($vipDays);
+                            }
+                            if (! $mc->gang_id) {
+                                $mc->gang_id = $newGang->id;
+                                $mc->gang_role = 'member';
+                                $mc->last_gang_wage_at = now()->startOfHour();
+                            }
+                            $mc->save();
                         }
-                        if (! $mc->gang_id) {
-                            $mc->gang_id = $newGang->id;
-                            $mc->gang_role = 'member';
-                            $mc->last_gang_wage_at = now()->startOfHour();
-                        }
-                        $mc->save();
                     }
                 }
-            }
 
-            $customReply = $validated['reply_message'] ?? null;
-            $autoReply = $customReply ?: "Gefeliciteerd! Jouw aanvraag voor de Gang Overstap Bonus is goedgekeurd door TBS Kliniek Staff!\n\nJe bende '{$newGang->name}' [{$newGang->tag}] is direct voor je opgericht en we hebben € ".number_format($bonusCash, 0, ',', '.')." startkapitaal in jullie kluis gestort. Daarnaast hebben jij en al je bendeleden {$vipDays} dagen gratis VIP geactiveerd gekregen!\n\nNodig al je leden uit via het Bendepaneel en veel succes met het veroveren van de kliniek!\n\nMet vriendelijke groet,\n{$staffName}\nTBS Kliniek Staff";
+                $customReply = $validated['reply_message'] ?? null;
+                $autoReply = $customReply ?: "Gefeliciteerd! Jouw aanvraag voor de Gang Overstap Bonus is goedgekeurd door TBS Kliniek Staff!\n\nJe bende '{$newGang->name}' [{$newGang->tag}] is direct voor je opgericht en we hebben € ".number_format($bonusCash, 0, ',', '.')." startkapitaal in jullie kluis gestort. Daarnaast hebben jij en al je bendeleden {$vipDays} dagen gratis VIP geactiveerd gekregen!\n\nNodig al je leden uit via het Bendepaneel en veel succes met het veroveren van de kliniek!\n\nMet vriendelijke groet,\n{$staffName}\nTBS Kliniek Staff";
 
-            SupportTicketMessage::create([
-                'support_ticket_id' => $lockedTicket->id,
-                'user_id' => Auth::id(),
-                'character_id' => Auth::user()?->character?->id,
-                'is_staff' => true,
-                'message' => $autoReply,
-            ]);
+                SupportTicketMessage::create([
+                    'support_ticket_id' => $lockedTicket->id,
+                    'user_id' => Auth::id(),
+                    'character_id' => Auth::user()?->character?->id,
+                    'is_staff' => true,
+                    'message' => $autoReply,
+                ]);
 
-            $metadata = $lockedTicket->metadata ?? [];
-            $metadata['bonus_approved_at'] = now()->toIso8601String();
-            $metadata['approved_by_user_id'] = Auth::id();
-            $metadata['approved_by_name'] = $staffName;
-            $metadata['created_gang_id'] = $newGang->id;
-            $metadata['created_gang_name'] = $newGang->name;
-            $metadata['created_gang_tag'] = $newGang->tag;
-            $metadata['bonus_cash'] = $bonusCash;
-            $metadata['vip_days'] = $vipDays;
+                $metadata = $lockedTicket->metadata ?? [];
+                $metadata['bonus_approved_at'] = now()->toIso8601String();
+                $metadata['approved_by_user_id'] = Auth::id();
+                $metadata['approved_by_name'] = $staffName;
+                $metadata['created_gang_id'] = $newGang->id;
+                $metadata['created_gang_name'] = $newGang->name;
+                $metadata['created_gang_tag'] = $newGang->tag;
+                $metadata['bonus_cash'] = $bonusCash;
+                $metadata['vip_days'] = $vipDays;
 
-            $lockedTicket->update([
-                'metadata' => $metadata,
-                'status' => 'beantwoord',
-                'last_reply_at' => now(),
-                'last_reply_by_staff' => true,
-            ]);
+                $lockedTicket->update([
+                    'metadata' => $metadata,
+                    'status' => 'beantwoord',
+                    'last_reply_at' => now(),
+                    'last_reply_by_staff' => true,
+                ]);
 
-            return $newGang;
-        });
+                return $newGang;
+            });
+        } catch (\Throwable $e) {
+            Log::error("Failed to approve gang transfer for ticket #{$ticket->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het goedkeuren van de gang overstap: '.$e->getMessage());
+        }
 
         if (! $gang) {
             return back()->with('error', 'Deze Gang Overstap Bonus is al goedgekeurd!');

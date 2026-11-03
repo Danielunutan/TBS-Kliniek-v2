@@ -184,4 +184,88 @@ class BuyMeACoffeeAdminTest extends TestCase
         $response->assertStatus(200);
         $this->assertDatabaseHas('buymeacoffee_orders', ['external_id' => 'sub_signed_1']);
     }
+
+    public function test_admin_regrant_safely_prevents_duplicate_lifetime_vip_rewards(): void
+    {
+        $adminUser = User::where('email', 'demo@tbskliniek.nl')->first();
+        $adminUser->role = 'admin';
+        $adminUser->is_staff = true;
+        $adminUser->save();
+
+        $character = $adminUser->character;
+        $character->is_vip = true;
+        $character->vip_expires_at = now()->addYears(99);
+        $character->stars = 1500;
+        $character->masks = 30;
+        $character->xxl_cases = 10;
+        $character->perks = [
+            'supporter_tier' => 4,
+            'hourly_cash_bonus' => 50000,
+        ];
+        $character->save();
+
+        $order = BuyMeACoffeeOrder::create([
+            'event' => 'membership.manual',
+            'external_id' => 'manual_lifetime_test',
+            'supporter_name' => $character->name,
+            'amount' => 125.0,
+            'membership_tier' => 'VIP LIFETIME',
+            'character_id' => $character->id,
+            'status' => 'manually_linked',
+            'is_membership' => true,
+            'payload' => [
+                'rewards_granted' => true,
+            ],
+        ]);
+
+        $response = $this->actingAs($adminUser)->post(route('admin.buymeacoffee.regrant', $order));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('info');
+
+        $character->refresh();
+        $this->assertEquals(1500, $character->stars);
+        $this->assertEquals(30, $character->masks);
+        $this->assertEquals(10, $character->xxl_cases);
+    }
+
+    public function test_admin_manual_order_prevents_rapid_duplicate_double_click(): void
+    {
+        $adminUser = User::where('email', 'demo@tbskliniek.nl')->first();
+        $adminUser->role = 'admin';
+        $adminUser->is_staff = true;
+        $adminUser->save();
+
+        $character = $adminUser->character;
+
+        // First manual order submission
+        $response1 = $this->actingAs($adminUser)->post(route('admin.buymeacoffee.manual'), [
+            'supporter_name' => 'Demo Donateur',
+            'supporter_email' => 'donateur@example.com',
+            'character_id' => $character->id,
+            'amount' => 6.00,
+            'membership_tier' => 'TBS V.I.P. Lid',
+            'is_membership' => 1,
+            'message' => 'Eerste donatie',
+        ]);
+
+        $response1->assertRedirect();
+        $response1->assertSessionHas('success');
+
+        // Immediate duplicate submission (simulating double click)
+        $response2 = $this->actingAs($adminUser)->post(route('admin.buymeacoffee.manual'), [
+            'supporter_name' => 'Demo Donateur',
+            'supporter_email' => 'donateur@example.com',
+            'character_id' => $character->id,
+            'amount' => 6.00,
+            'membership_tier' => 'TBS V.I.P. Lid',
+            'is_membership' => 1,
+            'message' => 'Eerste donatie',
+        ]);
+
+        $response2->assertRedirect();
+        $response2->assertSessionHas('warning');
+
+        $this->assertEquals(1, BuyMeACoffeeOrder::where('character_id', $character->id)->where('membership_tier', 'TBS V.I.P. Lid')->count());
+    }
 }

@@ -182,338 +182,359 @@ class AdminController extends Controller
             }
         }
 
+        // Pre-validate role authorization before starting transaction
+        if ($character->user && $request->filled('role')) {
+            $checkRole = (string) $validated['role'];
+            $targetUser = $character->user;
+            if (in_array($checkRole, ['owner', 'admin'], true) && ! $currentUser->isOwner()) {
+                return back()->with('error', 'Alleen de eigenaar kan de Admin- of Eigenaar-rol toekennen.');
+            }
+
+            if (($targetUser->isOwner() || $targetUser->role === 'admin') && ! $currentUser->isOwner()) {
+                return back()->with('error', 'Je hebt geen bevoegdheid om de rol van een Admin of Eigenaar te wijzigen.');
+            }
+        }
+
         // Refresh character to read latest database state
         $character->refresh();
         $concurrencyWarnings = [];
         $forceOverwrite = $request->boolean('force_overwrite');
 
-        // Moderatie: Update login gebruikersnaam (User name)
-        if ($character->user) {
-            $targetUser = $character->user;
+        try {
+            DB::transaction(function () use (
+                $request,
+                $validated,
+                $character,
+                $currentUser,
+                $forceOverwrite,
+                &$concurrencyWarnings
+            ): void {
+                // Moderatie: Update login gebruikersnaam (User name)
+                if ($character->user) {
+                    $targetUser = $character->user;
 
-            if ($request->filled('username')) {
-                $newUsername = trim((string) $validated['username']);
-                $origUsername = $request->input('original_username', $targetUser->name);
-                $dbUsername = $targetUser->name;
+                    if ($request->filled('username')) {
+                        $newUsername = trim((string) $validated['username']);
+                        $origUsername = $request->input('original_username', $targetUser->name);
+                        $dbUsername = $targetUser->name;
 
-                if ($dbUsername !== $origUsername && $newUsername === $origUsername) {
-                    $concurrencyWarnings[] = 'Inlognaam is tussentijds gewijzigd door een andere beheerder en niet overschreven';
-                } elseif ($dbUsername !== $origUsername && $newUsername !== $origUsername && ! $forceOverwrite) {
-                    $concurrencyWarnings[] = 'Inlognaam is tussentijds gewijzigd door een andere beheerder en veilig behouden';
-                } else {
-                    $targetUser->name = $newUsername;
-                    $targetUser->save();
-                }
-            }
-
-            // Update user platform role if provided
-            if ($request->filled('role')) {
-                $newRole = (string) $validated['role'];
-                $origRole = $request->input('original_role', $targetUser->role);
-                $dbRole = $targetUser->role;
-
-                if ($dbRole !== $origRole && $newRole === $origRole) {
-                    $concurrencyWarnings[] = 'Gebruikersrol is tussentijds gewijzigd en niet overschreven';
-                } elseif ($dbRole !== $origRole && $newRole !== $origRole && ! $forceOverwrite) {
-                    $concurrencyWarnings[] = 'Gebruikersrol is tussentijds gewijzigd en veilig behouden';
-                } else {
-                    // Only the owner can grant or remove staff power above moderator
-                    if (in_array($newRole, ['owner', 'admin'], true) && ! $currentUser->isOwner()) {
-                        return back()->with('error', 'Alleen de eigenaar kan de Admin- of Eigenaar-rol toekennen.');
-                    }
-
-                    if (($targetUser->isOwner() || $targetUser->role === 'admin') && ! $currentUser->isOwner()) {
-                        return back()->with('error', 'Je hebt geen bevoegdheid om de rol van een Admin of Eigenaar te wijzigen.');
-                    }
-
-                    $oldRole = $targetUser->role;
-                    $targetUser->role = $newRole;
-                    $targetUser->is_staff = in_array($newRole, ['owner', 'admin', 'moderator'], true);
-                    $targetUser->save();
-
-                    if ($oldRole !== $newRole) {
-                        try {
-                            GameNotification::create([
-                                'character_id' => $character->id,
-                                'type' => 'role_change',
-                                'icon' => match ($newRole) {
-                                    'owner' => 'fa-crown',
-                                    'admin' => 'fa-user-shield',
-                                    'moderator' => 'fa-gavel',
-                                    default => 'fa-user',
-                                },
-                                'title' => 'Rol Status Aangepast',
-                                'message' => 'Je accountrol is aangepast naar '.ucfirst($newRole).' door de directie.',
-                                'is_read' => false,
-                            ]);
-                        } catch (\Throwable $e) {
-                            Log::warning('Failed to create role change game notification: '.$e->getMessage());
+                        if ($dbUsername !== $origUsername && $newUsername === $origUsername) {
+                            $concurrencyWarnings[] = 'Inlognaam is tussentijds gewijzigd door een andere beheerder en niet overschreven';
+                        } elseif ($dbUsername !== $origUsername && $newUsername !== $origUsername && ! $forceOverwrite) {
+                            $concurrencyWarnings[] = 'Inlognaam is tussentijds gewijzigd door een andere beheerder en veilig behouden';
+                        } else {
+                            $targetUser->name = $newUsername;
+                            $targetUser->save();
                         }
                     }
-                }
-            }
-        }
 
-        // Moderatie: Update weergavenaam (Character name)
-        if ($request->filled('character_name')) {
-            $newCharName = trim((string) $validated['character_name']);
-            $origCharName = $request->input('original_character_name', $character->name);
-            $dbCharName = $character->name;
+                    // Update user platform role if provided
+                    if ($request->filled('role')) {
+                        $newRole = (string) $validated['role'];
+                        $origRole = $request->input('original_role', $targetUser->role);
+                        $dbRole = $targetUser->role;
 
-            if ($dbCharName !== $origCharName && $newCharName === $origCharName) {
-                $concurrencyWarnings[] = 'Personagenaam is tussentijds gewijzigd en niet overschreven';
-            } elseif ($dbCharName !== $origCharName && $newCharName !== $origCharName && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'Personagenaam is tussentijds gewijzigd en veilig behouden';
-            } else {
-                $character->name = $newCharName;
-            }
-        }
+                        if ($dbRole !== $origRole && $newRole === $origRole) {
+                            $concurrencyWarnings[] = 'Gebruikersrol is tussentijds gewijzigd en niet overschreven';
+                        } elseif ($dbRole !== $origRole && $newRole !== $origRole && ! $forceOverwrite) {
+                            $concurrencyWarnings[] = 'Gebruikersrol is tussentijds gewijzigd en veilig behouden';
+                        } else {
+                            $oldRole = $targetUser->role;
+                            $targetUser->role = $newRole;
+                            $targetUser->is_staff = in_array($newRole, ['owner', 'admin', 'moderator'], true);
+                            $targetUser->save();
 
-        // Moderatie: Reset profielfoto naar standaard default avatar
-        if ($request->boolean('reset_avatar')) {
-            $character->avatar_custom = null;
-            $character->avatar = 'assets/characters/avatar_male_1.jpg';
-        }
-
-        // Concurrency-safe economic and stat updates
-        // 1. Cash
-        if ($request->has('original_cash')) {
-            $origCash = (int) $request->input('original_cash');
-            $submittedCash = (int) $validated['cash'];
-            $dbCash = (int) $character->cash;
-            $adminChangedCash = ($submittedCash !== $origCash);
-            $dbChangedCash = ($dbCash !== $origCash);
-
-            if ($dbChangedCash && ! $adminChangedCash) {
-                $concurrencyWarnings[] = 'Contant geld is tussentijds gewijzigd (nu: €'.number_format($dbCash, 0, ',', '.').') en niet overschreven';
-            } elseif ($dbChangedCash && $adminChangedCash && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'Contant geld is tussentijds gewijzigd (nu: €'.number_format($dbCash, 0, ',', '.').') vóór je bewerking en veilig behouden';
-            } else {
-                $character->cash = $submittedCash;
-            }
-        } else {
-            $character->cash = (int) $validated['cash'];
-        }
-
-        // 2. Bank
-        if ($request->has('original_bank')) {
-            $origBank = (int) $request->input('original_bank');
-            $submittedBank = (int) $validated['bank'];
-            $dbBank = (int) $character->bank;
-            $adminChangedBank = ($submittedBank !== $origBank);
-            $dbChangedBank = ($dbBank !== $origBank);
-
-            if ($dbChangedBank && ! $adminChangedBank) {
-                $concurrencyWarnings[] = 'Bank saldo is tussentijds gewijzigd (nu: €'.number_format($dbBank, 0, ',', '.').') en niet overschreven';
-            } elseif ($dbChangedBank && $adminChangedBank && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'Bank saldo is tussentijds gewijzigd (nu: €'.number_format($dbBank, 0, ',', '.').') vóór je bewerking en veilig behouden';
-            } else {
-                $character->bank = $submittedBank;
-            }
-        } else {
-            $character->bank = (int) $validated['bank'];
-        }
-
-        // 3. Stars
-        if ($request->has('original_stars')) {
-            $origStars = (int) $request->input('original_stars');
-            $submittedStars = (int) $validated['stars'];
-            $dbStars = (int) $character->stars;
-            $adminChangedStars = ($submittedStars !== $origStars);
-            $dbChangedStars = ($dbStars !== $origStars);
-
-            if ($dbChangedStars && ! $adminChangedStars) {
-                $concurrencyWarnings[] = 'Sterren zijn tussentijds gewijzigd (nu: '.$dbStars.') en niet overschreven';
-            } elseif ($dbChangedStars && $adminChangedStars && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'Sterren zijn tussentijds gewijzigd (nu: '.$dbStars.') vóór je bewerking en veilig behouden';
-            } else {
-                $character->stars = $submittedStars;
-            }
-        } else {
-            $character->stars = (int) $validated['stars'];
-        }
-
-        // 4. Respect
-        if ($request->has('original_respect')) {
-            $origRespect = (int) round((float) $request->input('original_respect'));
-            $submittedRespect = max(0, (int) round((float) $validated['respect']));
-            $dbRespect = (int) round((float) $character->respect);
-            $adminChangedRespect = ($submittedRespect !== $origRespect);
-            $dbChangedRespect = ($dbRespect !== $origRespect);
-
-            if ($dbChangedRespect && ! $adminChangedRespect) {
-                $concurrencyWarnings[] = 'Respect is tussentijds gewijzigd (nu: '.$dbRespect.') en niet overschreven';
-            } elseif ($dbChangedRespect && $adminChangedRespect && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'Respect is tussentijds gewijzigd (nu: '.$dbRespect.') vóór je bewerking en veilig behouden';
-            } else {
-                $character->respect = $submittedRespect;
-            }
-        } else {
-            $character->respect = max(0, (int) round((float) $validated['respect']));
-        }
-
-        // 5. VIP Points
-        if ($request->has('original_vip_points')) {
-            $origVipPoints = (int) $request->input('original_vip_points');
-            $submittedVipPoints = (int) $validated['vip_points'];
-            $dbVipPoints = (int) ($character->vip_points ?? 0);
-            $adminChangedVipPoints = ($submittedVipPoints !== $origVipPoints);
-            $dbChangedVipPoints = ($dbVipPoints !== $origVipPoints);
-
-            if ($dbChangedVipPoints && ! $adminChangedVipPoints) {
-                $concurrencyWarnings[] = 'VIP punten zijn tussentijds gewijzigd (nu: '.$dbVipPoints.') en niet overschreven';
-            } elseif ($dbChangedVipPoints && $adminChangedVipPoints && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'VIP punten zijn tussentijds gewijzigd (nu: '.$dbVipPoints.') vóór je bewerking en veilig behouden';
-            } else {
-                $character->vip_points = $submittedVipPoints;
-            }
-        } else {
-            $character->vip_points = (int) $validated['vip_points'];
-        }
-
-        // 6. Health
-        if ($request->has('original_health')) {
-            $origHealth = (int) $request->input('original_health');
-            $submittedHealth = max(0, min(100, (int) $validated['health']));
-            $dbHealth = (int) $character->health;
-            $adminChangedHealth = ($submittedHealth !== $origHealth);
-            $dbChangedHealth = ($dbHealth !== $origHealth);
-
-            if ($dbChangedHealth && ! $adminChangedHealth) {
-                $concurrencyWarnings[] = 'HP is tussentijds gewijzigd (nu: '.$dbHealth.'%) en niet overschreven';
-            } elseif ($dbChangedHealth && $adminChangedHealth && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'HP is tussentijds gewijzigd (nu: '.$dbHealth.'%) vóór je bewerking en veilig behouden';
-            } else {
-                $character->health = $submittedHealth;
-            }
-        } else {
-            $character->health = max(0, min(100, (int) $validated['health']));
-        }
-
-        // 7. Energy
-        if ($request->has('original_energy')) {
-            $origEnergy = (int) $request->input('original_energy');
-            $submittedEnergy = max(0, min(100, (int) $validated['energy']));
-            $dbEnergy = (int) $character->energy;
-            $adminChangedEnergy = ($submittedEnergy !== $origEnergy);
-            $dbChangedEnergy = ($dbEnergy !== $origEnergy);
-
-            if ($dbChangedEnergy && ! $adminChangedEnergy) {
-                $concurrencyWarnings[] = 'Energie is tussentijds gewijzigd (nu: '.$dbEnergy.') en niet overschreven';
-            } elseif ($dbChangedEnergy && $adminChangedEnergy && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'Energie is tussentijds gewijzigd (nu: '.$dbEnergy.') vóór je bewerking en veilig behouden';
-            } else {
-                $character->energy = $submittedEnergy;
-            }
-        } else {
-            $character->energy = max(0, min(100, (int) $validated['energy']));
-        }
-
-        // VIP beheer & handmatige toekenning (alleen voor administrators/eigenaar)
-        if ($currentUser->isAdmin()) {
-            $vipAction = $request->input('vip_action', 'no_change');
-            $vipTier = (int) $request->input('vip_tier', ($character->getSupporterTier() ?: 1));
-            $perks = $character->perks ?? [];
-            $wasVip = $character->isVip();
-
-            $origIsVip = $request->has('original_is_vip') ? $request->boolean('original_is_vip') : $wasVip;
-            $submittedIsVip = $request->boolean('is_vip');
-            $adminChangedVip = ($submittedIsVip !== $origIsVip) || ($vipAction !== 'no_change');
-            $dbChangedVip = ($wasVip !== $origIsVip);
-
-            if ($dbChangedVip && ! $adminChangedVip) {
-                $concurrencyWarnings[] = 'VIP status is tussentijds gewijzigd (nu: '.($wasVip ? 'actief' : 'inactief').') en niet overschreven';
-            } elseif ($dbChangedVip && $adminChangedVip && ! $forceOverwrite) {
-                $concurrencyWarnings[] = 'VIP status is tussentijds gewijzigd (nu: '.($wasVip ? 'actief' : 'inactief').') vóór je bewerking en veilig behouden';
-            } else {
-                if ($vipAction === 'revoke' || (! $request->boolean('is_vip') && in_array($vipAction, ['no_change', 'revoke'], true))) {
-                    $character->is_vip = false;
-                    $character->vip_expires_at = null;
-                    $perks['supporter_tier'] = 0;
-                    $perks['has_custom_name_color'] = false;
-                    $perks['has_sparkle_effect'] = false;
-                } else {
-                    $character->is_vip = true;
-                    $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
-                        ? $character->vip_expires_at
-                        : now();
-
-                    $daysToAdd = (int) ($request->input('custom_vip_days') ?: ($request->input('vip_days') ?: 30));
-
-                    if ($vipAction === 'lifetime' || $vipTier === 4) {
-                        $character->vip_expires_at = now()->addYears(99);
-                        if ($vipTier < 4) {
-                            $vipTier = 4;
-                        }
-                    } elseif ($vipAction === 'add_days') {
-                        $character->vip_expires_at = $currentExpiry->copy()->addDays($daysToAdd);
-                    } elseif ($vipAction === 'set_days') {
-                        $character->vip_expires_at = now()->addDays($daysToAdd);
-                    } elseif ((! $wasVip && ! $character->vip_expires_at) || ($character->vip_expires_at && $character->vip_expires_at->isPast())) {
-                        $character->vip_expires_at = now()->addDays($daysToAdd > 0 ? $daysToAdd : 30);
-                    }
-
-                    $perks['supporter_tier'] = max(1, $vipTier);
-                    $perks['hourly_cash_bonus'] = match ($perks['supporter_tier']) {
-                        4 => 50000,
-                        3 => 20000,
-                        2 => 7500,
-                        default => 2500,
-                    };
-
-                    // Custom perks toggles
-                    if ($request->has('has_custom_name_color')) {
-                        $perks['has_custom_name_color'] = $request->boolean('has_custom_name_color');
-                    } elseif ($vipTier >= 2) {
-                        $perks['has_custom_name_color'] = true;
-                    }
-
-                    if ($request->has('has_sparkle_effect')) {
-                        $perks['has_sparkle_effect'] = $request->boolean('has_sparkle_effect');
-                        $perks['sparkle_enabled'] = $request->boolean('has_sparkle_effect');
-                    } elseif ($vipTier >= 3) {
-                        $perks['has_sparkle_effect'] = true;
-                        $perks['sparkle_enabled'] = true;
-                    }
-
-                    if ($request->filled('custom_name_color')) {
-                        $perks['custom_name_color'] = (string) $request->input('custom_name_color');
-                    }
-
-                    if (! $wasVip || $vipAction !== 'no_change') {
-                        $tierTitle = match ($perks['supporter_tier']) {
-                            4 => 'Lifetime V.I.P.',
-                            3 => 'Kliniek Baas V.I.P. (Tier 3)',
-                            2 => 'Gangster Elite V.I.P. (Tier 2)',
-                            default => 'TBS V.I.P. Lid (Tier 1)',
-                        };
-                        try {
-                            GameNotification::create([
-                                'character_id' => $character->id,
-                                'type' => 'vip_granted',
-                                'icon' => 'fa-crown',
-                                'title' => 'VIP Status Toegekend!',
-                                'message' => "Gefeliciteerd! De administratie heeft je {$tierTitle} status toegekend.",
-                                'is_read' => false,
-                            ]);
-                        } catch (\Throwable $e) {
-                            Log::warning('Failed to create VIP grant game notification: '.$e->getMessage());
+                            if ($oldRole !== $newRole) {
+                                try {
+                                    GameNotification::create([
+                                        'character_id' => $character->id,
+                                        'type' => 'role_change',
+                                        'icon' => match ($newRole) {
+                                            'owner' => 'fa-crown',
+                                            'admin' => 'fa-user-shield',
+                                            'moderator' => 'fa-gavel',
+                                            default => 'fa-user',
+                                        },
+                                        'title' => 'Rol Status Aangepast',
+                                        'message' => 'Je accountrol is aangepast naar '.ucfirst($newRole).' door de directie.',
+                                        'is_read' => false,
+                                    ]);
+                                } catch (\Throwable $e) {
+                                    Log::warning('Failed to create role change game notification: '.$e->getMessage());
+                                }
+                            }
                         }
                     }
                 }
 
-                $character->perks = $perks;
-            }
-        }
+                // Moderatie: Update weergavenaam (Character name)
+                if ($request->filled('character_name')) {
+                    $newCharName = trim((string) $validated['character_name']);
+                    $origCharName = $request->input('original_character_name', $character->name);
+                    $dbCharName = $character->name;
 
-        // Release from prison if requested
-        if ($request->boolean('release_prison')) {
-            $character->is_in_prison = false;
-            $character->prison_until = null;
-            $character->prison_reason = null;
-        }
+                    if ($dbCharName !== $origCharName && $newCharName === $origCharName) {
+                        $concurrencyWarnings[] = 'Personagenaam is tussentijds gewijzigd en niet overschreven';
+                    } elseif ($dbCharName !== $origCharName && $newCharName !== $origCharName && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'Personagenaam is tussentijds gewijzigd en veilig behouden';
+                    } else {
+                        $character->name = $newCharName;
+                    }
+                }
 
-        $character->save();
+                // Moderatie: Reset profielfoto naar standaard default avatar
+                if ($request->boolean('reset_avatar')) {
+                    $character->avatar_custom = null;
+                    $character->avatar = 'assets/characters/avatar_male_1.jpg';
+                }
+
+                // Concurrency-safe economic and stat updates
+                // 1. Cash
+                if ($request->has('original_cash')) {
+                    $origCash = (int) $request->input('original_cash');
+                    $submittedCash = (int) $validated['cash'];
+                    $dbCash = (int) $character->cash;
+                    $adminChangedCash = ($submittedCash !== $origCash);
+                    $dbChangedCash = ($dbCash !== $origCash);
+
+                    if ($dbChangedCash && ! $adminChangedCash) {
+                        $concurrencyWarnings[] = 'Contant geld is tussentijds gewijzigd (nu: €'.number_format($dbCash, 0, ',', '.').') en niet overschreven';
+                    } elseif ($dbChangedCash && $adminChangedCash && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'Contant geld is tussentijds gewijzigd (nu: €'.number_format($dbCash, 0, ',', '.').') vóór je bewerking en veilig behouden';
+                    } else {
+                        $character->cash = $submittedCash;
+                    }
+                } else {
+                    $character->cash = (int) $validated['cash'];
+                }
+
+                // 2. Bank
+                if ($request->has('original_bank')) {
+                    $origBank = (int) $request->input('original_bank');
+                    $submittedBank = (int) $validated['bank'];
+                    $dbBank = (int) $character->bank;
+                    $adminChangedBank = ($submittedBank !== $origBank);
+                    $dbChangedBank = ($dbBank !== $origBank);
+
+                    if ($dbChangedBank && ! $adminChangedBank) {
+                        $concurrencyWarnings[] = 'Bank saldo is tussentijds gewijzigd (nu: €'.number_format($dbBank, 0, ',', '.').') en niet overschreven';
+                    } elseif ($dbChangedBank && $adminChangedBank && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'Bank saldo is tussentijds gewijzigd (nu: €'.number_format($dbBank, 0, ',', '.').') vóór je bewerking en veilig behouden';
+                    } else {
+                        $character->bank = $submittedBank;
+                    }
+                } else {
+                    $character->bank = (int) $validated['bank'];
+                }
+
+                // 3. Stars
+                if ($request->has('original_stars')) {
+                    $origStars = (int) $request->input('original_stars');
+                    $submittedStars = (int) $validated['stars'];
+                    $dbStars = (int) $character->stars;
+                    $adminChangedStars = ($submittedStars !== $origStars);
+                    $dbChangedStars = ($dbStars !== $origStars);
+
+                    if ($dbChangedStars && ! $adminChangedStars) {
+                        $concurrencyWarnings[] = 'Sterren zijn tussentijds gewijzigd (nu: '.$dbStars.') en niet overschreven';
+                    } elseif ($dbChangedStars && $adminChangedStars && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'Sterren zijn tussentijds gewijzigd (nu: '.$dbStars.') vóór je bewerking en veilig behouden';
+                    } else {
+                        $character->stars = $submittedStars;
+                    }
+                } else {
+                    $character->stars = (int) $validated['stars'];
+                }
+
+                // 4. Respect
+                if ($request->has('original_respect')) {
+                    $origRespect = (int) round((float) $request->input('original_respect'));
+                    $submittedRespect = max(0, (int) round((float) $validated['respect']));
+                    $dbRespect = (int) round((float) $character->respect);
+                    $adminChangedRespect = ($submittedRespect !== $origRespect);
+                    $dbChangedRespect = ($dbRespect !== $origRespect);
+
+                    if ($dbChangedRespect && ! $adminChangedRespect) {
+                        $concurrencyWarnings[] = 'Respect is tussentijds gewijzigd (nu: '.$dbRespect.') en niet overschreven';
+                    } elseif ($dbChangedRespect && $adminChangedRespect && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'Respect is tussentijds gewijzigd (nu: '.$dbRespect.') vóór je bewerking en veilig behouden';
+                    } else {
+                        $character->respect = $submittedRespect;
+                    }
+                } else {
+                    $character->respect = max(0, (int) round((float) $validated['respect']));
+                }
+
+                // 5. VIP Points
+                if ($request->has('original_vip_points')) {
+                    $origVipPoints = (int) $request->input('original_vip_points');
+                    $submittedVipPoints = (int) $validated['vip_points'];
+                    $dbVipPoints = (int) ($character->vip_points ?? 0);
+                    $adminChangedVipPoints = ($submittedVipPoints !== $origVipPoints);
+                    $dbChangedVipPoints = ($dbVipPoints !== $origVipPoints);
+
+                    if ($dbChangedVipPoints && ! $adminChangedVipPoints) {
+                        $concurrencyWarnings[] = 'VIP punten zijn tussentijds gewijzigd (nu: '.$dbVipPoints.') en niet overschreven';
+                    } elseif ($dbChangedVipPoints && $adminChangedVipPoints && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'VIP punten zijn tussentijds gewijzigd (nu: '.$dbVipPoints.') vóór je bewerking en veilig behouden';
+                    } else {
+                        $character->vip_points = $submittedVipPoints;
+                    }
+                } else {
+                    $character->vip_points = (int) $validated['vip_points'];
+                }
+
+                // 6. Health
+                if ($request->has('original_health')) {
+                    $origHealth = (int) $request->input('original_health');
+                    $submittedHealth = max(0, min(100, (int) $validated['health']));
+                    $dbHealth = (int) $character->health;
+                    $adminChangedHealth = ($submittedHealth !== $origHealth);
+                    $dbChangedHealth = ($dbHealth !== $origHealth);
+
+                    if ($dbChangedHealth && ! $adminChangedHealth) {
+                        $concurrencyWarnings[] = 'HP is tussentijds gewijzigd (nu: '.$dbHealth.'%) en niet overschreven';
+                    } elseif ($dbChangedHealth && $adminChangedHealth && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'HP is tussentijds gewijzigd (nu: '.$dbHealth.'%) vóór je bewerking en veilig behouden';
+                    } else {
+                        $character->health = $submittedHealth;
+                    }
+                } else {
+                    $character->health = max(0, min(100, (int) $validated['health']));
+                }
+
+                // 7. Energy
+                if ($request->has('original_energy')) {
+                    $origEnergy = (int) $request->input('original_energy');
+                    $submittedEnergy = max(0, min(100, (int) $validated['energy']));
+                    $dbEnergy = (int) $character->energy;
+                    $adminChangedEnergy = ($submittedEnergy !== $origEnergy);
+                    $dbChangedEnergy = ($dbEnergy !== $origEnergy);
+
+                    if ($dbChangedEnergy && ! $adminChangedEnergy) {
+                        $concurrencyWarnings[] = 'Energie is tussentijds gewijzigd (nu: '.$dbEnergy.') en niet overschreven';
+                    } elseif ($dbChangedEnergy && $adminChangedEnergy && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'Energie is tussentijds gewijzigd (nu: '.$dbEnergy.') vóór je bewerking en veilig behouden';
+                    } else {
+                        $character->energy = $submittedEnergy;
+                    }
+                } else {
+                    $character->energy = max(0, min(100, (int) $validated['energy']));
+                }
+
+                // VIP beheer & handmatige toekenning (alleen voor administrators/eigenaar)
+                if ($currentUser->isAdmin()) {
+                    $vipAction = $request->input('vip_action', 'no_change');
+                    $vipTier = (int) $request->input('vip_tier', ($character->getSupporterTier() ?: 1));
+                    $perks = $character->perks ?? [];
+                    $wasVip = $character->isVip();
+
+                    $origIsVip = $request->has('original_is_vip') ? $request->boolean('original_is_vip') : $wasVip;
+                    $submittedIsVip = $request->boolean('is_vip');
+                    $adminChangedVip = ($submittedIsVip !== $origIsVip) || ($vipAction !== 'no_change');
+                    $dbChangedVip = ($wasVip !== $origIsVip);
+
+                    if ($dbChangedVip && ! $adminChangedVip) {
+                        $concurrencyWarnings[] = 'VIP status is tussentijds gewijzigd (nu: '.($wasVip ? 'actief' : 'inactief').') en niet overschreven';
+                    } elseif ($dbChangedVip && $adminChangedVip && ! $forceOverwrite) {
+                        $concurrencyWarnings[] = 'VIP status is tussentijds gewijzigd (nu: '.($wasVip ? 'actief' : 'inactief').') vóór je bewerking en veilig behouden';
+                    } else {
+                        if ($vipAction === 'revoke' || (! $request->boolean('is_vip') && in_array($vipAction, ['no_change', 'revoke'], true))) {
+                            $character->is_vip = false;
+                            $character->vip_expires_at = null;
+                            $perks['supporter_tier'] = 0;
+                            $perks['has_custom_name_color'] = false;
+                            $perks['has_sparkle_effect'] = false;
+                            $perks['hourly_cash_bonus'] = 0;
+                        } else {
+                            $character->is_vip = true;
+                            $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
+                                ? $character->vip_expires_at
+                                : now();
+
+                            $daysToAdd = (int) ($request->input('custom_vip_days') ?: ($request->input('vip_days') ?: 30));
+
+                            if ($vipAction === 'lifetime' || $vipTier === 4) {
+                                $character->vip_expires_at = now()->addYears(99);
+                                if ($vipTier < 4) {
+                                    $vipTier = 4;
+                                }
+                            } elseif ($vipAction === 'add_days') {
+                                $character->vip_expires_at = $currentExpiry->copy()->addDays($daysToAdd);
+                            } elseif ($vipAction === 'set_days') {
+                                $character->vip_expires_at = now()->addDays($daysToAdd);
+                            } elseif ((! $wasVip && ! $character->vip_expires_at) || ($character->vip_expires_at && $character->vip_expires_at->isPast())) {
+                                $character->vip_expires_at = now()->addDays($daysToAdd > 0 ? $daysToAdd : 30);
+                            }
+
+                            $perks['supporter_tier'] = max(1, $vipTier);
+                            $perks['hourly_cash_bonus'] = match ($perks['supporter_tier']) {
+                                4 => 50000,
+                                3 => 20000,
+                                2 => 7500,
+                                default => 2500,
+                            };
+                            $perks['is_donator'] = true;
+
+                            // Custom perks toggles
+                            if ($request->has('has_custom_name_color')) {
+                                $perks['has_custom_name_color'] = $request->boolean('has_custom_name_color');
+                            } elseif ($vipTier >= 2) {
+                                $perks['has_custom_name_color'] = true;
+                            }
+
+                            if ($request->has('has_sparkle_effect')) {
+                                $perks['has_sparkle_effect'] = $request->boolean('has_sparkle_effect');
+                                $perks['sparkle_enabled'] = $request->boolean('has_sparkle_effect');
+                            } elseif ($vipTier >= 3) {
+                                $perks['has_sparkle_effect'] = true;
+                                $perks['sparkle_enabled'] = true;
+                            }
+
+                            if ($request->filled('custom_name_color')) {
+                                $perks['custom_name_color'] = (string) $request->input('custom_name_color');
+                            }
+
+                            if (! $wasVip || $vipAction !== 'no_change') {
+                                $tierTitle = match ($perks['supporter_tier']) {
+                                    4 => 'Lifetime V.I.P.',
+                                    3 => 'Kliniek Baas V.I.P. (Tier 3)',
+                                    2 => 'Gangster Elite V.I.P. (Tier 2)',
+                                    default => 'TBS V.I.P. Lid (Tier 1)',
+                                };
+                                try {
+                                    GameNotification::create([
+                                        'character_id' => $character->id,
+                                        'type' => 'vip_granted',
+                                        'icon' => 'fa-crown',
+                                        'title' => 'VIP Status Toegekend!',
+                                        'message' => "Gefeliciteerd! De administratie heeft je {$tierTitle} status toegekend.",
+                                        'is_read' => false,
+                                    ]);
+                                } catch (\Throwable $e) {
+                                    Log::warning('Failed to create VIP grant game notification: '.$e->getMessage());
+                                }
+                            }
+                        }
+
+                        $character->perks = $perks;
+                    }
+                }
+
+                // Release from prison if requested
+                if ($request->boolean('release_prison')) {
+                    $character->is_in_prison = false;
+                    $character->prison_until = null;
+                    $character->prison_reason = null;
+                }
+
+                $character->save();
+            });
+        } catch (\Throwable $e) {
+            Log::error("Failed to update player {$character->name} (#{$character->id}): ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het bijwerken van de speler: '.$e->getMessage());
+        }
 
         try {
             AuditLogService::log(
@@ -1048,35 +1069,47 @@ class AdminController extends Controller
         $tierName = $validated['membership_tier'] ?: ($order->membership_tier ?: 'TBS V.I.P. Lid');
         $isMembership = $request->boolean('is_membership') || $order->is_membership || ! empty($validated['membership_tier']);
 
-        $order->character_id = $character->id;
-        $order->status = 'manually_linked';
-        $order->membership_tier = $tierName;
-        $order->is_membership = $isMembership;
-        $order->membership_status = $isMembership ? 'active' : null;
-        $order->linked_at = now();
-        $order->save();
+        try {
+            DB::transaction(function () use ($order, $character, $tierName, $isMembership, $request): void {
+                $order->character_id = $character->id;
+                $order->status = 'manually_linked';
+                $order->membership_tier = $tierName;
+                $order->is_membership = $isMembership;
+                $order->membership_status = $isMembership ? 'active' : null;
+                $order->linked_at = now();
+                $orderPayload = $order->payload ?? [];
+                $orderPayload['rewards_granted'] = true;
+                $orderPayload['rewards_granted_at'] = now()->toIso8601String();
+                $order->payload = $orderPayload;
+                $order->save();
 
-        if ($request->boolean('grant_rewards', true)) {
-            $webhookController = app(BuyMeACoffeeWebhookController::class);
-            $tierLower = strtolower($tierName);
-            $isCoffee = str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie') || (! $isMembership);
+                if ($request->boolean('grant_rewards', true)) {
+                    $webhookController = app(BuyMeACoffeeWebhookController::class);
+                    $tierLower = strtolower($tierName);
+                    $isCoffee = str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie') || (! $isMembership);
 
-            if (! $isCoffee && $isMembership) {
-                $webhookController->grantMembershipTier($character, $tierName, $order->payload ?? []);
-            } else {
-                $coffees = 1;
-                if (str_contains($tierName, '5x') || (float) $order->amount >= 15.0) {
-                    $coffees = 5;
-                } elseif (str_contains($tierName, '3x') || (float) $order->amount >= 9.0) {
-                    $coffees = 3;
+                    if (! $isCoffee && $isMembership) {
+                        $webhookController->grantMembershipTier($character, $tierName, $order->payload ?? []);
+                    } else {
+                        $coffees = 1;
+                        if (str_contains($tierName, '5x') || (float) $order->amount >= 15.0) {
+                            $coffees = 5;
+                        } elseif (str_contains($tierName, '3x') || (float) $order->amount >= 9.0) {
+                            $coffees = 3;
+                        }
+                        $payload = array_merge($order->payload ?? [], [
+                            'support_coffees' => $coffees,
+                            'quantity' => $coffees,
+                            'amount' => max((float) $order->amount, $coffees * 3.0),
+                        ]);
+                        $webhookController->processEvent('donation', $payload, $character);
+                    }
                 }
-                $payload = array_merge($order->payload ?? [], [
-                    'support_coffees' => $coffees,
-                    'quantity' => $coffees,
-                    'amount' => max((float) $order->amount, $coffees * 3.0),
-                ]);
-                $webhookController->processEvent('donation', $payload, $character);
-            }
+            });
+        } catch (\Throwable $e) {
+            Log::error("Failed to link BuyMeACoffee order #{$order->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het koppelen van de order: '.$e->getMessage());
         }
 
         try {
@@ -1129,31 +1162,51 @@ class AdminController extends Controller
         $tierLower = strtolower($tier);
         $isCoffee = str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie') || (! $order->is_membership);
 
-        if (! $isCoffee && $order->is_membership) {
-            if (str_contains($tierLower, 'lifetime') && $character->getVipTier() === 4) {
+        try {
+            DB::transaction(function () use ($character, $order, $tier, $tierLower, $isCoffee, $webhookController): void {
+                if (! $isCoffee && $order->is_membership) {
+                    if (str_contains($tierLower, 'lifetime') && $character->getVipTier() === 4) {
+                        $orderPayload = $order->payload ?? [];
+                        $orderPayload['rewards_granted'] = true;
+                        $orderPayload['rewards_granted_at'] = now()->toIso8601String();
+                        $order->payload = $orderPayload;
+                        $order->save();
+
+                        return;
+                    }
+
+                    $webhookController->grantMembershipTier($character, $tier, $order->payload ?? []);
+                } else {
+                    $coffees = 1;
+                    if (str_contains($tier, '5x') || (float) $order->amount >= 15.0) {
+                        $coffees = 5;
+                    } elseif (str_contains($tier, '3x') || (float) $order->amount >= 9.0) {
+                        $coffees = 3;
+                    }
+                    $payload = array_merge($order->payload ?? [], [
+                        'support_coffees' => $coffees,
+                        'quantity' => $coffees,
+                        'amount' => max((float) $order->amount, $coffees * 3.0),
+                    ]);
+                    $webhookController->processEvent('donation', $payload, $character);
+                }
+
                 $orderPayload = $order->payload ?? [];
                 $orderPayload['rewards_granted'] = true;
-                $orderPayload['rewards_granted_at'] = now()->toIso8601String();
+                $orderPayload['rewards_granted_at'] = $orderPayload['rewards_granted_at'] ?? now()->toIso8601String();
+                $orderPayload['regranted_at'] = now()->toIso8601String();
+                $orderPayload['regrant_count'] = ((int) ($orderPayload['regrant_count'] ?? 0)) + 1;
                 $order->payload = $orderPayload;
                 $order->save();
+            });
+        } catch (\Throwable $e) {
+            Log::error("Failed to regrant BuyMeACoffee order #{$order->id}: ".$e->getMessage(), ['exception' => $e]);
 
-                return back()->with('info', "{$character->name} heeft al VIP LIFETIME actief. Er zijn geen dubbele beloningen toegekend.");
-            }
+            return back()->with('error', 'Er is een fout opgetreden bij het uitkeren van de beloningen: '.$e->getMessage());
+        }
 
-            $webhookController->grantMembershipTier($character, $tier, $order->payload ?? []);
-        } else {
-            $coffees = 1;
-            if (str_contains($tier, '5x') || (float) $order->amount >= 15.0) {
-                $coffees = 5;
-            } elseif (str_contains($tier, '3x') || (float) $order->amount >= 9.0) {
-                $coffees = 3;
-            }
-            $payload = array_merge($order->payload ?? [], [
-                'support_coffees' => $coffees,
-                'quantity' => $coffees,
-                'amount' => max((float) $order->amount, $coffees * 3.0),
-            ]);
-            $webhookController->processEvent('donation', $payload, $character);
+        if (str_contains($tierLower, 'lifetime') && $character->getVipTier() === 4) {
+            return back()->with('info', "{$character->name} heeft al VIP LIFETIME actief. Er zijn geen dubbele beloningen toegekend.");
         }
 
         try {
@@ -1184,16 +1237,24 @@ class AdminController extends Controller
 
         $character = $order->character;
 
-        $order->status = 'cancelled';
-        $order->membership_status = 'cancelled';
-        $order->cancelled_at = now();
-        $order->save();
+        try {
+            DB::transaction(function () use ($order, $character): void {
+                $order->status = 'cancelled';
+                $order->membership_status = 'cancelled';
+                $order->cancelled_at = now();
+                $order->save();
 
-        if ($character) {
-            app(BuyMeACoffeeWebhookController::class)->revokeMembership($character, (string) $order->membership_tier, [
-                'reason' => 'cancelled_by_admin',
-                'order_id' => $order->id,
-            ]);
+                if ($character) {
+                    app(BuyMeACoffeeWebhookController::class)->revokeMembership($character, (string) $order->membership_tier, [
+                        'reason' => 'cancelled_by_admin',
+                        'order_id' => $order->id,
+                    ]);
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::error("Failed to cancel BuyMeACoffee order #{$order->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Fout bij het annuleren van het lidmaatschap: '.$e->getMessage());
         }
 
         try {
@@ -1236,6 +1297,16 @@ class AdminController extends Controller
 
         $character = Character::findOrFail($validated['character_id']);
 
+        // Prevent rapid duplicate clicks from creating duplicate orders
+        $recentDuplicate = BuyMeACoffeeOrder::where('character_id', $character->id)
+            ->where('membership_tier', $validated['membership_tier'])
+            ->where('amount', $validated['amount'])
+            ->where('created_at', '>=', now()->subSeconds(10))
+            ->first();
+        if ($recentDuplicate) {
+            return back()->with('warning', 'Een identieke handmatige order is zojuist al verwerkt om dubbele toekenning te voorkomen.');
+        }
+
         $tier = (string) $validated['membership_tier'];
         $tierLower = strtolower($tier);
         $isMembership = (bool) $validated['is_membership'];
@@ -1252,57 +1323,63 @@ class AdminController extends Controller
             $coffees = 3;
         }
 
-        DB::transaction(function () use ($isMembership, $validated, $character, $coffees, $tier, $currentUser): void {
-            $order = BuyMeACoffeeOrder::create([
-                'event' => $isMembership ? 'membership.manual' : 'donation.manual',
-                'external_id' => 'manual_'.uniqid(),
-                'supporter_name' => $validated['supporter_name'],
-                'supporter_email' => $validated['supporter_email'],
-                'amount' => $validated['amount'],
-                'currency' => 'EUR',
-                'membership_tier' => $validated['membership_tier'],
-                'message' => $validated['message'],
-                'character_id' => $character->id,
-                'status' => 'manually_linked',
-                'is_membership' => $isMembership,
-                'membership_status' => $isMembership ? 'active' : null,
-                'linked_at' => now(),
-                'payload' => [
-                    'manual' => true,
-                    'created_by' => Auth::id(),
-                    'support_coffees' => $coffees,
-                    'quantity' => $coffees,
-                    'amount' => max((float) $validated['amount'], $coffees * 3.0),
-                    'rewards_granted' => true,
-                    'rewards_granted_at' => now()->toIso8601String(),
-                ],
-            ]);
+        try {
+            DB::transaction(function () use ($isMembership, $validated, $character, $coffees, $tier, $currentUser): void {
+                $order = BuyMeACoffeeOrder::create([
+                    'event' => $isMembership ? 'membership.manual' : 'donation.manual',
+                    'external_id' => 'manual_'.uniqid(),
+                    'supporter_name' => $validated['supporter_name'],
+                    'supporter_email' => $validated['supporter_email'],
+                    'amount' => $validated['amount'],
+                    'currency' => 'EUR',
+                    'membership_tier' => $validated['membership_tier'],
+                    'message' => $validated['message'],
+                    'character_id' => $character->id,
+                    'status' => 'manually_linked',
+                    'is_membership' => $isMembership,
+                    'membership_status' => $isMembership ? 'active' : null,
+                    'linked_at' => now(),
+                    'payload' => [
+                        'manual' => true,
+                        'created_by' => Auth::id(),
+                        'support_coffees' => $coffees,
+                        'quantity' => $coffees,
+                        'amount' => max((float) $validated['amount'], $coffees * 3.0),
+                        'rewards_granted' => true,
+                        'rewards_granted_at' => now()->toIso8601String(),
+                    ],
+                ]);
 
-            $webhookController = app(BuyMeACoffeeWebhookController::class);
-            if ($isMembership) {
-                $webhookController->grantMembershipTier($character, $validated['membership_tier'], ['manual' => true, 'order_id' => $order->id]);
-            } else {
-                $webhookController->processEvent('donation', [
-                    'support_coffees' => $coffees,
-                    'quantity' => $coffees,
-                    'amount' => max((float) $validated['amount'], $coffees * 3.0),
-                ], $character);
-            }
+                $webhookController = app(BuyMeACoffeeWebhookController::class);
+                if ($isMembership) {
+                    $webhookController->grantMembershipTier($character, $validated['membership_tier'], ['manual' => true, 'order_id' => $order->id]);
+                } else {
+                    $webhookController->processEvent('donation', [
+                        'support_coffees' => $coffees,
+                        'quantity' => $coffees,
+                        'amount' => max((float) $validated['amount'], $coffees * 3.0),
+                    ], $character);
+                }
 
-            try {
-                AuditLogService::log(
-                    action: 'buymeacoffee_manual_create',
-                    category: 'vip',
-                    description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$character->name} ({$validated['membership_tier']}) door ".($currentUser?->name ?? Auth::user()?->name ?? 'Staff'),
-                    character: $character,
-                    user: $character->user,
-                    amount: (int) $validated['amount'],
-                    details: ['order_id' => $order->id, 'tier' => $tier, 'is_membership' => $isMembership]
-                );
-            } catch (\Throwable $e) {
-                Log::warning('Failed to log buymeacoffee_manual_create audit record: '.$e->getMessage());
-            }
-        });
+                try {
+                    AuditLogService::log(
+                        action: 'buymeacoffee_manual_create',
+                        category: 'vip',
+                        description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$character->name} ({$validated['membership_tier']}) door ".($currentUser?->name ?? Auth::user()?->name ?? 'Staff'),
+                        character: $character,
+                        user: $character->user,
+                        amount: (int) $validated['amount'],
+                        details: ['order_id' => $order->id, 'tier' => $tier, 'is_membership' => $isMembership]
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to log buymeacoffee_manual_create audit record: '.$e->getMessage());
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::error('Failed to create manual BuyMeACoffee order: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het aanmaken van de handmatige order: '.$e->getMessage());
+        }
 
         return back()->with('success', "Handmatige Buy Me a Coffee registratie succesvol gekoppeld aan {$character->name}!");
     }

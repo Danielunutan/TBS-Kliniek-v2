@@ -118,20 +118,26 @@ class DiscordShieldAdminController extends Controller
             }
         }
 
-        foreach ($validated as $key => $val) {
-            DiscordShieldSetting::set($key, $val);
-        }
-
-        // Toggles that might be missing if unchecked
-        foreach (['block_vpns', 'block_alts', 'auto_kick_alts', 'auto_ban_evaders', 'turnstile_enabled'] as $toggle) {
-            if (! isset($validated[$toggle])) {
-                DiscordShieldSetting::set($toggle, '0');
+        try {
+            foreach ($validated as $key => $val) {
+                DiscordShieldSetting::set($key, $val);
             }
-        }
 
-        DiscordShieldLog::log('settings_updated', 'Discord Shield instellingen bijgewerkt door '.Auth::user()->name, [
-            'severity' => 'info',
-        ]);
+            // Toggles that might be missing if unchecked
+            foreach (['block_vpns', 'block_alts', 'auto_kick_alts', 'auto_ban_evaders', 'turnstile_enabled'] as $toggle) {
+                if (! isset($validated[$toggle])) {
+                    DiscordShieldSetting::set($toggle, '0');
+                }
+            }
+
+            DiscordShieldLog::log('settings_updated', 'Discord Shield instellingen bijgewerkt door '.Auth::user()->name, [
+                'severity' => 'info',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to update Discord Shield settings: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het opslaan van de instellingen: '.$e->getMessage())->withInput();
+        }
 
         return back()->with('success', 'Discord Shield instellingen zijn succesvol opgeslagen.');
     }
@@ -152,9 +158,15 @@ class DiscordShieldAdminController extends Controller
             return back()->with('error', 'Vul eerst een geldig numeriek Verificatie Kanaal ID in.');
         }
 
-        $msgId = $this->discordService->postVerificationChannelMessage(trim((string) $channelId));
-        if ($msgId) {
-            return back()->with('success', 'De officiële verificatie embed met knop is geplaatst in het Discord kanaal!');
+        try {
+            $msgId = $this->discordService->postVerificationChannelMessage(trim((string) $channelId));
+            if ($msgId) {
+                return back()->with('success', 'De officiële verificatie embed met knop is geplaatst in het Discord kanaal!');
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to post Discord verification message: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Fout bij het plaatsen van verificatiebericht: '.$e->getMessage());
         }
 
         return back()->with('error', 'Kon het bericht niet plaatsen. Controleer of de Bot Token klopt en of de bot rechten heeft in dat kanaal.');
@@ -191,28 +203,34 @@ class DiscordShieldAdminController extends Controller
             return back()->with('error', 'Ongeldige hardware fingerprint hash (moet minimaal 16 tekens zijn).');
         }
 
-        DiscordShieldBan::updateOrCreate(
-            ['type' => $request->type, 'value' => $val],
-            [
-                'reason' => $request->reason ?? 'Handmatige ban via staff dashboard',
-                'banned_by' => Auth::user()->name,
-            ]
-        );
+        try {
+            DiscordShieldBan::updateOrCreate(
+                ['type' => $request->type, 'value' => $val],
+                [
+                    'reason' => $request->reason ?? 'Handmatige ban via staff dashboard',
+                    'banned_by' => Auth::user()->name,
+                ]
+            );
 
-        // If it's a discord_id, also ban them in the guild if bot is connected
-        if ($request->type === 'discord_id') {
-            $guildId = $this->discordService->getGuildId();
-            if ($guildId) {
-                $this->discordService->banMember($guildId, trim($request->value), $request->reason ?? 'Handmatige ban via TBS Shield');
+            // If it's a discord_id, also ban them in the guild if bot is connected
+            if ($request->type === 'discord_id') {
+                $guildId = $this->discordService->getGuildId();
+                if ($guildId) {
+                    $this->discordService->banMember($guildId, trim($request->value), $request->reason ?? 'Handmatige ban via TBS Shield');
+                }
             }
-        }
 
-        DiscordShieldLog::log('manual_ban', "Handmatige ban toegevoegd voor {$request->type}: {$request->value}", [
-            'discord_id' => $request->type === 'discord_id' ? trim((string) $request->value) : null,
-            'ip_address' => $request->type === 'ip_address' ? trim((string) $request->value) : null,
-            'fingerprint_hash' => $request->type === 'fingerprint' ? trim((string) $request->value) : null,
-            'severity' => 'warning',
-        ]);
+            DiscordShieldLog::log('manual_ban', "Handmatige ban toegevoegd voor {$request->type}: {$request->value}", [
+                'discord_id' => $request->type === 'discord_id' ? trim((string) $request->value) : null,
+                'ip_address' => $request->type === 'ip_address' ? trim((string) $request->value) : null,
+                'fingerprint_hash' => $request->type === 'fingerprint' ? trim((string) $request->value) : null,
+                'severity' => 'warning',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to add Discord Shield ban: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het toevoegen van de ban: '.$e->getMessage());
+        }
 
         $adminName = $currentUser?->name ?? 'Staff';
 
@@ -250,17 +268,23 @@ class DiscordShieldAdminController extends Controller
             return back()->with('error', 'Alleen de eigenaar of een beheerder kan een Discord Shield ban opheffen.');
         }
 
-        $ban = DiscordShieldBan::findOrFail($id);
-        $banType = $ban->type;
-        $val = $ban->value;
-        $ban->delete();
+        try {
+            $ban = DiscordShieldBan::findOrFail($id);
+            $banType = $ban->type;
+            $val = $ban->value;
+            $ban->delete();
 
-        DiscordShieldLog::log('manual_unban', "Ban verwijderd voor {$val}", [
-            'discord_id' => $banType === 'discord_id' ? $val : null,
-            'ip_address' => $banType === 'ip_address' ? $val : null,
-            'fingerprint_hash' => $banType === 'fingerprint' ? $val : null,
-            'severity' => 'info',
-        ]);
+            DiscordShieldLog::log('manual_unban', "Ban verwijderd voor {$val}", [
+                'discord_id' => $banType === 'discord_id' ? $val : null,
+                'ip_address' => $banType === 'ip_address' ? $val : null,
+                'fingerprint_hash' => $banType === 'fingerprint' ? $val : null,
+                'severity' => 'info',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Failed to unban Discord Shield record #{$id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het opheffen van de ban: '.$e->getMessage());
+        }
 
         $adminName = $currentUser?->name ?? 'Staff';
 
@@ -297,18 +321,24 @@ class DiscordShieldAdminController extends Controller
             return back()->with('error', 'Alleen de eigenaar of een beheerder kan een Discord Shield verificatie goedkeuren.');
         }
 
-        $verification = DiscordVerification::findOrFail($id);
-        $verification->update([
-            'status' => 'verified',
-            'risk_score' => 0,
-            'verified_at' => now(),
-        ]);
+        try {
+            $verification = DiscordVerification::findOrFail($id);
+            $verification->update([
+                'status' => 'verified',
+                'risk_score' => 0,
+                'verified_at' => now(),
+            ]);
 
-        // Give role
-        $guildId = $this->discordService->getGuildId();
-        $roleId = DiscordShieldSetting::get('verified_role_id');
-        if ($guildId && $roleId) {
-            $this->discordService->addRole($guildId, $verification->discord_id, $roleId, 'Handmatig goedgekeurd door staff');
+            // Give role
+            $guildId = $this->discordService->getGuildId();
+            $roleId = DiscordShieldSetting::get('verified_role_id');
+            if ($guildId && $roleId) {
+                $this->discordService->addRole($guildId, $verification->discord_id, $roleId, 'Handmatig goedgekeurd door staff');
+            }
+        } catch (\Throwable $e) {
+            Log::error("Failed to approve Discord verification #{$id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het goedkeuren: '.$e->getMessage());
         }
 
         $adminName = $currentUser?->name ?? 'Staff';

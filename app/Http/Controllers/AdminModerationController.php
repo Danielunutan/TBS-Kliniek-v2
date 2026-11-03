@@ -126,7 +126,13 @@ class AdminModerationController extends Controller
             'permanent' => null,
         };
 
-        $ban = DB::transaction(fn () => $user->ban($validated['reason'], $until, $currentUser));
+        try {
+            $ban = DB::transaction(fn () => $user->ban($validated['reason'], $until, $currentUser));
+        } catch (\Throwable $e) {
+            Log::error("Failed to ban user #{$user->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het verbannen: '.$e->getMessage());
+        }
 
         $targetName = $user->character?->name ?? $user->name;
         $durationLabel = $until ? 'tot '.$until->locale('nl')->isoFormat('D MMMM [om] HH:mm') : 'permanent';
@@ -175,7 +181,13 @@ class AdminModerationController extends Controller
             return back()->with('info', 'Deze gebruiker is momenteel niet verbannen.');
         }
 
-        DB::transaction(fn () => $user->unban($currentUser));
+        try {
+            DB::transaction(fn () => $user->unban($currentUser));
+        } catch (\Throwable $e) {
+            Log::error("Failed to unban user #{$user->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het opheffen van de ban: '.$e->getMessage());
+        }
 
         $targetName = $user->character?->name ?? $user->name;
 
@@ -223,7 +235,13 @@ class AdminModerationController extends Controller
             'reason' => 'required|string|min:3|max:1000',
         ]);
 
-        $warning = DB::transaction(fn () => $user->warn($validated['reason'], $currentUser));
+        try {
+            $warning = DB::transaction(fn () => $user->warn($validated['reason'], $currentUser));
+        } catch (\Throwable $e) {
+            Log::error("Failed to warn user #{$user->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het uitdelen van de waarschuwing: '.$e->getMessage());
+        }
 
         $targetName = $user->character?->name ?? $user->name;
 
@@ -269,7 +287,13 @@ class AdminModerationController extends Controller
         $warningUser = $warning->user;
         $warningReason = $warning->reason;
 
-        DB::transaction(fn () => $warning->delete());
+        try {
+            DB::transaction(fn () => $warning->delete());
+        } catch (\Throwable $e) {
+            Log::error("Failed to delete warning #{$warningId}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het intrekken van de waarschuwing: '.$e->getMessage());
+        }
 
         $adminName = $currentUser?->name ?? 'Staff';
 
@@ -303,14 +327,20 @@ class AdminModerationController extends Controller
     {
         abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd.');
 
-        DB::transaction(function () use ($request, $report): void {
-            $report->update([
-                'status' => 'resolved',
-                'handled_by' => Auth::id(),
-                'handled_at' => now(),
-                'mod_notes' => $request->input('notes'),
-            ]);
-        });
+        try {
+            DB::transaction(function () use ($request, $report): void {
+                $report->update([
+                    'status' => 'resolved',
+                    'handled_by' => Auth::id(),
+                    'handled_at' => now(),
+                    'mod_notes' => $request->input('notes'),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error("Failed to resolve report #{$report->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het afhandelen van de melding: '.$e->getMessage());
+        }
 
         try {
             AuditLogService::log(
@@ -342,14 +372,20 @@ class AdminModerationController extends Controller
     {
         abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd.');
 
-        DB::transaction(function () use ($request, $report): void {
-            $report->update([
-                'status' => 'dismissed',
-                'handled_by' => Auth::id(),
-                'handled_at' => now(),
-                'mod_notes' => $request->input('notes', 'Verworpen door moderatie.'),
-            ]);
-        });
+        try {
+            DB::transaction(function () use ($request, $report): void {
+                $report->update([
+                    'status' => 'dismissed',
+                    'handled_by' => Auth::id(),
+                    'handled_at' => now(),
+                    'mod_notes' => $request->input('notes', 'Verworpen door moderatie.'),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error("Failed to dismiss report #{$report->id}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het verwerpen van de melding: '.$e->getMessage());
+        }
 
         try {
             AuditLogService::log(
@@ -387,7 +423,13 @@ class AdminModerationController extends Controller
         $reportedName = $report->reported_name;
         $reason = $report->reason;
 
-        DB::transaction(fn () => $report->delete());
+        try {
+            DB::transaction(fn () => $report->delete());
+        } catch (\Throwable $e) {
+            Log::error("Failed to delete report #{$reportId}: ".$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Er is een fout opgetreden bij het definitief verwijderen: '.$e->getMessage());
+        }
 
         $adminName = $currentUser?->name ?? 'Staff';
 
