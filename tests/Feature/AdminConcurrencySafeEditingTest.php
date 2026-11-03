@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\NewsArticle;
+use App\Models\Report;
 use App\Models\User;
 use App\Models\UserWarning;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -354,5 +355,90 @@ class AdminConcurrencySafeEditingTest extends TestCase
         $this->assertEquals(25, $targetChar->stars);
         $this->assertTrue($targetChar->isVip());
         $this->assertEquals(2, $targetChar->getSupporterTier());
+    }
+
+    /**
+     * Test that moderators cannot edit other staff members.
+     */
+    public function test_moderator_cannot_edit_another_staff_member(): void
+    {
+        $moderator = User::factory()->create(['role' => 'moderator', 'is_staff' => true]);
+        $targetStaff = User::factory()->create(['role' => 'moderator', 'is_staff' => true]);
+        $targetChar = $this->createCharacter($targetStaff, ['name' => 'StaffChar']);
+
+        $response = $this->actingAs($moderator)->post(route('admin.player.update', $targetChar), [
+            'username' => 'NewStaffName',
+            'character_name' => 'StaffChar',
+            'cash' => $targetChar->cash,
+            'bank' => $targetChar->bank,
+            'stars' => $targetChar->stars,
+            'respect' => $targetChar->respect,
+            'vip_points' => 0,
+            'health' => 100,
+            'energy' => 100,
+            'role' => 'moderator',
+        ]);
+
+        $response->assertSessionHas('error', 'Alleen administrators kunnen het profiel of de status van medewerkers wijzigen.');
+    }
+
+    /**
+     * Test that moderators cannot release players from prison.
+     */
+    public function test_moderator_cannot_release_player_from_prison(): void
+    {
+        $moderator = User::factory()->create(['role' => 'moderator', 'is_staff' => true]);
+        $targetUser = User::factory()->create(['role' => 'user', 'is_staff' => false]);
+        $targetChar = $this->createCharacter($targetUser, ['is_in_prison' => true]);
+
+        $response = $this->actingAs($moderator)->post(route('admin.player.update', $targetChar), [
+            'username' => $targetUser->name,
+            'character_name' => $targetChar->name,
+            'cash' => $targetChar->cash,
+            'bank' => $targetChar->bank,
+            'stars' => $targetChar->stars,
+            'respect' => $targetChar->respect,
+            'vip_points' => 0,
+            'health' => 100,
+            'energy' => 100,
+            'role' => 'user',
+            'release_prison' => 1,
+        ]);
+
+        $response->assertSessionHas('error', 'Alleen administrators kunnen spelers vrijlaten uit de gevangenis.');
+        $targetChar->refresh();
+        $this->assertTrue($targetChar->is_in_prison);
+    }
+
+    /**
+     * Test report resolution locks report and sets status.
+     */
+    public function test_admin_moderation_resolve_report_locks_and_updates_status(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_staff' => true]);
+        $reporterUser = User::factory()->create();
+        $reporterChar = $this->createCharacter($reporterUser);
+
+        $report = Report::create([
+            'reporter_id' => $reporterChar->id,
+            'reported_type' => 'character',
+            'reported_id' => 999,
+            'reported_name' => 'SlechteSpeler',
+            'reason' => 'Schelden in shoutbox',
+            'details' => 'Speler gebruikte ongepaste taal.',
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.moderation.report.resolve', $report), [
+            'notes' => 'Speler aangesproken en gewaarschuwd.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $report->refresh();
+        $this->assertEquals('resolved', $report->status);
+        $this->assertEquals($admin->id, $report->handled_by);
+        $this->assertEquals('Speler aangesproken en gewaarschuwd.', $report->mod_notes);
     }
 }

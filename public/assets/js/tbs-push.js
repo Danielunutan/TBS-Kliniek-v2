@@ -95,7 +95,6 @@
                 content_encoding: (window.PushManager && PushManager.supportedContentEncodings) ? PushManager.supportedContentEncodings[0] : 'aesgcm'
             };
 
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             const saveRes = await fetch('/push/subscribe', {
                 method: 'POST',
                 headers: {

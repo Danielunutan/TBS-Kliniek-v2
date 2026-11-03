@@ -461,7 +461,13 @@ class Character extends Model
         if (! empty($this->avatar_custom)) {
             $customPath = ltrim((string) $this->avatar_custom, '/');
 
-            return str_starts_with($customPath, 'http') ? $customPath : asset($customPath);
+            if (preg_match('/^(javascript|data|vbscript):/i', $customPath)) {
+                return asset('assets/characters/avatar_male_1.jpg');
+            }
+
+            return (str_starts_with($customPath, 'http://') || str_starts_with($customPath, 'https://'))
+                ? $customPath
+                : asset($customPath);
         }
 
         if (empty($this->avatar) || str_contains($this->avatar, 'avatar-default')) {
@@ -469,7 +475,11 @@ class Character extends Model
         }
 
         $path = ltrim((string) $this->avatar, '/');
-        if (str_starts_with($path, 'http')) {
+        if (preg_match('/^(javascript|data|vbscript):/i', $path)) {
+            return asset('assets/characters/avatar_male_1.jpg');
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
         }
 
@@ -558,7 +568,7 @@ class Character extends Model
      */
     public function isOnLeave(): bool
     {
-        return ! $this->isImprisoned() && $this->leave_until && $this->leave_until->isFuture();
+        return $this->leave_until && $this->leave_until->isFuture() && ! $this->isImprisoned();
     }
 
     /**
@@ -838,15 +848,42 @@ class Character extends Model
     }
 
     /**
+     * Check if character has permanent lifetime VIP status.
+     * Recognized by supporter tier 4, is_lifetime_vip perk flag, null expiry while is_vip, or expiry date in/beyond year 2099.
+     */
+    public function isLifetimeVip(): bool
+    {
+        $tier = (int) ($this->perks['supporter_tier'] ?? 0);
+
+        if ($tier === 4 || ! empty($this->perks['is_lifetime_vip'])) {
+            return true;
+        }
+
+        if ($this->is_vip) {
+            if ($this->vip_expires_at === null) {
+                return true;
+            }
+
+            try {
+                return $this->vip_expires_at->year >= 2099;
+            } catch (\Throwable) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Check if character has active VIP status (either personal VIP or through Gang Overstap VIP boost).
      */
     public function isVip(): bool
     {
-        $tier = (int) ($this->perks['supporter_tier'] ?? 0);
-
-        if ($this->is_vip && $tier === 4) {
+        if ($this->isLifetimeVip()) {
             return true;
         }
+
+        $tier = (int) ($this->perks['supporter_tier'] ?? 0);
 
         if ($this->is_vip && (! $this->vip_expires_at || $this->vip_expires_at->isFuture())) {
             return true;
@@ -873,7 +910,13 @@ class Character extends Model
             return 0;
         }
 
-        return (int) ($this->perks['supporter_tier'] ?? 1);
+        $tier = (int) ($this->perks['supporter_tier'] ?? 0);
+
+        if ($tier === 0 && $this->isLifetimeVip()) {
+            return 4;
+        }
+
+        return $tier > 0 ? $tier : 1;
     }
 
     /**
@@ -1267,8 +1310,7 @@ class Character extends Model
                 return false;
             }
 
-            $hasPermanentVip = ($locked->is_vip && $locked->vip_expires_at === null)
-                || $locked->getVipTier() === 4;
+            $hasPermanentVip = $locked->isLifetimeVip();
             $locked->cash += 2500;
             $locked->is_vip = true;
             if (! $hasPermanentVip) {
@@ -1633,8 +1675,7 @@ class Character extends Model
             $dirty = true;
         }
 
-        $hasPermanentVip = ((bool) $this->is_vip && $this->vip_expires_at === null)
-            || ((bool) $this->is_vip && (int) ($this->perks['supporter_tier'] ?? 0) === 4);
+        $hasPermanentVip = $this->isLifetimeVip();
         $hasActiveVip = $hasPermanentVip || ($this->vip_expires_at !== null && $this->vip_expires_at->isFuture());
         if ((bool) $this->is_vip !== $hasActiveVip) {
             $this->is_vip = $hasActiveVip;

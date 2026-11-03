@@ -28,7 +28,11 @@ class DiscordShieldAdminController extends Controller
     {
         abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd. Deze beheeromgeving is uitsluitend toegankelijk voor TBS Kliniek personeel.');
 
-        AuditLogService::sanitizeDiscordShieldLogs();
+        try {
+            AuditLogService::sanitizeDiscordShieldLogs();
+        } catch (\Throwable $e) {
+            Log::warning('Failed to sanitize Discord Shield logs on index: '.$e->getMessage());
+        }
 
         $totalVerified = DiscordVerification::where('status', 'verified')->count();
         $totalAltsCaught = DiscordShieldLog::where('event', 'alt_detected')->count();
@@ -130,9 +134,13 @@ class DiscordShieldAdminController extends Controller
                 }
             }
 
-            DiscordShieldLog::log('settings_updated', 'Discord Shield instellingen bijgewerkt door '.Auth::user()->name, [
-                'severity' => 'info',
-            ]);
+            try {
+                DiscordShieldLog::log('settings_updated', 'Discord Shield instellingen bijgewerkt door '.Auth::user()->name, [
+                    'severity' => 'info',
+                ]);
+            } catch (\Throwable $logEx) {
+                Log::warning('Failed to write Discord Shield settings_updated log: '.$logEx->getMessage());
+            }
         } catch (\Throwable $e) {
             Log::error('Failed to update Discord Shield settings: '.$e->getMessage(), ['exception' => $e]);
 
@@ -220,12 +228,16 @@ class DiscordShieldAdminController extends Controller
                 }
             }
 
-            DiscordShieldLog::log('manual_ban', "Handmatige ban toegevoegd voor {$request->type}: {$request->value}", [
-                'discord_id' => $request->type === 'discord_id' ? trim((string) $request->value) : null,
-                'ip_address' => $request->type === 'ip_address' ? trim((string) $request->value) : null,
-                'fingerprint_hash' => $request->type === 'fingerprint' ? trim((string) $request->value) : null,
-                'severity' => 'warning',
-            ]);
+            try {
+                DiscordShieldLog::log('manual_ban', "Handmatige ban toegevoegd voor {$request->type}: {$request->value}", [
+                    'discord_id' => $request->type === 'discord_id' ? trim((string) $request->value) : null,
+                    'ip_address' => $request->type === 'ip_address' ? trim((string) $request->value) : null,
+                    'fingerprint_hash' => $request->type === 'fingerprint' ? trim((string) $request->value) : null,
+                    'severity' => 'warning',
+                ]);
+            } catch (\Throwable $logEx) {
+                Log::warning('Failed to write Discord Shield manual_ban log: '.$logEx->getMessage());
+            }
         } catch (\Throwable $e) {
             Log::error('Failed to add Discord Shield ban: '.$e->getMessage(), ['exception' => $e]);
 
@@ -274,12 +286,16 @@ class DiscordShieldAdminController extends Controller
             $val = $ban->value;
             $ban->delete();
 
-            DiscordShieldLog::log('manual_unban', "Ban verwijderd voor {$val}", [
-                'discord_id' => $banType === 'discord_id' ? $val : null,
-                'ip_address' => $banType === 'ip_address' ? $val : null,
-                'fingerprint_hash' => $banType === 'fingerprint' ? $val : null,
-                'severity' => 'info',
-            ]);
+            try {
+                DiscordShieldLog::log('manual_unban', "Ban verwijderd voor {$val}", [
+                    'discord_id' => $banType === 'discord_id' ? $val : null,
+                    'ip_address' => $banType === 'ip_address' ? $val : null,
+                    'fingerprint_hash' => $banType === 'fingerprint' ? $val : null,
+                    'severity' => 'info',
+                ]);
+            } catch (\Throwable $logEx) {
+                Log::warning('Failed to write Discord Shield manual_unban log: '.$logEx->getMessage());
+            }
         } catch (\Throwable $e) {
             Log::error("Failed to unban Discord Shield record #{$id}: ".$e->getMessage(), ['exception' => $e]);
 
@@ -343,13 +359,17 @@ class DiscordShieldAdminController extends Controller
 
         $adminName = $currentUser?->name ?? 'Staff';
 
-        DiscordShieldLog::log('manual_approval', "Gebruiker {$verification->username} ({$verification->discord_id}) handmatig goedgekeurd door ".$adminName, [
-            'discord_id' => $verification->discord_id,
-            'username' => $verification->username,
-            'ip_address' => $verification->ip_address,
-            'fingerprint_hash' => $verification->fingerprint_hash,
-            'severity' => 'success',
-        ]);
+        try {
+            DiscordShieldLog::log('manual_approval', "Gebruiker {$verification->username} ({$verification->discord_id}) handmatig goedgekeurd door ".$adminName, [
+                'discord_id' => $verification->discord_id,
+                'username' => $verification->username,
+                'ip_address' => $verification->ip_address,
+                'fingerprint_hash' => $verification->fingerprint_hash,
+                'severity' => 'success',
+            ]);
+        } catch (\Throwable $logEx) {
+            Log::warning('Failed to write Discord Shield manual_approval log: '.$logEx->getMessage());
+        }
 
         try {
             AuditLogService::log(

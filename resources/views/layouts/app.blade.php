@@ -1053,6 +1053,13 @@
                         <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800">Gratis</span>
                     </a>
                     @endif
+                    <a href="{{ route('community.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('community.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-users-viewfinder w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                            <span>Community Hub</span>
+                        </div>
+                        <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200/60 dark:border-purple-800">Bonus</span>
+                    </a>
                 </div>
             </div>
 
@@ -3524,9 +3531,7 @@
 
     <!-- FLOATING MINI LIVE CHAT & UNIVERSAL REPORT MODAL -->
     @auth
-        @if(!request()->routeIs('chat.*'))
-            @include('partials.mini_chat_and_report_modal')
-        @endif
+        @include('partials.mini_chat_and_report_modal')
         <!-- GLOBAL SPOTLIGHT COMMAND PALETTE & FAST SEARCH (CTRL + K) -->
         @include('partials.spotlight_modal')
         <!-- BATTLE PASS UNCLAIMED REWARDS PROMO POPUP -->

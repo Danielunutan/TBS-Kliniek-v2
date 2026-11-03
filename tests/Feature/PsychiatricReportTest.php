@@ -7,7 +7,10 @@ use App\Models\CharacterArmWrestleStat;
 use App\Models\EscapeTunnel;
 use App\Models\Gang;
 use App\Models\User;
+use App\Services\PsychiatricReportService;
+use App\Support\TreatmentCaseCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class PsychiatricReportTest extends TestCase
@@ -256,6 +259,7 @@ class PsychiatricReportTest extends TestCase
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
             'is_in_prison' => true,
+            'prison_until' => now()->addHour(),
             'prison_reason' => 'Vechtpartij in de gang',
         ]);
 
@@ -399,5 +403,175 @@ class PsychiatricReportTest extends TestCase
         $multiReport = $multiFightChar->getPsychiatricReport();
         $indicatorValues = array_column($multiReport['forensic_indicators'], 'value');
         $this->assertContains('5 zeges / 3 verliezen', $indicatorValues);
+    }
+
+    public function test_koudbloedigheid_and_genadeschot_influence_report_and_indicators(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'level' => 26,
+            'kills_count' => 6,
+            'bullets' => 50,
+            'perks' => [
+                'cold_blooded_pct' => 85,
+            ],
+        ]);
+
+        $report = $character->getPsychiatricReport();
+
+        $this->assertSame(85, $report['cold_blooded_pct']);
+        $this->assertTrue($report['can_one_tap']);
+        $this->assertSame('Code Zwart', $report['threat_level']);
+        $this->assertContains('Koudbloedig', $report['personality_traits']);
+
+        // Check forensic indicator
+        $labels = array_column($report['forensic_indicators'], 'label');
+        $this->assertContains('Koudbloedigheid & Focus', $labels);
+
+        $indicatorKey = array_search('Koudbloedigheid & Focus', $labels, true);
+        $this->assertSame('85% Kaliberfocus', $report['forensic_indicators'][$indicatorKey]['value']);
+        $this->assertSame('kritiek', $report['forensic_indicators'][$indicatorKey]['status']);
+
+        // Check doctor notes
+        $this->assertStringContainsString('85%', $report['doctor_notes']);
+        $this->assertStringContainsString('genadeschot', strtolower($report['doctor_notes']));
+    }
+
+    public function test_xss_inputs_are_properly_sanitized_in_psychiatric_report(): void
+    {
+        $user = User::factory()->create();
+        $gang = Gang::create([
+            'name' => '<b onmouseover=alert(1)>BadGang</b>',
+            'tag' => 'BAD',
+            'description' => 'Test gang',
+            'specialty' => 'smuggling',
+            'leader_id' => $user->id,
+        ]);
+
+        $character = $this->createCharacter($user, [
+            'name' => "<script>alert('xss')</script>Pawn",
+            'gang_id' => $gang->id,
+            'gang_role' => '<u>Underboss</u>',
+            'is_in_prison' => true,
+            'prison_reason' => '<img src=x onerror=alert(2)>Breakout',
+        ]);
+
+        $report = $character->getPsychiatricReport();
+
+        // Verify script and HTML tags are sanitized
+        $this->assertStringNotContainsString('<script>', $report['doctor_notes']);
+        $this->assertStringNotContainsString('</script>', $report['doctor_notes']);
+        $this->assertStringNotContainsString('<b onmouseover', $report['doctor_notes']);
+        $this->assertStringNotContainsString('<img', $report['doctor_notes']);
+        $this->assertStringNotContainsString('<u>', $report['doctor_notes']);
+        $this->assertStringContainsString('Pawn', $report['doctor_notes']);
+        $this->assertStringContainsString('BadGang', $report['doctor_notes']);
+    }
+
+    public function test_negative_boundary_inputs_clamp_safely_without_errors(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'cash' => -500,
+            'bank' => -1000,
+            'respect' => -20,
+            'level' => -5,
+            'fights_won' => -10,
+            'fights_lost' => -2,
+            'thefts_succeeded' => -4,
+            'thefts_failed' => -3,
+            'bullets' => -15,
+            'treatment_score' => -10,
+        ]);
+
+        $report = $character->getPsychiatricReport();
+
+        $this->assertSame('Code Groen', $report['threat_level']);
+        $this->assertSame(10, $report['threat_meter']);
+        $this->assertIsArray($report['forensic_indicators']);
+        $this->assertIsArray($report['observed_incidents']);
+        $this->assertNotEmpty($report['doctor_notes']);
+    }
+
+    public function test_treatment_controller_prevents_comatose_and_imprisoned_exploit(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'energy' => 100,
+            'treatment_score' => 50,
+        ]);
+
+        // 1. Imprisoned character cannot submit treatment
+        $character->is_in_prison = true;
+        $character->prison_until = now()->addHour();
+        $character->save();
+
+        $response = $this->actingAs($user)->post(route('treatment.submit'), [
+            'answers' => ['1' => 'a', '2' => 'a', '3' => 'a'],
+        ]);
+        $response->assertRedirect(route('prison'));
+
+        // 2. Comatose character cannot submit treatment
+        $character->is_in_prison = false;
+        $character->prison_until = null;
+        $character->coma_until = now()->addHours(2);
+        $character->save();
+
+        $response = $this->actingAs($user)->post(route('treatment.submit'), [
+            'answers' => ['1' => 'a', '2' => 'a', '3' => 'a'],
+        ]);
+        $response->assertSessionHas('error');
+
+        // 3. Healthy character can submit treatment within transaction
+        $character->coma_until = null;
+        $character->save();
+
+        $dayOfYear = (int) now()->dayOfYear;
+        $dailyCase = TreatmentCaseCatalog::getCaseForDay($dayOfYear);
+        $questionKeys = array_keys($dailyCase['questions']);
+
+        $response = $this->actingAs($user)->post(route('treatment.submit'), [
+            'answers' => [
+                (string) $questionKeys[0] => 'a',
+                (string) $questionKeys[1] => 'a',
+                (string) $questionKeys[2] => 'a',
+            ],
+        ]);
+        $response->assertSessionHasNoErrors();
+
+        $character->refresh();
+        $this->assertNotNull($character->treatment_history);
+        $this->assertNotNull($character->last_treatment_at);
+    }
+
+    public function test_fail_closed_catches_unexpected_exceptions_and_logs_telemetry(): void
+    {
+        Log::shouldReceive('error')
+            ->once()
+            ->withArgs(function ($message, $context) {
+                return str_contains($message, 'PsychiatricReportService')
+                    && isset($context['error'])
+                    && isset($context['trace']);
+            });
+
+        // Mock service or character that throws inside generate
+        $mockService = new class extends PsychiatricReportService
+        {
+            protected function extractPatientMetrics(Character $character): array
+            {
+                throw new \RuntimeException('Corrupted forensic database link simulated.');
+            }
+        };
+
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user);
+
+        $fallbackReport = $mockService->generate($character);
+
+        $this->assertSame('Code Groen', $fallbackReport['threat_level']);
+        $this->assertSame('Intake & Observatiegroep', $fallbackReport['regime']);
+        $this->assertSame('Anti-sociale Persoonlijkheidsstructuur (Type TBS-1: Intake)', $fallbackReport['diagnosis']);
+        $this->assertNotEmpty($fallbackReport['doctor_notes']);
+        $this->assertIsArray($fallbackReport['forensic_indicators']);
     }
 }

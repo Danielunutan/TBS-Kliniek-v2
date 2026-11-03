@@ -16,6 +16,17 @@ class IsolationProtectionAndPackagePrisonTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        if ($user?->character) {
+            $user->character->update([
+                'health' => 100,
+                'code_blue' => false,
+                'prison_until' => null,
+                'is_in_prison' => false,
+                'prison_escaped_at' => null,
+            ]);
+        }
     }
 
     public function test_can_view_isolation_page_with_new_pricing(): void

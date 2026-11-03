@@ -119,26 +119,48 @@ class AdminTicketController extends Controller
 
         try {
             DB::transaction(function () use ($ticket, $cleanMessage, $validated): void {
+                /** @var SupportTicket $lockedTicket */
+                $lockedTicket = SupportTicket::where('id', $ticket->id)->lockForUpdate()->firstOrFail();
+
                 SupportTicketMessage::create([
-                    'support_ticket_id' => $ticket->id,
+                    'support_ticket_id' => $lockedTicket->id,
                     'user_id' => Auth::id(),
                     'character_id' => Auth::user()?->character?->id,
                     'is_staff' => true,
                     'message' => $cleanMessage,
                 ]);
 
-                $ticket->update([
+                $lockedTicket->update([
                     'status' => $validated['status'],
                     'last_reply_at' => now(),
                     'last_reply_by_staff' => true,
                     'closed_at' => $validated['status'] === 'gesloten' ? now() : null,
                 ]);
             });
+
+            try {
+                AuditLogService::log(
+                    action: 'support_ticket_reply',
+                    category: 'moderation',
+                    description: "Support ticket #{$ticket->ticket_number} beantwoord door ".(Auth::user()?->name ?? 'Staff'),
+                    character: $ticket->character,
+                    user: $ticket->user,
+                    details: [
+                        'ticket_id' => $ticket->id,
+                        'ticket_number' => $ticket->ticket_number,
+                        'new_status' => $validated['status'],
+                    ]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Failed to log support_ticket_reply audit record: '.$e->getMessage());
+            }
         } catch (\Throwable $e) {
             Log::error("Failed to post reply on ticket #{$ticket->id}: ".$e->getMessage(), ['exception' => $e]);
 
             return back()->with('error', 'Er is een fout opgetreden bij het verzenden van de reactie: '.$e->getMessage());
         }
+
+        $ticket->refresh();
 
         return back()->with('success', 'Reactie succesvol verzonden naar '.($ticket->character?->name ?? 'de speler').' en status geüpdatet naar '.$ticket->status_label.'!');
     }
@@ -158,15 +180,38 @@ class AdminTicketController extends Controller
         ]);
 
         try {
-            $ticket->update([
-                'status' => $validated['status'],
-                'closed_at' => $validated['status'] === 'gesloten' ? now() : null,
-            ]);
+            DB::transaction(function () use ($ticket, $validated): void {
+                /** @var SupportTicket $lockedTicket */
+                $lockedTicket = SupportTicket::where('id', $ticket->id)->lockForUpdate()->firstOrFail();
+                $lockedTicket->update([
+                    'status' => $validated['status'],
+                    'closed_at' => $validated['status'] === 'gesloten' ? now() : null,
+                ]);
+            });
+
+            try {
+                AuditLogService::log(
+                    action: 'support_ticket_status_update',
+                    category: 'moderation',
+                    description: "Support ticket #{$ticket->ticket_number} status gewijzigd naar {$validated['status']} door ".(Auth::user()?->name ?? 'Staff'),
+                    character: $ticket->character,
+                    user: $ticket->user,
+                    details: [
+                        'ticket_id' => $ticket->id,
+                        'ticket_number' => $ticket->ticket_number,
+                        'status' => $validated['status'],
+                    ]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Failed to log support_ticket_status_update audit record: '.$e->getMessage());
+            }
         } catch (\Throwable $e) {
             Log::error("Failed to update status on ticket #{$ticket->id}: ".$e->getMessage(), ['exception' => $e]);
 
             return back()->with('error', 'Er is een fout opgetreden bij het bijwerken van de status: '.$e->getMessage());
         }
+
+        $ticket->refresh();
 
         return back()->with('success', 'Ticket status gewijzigd naar: '.$ticket->status_label);
     }

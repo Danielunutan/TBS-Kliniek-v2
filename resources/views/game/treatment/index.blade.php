@@ -319,13 +319,35 @@
 
             <!-- Laatste Psychologisch Beoordelingsverslag -->
             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wide text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                    <i class="fa-solid fa-clipboard-check text-purple-700 dark:text-purple-400"></i>
-                    <span>Laatste Evaluatieverslag</span>
-                </h3>
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                    <h3 class="text-xs font-bold uppercase tracking-wide text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-check text-purple-700 dark:text-purple-400"></i>
+                        <span>Psychiatrisch Dossier &amp; Evaluatie</span>
+                    </h3>
+                    @if(!empty($psychiatricReport['threat_level']))
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full {{ $psychiatricReport['threat_badge_color'] ?? 'bg-slate-100 text-slate-800' }} border">
+                        {{ $psychiatricReport['threat_level'] }}
+                    </span>
+                    @endif
+                </div>
+
+                @if(!empty($psychiatricReport['diagnosis']))
+                <div class="p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-1">
+                    <div class="flex items-center justify-between text-[10px]">
+                        <span class="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actieve Diagnose</span>
+                        <span class="font-mono text-purple-700 dark:text-purple-400 font-bold">{{ $psychiatricReport['dsm_code'] }}</span>
+                    </div>
+                    <div class="text-xs font-black text-slate-900 dark:text-white">
+                        {{ $psychiatricReport['diagnosis'] }}
+                    </div>
+                    <div class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug pt-0.5">
+                        {{ $psychiatricReport['diagnosis_description'] }}
+                    </div>
+                </div>
+                @endif
 
                 @if(! empty($character->treatment_history))
-                <div class="space-y-2">
+                <div class="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
                     <div class="flex items-center justify-between text-xs font-bold">
                         <span class="{{ ($character->treatment_history['outcome'] ?? '') === 'positive' ? 'text-emerald-700 dark:text-emerald-400' : (($character->treatment_history['outcome'] ?? '') === 'neutral' ? 'text-amber-700 dark:text-amber-400' : 'text-rose-700 dark:text-rose-400') }}">
                             {{ $character->treatment_history['title'] ?? 'Evaluatie' }}

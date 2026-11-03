@@ -127,7 +127,11 @@ class AdminModerationController extends Controller
         };
 
         try {
-            $ban = DB::transaction(fn () => $user->ban($validated['reason'], $until, $currentUser));
+            $ban = DB::transaction(function () use ($user, $validated, $until, $currentUser) {
+                $lockedUser = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+
+                return $lockedUser->ban($validated['reason'], $until, $currentUser);
+            });
         } catch (\Throwable $e) {
             Log::error("Failed to ban user #{$user->id}: ".$e->getMessage(), ['exception' => $e]);
 
@@ -173,8 +177,8 @@ class AdminModerationController extends Controller
         $currentUser = Auth::user();
         abort_unless($currentUser?->canModerate(), 403, 'Toegang geweigerd.');
 
-        if (($user->isOwner() || $user->role === 'admin') && ! $currentUser->isOwner()) {
-            return back()->with('error', 'Alleen de eigenaar kan de verbanning van een Admin of Eigenaar opheffen.');
+        if ($user->isStaff() && ! $currentUser->isOwner()) {
+            return back()->with('error', 'Alleen de eigenaar kan de verbanning van een stafflid of moderator opheffen.');
         }
 
         if (! $user->is_banned) {
@@ -182,7 +186,10 @@ class AdminModerationController extends Controller
         }
 
         try {
-            DB::transaction(fn () => $user->unban($currentUser));
+            DB::transaction(function () use ($user, $currentUser): void {
+                $lockedUser = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+                $lockedUser->unban($currentUser);
+            });
         } catch (\Throwable $e) {
             Log::error("Failed to unban user #{$user->id}: ".$e->getMessage(), ['exception' => $e]);
 
@@ -236,7 +243,11 @@ class AdminModerationController extends Controller
         ]);
 
         try {
-            $warning = DB::transaction(fn () => $user->warn($validated['reason'], $currentUser));
+            $warning = DB::transaction(function () use ($user, $validated, $currentUser) {
+                $lockedUser = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+
+                return $lockedUser->warn($validated['reason'], $currentUser);
+            });
         } catch (\Throwable $e) {
             Log::error("Failed to warn user #{$user->id}: ".$e->getMessage(), ['exception' => $e]);
 
@@ -288,7 +299,10 @@ class AdminModerationController extends Controller
         $warningReason = $warning->reason;
 
         try {
-            DB::transaction(fn () => $warning->delete());
+            DB::transaction(function () use ($warning): void {
+                $lockedWarning = UserWarning::where('id', $warning->id)->lockForUpdate()->firstOrFail();
+                $lockedWarning->delete();
+            });
         } catch (\Throwable $e) {
             Log::error("Failed to delete warning #{$warningId}: ".$e->getMessage(), ['exception' => $e]);
 
@@ -327,13 +341,18 @@ class AdminModerationController extends Controller
     {
         abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd.');
 
+        $validated = $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
         try {
-            DB::transaction(function () use ($request, $report): void {
-                $report->update([
+            DB::transaction(function () use ($validated, $report): void {
+                $lockedReport = Report::where('id', $report->id)->lockForUpdate()->firstOrFail();
+                $lockedReport->update([
                     'status' => 'resolved',
                     'handled_by' => Auth::id(),
                     'handled_at' => now(),
-                    'mod_notes' => $request->input('notes'),
+                    'mod_notes' => $validated['notes'] ?? null,
                 ]);
             });
         } catch (\Throwable $e) {
@@ -354,7 +373,7 @@ class AdminModerationController extends Controller
                     'reporter_character_id' => $report->reporter_id,
                     'reason' => $report->reason,
                     'reported_name' => $report->reported_name,
-                    'notes' => $request->input('notes'),
+                    'notes' => $validated['notes'] ?? null,
                     'handled_by_id' => Auth::id(),
                 ]
             );
@@ -372,13 +391,18 @@ class AdminModerationController extends Controller
     {
         abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd.');
 
+        $validated = $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
         try {
-            DB::transaction(function () use ($request, $report): void {
-                $report->update([
+            DB::transaction(function () use ($validated, $report): void {
+                $lockedReport = Report::where('id', $report->id)->lockForUpdate()->firstOrFail();
+                $lockedReport->update([
                     'status' => 'dismissed',
                     'handled_by' => Auth::id(),
                     'handled_at' => now(),
-                    'mod_notes' => $request->input('notes', 'Verworpen door moderatie.'),
+                    'mod_notes' => $validated['notes'] ?? 'Verworpen door moderatie.',
                 ]);
             });
         } catch (\Throwable $e) {
@@ -399,7 +423,7 @@ class AdminModerationController extends Controller
                     'reporter_character_id' => $report->reporter_id,
                     'reason' => $report->reason,
                     'reported_name' => $report->reported_name,
-                    'notes' => $request->input('notes'),
+                    'notes' => $validated['notes'] ?? null,
                     'handled_by_id' => Auth::id(),
                 ]
             );
@@ -424,7 +448,10 @@ class AdminModerationController extends Controller
         $reason = $report->reason;
 
         try {
-            DB::transaction(fn () => $report->delete());
+            DB::transaction(function () use ($report): void {
+                $lockedReport = Report::where('id', $report->id)->lockForUpdate()->firstOrFail();
+                $lockedReport->delete();
+            });
         } catch (\Throwable $e) {
             Log::error("Failed to delete report #{$reportId}: ".$e->getMessage(), ['exception' => $e]);
 

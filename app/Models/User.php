@@ -59,6 +59,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if user's character currently has active VIP status.
+     */
+    public function isVip(): bool
+    {
+        return (bool) $this->character?->isVip();
+    }
+
+    /**
+     * Check if user's character currently has lifetime VIP status.
+     */
+    public function isLifetimeVip(): bool
+    {
+        return (bool) $this->character?->isLifetimeVip();
+    }
+
+    /**
      * Check if user is the platform owner.
      */
     public function isOwner(): bool

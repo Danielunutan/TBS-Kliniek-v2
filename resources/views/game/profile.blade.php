@@ -402,12 +402,12 @@
                     <div class="flex flex-wrap gap-2 justify-center md:justify-end items-center">
                         <!-- Friend Request Action Button -->
                         @if($friendStatus === 'accepted')
-                            <span class="px-3.5 py-2 text-xs font-black bg-purple-50 text-purple-700 border border-purple-200 rounded-xl flex items-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-user-check text-purple-600"></i>
+                            <span class="px-3.5 py-2 text-xs font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/70 rounded-xl flex items-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-user-check text-purple-600 dark:text-purple-400"></i>
                                 <span>Vrienden</span>
                             </span>
                         @elseif($friendStatus === 'pending_sent')
-                            <span class="px-3.5 py-2 text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 rounded-xl flex items-center gap-1.5 shadow-2xs">
+                            <span class="px-3.5 py-2 text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70 rounded-xl flex items-center gap-1.5 shadow-2xs">
                                 <i class="fa-solid fa-clock text-amber-500"></i>
                                 <span>Verzoek Verstuurd</span>
                             </span>
@@ -452,8 +452,8 @@
                             </button>
                         </form>
                         @else
-                        <span class="px-3.5 py-2 text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 rounded-xl flex items-center gap-1.5 shadow-2xs" title="Je hebt deze patiënt vandaag al een sigaret/respect gegeven">
-                            <i class="fa-solid fa-check text-amber-600"></i>
+                        <span class="px-3.5 py-2 text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70 rounded-xl flex items-center gap-1.5 shadow-2xs" title="Je hebt deze patiënt vandaag al een sigaret/respect gegeven">
+                            <i class="fa-solid fa-check text-amber-600 dark:text-amber-400"></i>
                             <span>Respect Gegeven</span>
                         </span>
                         @endif
@@ -551,7 +551,7 @@
                         <!-- Report Profile Button -->
                         <button type="button" 
                                 @click="window.tbsOpenReportModal({ type: 'character', id: {{ $profileCharacter->id }}, name: @js($profileCharacter->name) })"
-                                class="px-3.5 py-2 text-xs font-bold bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl border border-slate-200 hover:border-rose-300 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                class="px-3.5 py-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                                 title="Rapporteer deze speler bij de moderatie">
                             <i class="fa-solid fa-flag text-rose-500"></i>
                             <span>Rapporteer</span>
@@ -1079,17 +1079,17 @@
                     </div>
                     <div class="w-full h-2.5 bg-black/10 dark:bg-black/40 rounded-full overflow-hidden p-0.5 flex gap-1">
                         <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 10 ? 'bg-emerald-500' : 'bg-transparent' }} flex-1"></div>
-                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 30 ? 'bg-yellow-400' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
-                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 55 ? 'bg-amber-500' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
-                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 80 ? 'bg-rose-600' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 25 ? 'bg-yellow-400' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 50 ? 'bg-amber-500' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 75 ? 'bg-rose-600' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
                         <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 95 ? 'bg-slate-900 dark:bg-black border border-rose-500' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
                     </div>
                     <div class="flex justify-between text-[9px] font-bold text-stone-500 dark:text-slate-400 mt-1">
-                        <span class="text-emerald-700 dark:text-emerald-400">Groen (Intake)</span>
+                        <span class="text-emerald-700 dark:text-emerald-400">Groen<span class="hidden sm:inline"> (Intake)</span></span>
                         <span class="text-yellow-700 dark:text-yellow-400">Geel</span>
                         <span class="text-amber-700 dark:text-amber-400">Oranje</span>
                         <span class="text-rose-700 dark:text-rose-400">Rood</span>
-                        <span class="text-stone-900 dark:text-rose-300 font-extrabold">Zwart (EBI)</span>
+                        <span class="text-stone-900 dark:text-rose-300 font-extrabold">Zwart<span class="hidden sm:inline"> (EBI)</span></span>
                     </div>
                 </div>
             </div>
@@ -1189,7 +1189,7 @@
                                     {{ $indicator['label'] }}
                                 </span>
                             </div>
-                            <div class="text-xs font-black truncate">
+                            <div class="text-xs font-black truncate" title="{{ $indicator['value'] }}">
                                 {{ $indicator['value'] }}
                             </div>
                             @if(!empty($indicator['note']))
@@ -1552,11 +1552,11 @@
             @forelse($guestbookEntries as $entry)
             @if($entry->author)
             <div class="py-4 flex items-start gap-4">
-                <img src="{{ $entry->author->avatar_url }}" alt="{{ $entry->author->name }}" class="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200">
+                <img src="{{ $entry->author->avatar_url }}" alt="{{ $entry->author->name }}" class="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700">
                 <div class="flex-1">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1.5">
-                            <a href="{{ route('profile.show', $entry->author->name) }}" class="text-xs font-bold text-slate-900 hover:text-indigo-600 transition">
+                            <a href="{{ route('profile.show', $entry->author->name) }}" class="text-xs font-bold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition">
                                 {{ $entry->author->name }}
                             </a>
                             @if($entry->author->user && $entry->author->user->role !== 'user')
@@ -1567,7 +1567,7 @@
                             @endif
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] text-slate-400">{{ $entry->created_at->diffForHumans() }}</span>
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500">{{ $entry->created_at->diffForHumans() }}</span>
                             @if($entry->author_character_id === Auth::user()->character->id || $entry->profile_character_id === Auth::user()->character->id || Auth::user()->canModerate())
                             <form action="{{ route('guestbook.destroy', $entry) }}" method="POST"
                                   data-confirm="{{ ($entry->author_character_id === Auth::user()->character->id || $entry->profile_character_id === Auth::user()->character->id) ? 'Weet je zeker dat je dit gastenboekbericht wilt verwijderen?' : 'Weet je zeker dat je dit gastenboekbericht als moderator/beheerder wilt verwijderen?' }}"
@@ -1578,19 +1578,19 @@
                                   class="inline-block">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-slate-400 hover:text-rose-600 p-1 rounded-md hover:bg-slate-100 transition cursor-pointer" title="{{ Auth::user()->canModerate() ? 'Verwijderen als moderator/beheerder' : 'Verwijderen' }}">
+                                <button type="submit" class="text-slate-400 hover:text-rose-600 p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" title="{{ Auth::user()->canModerate() ? 'Verwijderen als moderator/beheerder' : 'Verwijderen' }}">
                                     <i class="fa-regular fa-trash-can text-xs"></i>
                                 </button>
                             </form>
                             @endif
                         </div>
                     </div>
-                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ $entry->message }}</p>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{{ $entry->message }}</p>
                 </div>
             </div>
             @endif
             @empty
-            <div class="py-8 text-center text-slate-400 text-xs">
+            <div class="py-8 text-center text-slate-400 dark:text-slate-500 text-xs">
                 Nog geen berichten in dit gastenboek. Wees de eerste die iets achterlaat!
             </div>
             @endforelse
@@ -1834,7 +1834,7 @@
         <div @click.away="staffWarnModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 transform-gpu will-change-transform">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">
+                    <span class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-bold">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </span>
                     <div>
@@ -1869,7 +1869,7 @@
         <div @click.away="staffBanModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 space-y-4 transform-gpu will-change-transform">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold">
+                    <span class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 flex items-center justify-center text-sm font-bold">
                         <i class="fa-solid fa-ban"></i>
                     </span>
                     <div>

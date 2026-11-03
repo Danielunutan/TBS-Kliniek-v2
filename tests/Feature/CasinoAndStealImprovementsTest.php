@@ -81,7 +81,7 @@ class CasinoAndStealImprovementsTest extends TestCase
         $attacker->update([
             'energy' => 100,
             'cash' => 100,
-            'jail_until' => null,
+            'prison_until' => null,
             'is_in_prison' => false,
             'strength' => 50,
             'defense' => 50,
@@ -90,7 +90,7 @@ class CasinoAndStealImprovementsTest extends TestCase
 
         $target->update([
             'cash' => 5000,
-            'jail_until' => null,
+            'prison_until' => null,
             'is_in_prison' => false,
             'strength' => 10,
             'defense' => 10,
@@ -101,7 +101,7 @@ class CasinoAndStealImprovementsTest extends TestCase
         for ($i = 0; $i < 5; $i++) {
             $attacker->update([
                 'energy' => 100,
-                'jail_until' => null,
+                'prison_until' => null,
                 'is_in_prison' => false,
             ]);
 
@@ -109,7 +109,7 @@ class CasinoAndStealImprovementsTest extends TestCase
 
             // Attacker must NEVER be put in prison/jail from PvP robbery
             $attacker->refresh();
-            $this->assertNull($attacker->jail_until);
+            $this->assertNull($attacker->prison_until);
             $this->assertFalse((bool) $attacker->is_in_prison);
             $this->assertArrayHasKey('success', $res);
             $this->assertArrayHasKey('message', $res);

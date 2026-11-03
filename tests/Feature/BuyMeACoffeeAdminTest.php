@@ -268,4 +268,79 @@ class BuyMeACoffeeAdminTest extends TestCase
 
         $this->assertEquals(1, BuyMeACoffeeOrder::where('character_id', $character->id)->where('membership_tier', 'TBS V.I.P. Lid')->count());
     }
+
+    public function test_lifetime_vip_is_not_downgraded_by_smaller_tier(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $character = $user->character;
+        $character->is_vip = true;
+        $character->vip_expires_at = now()->addYears(90);
+        $character->perks = [
+            'supporter_tier' => 4,
+            'hourly_cash_bonus' => 50000,
+            'is_donator' => true,
+        ];
+        $character->save();
+
+        // Process a webhook for a smaller tier (Tier 1) for this character
+        $response = $this->postJson(route('webhooks.buymeacoffee'), [
+            'event' => 'membership.started',
+            'data' => [
+                'subscription_id' => 'sub_tier1_check',
+                'supporter_name' => 'Demo Supporter',
+                'amount' => 6.0,
+                'membership_tier_name' => 'TBS V.I.P. Lid (Tier 1)',
+                'support_message' => "Donatie voor speler #{$character->id}",
+            ],
+        ]);
+
+        $response->assertStatus(200);
+
+        $character->refresh();
+        // Lifetime VIP tier and bonus must NOT be downgraded
+        $this->assertEquals(4, $character->perks['supporter_tier']);
+        $this->assertEquals(50000, $character->perks['hourly_cash_bonus']);
+        $this->assertTrue($character->isVip());
+    }
+
+    public function test_link_order_prevents_duplicate_rewards_when_already_granted(): void
+    {
+        $adminUser = User::where('email', 'demo@tbskliniek.nl')->first();
+        $adminUser->role = 'admin';
+        $adminUser->is_staff = true;
+        $adminUser->save();
+
+        $character = $adminUser->character;
+        $character->stars = 100;
+        $character->save();
+
+        $order = BuyMeACoffeeOrder::create([
+            'event' => 'membership.started',
+            'external_id' => 'sub_already_granted_99',
+            'supporter_name' => 'Jan',
+            'amount' => 6.0,
+            'membership_tier' => 'TBS V.I.P. Lid',
+            'character_id' => $character->id,
+            'status' => 'manually_linked',
+            'is_membership' => true,
+            'payload' => [
+                'rewards_granted' => true,
+                'rewards_granted_at' => now()->subDay()->toIso8601String(),
+            ],
+        ]);
+
+        // Re-linking the same order with grant_rewards = true
+        $response = $this->actingAs($adminUser)->post(route('admin.buymeacoffee.link', $order), [
+            'character_id' => $character->id,
+            'membership_tier' => 'TBS V.I.P. Lid',
+            'grant_rewards' => true,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $character->refresh();
+        // Stars should remain 100 and NOT get incremented again
+        $this->assertEquals(100, $character->stars);
+    }
 }

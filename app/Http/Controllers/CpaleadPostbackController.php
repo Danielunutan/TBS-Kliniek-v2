@@ -158,10 +158,10 @@ class CpaleadPostbackController extends Controller
                 ]);
             }
 
-            // Check 250-ad milestone for 24h Free VIP (preserving permanent VIP when vip_expires_at === null)
+            // Check 250-ad milestone for 24h Free VIP (preserving permanent VIP when vip_expires_at === null or Lifetime Tier 4)
             $vipNotice = '';
             if ($totalAds > 0 && $totalAds % 250 === 0) {
-                $isPermanentVip = $lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null;
+                $isPermanentVip = $lockedCharacter->isLifetimeVip();
                 $lockedCharacter->is_vip = true;
                 if (! $isPermanentVip) {
                     $lockedCharacter->vip_expires_at = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())

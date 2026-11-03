@@ -55,6 +55,64 @@ window.tbsChatConfig = {
 </script>
 
 <script>
+// Global crystal-clear notification chime synthesizer (no clicks, no distortion, anti-overlap)
+if (!window.playTBSChime) {
+    window.playTBSChime = function() {
+        if (localStorage.getItem('tbs_chat_muted') === '1') return;
+        const now = Date.now();
+        if (window.__tbsLastChime && (now - window.__tbsLastChime < 2500)) return;
+
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            if (!window.__tbsAudioCtx || window.__tbsAudioCtx.state === 'closed') {
+                window.__tbsAudioCtx = new AudioCtx();
+            }
+            const ctx = window.__tbsAudioCtx;
+
+            // If context is suspended (no user gesture yet), resume it asynchronously but do NOT queue sounds at time 0!
+            if (ctx.state === 'suspended') {
+                ctx.resume().catch(() => {});
+                return;
+            }
+
+            window.__tbsLastChime = now;
+            const t0 = ctx.currentTime;
+
+            // Note 1: Warm soft bell (D5 - 587.33 Hz)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(587.33, t0);
+
+            gain1.gain.setValueAtTime(0.0001, t0);
+            gain1.gain.exponentialRampToValueAtTime(0.08, t0 + 0.015);
+            gain1.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(t0);
+            osc1.stop(t0 + 0.24);
+
+            // Note 2: Harmonious high note (A5 - 880.00 Hz) starting 80ms later
+            const t1 = t0 + 0.08;
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880.00, t1);
+
+            gain2.gain.setValueAtTime(0.0001, t1);
+            gain2.gain.exponentialRampToValueAtTime(0.06, t1 + 0.015);
+            gain2.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.26);
+
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(t1);
+            osc2.stop(t1 + 0.28);
+        } catch(e) {}
+    };
+}
+
 function tbsLiveMessenger(config) {
     return {
         authCharId: config.authCharId,
@@ -177,8 +235,19 @@ function tbsLiveMessenger(config) {
         isRefreshing: false,
         isPolling: false,
         pollTimer: null,
+        consecutivePollErrors: 0,
+        lastPollAttempt: 0,
+        lastHelpQueryTime: 0,
         replyingTo: null,
         heartsPopup: null,
+        safeUrl(url) {
+            if (!url || typeof url !== 'string') return '#';
+            const trimmed = url.trim();
+            if (trimmed.startsWith('/') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                return trimmed;
+            }
+            return '#';
+        },
         showEmojiPicker: false,
         activeEmojiTab: 'tbs',
         emojiSearchQuery: '',
@@ -468,9 +537,14 @@ function tbsLiveMessenger(config) {
                 }
             }
 
-            // Polling interval: every 3.5s for snappy live chat
+            // Polling interval: every 3.5s with exponential backoff on network failures
             this.pollTimer = setInterval(() => {
                 if (document.visibilityState === 'hidden') return;
+                const now = Date.now();
+                if (this.consecutivePollErrors > 0) {
+                    const backoffMs = Math.min(30000, 3500 * Math.pow(1.5, this.consecutivePollErrors));
+                    if (now - this.lastPollAttempt < backoffMs) return;
+                }
                 this.pollUpdates();
             }, 3500);
 
@@ -546,6 +620,9 @@ function tbsLiveMessenger(config) {
                     if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
                         const delSet = new Set(data.deleted_ids.map(Number));
                         this.publicMessagesList = this.publicMessagesList.filter(m => !delSet.has(Number(m.id)));
+                        if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {
+                            this.replyingTo = null;
+                        }
                     }
                     this.lastPublicId = Math.max(this.lastPublicId, data.last_id || 0);
                     if (this.publicMessagesList.length > 0) {
@@ -581,6 +658,9 @@ function tbsLiveMessenger(config) {
                     if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
                         const delSet = new Set(data.deleted_ids.map(Number));
                         this.gangMessagesList = this.gangMessagesList.filter(m => !delSet.has(Number(m.id)));
+                        if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {
+                            this.replyingTo = null;
+                        }
                     }
                     this.lastGangId = Math.max(this.lastGangId, data.last_id || 0);
                     if (this.gangMessagesList.length > 0) {
@@ -623,6 +703,9 @@ function tbsLiveMessenger(config) {
                     if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
                         const delSet = new Set(data.deleted_ids.map(Number));
                         msgs = msgs.filter(m => !delSet.has(Number(m.id)));
+                        if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {
+                            this.replyingTo = null;
+                        }
                     }
                     this.directMessagesList = msgs;
                     this.scrollToBottom();
@@ -641,6 +724,7 @@ function tbsLiveMessenger(config) {
         async pollUpdates() {
             if (this.isPolling) return;
             this.isPolling = true;
+            this.lastPollAttempt = Date.now();
 
             try {
                 if (this.activeTab === 'global') {
@@ -650,6 +734,9 @@ function tbsLiveMessenger(config) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
                             const delSet = new Set(data.deleted_ids.map(Number));
                             this.publicMessagesList = this.publicMessagesList.filter(m => !delSet.has(Number(m.id)));
+                            if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {
+                                this.replyingTo = null;
+                            }
                         }
                         if (data.messages && data.messages.length > 0) {
                             this.registerCharacterNames(data.messages);
@@ -688,6 +775,9 @@ function tbsLiveMessenger(config) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
                             const delSet = new Set(data.deleted_ids.map(Number));
                             this.gangMessagesList = this.gangMessagesList.filter(m => !delSet.has(Number(m.id)));
+                            if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {
+                                this.replyingTo = null;
+                            }
                         }
                         if (data.messages && data.messages.length > 0) {
                             this.registerCharacterNames(data.messages);
@@ -739,6 +829,9 @@ function tbsLiveMessenger(config) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
                             const delSet = new Set(data.deleted_ids.map(Number));
                             this.directMessagesList = this.directMessagesList.filter(m => !delSet.has(Number(m.id)));
+                            if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {
+                                this.replyingTo = null;
+                            }
                         }
                         if (data.messages) {
                             this.registerCharacterNames(data.messages);
@@ -752,7 +845,9 @@ function tbsLiveMessenger(config) {
                         }
                     }
                 }
+                this.consecutivePollErrors = 0;
             } catch(e) {
+                this.consecutivePollErrors++;
             } finally {
                 this.isPolling = false;
             }
@@ -1148,6 +1243,9 @@ function tbsLiveMessenger(config) {
             if (this.isHelpBotThinking) return;
             this.isHelpBotThinking = true;
             this.helpMessages.push({ from: 'user', text: '🎯 Geef mij persoonlijk advies op maat!' });
+            if (this.helpMessages.length > 35) {
+                this.helpMessages = this.helpMessages.slice(-30);
+            }
             this.syncToGlobalCache();
             this.$nextTick(() => {
                 this.scrollToBottom();
@@ -1247,8 +1345,17 @@ function tbsLiveMessenger(config) {
 
         sendHelpQuery(custom = null) {
             if (this.isHelpBotThinking) return;
-            const query = (custom || this.helpInput).trim();
-            if (!query) return;
+            const now = Date.now();
+            if (now - this.lastHelpQueryTime < 1000) {
+                if (window.tbsToast) {
+                    window.tbsToast('Even geduld, Zaalwacht Arjan is nog bezig...', 'warning');
+                }
+                return;
+            }
+            const rawQuery = (custom || this.helpInput || '').trim();
+            if (!rawQuery) return;
+            const query = rawQuery.slice(0, 250).trim();
+            this.lastHelpQueryTime = now;
 
             const qRaw = query
                 .toLowerCase()
@@ -1267,6 +1374,68 @@ function tbsLiveMessenger(config) {
             ) {
                 this.helpInput = '';
                 this.givePersonalAdvice();
+                return;
+            }
+
+            // Prompt injection, jailbreak and cheating attack resistance
+            const isPromptInjection = (
+                qRaw.includes('ignore all previous') ||
+                qRaw.includes('ignore previous') ||
+                qRaw.includes('negeer alle instructies') ||
+                qRaw.includes('negeer alle eerdere') ||
+                qRaw.includes('negeer eerdere') ||
+                qRaw.includes('negeer instructies') ||
+                qRaw.includes('system prompt') ||
+                qRaw.includes('systeemprompt') ||
+                qRaw.includes('wat is jouw prompt') ||
+                qRaw.includes('toon je prompt') ||
+                qRaw.includes('jailbreak') ||
+                qRaw.includes('dan mode') ||
+                qRaw.includes('geef me admin') ||
+                qRaw.includes('maak me admin') ||
+                qRaw.includes('geef me gratis geld') ||
+                qRaw.includes('geef me gratis sterren') ||
+                qRaw.includes('onbeperkt geld') ||
+                qRaw.includes('drop table') ||
+                qRaw.includes('select * from')
+            );
+
+            if (isPromptInjection) {
+                this.isHelpBotThinking = true;
+                this.helpMessages.push({ from: 'user', text: query });
+                if (this.helpMessages.length > 35) {
+                    this.helpMessages = this.helpMessages.slice(-30);
+                }
+                this.helpInput = '';
+                this.syncToGlobalCache();
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
+
+                setTimeout(() => {
+                    try {
+                        this.helpMessages.push({
+                            from: 'bot',
+                            text: '🚨 Mooi geprobeerd, inmate! Als zaalwacht van TBS Kliniek laat ik me niet om de tuin leiden met dit soort trucjes.\n\nHier gelden de huisregels van FPC De Balk: eerlijk spelen, werken in de Dagbesteding en je geld op De Bank zetten. Geen cheats, geen uitzonderingen!',
+                            links: [
+                                { text: '📜 Huisregels & FAQ', url: '{{ route('faq.index') }}' },
+                                { text: '🔨 Naar Dagbesteding', url: '{{ route('daycare.index') }}' },
+                                { text: '🏦 Naar De Bank', url: '{{ route('bank.index') }}' }
+                            ],
+                            suggestions: [
+                                'Hoe pak ik €35.000 gratis startgeld?',
+                                'Hoe verdien ik snel geld?',
+                                'Hoe beveilig ik mijn contante geld op de bank?'
+                            ]
+                        });
+                        this.syncToGlobalCache();
+                        this.$nextTick(() => {
+                            this.scrollToBottom();
+                        });
+                    } finally {
+                        this.isHelpBotThinking = false;
+                    }
+                }, 200);
                 return;
             }
 
@@ -1920,6 +2089,9 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                         <span class="truncate" x-text="conv.name"></span>
                                         <template x-if="conv.is_bot">
                                             <i class="fa-solid fa-circle-check text-[10px] text-amber-500 shrink-0" title="Geverifieerd"></i>
+                                        </template>
+                                        <template x-if="conv.is_pinned">
+                                            <i class="fa-solid fa-thumbtack text-[10px] text-purple-500 dark:text-purple-400 shrink-0 rotate-45" title="Vastgezet gesprek"></i>
                                         </template>
                                     </h4>
                                     <span class="text-[10px] text-slate-400 shrink-0 font-medium" x-text="conv.last_time"></span>
@@ -2802,7 +2974,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                     <template x-if="msg.links && msg.links.length > 0">
                                         <div class="pt-1.5 flex flex-wrap gap-1.5 border-t border-slate-100 dark:border-slate-700/60">
                                             <template x-for="lnk in msg.links">
-                                                <a :href="lnk.url" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[11px] font-black border border-purple-200/80 dark:border-purple-800/70 transition">
+                                                <a :href="safeUrl(lnk.url)" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[11px] font-black border border-purple-200/80 dark:border-purple-800/70 transition">
                                                     <span x-text="lnk.text"></span> &raquo;
                                                 </a>
                                             </template>
@@ -2919,6 +3091,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     <form @submit.prevent="sendHelpQuery()" data-no-async="true" class="flex items-center gap-2">
                         <input type="text" 
                                x-model="helpInput" 
+                               maxlength="250"
                                placeholder="Stel elke vraag aan Zaalwacht Arjan (bijv. 'bank', 'heist', 'tunnel')..." 
                                class="flex-1 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 sm:py-2.5 text-base sm:text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         <button type="submit" 

@@ -38,8 +38,7 @@ return new class extends Migration
             $perks = $character->perks ?? [];
             $alreadyLifetimeVip = ($character->is_vip
                 && (int) ($perks['supporter_tier'] ?? 0) === 4
-                && $character->vip_expires_at
-                && $character->vip_expires_at->year >= 2100);
+                && (! $character->vip_expires_at || $character->vip_expires_at->year >= 2099));
 
             if (! $alreadyLifetimeVip) {
                 $character->is_vip = true;

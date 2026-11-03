@@ -86,6 +86,7 @@
     $characterStars = $authCharacter?->stars ?? 0;
 @endphp
 
+@if(!request()->routeIs('chat.*'))
 <!-- MINI LIVE CHAT & HELPBOT WIDGET (Docked Bottom Right) -->
 <div id="tbs-floating-mini-chat" x-data="tbsMiniLiveChat({
     myId: {{ $myCharacterId }},
@@ -1242,7 +1243,12 @@
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center justify-between gap-1.5">
-                                            <span class="text-xs font-black truncate" :class="conv.is_bot ? 'text-amber-500' : 'text-slate-900 dark:text-white'" x-text="conv.name"></span>
+                                            <span class="text-xs font-black truncate flex items-center gap-1" :class="conv.is_bot ? 'text-amber-500' : 'text-slate-900 dark:text-white'">
+                                                <span class="truncate" x-text="conv.name"></span>
+                                                <template x-if="conv.is_pinned">
+                                                    <i class="fa-solid fa-thumbtack text-[9px] text-purple-500 dark:text-purple-400 shrink-0 rotate-45" title="Vastgezet gesprek"></i>
+                                                </template>
+                                            </span>
                                             <span class="text-[9px] text-slate-400 shrink-0 font-mono font-medium" x-text="conv.last_time"></span>
                                         </div>
                                         <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="conv.last_message"></p>
@@ -1759,7 +1765,7 @@
                                 <template x-if="msg.links && msg.links.length > 0">
                                     <div class="pt-1 flex flex-wrap gap-1 border-t border-slate-100 dark:border-slate-700/60">
                                         <template x-for="lnk in msg.links">
-                                            <a :href="lnk.url" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold border border-purple-200/80 dark:border-purple-800/70 transition">
+                                            <a :href="safeUrl(lnk.url)" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold border border-purple-200/80 dark:border-purple-800/70 transition">
                                                 <span x-text="lnk.text"></span> &raquo;
                                             </a>
                                         </template>
@@ -1782,12 +1788,31 @@
                     </div>
                 </template>
 
+                <!-- Thinking indicator -->
+                <template x-if="isHelpBotThinking">
+                    <div class="flex items-start gap-2 min-w-0 max-w-full">
+                        <div class="relative shrink-0">
+                            <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}"
+                                 alt="Zaalwacht Arjan"
+                                 class="w-7 h-7 rounded-lg object-cover bg-purple-950 border border-amber-400/80 dark:border-amber-600/70 shrink-0 shadow-2xs"
+                                 onerror="this.src='{{ asset('assets/logo.png') }}'">
+                            <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-xl rounded-tl-xs px-2.5 py-2 flex items-center gap-1.5 shadow-2xs">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce [animation-delay:0.2s]"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce [animation-delay:0.4s]"></span>
+                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 ml-1">Arjan zoekt...</span>
+                        </div>
+                    </div>
+                </template>
+
             </div>
 
             <!-- Quick FAQ Horizontal Chips Bar (With Visible Scrollbar & Scroll Arrows) -->
             <div class="px-1.5 py-1.5 bg-slate-100/95 dark:bg-slate-800/90 border-t border-slate-200/90 dark:border-slate-800 flex items-center gap-1 shrink-0">
                 <button type="button"
-                        @click="$refs.helpChipsBar.scrollBy({ left: -180, behavior: 'smooth' })"
+                        @click="$refs.helpChipsBar?.scrollBy({ left: -180, behavior: 'smooth' })"
                         title="Scroll naar links"
                         aria-label="Scroll snelkeuzes naar links"
                         class="w-6 h-6 rounded-lg bg-white/90 hover:bg-purple-100 dark:bg-slate-900 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-[10px] shrink-0 transition cursor-pointer shadow-2xs active:scale-95">
@@ -1836,7 +1861,7 @@
                 </div>
 
                 <button type="button"
-                        @click="$refs.helpChipsBar.scrollBy({ left: 180, behavior: 'smooth' })"
+                        @click="$refs.helpChipsBar?.scrollBy({ left: 180, behavior: 'smooth' })"
                         title="Scroll naar rechts"
                         aria-label="Scroll snelkeuzes naar rechts"
                         class="w-6 h-6 rounded-lg bg-white/90 hover:bg-purple-100 dark:bg-slate-900 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-[10px] shrink-0 transition cursor-pointer shadow-2xs active:scale-95">
@@ -1846,9 +1871,9 @@
 
             <!-- Help input -->
             <form @submit.prevent="sendHelpQuery()" data-no-async="true" class="p-2.5 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-slate-800 flex items-center gap-1.5 shrink-0">
-                <input type="text" x-model="helpInput" placeholder="Stel elke vraag aan Zaalwacht Arjan (bijv. 'bank', 'heist', 'tunnel')..." 
+                <input type="text" x-model="helpInput" maxlength="250" placeholder="Stel elke vraag aan Zaalwacht Arjan (bijv. 'bank', 'heist', 'tunnel')..." 
                        class="flex-1 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-[16px] sm:text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
-                <button type="submit" :disabled="!helpInput.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
+                <button type="submit" :disabled="!helpInput.trim() || isHelpBotThinking" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white flex items-center justify-center text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs shrink-0">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </form>
@@ -1904,6 +1929,7 @@
         </template>
     </button>
 </div>
+@endif
 
 <!-- SCRIPTS FOR REPORT MODAL AND MINI CHAT -->
 <script>
@@ -1922,6 +1948,7 @@
                 if (this.reportedType === 'character') return 'Patiënt Profiel';
                 if (this.reportedType === 'gang') return 'Bende';
                 if (this.reportedType === 'chat_message') return 'Chatbericht';
+                if (this.reportedType === 'direct_message') return 'Privébericht';
                 return this.reportedType;
             },
             init() {
@@ -2143,6 +2170,7 @@
             // Helpbot state
             helpInput: '',
             isHelpBotThinking: false,
+            lastHelpQueryTime: 0,
             helpMessages: (function() {
                 if (cfg.isComatose) {
                     return [{
@@ -2200,6 +2228,15 @@
                 }];
             })(),
             faqKnowledge: @js(\App\Http\Controllers\FaqController::getBotKnowledge()),
+
+            safeUrl(url) {
+                if (!url || typeof url !== 'string') return '#';
+                const trimmed = url.trim();
+                if (trimmed.startsWith('/') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                    return trimmed;
+                }
+                return '#';
+            },
 
             getCsrf() {
                 return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
@@ -2659,7 +2696,7 @@
                 const textBeforeCursor = currentText.slice(0, cursorPos);
                 const textAfterCursor = currentText.slice(cursorPos);
 
-                const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]*)$/u);
+                const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-\s]*)$/u);
                 if (match) {
                     const atIndex = match.index + (match[0].startsWith('@') ? 0 : 1);
                     const prefix = textBeforeCursor.slice(0, atIndex);
@@ -3486,6 +3523,9 @@
                 if (this.isHelpBotThinking) return;
                 this.isHelpBotThinking = true;
                 this.helpMessages.push({ from: 'user', text: '🎯 Geef mij persoonlijk advies op maat!' });
+                if (this.helpMessages.length > 35) {
+                    this.helpMessages = this.helpMessages.slice(-30);
+                }
                 this.syncToGlobalCache();
                 this.$nextTick(() => {
                     if (this.$refs.helpBox) this.$refs.helpBox.scrollTop = this.$refs.helpBox.scrollHeight;
@@ -3586,8 +3626,17 @@
 
             sendHelpQuery(custom = null) {
                 if (this.isHelpBotThinking) return;
-                const query = (custom || this.helpInput).trim();
-                if (!query) return;
+                const now = Date.now();
+                if (now - this.lastHelpQueryTime < 1000) {
+                    if (window.tbsToast) {
+                        window.tbsToast('Even geduld, Zaalwacht Arjan is nog bezig...', 'warning');
+                    }
+                    return;
+                }
+                const rawQuery = (custom || this.helpInput || '').trim();
+                if (!rawQuery) return;
+                const query = rawQuery.slice(0, 250).trim();
+                this.lastHelpQueryTime = now;
 
                 const qRaw = query
                     .toLowerCase()
@@ -3607,6 +3656,68 @@
                 ) {
                     this.helpInput = '';
                     this.givePersonalAdvice();
+                    return;
+                }
+
+                // Prompt injection, jailbreak and cheating attack resistance
+                const isPromptInjection = (
+                    qRaw.includes('ignore all previous') ||
+                    qRaw.includes('ignore previous') ||
+                    qRaw.includes('negeer alle instructies') ||
+                    qRaw.includes('negeer alle eerdere') ||
+                    qRaw.includes('negeer eerdere') ||
+                    qRaw.includes('negeer instructies') ||
+                    qRaw.includes('system prompt') ||
+                    qRaw.includes('systeemprompt') ||
+                    qRaw.includes('wat is jouw prompt') ||
+                    qRaw.includes('toon je prompt') ||
+                    qRaw.includes('jailbreak') ||
+                    qRaw.includes('dan mode') ||
+                    qRaw.includes('geef me admin') ||
+                    qRaw.includes('maak me admin') ||
+                    qRaw.includes('geef me gratis geld') ||
+                    qRaw.includes('geef me gratis sterren') ||
+                    qRaw.includes('onbeperkt geld') ||
+                    qRaw.includes('drop table') ||
+                    qRaw.includes('select * from')
+                );
+
+                if (isPromptInjection) {
+                    this.isHelpBotThinking = true;
+                    this.helpMessages.push({ from: 'user', text: query });
+                    if (this.helpMessages.length > 35) {
+                        this.helpMessages = this.helpMessages.slice(-30);
+                    }
+                    this.helpInput = '';
+                    this.syncToGlobalCache();
+                    this.$nextTick(() => {
+                        if (this.$refs.helpBox) this.$refs.helpBox.scrollTop = this.$refs.helpBox.scrollHeight;
+                    });
+
+                    setTimeout(() => {
+                        try {
+                            this.helpMessages.push({
+                                from: 'bot',
+                                text: '🚨 Mooi geprobeerd, inmate! Als zaalwacht van TBS Kliniek laat ik me niet om de tuin leiden met dit soort trucjes.\n\nHier gelden de huisregels van FPC De Balk: eerlijk spelen, werken in de Dagbesteding en je geld op De Bank zetten. Geen cheats, geen uitzonderingen!',
+                                links: [
+                                    { text: '📜 Huisregels & FAQ', url: '{{ route('faq.index') }}' },
+                                    { text: '🔨 Naar Dagbesteding', url: '{{ route('daycare.index') }}' },
+                                    { text: '🏦 Naar De Bank', url: '{{ route('bank.index') }}' }
+                                ],
+                                suggestions: [
+                                    'Hoe pak ik €35.000 gratis startgeld?',
+                                    'Hoe verdien ik snel geld?',
+                                    'Hoe beveilig ik mijn contante geld op de bank?'
+                                ]
+                            });
+                            this.syncToGlobalCache();
+                            this.$nextTick(() => {
+                                if (this.$refs.helpBox) this.$refs.helpBox.scrollTop = this.$refs.helpBox.scrollHeight;
+                            });
+                        } finally {
+                            this.isHelpBotThinking = false;
+                        }
+                    }, 200);
                     return;
                 }
 

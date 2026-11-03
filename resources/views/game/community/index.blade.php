@@ -254,6 +254,7 @@
                     @elseif(Auth::check())
                         <form id="claim-form-{{ $key }}" action="{{ route('community.claim', $key) }}" method="POST" class="w-full" @submit.prevent="claimPlatform(@js($key), @js($p['url']), @js('claim-form-' . $key))">
                             @csrf
+                            <input type="hidden" name="is_standalone" :value="isStandalone() ? '1' : '0'">
                             <button type="button" 
                                     @click="claimPlatform(@js($key), @js($p['url']), @js('claim-form-' . $key))"
                                     :disabled="claiming === '{{ $key }}'"

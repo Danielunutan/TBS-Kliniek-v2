@@ -24,6 +24,7 @@ class NewsSystemTest extends TestCase
         $user = User::factory()->create([
             'role' => $role,
             'is_staff' => $isStaff,
+            'is_onboarded' => true,
         ]);
 
         return Character::create([
@@ -39,6 +40,7 @@ class NewsSystemTest extends TestCase
             'max_health' => 100,
             'level' => 1,
             'xp' => 0,
+            'is_onboarded' => true,
         ]);
     }
 

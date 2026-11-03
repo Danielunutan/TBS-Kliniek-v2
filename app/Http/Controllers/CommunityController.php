@@ -147,7 +147,7 @@ class CommunityController extends Controller
                 : redirect()->route('community.index')->with('error', $jailMsg);
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum() || $character->isComatose()) {
             $comaMsg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
 
             return ($request->expectsJson() || $request->ajax())
@@ -157,7 +157,9 @@ class CommunityController extends Controller
 
         $platforms = self::platforms();
         if (! isset($platforms[$platform])) {
-            return redirect()->route('community.index')->with('error', 'Ongeldig platform geselecteerd.');
+            return ($request->expectsJson() || $request->ajax())
+                ? response()->json(['success' => false, 'message' => 'Ongeldig platform geselecteerd.'], 422)
+                : redirect()->route('community.index')->with('error', 'Ongeldig platform geselecteerd.');
         }
 
         $platformData = $platforms[$platform];
@@ -202,9 +204,23 @@ class CommunityController extends Controller
         // and the transaction rolls the reward back with it.
         try {
             DB::transaction(function () use ($user, $character, $platform, $reward, $request): void {
+                /** @var Character|null $locked */
+                $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+                if (! $locked) {
+                    throw new \RuntimeException('Personage niet gevonden.');
+                }
+
+                if ($locked->isImprisoned()) {
+                    throw new \DomainException('Vanuit de isoleercel kun je geen community beloningen claimen!');
+                }
+
+                if ($locked->needsReviveSerum() || $locked->isComatose()) {
+                    throw new \DomainException('Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+                }
+
                 SocialRewardClaim::create([
                     'user_id' => $user->id,
-                    'character_id' => $character->id,
+                    'character_id' => $locked->id,
                     'platform' => $platform,
                     'reward_cash' => $reward['cash'],
                     'reward_respect' => $reward['respect'],
@@ -213,13 +229,15 @@ class CommunityController extends Controller
                     'claimed_at' => now(),
                 ]);
 
-                /** @var Character $locked */
-                $locked = Character::where('id', $character->id)->lockForUpdate()->first();
                 $locked->cash += $reward['cash'];
                 $locked->energy = min($locked->max_energy, $locked->energy + $reward['energy']);
                 $locked->addRespect($reward['respect']);
                 $locked->save();
             });
+        } catch (\DomainException $e) {
+            return ($request->expectsJson() || $request->ajax())
+                ? response()->json(['success' => false, 'message' => $e->getMessage()], 422)
+                : redirect()->route('community.index')->with('error', $e->getMessage());
         } catch (UniqueConstraintViolationException) {
             $duplicateMessage = 'Je hebt de beloning voor '.$platformData['name'].' al geclaimd.';
 

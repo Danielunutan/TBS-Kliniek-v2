@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Character;
 use App\Models\SocialRewardClaim;
 use App\Services\WebPushService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -75,43 +76,49 @@ class PushSubscriptionController extends Controller
 
         $character = $user->character;
         if ($character) {
-            DB::transaction(function () use ($user, $character, $request, &$rewardGranted, &$rewardMessage): void {
-                /** @var Character|null $lockedCharacter */
-                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-                if (! $lockedCharacter) {
-                    return;
-                }
+            try {
+                DB::transaction(function () use ($user, $character, $request, &$rewardGranted, &$rewardMessage): void {
+                    /** @var Character|null $lockedCharacter */
+                    $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+                    if (! $lockedCharacter) {
+                        return;
+                    }
 
-                $alreadyClaimed = SocialRewardClaim::where('user_id', $user->id)
-                    ->where('platform', 'push')
-                    ->lockForUpdate()
-                    ->exists();
+                    $alreadyClaimed = SocialRewardClaim::where('user_id', $user->id)
+                        ->where('platform', 'push')
+                        ->lockForUpdate()
+                        ->exists();
 
-                if (! $alreadyClaimed) {
-                    $cashBonus = 25000;
-                    $respectBonus = 25;
-                    $energyBonus = 20;
+                    if (! $alreadyClaimed) {
+                        $cashBonus = 25000;
+                        $respectBonus = 25;
+                        $energyBonus = 20;
 
-                    $lockedCharacter->cash += $cashBonus;
-                    $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $energyBonus);
-                    $lockedCharacter->addRespect($respectBonus);
-                    $lockedCharacter->save();
+                        $lockedCharacter->cash += $cashBonus;
+                        $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $energyBonus);
+                        $lockedCharacter->addRespect($respectBonus);
+                        $lockedCharacter->save();
 
-                    SocialRewardClaim::create([
-                        'user_id' => $user->id,
-                        'character_id' => $lockedCharacter->id,
-                        'platform' => 'push',
-                        'reward_cash' => $cashBonus,
-                        'reward_respect' => $respectBonus,
-                        'reward_energy' => $energyBonus,
-                        'ip_address' => $request->ip(),
-                        'claimed_at' => now(),
-                    ]);
+                        SocialRewardClaim::create([
+                            'user_id' => $user->id,
+                            'character_id' => $lockedCharacter->id,
+                            'platform' => 'push',
+                            'reward_cash' => $cashBonus,
+                            'reward_respect' => $respectBonus,
+                            'reward_energy' => $energyBonus,
+                            'ip_address' => $request->ip(),
+                            'claimed_at' => now(),
+                        ]);
 
-                    $rewardGranted = true;
-                    $rewardMessage = '🎉 Welkomstbeloning: € '.number_format($cashBonus, 0, ',', '.').' contant, '.$respectBonus.' respect en '.$energyBonus.' energie bijgeschreven!';
-                }
-            });
+                        $rewardGranted = true;
+                        $rewardMessage = '🎉 Welkomstbeloning: € '.number_format($cashBonus, 0, ',', '.').' contant, '.$respectBonus.' respect en '.$energyBonus.' energie bijgeschreven!';
+                    }
+                });
+            } catch (UniqueConstraintViolationException) {
+                // Reward was already claimed by a concurrent request.
+                $rewardGranted = false;
+                $rewardMessage = null;
+            }
         }
 
         return response()->json([

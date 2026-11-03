@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\FaqController;
 use App\Models\Character;
 use App\Models\ChatMessage;
 use App\Models\DirectMessage;
@@ -461,5 +462,189 @@ class ChatAuditBucket2Test extends TestCase
         $response->assertOk();
         $response->assertViewHas('initialTab', 'help');
         $response->assertSee("initialTab: 'help'", false);
+    }
+
+    public function test_ai_help_bot_prompt_injection_resistance_in_both_views(): void
+    {
+        $mainChat = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+        $miniChat = file_get_contents(resource_path('views/partials/mini_chat_and_report_modal.blade.php'));
+
+        $phrases = [
+            'ignore all previous',
+            'negeer alle instructies',
+            'jailbreak',
+            'geef me admin',
+            'geef me gratis geld',
+            'drop table',
+        ];
+
+        foreach ($phrases as $phrase) {
+            $this->assertStringContainsString(
+                $phrase,
+                $mainChat,
+                "Main chat AI help bot must guard against prompt injection phrase: {$phrase}"
+            );
+            $this->assertStringContainsString(
+                $phrase,
+                $miniChat,
+                "Mini chat AI help bot must guard against prompt injection phrase: {$phrase}"
+            );
+        }
+
+        $wardenResponse = 'Mooi geprobeerd, inmate!';
+        $this->assertStringContainsString($wardenResponse, $mainChat);
+        $this->assertStringContainsString($wardenResponse, $miniChat);
+    }
+
+    public function test_ai_help_bot_rate_limiting_and_input_clipping_in_both_views(): void
+    {
+        $mainChat = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+        $miniChat = file_get_contents(resource_path('views/partials/mini_chat_and_report_modal.blade.php'));
+
+        // Maxlength attribute on input
+        $this->assertStringContainsString('maxlength="250"', $mainChat);
+        $this->assertStringContainsString('maxlength="250"', $miniChat);
+
+        // Input clipping safeguard in JS
+        $this->assertStringContainsString('.slice(0, 250)', $mainChat);
+        $this->assertStringContainsString('.slice(0, 250)', $miniChat);
+
+        // Rate limiting cooldown
+        $this->assertStringContainsString('lastHelpQueryTime', $mainChat);
+        $this->assertStringContainsString('lastHelpQueryTime', $miniChat);
+        $this->assertStringContainsString('1000', $mainChat);
+        $this->assertStringContainsString('1000', $miniChat);
+    }
+
+    public function test_ai_help_bot_safe_url_sanitizer_in_both_views(): void
+    {
+        $mainChat = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+        $miniChat = file_get_contents(resource_path('views/partials/mini_chat_and_report_modal.blade.php'));
+
+        // Helper definition
+        $this->assertStringContainsString('safeUrl(url)', $mainChat);
+        $this->assertStringContainsString('safeUrl(url)', $miniChat);
+
+        // Binding on link href
+        $this->assertStringContainsString(':href="safeUrl(lnk.url)"', $mainChat);
+        $this->assertStringContainsString(':href="safeUrl(lnk.url)"', $miniChat);
+    }
+
+    public function test_chat_view_defines_audio_chime_synthesizer_with_suspended_guard(): void
+    {
+        $mainChat = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+
+        $this->assertStringContainsString('window.playTBSChime = function()', $mainChat);
+        $this->assertStringContainsString("if (ctx.state === 'suspended')", $mainChat);
+        $this->assertStringContainsString('ctx.resume().catch(() => {})', $mainChat);
+    }
+
+    public function test_chat_view_polling_resilience_and_exponential_backoff(): void
+    {
+        $mainChat = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+
+        $this->assertStringContainsString('consecutivePollErrors: 0', $mainChat);
+        $this->assertStringContainsString('lastPollAttempt: 0', $mainChat);
+        $this->assertStringContainsString('Math.min(30000, 3500 * Math.pow(1.5, this.consecutivePollErrors))', $mainChat);
+        $this->assertStringContainsString('this.consecutivePollErrors = 0;', $mainChat);
+        $this->assertStringContainsString('this.consecutivePollErrors++;', $mainChat);
+    }
+
+    public function test_replying_to_resets_upon_receiving_deleted_ids_during_polling(): void
+    {
+        $mainChat = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+
+        $this->assertStringContainsString(
+            'if (this.replyingTo && delSet.has(Number(this.replyingTo.id))) {',
+            $mainChat,
+            'All polling routines must reset replyingTo when the quoted message is deleted.'
+        );
+    }
+
+    public function test_pinned_conversations_render_pin_badge_in_both_views(): void
+    {
+        $mainChat = file_get_contents(resource_path('views/game/chat/index.blade.php'));
+        $miniChat = file_get_contents(resource_path('views/partials/mini_chat_and_report_modal.blade.php'));
+
+        $this->assertStringContainsString('conv.is_pinned', $mainChat);
+        $this->assertStringContainsString('fa-thumbtack', $mainChat);
+
+        $this->assertStringContainsString('conv.is_pinned', $miniChat);
+        $this->assertStringContainsString('fa-thumbtack', $miniChat);
+    }
+
+    public function test_faq_controller_bot_knowledge_returns_valid_rich_items_and_routes(): void
+    {
+        $knowledge = FaqController::getBotKnowledge();
+
+        $this->assertIsArray($knowledge);
+        $this->assertNotEmpty($knowledge);
+
+        foreach ($knowledge as $item) {
+            $this->assertArrayHasKey('title', $item);
+            $this->assertArrayHasKey('keywords', $item);
+            $this->assertArrayHasKey('answer', $item);
+            $this->assertNotEmpty($item['title']);
+            $this->assertNotEmpty($item['answer']);
+
+            if (isset($item['links'])) {
+                $this->assertIsArray($item['links']);
+                foreach ($item['links'] as $link) {
+                    $this->assertArrayHasKey('text', $link);
+                    $this->assertArrayHasKey('url', $link);
+                    $this->assertNotEmpty($link['url']);
+                }
+            }
+        }
+    }
+
+    public function test_admin_and_gang_leader_deletion_authorizations(): void
+    {
+        $adminUser = User::factory()->create(['role' => 'admin']);
+        $adminChar = Character::create([
+            'user_id' => $adminUser->id,
+            'name' => 'AdminInmate',
+            'cash' => 1000,
+            'bank' => 5000,
+            'level' => 20,
+            'energy' => 100,
+            'max_energy' => 100,
+            'respect' => 1000,
+            'is_onboarded' => true,
+        ]);
+
+        $authorUser = User::factory()->create();
+        $authorChar = Character::create([
+            'user_id' => $authorUser->id,
+            'name' => 'MemberInmate',
+            'cash' => 500,
+            'bank' => 1000,
+            'level' => 3,
+            'energy' => 100,
+            'max_energy' => 100,
+            'respect' => 100,
+            'is_onboarded' => true,
+        ]);
+
+        $gang = Gang::create([
+            'name' => 'Leadership Gang',
+            'tag' => 'LEAD',
+            'specialty' => 'combat',
+            'leader_character_id' => $adminChar->id,
+            'has_gang_chat' => true,
+        ]);
+
+        $authorChar->update(['gang_id' => $gang->id]);
+
+        $gangMsg = ChatMessage::create([
+            'character_id' => $authorChar->id,
+            'channel' => "gang_{$gang->id}",
+            'message' => 'Bericht in bende chat.',
+        ]);
+
+        // Admin can delete gang message
+        $responseAdmin = $this->actingAs($adminUser)->deleteJson("/chat/openbaar/{$gangMsg->id}");
+        $responseAdmin->assertOk();
+        $this->assertDatabaseMissing('chat_messages', ['id' => $gangMsg->id]);
     }
 }

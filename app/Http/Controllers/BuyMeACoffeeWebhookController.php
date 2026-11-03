@@ -295,24 +295,32 @@ class BuyMeACoffeeWebhookController extends Controller
 
                 $locked->save();
 
-                GameNotification::create([
-                    'character_id' => $locked->id,
-                    'type' => 'bmac_donation',
-                    'icon' => 'fa-mug-hot',
-                    'title' => 'Buy Me a Coffee Donatie Ontvangen!',
-                    'message' => "Bedankt voor je gulle donatie! Je hebt direct +{$starsAwarded} Sterren, +{$masksAwarded} Maskers en +{$bulletsAwarded} Kogels ontvangen.",
-                    'is_read' => false,
-                ]);
+                try {
+                    GameNotification::create([
+                        'character_id' => $locked->id,
+                        'type' => 'bmac_donation',
+                        'icon' => 'fa-mug-hot',
+                        'title' => 'Buy Me a Coffee Donatie Ontvangen!',
+                        'message' => "Bedankt voor je gulle donatie! Je hebt direct +{$starsAwarded} Sterren, +{$masksAwarded} Maskers en +{$bulletsAwarded} Kogels ontvangen.",
+                        'is_read' => false,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to create BMAC donation notification: '.$e->getMessage());
+                }
 
-                AuditLogService::log(
-                    action: 'buymeacoffee_donation',
-                    category: 'economy',
-                    description: "BuyMeACoffee donatie ontvangen: +{$starsAwarded} Sterren, +{$masksAwarded} Maskers, +{$bulletsAwarded} Kogels".($xxlAwarded > 0 ? ", +{$xxlAwarded} XXL Zaak Koffers" : '')." toegekend aan {$locked->name}",
-                    character: $locked,
-                    user: $locked->user,
-                    amount: $starsAwarded,
-                    details: $data
-                );
+                try {
+                    AuditLogService::log(
+                        action: 'buymeacoffee_donation',
+                        category: 'economy',
+                        description: "BuyMeACoffee donatie ontvangen: +{$starsAwarded} Sterren, +{$masksAwarded} Maskers, +{$bulletsAwarded} Kogels".($xxlAwarded > 0 ? ", +{$xxlAwarded} XXL Zaak Koffers" : '')." toegekend aan {$locked->name}",
+                        character: $locked,
+                        user: $locked->user,
+                        amount: $starsAwarded,
+                        details: $data
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to log buymeacoffee_donation audit record: '.$e->getMessage());
+                }
             }
 
             // B. Extras (Shop Items)
@@ -366,23 +374,31 @@ class BuyMeACoffeeWebhookController extends Controller
             $locked->perks = $perks;
             $locked->save();
 
-            GameNotification::create([
-                'character_id' => $locked->id,
-                'type' => 'vip_expired',
-                'icon' => 'fa-crown',
-                'title' => 'Buy Me a Coffee Membership Opgezegd',
-                'message' => 'Je supporterslidmaatschap is beëindigd of stopgezet. Je VIP status en privileges zijn per direct verlopen. Heel erg bedankt voor je eerdere support!',
-                'is_read' => false,
-            ]);
+            try {
+                GameNotification::create([
+                    'character_id' => $locked->id,
+                    'type' => 'vip_expired',
+                    'icon' => 'fa-crown',
+                    'title' => 'Buy Me a Coffee Membership Opgezegd',
+                    'message' => 'Je supporterslidmaatschap is beëindigd of stopgezet. Je VIP status en privileges zijn per direct verlopen. Heel erg bedankt voor je eerdere support!',
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to create BMAC membership revocation notification: '.$e->getMessage());
+            }
 
-            AuditLogService::log(
-                action: 'buymeacoffee_membership_cancelled',
-                category: 'vip',
-                description: "BuyMeACoffee Membership opgezegd voor {$locked->name}, VIP privileges beëindigd",
-                character: $locked,
-                user: $locked->user,
-                details: $data
-            );
+            try {
+                AuditLogService::log(
+                    action: 'buymeacoffee_membership_cancelled',
+                    category: 'vip',
+                    description: "BuyMeACoffee Membership opgezegd voor {$locked->name}, VIP privileges beëindigd",
+                    character: $locked,
+                    user: $locked->user,
+                    details: $data
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Failed to log buymeacoffee_membership_cancelled audit record: '.$e->getMessage());
+            }
         });
     }
 
@@ -419,23 +435,31 @@ class BuyMeACoffeeWebhookController extends Controller
 
         $character->save();
 
-        GameNotification::create([
-            'character_id' => $character->id,
-            'type' => 'donation',
-            'icon' => 'fa-gift',
-            'title' => "Extra pakket geactiveerd: {$title}!",
-            'message' => "Hartelijk dank voor je steun! Je pakket ({$title}) is direct bijgeschreven op je account.",
-            'is_read' => false,
-        ]);
+        try {
+            GameNotification::create([
+                'character_id' => $character->id,
+                'type' => 'donation',
+                'icon' => 'fa-gift',
+                'title' => "Extra pakket geactiveerd: {$title}!",
+                'message' => "Hartelijk dank voor je steun! Je pakket ({$title}) is direct bijgeschreven op je account.",
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to create BMAC extra reward notification: '.$e->getMessage());
+        }
 
-        AuditLogService::log(
-            action: 'buymeacoffee_extra',
-            category: 'economy',
-            description: "BuyMeACoffee Extra gekocht ({$title}) door {$character->name}",
-            character: $character,
-            user: $character->user,
-            details: $data
-        );
+        try {
+            AuditLogService::log(
+                action: 'buymeacoffee_extra',
+                category: 'economy',
+                description: "BuyMeACoffee Extra gekocht ({$title}) door {$character->name}",
+                character: $character,
+                user: $character->user,
+                details: $data
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log buymeacoffee_extra audit record: '.$e->getMessage());
+        }
     }
 
     /**
@@ -444,8 +468,55 @@ class BuyMeACoffeeWebhookController extends Controller
     public function grantMembershipTier(Character $character, string $tierName, array $data = []): void
     {
         $tierLower = strtolower($tierName);
+        $isExistingLifetime = $character->isLifetimeVip();
         $character->is_vip = true;
         $perks = $character->perks ?? [];
+
+        // Protect Lifetime VIP holders from being downgraded if they or an admin purchase/grant a lower tier
+        if ($isExistingLifetime && ! str_contains($tierLower, 'lifetime')) {
+            if (str_contains($tierLower, 'baas')) {
+                $character->stars = ($character->stars ?? 0) + 600;
+                $character->xxl_cases = ($character->xxl_cases ?? 0) + 3;
+                $character->masks = ($character->masks ?? 0) + 12;
+                $tierLabel = 'TBS Kliniek Baas';
+            } elseif (str_contains($tierLower, 'elite') || str_contains($tierLower, 'gangster')) {
+                $character->stars = ($character->stars ?? 0) + 250;
+                $character->xxl_cases = ($character->xxl_cases ?? 0) + 1;
+                $character->masks = ($character->masks ?? 0) + 5;
+                $tierLabel = 'TBS Gangster Elite';
+            } else {
+                $character->stars = ($character->stars ?? 0) + 100;
+                $character->masks = ($character->masks ?? 0) + 2;
+                $tierLabel = 'TBS V.I.P. Lid';
+            }
+            $character->save();
+
+            try {
+                GameNotification::create([
+                    'character_id' => $character->id,
+                    'type' => 'vip_membership',
+                    'title' => '🌟 Extra Donatie Ontvangen!',
+                    'message' => "Bedankt voor je extra support ({$tierLabel})! Je behoudt je permanente VIP LIFETIME status. Extra sterren en koffers zijn toegevoegd.",
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to create BMAC lifetime retention notification: '.$e->getMessage());
+            }
+
+            try {
+                AuditLogService::log(
+                    action: 'buymeacoffee_membership_extra',
+                    category: 'vip',
+                    description: "Extra BuyMeACoffee donatie ({$tierName}) toegevoegd aan Lifetime VIP {$character->name}",
+                    character: $character,
+                    user: $character->user,
+                    details: $data
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Failed to log buymeacoffee_membership_extra audit record: '.$e->getMessage());
+            }
+
+            return;
+        }
 
         if (str_contains($tierLower, 'lifetime')) {
             $alreadyLifetime = ((int) ($perks['supporter_tier'] ?? 0) === 4);
@@ -505,22 +576,30 @@ class BuyMeACoffeeWebhookController extends Controller
         $character->perks = $perks;
         $character->save();
 
-        GameNotification::create([
-            'character_id' => $character->id,
-            'type' => 'vip_membership',
-            'icon' => 'fa-crown',
-            'title' => "Buy Me a Coffee: {$tierLabel} Geactiveerd!",
-            'message' => "Gefeliciteerd! Je {$tierLabel} membership is succesvol geactiveerd tot {$character->vip_expires_at->format('d-m-Y H:i')}. Geniet van je VIP privileges en beloningen!",
-            'is_read' => false,
-        ]);
+        try {
+            GameNotification::create([
+                'character_id' => $character->id,
+                'type' => 'vip_membership',
+                'icon' => 'fa-crown',
+                'title' => "Buy Me a Coffee: {$tierLabel} Geactiveerd!",
+                'message' => "Gefeliciteerd! Je {$tierLabel} membership is succesvol geactiveerd tot {$character->vip_expires_at->format('d-m-Y H:i')}. Geniet van je VIP privileges en beloningen!",
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to create BMAC membership activation notification: '.$e->getMessage());
+        }
 
-        AuditLogService::log(
-            action: 'buymeacoffee_membership',
-            category: 'vip',
-            description: "BuyMeACoffee Membership geactiveerd ({$tierName}) voor {$character->name}",
-            character: $character,
-            user: $character->user,
-            details: $data
-        );
+        try {
+            AuditLogService::log(
+                action: 'buymeacoffee_membership',
+                category: 'vip',
+                description: "BuyMeACoffee Membership geactiveerd ({$tierName}) voor {$character->name}",
+                character: $character,
+                user: $character->user,
+                details: $data
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log buymeacoffee_membership audit record: '.$e->getMessage());
+        }
     }
 }

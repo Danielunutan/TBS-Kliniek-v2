@@ -11,19 +11,18 @@
             // Check if already running in standalone mode
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
                 this.isInstalled = true;
-                return;
             }
 
-            // Check iOS Safari
+            // Check iOS / iPadOS Safari (including iPadOS 13+ desktop-class agent)
             const userAgent = window.navigator.userAgent.toLowerCase();
-            this.isIos = /iphone|ipad|ipod/.test(userAgent) && !window.MSStream;
+            this.isIos = (/iphone|ipad|ipod/.test(userAgent) || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1)) && !window.MSStream;
 
             // Check banner dismissal timestamp (show max once every 7 days)
             const dismissedAt = localStorage.getItem('tbs_app_banner_dismissed');
             const now = Date.now();
             const sevenDays = 7 * 24 * 60 * 60 * 1000;
 
-            if (!dismissedAt || (now - parseInt(dismissedAt)) > sevenDays) {
+            if (!this.isInstalled && (!dismissedAt || (now - parseInt(dismissedAt)) > sevenDays)) {
                 setTimeout(() => {
                     if (!this.isInstalled) {
                         this.showBanner = true;
@@ -86,7 +85,10 @@
                     }
                 } else {
                     if (typeof window.tbsToast === 'function') {
-                        window.tbsToast(data.message || 'Claimen mislukt.', 'warning');
+                        const errMsg = res.status === 401
+                            ? 'Log eerst in om je web app bonus te claimen.'
+                            : (data?.message || 'Claimen mislukt.');
+                        window.tbsToast(errMsg, 'warning');
                     }
                 }
             } catch (e) {
@@ -147,7 +149,8 @@
     </div>
 
     <!-- APP INSTALL MODAL (INFORMATIVE & STEP-BY-STEP ADVICE) -->
-    <div x-show="showModal" 
+    <div x-show="showModal"
+         @keydown.escape.window="showModal = false"
          class="fixed inset-0 z-[80] flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 select-none">
         
         <div @click.away="showModal = false"
@@ -226,6 +229,7 @@
                         class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer">
                     Sluiten
                 </button>
+                @auth
                 <template x-if="isInstalled && !hasClaimedBonus">
                     <button type="button" @click="claimBonus()" :disabled="claimingBonus"
                             class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center gap-1.5 disabled:opacity-50">
@@ -233,6 +237,13 @@
                         <span x-text="claimingBonus ? 'Bezig...' : 'Claim Web App Bonus (€ 25.000)'"></span>
                     </button>
                 </template>
+                <template x-if="isInstalled && hasClaimedBonus">
+                    <span class="inline-flex items-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Web App Bonus Geclaimd</span>
+                    </span>
+                </template>
+                @endauth
                 <template x-if="canNativeInstall">
                     <button type="button" @click="installNative()"
                             class="py-2.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center gap-1.5">

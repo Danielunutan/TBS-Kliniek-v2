@@ -149,6 +149,19 @@
     </div>
     @endif
 
+    <!-- Info Banner -->
+    @if(session('info'))
+    <div class="bg-blue-50 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-700/80 rounded-2xl p-4 shadow-xs text-blue-900 dark:text-blue-200 text-xs font-bold flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm shrink-0">
+            <i class="fa-solid fa-circle-info"></i>
+        </div>
+        <div class="flex-1 leading-relaxed">
+            <span class="font-black uppercase tracking-wider block text-[10px] text-blue-800 dark:text-blue-400">Informatie</span>
+            <span>{{ session('info') }}</span>
+        </div>
+    </div>
+    @endif
+
     <!-- Admin Content Sub-View -->
     @yield('admin-content')
 

@@ -147,14 +147,22 @@
         </div>
         @if(Auth::user()?->isAdmin())
         <div class="shrink-0 flex flex-wrap items-center gap-2">
-            <form action="{{ route('admin.system.migrate') }}" method="POST">
+            <form action="{{ route('admin.system.migrate') }}" method="POST"
+                  data-confirm="Weet je zeker dat je alle openstaande database-migraties wilt uitvoeren?"
+                  data-confirm-btn="Migraties Uitvoeren"
+                  data-confirm-type="warning"
+                  data-confirm-icon="fa-database">
                 @csrf
                 <button type="submit" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-2xs flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-database text-[11px] text-amber-600 dark:text-amber-400"></i>
                     <span>Migraties Uitvoeren</span>
                 </button>
             </form>
-            <form action="{{ route('admin.system.normalize') }}" method="POST">
+            <form action="{{ route('admin.system.normalize') }}" method="POST"
+                  data-confirm="Wil je de volledige herstelmigratie nu uitvoeren? Dit controleert alle spelers, timers en items."
+                  data-confirm-btn="Herstelmigratie Starten"
+                  data-confirm-type="warning"
+                  data-confirm-icon="fa-play">
                 @csrf
                 <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-play text-[10px]"></i>

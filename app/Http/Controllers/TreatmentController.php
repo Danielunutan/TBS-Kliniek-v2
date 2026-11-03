@@ -14,6 +14,7 @@ use App\Support\TreatmentCaseCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class TreatmentController extends Controller
@@ -308,13 +309,18 @@ class TreatmentController extends Controller
      */
     public function submit(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet op behandelaarsgesprek!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -348,101 +354,125 @@ class TreatmentController extends Controller
             $doctorNotes[] = "• {$question['theme']}: {$choice['note']}";
         }
 
-        // Base score adjustment (clamped between 0 and 100)
-        $currentScore = $character->treatment_score ?? 50;
-        $newScore = max(5, min(100, $currentScore + $totalScoreChange));
-        $character->treatment_score = $newScore;
-        $character->last_treatment_at = now();
+        return DB::transaction(function () use ($character, $totalScoreChange, $totalRespect, $doctorNotes) {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        // 2 hours cooldown between evaluations
-        $this->cooldownService->setCooldown($character, 'treatment_session', 7200);
+            if (! $locked) {
+                return redirect()->route('dashboard');
+            }
 
-        // Apply respect modifications
-        if ($totalRespect > 0) {
-            $character->addRespect($totalRespect);
-        }
+            if ($locked->isImprisoned()) {
+                return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet op behandelaarsgesprek!');
+            }
 
-        // Outcome branch based on performance
-        if ($newScore >= 60) {
-            // POSITIEF ADVIES: BEGELEID VERLOF TOEGEKEND (3 uur)
-            $leaveHours = 3;
-            $character->leave_until = now()->addHours($leaveHours);
-            $character->sedated_until = null;
+            if ($locked->isComatose() || $locked->needsReviveSerum()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
-            $cashReward = 2500;
-            $this->economy->addCash($character, $cashReward);
-            $this->level->addXp($character, 120);
+            if ($this->cooldownService->isOnCooldown($locked, 'treatment_session')) {
+                $remaining = $this->cooldownService->getRemainingSeconds($locked, 'treatment_session');
+                $mins = ceil($remaining / 60);
 
-            $character->treatment_history = [
-                'outcome' => 'positive',
-                'title' => 'Positief Behandeladvies (Verlof Toegekend)',
+                return back()->with('error', "⏳ Je hebt vandaag al gesproken met je behandelaar! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
+            }
+
+            // Base score adjustment (clamped between 0 and 100)
+            $currentScore = $locked->treatment_score ?? 50;
+            $newScore = max(5, min(100, $currentScore + $totalScoreChange));
+            $locked->treatment_score = $newScore;
+            $locked->last_treatment_at = now();
+
+            // 2 hours cooldown between evaluations
+            $this->cooldownService->setCooldown($locked, 'treatment_session', 7200);
+
+            // Apply respect modifications
+            if ($totalRespect > 0) {
+                $locked->addRespect($totalRespect);
+            }
+
+            // Outcome branch based on performance
+            if ($newScore >= 60) {
+                // POSITIEF ADVIES: BEGELEID VERLOF TOEGEKEND (3 uur)
+                $leaveHours = 3;
+                $locked->leave_until = now()->addHours($leaveHours);
+                $locked->sedated_until = null;
+
+                $cashReward = 2500;
+                $this->economy->addCash($locked, $cashReward);
+                $this->level->addXp($locked, 120);
+
+                $locked->treatment_history = [
+                    'outcome' => 'positive',
+                    'title' => 'Positief Behandeladvies (Verlof Toegekend)',
+                    'score' => $newScore,
+                    'notes' => $doctorNotes,
+                    'date' => now()->toDateTimeString(),
+                ];
+                $locked->save();
+
+                GameNotification::create([
+                    'character_id' => $locked->id,
+                    'type' => 'treatment_pass',
+                    'icon' => 'fa-brain',
+                    'title' => '🎉 Positief Behandeladvies: 3 Uur Begeleid Verlof!',
+                    'message' => 'Dr. H. van Beek en het behandelteam zijn onder de indruk van je medewerking! Je hebt 3 uur Begeleid Verlof toegekend gekregen inclusief €2.500 zakgeld toelage.',
+                ]);
+
+                session()->forget('treatment_questions');
+
+                return back()->with('success', "🟢 POSITIEF ADVIES! Dr. H. van Beek: 'Patiënt toont uitstekende stabiliteit en ziekte-inzicht.' Je hebt 3 UUR BEGELEID VERLOF toegekend gekregen buiten de hekken! +€2.500 zakgeld, +120 XP.");
+            }
+
+            if ($newScore >= 35) {
+                // ORANJE STATUS: OBSERVATIE / GEEN VERLOF
+                $locked->leave_until = null;
+                $this->level->addXp($locked, 50);
+
+                $locked->treatment_history = [
+                    'outcome' => 'neutral',
+                    'title' => 'Observatiestatus (Verlof Uitgesteld)',
+                    'score' => $newScore,
+                    'notes' => $doctorNotes,
+                    'date' => now()->toDateTimeString(),
+                ];
+                $locked->save();
+
+                session()->forget('treatment_questions');
+
+                return back()->with('error', "🟡 OBSERVATIESTATUS! Behandelteam: 'Patiënt is nog te wisselvallig voor zelfstandig verlof buiten de hekken.' Geen sanctie, maar blijf meewerken aan je herstelplan. +50 XP troostprijs.");
+            }
+
+            // ROOD STATUS: AGRESSIEF / SANCTIE (KALMERING)
+            $locked->leave_until = null;
+            $locked->sedated_until = now()->addHour();
+            // Reduce energy via EnergyService
+            $energyToDeduct = min((int) ($locked->energy ?? 0), 30);
+            if ($energyToDeduct > 0) {
+                $this->energy->consume($locked, $energyToDeduct);
+            }
+
+            $locked->treatment_history = [
+                'outcome' => 'negative',
+                'title' => 'Negatief Behandeladvies & Sanctie (Verplichte Medicatie)',
                 'score' => $newScore,
                 'notes' => $doctorNotes,
                 'date' => now()->toDateTimeString(),
             ];
-            $character->save();
+            $locked->save();
 
             GameNotification::create([
-                'character_id' => $character->id,
-                'type' => 'treatment_pass',
-                'icon' => 'fa-brain',
-                'title' => '🎉 Positief Behandeladvies: 3 Uur Begeleid Verlof!',
-                'message' => 'Dr. H. van Beek en het behandelteam zijn onder de indruk van je medewerking! Je hebt 3 uur Begeleid Verlof toegekend gekregen inclusief €2.500 zakgeld toelage.',
+                'character_id' => $locked->id,
+                'type' => 'treatment_fail',
+                'icon' => 'fa-triangle-exclamation',
+                'title' => '⚠️ Negatief Behandeladvies: Verplichte Kalmeringsinjectie!',
+                'message' => 'Wegens opstandig en anti-sociaal gedrag tijdens het behandelaarsgesprek heeft het medisch team 1 uur verplichte kalmering voorgeschreven.',
             ]);
 
             session()->forget('treatment_questions');
 
-            return back()->with('success', "🟢 POSITIEF ADVIES! Dr. H. van Beek: 'Patiënt toont uitstekende stabiliteit en ziekte-inzicht.' Je hebt 3 UUR BEGELEID VERLOF toegekend gekregen buiten de hekken! +€2.500 zakgeld, +120 XP.");
-        }
-
-        if ($newScore >= 35) {
-            // ORANJE STATUS: OBSERVATIE / GEEN VERLOF
-            $character->leave_until = null;
-            $this->level->addXp($character, 50);
-
-            $character->treatment_history = [
-                'outcome' => 'neutral',
-                'title' => 'Observatiestatus (Verlof Uitgesteld)',
-                'score' => $newScore,
-                'notes' => $doctorNotes,
-                'date' => now()->toDateTimeString(),
-            ];
-            $character->save();
-
-            session()->forget('treatment_questions');
-
-            return back()->with('error', "🟡 OBSERVATIESTATUS! Behandelteam: 'Patiënt is nog te wisselvallig voor zelfstandig verlof buiten de hekken.' Geen sanctie, maar blijf meewerken aan je herstelplan. +50 XP troostprijs.");
-        }
-
-        // ROOD STATUS: AGRESSIEF / SANCTIE (KALMERING)
-        $character->leave_until = null;
-        $character->sedated_until = now()->addHour();
-        // Reduce energy via EnergyService
-        $energyToDeduct = min((int) ($character->energy ?? 0), 30);
-        if ($energyToDeduct > 0) {
-            $this->energy->consume($character, $energyToDeduct);
-        }
-
-        $character->treatment_history = [
-            'outcome' => 'negative',
-            'title' => 'Negatief Behandeladvies & Sanctie (Verplichte Medicatie)',
-            'score' => $newScore,
-            'notes' => $doctorNotes,
-            'date' => now()->toDateTimeString(),
-        ];
-        $character->save();
-
-        GameNotification::create([
-            'character_id' => $character->id,
-            'type' => 'treatment_fail',
-            'icon' => 'fa-triangle-exclamation',
-            'title' => '⚠️ Negatief Behandeladvies: Verplichte Kalmeringsinjectie!',
-            'message' => 'Wegens opstandig en anti-sociaal gedrag tijdens het behandelaarsgesprek heeft het medisch team 1 uur verplichte kalmering voorgeschreven.',
-        ]);
-
-        session()->forget('treatment_questions');
-
-        return back()->with('error', '🔴 NEGATIEF ADVIES! Dr. H. van Beek: "Patiënt vertoont ernstige agressie en impulsdoorbraken." Je hebt een verplichte kalmeringsinjectie gekregen (-30 Energie, 1 uur vermoeidheid).');
+            return back()->with('error', '🔴 NEGATIEF ADVIES! Dr. H. van Beek: "Patiënt vertoont ernstige agressie en impulsdoorbraken." Je hebt een verplichte kalmeringsinjectie gekregen (-30 Energie, 1 uur vermoeidheid).');
+        });
     }
 
     /**
@@ -450,13 +480,18 @@ class TreatmentController extends Controller
      */
     public function doLeaveAction(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen verlofactiviteiten uitvoeren!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -480,60 +515,91 @@ class TreatmentController extends Controller
 
         $action = self::LEAVE_ACTIONS[$validated['action_id']];
 
-        if (! $this->energy->consume($character, $action['energy'])) {
-            return back()->with('error', "Je hebt minimaal {$action['energy']} energie nodig voor deze verlofactiviteit!");
-        }
+        return DB::transaction(function () use ($character, $action) {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        // Set 3 minute cooldown between leave activities
-        $this->cooldownService->setCooldown($character, 'treatment_leave_action', 180);
-
-        $rewards = [];
-        $xp = $action['xp'];
-        $respect = $action['respect'];
-
-        if ($action['id'] === 'supermarket') {
-            $cash = rand($action['min_cash'], $action['max_cash']);
-            $this->economy->addCash($character, $cash);
-            $rewards[] = '€'.number_format($cash, 0, ',', '.').' contant geld gerold 💵';
-        } elseif ($action['id'] === 'station') {
-            $stars = (rand(1, 100) <= 25) ? 1 : 0;
-            $cash = rand($action['min_cash'], $action['max_cash']);
-            if ($stars > 0) {
-                $character->stars = ($character->stars ?? 0) + $stars;
-                $rewards[] = "{$stars} Exclusieve Ster ⭐";
+            if (! $locked) {
+                return redirect()->route('dashboard');
             }
-            $this->economy->addCash($character, $cash);
-            $rewards[] = '€'.number_format($cash, 0, ',', '.').' contanten 💵';
-        } elseif ($action['id'] === 'locker') {
-            $cash = rand($action['min_cash'], $action['max_cash']);
-            $this->economy->addCash($character, $cash);
-            $rewards[] = '€'.number_format($cash, 0, ',', '.').' contanten 💵';
 
-            // 50% chance for vault code, 50% for unopened bag
-            if (rand(1, 100) <= 50) {
-                $codeStr = VaultCode::generateUniqueCode('VERLOF');
-                VaultCode::create([
-                    'code' => $codeStr,
-                    'reward_cash' => rand(3000, 8000),
-                    'reward_stars' => (rand(1, 100) <= 20 ? 1 : 0),
-                    'reward_tokens' => 2,
-                    'character_id' => $character->id,
-                    'is_redeemed' => false,
-                ]);
-                $rewards[] = "Geheime Kluiscode ({$codeStr}) 🔐";
-            } else {
-                $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
-                $rewards[] = '1x Smokkelkoffer 🧳';
+            if ($locked->isImprisoned()) {
+                return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen verlofactiviteiten uitvoeren!');
             }
-        }
 
-        $this->level->addXp($character, $xp);
-        $character->addRespect($respect);
-        $character->leave_trips_count = ($character->leave_trips_count ?? 0) + 1;
-        $character->save();
+            if ($locked->isComatose() || $locked->needsReviveSerum()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
-        $rewardText = implode(' + ', $rewards);
+            if (! $locked->isOnLeave()) {
+                return back()->with('error', 'Je hebt momenteel geen actief Begeleid Verlof! Slaag eerst voor je Behandelaarsgesprek.');
+            }
 
-        return back()->with('success', "🏙️ SUCCESVOL UITGEVOERD! Buit: {$rewardText} + {$xp} XP + {$respect} Respect!");
+            if ($locked->isSedated()) {
+                return back()->with('error', 'Je bent te versuft door de kalmeringsmedicatie om naar buiten te gaan!');
+            }
+
+            if ($this->cooldownService->isOnCooldown($locked, 'treatment_leave_action')) {
+                $remaining = $this->cooldownService->getRemainingSeconds($locked, 'treatment_leave_action');
+
+                return back()->with('error', "⏳ Even wachten tot de begeleider de andere kant op kijkt! Wacht nog {$remaining}s.");
+            }
+
+            if (! $this->energy->consume($locked, $action['energy'])) {
+                return back()->with('error', "Je hebt minimaal {$action['energy']} energie nodig voor deze verlofactiviteit!");
+            }
+
+            // Set 3 minute cooldown between leave activities
+            $this->cooldownService->setCooldown($locked, 'treatment_leave_action', 180);
+
+            $rewards = [];
+            $xp = $action['xp'];
+            $respect = $action['respect'];
+
+            if ($action['id'] === 'supermarket') {
+                $cash = rand($action['min_cash'], $action['max_cash']);
+                $this->economy->addCash($locked, $cash);
+                $rewards[] = '€'.number_format($cash, 0, ',', '.').' contant geld gerold 💵';
+            } elseif ($action['id'] === 'station') {
+                $stars = (rand(1, 100) <= 25) ? 1 : 0;
+                $cash = rand($action['min_cash'], $action['max_cash']);
+                if ($stars > 0) {
+                    $locked->stars = ($locked->stars ?? 0) + $stars;
+                    $rewards[] = "{$stars} Exclusieve Ster ⭐";
+                }
+                $this->economy->addCash($locked, $cash);
+                $rewards[] = '€'.number_format($cash, 0, ',', '.').' contanten 💵';
+            } elseif ($action['id'] === 'locker') {
+                $cash = rand($action['min_cash'], $action['max_cash']);
+                $this->economy->addCash($locked, $cash);
+                $rewards[] = '€'.number_format($cash, 0, ',', '.').' contanten 💵';
+
+                // 50% chance for vault code, 50% for unopened bag
+                if (rand(1, 100) <= 50) {
+                    $codeStr = VaultCode::generateUniqueCode('VERLOF');
+                    VaultCode::create([
+                        'code' => $codeStr,
+                        'reward_cash' => rand(3000, 8000),
+                        'reward_stars' => (rand(1, 100) <= 20 ? 1 : 0),
+                        'reward_tokens' => 2,
+                        'character_id' => $locked->id,
+                        'is_redeemed' => false,
+                    ]);
+                    $rewards[] = "Geheime Kluiscode ({$codeStr}) 🔐";
+                } else {
+                    $locked->unopened_bags = ($locked->unopened_bags ?? 0) + 1;
+                    $rewards[] = '1x Smokkelkoffer 🧳';
+                }
+            }
+
+            $this->level->addXp($locked, $xp);
+            $locked->addRespect($respect);
+            $locked->leave_trips_count = ($locked->leave_trips_count ?? 0) + 1;
+            $locked->save();
+
+            $rewardText = implode(' + ', $rewards);
+
+            return back()->with('success', "🏙️ SUCCESVOL UITGEVOERD! Buit: {$rewardText} + {$xp} XP + {$respect} Respect!");
+        });
     }
 }

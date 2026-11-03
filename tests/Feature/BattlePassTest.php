@@ -105,7 +105,7 @@ class BattlePassTest extends TestCase
             'health' => 100,
             'max_health' => 100,
             'is_vip' => true,
-            'vip_until' => now()->addDays(30),
+            'vip_expires_at' => now()->addDays(30),
             'perks' => ['supporter_tier' => 3],
             'is_onboarded' => true,
         ]);

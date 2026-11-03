@@ -11,6 +11,7 @@ use App\Models\Referral;
 use App\Models\User;
 use App\Models\VaultCode;
 use App\Services\AuditLogService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -109,7 +110,7 @@ class AdminController extends Controller
     public function updatePlayer(Request $request, Character $character): RedirectResponse
     {
         $validated = $request->validate([
-            'username' => 'nullable|string|min:2|max:50',
+            'username' => 'nullable|string|min:2|max:50'.($character->user ? '|unique:users,name,'.$character->user->id : ''),
             'character_name' => 'nullable|string|min:2|max:50|unique:characters,name,'.$character->id,
             'reset_avatar' => 'nullable|boolean',
             'cash' => 'required|numeric|min:0',
@@ -152,7 +153,15 @@ class AdminController extends Controller
             return back()->with('error', 'Alleen de eigenaar kan het profiel of de status van een Admin of Eigenaar wijzigen.');
         }
 
+        if ($character->user && $character->user->isStaff() && ! $currentUser->isAdmin()) {
+            return back()->with('error', 'Alleen administrators kunnen het profiel of de status van medewerkers wijzigen.');
+        }
+
         if (! $currentUser->isAdmin()) {
+            if ($request->boolean('release_prison')) {
+                return back()->with('error', 'Alleen administrators kunnen spelers vrijlaten uit de gevangenis.');
+            }
+
             $roleInput = $request->input('role');
             $originalRole = $request->input('original_role', $character->user?->role);
             if ($request->filled('role') && $roleInput !== $character->user?->role && $roleInput !== $originalRole) {
@@ -204,14 +213,18 @@ class AdminController extends Controller
             DB::transaction(function () use (
                 $request,
                 $validated,
-                $character,
+                &$character,
                 $currentUser,
                 $forceOverwrite,
                 &$concurrencyWarnings
             ): void {
+                $character = Character::where('id', $character->id)->lockForUpdate()->firstOrFail();
+                $targetUser = $character->user_id
+                    ? User::where('id', $character->user_id)->lockForUpdate()->first()
+                    : null;
+
                 // Moderatie: Update login gebruikersnaam (User name)
-                if ($character->user) {
-                    $targetUser = $character->user;
+                if ($targetUser) {
 
                     if ($request->filled('username')) {
                         $newUsername = trim((string) $validated['username']);
@@ -530,6 +543,7 @@ class AdminController extends Controller
 
                 $character->save();
             });
+            $character->refresh();
         } catch (\Throwable $e) {
             Log::error("Failed to update player {$character->name} (#{$character->id}): ".$e->getMessage(), ['exception' => $e]);
 
@@ -1071,38 +1085,43 @@ class AdminController extends Controller
 
         try {
             DB::transaction(function () use ($order, $character, $tierName, $isMembership, $request): void {
-                $order->character_id = $character->id;
-                $order->status = 'manually_linked';
-                $order->membership_tier = $tierName;
-                $order->is_membership = $isMembership;
-                $order->membership_status = $isMembership ? 'active' : null;
-                $order->linked_at = now();
-                $orderPayload = $order->payload ?? [];
-                $orderPayload['rewards_granted'] = true;
-                $orderPayload['rewards_granted_at'] = now()->toIso8601String();
-                $order->payload = $orderPayload;
-                $order->save();
+                $lockedOrder = BuyMeACoffeeOrder::where('id', $order->id)->lockForUpdate()->firstOrFail();
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->firstOrFail();
 
-                if ($request->boolean('grant_rewards', true)) {
+                $alreadyGranted = ! empty($lockedOrder->payload['rewards_granted']);
+
+                $lockedOrder->character_id = $lockedCharacter->id;
+                $lockedOrder->status = 'manually_linked';
+                $lockedOrder->membership_tier = $tierName;
+                $lockedOrder->is_membership = $isMembership;
+                $lockedOrder->membership_status = $isMembership ? 'active' : null;
+                $lockedOrder->linked_at = now();
+                $orderPayload = $lockedOrder->payload ?? [];
+                $orderPayload['rewards_granted'] = true;
+                $orderPayload['rewards_granted_at'] = $orderPayload['rewards_granted_at'] ?? now()->toIso8601String();
+                $lockedOrder->payload = $orderPayload;
+                $lockedOrder->save();
+
+                if ($request->boolean('grant_rewards', true) && ! $alreadyGranted) {
                     $webhookController = app(BuyMeACoffeeWebhookController::class);
                     $tierLower = strtolower($tierName);
                     $isCoffee = str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie') || (! $isMembership);
 
                     if (! $isCoffee && $isMembership) {
-                        $webhookController->grantMembershipTier($character, $tierName, $order->payload ?? []);
+                        $webhookController->grantMembershipTier($lockedCharacter, $tierName, $lockedOrder->payload ?? []);
                     } else {
                         $coffees = 1;
-                        if (str_contains($tierName, '5x') || (float) $order->amount >= 15.0) {
+                        if (str_contains($tierName, '5x') || (float) $lockedOrder->amount >= 15.0) {
                             $coffees = 5;
-                        } elseif (str_contains($tierName, '3x') || (float) $order->amount >= 9.0) {
+                        } elseif (str_contains($tierName, '3x') || (float) $lockedOrder->amount >= 9.0) {
                             $coffees = 3;
                         }
-                        $payload = array_merge($order->payload ?? [], [
+                        $payload = array_merge($lockedOrder->payload ?? [], [
                             'support_coffees' => $coffees,
                             'quantity' => $coffees,
-                            'amount' => max((float) $order->amount, $coffees * 3.0),
+                            'amount' => max((float) $lockedOrder->amount, $coffees * 3.0),
                         ]);
-                        $webhookController->processEvent('donation', $payload, $character);
+                        $webhookController->processEvent('donation', $payload, $lockedCharacter);
                     }
                 }
             });
@@ -1164,40 +1183,51 @@ class AdminController extends Controller
 
         try {
             DB::transaction(function () use ($character, $order, $tier, $tierLower, $isCoffee, $webhookController): void {
-                if (! $isCoffee && $order->is_membership) {
-                    if (str_contains($tierLower, 'lifetime') && $character->getVipTier() === 4) {
-                        $orderPayload = $order->payload ?? [];
+                $lockedOrder = BuyMeACoffeeOrder::where('id', $order->id)->lockForUpdate()->firstOrFail();
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->firstOrFail();
+
+                // Rate guard: Prevent rapid duplicate regrants within 5 seconds
+                $orderPayload = $lockedOrder->payload ?? [];
+                if (! empty($orderPayload['regranted_at'])) {
+                    $lastRegrant = Carbon::parse($orderPayload['regranted_at']);
+                    if (now()->diffInSeconds($lastRegrant) < 5) {
+                        return;
+                    }
+                }
+
+                if (! $isCoffee && $lockedOrder->is_membership) {
+                    if (str_contains($tierLower, 'lifetime') && $lockedCharacter->getVipTier() === 4) {
                         $orderPayload['rewards_granted'] = true;
                         $orderPayload['rewards_granted_at'] = now()->toIso8601String();
-                        $order->payload = $orderPayload;
-                        $order->save();
+                        $lockedOrder->payload = $orderPayload;
+                        $lockedOrder->save();
 
                         return;
                     }
 
-                    $webhookController->grantMembershipTier($character, $tier, $order->payload ?? []);
+                    $webhookController->grantMembershipTier($lockedCharacter, $tier, $lockedOrder->payload ?? []);
                 } else {
                     $coffees = 1;
-                    if (str_contains($tier, '5x') || (float) $order->amount >= 15.0) {
+                    if (str_contains($tier, '5x') || (float) $lockedOrder->amount >= 15.0) {
                         $coffees = 5;
-                    } elseif (str_contains($tier, '3x') || (float) $order->amount >= 9.0) {
+                    } elseif (str_contains($tier, '3x') || (float) $lockedOrder->amount >= 9.0) {
                         $coffees = 3;
                     }
-                    $payload = array_merge($order->payload ?? [], [
+                    $payload = array_merge($lockedOrder->payload ?? [], [
                         'support_coffees' => $coffees,
                         'quantity' => $coffees,
-                        'amount' => max((float) $order->amount, $coffees * 3.0),
+                        'amount' => max((float) $lockedOrder->amount, $coffees * 3.0),
                     ]);
-                    $webhookController->processEvent('donation', $payload, $character);
+                    $webhookController->processEvent('donation', $payload, $lockedCharacter);
                 }
 
-                $orderPayload = $order->payload ?? [];
+                $orderPayload = $lockedOrder->payload ?? [];
                 $orderPayload['rewards_granted'] = true;
                 $orderPayload['rewards_granted_at'] = $orderPayload['rewards_granted_at'] ?? now()->toIso8601String();
                 $orderPayload['regranted_at'] = now()->toIso8601String();
                 $orderPayload['regrant_count'] = ((int) ($orderPayload['regrant_count'] ?? 0)) + 1;
-                $order->payload = $orderPayload;
-                $order->save();
+                $lockedOrder->payload = $orderPayload;
+                $lockedOrder->save();
             });
         } catch (\Throwable $e) {
             Log::error("Failed to regrant BuyMeACoffee order #{$order->id}: ".$e->getMessage(), ['exception' => $e]);
@@ -1238,16 +1268,21 @@ class AdminController extends Controller
         $character = $order->character;
 
         try {
-            DB::transaction(function () use ($order, $character): void {
-                $order->status = 'cancelled';
-                $order->membership_status = 'cancelled';
-                $order->cancelled_at = now();
-                $order->save();
+            DB::transaction(function () use ($order): void {
+                $lockedOrder = BuyMeACoffeeOrder::where('id', $order->id)->lockForUpdate()->firstOrFail();
+                $lockedCharacter = $lockedOrder->character_id
+                    ? Character::where('id', $lockedOrder->character_id)->lockForUpdate()->first()
+                    : null;
 
-                if ($character) {
-                    app(BuyMeACoffeeWebhookController::class)->revokeMembership($character, (string) $order->membership_tier, [
+                $lockedOrder->status = 'cancelled';
+                $lockedOrder->membership_status = 'cancelled';
+                $lockedOrder->cancelled_at = now();
+                $lockedOrder->save();
+
+                if ($lockedCharacter) {
+                    app(BuyMeACoffeeWebhookController::class)->revokeMembership($lockedCharacter, (string) $lockedOrder->membership_tier, [
                         'reason' => 'cancelled_by_admin',
-                        'order_id' => $order->id,
+                        'order_id' => $lockedOrder->id,
                     ]);
                 }
             });
@@ -1325,6 +1360,8 @@ class AdminController extends Controller
 
         try {
             DB::transaction(function () use ($isMembership, $validated, $character, $coffees, $tier, $currentUser): void {
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->firstOrFail();
+
                 $order = BuyMeACoffeeOrder::create([
                     'event' => $isMembership ? 'membership.manual' : 'donation.manual',
                     'external_id' => 'manual_'.uniqid(),
@@ -1334,7 +1371,7 @@ class AdminController extends Controller
                     'currency' => 'EUR',
                     'membership_tier' => $validated['membership_tier'],
                     'message' => $validated['message'],
-                    'character_id' => $character->id,
+                    'character_id' => $lockedCharacter->id,
                     'status' => 'manually_linked',
                     'is_membership' => $isMembership,
                     'membership_status' => $isMembership ? 'active' : null,
@@ -1352,22 +1389,22 @@ class AdminController extends Controller
 
                 $webhookController = app(BuyMeACoffeeWebhookController::class);
                 if ($isMembership) {
-                    $webhookController->grantMembershipTier($character, $validated['membership_tier'], ['manual' => true, 'order_id' => $order->id]);
+                    $webhookController->grantMembershipTier($lockedCharacter, $validated['membership_tier'], ['manual' => true, 'order_id' => $order->id]);
                 } else {
                     $webhookController->processEvent('donation', [
                         'support_coffees' => $coffees,
                         'quantity' => $coffees,
                         'amount' => max((float) $validated['amount'], $coffees * 3.0),
-                    ], $character);
+                    ], $lockedCharacter);
                 }
 
                 try {
                     AuditLogService::log(
                         action: 'buymeacoffee_manual_create',
                         category: 'vip',
-                        description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$character->name} ({$validated['membership_tier']}) door ".($currentUser?->name ?? Auth::user()?->name ?? 'Staff'),
-                        character: $character,
-                        user: $character->user,
+                        description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$lockedCharacter->name} ({$validated['membership_tier']}) door ".($currentUser?->name ?? Auth::user()?->name ?? 'Staff'),
+                        character: $lockedCharacter,
+                        user: $lockedCharacter->user,
                         amount: (int) $validated['amount'],
                         details: ['order_id' => $order->id, 'tier' => $tier, 'is_membership' => $isMembership]
                     );

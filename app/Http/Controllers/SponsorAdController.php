@@ -914,11 +914,11 @@ class SponsorAdController extends Controller
                 $rewardDetails .= " 🎁 + BONUS: Geheime kluiscode voucher gestuurd naar je chat en inbox ({$bonusCode})!";
             }
 
-            // Check 250-ad VIP milestone (preserving permanent VIP when vip_expires_at === null)
+            // Check 250-ad VIP milestone (preserving permanent VIP when vip_expires_at === null or Lifetime Tier 4)
             $vipUnlocked = false;
             if ($totalAds % 250 === 0) {
                 $vipUnlocked = true;
-                $isPermanentVip = $lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null;
+                $isPermanentVip = $lockedCharacter->isLifetimeVip();
                 $lockedCharacter->is_vip = true;
                 if (! $isPermanentVip) {
                     $lockedCharacter->vip_expires_at = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
