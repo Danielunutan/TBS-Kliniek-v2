@@ -477,12 +477,15 @@
                     Huur ervaren criminelen, chauffeurs, tuners, chemici en witwassers in (zoals Dimitri "De Opzichter") om jullie bende permanente bonussen te geven!
                 </p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-wrap">
                 <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-mono font-bold">
                     <i class="fa-solid fa-stopwatch text-indigo-500"></i>
                     <span class="text-slate-500 dark:text-slate-400">Nieuwe NPC's:</span>
                     <span class="text-indigo-600 dark:text-indigo-400 font-black" x-text="formatTime(npcCd)"></span>
                 </div>
+                <span class="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-xs font-black text-emerald-700 dark:text-emerald-300">
+                    Enforcer Verdediging: +{{ $gang->npc_defense_bonus_percent }}% / +{{ \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT }}%
+                </span>
                 <span class="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-xs font-black text-indigo-700 dark:text-indigo-300">
                     Capaciteit: {{ $hiredNpcs->count() }} / {{ $totalNpcCap }}
                 </span>
@@ -512,6 +515,8 @@
                 $isHired = $hiredInstances->count() > 0;
                 $canAffordNpc = (int) $gang->treasury >= $npcDef['cost'];
                 $hasFreeSlot = $availableNpcSlots > 0;
+                $isEnforcerAtCap = ($npcDef['bonus_type'] ?? '') === 'defense'
+                    && $gang->npc_defense_bonus_percent >= \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT;
             @endphp
             <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 relative overflow-hidden transition-all duration-200 hover:border-purple-300 dark:hover:border-purple-700/80">
                 <div class="space-y-4">
@@ -560,15 +565,17 @@
                         <form method="POST" action="{{ route('gangs.panden.hire-npc', $npcKey) }}">
                             @csrf
                             <button type="submit"
-                                    @if(! $hasFreeSlot || ! $canAffordNpc || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    @if(! $hasFreeSlot || ! $canAffordNpc || $isEnforcerAtCap || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                     data-confirm="Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?"
                                     data-confirm-title="NPC Specialist Aannemen"
                                     data-confirm-btn="Ja, Aannemen"
                                     data-confirm-type="success"
                                     data-confirm-icon="fa-user-plus"
-                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
+                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i>
-                                @if(! $hasFreeSlot)
+                                @if($isEnforcerAtCap)
+                                    <span>Max +{{ \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT }}% Enforcer Limiet</span>
+                                @elseif(! $hasFreeSlot)
                                     <span>Geen Villa Ruimte</span>
                                 @elseif(! $canAffordNpc)
                                     <span>Te weinig in kas</span>

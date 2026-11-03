@@ -2258,13 +2258,17 @@ class GangController extends Controller
                     ? (int) round($targetGang->treasury * ($lootPercent / 100))
                     : 0;
                 $damagePercent = mt_rand(10, 20);
-                $defenseDamage = max(250, (int) round($targetDefense * ($damagePercent / 100)));
+                $baseDefenseDamage = max(250, (int) round($baseTargetDefense * ($damagePercent / 100)));
                 $respectGain = round(mt_rand(25, 60) / 10, 2);
 
                 $targetGang->treasury = max(0, $targetGang->treasury - $stolenCash);
-                $targetGang->protection_points = max(250, $targetGang->protection_points - $defenseDamage);
+                $targetGang->protection_points = max(250, $targetGang->protection_points - $baseDefenseDamage);
                 $targetGang->shield_until = now()->addMinutes(15);
                 $targetGang->save();
+
+                $newBaseDefense = (int) $targetGang->protection_points;
+                $newTotalDefense = $newBaseDefense + (int) round($newBaseDefense * ($npcDefenseBonusPct / 100));
+                $defenseDamage = max(250, $targetDefense - $newTotalDefense);
 
                 $myGang->treasury += $stolenCash;
                 $myGang->last_attack_at = now();
@@ -2286,7 +2290,7 @@ class GangController extends Controller
 
                 $formattedStolenCash = number_format($stolenCash, 0, ',', '.');
                 $formattedDefenseDamage = number_format($defenseDamage, 0, ',', '.');
-                $formattedRemainingDefense = number_format((int) $targetGang->protection_points, 0, ',', '.');
+                $formattedRemainingDefense = number_format($newTotalDefense, 0, ',', '.');
 
                 $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming{$npcBreakdownText}). Buit: €{$formattedStolenCash} ({$lootPercent}% kas) geplunderd, verdediging van tegenstander -{$formattedDefenseDamage} punten (-{$damagePercent}%, nieuw: {$formattedRemainingDefense}), +{$respectGain} respect!";
 
@@ -2369,7 +2373,7 @@ class GangController extends Controller
             }
 
             $powerLossPercent = mt_rand(2, 5);
-            $powerDamage = min(5000000, max(150, (int) round($attackerPower * ($powerLossPercent / 100))));
+            $powerDamage = max(150, (int) round($attackerPower * ($powerLossPercent / 100)));
             $myGang->attack_power = max(250, $myGang->attack_power - $powerDamage);
             $myGang->last_attack_at = now();
             $myGang->save();

@@ -7,6 +7,7 @@ use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\GangNpc;
+use App\Models\GangProperty;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -131,5 +132,127 @@ class GangEnforcerRebalanceMigrationTest extends TestCase
         $notification = GameNotification::where('character_id', $leader->id)->latest('id')->first();
         $this->assertNotNull($notification);
         $this->assertStringContainsString('€1.000.000 Teruggestort', $notification->title);
+    }
+
+    public function test_hiring_enforcer_npc_is_blocked_when_gang_is_already_at_100_percent_cap(): void
+    {
+        $user = User::factory()->create();
+        $leader = Character::create([
+            'user_id' => $user->id,
+            'name' => 'CapLeader',
+            'gender' => 'male',
+            'level' => 25,
+        ]);
+
+        $gang = Gang::create([
+            'name' => 'CappedEnforcerGang',
+            'tag' => 'CEG',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $leader->id,
+            'attack_power' => 100000,
+            'protection_points' => 100000,
+            'treasury' => 5000000,
+        ]);
+        $leader->update(['gang_id' => $gang->id, 'gang_role' => 'leader']);
+
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'bende_villa',
+            'name' => 'Bende Villa',
+            'type' => 'luxury',
+            'purchase_price' => 1000000,
+            'level' => 1,
+            'npc_capacity' => 10,
+            'storage_capacity' => 0,
+            'vehicle_slots' => 0,
+        ]);
+
+        GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'enforcer_kapitein',
+            'name' => 'Boris Max',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 100,
+            'hired_at' => now()->subHour(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'enforcer_kapitein'));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString(
+            'maximale Enforcer-verdedigingslimiet van +100%',
+            (string) session('error')
+        );
+
+        $gang->refresh();
+        $this->assertEquals(5000000, $gang->treasury);
+        $this->assertEquals(1, $gang->npcs()->count());
+    }
+
+    public function test_victory_against_gang_with_enforcers_reduces_base_protection_proportionally(): void
+    {
+        $attackerUser = User::factory()->create();
+        $attacker = Character::create([
+            'user_id' => $attackerUser->id,
+            'name' => 'AttackerBoss',
+            'gender' => 'male',
+            'level' => 30,
+        ]);
+
+        $defenderUser = User::factory()->create();
+        $defender = Character::create([
+            'user_id' => $defenderUser->id,
+            'name' => 'DefenderBoss',
+            'gender' => 'male',
+            'level' => 30,
+        ]);
+
+        $attackerGang = Gang::create([
+            'name' => 'StrongAttackers',
+            'tag' => 'ATK',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $attacker->id,
+            'attack_power' => 10000000,
+            'protection_points' => 100000,
+            'treasury' => 100000,
+        ]);
+        $attacker->update(['gang_id' => $attackerGang->id, 'gang_role' => 'leader']);
+
+        $defenderGang = Gang::create([
+            'name' => 'EnforcedDefenders',
+            'tag' => 'DEF',
+            'specialty' => 'Vleugel B',
+            'leader_character_id' => $defender->id,
+            'attack_power' => 50000,
+            'protection_points' => 100000,
+            'treasury' => 100000,
+        ]);
+        $defender->update(['gang_id' => $defenderGang->id, 'gang_role' => 'leader']);
+
+        GangNpc::create([
+            'gang_id' => $defenderGang->id,
+            'npc_key' => 'enforcer_kapitein',
+            'name' => 'Boris Guard',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 100,
+            'hired_at' => now()->subHour(),
+        ]);
+
+        $this->assertEquals(200000, $defenderGang->fresh()->total_defense);
+
+        $response = $this->actingAs($attackerUser)->post(route('gangs.attack'), [
+            'target_gang_id' => $defenderGang->id,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $defenderGang->refresh();
+        // 10% to 20% of 100,000 base protection_points = 10,000 to 20,000 lost (remaining: 80,000 to 90,000)
+        $this->assertGreaterThanOrEqual(80000, $defenderGang->protection_points);
+        $this->assertLessThanOrEqual(90000, $defenderGang->protection_points);
     }
 }

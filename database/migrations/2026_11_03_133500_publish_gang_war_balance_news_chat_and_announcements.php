@@ -50,26 +50,26 @@ In bende-panden kunnen specialistische Enforcers worden geplaatst om je bende te
 
 * **De nieuwe regel:**
   * De totale verdedigingsbonus door Enforcers is nu **gelimiteerd tot maximaal +100%** (een maximale verdubbeling van de basisverdediging).
-  * Enforcers blijven hiermee een gigantisch sterke investering voor elke bende, maar het zorgt ervoor dat een bende met hoge Power alsnog door de linies heen kan breken!
+  * In **Bende Panden** zie je nu direct jullie actieve Enforcer-percentage (`+X% / +100%`) en wordt de knop om extra Enforcers aan te nemen automatisch geblokkeerd zodra je op `+100%` zit, zodat je nooit per ongeluk geld verspilt.
   * Bendes die boven de 100% zaten hebben hun overtollige Enforcers eervol zien vertrekken en de volledige aankoopkosten zijn **100% teruggestort in de Bende Kas**!
 
 ---
 
-### ⚡ 3. Winkel Balans: +5.000 Power per Aankoop
+### ⚡ 3. Winkel Balans: +5.000 Power per Aankoop (1:1 met Bescherming)
 Voorheen leverde een aankoop van Bescherming in de Bende Winkel +5.000 punten op, terwijl Power slechts +2.500 opleverde voor dezelfde €15.000 uit de gangpot.
 
 * **De nieuwe regel:**
-  * Power aanschaffen in de Bende Winkel levert nu **+5.000 Power** op per aankoop (was 2.500).
+  * Power aanschaffen in de Bende Winkel levert nu **+5.000 Power** op per aankoop (was 2.500), precies gelijk aan Bescherming (+5.000).
   * Hierdoor groeit de aanvalskracht van bendes evenredig mee met de verdedigingsmogelijkheden en loont het om samen met je bendeleden te sparen voor oorlog!
 
 ---
 
-### 🩸 4. Eerlijker Verliespercentage (2%–5% ipv 5%–12%)
-Als een aanval werd afgeslagen, verloor de aanvallende bende tussen de 5% en 12% van hun totale Power. Bij bendes met miljoenen power leidde één mislukte aanval daardoor tot een te harde afstraffing.
+### 🩸 4. Eerlijker Verliespercentage & Proportionele Verdedigingsschade
+Als een aanval werd afgeslagen, verloor de aanvallende bende tussen de 5% en 12% van hun totale Power. Daarnaast werd bij een overwinning de 10%–20% verdedigingsschade berekend over de totale verdediging (inclusief Enforcers) en direct van de basisbescherming afgetrokken.
 
-* **De nieuwe regel:**
-  * De schade aan de aanvallende bende bij een afgeslagen aanval is verlaagd naar **2% tot 5% Power**.
-  * Zo blijft er een reëel risico verbonden aan overvallen, maar raakt een bende niet direct al haar zuurverdiende power kwijt bij een nipte nederlaag.
+* **De nieuwe regels:**
+  * **Afgeslagen aanval:** De schade aan de aanvallende bende bij verlies is verlaagd naar **2% tot 5% Power** (was 5% tot 12%).
+  * **Geslaagde overval:** De verdediger verliest bij een nederlaag eerlijk **10% tot 20% van de verdediging**, proportioneel berekend zodat zowel basisbescherming als totale verdediging met exact 10% tot 20% dalen.
 
 ---
 
@@ -104,7 +104,7 @@ MARKDOWN;
             })->first() ?? Character::orderBy('id')->first();
 
             if ($botChar) {
-                $broadcastText = '🚨 UPDATE: Bende Oorlogen zijn geherbalanceerd! Enforcer-verdediging is nu transparant zichtbaar, gecapt op max +100%, Power in de winkel verhoogd naar +5.000 per aankoop en verliesstraffen verlaagd. Lees het volledige nieuwsbericht op de nieuwspagina! ⚔️';
+                $broadcastText = '🚨 UPDATE: Bende Oorlogen zijn 100% geherbalanceerd! Enforcer-verdediging is nu overal zichtbaar en gecapt op max +100% (met 100% kas-terugbetaling voor overtollige Enforcers), Power in de winkel is verdubbeld (+5.000) en gevechtsschade is eerlijk rechtgetrokken. Check het nieuwsbericht! ⚔️';
 
                 $chatMsg = ChatMessage::create([
                     'character_id' => $botChar->id,
@@ -152,10 +152,12 @@ MARKDOWN;
 
                 if (Schema::hasTable('game_notifications')) {
                     $officers = $gang->members()
-                        ->whereIn('gang_role', ['leader', 'co_leader'])
-                        ->orWhere('id', $gang->leader_character_id)
-                        ->orWhere('id', $gang->personal_shopper)
-                        ->orWhere('id', $gang->money_magnet)
+                        ->where(function ($q) use ($gang) {
+                            $q->whereIn('gang_role', ['leader', 'co_leader'])
+                                ->orWhere('id', $gang->leader_character_id)
+                                ->orWhere('id', $gang->personal_shopper)
+                                ->orWhere('id', $gang->money_magnet);
+                        })
                         ->get()
                         ->unique('id');
 

@@ -112,10 +112,12 @@ return new class extends Migration
 
                 // 2. Send notification to all officers
                 $officers = $lockedGang->members()
-                    ->whereIn('gang_role', ['leader', 'co_leader'])
-                    ->orWhere('id', $lockedGang->leader_character_id)
-                    ->orWhere('id', $lockedGang->personal_shopper)
-                    ->orWhere('id', $lockedGang->money_magnet)
+                    ->where(function ($q) use ($lockedGang) {
+                        $q->whereIn('gang_role', ['leader', 'co_leader'])
+                            ->orWhere('id', $lockedGang->leader_character_id)
+                            ->orWhere('id', $lockedGang->personal_shopper)
+                            ->orWhere('id', $lockedGang->money_magnet);
+                    })
                     ->get()
                     ->unique('id');
 

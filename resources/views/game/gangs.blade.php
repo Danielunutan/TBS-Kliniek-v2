@@ -2066,7 +2066,7 @@
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Prijs per stuk: <strong class="text-slate-900 dark:text-white">€15.000</strong>
+                                    Prijs per stuk: <strong class="text-slate-900 dark:text-white">€15.000</strong> <span class="text-emerald-600 dark:text-emerald-400 font-bold">(+5.000 bescherming)</span>
                                     <span class="text-slate-400 mx-1">&bull;</span>
                                     Uit Gangpot: <strong class="text-indigo-700 dark:text-indigo-400 font-extrabold">{{ number_format($possibleProtection, 0, ',', '.') }}x</strong>
                                 </p>
@@ -2111,7 +2111,7 @@
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Prijs per stuk: <strong class="text-slate-900 dark:text-white">€15.000</strong>
+                                    Prijs per stuk: <strong class="text-slate-900 dark:text-white">€15.000</strong> <span class="text-emerald-600 dark:text-emerald-400 font-bold">(+5.000 power)</span>
                                     <span class="text-slate-400 mx-1">&bull;</span>
                                     Uit Gangpot: <strong class="text-amber-700 dark:text-amber-400 font-extrabold">{{ number_format($possiblePower, 0, ',', '.') }}x</strong>
                                 </p>

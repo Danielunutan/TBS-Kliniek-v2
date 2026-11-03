@@ -566,6 +566,10 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Ongeldig NPC bendelid geselecteerd.');
         }
 
+        if (($npcData['bonus_type'] ?? '') === 'defense' && $gang->npc_defense_bonus_percent >= Gang::MAX_NPC_DEFENSE_BONUS_PERCENT) {
+            return back()->with('error', 'Jullie bende heeft het maximale Enforcer-verdedigingslimiet van +'.Gang::MAX_NPC_DEFENSE_BONUS_PERCENT.'% al bereikt! Huur een ander type specialist in.');
+        }
+
         // Check capacity
         $totalCap = $gang->total_npc_capacity;
         $currentCount = $gang->npcs()->count();
@@ -582,6 +586,10 @@ class GangPropertyController extends Controller
 
         $errorMessage = DB::transaction(function () use ($gang, $npcKey, $npcData, $cost): ?string {
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+
+            if (($npcData['bonus_type'] ?? '') === 'defense' && $lockedGang->npc_defense_bonus_percent >= Gang::MAX_NPC_DEFENSE_BONUS_PERCENT) {
+                return 'Jullie bende heeft het maximale Enforcer-verdedigingslimiet van +'.Gang::MAX_NPC_DEFENSE_BONUS_PERCENT.'% al bereikt! Huur een ander type specialist in.';
+            }
 
             // Re-check capacity and treasury under the gang lock so parallel hires cannot exceed either limit.
             if ($lockedGang->npcs()->count() >= $lockedGang->total_npc_capacity) {
