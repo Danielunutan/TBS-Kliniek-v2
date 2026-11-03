@@ -64,7 +64,7 @@ class GangController extends Controller
         $myInventoryItems = $myGang ? CharacterItem::where('character_id', $character->id)->where('quantity', '>', 0)->with('item')->get() : collect();
 
         // Real gang ranking list sorted by total member respect
-        $realGangs = Gang::with(['leader', 'members'])->withCount('members')->get();
+        $realGangs = Gang::with(['leader', 'members', 'npcs'])->withCount('members')->get();
         $realGangs = $realGangs->sortByDesc(function ($g) {
             return $g->members->sum('respect');
         })->values();
@@ -238,6 +238,7 @@ class GangController extends Controller
             'moneyMagnet',
             'alliances.allyGang',
             'properties',
+            'npcs',
         ])
             ->where('id', $gang)
             ->orWhere('tag', $gang)
@@ -1708,12 +1709,12 @@ class GangController extends Controller
                     }
 
                     $lockedGang->treasury -= $totalCost;
-                    $lockedGang->attack_power = ($lockedGang->attack_power ?? 500) + ($qty * 2500);
+                    $lockedGang->attack_power = ($lockedGang->attack_power ?? 500) + ($qty * 5000);
                     $lockedGang->save();
 
                     return back()
                         ->with('active_gang_tab', 'winkel')
-                        ->with('success', "Succesvol {$qty}x Power aangeschaft vanuit de bende kas (+".number_format($qty * 2500, 0, ',', '.').' aanvalspunten)!');
+                        ->with('success', "Succesvol {$qty}x Power aangeschaft vanuit de bende kas (+".number_format($qty * 5000, 0, ',', '.').' aanvalspunten)!');
 
                 case 'max_members':
                     $starPrice = 25;
@@ -2222,8 +2223,9 @@ class GangController extends Controller
             $attackerPower = max(500, (int) ($myGang->attack_power ?? 500));
             $baseTargetDefense = max(500, (int) ($targetGang->protection_points ?? 1000));
 
-            // Factor in hired Enforcer NPCs defense bonus
-            $npcDefenseBonusPct = (int) $targetGang->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
+            // Factor in hired Enforcer NPCs defense bonus (capped at max 100% to ensure fair balance)
+            $rawNpcDefenseBonusPct = (int) $targetGang->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
+            $npcDefenseBonusPct = min(Gang::MAX_NPC_DEFENSE_BONUS_PERCENT, $rawNpcDefenseBonusPct);
             $targetNpcDefenseBonus = (int) round($baseTargetDefense * ($npcDefenseBonusPct / 100));
             $targetDefense = $baseTargetDefense + $targetNpcDefenseBonus;
 
@@ -2366,8 +2368,8 @@ class GangController extends Controller
                     ->with('success', $summary);
             }
 
-            $powerLossPercent = mt_rand(5, 12);
-            $powerDamage = max(150, (int) round($attackerPower * ($powerLossPercent / 100)));
+            $powerLossPercent = mt_rand(2, 5);
+            $powerDamage = min(5000000, max(150, (int) round($attackerPower * ($powerLossPercent / 100))));
             $myGang->attack_power = max(250, $myGang->attack_power - $powerDamage);
             $myGang->last_attack_at = now();
             $myGang->save();
@@ -2435,7 +2437,7 @@ class GangController extends Controller
                             ."• Verdediging {$targetGang->name}: {$formattedTargetDefense} totale verdediging ({$formattedBaseDefense} basis + {$formattedNpcDefense} NPC) × {$defenseRollPercent}% ({$defenseModifier}) = {$formattedDefenseRoll} verdedigingskracht\n"
                             ."👉 Jullie gerolde verdediging ({$formattedDefenseRoll}) hield stand tegen hun gerolde aanval ({$formattedAttackRoll})!\n\n"
                             ."🛡️ RESULTAAT:\n"
-                            ."• Schade aan vijand ({$powerLossPercent}% van hun power, marge 5%-12%): -{$formattedPowerDamage} aanvalskracht\n"
+                            ."• Schade aan vijand ({$powerLossPercent}% van hun power, marge 2%-5%): -{$formattedPowerDamage} aanvalskracht\n"
                             ."• Jullie verdedigingsschade: 0 punten\n"
                             .'• Beloning: +2.0 respect verdiend voor de succesvolle verdediging.',
                         'type' => 'gang',

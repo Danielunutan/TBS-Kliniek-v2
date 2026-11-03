@@ -23,6 +23,8 @@ class Gang extends Model
 {
     use HasFactory;
 
+    public const MAX_NPC_DEFENSE_BONUS_PERCENT = 100;
+
     /**
      * @var list<string>
      */
@@ -177,6 +179,26 @@ class Gang extends Model
         }
 
         return (int) $this->properties()->sum('npc_capacity');
+    }
+
+    public function getNpcDefenseBonusPercentAttribute(): int
+    {
+        $sum = $this->relationLoaded('npcs')
+            ? (int) $this->npcs->where('bonus_type', 'defense')->sum('bonus_value')
+            : (int) $this->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
+
+        return min(self::MAX_NPC_DEFENSE_BONUS_PERCENT, $sum);
+    }
+
+    public function getTotalDefenseAttribute(): int
+    {
+        $baseDefense = max(500, (int) ($this->protection_points ?? 1000));
+        $bonusPct = $this->npc_defense_bonus_percent;
+        if ($bonusPct <= 0) {
+            return $baseDefense;
+        }
+
+        return $baseDefense + (int) round($baseDefense * ($bonusPct / 100));
     }
 
     public function getStorageUsed(): int

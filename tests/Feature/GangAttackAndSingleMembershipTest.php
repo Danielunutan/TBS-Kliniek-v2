@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\GameMessage;
 use App\Models\Gang;
 use App\Models\GangAlliance;
+use App\Models\GangNpc;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -389,5 +390,86 @@ class GangAttackAndSingleMembershipTest extends TestCase
 
             $this->assertSame($openDivs, $closeDivs, "Unbalanced divs on {$url}");
         }
+    }
+
+    public function test_gang_total_defense_and_enforcers_are_visible_on_profile_and_war_page(): void
+    {
+        $attackerUser = User::factory()->create();
+        $attacker = Character::create([
+            'user_id' => $attackerUser->id,
+            'name' => 'AttackerLeader',
+            'gender' => 'male',
+            'level' => 15,
+        ]);
+        $attackerGang = Gang::create([
+            'name' => 'AttackerGang',
+            'tag' => 'ATK',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $attacker->id,
+            'attack_power' => 50000,
+            'protection_points' => 20000,
+            'treasury' => 50000,
+        ]);
+        $attacker->update(['gang_id' => $attackerGang->id, 'gang_role' => 'leader']);
+
+        $defenderUser = User::factory()->create();
+        $defender = Character::create([
+            'user_id' => $defenderUser->id,
+            'name' => 'DefenderLeader',
+            'gender' => 'female',
+            'level' => 15,
+        ]);
+        $defenderGang = Gang::create([
+            'name' => 'FortressGang',
+            'tag' => 'DEF',
+            'specialty' => 'Vleugel B',
+            'leader_character_id' => $defender->id,
+            'attack_power' => 10000,
+            'protection_points' => 100000,
+            'treasury' => 50000,
+        ]);
+        $defender->update(['gang_id' => $defenderGang->id, 'gang_role' => 'leader']);
+
+        // Add 2 Enforcers (+20% each = +40% bonus) to defender
+        GangNpc::create([
+            'gang_id' => $defenderGang->id,
+            'npc_key' => 'enforcer_1',
+            'name' => 'Boris "De Sloper"',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 20,
+            'hired_at' => now(),
+        ]);
+        GangNpc::create([
+            'gang_id' => $defenderGang->id,
+            'npc_key' => 'enforcer_2',
+            'name' => 'Igor "De Moker"',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 20,
+            'hired_at' => now(),
+        ]);
+
+        $this->assertEquals(40, $defenderGang->npc_defense_bonus_percent);
+        $this->assertEquals(140000, $defenderGang->total_defense);
+
+        $this->actingAs($attackerUser);
+
+        // Check public profile of defender
+        $profileRes = $this->get(route('gangs.show', $defenderGang->tag));
+        $profileRes->assertOk();
+        $profileRes->assertSee('Basis Verdediging');
+        $profileRes->assertSee('100.000');
+        $profileRes->assertSee('Enforcer Bewakers');
+        $profileRes->assertSee('+40%');
+        $profileRes->assertSee('Totale Verdediging');
+        $profileRes->assertSee('140.000');
+
+        // Check war tab: rival gang shows total defense and enforcer bonus
+        $warRes = $this->get(route('gangs.index', ['tab' => 'oorlog']));
+        $warRes->assertOk();
+        $warRes->assertSee('140.000');
+        $warRes->assertSee('+40% Enforcers');
+        $warRes->assertSee('inclusief +40% door Enforcers');
     }
 }

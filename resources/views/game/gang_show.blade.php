@@ -525,43 +525,43 @@
                         @endif
                     </div>
 
-                    <!-- Aanvalspunten -->
+                    <!-- Power (Aanval) -->
                     <div class="py-2.5 flex items-center justify-between">
                         <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <i class="fa-solid fa-bolt text-amber-500"></i> Aanvalspunten
-                        </span>
-                        <span class="font-bold text-slate-900 dark:text-white font-mono">
-                            {{ number_format(($gang->attack_power ?? 500) / 10, 2, ',', '.') }}
-                        </span>
-                    </div>
-
-                    <!-- Verdediging -->
-                    <div class="py-2.5 flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <i class="fa-solid fa-shield text-indigo-500"></i> Verdediging
-                        </span>
-                        <span class="font-bold text-slate-900 dark:text-white font-mono">
-                            {{ number_format($gang->protection_points ?? 1000, 2, ',', '.') }}
-                        </span>
-                    </div>
-
-                    <!-- Power -->
-                    <div class="py-2.5 flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <i class="fa-solid fa-bolt-lightning text-purple-600 dark:text-purple-400"></i> Power
+                            <i class="fa-solid fa-bolt-lightning text-purple-600 dark:text-purple-400"></i> Power (Aanval)
                         </span>
                         <span class="font-bold text-purple-700 dark:text-purple-400 font-mono">
-                            {{ number_format($gang->attack_power ?? 500, 2, ',', '.') }}
+                            {{ number_format($gang->attack_power ?? 500, 0, ',', '.') }}
                         </span>
                     </div>
 
-                    <!-- Bescherming -->
+                    <!-- Basis Verdediging -->
                     <div class="py-2.5 flex items-center justify-between">
                         <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <i class="fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400"></i> Totale Bescherming
+                            <i class="fa-solid fa-shield text-indigo-500"></i> Basis Verdediging
+                        </span>
+                        <span class="font-bold text-slate-900 dark:text-white font-mono">
+                            {{ number_format($gang->protection_points ?? 1000, 0, ',', '.') }}
+                        </span>
+                    </div>
+
+                    <!-- Enforcer Bewakers -->
+                    <div class="py-2.5 flex items-center justify-between">
+                        <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-user-shield text-blue-500"></i> Enforcer Bewakers
+                        </span>
+                        <span class="font-bold {{ $gang->npc_defense_bonus_percent > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500' }} font-mono">
+                            +{{ $gang->npc_defense_bonus_percent }}%
+                        </span>
+                    </div>
+
+                    <!-- Totale Verdediging -->
+                    <div class="py-2.5 flex items-center justify-between">
+                        <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400"></i> Totale Verdediging
                         </span>
                         <span class="font-bold text-emerald-700 dark:text-emerald-400 font-mono">
-                            {{ number_format(($gang->protection_points ?? 1000) * 1.5, 2, ',', '.') }}
+                            {{ number_format($gang->total_defense, 0, ',', '.') }}
                         </span>
                     </div>
 
