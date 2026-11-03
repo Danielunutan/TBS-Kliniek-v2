@@ -43,7 +43,14 @@ window.tbsChatConfig = {
     characterStars: {{ (int) ($characterStars ?? 0) }},
     canModerate: {{ ($canModerate ?? false) ? "true" : "false" }},
     totalUnreadDms: {{ (int) ($totalUnreadDms ?? 0) }},
-    characterNames: @js($characterNames ?? [])
+    characterNames: @js($characterNames ?? []),
+    level: {{ (int) ($character->level ?? 1) }},
+    cash: {{ (int) ($character->cash ?? 0) }},
+    bank: {{ (int) ($character->bank ?? 0) }},
+    health: {{ (int) ($character->health ?? 100) }},
+    energy: {{ (int) ($character->energy ?? 100) }},
+    isVip: {{ $character->isVip() ? 'true' : 'false' }},
+    faqKnowledge: @js(\App\Http\Controllers\FaqController::getBotKnowledge())
 };
 </script>
 
@@ -91,6 +98,78 @@ function tbsLiveMessenger(config) {
         },
         loadingConversations: false,
         totalUnread: config.totalUnreadDms || 0,
+
+        // AI Help state (Zaalwacht Arjan)
+        level: config.level || 1,
+        cash: config.cash || 0,
+        bank: config.bank || 0,
+        health: config.health ?? 100,
+        energy: config.energy ?? 100,
+        isVip: !!config.isVip,
+        faqKnowledge: Array.isArray(config.faqKnowledge) ? config.faqKnowledge : [],
+        helpInput: '',
+        isHelpBotThinking: false,
+        helpMessages: (() => {
+            if (window.__tbsMiniChatCache?.helpMessages?.length > 0) {
+                return window.__tbsMiniChatCache.helpMessages;
+            }
+            if (config.isComatose) {
+                return [{
+                    from: 'bot',
+                    text: '🚨 NOODSITUATIE: Je verkeert in coma (Code Blauw)! Ga zo snel mogelijk naar Zuster Ingrid in de Ziekenboeg of vraag een mede-inmate om een Forensisch Reanimatie-Serum toe te dienen.',
+                    links: [
+                        { text: '🏥 Naar de Ziekenboeg', url: '{{ route('infirmary.index') }}' },
+                        { text: '🎒 Inventaris (Serum)', url: '{{ route('shop.index', ['tab' => 'inventaris']) }}' }
+                    ],
+                    suggestions: [
+                        'Hoe genees ik gratis mijn gezondheid (HP)?',
+                        'Wat gebeurt er als ik in coma lig?'
+                    ]
+                }];
+            }
+            if (config.isImprisoned) {
+                return [{
+                    from: 'bot',
+                    text: '⛓️ Je zit momenteel vast in de Isoleercel! Wil je weten hoe je snel ontsnapt of je straf inkort?',
+                    links: [
+                        { text: '⛓️ Naar Isoleercel', url: '{{ route('prison') }}' },
+                        { text: '⭐ Sterrenwinkel (Vrijkopen)', url: '{{ route('shop.index') }}' }
+                    ],
+                    suggestions: [
+                        'Hoe kom ik sneller uit de isoleercel?',
+                        'Hoe werkt de luchtschacht ontsnapping?',
+                        'Hoe helpt een BFF bij uitbreken?'
+                    ]
+                }];
+            }
+            if ((config.level || 1) <= 2) {
+                return [{
+                    from: 'bot',
+                    text: '👋 Welkom in FPC De Balk! Ik ben Zaalwacht Arjan.\n\nTip voor beginners: Bekijk je Rookie Overlevingstaken op het dashboard voor gratis cash, kogels en VIP status! Waar kan ik je nu mee helpen?',
+                    links: [
+                        { text: '🎯 Dashboard & Rookie Taken', url: '{{ route('dashboard') }}' },
+                        { text: '🏥 Naar de Ziekenboeg', url: '{{ route('infirmary.index') }}' }
+                    ],
+                    suggestions: [
+                        'Hoe pak ik €35.000 gratis startgeld?',
+                        'Hoe beveilig ik mijn geld op de bank?',
+                        'Wat moet ik doen als beginner?'
+                    ]
+                }];
+            }
+            return [{
+                from: 'bot',
+                text: 'Hoi ' + (config.authCharName || 'patiënt') + '! Ik ben Zaalwacht Arjan. Ik weet álles over geld verdienen, gevechten op de luchtplaats, kluizen kraken en bendes. Klik op 🎯 Advies op Maat voor een check van jouw karakter of stel direct je vraag!',
+                links: [
+                    { text: '📖 Volledige Gids & FAQ', url: '{{ route('faq.index') }}' }
+                ],
+                suggestions: [
+                    'Hoe pak ik €35.000 gratis startgeld?',
+                    'Hoe werken Grote Heists en vluchtauto\'s?',
+                    'Hoe werkt Liquidatie 2.0 met kogels?'
+                ]
+            }];
+        })(),
 
         // Input & Interactive state
         messageInput: '',
@@ -412,6 +491,11 @@ function tbsLiveMessenger(config) {
                 if (this.activePartnerId !== null && this.activePartnerId !== undefined) {
                     this.loadDirectMessages(this.activePartnerId);
                 }
+            } else if (tab === 'help') {
+                this.mobileView = 'chat';
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
             } else {
                 this.mobileView = 'chat';
                 if (tab === 'global') {
@@ -1008,6 +1092,8 @@ function tbsLiveMessenger(config) {
                 await this.loadPublicMessages();
             } else if (this.activeTab === 'gang') {
                 await this.loadGangMessages();
+            } else if (this.activeTab === 'help') {
+                // Instantaneous local AI assistance, no external network fetch needed
             } else {
                 if (this.activePartnerId !== null && this.activePartnerId !== undefined) {
                     await this.loadDirectMessages(this.activePartnerId);
@@ -1015,6 +1101,361 @@ function tbsLiveMessenger(config) {
                 await this.loadConversations();
             }
             setTimeout(() => { this.isRefreshing = false; }, 400);
+        },
+
+        syncToGlobalCache() {
+            if (!window.__tbsMiniChatCache) {
+                window.__tbsMiniChatCache = {};
+            }
+            window.__tbsMiniChatCache.helpMessages = this.helpMessages;
+        },
+
+        resetHelpChat() {
+            this.helpMessages = [{
+                from: 'bot',
+                text: 'Gesprek gewist! Waar kan ik je mee helpen? Kies een vraag hieronder of stel je eigen vraag.',
+                links: [
+                    { text: '📖 Volledige Gids & FAQ', url: '{{ route('faq.index') }}' },
+                    { text: '🎯 Dashboard', url: '{{ route('dashboard') }}' }
+                ],
+                suggestions: [
+                    'Hoe pak ik €35.000 gratis startgeld?',
+                    'Hoe verdien ik snel geld?',
+                    'Hoe beveilig ik mijn contante geld op de bank?'
+                ]
+            }];
+            this.syncToGlobalCache();
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
+        },
+
+        givePersonalAdvice() {
+            if (this.isHelpBotThinking) return;
+            this.isHelpBotThinking = true;
+            this.helpMessages.push({ from: 'user', text: '🎯 Geef mij persoonlijk advies op maat!' });
+            this.syncToGlobalCache();
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
+
+            setTimeout(() => {
+                try {
+                    const tips = [];
+                    const links = [];
+                    const fmtCash = new Intl.NumberFormat('nl-NL').format(this.cash || 0);
+                    const fmtBank = new Intl.NumberFormat('nl-NL').format(this.bank || 0);
+
+                    if (this.isComatose) {
+                        tips.push('🚑 NOODGEVAL: Je ligt in coma (0 HP)! Ga direct naar Zuster Ingrid in de Ziekenboeg of gebruik een Forensisch Reanimatie-Serum.');
+                        links.push({ text: '🏥 Naar de Ziekenboeg', url: '{{ route('infirmary.index') }}' });
+                    } else if (this.isImprisoned) {
+                        tips.push('⛓️ ISOLEERCEL: Je zit nu vast! Gebruik een IJzerzaagje (-30 min), probeer de luchtschacht, werk in de stoomwasserij, koop jezelf vrij (10 ⭐ in de Sterrenwinkel of 25 ⭐ in de cel) of laat een vriend je deur openbreken.');
+                        links.push({ text: '⛓️ Naar Isoleercel', url: '{{ route('prison') }}' });
+                    }
+
+                    if (!this.isComatose && (this.health ?? 100) < 85) {
+                        tips.push('❤️ GEZONDHEID (' + (this.health ?? 0) + '/100 HP): Je bent gewond! Laat je eerst 100% GRATIS verzorgen bij Zuster Ingrid (+45 HP per 4 min) voordat je gaat vechten.');
+                        links.push({ text: '🏥 Gratis Genezen bij Ingrid', url: '{{ route('infirmary.index') }}' });
+                    }
+
+                    if ((this.cash || 0) >= 1000) {
+                        if (this.isImprisoned) {
+                            tips.push('🚨 GELD OP ZAK (€' + fmtCash + '): Je hebt veel contant geld op zak! Zolang je in de isoleercel zit is de Geldmaat geblokkeerd — stort dit METEEN op De Bank zodra je vrij bent!');
+                        } else {
+                            tips.push('🚨 GELD OP ZAK (€' + fmtCash + '): Pas op! Je hebt veel contant geld in je broekzak. Stort dit METEEN gratis op De Bank zodat niemand je kan beroven!');
+                            links.push({ text: '🏦 Stort €' + fmtCash + ' op De Bank', url: '{{ route('bank.index') }}' });
+                        }
+                    } else {
+                        tips.push('🏦 BANKCHECK: Goed bezig! Je hebt weinig contant geld op zak (€' + fmtCash + ') en €' + fmtBank + ' veilig op de bank.');
+                    }
+
+                    if (this.isComatose) {
+                        tips.push('💀 CODE BLAUW: Je ligt in coma! Dagbesteding en training zijn geblokkeerd. Gebruik een Revive Serum uit je inventaris of vraag een mede-inmate om je te reanimeren!');
+                        links.push({ text: '🎒 Inventaris (Revive Serum)', url: '{{ route('shop.index', ['tab' => 'inventaris']) }}' });
+                    } else if (this.isImprisoned) {
+                        tips.push('🔒 ISOLEERCEL: Je zit vast! Dagbesteding en Krachthonk zijn geblokkeerd. Werk in de stoomwasserij, ontsnap via de luchtschacht of koop jezelf vrij.');
+                        links.push({ text: '🔒 Naar Isoleercel', url: '{{ route('prison') }}' });
+                    } else if ((this.energy ?? 0) >= 25) {
+                        tips.push('⚡ ENERGIE (' + (this.energy ?? 0) + '/100): Je hebt volop energie! Gebruik het nu voor veilige Dagbesteding, Hosselen of train je stats (10 Energie) in het Krachthonk.');
+                        links.push({ text: '🔨 Dagbesteding (Veilig)', url: '{{ route('daycare.index') }}' });
+                        links.push({ text: '🏋️ Krachthonk', url: '{{ route('training.index') }}' });
+                    } else {
+                        tips.push('🍫 LAGE ENERGIE (' + (this.energy ?? 0) + '/100): Eet een snack uit je inventaris, draai aan het Rad van Fortuin of doe elke 2 uur je Behandelaarsgesprek bij Dr. Vink!');
+                        links.push({ text: '🧠 Behandelaarsgesprek', url: '{{ route('treatment.index') }}' });
+                    }
+
+                    if ((this.level || 1) < 3) {
+                        tips.push('🚀 LEVEL ' + (this.level || 1) + ': Rond je 5 Rookie Taken op het Dashboard af (€6.500 + 30 kogels + 1 dag VIP) en reis tussen gebouwen (+35 XP per reis) om snel te stijgen!');
+                        links.push({ text: '🎯 Dashboard & Rookie Taken', url: '{{ route('dashboard') }}' });
+                    }
+
+                    if (!this.hasGang) {
+                        tips.push('👥 GEEN BENDE: Sluit je aan bij een Bende voor automatisch Bende-Uurloon elk uur (of blijf solo voor gratis Zakgeld per 15 min bij De Bank).');
+                        links.push({ text: '👥 Bende Zoeken', url: '{{ route('gangs.index') }}' });
+                    }
+
+                    if (!this.isVip) {
+                        tips.push('👑 GRATIS VIP TIP: Koppel je Discord (+3 dagen gratis VIP + €2.500) of kijk korte video\'s in de Sponsorkamer!');
+                        links.push({ text: '💬 Discord Koppelen (+3d VIP)', url: '{{ route('discord.verify') }}' });
+                        links.push({ text: '📺 Sponsorkamer', url: '{{ route('sponsor.index') }}' });
+                    }
+
+                    const uniqueLinks = [];
+                    const seenUrls = new Set();
+                    for (const l of links) {
+                        if (!seenUrls.has(l.url) && uniqueLinks.length < 4) {
+                            seenUrls.add(l.url);
+                            uniqueLinks.push(l);
+                        }
+                    }
+
+                    this.helpMessages.push({
+                        from: 'bot',
+                        text: '📋 PERSOONLIJKE STATUS-CHECK VOOR ' + (this.authCharName ? this.authCharName.toUpperCase() : 'JOU') + ' (Level ' + (this.level || 1) + '):\n\n• ' + tips.join('\n\n• '),
+                        links: uniqueLinks,
+                        suggestions: [
+                            'Hoe pak ik €35.000 gratis startgeld?',
+                            'Hoe werkt het Behandelaarsgesprek en 3u Verlof?',
+                            'Hoe werken Grote Heists en vluchtauto\'s?'
+                        ]
+                    });
+                    this.syncToGlobalCache();
+
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                } finally {
+                    this.isHelpBotThinking = false;
+                }
+            }, 250);
+        },
+
+        sendHelpQuery(custom = null) {
+            if (this.isHelpBotThinking) return;
+            const query = (custom || this.helpInput).trim();
+            if (!query) return;
+
+            const qRaw = query
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/(\d)\.(\d{3})\b/g, '$1$2')
+                .trim();
+
+            if (
+                qRaw.includes('advies op maat') ||
+                qRaw.includes('persoonlijk advies') ||
+                qRaw.includes('mijn status') ||
+                qRaw === 'advies' ||
+                qRaw === 'wat moet ik nu doen' ||
+                qRaw === 'wat moet ik nu doen?'
+            ) {
+                this.helpInput = '';
+                this.givePersonalAdvice();
+                return;
+            }
+
+            this.isHelpBotThinking = true;
+            this.helpMessages.push({ from: 'user', text: query });
+            if (this.helpMessages.length > 35) {
+                this.helpMessages = this.helpMessages.slice(-30);
+            }
+            this.helpInput = '';
+            this.syncToGlobalCache();
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
+
+            setTimeout(() => {
+                try {
+                    const cleanGreeting = qRaw.replace(/[^a-z\s]/g, '').trim();
+                    if (['hoi', 'hallo', 'hey', 'heey', 'yo', 'goedemorgen', 'goedemiddag', 'goedenavond', 'ewaa', 'ewa', 'fakka'].includes(cleanGreeting)) {
+                        this.helpMessages.push({
+                            from: 'bot',
+                            text: '👋 Hoi ' + (this.authCharName || 'patiënt') + '! Ik ben Zaalwacht Arjan, jouw persoonlijke gids in FPC De Balk.\n\nWil je dat ik jouw karakter controleer op tips? Klik dan op 🎯 Advies op Maat, of kies een vraag hieronder!',
+                            links: [
+                                { text: '🎯 Naar Dashboard', url: '{{ route('dashboard') }}' },
+                                { text: '📖 Volledige Gids & FAQ', url: '{{ route('faq.index') }}' }
+                            ],
+                            suggestions: [
+                                'Hoe pak ik €35.000 gratis startgeld?',
+                                'Hoe verdien ik snel geld?',
+                                'Hoe beveilig ik mijn geld op de bank?'
+                            ]
+                        });
+                        this.syncToGlobalCache();
+                        this.$nextTick(() => {
+                            this.scrollToBottom();
+                        });
+                        return;
+                    }
+
+                    if (['bedankt', 'thanks', 'dankje', 'dankjewel', 'thx', 'top', 'super'].includes(cleanGreeting)) {
+                        this.helpMessages.push({
+                            from: 'bot',
+                            text: 'Graag gedaan! Als je nog meer vragen hebt over de kliniek, stel ze gerust. En vergeet niet: zet je contante geld altijd op De Bank! 😉',
+                            links: [
+                                { text: '🏦 Naar De Bank', url: '{{ route('bank.index') }}' }
+                            ],
+                            suggestions: [
+                                'Hoe werken Grote Heists en vluchtauto\'s?',
+                                'Hoe graaf ik de Uitbraaktunnel voor +25 Sterren?'
+                            ]
+                        });
+                        this.syncToGlobalCache();
+                        this.$nextTick(() => {
+                            this.scrollToBottom();
+                        });
+                        return;
+                    }
+
+                    const stopWords = new Set([
+                        'hoe', 'wat', 'waar', 'waarom', 'wanneer', 'wie', 'welke', 'kan', 'kun', 'krijg',
+                        'heb', 'ben', 'word', 'moet', 'mag', 'wil', 'doen', 'doe', 'ik', 'je', 'jij', 'mijn',
+                        'de', 'het', 'een', 'en', 'of', 'in', 'op', 'bij', 'naar', 'van', 'voor', 'met', 'uit',
+                        'aan', 'om', 'te', 'er', 'niet', 'geen', 'wel', 'ook', 'nog', 'al', 'als', 'dan', 'maar',
+                        'dat', 'dit', 'zijn', 'is', 'zit', 'gaan', 'ga', 'kom', 'komen'
+                    ]);
+
+                    const allWords = qRaw.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length >= 2);
+                    const rawWords = allWords.filter(w => !stopWords.has(w));
+                    const searchWords = rawWords.length > 0 ? rawWords : allWords;
+
+                    const synonyms = {
+                        'geld': ['poen', 'cash', 'centen', 'euro', 'buit', 'verdienen', 'rijk', 'verdien', 'zakgeld', 'loon', 'hossel', 'inkomen'],
+                        'startgeld': ['rookie', '35000', '35k', 'welkomstbonus', 'push', 'meldingen', 'notificaties', 'eerste'],
+                        'energie': ['moe', 'stroom', 'leeg', 'weinig', 'chocola', 'snack', 'snacks', 'eten', 'herstel', 'herstellen', 'kantine', 'refill'],
+                        'trainen': ['kracht', 'verdediging', 'conditie', 'intelligentie', 'charisma', 'discipline', 'gym', 'krachthonk', 'sportzaal', 'stats'],
+                        'dagbesteding': ['werken', 'werkplaats', 'henk', 'wasgoed', 'houtbewerking', 'schoonmaak'],
+                        'vechten': ['luchtplaats', 'slaan', 'meppen', 'rammen', 'aanval', 'duel', 'slay', 'respect', 'respectlijst', 'gevecht', 'aanvallen'],
+                        'bank': ['sparen', 'storten', 'rente', 'rekening', 'beveiligen', 'beroofd', 'lening', 'lenen', 'geldmaat'],
+                        'isoleercel': ['gevangenis', 'cel', 'bajes', 'straf', 'vast', 'ontsnappen', 'straftijd', 'gepakt', 'boete', 'vrijkopen', 'ijzerzaagje', 'luchtschacht', 'stoomwasserij'],
+                        'vip': ['voordelen', 'kroon', 'shop', 'punten', 'donatie', 'sponsorkamer', 'sterren', 'discord'],
+                        'bende': ['gang', 'clan', 'alliantie', 'uurloon', 'team', 'bazen', 'leider', 'bendes', 'overstap'],
+                        'controlepunten': ['controlepunt', 'territorium', 'gebied', 'veroveren'],
+                        'moord': ['hitman', 'kogels', 'schieten', 'liquidatie', 'coma', 'vest', 'backfire', 'ricochet', 'bloedwraak', 'code blauw', 'serum', 'bullets', 'afstandssalvo'],
+                        'ziekenboeg': ['hp', 'gezondheid', 'healen', 'genezen', 'dokter', 'zuster', 'dood', 'gewond', 'pleister', 'verband', 'ingrid', 'brenda', 'pillen'],
+                        'kluis': ['kraken', 'medicijnkluis', 'code', 'raden', 'alarm', 'jammer', 'voucher', 'vouchers'],
+                        'koffer': ['onderscheppen', 'buitkrat', 'xxl', 'slot', 'koffers', 'breekijzer', 'lockpick'],
+                        'tunnel': ['graven', 'uitbraaktunnel', 'schep', 'zand', 'ontsnappingstunnel', 'eetlepel', 'lepel'],
+                        'behandelaar': ['behandelaarsgesprek', 'psychiater', 'verlof', 'sedatie', 'dilemma', 'vink'],
+                        'heist': ['heists', 'overval', 'garage', 'auto', 'voertuig', 'vluchtwagen', 'repareren'],
+                        'masker': ['maskers', 'bivakmuts', 'skibril', 'gasmasker', 'pakkans', 'zakkenrollen', 'hosselen'],
+                        'smokkelen': ['smokkel', 'drugs', 'wiet', 'koers', 'perks', 'perk', 'booster', 'boosters'],
+                        'reizen': ['verplaatsen', 'paviljoen', 'afdeling', 'xp', 'level', 'levelen'],
+                        'casino': ['gokken', 'roulette', 'slots', 'loterij', 'afdelingsloterij', 'jackpot', 'memory', 'true crime'],
+                        'isolatie': ['vrijwillige', 'bunker', 'bescherming', 'shield'],
+                        'vrienden': ['vriend', 'bff', 'radio', 'cinema'],
+                        'regels': ['account', 'vpn', 'multi', 'ticket', 'support', 'melden'],
+                        'beginnen': ['start', 'starten', 'nieuw', 'tips', 'uitleg', 'doel', 'beginner', 'stappenplan']
+                    };
+
+                    const expandedTerms = new Set();
+                    for (const [canonical, synList] of Object.entries(synonyms)) {
+                        if (searchWords.includes(canonical) || synList.some(s => searchWords.includes(s))) {
+                            if (!searchWords.includes(canonical)) expandedTerms.add(canonical);
+                            synList.forEach(s => {
+                                if (!searchWords.includes(s)) expandedTerms.add(s);
+                            });
+                        }
+                    }
+
+                    let scored = this.faqKnowledge.map(item => {
+                        let score = 0;
+                        const itemTitleLower = (item.title || '')
+                            .toLowerCase()
+                            .normalize('NFD')
+                            .replace(/[\u0300-\u036f]/g, '');
+                        const itemAnsLower = (item.answer || '')
+                            .toLowerCase()
+                            .normalize('NFD')
+                            .replace(/[\u0300-\u036f]/g, '');
+                        const itemKeywords = (item.keywords || []).map(k =>
+                            k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                        );
+
+                        if (qRaw.length >= 4 && itemTitleLower.includes(qRaw)) score += 45;
+                        if (qRaw.length >= 4 && itemKeywords.some(k => k === qRaw || (k.length >= 4 && (k.includes(qRaw) || qRaw.includes(k))))) {
+                            score += 35;
+                        }
+
+                        searchWords.forEach(word => {
+                            if (itemKeywords.includes(word)) {
+                                score += 28;
+                            } else if (word.length >= 4 && itemKeywords.some(k => k.length >= 4 && (k.includes(word) || word.includes(k)))) {
+                                score += 16;
+                            }
+                            if (word.length >= 3 && itemTitleLower.includes(word)) {
+                                score += 20;
+                            }
+                            if (word.length >= 4 && itemAnsLower.includes(word)) {
+                                score += 4;
+                            }
+                        });
+
+                        expandedTerms.forEach(term => {
+                            if (itemKeywords.includes(term)) {
+                                score += 10;
+                            } else if (term.length >= 4 && itemKeywords.some(k => k.length >= 4 && k.includes(term))) {
+                                score += 5;
+                            }
+                            if (term.length >= 3 && itemTitleLower.includes(term)) {
+                                score += 8;
+                            }
+                            if (term.length >= 4 && itemAnsLower.includes(term)) {
+                                score += 2;
+                            }
+                        });
+
+                        return { item, score };
+                    });
+
+                    scored.sort((a, b) => b.score - a.score);
+
+                    const bestMatch = scored[0];
+                    if (bestMatch && bestMatch.score >= 12) {
+                        let followUps = Array.isArray(bestMatch.item.suggestions) ? [...bestMatch.item.suggestions] : [];
+                        followUps = followUps.filter(s => s.toLowerCase().trim() !== query.toLowerCase().trim());
+                        if (followUps.length === 0) {
+                            followUps = scored
+                                .slice(1, 4)
+                                .filter(s => s.score >= 10)
+                                .map(s => (s.item.title || '').replace(/^[^\p{L}\p{N}]+/u, '').trim())
+                                .filter(s => s && s.toLowerCase() !== query.toLowerCase().trim());
+                        }
+
+                        this.helpMessages.push({
+                            from: 'bot',
+                            text: bestMatch.item.title + '\n\n' + bestMatch.item.answer,
+                            links: bestMatch.item.links || [],
+                            suggestions: followUps.slice(0, 3)
+                        });
+                    } else {
+                        this.helpMessages.push({
+                            from: 'bot',
+                            text: '🤔 Ik vond geen exact resultaat op "' + query + '". Probeer een kort trefwoord (zoals "bank", "energie", "vip", "heist", "tunnel" of "bende"), klik op 🎯 Advies op Maat, of kies een van deze onderwerpen:',
+                            links: [
+                                { text: '📖 Open Volledige Gids & FAQ', url: '{{ route('faq.index') }}' },
+                                { text: '🏦 Naar De Bank', url: '{{ route('bank.index') }}' },
+                                { text: '🎫 Support Ticket Maken', url: '{{ route('help.tickets.create') }}' }
+                            ],
+                            suggestions: [
+                                'Hoe pak ik €35.000 gratis startgeld?',
+                                'Hoe verdien ik snel geld?',
+                                'Hoe werkt vechten en de respectlijst?'
+                            ]
+                        });
+                    }
+                    this.syncToGlobalCache();
+
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                } finally {
+                    this.isHelpBotThinking = false;
+                }
+            }, 200);
         },
 
         scrollToBottom(smooth = false) {
@@ -1081,7 +1522,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <button type="button" 
                         @click="switchTab('global')" 
                         :class="activeTab === 'global' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'border border-transparent text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        class="flex-1 sm:flex-initial px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[10.5px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap">
                     <i class="fa-solid fa-bullhorn text-[11px]"></i>
                     <span>Plein</span>
                 </button>
@@ -1090,7 +1531,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <button type="button" 
                         @click="switchTab('gang')" 
                         :class="activeTab === 'gang' ? 'bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'border border-transparent text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative whitespace-nowrap">
+                        class="flex-1 sm:flex-initial px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[10.5px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 relative whitespace-nowrap">
                     <i class="fa-solid fa-walkie-talkie text-[11px]"></i>
                     <span>Bende</span>
                     @if($hasGang)
@@ -1114,7 +1555,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <button type="button" 
                         @click="switchTab('direct')" 
                         :class="activeTab === 'direct' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'border border-transparent text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative whitespace-nowrap">
+                        class="flex-1 sm:flex-initial px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[10.5px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 relative whitespace-nowrap">
                     <i class="fa-solid fa-user-lock text-[11px]"></i>
                     <span>Privé</span>
                     <span x-show="totalUnread > 0" 
@@ -1122,6 +1563,15 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                           class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black animate-pulse">
                         {{ $totalUnreadDms }}
                     </span>
+                </button>
+
+                <!-- AI HULP TAB -->
+                <button type="button" 
+                        @click="switchTab('help')" 
+                        :class="activeTab === 'help' ? 'bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-black shadow-xs border border-slate-200/80 dark:border-slate-700' : 'border border-transparent text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
+                        class="flex-1 sm:flex-initial px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[10.5px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 relative whitespace-nowrap">
+                    <i class="fa-solid fa-robot text-[11px] text-amber-500"></i>
+                    <span>AI Hulp</span>
                 </button>
             </div>
         </div>
@@ -1140,7 +1590,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
             <div class="p-4 border-b border-slate-200/90 dark:border-slate-800 space-y-3 shrink-0 bg-white dark:bg-slate-900">
                 <div class="flex items-center justify-between gap-2">
                     <span class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400" 
-                          x-text="activeTab === 'direct' ? 'Directe Gesprekken' : 'Kanalen & Ruimtes'">
+                          x-text="activeTab === 'direct' ? 'Directe Gesprekken' : (activeTab === 'help' ? 'AI Hulp & Spelgids' : 'Kanalen & Ruimtes')">
                     </span>
 
                     <template x-if="activeTab === 'direct'">
@@ -1286,6 +1736,83 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         </div>
                     @endif
 
+                </div>
+            </template>
+
+            <!-- AI HELP BOT SIDEBAR INFO -->
+            <template x-if="activeTab === 'help'">
+                <div class="p-3 space-y-3 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+                    <!-- ARJAN PROFILE CARD -->
+                    <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/70 shadow-2xs space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="relative shrink-0">
+                                <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}"
+                                     alt="Zaalwacht Arjan"
+                                     class="w-12 h-12 rounded-xl object-cover bg-purple-950 border border-amber-400/80 dark:border-amber-600/70 shadow-sm"
+                                     onerror="this.src='{{ asset('assets/logo.png') }}'">
+                                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5">
+                                    <h4 class="text-xs font-black text-amber-600 dark:text-amber-400 truncate">Zaalwacht Arjan</h4>
+                                    <span class="px-1.5 py-0.5 leading-none rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase shrink-0">Hulp AI</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">24/7 Spelgids & Adviseur</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5 pt-1 border-t border-slate-100 dark:border-slate-700/60">
+                            <button type="button" 
+                                    @click="givePersonalAdvice()" 
+                                    class="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-98">
+                                <i class="fa-solid fa-crosshairs text-xs"></i>
+                                <span>🎯 Vraag Advies op Maat</span>
+                            </button>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <button type="button" 
+                                        @click="resetHelpChat()" 
+                                        class="py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/60 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                                    <span>Reset Chat</span>
+                                </button>
+                                <a href="{{ route('faq.index') }}" 
+                                   class="py-1.5 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[11px] font-bold border border-purple-200/80 dark:border-purple-800/70 transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-book-open text-[10px]"></i>
+                                    <span>Spelgids</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- POPULAR TOPICS -->
+                    <div class="p-3.5 rounded-2xl bg-purple-50/90 dark:bg-purple-950/50 border border-purple-200/80 dark:border-purple-800/60 text-xs space-y-2">
+                        <div class="flex items-center gap-1.5 text-purple-800 dark:text-purple-300 font-black">
+                            <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                            <span>Snelkeuze Vragen</span>
+                        </div>
+                        <div class="space-y-1">
+                            <button type="button" @click="sendHelpQuery('Hoe pak ik €35.000 gratis startgeld?')" class="w-full text-left p-2 rounded-lg bg-white/80 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-900 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-purple-200/60 dark:border-purple-900/40 transition cursor-pointer flex items-center justify-between">
+                                <span>🎁 €35.000 Startgeld</span>
+                                <i class="fa-solid fa-chevron-right text-[9px] text-purple-400"></i>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe verdien ik snel geld?')" class="w-full text-left p-2 rounded-lg bg-white/80 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-900 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-purple-200/60 dark:border-purple-900/40 transition cursor-pointer flex items-center justify-between">
+                                <span>💰 Snel Geld Verdienen</span>
+                                <i class="fa-solid fa-chevron-right text-[9px] text-purple-400"></i>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe beveilig ik mijn contante geld op de bank?')" class="w-full text-left p-2 rounded-lg bg-white/80 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-900 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-purple-200/60 dark:border-purple-900/40 transition cursor-pointer flex items-center justify-between">
+                                <span>🏦 Geld Veilig op de Bank</span>
+                                <i class="fa-solid fa-chevron-right text-[9px] text-purple-400"></i>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe kom ik sneller uit de isoleercel?')" class="w-full text-left p-2 rounded-lg bg-white/80 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-900 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-purple-200/60 dark:border-purple-900/40 transition cursor-pointer flex items-center justify-between">
+                                <span>⛓️ Sneller Vrijkomen uit Cel</span>
+                                <i class="fa-solid fa-chevron-right text-[9px] text-purple-400"></i>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe werken Bendes en het Bende-Uurloon?')" class="w-full text-left p-2 rounded-lg bg-white/80 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-900 text-slate-800 dark:text-slate-200 text-[11px] font-bold border border-purple-200/60 dark:border-purple-900/40 transition cursor-pointer flex items-center justify-between">
+                                <span>👥 Bendes & Uurloon</span>
+                                <i class="fa-solid fa-chevron-right text-[9px] text-purple-400"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </template>
 
@@ -1506,10 +2033,52 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                             </div>
                         </div>
                     </template>
+
+                    <!-- HELP HEADER -->
+                    <template x-if="activeTab === 'help'">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="relative shrink-0">
+                                <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}"
+                                     alt="Zaalwacht Arjan"
+                                     class="w-10 h-10 rounded-xl object-cover bg-purple-950 border border-amber-400/80 dark:border-amber-600/70 shadow-sm"
+                                     onerror="this.src='{{ asset('assets/logo.png') }}'">
+                                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <h3 class="text-xs sm:text-sm font-black text-amber-600 dark:text-amber-400 tracking-tight truncate">
+                                        Zaalwacht Arjan
+                                    </h3>
+                                    <span class="px-1.5 py-0.5 leading-none rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase shrink-0">Slimme Hulp AI</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-semibold truncate">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>24/7 Kliniek Gids & Persoonlijk Advies</span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- RIGHT HEADER ACTIONS -->
                 <div class="flex items-center gap-2 shrink-0">
+                    <template x-if="activeTab === 'help'">
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" 
+                                    @click="resetHelpChat()" 
+                                    class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                                    title="Gesprek wissen">
+                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                <span class="hidden sm:inline">Reset</span>
+                            </button>
+                            <a href="{{ route('faq.index') }}" 
+                               class="px-2.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-xs font-bold transition flex items-center gap-1.5"
+                               title="Spelgids & Kennisbank">
+                                <i class="fa-solid fa-book-open text-[11px]"></i>
+                                <span class="hidden sm:inline">Gids</span>
+                            </a>
+                        </div>
+                    </template>
                     <template x-if="activeTab === 'direct' && activePartnerId !== null && !activePartner.is_bot && activePartner.id > 0">
                         <a :href="'/speler/' + encodeURIComponent(activePartner.name)" 
                            class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition flex items-center gap-1.5">
@@ -2166,12 +2735,191 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 </div>
             </template>
 
+            <!-- =============================== -->
+            <!-- 4. AI HELP MESSAGES STREAM      -->
+            <!-- =============================== -->
+            <template x-if="activeTab === 'help'">
+                <div class="space-y-3.5">
+                    <template x-for="(msg, i) in helpMessages" :key="i">
+                        <div class="flex items-start gap-2.5 sm:gap-3 group min-w-0 max-w-full" :class="msg.from !== 'bot' ? 'flex-row-reverse' : ''">
+                            <!-- AVATAR -->
+                            <template x-if="msg.from === 'bot'">
+                                <div class="relative shrink-0">
+                                    <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}"
+                                         alt="Zaalwacht Arjan"
+                                         class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover bg-purple-950 border border-amber-400/80 dark:border-amber-600/70 shadow-2xs shrink-0"
+                                         onerror="this.src='{{ asset('assets/logo.png') }}'">
+                                    <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
+                                </div>
+                            </template>
+                            <template x-if="msg.from !== 'bot'">
+                                <img :src="authCharAvatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                     class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/60 shadow-2xs shrink-0"
+                                     onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                            </template>
+
+                            <!-- MESSAGE BUBBLE & META -->
+                            <div class="max-w-[88%] sm:max-w-xl min-w-0 space-y-1" :class="msg.from !== 'bot' ? 'text-right' : 'text-left'">
+                                <!-- Sender Meta -->
+                                <div class="flex items-center gap-1.5 text-[11px] leading-tight font-bold flex-wrap" :class="msg.from !== 'bot' ? 'justify-end' : ''">
+                                    <template x-if="msg.from === 'bot'">
+                                        <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-extrabold">
+                                            <i class="fa-solid fa-shield-halved text-[10px] text-amber-500"></i>
+                                            <span>Zaalwacht Arjan</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="msg.from === 'bot'">
+                                        <span class="px-1 py-0.5 leading-none rounded bg-amber-500 text-slate-950 text-[7.5px] font-black uppercase shrink-0">Hulp AI</span>
+                                    </template>
+                                    <template x-if="msg.from !== 'bot'">
+                                        <span class="font-extrabold text-slate-900 dark:text-white" x-text="authCharName || 'Jij'"></span>
+                                    </template>
+                                </div>
+
+                                <!-- Bubble Content -->
+                                <div :class="msg.from === 'bot' 
+                                        ? 'bg-white dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700/70 rounded-tl-xs text-left shadow-2xs' 
+                                        : 'bg-purple-600 text-white font-medium rounded-tr-xs text-left shadow-md shadow-purple-900/10'"
+                                     class="inline-block rounded-2xl px-3.5 py-2.5 max-w-full space-y-2 break-words min-w-0">
+                                    <p class="whitespace-pre-line text-xs sm:text-[13px] leading-relaxed break-words" x-text="msg.text"></p>
+
+                                    <!-- Links in bot message -->
+                                    <template x-if="msg.links && msg.links.length > 0">
+                                        <div class="pt-1.5 flex flex-wrap gap-1.5 border-t border-slate-100 dark:border-slate-700/60">
+                                            <template x-for="lnk in msg.links">
+                                                <a :href="lnk.url" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[11px] font-black border border-purple-200/80 dark:border-purple-800/70 transition">
+                                                    <span x-text="lnk.text"></span> &raquo;
+                                                </a>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Follow-up suggestions -->
+                                    <template x-if="msg.suggestions && msg.suggestions.length > 0">
+                                        <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60 space-y-1.5">
+                                            <span class="block text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">💡 Klik voor vervolgvraag:</span>
+                                            <div class="flex flex-wrap gap-1.5">
+                                                <template x-for="sug in msg.suggestions">
+                                                    <button type="button" @click="sendHelpQuery(sug)" class="text-left inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-50/90 hover:bg-amber-100 dark:bg-slate-900/90 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 text-[11px] font-bold border border-amber-200/80 dark:border-slate-700 transition cursor-pointer">
+                                                        <span x-text="sug"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Thinking indicator -->
+                    <template x-if="isHelpBotThinking">
+                        <div class="flex items-start gap-2.5 sm:gap-3 group">
+                            <div class="relative shrink-0">
+                                <img src="{{ asset('assets/characters/oohpa_arjan_transparent.png') }}"
+                                     alt="Zaalwacht Arjan"
+                                     class="w-8 h-8 rounded-xl object-cover bg-purple-950 border border-amber-400/80 dark:border-amber-600/70 shadow-2xs"
+                                     onerror="this.src='{{ asset('assets/logo.png') }}'">
+                            </div>
+                            <div class="bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl rounded-tl-xs px-3.5 py-2.5 flex items-center gap-1.5 shadow-2xs">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-bounce"></span>
+                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-bounce [animation-delay:0.2s]"></span>
+                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-bounce [animation-delay:0.4s]"></span>
+                                <span class="text-xs text-slate-400 ml-1">Arjan zoekt in de dossiers...</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
         </div>
 
-        <!-- CHAT INPUT BAR (GLOBAL / GANG / DIRECT) -->
+        <!-- CHAT INPUT BAR (GLOBAL / GANG / DIRECT / HELP) -->
         <div class="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-slate-800 shrink-0 space-y-2">
             
-            @if($character->isImprisoned())
+            <!-- AI HELP INPUT & CHIPS BAR -->
+            <template x-if="activeTab === 'help'">
+                <div class="space-y-2">
+                    <!-- Quick FAQ Horizontal Chips Bar -->
+                    <div class="flex items-center gap-1 px-1">
+                        <button type="button"
+                                @click="$refs.helpChipsBar.scrollBy({ left: -180, behavior: 'smooth' })"
+                                title="Scroll naar links"
+                                aria-label="Scroll snelkeuzes naar links"
+                                class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-xs shrink-0 transition cursor-pointer shadow-2xs active:scale-95">
+                            <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                        </button>
+
+                        <div x-ref="helpChipsBar"
+                             @wheel.prevent="$refs.helpChipsBar.scrollLeft += ($event.deltaY || $event.deltaX)"
+                             class="tbs-help-chips-scroll flex-1 flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 px-0.5 scroll-smooth custom-scrollbar">
+                            <button type="button" @click="givePersonalAdvice()" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-400 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer shadow-2xs">
+                                <span>🎯 Advies op Maat</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe pak ik €35.000 gratis startgeld?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>🎁 €35k Startgeld</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe verdien ik snel geld?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>💰 Snel Geld</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe beveilig ik mijn contante geld op de bank?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>🏦 Geld op Bank</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe krijg ik energie?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>⚡ Energie</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe genees ik gratis mijn gezondheid (HP)?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>🏥 Gratis Genezen</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe werkt vechten en de respectlijst?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>🥊 Vechten & Respect</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe kom ik sneller uit de isoleercel?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>⛓️ Snel Uit de Cel</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe werken Grote Heists en vluchtauto\'s?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>🥷 Maskers & Heists</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe verdien ik 100% gratis VIP?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>👑 Gratis VIP</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Hoe werken Bendes en het Bende-Uurloon?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>👥 Bendes & Uurloon</span>
+                            </button>
+                            <button type="button" @click="sendHelpQuery('Wat moet ik doen als beginner?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                <span>🗺️ Beginnersgids</span>
+                            </button>
+                        </div>
+
+                        <button type="button"
+                                @click="$refs.helpChipsBar.scrollBy({ left: 180, behavior: 'smooth' })"
+                                title="Scroll naar rechts"
+                                aria-label="Scroll snelkeuzes naar rechts"
+                                class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-xs shrink-0 transition cursor-pointer shadow-2xs active:scale-95">
+                            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <!-- Help Input Form -->
+                    <form @submit.prevent="sendHelpQuery()" data-no-async="true" class="flex items-center gap-2">
+                        <input type="text" 
+                               x-model="helpInput" 
+                               placeholder="Stel elke vraag aan Zaalwacht Arjan (bijv. 'bank', 'heist', 'tunnel')..." 
+                               class="flex-1 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 sm:py-2.5 text-base sm:text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                        <button type="submit" 
+                                :disabled="!helpInput.trim() || isHelpBotThinking" 
+                                class="h-10 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white font-black text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <span class="hidden sm:inline">Vraag</span>
+                        </button>
+                    </form>
+                </div>
+            </template>
+
+            <!-- REGULAR CHAT INPUT BAR (GLOBAL / GANG / DIRECT) -->
+            <template x-if="activeTab !== 'help'">
+                <div class="space-y-2">
+                    @if($character->isImprisoned())
                 <div class="text-center py-2.5 px-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-xl text-xs text-amber-800 dark:text-amber-200 font-bold flex items-center justify-center gap-2">
                     <i class="fa-solid fa-lock text-amber-600 dark:text-amber-400"></i>
                     <span>Je zit in de isoleercel. Je kunt pas weer berichten sturen zodra je vrijkomt.</span>
@@ -2439,6 +3187,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 </div>
             </template>
             @endif
+            </div>
+            </template>
         </div>
 
     </div>

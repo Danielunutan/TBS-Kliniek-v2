@@ -44,6 +44,8 @@ class ChatController extends Controller
             $initialTab = 'direct';
         } elseif ($request->query('tab') === 'gang') {
             $initialTab = 'gang';
+        } elseif ($request->query('tab') === 'help') {
+            $initialTab = 'help';
         }
 
         // Friends list for quick starting new direct messages

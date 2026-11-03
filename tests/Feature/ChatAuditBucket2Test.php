@@ -415,4 +415,51 @@ class ChatAuditBucket2Test extends TestCase
 
         $this->assertEmpty($nakedAlerts, 'Found naked alert() calls without tbsToast/tbsAlert fallback: '.implode(', ', $nakedAlerts));
     }
+
+    public function test_chat_page_renders_ai_hulp_tab_and_zaalwacht_arjan(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'InmateBotTester',
+            'cash' => 2500,
+            'bank' => 10000,
+            'level' => 2,
+            'energy' => 80,
+            'max_energy' => 100,
+            'respect' => 50,
+            'is_onboarded' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get('/chat');
+
+        $response->assertOk();
+        $response->assertSee("switchTab('help')", false);
+        $response->assertSee('AI Hulp', false);
+        $response->assertSee('Zaalwacht Arjan', false);
+        $response->assertSee('givePersonalAdvice()', false);
+        $response->assertSee('sendHelpQuery(', false);
+    }
+
+    public function test_chat_page_supports_initial_tab_help(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'InmateTabTester',
+            'cash' => 1000,
+            'bank' => 5000,
+            'level' => 1,
+            'energy' => 100,
+            'max_energy' => 100,
+            'respect' => 10,
+            'is_onboarded' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get('/chat?tab=help');
+
+        $response->assertOk();
+        $response->assertViewHas('initialTab', 'help');
+        $response->assertSee("initialTab: 'help'", false);
+    }
 }
