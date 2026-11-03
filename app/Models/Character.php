@@ -6,6 +6,7 @@ use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\HalloweenService;
 use App\Services\LevelService;
+use App\Services\PsychiatricReportService;
 use App\Support\ProfileStickerCatalog;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -2929,102 +2930,36 @@ class Character extends Model
     }
 
     /**
-     * Generate dynamic official psychiatric evaluation report from Dr. Van Beek.
+     * Generate dynamic official psychiatric evaluation report from Dr. Van Beek tailored to player activity.
      *
-     * @return array{dossier_nr: string, threat_level: string, threat_color: string, threat_icon: string, danger_desc: string, diagnosis: string, doctor_notes: string, treatment_plan: string, doctor_name: string, doctor_role: string}
+     * @return array{
+     *     dossier_nr: string,
+     *     threat_level: string,
+     *     threat_color: string,
+     *     threat_badge_color: string,
+     *     threat_icon: string,
+     *     danger_desc: string,
+     *     threat_meter: int,
+     *     regime: string,
+     *     dsm_code: string,
+     *     diagnosis: string,
+     *     diagnosis_description: string,
+     *     doctor_notes: string,
+     *     treatment_plan: string,
+     *     medication: string,
+     *     doctor_name: string,
+     *     doctor_role: string,
+     *     big_registration: string,
+     *     forensic_indicators: array<int, array{label: string, value: string, status: string, badge_class: string, icon: string, note: string}>,
+     *     observed_incidents: array<int, string>,
+     *     prognosis: string,
+     *     patient_classification: string,
+     *     personality_traits: array<int, string>
+     * }
      */
     public function getPsychiatricReport(): array
     {
-        $fights = $this->fights_won;
-        $level = $this->level;
-        $wealth = $this->cash + $this->bank;
-
-        if ($fights >= 35 || $level >= 20) {
-            $threatLevel = 'Code Zwart';
-            $threatColor = 'bg-rose-100/90 dark:bg-slate-950 text-rose-950 dark:text-rose-300 border-rose-400 dark:border-rose-600/80 shadow-xs';
-            $threatBadgeColor = 'bg-rose-200/80 dark:bg-rose-500/20 text-rose-900 dark:text-rose-300 border-rose-400 dark:border-rose-500/50';
-            $threatIcon = 'fa-solid fa-biohazard text-rose-600 dark:text-rose-400 animate-pulse';
-            $dangerDesc = 'EXTREEM GEVAARLIJK. Maximale penitentiaire isolatie. Verhoogd ontsnappings- en gijzelingsrisico.';
-            $threatMeter = 100;
-            $regime = 'EBI - Extra Beveiligde Inrichting';
-        } elseif ($fights >= 15 || $level >= 10) {
-            $threatLevel = 'Code Rood';
-            $threatColor = 'bg-rose-50 dark:bg-rose-950/70 text-rose-900 dark:text-rose-200 border-rose-300 dark:border-rose-800 shadow-xs';
-            $threatBadgeColor = 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 border-rose-300 dark:border-rose-700';
-            $threatIcon = 'fa-solid fa-skull-crossbones text-rose-600 dark:text-rose-400';
-            $dangerDesc = 'Uiterst gewelddadig en dominant. Vermijd direct oogcontact tijdens recreatie en luchtuurtjes.';
-            $threatMeter = 80;
-            $regime = 'Afdeling Intensief Toezicht (AIT)';
-        } elseif ($fights >= 5 || $level >= 5) {
-            $threatLevel = 'Code Oranje';
-            $threatColor = 'bg-amber-50 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800 shadow-xs';
-            $threatBadgeColor = 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700';
-            $threatIcon = 'fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400';
-            $dangerDesc = 'Verhoogde waakzaamheid geboden. Vertoont manipulatief, territoriaal en opstandig gedrag.';
-            $threatMeter = 55;
-            $regime = 'Gesloten Behandelafdeling';
-        } elseif ($level >= 2) {
-            $threatLevel = 'Code Geel';
-            $threatColor = 'bg-yellow-50 dark:bg-yellow-950/70 text-yellow-900 dark:text-yellow-200 border-yellow-300 dark:border-yellow-800 shadow-xs';
-            $threatBadgeColor = 'bg-yellow-100 dark:bg-yellow-900/60 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700';
-            $threatIcon = 'fa-solid fa-circle-exclamation text-yellow-600 dark:text-yellow-400';
-            $dangerDesc = 'Matig risico. Patiënt past zich ogenschijnlijk aan de regels aan, maar beraamt plannen in de schaduw.';
-            $threatMeter = 30;
-            $regime = 'Regulier Gesloten Regime';
-        } else {
-            $threatLevel = 'Code Groen';
-            $threatColor = 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 shadow-xs';
-            $threatBadgeColor = 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700';
-            $threatIcon = 'fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400';
-            $dangerDesc = 'Nieuwe intake. Observatieperiode loopt nog; vooralsnog beheersbaar binnen de leefgroep.';
-            $threatMeter = 10;
-            $regime = 'Intake & Observatiegroep';
-        }
-
-        if ($wealth >= 100000) {
-            $dsmCode = 'DSM-TBS 301.81 / F60.8';
-            $diagnosis = 'Witteboorden-paranoia & Illegaal Vermogensbeheer';
-            $notes = 'Patiënt vertoont opvallende obsessie met zwarte geldstromen, sigarettenhandel en omkoping van mede-gedetineerden. Vermoedelijk spilfiguur in illegale smokkelnetwerken binnen de inrichting.';
-            $treatment = 'Regelmatige inspectie van celkluisjes en smokkelroutes; maximaal € 50 zakgeld per week toegestaan op de kliniekrekening.';
-            $medication = '15mg Oxazepam p.n. bij financiële onrust; strikte financiële curatele.';
-        } elseif ($fights >= 5) {
-            $dsmCode = 'DSM-TBS 312.34 / F63.81';
-            $diagnosis = 'Chronische Impuls-beheersingsstoornis & Luchtplaats-agressie';
-            $notes = 'Sterk ontwikkelde fysieke drang tot territoriumdrift en dominantie. Zoekt actief confrontaties op met mede-inwoners tijdens het luchtuurtje en krachttraining.';
-            $treatment = '200mg Kalmeringstabletten per dag; verplichte woedebeheersingstherapie en extra bewaking bij de gewichten en het recreatieplein.';
-            $medication = '200mg Haloperidol depot 1x p/w + Stemmingsstabilisatoren.';
-        } elseif (($this->thefts_succeeded ?? 0) >= 5) {
-            $dsmCode = 'DSM-TBS 312.32 / F63.2';
-            $diagnosis = 'Compulsieve Kleptomanie & Georganiseerde Beroepscriminaliteit';
-            $notes = 'Kan andermans eigendommen absoluut niet met rust laten. Beweegt zich geruisloos over de gangen en ontvreemdt systematisch persoonlijke bezittingen en gereedschappen.';
-            $treatment = 'Grondige fouillering bij het betreden en verlaten van gemeenschappelijke ruimtes; metaaldetectie bij celdeuren.';
-            $medication = '50mg Sertraline '.'s ochtends ter vermindering van compulsieve drang.';
-        } else {
-            $dsmCode = 'DSM-TBS 301.7 / F60.2';
-            $diagnosis = 'Anti-sociale Persoonlijkheidsstructuur (Type TBS-1)';
-            $notes = 'Vertoont typisch kliniekgedrag: zoekt allianties, bouwt reputatie op en probeert de regels van de inrichting naar eigen hand te zetten.';
-            $treatment = 'Wekelijkse één-op-één sessies met psychiater Dr. Van Beek; deelname aan kliniekactiviteiten en dagbesteding stimuleren.';
-            $medication = 'Geen zware medicatie geïndiceerd; gedragsmonitoring in teamoverleg.';
-        }
-
-        return [
-            'dossier_nr' => 'TBS-'.str_pad((string) $this->id, 5, '0', STR_PAD_LEFT),
-            'threat_level' => $threatLevel,
-            'threat_color' => $threatColor,
-            'threat_badge_color' => $threatBadgeColor,
-            'threat_icon' => $threatIcon,
-            'danger_desc' => $dangerDesc,
-            'threat_meter' => $threatMeter,
-            'regime' => $regime,
-            'dsm_code' => $dsmCode,
-            'diagnosis' => $diagnosis,
-            'doctor_notes' => $notes,
-            'treatment_plan' => $treatment,
-            'medication' => $medication,
-            'doctor_name' => 'Dr. H. van Beek',
-            'doctor_role' => 'Hoofd Behandelend Geneesheer Forensische Zorg',
-            'big_registration' => 'BIG: 492.019.481',
-        ];
+        return app(PsychiatricReportService::class)->generate($this);
     }
 
     /**

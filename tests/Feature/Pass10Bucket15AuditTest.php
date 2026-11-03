@@ -303,4 +303,32 @@ class Pass10Bucket15AuditTest extends TestCase
         $this->assertStringContainsString('tbs-help-chips-scroll', $view);
         $this->assertStringContainsString('x-ref="helpChipsBar"', $view);
     }
+
+    public function test_zaalwacht_arjan_and_faq_contain_koudbloedigheid_knowledge(): void
+    {
+        $knowledge = FaqController::getBotKnowledge();
+        $coldBloodedItem = collect($knowledge)->first(function (array $item): bool {
+            return in_array('koudbloedigheid', $item['keywords'] ?? [], true);
+        });
+
+        $this->assertNotNull($coldBloodedItem, 'Zaalwacht Arjan knowledge base must contain a koudbloedigheid entry.');
+        $this->assertStringContainsString('Koudbloedigheid', $coldBloodedItem['title']);
+        $this->assertStringContainsString('Ondergrondse Schietbaan', $coldBloodedItem['answer']);
+        $this->assertStringContainsString('Vechtoefening', $coldBloodedItem['answer']);
+        $this->assertStringContainsString('Munitiekisten', $coldBloodedItem['answer']);
+
+        $faqData = FaqController::getFaqData();
+        $this->assertArrayHasKey('liquidatie_pvp', $faqData);
+        $pvpQuestions = collect($faqData['liquidatie_pvp']['questions'] ?? []);
+        $hasColdBloodedFaq = $pvpQuestions->contains(function (array $q): bool {
+            return str_contains($q['q'], 'Koudbloedigheid');
+        });
+        $this->assertTrue($hasColdBloodedFaq, 'FAQ must contain a question explaining Koudbloedigheid.');
+
+        $this->actingAs($this->user);
+        $miniChatView = view('partials.mini_chat_and_report_modal', [
+            'character' => $this->character,
+        ])->render();
+        $this->assertStringContainsString("'koudbloedigheid':", $miniChatView);
+    }
 }

@@ -1110,7 +1110,7 @@
                         {{ $psychiatricReport['diagnosis'] }}
                     </h3>
                     <p class="text-xs text-stone-600 dark:text-slate-300 leading-relaxed font-sans pt-1 border-t border-stone-100 dark:border-slate-700/60">
-                        Vastgesteld conform klinische DSM-TBS standaarden. Patiënt toont een structureel patroon van verhoogde risicobereidheid, dominantiedrang en verminderde impulsremming.
+                        {{ $psychiatricReport['diagnosis_description'] ?? 'Vastgesteld conform klinische DSM-TBS standaarden. Patiënt toont een structureel patroon van verhoogde risicobereidheid, dominantiedrang en verminderde impulsremming.' }}
                     </p>
                 </div>
 
@@ -1143,9 +1143,9 @@
                     </div>
                     <div class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed bg-stone-50/80 dark:bg-slate-900/80 p-4 rounded-xl border border-stone-200/80 dark:border-slate-700/80 italic font-serif relative">
                         <span class="text-2xl text-stone-300 dark:text-slate-600 absolute -top-1 left-2 font-serif select-none">&ldquo;</span>
-                        <p class="relative z-10 pl-3">
+                        <div class="relative z-10 pl-3 space-y-2 whitespace-pre-line">
                             {{ $psychiatricReport['doctor_notes'] }}
-                        </p>
+                        </div>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-stone-100 dark:border-slate-700/60 text-[10px] text-stone-500 dark:text-slate-400">
                         <div class="flex items-center gap-2">
@@ -1158,6 +1158,73 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Card 4: Geverifieerd Forensisch Activiteitenprofiel & Incidentendossier -->
+                @if(!empty($psychiatricReport['forensic_indicators']) || !empty($psychiatricReport['observed_incidents']))
+                <div class="md:col-span-2 bg-stone-50/70 dark:bg-slate-950/60 rounded-xl p-5 border-2 border-stone-200/90 dark:border-slate-800/80 shadow-2xs space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 dark:border-slate-800 pb-3">
+                        <span class="text-[10px] font-black uppercase text-stone-600 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-pie text-purple-600 dark:text-purple-400"></i> Forensisch Activiteitenprofiel &amp; Gedragsindicatoren
+                        </span>
+                        <span class="text-[9px] font-mono text-stone-400 dark:text-slate-500 uppercase tracking-widest">
+                            Realtime justitiële verificatie &bull; {{ $psychiatricReport['patient_classification'] ?? 'Dossiergegevens' }}
+                        </span>
+                    </div>
+
+                    <!-- Forensic Indicator Badges Grid -->
+                    @if(!empty($psychiatricReport['forensic_indicators']))
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                        @foreach($psychiatricReport['forensic_indicators'] as $indicator)
+                        <div class="p-2.5 rounded-xl border {{ $indicator['badge_class'] ?? 'bg-white dark:bg-slate-800/60 border-stone-200 dark:border-slate-700' }} flex flex-col justify-between gap-1 shadow-2xs">
+                            <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-wider opacity-85">
+                                <span class="truncate flex items-center gap-1.5">
+                                    <i class="{{ $indicator['icon'] ?? 'fa-solid fa-circle-dot' }} text-[11px]"></i>
+                                    {{ $indicator['label'] }}
+                                </span>
+                            </div>
+                            <div class="text-xs font-black truncate">
+                                {{ $indicator['value'] }}
+                            </div>
+                            @if(!empty($indicator['note']))
+                            <div class="text-[9px] opacity-75 leading-tight truncate" title="{{ $indicator['note'] }}">
+                                {{ $indicator['note'] }}
+                            </div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                    @endif
+
+                    <!-- Specific Observed Incidents from Dossier -->
+                    @if(!empty($psychiatricReport['observed_incidents']))
+                    <div class="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/80 border border-stone-200/90 dark:border-slate-800 space-y-2">
+                        <div class="text-[10px] font-black uppercase tracking-wider text-stone-600 dark:text-slate-300 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-indigo-500"></i>
+                                <span>Geverifieerde Feiten &amp; Observaties in Dossier:</span>
+                            </span>
+                            @if(!empty($psychiatricReport['personality_traits']))
+                            <div class="hidden sm:flex items-center gap-1">
+                                @foreach($psychiatricReport['personality_traits'] as $trait)
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60 font-mono">
+                                    #{{ $trait }}
+                                </span>
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] text-stone-700 dark:text-slate-300">
+                            @foreach($psychiatricReport['observed_incidents'] as $incident)
+                            <div class="flex items-start gap-2">
+                                <i class="fa-solid fa-check text-emerald-600 dark:text-emerald-400 text-[10px] mt-0.5 shrink-0"></i>
+                                <span class="leading-tight">{{ $incident }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                </div>
+                @endif
             </div>
 
             <!-- Barcode & Official Stamp Footer -->
@@ -1190,31 +1257,40 @@
             </button>
 
             <div x-show="openExplainer" x-collapse x-cloak class="px-5 pb-5 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
                     <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1">
                         <span class="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-[11px]">
                             <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Dreigingsniveau
                         </span>
                         <p class="text-[11px] text-slate-600 dark:text-slate-300">
-                            Bepaald door je <strong>Level</strong> en het aantal <strong>gewonnen gevechten</strong>. Stijgt van <em>Code Groen</em> (intake) naar <em>Geel</em>, <em>Oranje</em>, <em>Rood</em> tot het gevreesde <em>Code Zwart</em> (EBI status).
+                            Bepaald door je <strong>Level</strong>, <strong>geweldsconfrontaties</strong>, <strong>ontsnappingspogingen</strong>, <strong>liquidaties</strong> en <strong>zwart geld</strong>. Loopt op van <em>Code Groen</em> (intake) tot het gevreesde <em>Code Zwart</em> (EBI status).
                         </p>
                     </div>
 
                     <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1">
                         <span class="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-[11px]">
-                            <i class="fa-solid fa-brain text-purple-600 dark:text-purple-400"></i> Dynamische Diagnose
+                            <i class="fa-solid fa-brain text-purple-600 dark:text-purple-400"></i> Unieke Diagnose
                         </span>
                         <p class="text-[11px] text-slate-600 dark:text-slate-300">
-                            Dr. Van Beek analyseert je gedrag: meer dan <strong>€100.000 vermogen</strong> geeft <em>Witteboorden-paranoia</em>, veel <strong>vechten</strong> geeft <em>Impuls-agressie</em>, en veel <strong>diefstallen</strong> geeft <em>Kleptomanie</em>.
+                            Dr. Van Beek analyseert je dominante gedrag: <em>Witteboorden-paranoia</em>, <em>Luchtplaats-agressie</em>, <em>Uitbraakobsessie</em>, <em>Kleptomanie</em>, <em>Medicatiestelen</em>, <em>Cyber-sabotage</em>, <em>Kartelleiderschap</em> of <em>Schijnaanpassing</em>.
                         </p>
                     </div>
 
                     <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1">
                         <span class="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-[11px]">
-                            <i class="fa-solid fa-prescription-bottle-medical text-rose-600 dark:text-rose-400"></i> Behandeling &amp; Medicatie
+                            <i class="fa-solid fa-prescription-bottle-medical text-rose-600 dark:text-rose-400"></i> Behandeling &amp; Kuur
                         </span>
                         <p class="text-[11px] text-slate-600 dark:text-slate-300">
-                            Elke diagnose krijgt een passend kliniekvoorschrift, variërend van lichte dagbesteding tot zware kalmeringsdepots en strikte fouillering bij de cellen.
+                            Elke diagnose krijgt een passend forensisch recept (o.a. Oxazepam, Haloperidol, Sertraline, Lithium) en specifieke inrichtingsmaatregelen voor jouw cel en regime.
+                        </p>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1">
+                        <span class="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-[11px]">
+                            <i class="fa-solid fa-chart-line text-emerald-600 dark:text-emerald-400"></i> Realtime Activiteit
+                        </span>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-300">
+                            Al je acties in de inrichting (dagbesteding, vechten, stelen, graven, achterovergedrukte pillen, hacks en syndicaatsbanden) worden realtime opgenomen in je verslag.
                         </p>
                     </div>
                 </div>

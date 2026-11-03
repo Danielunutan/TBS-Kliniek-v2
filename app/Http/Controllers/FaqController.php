@@ -320,6 +320,21 @@ class FaqController extends Controller
                         'q' => 'Wat is Bloedwraak (Blood Feuds) voor bendes?',
                         'a' => "💡 IN HET KORT: Wordt iemand uit jouw bende neergeschoten? Dan mag jouw hele bende 24 uur lang zonder level-limiet wraak nemen op de dader!\n\n📋 VOORDELEN VAN BLOEDWRAAK:\n• Geen 15-level aanvalslimiet tegen de dader gedurende 24 uur;\n• Wie de dader terugpakt wint direct +50 Respect, €25.000 cash én +150 Bende-Respect voor de club!",
                     ],
+                    [
+                        'q' => 'Wat is Koudbloedigheid, waarom heb ik het nodig en hoe train ik het?',
+                        'a' => "💡 IN HET KORT: Koudbloedigheid (0%–100%) is jouw precisie- en kaliberfocus bij Liquidatie 2.0. Vanaf Dossier-Graad 25 én minimaal 30% Koudbloedigheid kun je met een dodelijk 1-Patroon Genadeschot schieten!\n\n📋 3 MANIEREN OM KOUDBLOEDIGHEID TE TRAINEN / VERHOGEN:\n1. 🎯 Ondergrondse Schietbaan ('/liquidatie'): Voor €350.000 contant/bank + 15 Energie krijg je direct +10% Koudbloedigheid en +120 XP (of 25 Sterren ⭐ voor +15% Koudbloedigheid zonder energiekosten).\n2. 🥊 Vechtoefening ('/vechtoefening'): Elke training tegen een bokspop geeft direct +4% Koudbloedigheid erbij (naast statpunten en XP)!\n3. 📦 Grote Munitiekisten Kopen ('/liquidatie'): De Paviljoen Munitiekist geeft direct +5%, de Syndicaat Wapenkist +10%, en de Kartel Arsenaalcontainer +15% Koudbloedigheid!\n\n🔥 LET OP: Schieten kost focus (-12% bij een Genadeschot, -6% bij een salvo). Zakt je Koudbloedigheid onder de 30%? Dan trilt je hand en kun je tijdelijk niet met 1 patroon schieten tot je weer bijtraint!",
+                        'links' => [
+                            ['text' => 'Naar Liquidatie & Schietbaan', 'url' => route('hitman.index')],
+                            ['text' => 'Naar Vechtoefening (+4%)', 'url' => route('combat_training.index')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Wat is het verschil tussen een 1-Patroon Genadeschot en een Salvo (Dossier-Graad 25)?',
+                        'a' => "💡 IN HET KORT: Een Genadeschot vuurt exact 1 patroon af met maximale precisie; een Salvo vuurt minimaal 10 patronen tegelijk af.\n\n📋 VOORWAARDEN & VERSCHILLEN:\n• 🎯 1-Patroon Genadeschot: Vereist Dossier-Graad 25+ (Forensisch Scherpschutter) én minimaal 30% Koudbloedigheid. Kost slechts 1 patroon en verlaagt je Koudbloedigheid met -12% focus.\n• 💥 Normaal Salvo: Kan op elke graad worden geschoten (minimaal 10 patronen). Kost -6% Koudbloedigheid focus per schot. Voor een salvo dat jouw graad aanbeveelt ontvang je bovendien een +20% Barrage Bonus!\n\n🔥 PRO-TIP: Houd je Koudbloedigheid altijd boven de 30% door na een liquidatie even te trainen op de Ondergrondse Schietbaan!",
+                        'links' => [
+                            ['text' => 'Naar Liquidatie 2.0', 'url' => route('hitman.index')],
+                        ],
+                    ],
                 ],
             ],
             'economie' => [
@@ -875,6 +890,20 @@ class FaqController extends Controller
                     'Hoe bescherm ik mezelf tegen aanvallen?',
                     'Hoe verdien ik 100% gratis VIP?',
                     'Hoe werkt Verplaatsen (+35 XP per reis)?',
+                ],
+            ],
+            [
+                'title' => '🎯 Koudbloedigheid, Schietbaan & 1-Patroon Genadeschot',
+                'keywords' => ['koudbloedigheid', 'koudbloedig', 'kaliberfocus', 'focus', 'schietbaan', 'ondergrondse', 'genadeschot', 'precisieschot', '1-patroon', 'patroon', 'patronen', 'salvo', 'munitiekist', 'munitiekisten', 'dossier', 'dossiergraad', 'graad', 'graad 25', 'kaliber', 'richtvermogen'],
+                'answer' => "💡 IN HET KORT: Koudbloedigheid (0%–100%) is je precisiefocus bij Liquidatie 2.0. Vanaf Dossier-Graad 25 én minimaal 30% Koudbloedigheid schiet je met een dodelijk 1-Patroon Genadeschot!\n\n📋 3 MANIEREN OM KOUDBLOEDIGHEID TE TRAINEN / VERHOGEN:\n1. 🎯 Ondergrondse Schietbaan ('/liquidatie'): Voor €350.000 contant/bank + 15 Energie krijg je direct +10% Koudbloedigheid en +120 XP (of 25 Sterren ⭐ voor +15% Koudbloedigheid zonder energiekosten).\n2. 🥊 Vechtoefening ('/vechtoefening'): Elke trainingsronde tegen een oefenpop geeft direct +4% Koudbloedigheid (naast stats & XP)!\n3. 📦 Grote Munitiekisten Kopen ('/liquidatie'): De Paviljoen Munitiekist geeft direct +5%, de Syndicaat Wapenkist +10%, en de Kartel Arsenaalcontainer +15% Koudbloedigheid!\n\n🔥 LET OP: Elk schot kost focus (-12% bij een Genadeschot, -6% bij een salvo). Zakt je Koudbloedigheid onder de 30%? Dan trilt je hand en kun je pas weer met 1 patroon schieten als je hebt bijgetraind!",
+                'links' => [
+                    ['text' => '🎯 Naar Liquidatie & Schietbaan', 'url' => route('hitman.index')],
+                    ['text' => '🥊 Naar Vechtoefening (+4%)', 'url' => route('combat_training.index')],
+                ],
+                'suggestions' => [
+                    'Hoe werkt Liquidatie 2.0 met kogels?',
+                    'Wat doet een Backfire-vest tegen kogels?',
+                    'Hoe werkt vechten en de respectlijst?',
                 ],
             ],
             [
