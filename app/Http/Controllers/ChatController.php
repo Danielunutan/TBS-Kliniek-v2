@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\ChatMessage;
 use App\Models\DirectMessage;
 use App\Models\Friend;
+use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\User;
 use App\Services\EnergyService;
@@ -37,6 +38,19 @@ class ChatController extends Controller
         }
 
         $this->energyService->refresh($character);
+
+        GameNotification::where('character_id', $character->id)
+            ->where('type', 'chat_mention')
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        DirectMessage::whereNull('sender_id')
+            ->where('recipient_id', $character->id)
+            ->where('type', 'chat_mention')
+            ->where('is_read', false)
+            ->update(['is_read' => true, 'read_at' => now()]);
+
+        Cache::forget("dm_unread_count_{$character->id}");
 
         $initialTab = $request->query('tab', 'global');
         $initialRecipient = (int) $request->query('recipient', 0);
@@ -461,6 +475,8 @@ class ChatController extends Controller
 
         Cache::put("chat_last_id_{$channel}", (int) $chatMsg->id, now()->addHours(24));
 
+        $this->notifyMentionedCharacters($chatMsg, $character, $cleanMessage, $channel);
+
         $gang = $character->gang;
 
         $isOwner = (bool) ($user->isOwner());
@@ -514,6 +530,116 @@ class ChatController extends Controller
                 'can_delete' => (bool) ($chatMsg->character_id === $character->id || $user?->isStaff() || $user?->canModerate() || $user?->isModerator() || $user?->isAdmin() || $user?->isOwner()),
             ],
         ]);
+    }
+
+    /**
+     * Find characters mentioned in the message text.
+     *
+     * @return array<int, Character>
+     */
+    protected function extractMentionedCharacters(string $message, Character $author, string $channel): array
+    {
+        if (! str_contains($message, '@')) {
+            return [];
+        }
+
+        $allNames = Cache::remember('all_character_names_list', 300, function () {
+            return Character::orderByRaw('LENGTH(name) DESC')->pluck('name')->all();
+        });
+
+        $candidates = [];
+
+        if (! empty($allNames)) {
+            $escaped = array_map(fn ($n) => preg_quote($n, '/'), $allNames);
+            $pattern = '/(?<![\w@])@('.implode('|', $escaped).')(?=$|[^\p{L}\p{N}])/ui';
+            if (preg_match_all($pattern, $message, $matches)) {
+                foreach ($matches[1] as $name) {
+                    $candidates[] = mb_strtolower(trim($name));
+                }
+            }
+        }
+
+        if (preg_match_all('/(?<![\w@])@([\p{L}\p{N}_\.\-]+)/u', $message, $matchesSingle)) {
+            foreach ($matchesSingle[1] as $name) {
+                $candidates[] = mb_strtolower(trim($name));
+            }
+        }
+
+        $candidates = array_values(array_unique(array_filter($candidates)));
+        if (empty($candidates)) {
+            return [];
+        }
+
+        $query = Character::whereRaw('LOWER(name) IN ('.implode(',', array_fill(0, count($candidates), '?')).')', $candidates)
+            ->where('id', '!=', $author->id);
+
+        if (str_starts_with($channel, 'gang_')) {
+            $gangId = (int) str_replace('gang_', '', $channel);
+            $query->where('gang_id', $gangId);
+        }
+
+        return $query->get()->all();
+    }
+
+    /**
+     * Send notifications to characters mentioned in the chat.
+     */
+    protected function notifyMentionedCharacters(ChatMessage $chatMsg, Character $author, string $message, string $channel): void
+    {
+        $mentionedCharacters = $this->extractMentionedCharacters($message, $author, $channel);
+
+        if ($chatMsg->reply_to_id > 0) {
+            $repliedMsg = ChatMessage::with('character')->find($chatMsg->reply_to_id);
+            if ($repliedMsg?->character && $repliedMsg->character->id !== $author->id) {
+                $canAddReply = true;
+                if (str_starts_with($channel, 'gang_')) {
+                    $gangId = (int) str_replace('gang_', '', $channel);
+                    $canAddReply = ((int) $repliedMsg->character->gang_id === $gangId);
+                }
+                if ($canAddReply) {
+                    $alreadyIncluded = collect($mentionedCharacters)->contains('id', $repliedMsg->character->id);
+                    if (! $alreadyIncluded) {
+                        $mentionedCharacters[] = $repliedMsg->character;
+                    }
+                }
+            }
+        }
+
+        if (empty($mentionedCharacters)) {
+            return;
+        }
+
+        $isGang = str_starts_with($channel, 'gang_');
+        $channelTitle = $isGang ? 'Bende Chat' : 'Chat';
+        $snippet = Str::limit($message, 100);
+
+        foreach ($mentionedCharacters as $target) {
+            $recentlyNotified = GameNotification::where('character_id', $target->id)
+                ->where('type', 'chat_mention')
+                ->where('created_at', '>=', now()->subSeconds(5))
+                ->exists();
+
+            if ($recentlyNotified) {
+                continue;
+            }
+
+            $isReplyOnly = ($chatMsg->reply_to_id > 0 && ! str_contains(mb_strtolower($message), '@'.mb_strtolower($target->name)));
+            $title = $isReplyOnly
+                ? "Reactie op jouw bericht in {$channelTitle}"
+                : "Vermeld in {$channelTitle}";
+            $notificationMessage = $isReplyOnly
+                ? "{$author->name} heeft gereageerd op jouw bericht in de {$channelTitle}: \"{$snippet}\""
+                : "{$author->name} heeft je genoemd in de {$channelTitle}: \"{$snippet}\"";
+
+            GameNotification::create([
+                'character_id' => $target->id,
+                'type' => 'chat_mention',
+                'icon' => 'fa-at',
+                'title' => $title,
+                'message' => $notificationMessage,
+                'is_read' => false,
+            ]);
+        }
     }
 
     /**

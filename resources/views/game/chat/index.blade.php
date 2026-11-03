@@ -284,7 +284,7 @@ function tbsLiveMessenger(config) {
             let isTagged = false;
             if (msg.message) {
                 const escaped = myNameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const tagRegex = new RegExp('(^|\\s)@' + escaped + '(?=$|[^\\p{L}\\p{N}])', 'iu');
+                const tagRegex = new RegExp('(?<![\\w@])@' + escaped + '(?=$|[^\\p{L}\\p{N}])', 'iu');
                 isTagged = tagRegex.test(msg.message);
             }
             const isReplied = (msg.reply_to_name && msg.reply_to_name.toLowerCase() === myNameLower);
@@ -656,7 +656,14 @@ function tbsLiveMessenger(config) {
                             const newOthers = data.messages.filter(m => !m.is_me);
                             if (newOthers.length > 0) {
                                 const notifyMsg = newOthers.find(m => this.isMessageMentioningMe(m));
-                                if (notifyMsg) this.playChime();
+                                if (notifyMsg) {
+                                    this.playChime();
+                                    if (window.tbsToast) {
+                                        const myNameLower = (this.myName || this.authCharName || '').toLowerCase();
+                                        const isReplied = (notifyMsg.reply_to_name && notifyMsg.reply_to_name.toLowerCase() === myNameLower);
+                                        window.tbsToast((!isReplied ? '🔔 Je bent getagd door ' : '↩️ Reactie van ') + notifyMsg.name + ': ' + notifyMsg.message, 'info', 7000);
+                                    }
+                                }
                             }
 
                             const existingIds = new Set(this.publicMessagesList.map(m => Number(m.id)));
@@ -687,7 +694,14 @@ function tbsLiveMessenger(config) {
                             const newOthers = data.messages.filter(m => !m.is_me);
                             if (newOthers.length > 0) {
                                 const notifyMsg = newOthers.find(m => this.isMessageMentioningMe(m));
-                                if (notifyMsg) this.playChime();
+                                if (notifyMsg) {
+                                    this.playChime();
+                                    if (window.tbsToast) {
+                                        const myNameLower = (this.myName || this.authCharName || '').toLowerCase();
+                                        const isReplied = (notifyMsg.reply_to_name && notifyMsg.reply_to_name.toLowerCase() === myNameLower);
+                                        window.tbsToast('🔔 [' + (this.gangTag || 'Bende') + '] ' + (!isReplied ? 'Getagd door ' : 'Reactie van ') + notifyMsg.name + ': ' + notifyMsg.message, 'info', 7000);
+                                    }
+                                }
                             }
 
                             const existingIds = new Set(this.gangMessagesList.map(m => Number(m.id)));

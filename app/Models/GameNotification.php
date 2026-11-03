@@ -62,6 +62,7 @@ class GameNotification extends Model
                     'level' => '⭐',
                     'gang' => '🛡️',
                     'reward', 'daily_reward' => '🎁',
+                    'chat_mention', 'mention' => '💬',
                     default => '📢',
                 };
 
@@ -79,6 +80,7 @@ class GameNotification extends Model
                         'icon' => $notification->icon,
                         'title' => $isLiquidationNotification ? 'Liquidatie Incidentenrapport' : $notification->title,
                         'game_notification_id' => $notification->id,
+                        'channel' => str_contains($notification->title ?? '', 'Bende') ? 'gang' : 'global',
                     ],
                     'is_read' => (bool) $notification->is_read,
                 ]);
@@ -94,6 +96,7 @@ class GameNotification extends Model
                     'prison', 'isolation' => '/gevangenis',
                     'gang' => '/gangs',
                     'reward', 'daily_reward' => '/dashboard',
+                    'chat_mention', 'mention' => str_contains($notification->title ?? '', 'Bende') ? '/chat?tab=gang' : '/chat',
                     default => '/dashboard',
                 };
 

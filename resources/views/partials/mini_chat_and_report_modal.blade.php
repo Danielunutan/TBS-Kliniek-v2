@@ -214,16 +214,20 @@
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
              @click="openToastDestination()"
-             :class="toastNotification.type === 'direct' 
+             :class="toastNotification.dm_type === 'chat_mention' 
+                ? (toastNotification.channel === 'gang' ? 'border-amber-400 dark:border-amber-600/80 shadow-amber-900/15' : 'border-emerald-300 dark:border-emerald-800/80 shadow-emerald-900/10')
+                : (toastNotification.type === 'direct' 
                 ? (toastNotification.is_bot ? 'border-amber-300 dark:border-amber-700/80 shadow-amber-900/10' : 'border-purple-300 dark:border-purple-800/80 shadow-purple-900/10') 
-                : (toastNotification.type === 'gang' ? 'border-amber-400 dark:border-amber-600/80 shadow-amber-900/15' : 'border-emerald-300 dark:border-emerald-800/80 shadow-emerald-900/10')"
+                : (toastNotification.type === 'gang' ? 'border-amber-400 dark:border-amber-600/80 shadow-amber-900/15' : 'border-emerald-300 dark:border-emerald-800/80 shadow-emerald-900/10'))"
              class="tbs-mini-chat-toast bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border rounded-2xl p-3.5 shadow-xl flex items-start gap-3.5 cursor-pointer max-w-[calc(100vw-2rem)] sm:max-w-sm w-[360px] transform hover:-translate-y-0.5 transition-all relative overflow-hidden group">
             
             <!-- Top Accent Gradient Line -->
             <div class="absolute top-0 inset-x-4 h-[2px] rounded-full"
-                 :class="toastNotification.type === 'direct' 
-                    ? (toastNotification.is_bot ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600' : 'bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600') 
-                    : (toastNotification.type === 'gang' ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600' : 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500')"></div>
+                 :class="toastNotification.dm_type === 'chat_mention'
+                    ? (toastNotification.channel === 'gang' ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600' : 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500')
+                    : (toastNotification.type === 'direct' 
+                        ? (toastNotification.is_bot ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600' : 'bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600') 
+                        : (toastNotification.type === 'gang' ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600' : 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500'))"></div>
 
             <!-- Avatar / Icon Box -->
             <div class="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border mt-0.5 shadow-2xs"
@@ -249,7 +253,14 @@
 
                     <div class="flex items-center gap-1 shrink-0">
                         <!-- Badges -->
-                        <template x-if="toastNotification.type === 'direct' && toastNotification.is_bot">
+                        <template x-if="toastNotification.dm_type === 'chat_mention'">
+                            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1"
+                                  :class="toastNotification.channel === 'gang' ? 'text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800' : 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800'">
+                                <i class="fa-solid fa-at text-[8px]" :class="toastNotification.channel === 'gang' ? 'text-amber-600' : 'text-emerald-600'"></i>
+                                <span x-text="toastNotification.channel === 'gang' ? 'Bende Tag' : 'Chat Tag'"></span>
+                            </span>
+                        </template>
+                        <template x-if="toastNotification.dm_type !== 'chat_mention' && toastNotification.type === 'direct' && toastNotification.is_bot">
                             <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800 flex items-center gap-1">
                                 <i class="fa-solid fa-bullhorn text-[8px] text-amber-600"></i>
                                 <span>Directie</span>
@@ -2372,7 +2383,7 @@
                 let isTagged = false;
                 if (msg.message) {
                     const escaped = myNameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const tagRegex = new RegExp('(^|\\s)@' + escaped + '(?=$|[^\\p{L}\\p{N}])', 'iu');
+                    const tagRegex = new RegExp('(?<![\\w@])@' + escaped + '(?=$|[^\\p{L}\\p{N}])', 'iu');
                     isTagged = tagRegex.test(msg.message);
                 }
                 const isReplied = (msg.reply_to_name && msg.reply_to_name.toLowerCase() === myNameLower);
@@ -3174,7 +3185,14 @@
                 const note = this.toastNotification;
                 this.toastNotification = null;
                 this.isOpen = true;
-                if (note.type === 'direct' && note.partner_id !== undefined) {
+                if (note.dm_type === 'chat_mention' || note.type === 'chat_mention') {
+                    if (note.channel && note.channel.startsWith('gang')) {
+                        this.setTab('gang');
+                    } else {
+                        this.setTab('global');
+                    }
+                    fetch('/chat/prive/0', { headers: { 'Accept': 'application/json' } }).catch(() => {});
+                } else if (note.type === 'direct' && note.partner_id !== undefined) {
                     this.openDirectChat({
                         id: note.partner_id,
                         partner_id: note.partner_id,
@@ -3878,20 +3896,33 @@
                                                         .catch(() => {});
                                                 }
                                             } else {
+                                                const isChatMention = (dm.type === 'chat_mention');
+                                                const mentionChannel = (dm.metadata && dm.metadata.channel) ? dm.metadata.channel : 'global';
+
+                                                if (isChatMention) {
+                                                    if (mentionChannel === 'gang') {
+                                                        this.unreadGangMentionsCount = (this.unreadGangMentionsCount || 0) + 1;
+                                                    } else {
+                                                        this.unreadMentionsCount = (this.unreadMentionsCount || 0) + 1;
+                                                    }
+                                                }
+
                                                 this.toastNotification = {
-                                                    type: 'direct',
+                                                    type: isChatMention ? mentionChannel : 'direct',
+                                                    dm_type: dm.type || 'chat',
                                                     partner_id: dm.sender_id,
-                                                    name: dm.sender_name,
-                                                    text: dm.message,
+                                                    name: isChatMention ? (mentionChannel === 'gang' ? `[${this.gangTag || 'Bende'}] Bende Chat` : 'Kliniek Plein') : dm.sender_name,
+                                                    text: dm.full_message || dm.message,
                                                     avatar: dm.sender_avatar,
                                                     time: dm.time,
                                                     is_bot: dm.is_bot,
+                                                    channel: mentionChannel,
                                                 };
                                                 setTimeout(() => { 
-                                                    if (this.toastNotification && this.toastNotification.type === 'direct') {
+                                                    if (this.toastNotification && (this.toastNotification.type === 'direct' || this.toastNotification.dm_type === 'chat_mention' || this.toastNotification.type === 'global' || this.toastNotification.type === 'gang')) {
                                                         this.toastNotification = null; 
                                                     }
-                                                }, 7000);
+                                                }, 8000);
                                             }
                                         }
                                     }

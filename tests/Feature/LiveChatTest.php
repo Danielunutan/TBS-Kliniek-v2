@@ -825,4 +825,170 @@ class LiveChatTest extends TestCase
         $this->assertContains('AlfaLid2', $gangPlayerNames);
         $this->assertNotContains('BetaLid1', $gangPlayerNames);
     }
+
+    public function test_mention_in_public_chat_creates_game_notification_and_direct_message(): void
+    {
+        [$user1, $char1] = $this->createInmate(['name' => 'SenderInmate']);
+        [$user2, $char2] = $this->createInmate(['name' => 'MentionTarget']);
+
+        $sendResponse = $this->actingAs($user1)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Hey @MentionTarget kom naar de binnenplaats!',
+        ]);
+
+        $sendResponse->assertOk();
+        $sendResponse->assertJson(['success' => true]);
+
+        // GameNotification created for target
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $char2->id,
+            'type' => 'chat_mention',
+            'icon' => 'fa-at',
+            'title' => 'Vermeld in Chat',
+            'is_read' => false,
+        ]);
+
+        // DirectMessage created from system bot (sender_id: null)
+        $this->assertDatabaseHas('direct_messages', [
+            'sender_id' => null,
+            'recipient_id' => $char2->id,
+            'type' => 'chat_mention',
+            'is_read' => false,
+        ]);
+
+        // Target unread count incremented
+        $this->assertEquals(1, $char2->unreadDirectMessagesCount());
+
+        // Target polling incoming gets unread count and new DM details
+        $pollResponse = $this->actingAs($user2)->getJson(route('chat.poll-incoming'));
+        $pollResponse->assertOk();
+        $pollResponse->assertJson([
+            'success' => true,
+            'unread_dms' => 1,
+            'new_dm' => [
+                'type' => 'chat_mention',
+                'is_bot' => true,
+            ],
+        ]);
+    }
+
+    public function test_author_mentioning_themself_does_not_create_notification(): void
+    {
+        [$user, $character] = $this->createInmate(['name' => 'SelfMentioner']);
+
+        $sendResponse = $this->actingAs($user)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Ik ben @SelfMentioner en ik ben de baas!',
+        ]);
+
+        $sendResponse->assertOk();
+        $this->assertDatabaseMissing('game_notifications', [
+            'character_id' => $character->id,
+            'type' => 'chat_mention',
+        ]);
+        $this->assertDatabaseMissing('direct_messages', [
+            'recipient_id' => $character->id,
+            'type' => 'chat_mention',
+        ]);
+    }
+
+    public function test_multi_word_name_mention_notifies_correct_character(): void
+    {
+        [$user1, $char1] = $this->createInmate(['name' => 'PleinPrater']);
+        [$user2, $char2] = $this->createInmate(['name' => 'Niels van der Meer']);
+
+        Cache::forget('all_character_names_list');
+
+        $sendResponse = $this->actingAs($user1)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Gegroet @Niels van der Meer, alles goed?',
+        ]);
+
+        $sendResponse->assertOk();
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $char2->id,
+            'type' => 'chat_mention',
+            'title' => 'Vermeld in Chat',
+        ]);
+    }
+
+    public function test_gang_chat_mention_only_notifies_members_of_that_gang(): void
+    {
+        [$user1, $char1] = $this->createInmate(['name' => 'GangLeader']);
+
+        $gang1 = Gang::create([
+            'name' => 'The Syndicate',
+            'tag' => 'SYN',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $char1->id,
+            'gang_stars' => 100,
+            'has_gang_chat' => true,
+        ]);
+        $char1->update(['gang_id' => $gang1->id]);
+
+        [$user2, $char2] = $this->createInmate(['name' => 'SyndicateMember', 'gang_id' => $gang1->id]);
+        [$user3, $char3] = $this->createInmate(['name' => 'OutsiderPlayer']);
+
+        Cache::forget('all_character_names_list');
+
+        $sendResponse = $this->actingAs($user1)->postJson(route('chat.public.send'), [
+            'channel' => "gang_{$gang1->id}",
+            'message' => 'Hey @SyndicateMember en @OutsiderPlayer we verzamelen!',
+        ]);
+
+        $sendResponse->assertOk();
+
+        // Gang member gets notification
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $char2->id,
+            'type' => 'chat_mention',
+            'title' => 'Vermeld in Bende Chat',
+        ]);
+
+        // Outsider does NOT get notification
+        $this->assertDatabaseMissing('game_notifications', [
+            'character_id' => $char3->id,
+            'type' => 'chat_mention',
+        ]);
+    }
+
+    public function test_visiting_chat_marks_chat_mention_notifications_as_read(): void
+    {
+        [$user, $character] = $this->createInmate(['name' => 'InmateMarkRead']);
+
+        GameNotification::create([
+            'character_id' => $character->id,
+            'type' => 'chat_mention',
+            'icon' => 'fa-at',
+            'title' => 'Vermeld in Chat',
+            'message' => 'Iemand heeft je genoemd in de chat.',
+            'is_read' => false,
+        ]);
+
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $character->id,
+            'type' => 'chat_mention',
+            'is_read' => false,
+        ]);
+        $this->assertDatabaseHas('direct_messages', [
+            'recipient_id' => $character->id,
+            'type' => 'chat_mention',
+            'is_read' => false,
+        ]);
+
+        // Visit chat index
+        $response = $this->actingAs($user)->get(route('chat.index'));
+        $response->assertOk();
+
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $character->id,
+            'type' => 'chat_mention',
+            'is_read' => true,
+        ]);
+        $this->assertDatabaseHas('direct_messages', [
+            'recipient_id' => $character->id,
+            'type' => 'chat_mention',
+            'is_read' => true,
+        ]);
+    }
 }

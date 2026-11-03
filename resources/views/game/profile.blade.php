@@ -388,14 +388,12 @@
                     </div>
                     
                     @if(Auth::user()->character->id === $profileCharacter->id)
-                    <!-- Edit Actions: Prominent Personalisatie Knopje Rechtsboven -->
-                    <div class="flex flex-wrap gap-2 justify-center md:justify-end items-center">
-                        <button @click="activeCustomTab = 'name_style'; customizeModalOpen = true" type="button" class="px-3.5 py-2.5 text-xs font-black bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/80 text-purple-800 dark:text-purple-200 border border-purple-300 dark:border-purple-700/60 rounded-xl transition shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95">
-                            <i class="fa-solid fa-sparkles text-pink-500"></i>
-                            <span>Naamkleur & Glow</span>
-                        </button>
-                        <button @click="customizeModalOpen = true" type="button" class="px-4 py-2.5 text-xs font-black bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer active:scale-95">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                    <!-- Edit Actions: Prominente Personalisatie Knop Rechtsboven -->
+                    <div class="flex items-center justify-center md:justify-end">
+                        <button @click="customizeModalOpen = true" type="button" 
+                                class="px-4 py-2.5 text-xs font-black bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl transition-all duration-200 shadow-md shadow-purple-600/25 hover:shadow-lg hover:shadow-purple-600/35 border border-purple-400/30 flex items-center gap-2 cursor-pointer active:scale-95 group"
+                                title="Personaliseer je profiel">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300 group-hover:rotate-12 transition-transform duration-200"></i>
                             <span>Profiel Personaliseren</span>
                         </button>
                     </div>
