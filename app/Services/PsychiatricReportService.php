@@ -129,6 +129,7 @@ class PsychiatricReportService
             'total_fights' => $fightsWon + $fightsLost,
             'daily_attacks' => (int) ($character->daily_attacks_count ?? 0),
             'strength' => (int) ($character->strength ?? 10),
+            'formatted_strength' => number_format((int) ($character->strength ?? 10), 0, ',', '.'),
             'defense' => (int) ($character->defense ?? 10),
             'stamina' => (int) ($character->stamina ?? 10),
             'thefts_succeeded' => $theftsSucceeded,
@@ -158,6 +159,7 @@ class PsychiatricReportService
             'kills' => (int) ($character->kills_count ?? 0),
             'deaths' => (int) ($character->deaths_count ?? 0),
             'bullets' => (int) ($character->bullets ?? 0),
+            'formatted_bullets' => number_format((int) ($character->bullets ?? 0), 0, ',', '.'),
             'arm_wrestle_wins' => (int) ($armWrestle?->wins ?? 0),
             'arm_wrestle_losses' => (int) ($armWrestle?->losses ?? 0),
             'created_at' => $character->created_at,
@@ -564,8 +566,8 @@ class PsychiatricReportService
 
         // 1. Violence / Courtyard
         $fightStatus = $m['fights_won'] >= 15 ? 'kritiek' : ($m['fights_won'] >= 5 ? 'verhoogd' : 'veilig');
-        $fightWonLabel = $m['fights_won'] === 1 ? '1 zege' : $m['fights_won'].' zeges';
-        $fightLostLabel = $m['fights_lost'] === 1 ? '1 verlies' : $m['fights_lost'].' verlies';
+        $fightWonLabel = $m['fights_won'] === 1 ? '1 zege' : number_format($m['fights_won'], 0, ',', '.').' zeges';
+        $fightLostLabel = $m['fights_lost'] === 1 ? '1 verlies' : number_format($m['fights_lost'], 0, ',', '.').' verliezen';
         $indicators[] = [
             'label' => 'Agressie & Luchtplaats',
             'value' => $fightWonLabel.' / '.$fightLostLabel,
@@ -773,8 +775,8 @@ class PsychiatricReportService
         }
 
         if ($m['dagbesteding_shifts'] > 0) {
-            $shiftLabel = $m['dagbesteding_shifts'] === 1 ? '1 werktherapiedienst' : $m['dagbesteding_shifts'].' werktherapiediensten';
-            $incidents[] = $shiftLabel.' volbracht bij de dagbesteding met € '.$m['formatted_dagbesteding_earned'].' legaal verdienste.';
+            $shiftLabel = $m['dagbesteding_shifts'] === 1 ? '1 werktherapiedienst' : number_format($m['dagbesteding_shifts'], 0, ',', '.').' werktherapiediensten';
+            $incidents[] = $shiftLabel.' volbracht bij de dagbesteding met € '.$m['formatted_dagbesteding_earned'].' aan legale verdiensten.';
         }
 
         if (! empty($m['treatment_history']['title'])) {
@@ -839,17 +841,29 @@ class PsychiatricReportService
         // Paragraph 2: Fysieke Confrontaties & Geweldsincidenten
         $pViolence = [];
         if ($m['fights_won'] > 0 || $m['fights_lost'] > 0) {
-            $fightWonText = $m['fights_won'] === 1 ? '1 geweldsconfrontatie' : $m['fights_won'].' geweldsconfrontaties';
-            $fightLostText = $m['fights_lost'] === 1 ? '1 incassatie' : $m['fights_lost'].' incassaties';
-            $pViolence[] = 'Op de luchtplaats en het sportveld heeft patiënt inmiddels '.$fightWonText.' op zijn naam geschreven (tegenover '.$fightLostText.'). Met een fysieke krachtscore van '.$m['strength'].' dwingt het individu aanzien af bij mede-inwoners.';
+            $fightWonCount = number_format($m['fights_won'], 0, ',', '.');
+            $fightLostCount = number_format($m['fights_lost'], 0, ',', '.');
+            $fightWonText = $m['fights_won'] === 1 ? '1 geweldsconfrontatie' : $fightWonCount.' geweldsconfrontaties';
+            $fightLostText = $m['fights_lost'] === 1 ? '1 incassatie' : $fightLostCount.' incassaties';
+
+            if ($m['fights_won'] > 0 && $m['fights_lost'] > 0) {
+                $pViolence[] = 'Op de luchtplaats en het sportveld heeft patiënt inmiddels '.$fightWonText.' op zijn naam geschreven (tegenover '.$fightLostText.'). Met een fysieke krachtscore van '.$m['formatted_strength'].' dwingt het individu aanzien af bij mede-inwoners.';
+            } elseif ($m['fights_won'] > 0) {
+                $pViolence[] = 'Op de luchtplaats en het sportveld heeft patiënt inmiddels '.$fightWonText.' op zijn naam geschreven zonder enige incassatie. Met een fysieke krachtscore van '.$m['formatted_strength'].' dwingt het individu aanzien af bij mede-inwoners.';
+            } else {
+                $pViolence[] = 'Op de luchtplaats en het sportveld heeft patiënt inmiddels '.$fightLostText.' moeten incasseren. Met een fysieke krachtscore van '.$m['formatted_strength'].' blijft het individu kwetsbaar binnen de hiërarchie.';
+            }
         }
         if ($m['arm_wrestle_wins'] > 0) {
-            $zegeText = $m['arm_wrestle_wins'] === 1 ? '1 zege' : $m['arm_wrestle_wins'].' zeges';
+            $zegeCount = number_format($m['arm_wrestle_wins'], 0, ',', '.');
+            $zegeText = $m['arm_wrestle_wins'] === 1 ? '1 zege' : $zegeCount.' zeges';
             $pViolence[] = 'In de ontspanningszaal profileert patiënt zich bij het armpjedrukken ('.$zegeText.'), waarbij informele weddenschappen en dominantievertoon hand in hand gaan.';
         }
         if ($m['kills'] > 0) {
-            $killText = $m['kills'] === 1 ? '1 dodelijke liquidatie' : $m['kills'].' dodelijke liquidaties';
-            $bulletText = $m['bullets'] === 1 ? '1 patroon' : $m['bullets'].' patronen';
+            $killCount = number_format($m['kills'], 0, ',', '.');
+            $bulletCount = number_format($m['bullets'], 0, ',', '.');
+            $killText = $m['kills'] === 1 ? '1 dodelijke liquidatie' : $killCount.' dodelijke liquidaties';
+            $bulletText = $m['bullets'] === 1 ? '1 patroon' : $bulletCount.' patronen';
             $pViolence[] = 'Zeer verontrustend zijn de rapporten aangaande '.$killText.' en het voorhanden hebben van scherpe munitie ('.$bulletText.' aangetroffen); het geweten lijkt nagenoeg afwezig.';
         }
         if (! empty($pViolence)) {
@@ -862,7 +876,8 @@ class PsychiatricReportService
             $pFinance[] = 'Het financiële rechercheteam van Justitie stuitte op een clandestien vermogen van € '.$m['formatted_wealth'].' (€ '.$m['formatted_cash'].' contant op de man en € '.$m['formatted_bank'].' op afgeschermde rekeningen). Er zijn sterke aanwijzingen voor woekerrentes en witwaspraktijken binnen de muren.';
         }
         if ($m['thefts_succeeded'] > 0) {
-            $theftText = $m['thefts_succeeded'] === 1 ? '1 geslaagde ontvreemding' : $m['thefts_succeeded'].' geslaagde ontvreemdingen';
+            $theftCount = number_format($m['thefts_succeeded'], 0, ',', '.');
+            $theftText = $m['thefts_succeeded'] === 1 ? '1 geslaagde ontvreemding' : $theftCount.' geslaagde ontvreemdingen';
             $pFinance[] = 'Het diefstalregister vermeldt '.$theftText.'. Bewaarders rapporteren dat patiënt systematisch pasjes, sigaretten en gereedschap uit andermans zakken laat verdwijnen.';
         }
         if (! empty($pFinance)) {
@@ -872,20 +887,34 @@ class PsychiatricReportService
         // Paragraph 4: Vluchtgevaar, Uitbraakincidenten & Contrabande
         $pEscape = [];
         if ($m['prison_escapes'] > 0 || $m['breakout_attempts'] > 0 || $m['tunnel_progress'] > 0 || $m['spoons_used'] > 0) {
-            $breakoutText = $m['breakout_attempts'] === 1 ? '1 uitbraakpoging' : $m['breakout_attempts'].' uitbraakpogingen';
-            $escapeText = $m['prison_escapes'] === 1 ? '1 maal' : $m['prison_escapes'].' maal';
-            $spoonText = $m['spoons_used'] === 1 ? '1 afgesleten eetlepel' : $m['spoons_used'].' afgesleten eetlepels';
+            $breakoutCount = number_format($m['breakout_attempts'], 0, ',', '.');
+            $escapeCount = number_format($m['prison_escapes'], 0, ',', '.');
+            $spoonCount = number_format($m['spoons_used'], 0, ',', '.');
+            $breakoutText = $m['breakout_attempts'] === 1 ? '1 uitbraakpoging' : $breakoutCount.' uitbraakpogingen';
+            $escapeText = $m['prison_escapes'] === 1 ? '1 maal' : $escapeCount.' maal';
+            $spoonText = $m['spoons_used'] === 1 ? '1 afgesleten eetlepel' : $spoonCount.' afgesleten eetlepels';
             $tunnelText = ($m['tunnel_progress'] > 0 || $m['spoons_used'] > 0)
                 ? ' waarbij onder de celvloer een tunnelgang werd aangetroffen met '.$spoonText
                 : '';
-            $pEscape[] = 'Het vluchtrisico is acuut: patiënt heeft reeds '.$breakoutText.' ondernomen en '.$escapeText.' de inrichting ontvlucht'.$tunnelText.'.';
+
+            if ($m['prison_escapes'] > 0 && $m['breakout_attempts'] > 0) {
+                $pEscape[] = 'Het vluchtrisico is acuut: patiënt heeft reeds '.$breakoutText.' ondernomen en '.$escapeText.' de inrichting ontvlucht'.$tunnelText.'.';
+            } elseif ($m['prison_escapes'] > 0) {
+                $pEscape[] = 'Het vluchtrisico is acuut: patiënt heeft reeds '.$escapeText.' de inrichting ontvlucht'.$tunnelText.'.';
+            } elseif ($m['breakout_attempts'] > 0) {
+                $pEscape[] = 'Het vluchtrisico is acuut: patiënt heeft reeds '.$breakoutText.' ondernomen'.$tunnelText.'.';
+            } else {
+                $pEscape[] = 'Het vluchtrisico is verhoogd: onder de celvloer werd een tunnelgang aangetroffen met '.$spoonText.'.';
+            }
         }
         if ($m['palmed_pills'] > 0) {
-            $pillText = $m['palmed_pills'] === 1 ? '1 pil verdonkeremaand' : $m['palmed_pills'].' pillen verdonkeremaand';
+            $pillCount = number_format($m['palmed_pills'], 0, ',', '.');
+            $pillText = $m['palmed_pills'] === 1 ? '1 pil verdonkeremaand' : $pillCount.' pillen verdonkeremaand';
             $pEscape[] = 'Bij controles van de ziekenboeg bleek patiënt stelselmatig medicatie achterover te drukken (inmiddels '.$pillText.'), vermoedelijk bestemd voor de zwarte handel in het paviljoen.';
         }
         if ($m['hacks_completed'] > 0) {
-            $hackText = $m['hacks_completed'] === 1 ? '1 ongeautoriseerde inbraak' : $m['hacks_completed'].' ongeautoriseerde inbraken';
+            $hackCount = number_format($m['hacks_completed'], 0, ',', '.');
+            $hackText = $m['hacks_completed'] === 1 ? '1 ongeautoriseerde inbraak' : $hackCount.' ongeautoriseerde inbraken';
             $pEscape[] = 'De afdeling IT-beveiliging signaleerde '.$hackText.' op het inrichtingsnetwerk, waarbij getracht werd beveiligingscamera\'s en personeelsroosters te manipuleren.';
         }
         if (! empty($pEscape)) {
@@ -898,7 +927,8 @@ class PsychiatricReportService
             $pSocial[] = 'Op sociologisch vlak bekleedt patiënt de positie van '.$m['gang_role'].' binnen het gevreesde syndicaat \''.$m['gang_name'].'\' (reputatie: '.$m['formatted_respect'].' respectpunten), hetgeen leidt tot een machtspositie die de gezagsverhoudingen ondermijnt.';
         }
         if ($m['dagbesteding_shifts'] > 0) {
-            $shiftText = $m['dagbesteding_shifts'] === 1 ? '1 werkdienst' : $m['dagbesteding_shifts'].' werkdiensten';
+            $shiftCount = number_format($m['dagbesteding_shifts'], 0, ',', '.');
+            $shiftText = $m['dagbesteding_shifts'] === 1 ? '1 werkdienst' : $shiftCount.' werkdiensten';
             $pSocial[] = 'Positief te vermelden is de inzet bij de dagbesteding: patiënt heeft '.$shiftText.' volbracht en hiermee eerlijk € '.$m['formatted_dagbesteding_earned'].' verdiend, al blijft de sociotherapeut alert op dubbele agenda\'s.';
         }
         if (! empty($pSocial)) {

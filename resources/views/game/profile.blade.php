@@ -1142,12 +1142,15 @@
                         <span class="text-[10px] text-stone-400 dark:text-slate-400 font-mono">Vertrouwelijk Inrichtingsverslag</span>
                     </div>
                     <div class="text-xs text-slate-800 dark:text-slate-200 bg-stone-50/80 dark:bg-slate-900/80 p-4 sm:p-5 rounded-xl border border-stone-200/80 dark:border-slate-700/80 italic font-serif relative">
-                        <span class="text-2xl text-stone-300 dark:text-slate-600 absolute -top-1 left-2 font-serif select-none">&ldquo;</span>
+                        <span class="text-2xl text-stone-300 dark:text-slate-600 absolute -top-1 left-2 font-serif select-none" aria-hidden="true">&ldquo;</span>
                         <div class="relative z-10 pl-3.5 space-y-3.5">
-                            @foreach(explode("\n\n", $psychiatricReport['doctor_notes']) as $noteParagraph)
-                                @if(trim($noteParagraph))
-                                    <p class="leading-relaxed">{{ trim($noteParagraph) }}</p>
-                                @endif
+                            @php
+                                $doctorNoteParagraphs = array_values(array_filter(array_map('trim', explode("\n\n", $psychiatricReport['doctor_notes'] ?? ''))));
+                            @endphp
+                            @foreach($doctorNoteParagraphs as $noteParagraph)
+                                <p class="leading-relaxed">
+                                    {{ $noteParagraph }}@if($loop->last)<span class="text-2xl text-stone-300 dark:text-slate-600 font-serif select-none inline-block align-baseline ml-1 leading-none" aria-hidden="true">&rdquo;</span>@endif
+                                </p>
                             @endforeach
                         </div>
                     </div>

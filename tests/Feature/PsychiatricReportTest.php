@@ -305,6 +305,10 @@ class PsychiatricReportTest extends TestCase
 
         // Barcode
         $response->assertSee($report['dossier_nr'].'-DJI-NETHERLANDS');
+
+        // Balanced opening and closing quotation marks in doctor notes card
+        $response->assertSee('&ldquo;', false);
+        $response->assertSee('&rdquo;', false);
     }
 
     public function test_singular_activity_counts_and_role_formatting_in_doctor_notes(): void
@@ -386,5 +390,14 @@ class PsychiatricReportTest extends TestCase
         // Check multi-paragraph structure (at least 4 paragraphs separated by \n\n)
         $paragraphs = explode("\n\n", $notes);
         $this->assertGreaterThanOrEqual(4, count($paragraphs));
+
+        // Plural indicators check
+        $multiFightChar = $this->createCharacter($user, [
+            'fights_won' => 5,
+            'fights_lost' => 3,
+        ]);
+        $multiReport = $multiFightChar->getPsychiatricReport();
+        $indicatorValues = array_column($multiReport['forensic_indicators'], 'value');
+        $this->assertContains('5 zeges / 3 verliezen', $indicatorValues);
     }
 }
