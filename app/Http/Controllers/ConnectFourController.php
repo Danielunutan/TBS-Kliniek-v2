@@ -106,18 +106,18 @@ class ConnectFourController extends Controller
 
             $existingMatch = Cache::get(self::matchCacheKey($lockedCharacter->id));
             if (is_array($existingMatch) && isset($existingMatch['board']) && is_array($existingMatch['board'])) {
-                $hasPlayerMoves = false;
+                $hasTokens = false;
                 foreach ($existingMatch['board'] as $row) {
-                    if (is_array($row) && in_array(ConnectFourEngine::PLAYER, $row, true)) {
-                        $hasPlayerMoves = true;
+                    if (is_array($row) && (in_array(ConnectFourEngine::PLAYER, $row, true) || in_array(ConnectFourEngine::ARJAN, $row, true))) {
+                        $hasTokens = true;
                         break;
                     }
                 }
-                if ($hasPlayerMoves) {
+                if ($hasTokens) {
                     return response()->json([
                         'success' => true,
                         'resumed' => true,
-                        'starter' => 'player',
+                        'starter' => $existingMatch['starter'] ?? 'player',
                         'board' => $existingMatch['board'],
                         'ai' => null,
                         'matches_played' => $stat->matches_played,
@@ -132,7 +132,7 @@ class ConnectFourController extends Controller
             $starter = $this->takeStarter($lockedCharacter->id);
             $arjanTurn = $starter === ConnectFourEngine::ARJAN ? $this->playArjanTurn($board) : null;
 
-            Cache::put(self::matchCacheKey($lockedCharacter->id), ['board' => $board], now()->addHours(self::MATCH_TTL_HOURS));
+            Cache::put(self::matchCacheKey($lockedCharacter->id), ['board' => $board, 'starter' => $starter], now()->addHours(self::MATCH_TTL_HOURS));
 
             return response()->json([
                 'success' => true,
@@ -171,7 +171,7 @@ class ConnectFourController extends Controller
             }
 
             $state = Cache::get(self::matchCacheKey($lockedCharacter->id));
-            if (! is_array($state) || ! isset($state['board'])) {
+            if (! is_array($state) || ! isset($state['board']) || ! is_array($state['board']) || count($state['board']) !== ConnectFourEngine::ROWS) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Er is geen actief potje. Start eerst een nieuw potje.',
@@ -248,7 +248,7 @@ class ConnectFourController extends Controller
             ], 422);
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
@@ -382,15 +382,15 @@ class ConnectFourController extends Controller
                     $bonusCash = 50000;
                     $bonusXp = 100;
                     $bonusRespect = 30;
-                    $summaryTitle = 'TOERNOOIWINNAAR! (4 - 1)';
-                    $summaryMsg = 'Geweldig gespeeld! Met een 4-1 overwinning win je het toernooi van OOHPA Arjan. Bonus: €50.000, +100 XP en +30 Respect!';
+                    $summaryTitle = 'TOERNOOIWINNAAR! ('.$playerWins.' - '.$arjanWins.')';
+                    $summaryMsg = 'Geweldig gespeeld! Met een '.$playerWins.'-'.$arjanWins.' overwinning win je het toernooi van OOHPA Arjan. Bonus: €50.000, +100 XP en +30 Respect!';
                 } else {
                     // 3-2
                     $bonusCash = 25000;
                     $bonusXp = 60;
                     $bonusRespect = 15;
-                    $summaryTitle = 'SERIE OVERWINNING! (3 - 2)';
-                    $summaryMsg = 'Een spannende 3-2 strijd! Jij trekt aan het langste eind. Bonus: €25.000, +60 XP en +15 Respect!';
+                    $summaryTitle = 'SERIE OVERWINNING! ('.$playerWins.' - '.$arjanWins.')';
+                    $summaryMsg = 'Een spannende '.$playerWins.'-'.$arjanWins.' strijd! Jij trekt aan het langste eind. Bonus: €25.000, +60 XP en +15 Respect!';
                 }
             } else {
                 $bonusCash = 5000;

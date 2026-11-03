@@ -99,7 +99,7 @@
         </div>
     @endif
 
-    @if($tunnel->isFugitive())
+    @if(method_exists($tunnel, 'isFugitive') && $tunnel->isFugitive())
         <!-- VOORTVLUCHTIG STATUS & UITBRAAK HEISTS -->
         <div class="bg-gradient-to-br from-amber-500/10 via-purple-500/10 to-rose-500/10 dark:from-amber-950/40 dark:via-purple-950/40 dark:to-rose-950/40 border-2 border-amber-500/50 rounded-2xl p-6 sm:p-7 shadow-lg space-y-6 relative overflow-hidden">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-amber-500/20 pb-5">
@@ -179,7 +179,11 @@
                         </div>
 
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-                            @if($cooldown > 0)
+                            @if($character->isComatose() || $character->needsReviveSerum())
+                                <button disabled class="w-full py-2.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                                    <i class="fa-solid fa-heart-pulse"></i> Coma (Code Blauw)
+                                </button>
+                            @elseif($cooldown > 0)
                                 <button disabled class="w-full py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                                     <i class="fa-solid fa-clock"></i> Politie Kijkt ({{ ceil($cooldown / 60) }}m)
                                 </button>
@@ -278,7 +282,7 @@
                 <div class="grid grid-cols-5 gap-1 pt-1 text-center">
                     @foreach($stages as $num => $st)
                         <div class="space-y-1">
-                            <div class="w-6 h-6 rounded-full mx-auto flex items-center justify-center text-[10px] font-black {{ $tunnel->stage > $num || $tunnel->progress_pct >= $st['target_progress'] ? 'bg-emerald-500 text-white' : ($tunnel->stage == $num ? 'bg-amber-500 text-white ring-2 ring-amber-300 dark:ring-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-700') }}">
+                            <div class="w-6 h-6 rounded-full mx-auto flex items-center justify-center text-[10px] font-black {{ $tunnel->stage > $num || $tunnel->progress_pct >= $st['target_progress'] ? 'bg-emerald-500 text-white' : ($tunnel->stage == $num ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-300 dark:ring-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-700') }}">
                                 @if($tunnel->stage > $num || $tunnel->progress_pct >= $st['target_progress'])
                                     <i class="fa-solid fa-check text-[9px]"></i>
                                 @else
@@ -327,7 +331,7 @@
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                    @if($character->isComatose())
+                    @if($character->isComatose() || $character->needsReviveSerum())
                         <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                             <i class="fa-solid fa-heart-pulse"></i> Coma (Code Blauw)
                         </button>
@@ -339,7 +343,7 @@
                         <form action="{{ route('tunnel.escape') }}" method="POST">
                             @csrf
                             <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer animate-pulse">
-                                <i class="fa-solid fa-person-running"></i> Breek Uit Naar Vrijheid (€25.000 + 25 Sterren ⭐ + 3 Uur Heists)
+                                <i class="fa-solid fa-person-running"></i> Breek Uit Naar Vrijheid (€25.000 + 25 Sterren ⭐ + 15 Min Heists)
                             </button>
                         </form>
                     @elseif($tunnel->sand_in_socks >= 100)
@@ -392,7 +396,7 @@
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                    @if($character->isComatose())
+                    @if($character->isComatose() || $character->needsReviveSerum())
                         <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                             <i class="fa-solid fa-heart-pulse"></i> Coma (Code Blauw)
                         </button>

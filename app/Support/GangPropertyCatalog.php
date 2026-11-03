@@ -485,7 +485,7 @@ class GangPropertyCatalog
                 // Dynamic half-hour special discount / perk: between -15% and +5%
                 $variance = mt_rand(-15, 5);
                 $discountFactor = 1.0 + ($variance * 0.01);
-                $discountedPrice = (int) (round(($prop['price'] * $discountFactor) / 2500) * 2500);
+                $discountedPrice = max(50000, (int) (round(($prop['price'] * $discountFactor) / 2500) * 2500));
 
                 $token = substr(hash_hmac('sha256', "{$slot}_{$prop['key']}_{$discountedPrice}", (string) (config('app.key') ?: 'tbs-gang-prop-secret')), 0, 16);
 
@@ -494,7 +494,7 @@ class GangPropertyCatalog
                     'token' => $token,
                     'property' => $prop,
                     'discount_pct' => -$variance,
-                    'dynamic_price' => max(50000, $discountedPrice),
+                    'dynamic_price' => $discountedPrice,
                 ];
             }
 

@@ -18,6 +18,8 @@ class EventCashHuntService
 
     public const PRIZE_STARS = 750;
 
+    public const NOTIFICATION_TYPE = 'event_winner_cash_hunt';
+
     /**
      * Check whether the cash hunt event is currently active.
      */
@@ -86,16 +88,26 @@ class EventCashHuntService
         $end = Carbon::parse(self::EVENT_END);
         $now = now();
 
+        // Auto-resolve winner once the event deadline has passed
+        if (self::hasEnded() && ! GameNotification::whereIn('type', [self::NOTIFICATION_TYPE, 'event_winner'])->where('created_at', '>=', $end)->exists()) {
+            try {
+                self::resolveWinner();
+            } catch (\Throwable $e) {
+                Log::warning('EventCashHuntService auto-resolve failed: '.$e->getMessage());
+            }
+        }
+
         $isActive = self::isActive();
         $hasEnded = self::hasEnded();
         $remainingSec = max(0, $end->timestamp - $now->timestamp);
 
-        // Fetch aggregated earnings for the event period
-        $rows = EventCashEarning::select('character_id', DB::raw('SUM(amount) as total_earned'))
+        // Fetch aggregated earnings for the event period with deterministic tie-breaking
+        $rows = EventCashEarning::select('character_id', DB::raw('SUM(amount) as total_earned'), DB::raw('MIN(created_at) as first_earned_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<', $end)
             ->groupBy('character_id')
             ->orderByDesc('total_earned')
+            ->orderBy('first_earned_at', 'asc')
             ->get();
 
         $totalParticipants = $rows->count();
@@ -104,7 +116,7 @@ class EventCashHuntService
         // Load character details for all earners
         $charIds = $rows->pluck('character_id')->all();
         $characters = Character::whereIn('id', $charIds)
-            ->get(['id', 'name', 'level', 'avatar', 'gender'])
+            ->get(['id', 'name', 'level', 'avatar', 'avatar_custom', 'gender'])
             ->keyBy('id');
 
         $leaderboard = [];
@@ -180,15 +192,16 @@ class EventCashHuntService
 
         // The command runs every night, but the event ran only once. Pay the prize once, after the event has ended.
         // Without this check the same winner received 750 stars every night.
-        if ((! $force && ! self::hasEnded()) || GameNotification::where('type', 'event_winner')->where('created_at', '>=', $end)->exists()) {
+        if ((! $force && ! self::hasEnded()) || GameNotification::whereIn('type', [self::NOTIFICATION_TYPE, 'event_winner'])->where('created_at', '>=', $end)->exists()) {
             return null;
         }
 
-        $topEarner = EventCashEarning::select('character_id', DB::raw('SUM(amount) as total_earned'))
+        $topEarner = EventCashEarning::select('character_id', DB::raw('SUM(amount) as total_earned'), DB::raw('MIN(created_at) as first_earned_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<', $end)
             ->groupBy('character_id')
             ->orderByDesc('total_earned')
+            ->orderBy('first_earned_at', 'asc')
             ->first();
 
         if (! $topEarner) {
@@ -208,7 +221,7 @@ class EventCashHuntService
                 return null;
             }
 
-            if (GameNotification::where('type', 'event_winner')->where('created_at', '>=', $end)->exists()) {
+            if (GameNotification::whereIn('type', [self::NOTIFICATION_TYPE, 'event_winner'])->where('created_at', '>=', $end)->exists()) {
                 return null;
             }
 
@@ -219,7 +232,7 @@ class EventCashHuntService
 
             GameNotification::create([
                 'character_id' => $lockedWinner->id,
-                'type' => 'event_winner',
+                'type' => self::NOTIFICATION_TYPE,
                 'icon' => 'fa-trophy',
                 'title' => '🏆 GEFELICITEERD: Winnaar De Grote Geldjacht!',
                 'message' => "Geweldig gedaan! Jij bent met {$earnedFmt} aan inkomsten vanavond op #1 geëindigd in De Grote Geldjacht en wint de hoofdprijs van 750 Sterren ⭐!",

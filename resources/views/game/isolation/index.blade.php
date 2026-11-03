@@ -2,6 +2,28 @@
 
 @section('content')
 <div class="space-y-6">
+
+    @if($isImprisoned ?? $character->isImprisoned())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-800 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-lock text-base"></i>
+            </div>
+            <span>Je zit momenteel achter slot en grendel in de straf-isoleercel van Sector Z-04. Je kunt pas vrijwillige isolatie kopen zodra je straf is afgelopen of je bent vrijgelaten!</span>
+        </div>
+        <a href="{{ route('prison') }}" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider shrink-0 transition shadow-xs">
+            <i class="fa-solid fa-dungeon"></i>
+            <span>Naar Celblok &amp; Uitbreken</span>
+        </a>
+    </div>
+    @elseif(($isComatose ?? false) || $character->isComatose() || $character->needsReviveSerum())
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-800 dark:text-rose-200 flex items-center gap-3 shadow-xs">
+        <div class="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-heart-pulse text-base"></i>
+        </div>
+        <span>Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een Forensisch Reanimatie-Serum toe om weer op te staan.</span>
+    </div>
+    @endif
     
     <!-- Title Card (Clean & Modern) -->
     <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
@@ -229,8 +251,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
             @foreach($packages as $pkg)
             @php
-                $canAffordCash = ($character->cash + $character->bank) >= $pkg['cost_cash'] && ! $character->isImprisoned() && ! $character->isComatose();
-                $canAffordStars = ($character->stars ?? 0) >= $pkg['cost_stars'] && ! $character->isImprisoned() && ! $character->isComatose();
+                $canAffordCash = ($character->cash + $character->bank) >= $pkg['cost_cash'] && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum();
+                $canAffordStars = ($character->stars ?? 0) >= $pkg['cost_stars'] && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum();
                 $newExpiry = ($isProtected && $character->protection_until ? $character->protection_until->copy() : now())->addHours($pkg['hours']);
             @endphp
             <div class="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 transition-all duration-200 shadow-xs group">
@@ -330,8 +352,8 @@
                     <input type="hidden" name="hours" :value="hours">
                     <input type="hidden" name="currency" value="cash">
                     <button type="submit" 
-                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
-                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
+                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
+                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-money-bill-wave"></i>
                         <span>Betaal Geld</span>
                     </button>
@@ -342,8 +364,8 @@
                     <input type="hidden" name="hours" :value="hours">
                     <input type="hidden" name="currency" value="stars">
                     <button type="submit" 
-                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
-                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'btn-star-gold text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
+                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
+                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'btn-star-gold text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-star"></i>
                         <span>Betaal Sterren</span>
                     </button>

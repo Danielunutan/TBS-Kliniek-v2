@@ -8,6 +8,7 @@ use App\Models\Gang;
 use App\Models\GangNpc;
 use App\Models\GangProperty;
 use App\Models\User;
+use App\Services\AuditLogService;
 use App\Services\EventDrugsProductionService;
 use App\Support\GangPropertyCatalog;
 use Illuminate\Http\RedirectResponse;
@@ -314,9 +315,10 @@ class GangPropertyController extends Controller
         if ($request->filled('token') && $request->filled('dynamic_price')) {
             $dynPrice = (int) $request->input('dynamic_price');
             $slot = (int) floor(time() / 1800);
-            $tokenCurrent = substr(hash_hmac('sha256', "{$slot}_{$propertyKey}_{$dynPrice}", config('app.key')), 0, 16);
+            $appSecret = (string) (config('app.key') ?: 'tbs-gang-prop-secret');
+            $tokenCurrent = substr(hash_hmac('sha256', "{$slot}_{$propertyKey}_{$dynPrice}", $appSecret), 0, 16);
             $prevSlot = $slot - 1;
-            $tokenPrev = substr(hash_hmac('sha256', "{$prevSlot}_{$propertyKey}_{$dynPrice}", config('app.key')), 0, 16);
+            $tokenPrev = substr(hash_hmac('sha256', "{$prevSlot}_{$propertyKey}_{$dynPrice}", $appSecret), 0, 16);
 
             if ($request->input('token') === $tokenCurrent || ($request->input('token') === $tokenPrev && (time() % 1800) < 60)) {
                 $price = $dynPrice;
@@ -331,7 +333,7 @@ class GangPropertyController extends Controller
             return back()->with('error', "Niet genoeg geld in de bendekas! Je komt nog €{$shortage} tekort.");
         }
 
-        $errorMessage = DB::transaction(function () use ($gang, $propertyKey, $catalogProp, $price): ?string {
+        $errorMessage = DB::transaction(function () use ($gang, $character, $propertyKey, $catalogProp, $price): ?string {
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
             // Re-check under the gang lock so parallel requests cannot overspend the treasury or buy the same property twice.
@@ -362,6 +364,20 @@ class GangPropertyController extends Controller
                 'production_reward_respect' => $catalogProp['production_reward_respect'] ?? 0,
                 'production_status' => 'idle',
             ]);
+
+            AuditLogService::log(
+                action: 'gang.buy_property',
+                category: 'gang',
+                description: "Bendepand '{$catalogProp['name']}' gekocht voor €".number_format($price, 0, ',', '.')." voor bende {$lockedGang->name}",
+                character: $character,
+                user: $character->user,
+                amount: $price,
+                details: [
+                    'gang_id' => $lockedGang->id,
+                    'property_key' => $propertyKey,
+                    'price' => $price,
+                ]
+            );
 
             return null;
         });
@@ -447,15 +463,15 @@ class GangPropertyController extends Controller
             return back()->with('error', 'De productiecyclus is nog niet afgerond.');
         }
 
-        $cash = $property->effective_reward_cash;
-        $respect = $property->effective_reward_respect;
-
-        $claimed = DB::transaction(function () use ($gang, $character, $property, $cash, $respect): bool {
+        $claimedData = DB::transaction(function () use ($gang, $character, $property): ?array {
             // Lock the property first so parallel claims cannot pay the same cycle twice.
             $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
             if (! $lockedProperty || ! $lockedProperty->isProductionReady()) {
-                return false;
+                return null;
             }
+
+            $cash = $lockedProperty->effective_reward_cash;
+            $respect = $lockedProperty->effective_reward_respect;
 
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             $lockedGang->treasury += $cash;
@@ -478,12 +494,33 @@ class GangPropertyController extends Controller
                 'production_ends_at' => null,
             ]);
 
-            return true;
+            AuditLogService::log(
+                action: 'gang.claim_production',
+                category: 'gang',
+                description: "Productie geclaimd van {$lockedProperty->name} voor €".number_format($cash, 0, ',', '.')." en {$respect} respect",
+                character: $character,
+                user: $character->user,
+                amount: $cash,
+                details: [
+                    'gang_id' => $lockedGang->id,
+                    'property_id' => $lockedProperty->id,
+                    'cash' => $cash,
+                    'respect' => $respect,
+                ]
+            );
+
+            return [
+                'cash' => $cash,
+                'respect' => $respect,
+            ];
         });
 
-        if (! $claimed) {
+        if (! $claimedData) {
             return back()->with('error', 'De productiecyclus is nog niet afgerond of is al geclaimd.');
         }
+
+        $cash = $claimedData['cash'];
+        $respect = $claimedData['respect'];
 
         $drugUnits = match ($property->property_key) {
             'wietkwekerij' => 50,

@@ -270,7 +270,7 @@ class Pass10Bucket15AuditTest extends TestCase
 
         foreach ([$miniChatSource, $fullChatSource, $cinemaRoomSource] as $source) {
             $this->assertStringContainsString('inline-block whitespace-nowrap align-baseline leading-none', $source);
-            $this->assertStringContainsString('>@${username}</a>', $source);
+            $this->assertTrue(str_contains($source, '>@${username}</a>') || str_contains($source, '>@${safeName}</a>'));
             $this->assertStringNotContainsString('[overflow-wrap:anywhere]', $source);
             $this->assertStringContainsString('(https?:\/\/[^\s<]+)/gi', $source);
         }

@@ -16,8 +16,9 @@ class EventController extends Controller
      */
     public function cashHuntLeaderboard(Request $request): JsonResponse
     {
+        $limit = max(1, min(100, (int) $request->query('limit', 15)));
         $character = Auth::user()?->character;
-        $data = EventCashHuntService::getLeaderboardData($character?->id, 15);
+        $data = EventCashHuntService::getLeaderboardData($character?->id, $limit);
 
         return response()->json($data);
     }
@@ -27,8 +28,9 @@ class EventController extends Controller
      */
     public function drugsProductionLeaderboard(Request $request): JsonResponse
     {
+        $limit = max(1, min(100, (int) $request->query('limit', 15)));
         $character = Auth::user()?->character;
-        $data = EventDrugsProductionService::getLeaderboardData($character?->id, 15);
+        $data = EventDrugsProductionService::getLeaderboardData($character?->id, $limit);
 
         return response()->json($data);
     }
@@ -38,8 +40,9 @@ class EventController extends Controller
      */
     public function vaultChallengeLeaderboard(Request $request): JsonResponse
     {
+        $limit = max(1, min(100, (int) $request->query('limit', 15)));
         $character = Auth::user()?->character;
-        $data = EventVaultCrackingService::getLeaderboardData($character?->id, 15);
+        $data = EventVaultCrackingService::getLeaderboardData($character?->id, $limit);
 
         return response()->json($data);
     }

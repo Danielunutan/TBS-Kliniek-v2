@@ -20,6 +20,8 @@ class AdminAuditLogController extends Controller
      */
     public function index(Request $request): View
     {
+        abort_unless($request->user()?->isStaff(), 403, 'Toegang geweigerd. Deze beheeromgeving is uitsluitend toegankelijk voor TBS Kliniek personeel.');
+
         AuditLogService::sanitizeContaminatedIps();
 
         $risk = $request->input('risk', 'all');
@@ -63,14 +65,6 @@ class AdminAuditLogController extends Controller
             'suspicious' => (int) ($kpiStats->suspicious_24h ?? 0),
         ];
 
-        $categories24h = AuditLog::query()
-            ->where('created_at', '>=', $sub24h)
-            ->select('category', DB::raw('COUNT(*) as total'))
-            ->groupBy('category')
-            ->orderByDesc('total')
-            ->pluck('total', 'category')
-            ->toArray();
-
         $topRiskPlayers = AuditLog::query()
             ->whereNotNull('character_id')
             ->whereIn('risk_level', ['hoog', 'verdacht'])
@@ -110,6 +104,13 @@ class AdminAuditLogController extends Controller
             ->limit(5)
             ->get();
 
+        foreach ($sharedIps as $cluster) {
+            $analysis = AuditLogService::calculateIpMultiAccountConfidence($cluster->ip_address);
+            $cluster->confidence_score = $analysis['confidence_score'];
+            $cluster->confidence_level = $analysis['confidence_level'];
+            $cluster->heuristic_flags = $analysis['heuristic_flags'];
+        }
+
         $sharedIpAddresses = $sharedIps->pluck('ip_address')->all();
         $sharedIpCharacters = ! empty($sharedIpAddresses)
             ? AuditLog::query()
@@ -144,7 +145,6 @@ class AdminAuditLogController extends Controller
             'normalCount',
             'uniquePlayersCount',
             'stats24h',
-            'categories24h',
             'topRiskPlayers',
             'sharedIps',
             'sharedIpCharacters'
@@ -156,6 +156,8 @@ class AdminAuditLogController extends Controller
      */
     public function export(Request $request): StreamedResponse
     {
+        abort_unless($request->user()?->isStaff(), 403, 'Toegang geweigerd. Deze beheeromgeving is uitsluitend toegankelijk voor TBS Kliniek personeel.');
+
         AuditLogService::sanitizeContaminatedIps();
 
         $query = $this->buildFilteredQuery($request);
@@ -171,6 +173,8 @@ class AdminAuditLogController extends Controller
         ];
 
         return response()->streamDownload(function () use ($query): void {
+            DB::disableQueryLog();
+
             $handle = fopen('php://output', 'w');
             if ($handle === false) {
                 return;
@@ -197,18 +201,21 @@ class AdminAuditLogController extends Controller
                 'Details (JSON)',
             ]);
 
-            $sanitize = static function (?string $value): string {
+            $sanitize = static function ($value): string {
                 if ($value === null || $value === '') {
                     return '';
                 }
-                if (in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
-                    return "'".$value;
+                $str = (string) $value;
+                $trimmed = ltrim($str);
+                if ($trimmed !== '' && in_array($trimmed[0], ['=', '+', '-', '@', "\t", "\r", '%', '|'], true)) {
+                    return "'".$str;
                 }
 
-                return $value;
+                return $str;
             };
 
-            foreach ($query->cursor() as $log) {
+            $rowCount = 0;
+            foreach ($query->lazy(500) as $log) {
                 fputcsv($handle, [
                     $log->id,
                     $log->created_at?->format('Y-m-d H:i:s'),
@@ -216,17 +223,23 @@ class AdminAuditLogController extends Controller
                     $log->character_id ?? '',
                     $sanitize($log->user?->name ?? 'N/A'),
                     $log->user_id ?? '',
-                    $log->ip_address ?? '',
+                    $sanitize($log->ip_address ?? ''),
                     $sanitize($log->action),
                     $sanitize($log->category),
                     $sanitize($log->description),
                     $log->amount ?? 0,
-                    $log->risk_level,
+                    $sanitize($log->risk_level),
                     $log->risk_score,
                     $sanitize($log->risk_reason ?? ''),
-                    $sanitize(is_array($log->risk_flags) ? implode(', ', $log->risk_flags) : ($log->risk_flags ?? '')),
-                    ! empty($log->details) ? json_encode($log->details, JSON_UNESCAPED_UNICODE) : '',
+                    $sanitize(is_array($log->risk_flags) ? implode(', ', array_map($sanitize, $log->risk_flags)) : ($log->risk_flags ?? '')),
+                    $sanitize(! empty($log->details) ? json_encode($log->details, JSON_UNESCAPED_UNICODE) : ''),
                 ]);
+
+                $rowCount++;
+                if ($rowCount % 100 === 0 && function_exists('ob_flush')) {
+                    @ob_flush();
+                    @flush();
+                }
             }
 
             fclose($handle);
@@ -238,6 +251,8 @@ class AdminAuditLogController extends Controller
      */
     public function sync(Request $request): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin() || $request->user()?->isStaff(), 403, 'Toegang geweigerd.');
+
         $limit = max(100, min(5000, (int) $request->input('limit', 2000)));
         $stats = AuditLogService::backfillHistory($limit);
 
@@ -275,6 +290,16 @@ class AdminAuditLogController extends Controller
         $characterId = $request->input('character_id');
         if (! empty($characterId) && is_numeric($characterId)) {
             $query->where('character_id', (int) $characterId);
+        }
+
+        $minScore = $request->input('min_score');
+        if ($minScore !== null && is_numeric($minScore) && (int) $minScore > 0) {
+            $query->minScore((int) $minScore);
+        }
+
+        $action = $request->input('action');
+        if ($action && $action !== 'all') {
+            $query->action($action);
         }
 
         $dateRange = $request->input('date', 'all');

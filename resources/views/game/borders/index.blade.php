@@ -80,7 +80,7 @@
             <form action="{{ route('halloween.equip-border') }}" method="POST">
                 @csrf
                 <input type="hidden" name="border_key" value="none">
-                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50">
+                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-xmark"></i>
                     <span>Actief Kader Uitschakelen</span>
                 </button>
@@ -233,7 +233,7 @@
                             <form action="{{ route('halloween.equip-border') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="border_key" value="none">
-                                <button type="submit" class="w-full py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 cursor-pointer hover:bg-rose-50 hover:text-rose-600 transition">
+                                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 cursor-pointer hover:bg-rose-50 hover:text-rose-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-check"></i>
                                     <span>Actief op Profiel (Klik om uit te zetten)</span>
                                 </button>
@@ -244,7 +244,7 @@
                                 <input type="hidden" name="border_key" value="{{ $border['key'] }}">
                                 <button type="submit"
                                         @disabled($character->isImprisoned() || $character->isComatose())
-                                        class="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50">
+                                        class="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-paintbrush text-xs"></i>
                                     <span>Activeer op Profiel</span>
                                 </button>
@@ -360,7 +360,7 @@
                             <form action="{{ route('halloween.equip-border') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="border_key" value="none">
-                                <button type="submit" class="w-full py-2 rounded-xl bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 cursor-pointer hover:bg-rose-50 hover:text-rose-600 transition">
+                                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-2 rounded-xl bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 cursor-pointer hover:bg-rose-50 hover:text-rose-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-check"></i>
                                     <span>Actief op Profiel (Niet meer haalbaar)</span>
                                 </button>
@@ -371,7 +371,7 @@
                                 <input type="hidden" name="border_key" value="{{ $border['key'] }}">
                                 <button type="submit"
                                         @disabled($character->isImprisoned() || $character->isComatose())
-                                        class="w-full py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50">
+                                        class="w-full py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-crown text-xs"></i>
                                     <span>Activeer Verzamelobject</span>
                                 </button>

@@ -504,8 +504,8 @@ window.prisonPageController = function prisonPageController(config) {
                             <form action="{{ route('prison.escape') }}" method="POST">
                                 @csrf
                                 <button type="submit"
-                                        :disabled="escapeAttempted || {{ $character->isComatose() ? 'true' : 'false' }}"
-                                        :class="(escapeAttempted || {{ $character->isComatose() ? 'true' : 'false' }}) ? 'bg-slate-200 dark:bg-gray-800 text-slate-400 dark:text-gray-500 cursor-not-allowed border border-slate-300 dark:border-gray-700' : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-lg cursor-pointer active:scale-95'"
+                                        :disabled="escapeAttempted || {{ ($character->isComatose() || $character->needsReviveSerum()) ? 'true' : 'false' }}"
+                                        :class="(escapeAttempted || {{ ($character->isComatose() || $character->needsReviveSerum()) ? 'true' : 'false' }}) ? 'bg-slate-200 dark:bg-gray-800 text-slate-400 dark:text-gray-500 cursor-not-allowed border border-slate-300 dark:border-gray-700' : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-lg cursor-pointer active:scale-95'"
                                         class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5">
                                     <i class="fa-solid" :class="escapeAttempted ? 'fa-ban' : 'fa-bolt'"></i>
                                     <span x-text="escapeAttempted ? 'Poging Al Verbruikt Deze Straf' : 'Nu Zelf Uitbreken (20 ⚡)'">Nu Zelf Uitbreken (20 ⚡)</span>
@@ -627,15 +627,15 @@ window.prisonPageController = function prisonPageController(config) {
                                         </div>
                                     @else
                                         <div class="mt-2 text-[10px] font-bold text-slate-500 dark:text-gray-400 flex items-center justify-between">
-                                            <span>Jouw Contant Geld:</span>
-                                            <span class="{{ ($character->cash ?? 0) >= 25000 ? 'text-amber-700 dark:text-amber-300 font-bold' : 'text-red-500 dark:text-red-400' }}">€{{ number_format($character->cash ?? 0, 0, ',', '.') }} / €25.000</span>
+                                            <span>Jouw Totaal Saldo:</span>
+                                            <span class="{{ (($character->cash ?? 0) + ($character->bank ?? 0)) >= ($actMeta['cash_cost'] ?? 2500) ? 'text-amber-700 dark:text-amber-300 font-bold' : 'text-red-500 dark:text-red-400' }}">€{{ number_format(($character->cash ?? 0) + ($character->bank ?? 0), 0, ',', '.') }} / €{{ number_format($actMeta['cash_cost'] ?? 2500, 0, ',', '.') }}</span>
                                         </div>
                                     @endif
                                 </div>
 
                                 <button type="submit"
-                                        :disabled="reduceCooldownSecs > 0 || {{ $character->isComatose() ? 'true' : 'false' }}"
-                                        :class="(reduceCooldownSecs > 0 || {{ $character->isComatose() ? 'true' : 'false' }}) ? 'opacity-50 cursor-not-allowed bg-slate-200 dark:bg-gray-800 text-slate-400 dark:text-gray-400 border border-slate-300 dark:border-transparent' : '{{ $actKey === 'wasserij' ? 'bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer active:scale-95' : 'bg-amber-500 hover:bg-amber-400 text-black cursor-pointer active:scale-95' }}'"
+                                        :disabled="reduceCooldownSecs > 0 || {{ ($character->isComatose() || $character->needsReviveSerum()) ? 'true' : 'false' }}"
+                                        :class="(reduceCooldownSecs > 0 || {{ ($character->isComatose() || $character->needsReviveSerum()) ? 'true' : 'false' }}) ? 'opacity-50 cursor-not-allowed bg-slate-200 dark:bg-gray-800 text-slate-400 dark:text-gray-400 border border-slate-300 dark:border-transparent' : '{{ $actKey === 'wasserij' ? 'bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer active:scale-95' : 'bg-amber-500 hover:bg-amber-400 text-black cursor-pointer active:scale-95' }}'"
                                         class="w-full py-2 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-xs">
                                     <i class="fa-solid {{ $actMeta['icon'] }}"></i>
                                     <span x-text="reduceCooldownSecs > 0 ? 'Cooldown (' + reduceCooldownSecs + 's)' : 'Uitvoeren: {{ $actMeta['name'] }}'">
@@ -807,8 +807,8 @@ window.prisonPageController = function prisonPageController(config) {
                                         </div>
 
                                         <button type="submit"
-                                                @if($isImprisoned || $character->isComatose()) disabled @endif
-                                                class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ ($isImprisoned || $character->isComatose()) ? 'bg-slate-200 dark:bg-gray-800 text-slate-400 dark:text-gray-500 cursor-not-allowed border border-slate-300 dark:border-gray-700' : 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white shadow-lg cursor-pointer active:scale-95' }}">
+                                                @if($isImprisoned || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                                class="w-full py-2.5 px-3 rounded-lg font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ ($isImprisoned || $character->isComatose() || $character->needsReviveSerum()) ? 'bg-slate-200 dark:bg-gray-800 text-slate-400 dark:text-gray-500 cursor-not-allowed border border-slate-300 dark:border-gray-700' : 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white shadow-lg cursor-pointer active:scale-95' }}">
                                             <i class="fa-solid {{ $isImprisoned ? 'fa-lock' : 'fa-unlock' }}"></i>
                                             @if($isImprisoned)
                                                 <span>Je Zit Zelf Vast (Breek Eerst Jezelf Uit)</span>
@@ -818,7 +818,7 @@ window.prisonPageController = function prisonPageController(config) {
                                                 </span>
                                             @endif
                                         </button>
-                                        @if(!$isImprisoned && !$character->isComatose())
+                                        @if(!$isImprisoned && !$character->isComatose() && !$character->needsReviveSerum())
                                             <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-gray-400 font-medium px-1 pt-1">
                                                 <span>Vereist: <strong class="text-slate-800 dark:text-white">15 ⚡</strong></span>
                                                 <span>Jouw Energie: <strong class="{{ ($character->energy ?? 0) >= 15 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400' }}">{{ $character->energy ?? 0 }} ⚡</strong></span>

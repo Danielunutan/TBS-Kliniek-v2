@@ -31,4 +31,12 @@ class EventVaultCracking extends Model
     {
         return $this->belongsTo(Character::class);
     }
+
+    /**
+     * Scope records within a specific event window.
+     */
+    public function scopeDuringEvent($query, $start, $end)
+    {
+        return $query->where('created_at', '>=', $start)->where('created_at', '<=', $end);
+    }
 }

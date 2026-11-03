@@ -3,7 +3,7 @@
 @section('content')
 @php
     $gangTreasury = $myGang ? (int) ($myGang->treasury ?? 0) : 0;
-    $totalRespect = $myGang ? (int) ($myGang->respect ?? 0) : 0;
+    $totalRespect = $totalRespect ?? ($myGang ? (int) ($myGang->respect ?? 0) : 0);
     $allowedGangTabs = ['mijn_gang', 'leden', 'oorlog', 'depot', 'doneren', 'winkel', 'beheer', 'instellingen', 'alle_bendes', 'ranglijst', 'logboek', 'oprichten'];
     $defaultGangTab = $myGang ? 'mijn_gang' : 'alle_bendes';
     $rawGangTab = (string) ($activeTab ?? session('active_gang_tab', request('tab', $defaultGangTab)));
@@ -178,7 +178,7 @@
     @php
         $myLeaveMultiplier = $myGang ? min(50, max(0, (int) ($myGang->leave_fee_multiplier ?? 0))) : 0;
         $myLeaveFee = ($myGang && $character->gang_role !== 'leader') ? (($hourlyWage ?? 0) * $myLeaveMultiplier) : 0;
-        $hasEnoughCashToLeave = (int) $character->cash >= $myLeaveFee;
+        $hasEnoughCashToLeave = ((int) $character->cash + (int) ($character->bank ?? 0)) >= $myLeaveFee;
     @endphp
 
     <!-- ========================================================================================= -->

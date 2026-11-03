@@ -152,7 +152,7 @@
                             <input type="hidden" name="tier" value="pocket">
                             <input type="hidden" name="victim_id" value="{{ $vic->id }}">
                             <input type="hidden" name="confirm_break_isolation" value="0">
-                            <button type="submit" @if($character->energy < 8 || $character->isImprisoned() || $character->isComatose()) disabled @endif 
+                            <button type="submit" @if($character->energy < 8 || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif 
                                     class="bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-[10px] sm:text-[11px] font-black px-2.5 sm:px-3 py-2 min-h-[36px] rounded-xl shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-1 cursor-pointer">
                                 <i class="fa-solid fa-hand-holding-dollar text-[10px]"></i>
                                 <span>Rollen (8 EP)</span>
@@ -206,7 +206,7 @@
             <!-- Action Button: Full width thumb button on mobile -->
             <div class="px-4 py-3 bg-slate-50/90 dark:bg-slate-800/60 border-t border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    @if($character->isComatose())
+                    @if($character->isComatose() || $character->needsReviveSerum())
                         <i class="fa-solid fa-heart-pulse text-rose-500 mr-1"></i> Coma (Code Blauw)
                     @elseif($character->isImprisoned())
                         <i class="fa-solid fa-lock text-rose-500 mr-1"></i> In isoleercel
@@ -219,10 +219,12 @@
                     @endif
                 </span>
 
-                <form method="POST" action="{{ route('theft.steal') }}" class="w-full sm:w-auto">
+                <form method="POST" action="{{ route('theft.steal') }}" class="w-full sm:w-auto"
+                      @submit="if (!handleTheft($event, @js($tier['name']))) return false;">
                     @csrf
                     <input type="hidden" name="tier" value="{{ $key }}">
-                    <button type="submit" @if(! $hasLevel || ! $hasEnergy || $character->isImprisoned() || $character->isComatose()) disabled @endif 
+                    <input type="hidden" name="confirm_break_isolation" value="0">
+                    <button type="submit" @if(! $hasLevel || ! $hasEnergy || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif 
                             class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white font-black px-4 py-2.5 rounded-xl text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-hand-sparkles"></i>
                         <span>Slag Slaan</span>

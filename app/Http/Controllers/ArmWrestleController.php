@@ -200,7 +200,7 @@ class ArmWrestleController extends Controller
             ], 422);
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
@@ -218,6 +218,7 @@ class ArmWrestleController extends Controller
                 ->first();
 
             if ($recentMatch) {
+                $character->refresh();
                 $isWinner = $recentMatch->winner_id === $character->id;
 
                 return response()->json([
@@ -239,9 +240,9 @@ class ArmWrestleController extends Controller
 
         $validated = $request->validate([
             'npc_key' => ['required', 'string', 'in:sjonnie,karel,bennie,mike'],
-            'clicks' => ['required', 'integer', 'min:0'],
-            'duration_ms' => ['nullable', 'integer'],
-            'duration_seconds' => ['nullable', 'integer'],
+            'clicks' => ['required', 'integer', 'min:0', 'max:1000000'],
+            'duration_ms' => ['nullable', 'integer', 'min:0', 'max:3600000'],
+            'duration_seconds' => ['nullable', 'integer', 'min:0', 'max:3600'],
         ]);
 
         $npcs = self::getNpcOpponents();
@@ -451,7 +452,7 @@ class ArmWrestleController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen plaatsen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -543,7 +544,7 @@ class ArmWrestleController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen aannemen!');
         }
 
-        if ($opponent->isComatose()) {
+        if ($opponent->isComatose() || $opponent->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -589,6 +590,20 @@ class ArmWrestleController extends Controller
                 return back()->with('error', 'Uitdager niet gevonden.');
             }
 
+            $lockedOpponent->cooldownsMap = null;
+            $rem = $this->cooldownService->getRemainingSeconds($lockedOpponent, 'arm_wrestling');
+            if ($rem > 0) {
+                return back()->with('error', "Je armen moeten nog even bijkomen van de vorige partij! Wacht nog {$rem} seconden.");
+            }
+
+            if ($challenger->isImprisoned() || $challenger->isComatose() || $challenger->needsReviveSerum()) {
+                $challenger->increment('cash', $bet);
+                $match->status = 'cancelled';
+                $match->save();
+
+                return back()->with('error', "De uitdager ({$challenger->name}) zit momenteel in de isoleercel of verkeert in Code Blauw (Coma). De inzet is teruggestort.");
+            }
+
             if ($lockedOpponent->cash < $bet) {
                 return back()->with('error', 'Je hebt onvoldoende contant geld op zak om deze uitdaging aan te gaan (€'.number_format($bet, 0, ',', '.').').');
             }
@@ -601,6 +616,7 @@ class ArmWrestleController extends Controller
             $match->save();
 
             $lockedOpponent->decrement('cash', $bet);
+            $lockedOpponent->breakProtection();
 
             // Set cooldown for opponent
             $this->cooldownService->setCooldown($lockedOpponent, 'arm_wrestling', 20);
@@ -615,6 +631,7 @@ class ArmWrestleController extends Controller
             // Payout winner
             $winner->increment('cash', $pot);
             $winner->addRespect(15);
+            $winner->save();
             $this->level->addXp($winner, 50);
 
             $maxStrength = $winner->getMaxStatForLevel();

@@ -37,10 +37,17 @@ class HitmanController extends Controller
         protected CooldownService $cooldownService,
     ) {}
 
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var User|null $user */
+        $user = Auth::user();
+        /** @var Character|null $character */
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
+
         $this->energy->refresh($character);
 
         $bloodFeuds = BloodFeud::active()
@@ -159,8 +166,13 @@ class HitmanController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return response()->json(['targets' => []]);
+        }
+
         $q = trim((string) $request->query('q', ''));
 
         if (mb_strlen($q) < 1) {
@@ -221,15 +233,19 @@ class HitmanController extends Controller
      */
     public function startIntel(Request $request): RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen schaduw-inlichtingen aanvragen!');
         }
 
-        if ($character->needsReviveSerum()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in coma of Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if (! $request->filled('target_id') && $request->filled('target_name')) {
@@ -257,10 +273,26 @@ class HitmanController extends Controller
         $currency = $validated['currency'] ?? 'cash';
 
         return DB::transaction(function () use ($character, $target, $intelCfg, $currency): RedirectResponse {
-            /** @var Character $locked */
-            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
-            /** @var Character $lockedTarget */
-            $lockedTarget = Character::where('id', $target->id)->lockForUpdate()->first();
+            $firstId = min($character->id, $target->id);
+            $secondId = max($character->id, $target->id);
+            $lockedPair = Character::whereIn('id', [$firstId, $secondId])
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            /** @var Character|null $locked */
+            $locked = $lockedPair->get($character->id);
+            /** @var Character|null $lockedTarget */
+            $lockedTarget = $lockedPair->get($target->id);
+
+            if (! $locked || ! $lockedTarget) {
+                return back()->with('error', 'Doelwit kon niet worden gevonden.');
+            }
+
+            if ($locked->isImprisoned() || $locked->isComatose() || $locked->needsReviveSerum()) {
+                return back()->with('error', 'Je kunt op dit moment geen schaduw-inlichtingen aanvragen.');
+            }
 
             if ($currency === 'stars') {
                 $starCost = $intelCfg['cost_stars'];
@@ -326,15 +358,19 @@ class HitmanController extends Controller
      */
     public function quickTravel(Request $request): RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je je niet verplaatsen!');
         }
 
-        if ($character->needsReviveSerum()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in coma of Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($character->isWingLocked()) {
@@ -369,8 +405,12 @@ class HitmanController extends Controller
         $cost = $this->calculateTravelCost($character);
 
         return DB::transaction(function () use ($character, $matchedLocation, $cost): RedirectResponse {
-            /** @var Character $locked */
+            /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $locked || $locked->isImprisoned() || $locked->isComatose() || $locked->needsReviveSerum()) {
+                return back()->with('error', 'Je kunt je op dit moment niet verplaatsen.');
+            }
 
             if (($locked->cash + $locked->bank) < $cost) {
                 return back()->with('error', 'Je hebt €'.number_format($cost, 0, ',', '.').' nodig om de bewakers om te kopen voor verplaatsing.');
@@ -391,23 +431,31 @@ class HitmanController extends Controller
      */
     public function trainColdBlooded(Request $request): RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
+
         $this->energy->refresh($character);
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet op de ondergrondse schietbaan trainen!');
         }
 
-        if ($character->needsReviveSerum()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in coma of Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($character->getColdBloodedPct() >= 100) {
             return back()->with('info', 'Je Koudbloedigheid staat al op het maximale niveau van 100%!');
         }
 
-        $currency = $request->input('currency', 'cash');
+        $validated = $request->validate([
+            'currency' => ['nullable', 'string', 'in:cash,stars'],
+        ]);
+        $currency = $validated['currency'] ?? 'cash';
         $cashCost = 350000;
         $starCost = 25;
         $energyCost = 15;
@@ -417,8 +465,12 @@ class HitmanController extends Controller
         }
 
         return DB::transaction(function () use ($character, $currency, $cashCost, $starCost, $energyCost): RedirectResponse {
-            /** @var Character $locked */
+            /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $locked || $locked->isImprisoned() || $locked->isComatose() || $locked->needsReviveSerum()) {
+                return back()->with('error', 'Je kunt op dit moment niet trainen.');
+            }
 
             if ($currency === 'stars') {
                 if (($locked->stars ?? 0) < $starCost) {
@@ -455,9 +507,17 @@ class HitmanController extends Controller
      */
     public function buyReviveSerum(Request $request): RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
-        $currency = $request->input('currency', 'cash');
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
+
+        $validated = $request->validate([
+            'currency' => ['nullable', 'string', 'in:cash,stars'],
+        ]);
+        $currency = $validated['currency'] ?? 'cash';
 
         return DB::transaction(function () use ($character, $currency): RedirectResponse {
             /** @var Character $locked */
@@ -511,8 +571,12 @@ class HitmanController extends Controller
 
     public function contract(Request $request): RedirectResponse
     {
-        /** @var Character $character */
-        $character = Auth::user()->character;
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen liquidatieopdrachten uitvoeren!');
@@ -526,8 +590,8 @@ class HitmanController extends Controller
                 ->with('error_url', route('isolation.index'));
         }
 
-        if ($character->needsReviveSerum()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in coma of Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if (! $request->filled('target_id') && $request->filled('target_name')) {
@@ -560,8 +624,8 @@ class HitmanController extends Controller
             return back()->with('error', 'Dit doelwit zit in de isoleercel en kan niet worden aangevallen.');
         }
 
-        if ($target->needsReviveSerum()) {
-            return back()->with('error', "{$target->name} ligt al in Code Blauw (Hartstilstand na 10 liquidaties)!");
+        if ($target->isComatose() || $target->needsReviveSerum()) {
+            return back()->with('error', "{$target->name} ligt al in coma of Code Blauw (Hartstilstand na 10 liquidaties)!");
         }
 
         if ($target->hasIsolationProtection()) {
@@ -597,12 +661,16 @@ class HitmanController extends Controller
                     return back()->with('error', 'Doelwit kon niet worden gevonden.');
                 }
 
+                if ($lockedAttacker->isImprisoned() || $lockedAttacker->isComatose() || $lockedAttacker->needsReviveSerum()) {
+                    return back()->with('error', 'Je kunt dit contract momenteel niet uitvoeren.');
+                }
+
                 if ($lockedTarget->isImprisoned()) {
                     return back()->with('error', 'Dit doelwit zit in de isoleercel en kan niet worden aangevallen.');
                 }
 
-                if ($lockedTarget->needsReviveSerum()) {
-                    return back()->with('error', "{$lockedTarget->name} ligt al in Code Blauw (Hartstilstand na 10 liquidaties)!");
+                if ($lockedTarget->isComatose() || $lockedTarget->needsReviveSerum()) {
+                    return back()->with('error', "{$lockedTarget->name} ligt al in coma of Code Blauw (Hartstilstand na 10 liquidaties)!");
                 }
 
                 if ($lockedTarget->hasIsolationProtection()) {
@@ -665,8 +733,13 @@ class HitmanController extends Controller
      */
     public function shoot(Request $request): RedirectResponse
     {
-        /** @var Character $attacker */
-        $attacker = Auth::user()->character;
+        /** @var Character|null $attacker */
+        $attacker = Auth::user()?->character;
+
+        if (! $attacker) {
+            return redirect()->route('character.create');
+        }
+
         $this->energy->refresh($attacker);
 
         if ($attacker->isImprisoned()) {
@@ -681,8 +754,8 @@ class HitmanController extends Controller
                 ->with('error_url', route('isolation.index'));
         }
 
-        if ($attacker->needsReviveSerum()) {
-            return back()->with('error', '⚠️ Je verkeert in Code Blauw (Hartstilstand na 10 liquidaties)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe om weer tot leven te komen.');
+        if ($attacker->isComatose() || $attacker->needsReviveSerum()) {
+            return back()->with('error', '⚠️ Je verkeert in coma of Code Blauw (Hartstilstand na 10 liquidaties)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe om weer tot leven te komen.');
         }
 
         if (! $request->filled('target_id') && $request->filled('target_name')) {
@@ -708,8 +781,8 @@ class HitmanController extends Controller
             return back()->with('error', 'Dit doelwit zit veilig in de isoleercel en kan niet worden geliquideerd.');
         }
 
-        if ($defender->needsReviveSerum()) {
-            return back()->with('error', "{$defender->name} is al 10x geliquideerd en ligt in Code Blauw (Hartstilstand) te wachten op een Reanimatie-Serum!");
+        if ($defender->isComatose() || $defender->needsReviveSerum()) {
+            return back()->with('error', "{$defender->name} is al 10x geliquideerd of ligt in coma / Code Blauw (Hartstilstand) te wachten op een Reanimatie-Serum!");
         }
 
         if ($defender->hasIsolationProtection()) {
@@ -755,333 +828,356 @@ class HitmanController extends Controller
         // Take the target's action lock (the same lock his own requests use). Two shooters on one target then run one
         // after the other, so the second one sees the protection, cash and bounties that the first one left behind.
         $targetLock = Cache::lock('character_action_'.$defender->user_id, SerializeCharacterActions::LOCK_TTL_SECONDS);
-        try {
-            $targetLock->block(3);
-        } catch (LockTimeoutException) {
-            return back()->with('error', "{$defender->name} wordt op dit moment al aangevallen. Probeer het over enkele seconden opnieuw.");
-        }
 
         try {
-            $defender->refresh();
-            if ($defender->isImprisoned() || $defender->needsReviveSerum() || $defender->hasIsolationProtection()) {
-                return back()->with('error', "{$defender->name} is zojuist al geraakt of beschermd en kan nu niet worden beschoten.");
-            }
+            return $targetLock->block(3, function () use ($attacker, $defender, $bulletCount, $gradeInfo, $coldBloodedPct, $isOneTap): RedirectResponse {
+                return DB::transaction(function () use ($attacker, $defender, $bulletCount, $gradeInfo, $coldBloodedPct, $isOneTap): RedirectResponse {
+                    $firstId = min($attacker->id, $defender->id);
+                    $secondId = max($attacker->id, $defender->id);
+                    $lockedPair = Character::whereIn('id', [$firstId, $secondId])
+                        ->orderBy('id')
+                        ->lockForUpdate()
+                        ->get()
+                        ->keyBy('id');
 
-            if (! $this->energy->consume($attacker, 20)) {
-                return back()->with('error', 'Je hebt minimaal 20 energie nodig om een liquidatie uit te voeren.');
-            }
+                    /** @var Character|null $lockedAttacker */
+                    $lockedAttacker = $lockedPair->get($attacker->id);
+                    /** @var Character|null $lockedDefender */
+                    $lockedDefender = $lockedPair->get($defender->id);
 
-            $attacker->breakProtection();
+                    if (! $lockedAttacker || ! $lockedDefender) {
+                        return back()->with('error', 'Tegenstander kon niet worden gevonden.');
+                    }
 
-            // Deduct bullets & Koudbloedigheid focus
-            $attacker->bullets -= $bulletCount;
-            $attacker->save();
-            $attacker->adjustColdBloodedPct($isOneTap ? -12 : -6);
+                    if ($lockedAttacker->isImprisoned() || $lockedAttacker->isComatose() || $lockedAttacker->needsReviveSerum()) {
+                        return back()->with('error', 'Je kunt momenteel geen liquidatie uitvoeren.');
+                    }
 
-            // Calculate Attack Power vs Defender Armor
-            if ($isOneTap) {
-                $attackerPower = 650 + ($gradeInfo['grade'] * 25) + ($attacker->getEffectiveStrength() * 2.5) + ($coldBloodedPct * 3.5);
-            } else {
-                $attackerPower = ($bulletCount * 1.5) + ($attacker->getEffectiveStrength() * 2.0) + ($gradeInfo['grade'] * 12) + rand(15, 45);
+                    if ($lockedDefender->isImprisoned() || $lockedDefender->isComatose() || $lockedDefender->needsReviveSerum() || $lockedDefender->hasIsolationProtection()) {
+                        return back()->with('error', "{$lockedDefender->name} is zojuist al geraakt of beschermd en kan nu niet worden beschoten.");
+                    }
 
-                // Bonus if player fires at or above their grade's recommended heavy barrage
-                if ($bulletCount >= $gradeInfo['min_bullets']) {
-                    $attackerPower *= 1.20; // +20% heavy barrage bonus!
-                }
-            }
+                    if (($lockedAttacker->bullets ?? 0) < $bulletCount) {
+                        return back()->with('error', "Onvoldoende munitie! Je hebt {$lockedAttacker->bullets} patronen op zak, maar je probeert er {$bulletCount} af te vuren. Koop een munitiekist in het Wapenarsenaal.");
+                    }
 
-            // Sluipaanval / Direct Zicht Bonus (+25% power when in the same clinic wing!)
-            if ($isSameWing) {
-                $attackerPower *= 1.25;
-            }
+                    if (! $this->energy->consume($lockedAttacker, 20)) {
+                        return back()->with('error', 'Je hebt minimaal 20 energie nodig om een liquidatie uit te voeren.');
+                    }
 
-            $defenderDefense = ($defender->getEffectiveDefense() * 1.8) + rand(10, 30);
-            $hasVest = $defender->hasVest();
-            $vestInfo = $defender->getActiveVestInfo();
+                    $lockedAttacker->breakProtection();
 
-            if ($hasVest && $vestInfo) {
-                $pierceFactor = max(0.35, 1 - ($gradeInfo['armor_pierce'] / 100));
-                $defenderDefense += (int) round($vestInfo['defense_bonus'] * $pierceFactor);
-            }
+                    // Deduct bullets & Koudbloedigheid focus
+                    $lockedAttacker->bullets -= $bulletCount;
+                    $lockedAttacker->save();
+                    $lockedAttacker->adjustColdBloodedPct($isOneTap ? -12 : -6);
 
-            // 1. BACKFIRE CHECK (Target's Backfire Vest ricochets the attack back onto the shooter!)
-            $backfireChance = $hasVest ? $defender->getVestBackfireChance() : 12;
-            if ($attackerPower < $defenderDefense && rand(1, 100) <= $backfireChance) {
-                $attacker->deaths_count = ($attacker->deaths_count ?? 0) + 1;
-                $attacker->incrementDailyDeaths();
-                $attackerStreak = $attacker->incrementLiquidationStreakDeaths();
-                $evacWing = $this->evacuateToRandomWing($attacker);
+                    $attackerWing = $lockedAttacker->current_location ?? 'Paviljoen 1 (Gesloten)';
+                    $defenderWing = $lockedDefender->current_location ?? 'Paviljoen 1 (Gesloten)';
+                    $isSameWing = ($attackerWing === $defenderWing);
 
-                if ($attackerStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
-                    $attacker->health = 20;
-                    $attacker->coma_until = null;
-                    $attacker->protection_until = now()->addMinutes(15);
-                    $attacker->save();
-                } else {
-                    $attacker->health = 0;
-                    $attacker->coma_until = now()->addHours(6);
-                    $attacker->protection_until = now()->addMinutes(30);
-                    $attacker->save();
-                }
+                    // Calculate Attack Power vs Defender Armor
+                    if ($isOneTap) {
+                        $attackerPower = 650 + ($gradeInfo['grade'] * 25) + ($lockedAttacker->getEffectiveStrength() * 2.5) + ($coldBloodedPct * 3.5);
+                    } else {
+                        $attackerPower = ($bulletCount * 1.5) + ($lockedAttacker->getEffectiveStrength() * 2.0) + ($gradeInfo['grade'] * 12) + rand(15, 45);
 
-                $defender->addRespect(25);
-                $defender->save();
+                        // Bonus if player fires at or above their grade's recommended heavy barrage
+                        if ($bulletCount >= $gradeInfo['min_bullets']) {
+                            $attackerPower *= 1.20; // +20% heavy barrage bonus!
+                        }
+                    }
 
-                $vestLabel = $vestInfo['name'] ?? 'Backfire-Pantser';
+                    // Sluipaanval / Direct Zicht Bonus (+25% power when in the same clinic wing!)
+                    if ($isSameWing) {
+                        $attackerPower *= 1.25;
+                    }
 
-                GameNotification::create([
-                    'character_id' => $defender->id,
-                    'type' => 'shield',
-                    'icon' => 'fa-shield-halved',
-                    'title' => '🛡️ BACKFIRE VOLTREFFER (+25 Respect)!',
-                    'message' => "{$attacker->name} vuurde op {$defenderWing} {$bulletCount} patro(o)n(en) op je af, maar jouw {$vestLabel} kaatste het schot terug! {$attacker->name} is zwaargewond per brancard afgevoerd naar een andere afdeling!",
-                ]);
+                    $defenderDefense = ($lockedDefender->getEffectiveDefense() * 1.8) + rand(10, 30);
+                    $hasVest = $lockedDefender->hasVest();
+                    $vestInfo = $lockedDefender->getActiveVestInfo();
 
-                try {
-                    $backfireDm = $attackerStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
-                        ? "💥 DODELIJKE BACKFIRE OP {$defenderWing} (10/10): Het {$vestLabel} van {$defender->name} kaatste je schot terug! Je verkeert nu in Code Blauw (Hartstilstand) en hebt een ".Character::REVIVE_SERUM_NAME.' nodig om weer tot leven te komen!'
-                        : "💥 BACKFIRE OP {$defenderWing} ({$attackerStreak}/10): Het {$vestLabel} van {$defender->name} kaatste jouw kogels terug! Je bent met 20 HP per brancard geëvacueerd naar {$evacWing} en kunt direct eten om te healen.";
-                    app(ChatBotService::class)->sendLiquidationNotice($attacker, $backfireDm, [
-                        'subtype' => 'backfire',
-                        'location' => $defenderWing,
-                        'attacker_id' => $attacker->id,
-                        'defender_id' => $defender->id,
-                    ]);
-                } catch (\Throwable) {
-                }
+                    if ($hasVest && $vestInfo) {
+                        $pierceFactor = max(0.35, 1 - ($gradeInfo['armor_pierce'] / 100));
+                        $defenderDefense += (int) round($vestInfo['defense_bonus'] * $pierceFactor);
+                    }
 
-                if ($attackerStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
-                    return back()->with('error', "💥 DODELIJKE BACKFIRE (10/10 LIQUIDATIES)! Het {$vestLabel} van {$defender->name} kaatste je schot terug! Dit was je 10e fatale treffer: je verkeert nu in Code Blauw (Hartstilstand) en hebt een ".Character::REVIVE_SERUM_NAME.' nodig om weer tot leven te komen!');
-                }
+                    // 1. BACKFIRE CHECK (Target's Backfire Vest ricochets the attack back onto the shooter!)
+                    $backfireChance = $hasVest ? $lockedDefender->getVestBackfireChance() : 12;
+                    if ($attackerPower < $defenderDefense && rand(1, 100) <= $backfireChance) {
+                        $lockedAttacker->deaths_count = ($lockedAttacker->deaths_count ?? 0) + 1;
+                        $lockedAttacker->incrementDailyDeaths();
+                        $attackerStreak = $lockedAttacker->incrementLiquidationStreakDeaths();
+                        $evacWing = $this->evacuateToRandomWing($lockedAttacker);
 
-                return back()->with('error', "💥 BACKFIRE OP {$defenderWing}! Het {$vestLabel} van {$defender->name} kaatste jouw kogels vol terug! Je bent gezakt naar 20 HP (Liquidatie-teller: {$attackerStreak}/10), per brancard geëvacueerd naar {$evacWing} en kunt direct eten om te healen!");
-            }
+                        if ($attackerStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
+                            $lockedAttacker->health = 20;
+                            $lockedAttacker->coma_until = null;
+                            $lockedAttacker->protection_until = now()->addMinutes(15);
+                            $lockedAttacker->save();
+                        } else {
+                            $lockedAttacker->health = 0;
+                            $lockedAttacker->coma_until = now()->addHours(6);
+                            $lockedAttacker->protection_until = now()->addMinutes(30);
+                            $lockedAttacker->save();
+                        }
 
-            // 2. LETHAL LIQUIDATION HIT (45% Cash + 7% Bank stolen!)
-            if ($attackerPower >= $defenderDefense) {
-                // 25% chance a heavy vest absorbs a non-overwhelming hit and shatters
-                if ($hasVest && $attackerPower < ($defenderDefense * 1.35) && rand(1, 100) <= 25) {
-                    $defender->vest_until = null;
-                    $dmg = min(max(1, $defender->health - 15), rand(35, 65));
-                    $defender->health = max(15, $defender->health - $dmg);
-                    $defender->save();
+                        $lockedDefender->addRespect(25);
+                        $lockedDefender->save();
 
-                    GameNotification::create([
-                        'character_id' => $defender->id,
-                        'type' => 'attack',
-                        'icon' => 'fa-shield-halved',
-                        'title' => 'Pantser vernietigd bij aanslag!',
-                        'message' => "{$attacker->name} schoot op {$defenderWing} met {$bulletCount} patro(o)n(en)! Je {$vestInfo['name']} ving de fatale klap op maar is daarbij volledig vernietigd (-{$dmg} HP).",
-                    ]);
+                        $vestLabel = $vestInfo['name'] ?? 'Backfire-Pantser';
 
-                    return back()->with('info', "🛡️ PANTSEBREUK! Je schot op {$defender->name} heeft zijn {$vestInfo['name']} volledig aan flarden geschoten (-{$dmg} HP)! Het doelwit heeft nu géén pantser meer.");
-                }
+                        GameNotification::create([
+                            'character_id' => $lockedDefender->id,
+                            'type' => 'shield',
+                            'icon' => 'fa-shield-halved',
+                            'title' => '🛡️ BACKFIRE VOLTREFFER (+25 Respect)!',
+                            'message' => "{$lockedAttacker->name} vuurde op {$defenderWing} {$bulletCount} patro(o)n(en) op je af, maar jouw {$vestLabel} kaatste het schot terug! {$lockedAttacker->name} is zwaargewond per brancard afgevoerd naar een andere afdeling!",
+                        ]);
 
-                // Plunder 45% Cash + 7% Bank (tenzij doelwit 24u Cash Bescherming heeft)
-                $stolenCash = $defender->hasCashProtection() ? 0 : (int) floor(max(0, (int) $defender->cash) * 0.45);
-                $stolenBank = $defender->hasCashProtection() ? 0 : (int) floor(max(0, (int) $defender->bank) * 0.07);
-                $totalStolen = $stolenCash + $stolenBank;
+                        try {
+                            $backfireDm = $attackerStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
+                                ? "💥 DODELIJKE BACKFIRE OP {$defenderWing} (10/10): Het {$vestLabel} van {$lockedDefender->name} kaatste je schot terug! Je verkeert nu in Code Blauw (Hartstilstand) en hebt een ".Character::REVIVE_SERUM_NAME.' nodig om weer tot leven te komen!'
+                                : "💥 BACKFIRE OP {$defenderWing} ({$attackerStreak}/10): Het {$vestLabel} van {$lockedDefender->name} kaatste jouw kogels terug! Je bent met 20 HP per brancard geëvacueerd naar {$evacWing} en kunt direct eten om te healen.";
+                            app(ChatBotService::class)->sendLiquidationNotice($lockedAttacker, $backfireDm, [
+                                'subtype' => 'backfire',
+                                'location' => $defenderWing,
+                                'attacker_id' => $lockedAttacker->id,
+                                'defender_id' => $lockedDefender->id,
+                            ]);
+                        } catch (\Throwable) {
+                        }
 
-                if ($stolenCash > 0) {
-                    $defender->cash = max(0, (int) $defender->cash - $stolenCash);
-                }
-                if ($stolenBank > 0) {
-                    $defender->bank = max(0, (int) $defender->bank - $stolenBank);
-                    BankTransaction::record(
-                        $defender,
-                        'withdrawal',
-                        'bank',
-                        $stolenBank,
-                        (int) $defender->bank,
-                        "Bank geplunderd bij liquidatie door {$attacker->name}"
-                    );
-                }
-                if ($totalStolen > 0) {
-                    $attacker->cash = (int) $attacker->cash + $totalStolen;
-                    EventCashHuntService::record($attacker, $totalStolen, 'hitman_loot');
-                }
+                        if ($attackerStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
+                            return back()->with('error', "💥 DODELIJKE BACKFIRE (10/10 LIQUIDATIES)! Het {$vestLabel} van {$lockedDefender->name} kaatste je schot terug! Dit was je 10e fatale treffer: je verkeert nu in Code Blauw (Hartstilstand) en hebt een ".Character::REVIVE_SERUM_NAME.' nodig om weer tot leven te komen!');
+                        }
 
-                $defender->deaths_count = ($defender->deaths_count ?? 0) + 1;
-                $defender->incrementDailyDeaths();
+                        return back()->with('error', "💥 BACKFIRE OP {$defenderWing}! Het {$vestLabel} van {$lockedDefender->name} kaatste jouw kogels vol terug! Je bent gezakt naar 20 HP (Liquidatie-teller: {$attackerStreak}/10), per brancard geëvacueerd naar {$evacWing} en kunt direct eten om te healen!");
+                    }
 
-                // Increment 0/10 liquidation streak counter
-                $defenderStreak = $defender->incrementLiquidationStreakDeaths();
-                $newWing = $this->evacuateToRandomWing($defender);
+                    // 2. LETHAL LIQUIDATION HIT (45% Cash + 7% Bank stolen!)
+                    if ($attackerPower >= $defenderDefense) {
+                        // 25% chance a heavy vest absorbs a non-overwhelming hit and shatters
+                        if ($hasVest && $attackerPower < ($defenderDefense * 1.35) && rand(1, 100) <= 25) {
+                            $lockedDefender->vest_until = null;
+                            $dmg = min(max(1, $lockedDefender->health - 15), rand(35, 65));
+                            $lockedDefender->health = max(15, $lockedDefender->health - $dmg);
+                            $lockedDefender->save();
 
-                if ($defenderStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
-                    // Victims on hits 1-9 stay at 20 HP, NO coma lockout, can immediately eat/heal & play!
-                    $defender->health = 20;
-                    $defender->coma_until = null;
-                    $defender->protection_until = now()->addMinutes(15);
-                    $defender->save();
-                } else {
-                    // 10th liquidation: Code Blauw (requires Forensisch Reanimatie-Serum)
-                    $defender->protection_until = now()->addMinutes(30);
-                    $defender->save();
-                }
+                            GameNotification::create([
+                                'character_id' => $lockedDefender->id,
+                                'type' => 'attack',
+                                'icon' => 'fa-shield-halved',
+                                'title' => 'Pantser vernietigd bij aanslag!',
+                                'message' => "{$lockedAttacker->name} schoot op {$defenderWing} met {$bulletCount} patro(o)n(en)! Je {$vestInfo['name']} ving de fatale klap op maar is daarbij volledig vernietigd (-{$dmg} HP).",
+                            ]);
 
-                $attacker->kills_count = ($attacker->kills_count ?? 0) + 1;
-                $baseRespect = 60;
+                            return back()->with('info', "🛡️ PANTSEBREUK! Je schot op {$lockedDefender->name} heeft zijn {$vestInfo['name']} volledig aan flarden geschoten (-{$dmg} HP)! Het doelwit heeft nu géén pantser meer.");
+                        }
 
-                // Claim any open Bounties on defender
-                $bountyReward = 0;
-                $bountyPlacerIds = collect();
-                if (class_exists(Bounty::class)) {
-                    $bountyReward = DB::transaction(function () use ($defender, $attacker, &$bountyPlacerIds): int {
-                        // Lock the open bounties: the brawl page can claim the same bounties at the same moment.
-                        $openBounties = Bounty::where('target_character_id', $defender->id)
-                            ->where('is_claimed', false)
-                            ->lockForUpdate()
-                            ->get();
+                        // Plunder 45% Cash + 7% Bank (tenzij doelwit 24u Cash Bescherming heeft)
+                        $stolenCash = $lockedDefender->hasCashProtection() ? 0 : (int) floor(max(0, (int) $lockedDefender->cash) * 0.45);
+                        $stolenBank = $lockedDefender->hasCashProtection() ? 0 : (int) floor(max(0, (int) $lockedDefender->bank) * 0.07);
+                        $totalStolen = $stolenCash + $stolenBank;
 
-                        $sum = 0;
-                        foreach ($openBounties as $bounty) {
-                            $sum += (int) $bounty->amount;
-                            if ($bounty->placed_by_character_id) {
-                                $bountyPlacerIds->push((int) $bounty->placed_by_character_id);
+                        if ($stolenCash > 0) {
+                            $lockedDefender->cash = max(0, (int) $lockedDefender->cash - $stolenCash);
+                        }
+                        if ($stolenBank > 0) {
+                            $lockedDefender->bank = max(0, (int) $lockedDefender->bank - $stolenBank);
+                            BankTransaction::record(
+                                $lockedDefender,
+                                'withdrawal',
+                                'bank',
+                                $stolenBank,
+                                (int) $lockedDefender->bank,
+                                "Bank geplunderd bij liquidatie door {$lockedAttacker->name}"
+                            );
+                        }
+                        if ($totalStolen > 0) {
+                            $lockedAttacker->cash = (int) $lockedAttacker->cash + $totalStolen;
+                            EventCashHuntService::record($lockedAttacker, $totalStolen, 'hitman_loot');
+                        }
+
+                        $lockedDefender->deaths_count = ($lockedDefender->deaths_count ?? 0) + 1;
+                        $lockedDefender->incrementDailyDeaths();
+
+                        // Increment 0/10 liquidation streak counter
+                        $defenderStreak = $lockedDefender->incrementLiquidationStreakDeaths();
+                        $newWing = $this->evacuateToRandomWing($lockedDefender);
+
+                        if ($defenderStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
+                            // Victims on hits 1-9 stay at 20 HP, NO coma lockout, can immediately eat/heal & play!
+                            $lockedDefender->health = 20;
+                            $lockedDefender->coma_until = null;
+                            $lockedDefender->protection_until = now()->addMinutes(15);
+                            $lockedDefender->save();
+                        } else {
+                            // 10th liquidation: Code Blauw (requires Forensisch Reanimatie-Serum)
+                            $lockedDefender->protection_until = now()->addMinutes(30);
+                            $lockedDefender->save();
+                        }
+
+                        $lockedAttacker->kills_count = ($lockedAttacker->kills_count ?? 0) + 1;
+                        $baseRespect = 60;
+
+                        // Claim any open Bounties on defender
+                        $bountyReward = 0;
+                        $bountyPlacerIds = collect();
+                        if (class_exists(Bounty::class)) {
+                            $openBounties = Bounty::where('target_character_id', $lockedDefender->id)
+                                ->where('is_claimed', false)
+                                ->lockForUpdate()
+                                ->get();
+
+                            foreach ($openBounties as $bounty) {
+                                $bountyReward += (int) $bounty->amount;
+                                if ($bounty->placed_by_character_id) {
+                                    $bountyPlacerIds->push((int) $bounty->placed_by_character_id);
+                                }
+                                $bounty->update([
+                                    'is_claimed' => true,
+                                    'claimed_by_character_id' => $lockedAttacker->id,
+                                    'claimed_at' => now(),
+                                ]);
                             }
-                            $bounty->update([
-                                'is_claimed' => true,
-                                'claimed_by_character_id' => $attacker->id,
-                                'claimed_at' => now(),
+
+                            if ($bountyReward > 0) {
+                                $lockedAttacker->cash += $bountyReward;
+                                EventCashHuntService::record($lockedAttacker, $bountyReward, 'hitman_bounty');
+                            }
+                        }
+
+                        // Handle Blood Feud resolution or creation
+                        $bloodFeud = BloodFeud::hasClaimAgainst($lockedAttacker, $lockedDefender->id);
+                        $avengedVictim = null;
+                        if ($bloodFeud) {
+                            $avengedVictim = $bloodFeud->victim_id ? Character::find($bloodFeud->victim_id) : null;
+                            $bloodFeud->update([
+                                'is_avenged' => true,
+                                'avenged_by_id' => $lockedAttacker->id,
+                                'avenged_at' => now(),
+                            ]);
+                            $baseRespect += 50;
+                            $lockedAttacker->cash += 25000;
+                            if ($lockedAttacker->gang && Schema::hasColumn('gangs', 'respect')) {
+                                $lockedAttacker->gang->increment('respect', 150);
+                            }
+                        } else {
+                            BloodFeud::create([
+                                'attacker_id' => $lockedAttacker->id,
+                                'victim_id' => $lockedDefender->id,
+                                'victim_gang_id' => $lockedDefender->gang_id,
+                                'expires_at' => now()->addHours(24),
                             ]);
                         }
 
-                        return $sum;
-                    });
-                    if ($bountyReward > 0) {
-                        $attacker->cash += $bountyReward;
-                        EventCashHuntService::record($attacker, $bountyReward, 'hitman_bounty');
-                    }
-                }
+                        $lockedAttacker->addRespect($baseRespect);
+                        $this->level->addXp($lockedAttacker, 400);
+                        $lockedAttacker->save();
 
-                // Handle Blood Feud resolution or creation
-                $avengedVictim = null;
-                if ($bloodFeud) {
-                    $avengedVictim = $bloodFeud->victim_id ? Character::find($bloodFeud->victim_id) : null;
-                    $bloodFeud->update([
-                        'is_avenged' => true,
-                        'avenged_by_id' => $attacker->id,
-                        'avenged_at' => now(),
-                    ]);
-                    $baseRespect += 50;
-                    $attacker->cash += 25000;
-                    if ($attacker->gang && Schema::hasColumn('gangs', 'respect')) {
-                        $attacker->gang->increment('respect', 150);
-                    }
-                } else {
-                    BloodFeud::create([
-                        'attacker_id' => $attacker->id,
-                        'victim_id' => $defender->id,
-                        'victim_gang_id' => $defender->gang_id,
-                        'expires_at' => now()->addHours(24),
-                    ]);
-                }
+                        $shotTypeLabel = $isOneTap ? 'een 1-Patroon Genadeschot' : "een salvo van {$bulletCount} patronen".($bulletCount >= $gradeInfo['min_bullets'] ? ' (Zware Barrage)' : '');
+                        $locationNotice = $isSameWing ? "op {$defenderWing} (+25% Sluipaanval-bonus)" : "op {$defenderWing} (Afstandssalvo vanaf {$attackerWing})";
+                        $lootBreakdown = '€'.number_format($stolenCash, 0, ',', '.').' contant (45%) + €'.number_format($stolenBank, 0, ',', '.').' bank (7%)';
 
-                $attacker->addRespect($baseRespect);
-                $this->level->addXp($attacker, 400);
-                $attacker->save();
+                        // Send 1 unified private message from Kliniek Directie to each involved party BEFORE GameNotification::create
+                        // so GameNotification::booted() does not create a duplicate DM for the victim.
+                        try {
+                            $totalFmt = '€'.number_format($totalStolen, 0, ',', '.');
+                            $headline = "🎯 LIQUIDATIE OP {$defenderWing}: {$lockedAttacker->name} heeft {$lockedDefender->name} neergeschoten met {$shotTypeLabel} en {$totalFmt} (45% contant + 7% bank) buitgemaakt!";
+                            $feudSection = $bloodFeud
+                                ? "\n\n🩸 BLOEDWRAAK VOLTROKKEN: {$lockedAttacker->name} heeft {$lockedDefender->name} op {$defenderWing} geliquideerd en de bende-vete gewroken!"
+                                : '';
+                            $bountySection = $bountyReward > 0
+                                ? "\n\n💰 KOPGELD GEÏND: Openstaande premie van €".number_format($bountyReward, 0, ',', '.')." op {$lockedDefender->name} is uitbetaald aan {$lockedAttacker->name}!"
+                                : '';
 
-                $shotTypeLabel = $isOneTap ? 'een 1-Patroon Genadeschot' : "een salvo van {$bulletCount} patronen".($bulletCount >= $gradeInfo['min_bullets'] ? ' (Zware Barrage)' : '');
-                $locationNotice = $isSameWing ? "op {$defenderWing} (+25% Sluipaanval-bonus)" : "op {$defenderWing} (Afstandssalvo vanaf {$attackerWing})";
-                $lootBreakdown = '€'.number_format($stolenCash, 0, ',', '.').' contant (45%) + €'.number_format($stolenBank, 0, ',', '.').' bank (7%)';
+                            $commonMeta = [
+                                'subtype' => $bloodFeud ? 'blood_feud' : 'liquidation',
+                                'location' => $defenderWing,
+                                'attacker_id' => $lockedAttacker->id,
+                                'defender_id' => $lockedDefender->id,
+                                'stolen_cash' => $stolenCash,
+                                'stolen_bank' => $stolenBank,
+                                'total_stolen' => $totalStolen,
+                            ];
 
-                // Send 1 unified private message from Kliniek Directie to each involved party BEFORE GameNotification::create
-                // so GameNotification::booted() does not create a duplicate DM for the victim.
-                try {
-                    $totalFmt = '€'.number_format($totalStolen, 0, ',', '.');
-                    $headline = "🎯 LIQUIDATIE OP {$defenderWing}: {$attacker->name} heeft {$defender->name} neergeschoten met {$shotTypeLabel} en {$totalFmt} (45% contant + 7% bank) buitgemaakt!";
-                    $feudSection = $bloodFeud
-                        ? "\n\n🩸 BLOEDWRAAK VOLTROKKEN: {$attacker->name} heeft {$defender->name} op {$defenderWing} geliquideerd en de bende-vete gewroken!"
-                        : '';
-                    $bountySection = $bountyReward > 0
-                        ? "\n\n💰 KOPGELD GEÏND: Openstaande premie van €".number_format($bountyReward, 0, ',', '.')." op {$defender->name} is uitbetaald aan {$attacker->name}!"
-                        : '';
+                            $botService = app(ChatBotService::class);
 
-                    $commonMeta = [
-                        'subtype' => $bloodFeud ? 'blood_feud' : 'liquidation',
-                        'location' => $defenderWing,
-                        'attacker_id' => $attacker->id,
-                        'defender_id' => $defender->id,
-                        'stolen_cash' => $stolenCash,
-                        'stolen_bank' => $stolenBank,
-                        'total_stolen' => $totalStolen,
-                    ];
+                            // 1. Attacker report
+                            $attackerSummary = "\n\n📊 Jouw Resultaat: +{$baseRespect} Respect, +400 XP! Doelwitstatus: {$defenderStreak}/10"
+                                .($defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM ? ' (Code Blauw Hartstilstand).' : ' (Per brancard afgevoerd).');
+                            $botService->sendLiquidationNotice($lockedAttacker, $headline.$feudSection.$bountySection.$attackerSummary, array_merge($commonMeta, ['role' => 'attacker']));
 
-                    $botService = app(ChatBotService::class);
+                            // 2. Defender (victim) report
+                            $defenderMedical = $defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
+                                ? "\n\n🚨 Medische Status (10/10 — CODE BLAUW): Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!'
+                                : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!";
+                            $botService->sendLiquidationNotice($lockedDefender, $headline.$feudSection.$bountySection.$defenderMedical, array_merge($commonMeta, ['role' => 'defender']));
 
-                    // 1. Attacker report
-                    $attackerSummary = "\n\n📊 Jouw Resultaat: +{$baseRespect} Respect, +400 XP! Doelwitstatus: {$defenderStreak}/10"
-                        .($defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM ? ' (Code Blauw Hartstilstand).' : ' (Per brancard afgevoerd).');
-                    $botService->sendLiquidationNotice($attacker, $headline.$feudSection.$bountySection.$attackerSummary, array_merge($commonMeta, ['role' => 'attacker']));
+                            // 3. Additional involved parties (original blood-feud victim and/or bounty placers)
+                            $notifiedIds = [$lockedAttacker->id, $lockedDefender->id];
 
-                    // 2. Defender (victim) report
-                    $defenderMedical = $defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
-                        ? "\n\n🚨 Medische Status (10/10 — CODE BLAUW): Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!'
-                        : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!";
-                    $botService->sendLiquidationNotice($defender, $headline.$feudSection.$bountySection.$defenderMedical, array_merge($commonMeta, ['role' => 'defender']));
+                            if ($avengedVictim && ! in_array($avengedVictim->id, $notifiedIds, true)) {
+                                $botService->sendLiquidationNotice($avengedVictim, $headline.$feudSection.$bountySection, array_merge($commonMeta, ['role' => 'avenged_victim']));
+                                $notifiedIds[] = $avengedVictim->id;
+                            }
 
-                    // 3. Additional involved parties (original blood-feud victim and/or bounty placers)
-                    $notifiedIds = [$attacker->id, $defender->id];
-
-                    if ($avengedVictim && ! in_array($avengedVictim->id, $notifiedIds, true)) {
-                        $botService->sendLiquidationNotice($avengedVictim, $headline.$feudSection.$bountySection, array_merge($commonMeta, ['role' => 'avenged_victim']));
-                        $notifiedIds[] = $avengedVictim->id;
-                    }
-
-                    if ($bountyPlacerIds->isNotEmpty()) {
-                        $bountyPlacers = Character::whereIn('id', $bountyPlacerIds->unique()->diff($notifiedIds))->get();
-                        foreach ($bountyPlacers as $placer) {
-                            $botService->sendLiquidationNotice($placer, $headline.$bountySection.$feudSection, array_merge($commonMeta, ['role' => 'bounty_placer']));
-                            $notifiedIds[] = $placer->id;
+                            if ($bountyPlacerIds->isNotEmpty()) {
+                                $bountyPlacers = Character::whereIn('id', $bountyPlacerIds->unique()->diff($notifiedIds))->get();
+                                foreach ($bountyPlacers as $placer) {
+                                    $botService->sendLiquidationNotice($placer, $headline.$bountySection.$feudSection, array_merge($commonMeta, ['role' => 'bounty_placer']));
+                                    $notifiedIds[] = $placer->id;
+                                }
+                            }
+                        } catch (\Throwable) {
                         }
+
+                        if ($defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
+                            GameNotification::create([
+                                'character_id' => $lockedDefender->id,
+                                'type' => 'skull',
+                                'icon' => 'fa-heart-crack',
+                                'title' => '🚨 10/10 GELIQUIDEERD — CODE BLAUW!',
+                                'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!',
+                            ]);
+                        } else {
+                            GameNotification::create([
+                                'character_id' => $lockedDefender->id,
+                                'type' => 'skull',
+                                'icon' => 'fa-skull',
+                                'title' => "🚨 GELIQUIDEERD OP {$defenderWing} ({$defenderStreak}/10)!",
+                                'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!",
+                            ]);
+                        }
+
+                        $bountyMsg = $bountyReward > 0 ? ' + €'.number_format($bountyReward, 0, ',', '.').' Kopgeld-premie geïnd!' : '';
+                        $feudMsg = $bloodFeud ? ' 🩸 BLOEDWRAAK VOLTROKKEN (+50 Respect, +€25.000 Bonus)!' : '';
+                        $codeBlauwMsg = $defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
+                            ? " {$lockedDefender->name} heeft 10/10 liquidaties bereikt en ligt in Code Blauw Hartstilstand!"
+                            : " Doelwit ({$defenderStreak}/10) is per brancard afgevoerd naar een onbekende afdeling.";
+
+                        return back()->with('success', "🎯 LIQUIDATIE VOLTROKKEN! Je hebt {$lockedDefender->name} {$locationNotice} neergeschoten met {$shotTypeLabel}! Totale buit: €".number_format($totalStolen, 0, ',', '.')." ({$lootBreakdown}){$bountyMsg}{$feudMsg}{$codeBlauwMsg} +{$baseRespect} Respect, +400 XP!");
                     }
-                } catch (\Throwable) {
-                }
 
-                if ($defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
+                    // 3. GRAZED / SURVIVED (Attacker didn't have enough firepower to penetrate defense)
+                    $dmg = rand(20, 45);
+                    $lockedDefender->health = max(15, $lockedDefender->health - $dmg);
+                    $lockedDefender->save();
+
                     GameNotification::create([
-                        'character_id' => $defender->id,
-                        'type' => 'skull',
-                        'icon' => 'fa-heart-crack',
-                        'title' => '🚨 10/10 GELIQUIDEERD — CODE BLAUW!',
-                        'message' => "{$attacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!',
+                        'character_id' => $lockedDefender->id,
+                        'type' => 'attack',
+                        'icon' => 'fa-gun',
+                        'title' => "Onder vuur genomen op {$defenderWing}!",
+                        'message' => "{$lockedAttacker->name} vuurde {$bulletCount} patro(o)n(en) op je af vanaf {$attackerWing}! Je raakte gewond (-{$dmg} HP), maar je verdediging hield stand.",
                     ]);
-                } else {
-                    GameNotification::create([
-                        'character_id' => $defender->id,
-                        'type' => 'skull',
-                        'icon' => 'fa-skull',
-                        'title' => "🚨 GELIQUIDEERD OP {$defenderWing} ({$defenderStreak}/10)!",
-                        'message' => "{$attacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!",
-                    ]);
-                }
 
-                $bountyMsg = $bountyReward > 0 ? ' + €'.number_format($bountyReward, 0, ',', '.').' Kopgeld-premie geïnd!' : '';
-                $feudMsg = $bloodFeud ? ' 🩸 BLOEDWRAAK VOLTROKKEN (+50 Respect, +€25.000 Bonus)!' : '';
-                $codeBlauwMsg = $defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
-                    ? " {$defender->name} heeft 10/10 liquidaties bereikt en ligt in Code Blauw Hartstilstand!"
-                    : " Doelwit ({$defenderStreak}/10) is per brancard afgevoerd naar een onbekende afdeling.";
-
-                return back()->with('success', "🎯 LIQUIDATIE VOLTROKKEN! Je hebt {$defender->name} {$locationNotice} neergeschoten met {$shotTypeLabel}! Totale buit: €".number_format($totalStolen, 0, ',', '.')." ({$lootBreakdown}){$bountyMsg}{$feudMsg}{$codeBlauwMsg} +{$baseRespect} Respect, +400 XP!");
-            }
-
-            // 3. GRAZED / SURVIVED (Attacker didn't have enough firepower to penetrate defense)
-            $dmg = rand(20, 45);
-            $defender->health = max(15, $defender->health - $dmg);
-            $defender->save();
-
-            GameNotification::create([
-                'character_id' => $defender->id,
-                'type' => 'attack',
-                'icon' => 'fa-gun',
-                'title' => "Onder vuur genomen op {$defenderWing}!",
-                'message' => "{$attacker->name} vuurde {$bulletCount} patro(o)n(en) op je af vanaf {$attackerWing}! Je raakte gewond (-{$dmg} HP), maar je verdediging hield stand.",
-            ]);
-
-            return back()->with('error', "⚠️ SCHAMPSCHOT! Je vuurde {$bulletCount} patro(o)n(en) af op {$defender->name} (-{$dmg} HP), maar zijn verdediging/pantser hield stand. Vuur een zwaarder salvo af (aanbevolen: {$gradeInfo['min_bullets']} patronen) of verhoog je Dossier-Graad & Kracht!");
-        } finally {
-            $targetLock->release();
+                    return back()->with('error', "⚠️ SCHAMPSCHOT! Je vuurde {$bulletCount} patro(o)n(en) af op {$lockedDefender->name} (-{$dmg} HP), maar zijn verdediging/pantser hield stand. Vuur een zwaarder salvo af (aanbevolen: {$gradeInfo['min_bullets']} patronen) of verhoog je Dossier-Graad & Kracht!");
+                });
+            });
+        } catch (LockTimeoutException) {
+            return back()->with('error', "{$defender->name} wordt op dit moment al aangevallen. Probeer het over enkele seconden opnieuw.");
         }
     }
 
@@ -1090,14 +1186,23 @@ class HitmanController extends Controller
      */
     public function buyBullets(Request $request): RedirectResponse
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        $character = $user->character;
+        /** @var Character|null $character */
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
 
         $catalog = Character::ammoCatalog();
-        $tierKey = (string) $request->input('ammo_tier', 'box_50');
+        $validated = $request->validate([
+            'ammo_tier' => ['nullable', 'string', 'in:'.implode(',', array_keys($catalog))],
+            'currency' => ['nullable', 'string', 'in:cash,stars'],
+        ]);
+        $tierKey = $validated['ammo_tier'] ?? 'box_50';
         $ammo = $catalog[$tierKey] ?? $catalog['box_50'];
-        $currency = (string) $request->input('currency', 'stars');
+        $currency = $validated['currency'] ?? 'stars';
 
         return DB::transaction(function () use ($character, $ammo, $currency): RedirectResponse {
             /** @var Character $locked */
@@ -1107,8 +1212,8 @@ class HitmanController extends Controller
                 return back()->with('error', 'Vanuit de isoleercel kun je geen munitie aanschaffen!');
             }
 
-            if ($locked->isComatose()) {
-                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            if ($locked->isComatose() || $locked->needsReviveSerum()) {
+                return back()->with('error', 'Je verkeert in coma of Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             if ($currency === 'cash') {
@@ -1158,14 +1263,23 @@ class HitmanController extends Controller
      */
     public function buyVest(Request $request): RedirectResponse
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        $character = $user->character;
+        /** @var Character|null $character */
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
 
         $catalog = Character::vestCatalog();
-        $defaultTier = $request->has('vest_tier') ? (string) $request->input('vest_tier') : 'titanium_12h';
+        $validated = $request->validate([
+            'vest_tier' => ['nullable', 'string', 'in:'.implode(',', array_keys($catalog))],
+            'currency' => ['nullable', 'string', 'in:cash,stars'],
+        ]);
+        $defaultTier = $validated['vest_tier'] ?? 'titanium_12h';
         $vest = $catalog[$defaultTier] ?? $catalog['tactical_3h'];
-        $currency = (string) $request->input('currency', 'stars');
+        $currency = $validated['currency'] ?? 'stars';
 
         return DB::transaction(function () use ($character, $vest, $currency): RedirectResponse {
             /** @var Character $locked */
@@ -1175,8 +1289,8 @@ class HitmanController extends Controller
                 return back()->with('error', 'Vanuit de isoleercel kun je geen kogelwerend vest aanschaffen!');
             }
 
-            if ($locked->isComatose()) {
-                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            if ($locked->isComatose() || $locked->needsReviveSerum()) {
+                return back()->with('error', 'Je verkeert in coma of Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             if ($currency === 'cash') {
@@ -1222,6 +1336,10 @@ class HitmanController extends Controller
      */
     protected function deductCashOrBank(Character $character, int $amount): void
     {
+        if ($amount <= 0) {
+            return;
+        }
+
         DB::transaction(function () use ($character, $amount): void {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();

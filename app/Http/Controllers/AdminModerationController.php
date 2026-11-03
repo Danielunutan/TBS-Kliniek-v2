@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AdminModerationController extends Controller
@@ -19,6 +20,8 @@ class AdminModerationController extends Controller
      */
     public function index(Request $request): View
     {
+        abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd. Deze beheeromgeving is uitsluitend toegankelijk voor TBS Kliniek personeel.');
+
         $search = $request->input('search');
 
         $activeBansQuery = User::where('is_banned', true)
@@ -89,8 +92,9 @@ class AdminModerationController extends Controller
      */
     public function banUser(Request $request, User $user): RedirectResponse
     {
-        /** @var User $currentUser */
+        /** @var User|null $currentUser */
         $currentUser = Auth::user();
+        abort_unless($currentUser?->canModerate(), 403, 'Toegang geweigerd.');
 
         if ($user->id === $currentUser->id) {
             return back()->with('error', 'Je kunt jezelf niet verbannen.');
@@ -121,7 +125,7 @@ class AdminModerationController extends Controller
             'permanent' => null,
         };
 
-        $ban = $user->ban($validated['reason'], $until, $currentUser);
+        $ban = DB::transaction(fn () => $user->ban($validated['reason'], $until, $currentUser));
 
         $targetName = $user->character?->name ?? $user->name;
         $durationLabel = $until ? 'tot '.$until->locale('nl')->isoFormat('D MMMM [om] HH:mm') : 'permanent';
@@ -152,8 +156,9 @@ class AdminModerationController extends Controller
      */
     public function unbanUser(Request $request, User $user): RedirectResponse
     {
-        /** @var User $currentUser */
+        /** @var User|null $currentUser */
         $currentUser = Auth::user();
+        abort_unless($currentUser?->canModerate(), 403, 'Toegang geweigerd.');
 
         if (($user->isOwner() || $user->role === 'admin') && ! $currentUser->isOwner()) {
             return back()->with('error', 'Alleen de eigenaar kan de verbanning van een Admin of Eigenaar opheffen.');
@@ -163,7 +168,7 @@ class AdminModerationController extends Controller
             return back()->with('info', 'Deze gebruiker is momenteel niet verbannen.');
         }
 
-        $user->unban($currentUser);
+        DB::transaction(fn () => $user->unban($currentUser));
 
         $targetName = $user->character?->name ?? $user->name;
 
@@ -189,8 +194,9 @@ class AdminModerationController extends Controller
      */
     public function warnUser(Request $request, User $user): RedirectResponse
     {
-        /** @var User $currentUser */
+        /** @var User|null $currentUser */
         $currentUser = Auth::user();
+        abort_unless($currentUser?->canModerate(), 403, 'Toegang geweigerd.');
 
         if ($user->id === $currentUser->id) {
             return back()->with('error', 'Je kunt jezelf geen waarschuwing geven.');
@@ -204,7 +210,7 @@ class AdminModerationController extends Controller
             'reason' => 'required|string|min:3|max:1000',
         ]);
 
-        $warning = $user->warn($validated['reason'], $currentUser);
+        $warning = DB::transaction(fn () => $user->warn($validated['reason'], $currentUser));
 
         $targetName = $user->character?->name ?? $user->name;
 
@@ -232,8 +238,10 @@ class AdminModerationController extends Controller
      */
     public function deleteWarning(UserWarning $warning): RedirectResponse
     {
-        /** @var User $currentUser */
+        /** @var User|null $currentUser */
         $currentUser = Auth::user();
+        abort_unless($currentUser?->canModerate(), 403, 'Toegang geweigerd.');
+
         if (! $currentUser->isAdmin() && $warning->issuer_id !== $currentUser->id) {
             return back()->with('error', 'Je kunt alleen waarschuwingen intrekken die je zelf hebt uitgedeeld.');
         }
@@ -241,7 +249,8 @@ class AdminModerationController extends Controller
         $warningId = $warning->id;
         $warningUser = $warning->user;
         $warningReason = $warning->reason;
-        $warning->delete();
+
+        DB::transaction(fn () => $warning->delete());
 
         AuditLogService::log(
             action: 'warning_deleted',
@@ -267,12 +276,16 @@ class AdminModerationController extends Controller
      */
     public function resolveReport(Request $request, Report $report): RedirectResponse
     {
-        $report->update([
-            'status' => 'resolved',
-            'handled_by' => Auth::id(),
-            'handled_at' => now(),
-            'mod_notes' => $request->input('notes'),
-        ]);
+        abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd.');
+
+        DB::transaction(function () use ($request, $report): void {
+            $report->update([
+                'status' => 'resolved',
+                'handled_by' => Auth::id(),
+                'handled_at' => now(),
+                'mod_notes' => $request->input('notes'),
+            ]);
+        });
 
         AuditLogService::log(
             action: 'report_resolved',
@@ -298,12 +311,16 @@ class AdminModerationController extends Controller
      */
     public function dismissReport(Request $request, Report $report): RedirectResponse
     {
-        $report->update([
-            'status' => 'dismissed',
-            'handled_by' => Auth::id(),
-            'handled_at' => now(),
-            'mod_notes' => $request->input('notes', 'Verworpen door moderatie.'),
-        ]);
+        abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd.');
+
+        DB::transaction(function () use ($request, $report): void {
+            $report->update([
+                'status' => 'dismissed',
+                'handled_by' => Auth::id(),
+                'handled_at' => now(),
+                'mod_notes' => $request->input('notes', 'Verworpen door moderatie.'),
+            ]);
+        });
 
         AuditLogService::log(
             action: 'report_dismissed',
@@ -325,11 +342,36 @@ class AdminModerationController extends Controller
     }
 
     /**
-     * Delete a report completely.
+     * Delete a report completely (restricted to administrators).
      */
     public function deleteReport(Report $report): RedirectResponse
     {
-        $report->delete();
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        abort_unless($currentUser?->isAdmin(), 403, 'Alleen beheerders kunnen meldingen definitief verwijderen.');
+
+        $reportId = $report->id;
+        $reportedName = $report->reported_name;
+        $reason = $report->reason;
+
+        DB::transaction(fn () => $report->delete());
+
+        AuditLogService::log(
+            action: 'report_deleted',
+            category: 'moderation',
+            description: "Melding #{$reportId} ({$reason}) definitief verwijderd door {$currentUser->name}",
+            character: $currentUser->character,
+            user: $currentUser,
+            details: [
+                'report_id' => $reportId,
+                'reported_name' => $reportedName,
+                'reason' => $reason,
+                'deleted_by_id' => $currentUser->id,
+                'deleted_by_name' => $currentUser->name,
+            ],
+            customRisk: 'verdacht',
+            customReason: 'Melding definitief verwijderd uit het dossier door beheerder'
+        );
 
         return back()->with('success', 'Melding definitief verwijderd.');
     }

@@ -575,7 +575,8 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
             const buildMentionPill = (rawUsername) => {
                 const username = (rawUsername || '').replace(/[<>"']/g, '');
                 const url = '/speler/' + encodeURIComponent(username);
-                return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
+                const pillStyle = 'text-decoration:none; white-space:nowrap !important; display:inline-block !important; vertical-align:baseline !important; line-height:1 !important;';
+                return `<a href="${url}" onclick="event.stopPropagation();" style="${pillStyle}" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
             };
 
             const urlRegex = /(?<!href="|href=')(https?:\/\/[^\s<]+)/gi;

@@ -93,7 +93,7 @@ class BankController extends Controller
     public function deposit(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:1'],
+            'amount' => ['required', 'integer', 'min:1', 'max:2000000000'],
         ]);
 
         /** @var User $user */
@@ -108,7 +108,7 @@ class BankController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -134,7 +134,7 @@ class BankController extends Controller
     public function withdraw(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:1'],
+            'amount' => ['required', 'integer', 'min:1', 'max:2000000000'],
         ]);
 
         /** @var User $user */
@@ -149,7 +149,7 @@ class BankController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -190,7 +190,7 @@ class BankController extends Controller
     public function requestLoan(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:'.Loan::MIN_LOAN_AMOUNT],
+            'amount' => ['required', 'integer', 'min:'.Loan::MIN_LOAN_AMOUNT, 'max:2000000000'],
             'deposit_to' => ['nullable', 'string', 'in:cash,bank'],
         ]);
 
@@ -206,7 +206,7 @@ class BankController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen lening afsluiten!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -233,7 +233,7 @@ class BankController extends Controller
     public function repayLoan(Request $request, Loan $loan): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:1'],
+            'amount' => ['required', 'integer', 'min:1', 'max:2000000000'],
             'source' => ['required', 'string', 'in:cash,bank'],
         ]);
 
@@ -245,11 +245,15 @@ class BankController extends Controller
             return redirect()->route('dashboard');
         }
 
+        if ($loan->character_id !== $character->id) {
+            abort(403, 'Deze lening is niet van jou.');
+        }
+
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -286,11 +290,15 @@ class BankController extends Controller
             return redirect()->route('dashboard');
         }
 
+        if ($loan->character_id !== $character->id) {
+            abort(403, 'Deze lening is niet van jou.');
+        }
+
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 

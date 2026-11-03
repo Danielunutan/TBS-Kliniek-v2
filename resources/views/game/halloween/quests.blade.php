@@ -205,6 +205,11 @@
                                 <i class="fa-solid fa-circle-check text-emerald-600"></i>
                                 <span>Voltooid &amp; geclaimd</span>
                             </div>
+                        @elseif(!\App\Services\HalloweenService::isEventActive())
+                            <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 select-none">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Event afgelopen</span>
+                            </div>
                         @else
                             <a href="{{ $link }}" class="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer text-center flex items-center justify-center gap-1.5">
                                 <span>{{ $btnLabel }}</span>
@@ -347,6 +352,11 @@
                             <div class="w-full py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 font-bold text-xs text-center flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-circle-check text-emerald-600"></i>
                                 <span>Mijlpaal voltooid &amp; geclaimd</span>
+                            </div>
+                        @elseif(!\App\Services\HalloweenService::isEventActive())
+                            <div class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 select-none">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Event afgelopen</span>
                             </div>
                         @else
                             <a href="{{ $link }}" class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer text-center flex items-center justify-center gap-1.5">

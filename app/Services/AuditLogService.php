@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use App\Models\Character;
+use App\Models\DiscordVerification;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,10 @@ class AuditLogService
         'buymeacoffee_membership',
         'buymeacoffee_membership_cancelled',
         'buymeacoffee_extra',
+        'buymeacoffee_manual_create',
+        'admin_update_player',
+        'player_updated',
+        'report_deleted',
     ];
 
     /**
@@ -1106,5 +1111,346 @@ class AuditLogService
             'high_risk' => $highRisk,
             'suspicious' => $suspicious,
         ];
+    }
+
+    /**
+     * Resolve the IP address of the current request if safely available.
+     */
+    public static function resolveRequestIp(): ?string
+    {
+        if (! Request::hasSession() || ! Request::instance()) {
+            return null;
+        }
+
+        $ip = Request::ip();
+        if (is_string($ip) && filter_var(trim($ip), FILTER_VALIDATE_IP)) {
+            return trim($ip);
+        }
+
+        return null;
+    }
+
+    /**
+     * Compute multi-account confidence score and risk level for a shared IP address.
+     *
+     * @return array{score: int, level: string, user_count: int, matched_signals: array<string>}
+     */
+    public static function calculateIpMultiAccountConfidence(string $ip): array
+    {
+        $cleanIp = trim($ip);
+        if (empty($cleanIp) || ! filter_var($cleanIp, FILTER_VALIDATE_IP)) {
+            return [
+                'score' => 0,
+                'confidence_score' => 0,
+                'level' => 'laag',
+                'confidence_level' => 'laag',
+                'user_count' => 0,
+                'matched_signals' => [],
+                'heuristic_flags' => [],
+            ];
+        }
+
+        // Find all distinct users associated with this IP
+        $userIds = [];
+
+        if (Schema::hasTable('users')) {
+            $regUsers = DB::table('users')->where('registration_ip', $cleanIp)->pluck('id')->all();
+            $loginUsers = DB::table('users')->where('last_login_ip', $cleanIp)->pluck('id')->all();
+            $userIds = array_unique(array_merge($userIds, $regUsers, $loginUsers));
+        }
+
+        if (Schema::hasTable('audit_logs')) {
+            $auditUsers = DB::table('audit_logs')
+                ->where('ip_address', $cleanIp)
+                ->whereNotNull('user_id')
+                ->distinct()
+                ->pluck('user_id')
+                ->all();
+            $userIds = array_unique(array_merge($userIds, $auditUsers));
+        }
+
+        $userCount = count($userIds);
+        if ($userCount < 2) {
+            return [
+                'score' => 0,
+                'confidence_score' => 0,
+                'level' => 'laag',
+                'confidence_level' => 'laag',
+                'user_count' => $userCount,
+                'matched_signals' => [],
+                'heuristic_flags' => [],
+            ];
+        }
+
+        $signals = [];
+        $score = 15;
+
+        $users = User::whereIn('id', $userIds)->get();
+
+        // 1. Same registration IP check
+        $regMatches = $users->filter(fn ($u) => $u->registration_ip === $cleanIp)->count();
+        if ($regMatches >= 3) {
+            $score += 45;
+            $signals[] = "{$regMatches} accounts geregistreerd op exact ditzelfde IP-adres";
+        } elseif ($regMatches >= 2) {
+            $score += 35;
+            $signals[] = '2 accounts geregistreerd op exact ditzelfde IP-adres';
+        }
+
+        // 2. Same last login IP check
+        $loginMatches = $users->filter(fn ($u) => $u->last_login_ip === $cleanIp)->count();
+        if ($loginMatches >= 2) {
+            $score += 25;
+            $signals[] = "{$loginMatches} accounts actief ingelogd vanaf dit IP-adres";
+        }
+
+        // 3. Registration time proximity (created within 48h of each other)
+        $createdAts = $users->pluck('created_at')->filter()->sort()->values();
+        $hasTimeClustering = false;
+        $createdCount = $createdAts->count();
+        for ($i = 0; $i < $createdCount - 1; $i++) {
+            $diffHours = abs(Carbon::parse($createdAts[$i])->diffInHours(Carbon::parse($createdAts[$i + 1])));
+            if ($diffHours <= 48) {
+                $hasTimeClustering = true;
+                break;
+            }
+        }
+        if ($hasTimeClustering) {
+            $score += 20;
+            $signals[] = 'Accounts aangemaakt binnen 48 uur na elkaar';
+        }
+
+        // 4. Hardware / Browser fingerprint check via DiscordVerification
+        if (Schema::hasTable('discord_verifications')) {
+            $verifications = DB::table('discord_verifications')
+                ->whereIn('user_id', $userIds)
+                ->whereNotNull('fingerprint_hash')
+                ->get(['user_id', 'fingerprint_hash', 'fingerprint_raw']);
+
+            $uniqueFps = $verifications->pluck('fingerprint_hash')->unique();
+            if ($uniqueFps->count() < $verifications->count()) {
+                $score += 40;
+                $signals[] = 'Gedeelde browser-/hardware-fingerprint tussen accounts';
+            } else {
+                $cookieUids = [];
+                foreach ($verifications as $v) {
+                    $raw = is_string($v->fingerprint_raw) ? json_decode($v->fingerprint_raw, true) : (array) $v->fingerprint_raw;
+                    if (! empty($raw['cookie_uid'])) {
+                        $cookieUids[] = $raw['cookie_uid'];
+                    }
+                }
+                if (count($cookieUids) > count(array_unique($cookieUids))) {
+                    $score += 45;
+                    $signals[] = 'Identieke permanente tracking cookie UID gedetecteerd';
+                }
+            }
+        }
+
+        // 5. Inter-account transactions between users on this IP
+        if (Schema::hasTable('audit_logs')) {
+            $hasSameIpTransfer = DB::table('audit_logs')
+                ->where('ip_address', $cleanIp)
+                ->where('details->same_ip_transfer', true)
+                ->exists();
+
+            if ($hasSameIpTransfer) {
+                $score += 30;
+                $signals[] = 'Onderlinge transacties of geldoverdrachten (same_ip_transfer)';
+            }
+        }
+
+        $finalScore = min(100, $score);
+        $level = $finalScore >= 70 ? 'hoog' : ($finalScore >= 40 ? 'verdacht' : 'laag');
+
+        return [
+            'score' => $finalScore,
+            'confidence_score' => $finalScore,
+            'level' => $level,
+            'confidence_level' => $level,
+            'user_count' => $userCount,
+            'matched_signals' => $signals,
+            'heuristic_flags' => $signals,
+        ];
+    }
+
+    /**
+     * Calculate multi-account confidence score between two specific users.
+     *
+     * @return array{score: int, level: string, matched_signals: array<string>}
+     */
+    public static function calculateMultiAccountConfidence(User $userA, User $userB): array
+    {
+        if ((int) $userA->id === (int) $userB->id) {
+            return [
+                'score' => 0,
+                'level' => 'laag',
+                'matched_signals' => ['Zelfde account'],
+            ];
+        }
+
+        $score = 0;
+        $signals = [];
+
+        $regA = trim((string) ($userA->registration_ip ?? ''));
+        $regB = trim((string) ($userB->registration_ip ?? ''));
+        $loginA = trim((string) ($userA->last_login_ip ?? ''));
+        $loginB = trim((string) ($userB->last_login_ip ?? ''));
+
+        // 1. Same registration IP
+        if (! empty($regA) && ! empty($regB) && $regA === $regB) {
+            $score += 35;
+            $signals[] = "Identiek registratie IP-adres ({$regA})";
+        }
+
+        // 2. Same last login IP
+        if (! empty($loginA) && ! empty($loginB) && $loginA === $loginB) {
+            $score += 30;
+            $signals[] = "Identiek recent login IP-adres ({$loginA})";
+        }
+
+        // 3. Cross IP match (reg IP matches login IP)
+        if (
+            (! empty($regA) && ! empty($loginB) && $regA === $loginB && $regA !== $regB) ||
+            (! empty($regB) && ! empty($loginA) && $regB === $loginA && $loginA !== $loginB)
+        ) {
+            $score += 25;
+            $signals[] = 'Kruislingse IP-overeenkomst tussen registratie en login';
+        }
+
+        // 4. Registration within 48h if sharing any IP
+        if (! empty(array_intersect(array_filter([$regA, $loginA]), array_filter([$regB, $loginB])))) {
+            if ($userA->created_at && $userB->created_at) {
+                $hours = abs(Carbon::parse($userA->created_at)->diffInHours(Carbon::parse($userB->created_at)));
+                if ($hours <= 48) {
+                    $score += 20;
+                    $signals[] = "Accounts aangemaakt binnen {$hours} uur na elkaar";
+                }
+            }
+        }
+
+        // 5. Discord verification fingerprint or cookie match
+        if (Schema::hasTable('discord_verifications')) {
+            $verA = DB::table('discord_verifications')->where('user_id', $userA->id)->first();
+            $verB = DB::table('discord_verifications')->where('user_id', $userB->id)->first();
+
+            if ($verA && $verB) {
+                if (! empty($verA->fingerprint_hash) && $verA->fingerprint_hash === $verB->fingerprint_hash) {
+                    $score += 45;
+                    $signals[] = 'Identieke hardware-/browser-fingerprint hash';
+                }
+
+                $rawA = is_string($verA->fingerprint_raw) ? json_decode($verA->fingerprint_raw, true) : (array) $verA->fingerprint_raw;
+                $rawB = is_string($verB->fingerprint_raw) ? json_decode($verB->fingerprint_raw, true) : (array) $verB->fingerprint_raw;
+                if (! empty($rawA['cookie_uid']) && ! empty($rawB['cookie_uid']) && $rawA['cookie_uid'] === $rawB['cookie_uid']) {
+                    $score += 50;
+                    $signals[] = 'Identieke permanente tracking cookie UID';
+                }
+            }
+        }
+
+        // 6. Direct transactions in audit logs
+        $charA = $userA->character?->id;
+        $charB = $userB->character?->id;
+        if ($charA && $charB && Schema::hasTable('audit_logs')) {
+            $interactingLogs = DB::table('audit_logs')
+                ->where(function ($q) use ($charA, $charB): void {
+                    $q->where(function ($sub) use ($charA, $charB): void {
+                        $sub->where('character_id', $charA)
+                            ->where(function ($d) use ($charB): void {
+                                $d->where('details->victim_id', $charB)
+                                    ->orWhere('details->seller_id', $charB)
+                                    ->orWhere('details->opponent_id', $charB)
+                                    ->orWhere('details->challenger_id', $charB);
+                            });
+                    })->orWhere(function ($sub) use ($charA, $charB): void {
+                        $sub->where('character_id', $charB)
+                            ->where(function ($d) use ($charA): void {
+                                $d->where('details->victim_id', $charA)
+                                    ->orWhere('details->seller_id', $charA)
+                                    ->orWhere('details->opponent_id', $charA)
+                                    ->orWhere('details->challenger_id', $charA);
+                            });
+                    });
+                })
+                ->exists();
+
+            if ($interactingLogs) {
+                $score += 30;
+                $signals[] = 'Directe onderlinge interacties of transacties gedetecteerd';
+            }
+        }
+
+        $finalScore = min(100, $score);
+        $level = $finalScore >= 70 ? 'hoog' : ($finalScore >= 40 ? 'verdacht' : 'laag');
+
+        return [
+            'score' => $finalScore,
+            'level' => $level,
+            'matched_signals' => $signals,
+        ];
+    }
+
+    /**
+     * Discover all potential multi-accounts for a given user.
+     *
+     * @return array<int, array{user: User, score: int, level: string, signals: array<string>}>
+     */
+    public static function detectMultiAccountsForUser(User $user): array
+    {
+        $ips = array_values(array_unique(array_filter([
+            trim((string) ($user->registration_ip ?? '')),
+            trim((string) ($user->last_login_ip ?? '')),
+        ])));
+
+        $candidateIds = [];
+
+        if (! empty($ips) && Schema::hasTable('users')) {
+            $byIp = DB::table('users')
+                ->where('id', '!=', $user->id)
+                ->where(function ($q) use ($ips): void {
+                    $q->whereIn('registration_ip', $ips)
+                        ->orWhereIn('last_login_ip', $ips);
+                })
+                ->pluck('id')
+                ->all();
+            $candidateIds = array_merge($candidateIds, $byIp);
+        }
+
+        if (Schema::hasTable('discord_verifications')) {
+            $userVer = DB::table('discord_verifications')->where('user_id', $user->id)->first();
+            if ($userVer && ! empty($userVer->fingerprint_hash)) {
+                $byFp = DB::table('discord_verifications')
+                    ->whereNotNull('user_id')
+                    ->where('user_id', '!=', $user->id)
+                    ->where('fingerprint_hash', $userVer->fingerprint_hash)
+                    ->pluck('user_id')
+                    ->all();
+                $candidateIds = array_merge($candidateIds, $byFp);
+            }
+        }
+
+        $candidateIds = array_values(array_unique($candidateIds));
+        if (empty($candidateIds)) {
+            return [];
+        }
+
+        $candidates = User::with('character')->whereIn('id', $candidateIds)->get();
+        $results = [];
+
+        foreach ($candidates as $cand) {
+            $conf = self::calculateMultiAccountConfidence($user, $cand);
+            if ($conf['score'] >= 25) {
+                $results[] = [
+                    'user' => $cand,
+                    'score' => $conf['score'],
+                    'level' => $conf['level'],
+                    'signals' => $conf['matched_signals'],
+                ];
+            }
+        }
+
+        usort($results, fn ($a, $b) => $b['score'] <=> $a['score']);
+
+        return $results;
     }
 }

@@ -155,12 +155,14 @@ class NewsArticle extends Model
      */
     public function getFormattedContentAttribute(): string
     {
+        $raw = (string) ($this->content ?? '');
+
         // If content is already formatted HTML, allow safe formatting tags without double-escaping
-        if (preg_match('/<(?:p|div|h[1-6]|strong|em|ul|ol|li|br|blockquote|code|table|span|hr)\b/i', $this->content)) {
-            return self::sanitizeHtml($this->content);
+        if (preg_match('/<(?:p|div|h[1-6]|strong|em|ul|ol|li|br|blockquote|code|table|span|hr)\b/i', $raw)) {
+            return self::sanitizeHtml($raw);
         }
 
-        $text = str_replace(["\r\n", "\r"], "\n", e($this->content));
+        $text = str_replace(["\r\n", "\r"], "\n", e($raw));
 
         // [img]url[/img] and ![alt](url) - support both https?:// and root-relative /assets/...
         $text = preg_replace(

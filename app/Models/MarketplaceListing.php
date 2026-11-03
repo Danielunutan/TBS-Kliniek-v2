@@ -94,8 +94,8 @@ class MarketplaceListing extends Model
                 'icon' => 'fa-coins',
             ],
             'pumpkin_seeds' => [
-                'label' => 'Pompoenpitten',
-                'class' => 'bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+                'label' => 'Gouden Eikels',
+                'class' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
                 'icon' => 'fa-seedling',
             ],
             default => [

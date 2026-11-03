@@ -72,6 +72,7 @@ class CooldownService
         'treatment_session' => 35,
         'dropping_drone' => 40,
         'produce_telefoon' => 50,
+        'produce_phone' => 50,
     ];
 
     /**
@@ -137,12 +138,18 @@ class CooldownService
 
     public function clearCooldown(Character $character, string $action): void
     {
+        $actions = ($action === 'produce_telefoon' || $action === 'produce_phone')
+            ? ['produce_telefoon', 'produce_phone']
+            : [$action];
+
         CharacterCooldown::where('character_id', $character->id)
-            ->where('action', $action)
+            ->whereIn('action', $actions)
             ->delete();
 
         if ($character->cooldownsMap !== null) {
-            $character->cooldownsMap->forget($action);
+            foreach ($actions as $act) {
+                $character->cooldownsMap->forget($act);
+            }
         }
         if ($character->relationLoaded('cooldowns')) {
             $character->unsetRelation('cooldowns');
@@ -207,6 +214,13 @@ class CooldownService
             ];
         }
 
+        if ($character->needsReviveSerum()) {
+            return [
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ];
+        }
+
         $cost = $this->getSkipCost($action);
 
         if ($this->getRemainingSeconds($character, $action) <= 0 || $cost <= 0) {
@@ -222,6 +236,9 @@ class CooldownService
             if (! $locked) {
                 return 'insufficient';
             }
+            if ($locked->needsReviveSerum()) {
+                return 'needs_revive';
+            }
             if ($this->getRemainingSeconds($locked, $action) <= 0) {
                 return 'expired';
             }
@@ -232,9 +249,17 @@ class CooldownService
             $locked->save();
             $character->stars = $locked->stars;
             $this->clearCooldown($locked, $action);
+            $this->clearCooldown($character, $action);
 
             return 'ok';
         });
+
+        if ($deducted === 'needs_revive') {
+            return [
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ];
+        }
 
         if ($deducted === 'expired') {
             return [

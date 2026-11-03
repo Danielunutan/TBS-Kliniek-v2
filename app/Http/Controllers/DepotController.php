@@ -7,6 +7,7 @@ use App\Models\CharacterItem;
 use App\Models\CharacterVehicle;
 use App\Models\User;
 use App\Models\VaultCode;
+use App\Services\AuditLogService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\HalloweenService;
@@ -56,9 +57,11 @@ class DepotController extends Controller
         $eventItems = CharacterItem::where('character_id', $character->id)
             ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
-                $q->where('slug', 'like', 'halloween_%')
-                    ->orWhere('slug', 'like', 'autumn_%')
-                    ->orWhere('category', 'special');
+                $q->where(function ($sub) {
+                    $sub->where('slug', 'like', 'halloween_%')
+                        ->orWhere('slug', 'like', 'autumn_%')
+                        ->orWhere('category', 'special');
+                });
             })
             ->with('item')
             ->get();
@@ -141,7 +144,13 @@ class DepotController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        return DB::transaction(function () use ($request, $characterItem, $character): RedirectResponse {
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
+        ]);
+
+        $requestedQty = (int) $validated['quantity'];
+
+        return DB::transaction(function () use ($characterItem, $character, $requestedQty): RedirectResponse {
             /** @var CharacterItem|null $lockedItem */
             $lockedItem = CharacterItem::where('id', $characterItem->id)
                 ->where('character_id', $character->id)
@@ -163,7 +172,6 @@ class DepotController extends Controller
                     ->with('error', '🎃 Halloween-items zijn exclusieve, permanente verzamelobjecten (Niet meer haalbaar) en worden nooit verwijderd of verkocht!');
             }
 
-            $requestedQty = max(1, (int) $request->input('quantity', 1));
             $quantity = min($requestedQty, $lockedItem->quantity);
 
             // Sell price: 60% of base price via authoritative Item helper
@@ -183,6 +191,21 @@ class DepotController extends Controller
             $this->economyService->addCash($lockedCharacter, $totalEarned);
 
             $formattedCash = number_format($totalEarned, 0, ',', '.');
+
+            AuditLogService::log(
+                action: 'depot.sell_item',
+                category: 'depot',
+                description: "{$quantity}x {$item->name} verkocht uit depot voor €{$formattedCash}",
+                character: $lockedCharacter,
+                user: $lockedCharacter->user,
+                amount: $totalEarned,
+                details: [
+                    'item_id' => $item->id,
+                    'item_name' => $item->name,
+                    'quantity' => $quantity,
+                ]
+            );
+
             $returnTab = (str_starts_with((string) $item->slug, 'halloween_') || str_starts_with((string) $item->slug, 'autumn_') || $item->category === 'special')
                 ? 'varia'
                 : 'storage';
@@ -211,7 +234,7 @@ class DepotController extends Controller
         }
 
         $validated = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
         ]);
 
         return DB::transaction(function () use ($character, $validated): RedirectResponse {
@@ -234,6 +257,18 @@ class DepotController extends Controller
             $formattedCash = number_format($totalEarned, 0, ',', '.');
             $used = $lockedCharacter->getStorageUsed();
             $cap = $lockedCharacter->getStorageCapacity();
+
+            AuditLogService::log(
+                action: 'depot.sell_masks',
+                category: 'depot',
+                description: "{$quantity}x overval maskers verkocht voor €{$formattedCash}",
+                character: $lockedCharacter,
+                user: $lockedCharacter->user,
+                amount: $totalEarned,
+                details: [
+                    'quantity' => $quantity,
+                ]
+            );
 
             return back()
                 ->with('tab', 'storage')

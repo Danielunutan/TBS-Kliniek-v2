@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\HalloweenQuestProgress;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 class HalloweenService
 {
@@ -546,25 +547,39 @@ class HalloweenService
         }
 
         try {
-            $record = HalloweenQuestProgress::firstOrCreate([
-                'character_id' => $character->id,
-                'quest_key' => $quest['key'],
-                'period_key' => $periodKey,
-            ], [
-                'current_count' => 0,
-                'target_count' => $quest['target'],
-                'is_claimed' => false,
-            ]);
-        } catch (QueryException) {
-            $record = HalloweenQuestProgress::where('character_id', $character->id)
-                ->where('quest_key', $quest['key'])
-                ->where('period_key', $periodKey)
-                ->first();
-        }
+            DB::transaction(function () use ($character, $quest, $periodKey, $amount): void {
+                $record = HalloweenQuestProgress::where('character_id', $character->id)
+                    ->where('quest_key', $quest['key'])
+                    ->where('period_key', $periodKey)
+                    ->lockForUpdate()
+                    ->first();
 
-        if ($record && ! $record->is_claimed) {
-            $record->current_count = min($quest['target'], $record->current_count + $amount);
-            $record->save();
+                if (! $record) {
+                    try {
+                        $record = HalloweenQuestProgress::create([
+                            'character_id' => $character->id,
+                            'quest_key' => $quest['key'],
+                            'period_key' => $periodKey,
+                            'current_count' => 0,
+                            'target_count' => $quest['target'],
+                            'is_claimed' => false,
+                        ]);
+                    } catch (QueryException) {
+                        $record = HalloweenQuestProgress::where('character_id', $character->id)
+                            ->where('quest_key', $quest['key'])
+                            ->where('period_key', $periodKey)
+                            ->lockForUpdate()
+                            ->first();
+                    }
+                }
+
+                if ($record && ! $record->is_claimed && $record->current_count < $quest['target']) {
+                    $record->current_count = min($quest['target'], $record->current_count + $amount);
+                    $record->save();
+                }
+            });
+        } catch (\Throwable) {
+            // Silently fail so gameplay is never interrupted
         }
     }
 
@@ -575,6 +590,7 @@ class HalloweenService
      */
     public static function getCharacterQuests(Character $character): array
     {
+        $isEventActive = self::isEventActive();
         $todayKey = 'daily_'.now()->toDateString();
         $weekKey = 'weekly_'.now()->format('o-W');
 
@@ -600,7 +616,7 @@ class HalloweenService
                 'current' => $current,
                 'is_completed' => $isComplete,
                 'is_claimed' => $isClaimed,
-                'can_claim' => $isComplete && ! $isClaimed,
+                'can_claim' => $isComplete && ! $isClaimed && $isEventActive,
                 'percent' => $pct,
             ]);
         }
@@ -617,7 +633,7 @@ class HalloweenService
                 'current' => $current,
                 'is_completed' => $isComplete,
                 'is_claimed' => $isClaimed,
-                'can_claim' => $isComplete && ! $isClaimed,
+                'can_claim' => $isComplete && ! $isClaimed && $isEventActive,
                 'percent' => $pct,
             ]);
         }

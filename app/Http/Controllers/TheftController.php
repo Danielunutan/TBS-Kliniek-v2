@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\GameNotification;
 use App\Models\TheftRecord;
 use App\Models\User;
 use App\Services\EnergyService;
@@ -22,11 +23,17 @@ class TheftController extends Controller
     /**
      * Show crime & theft overview.
      */
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        $character = $user->character;
+        /** @var Character|null $character */
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
+
         $this->energyService->refresh($character);
 
         $tiers = TheftService::TIERS;
@@ -47,24 +54,46 @@ class TheftController extends Controller
      */
     public function steal(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'tier' => ['required', 'string'],
-            'victim_id' => ['nullable', 'integer', 'exists:characters,id'],
-            'confirm_break_isolation' => ['nullable', 'boolean'],
-        ]);
-
-        /** @var User $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        $character = $user->character;
+        /** @var Character|null $character */
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('character.create');
+        }
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet zakkenrollen!');
         }
 
-        if ($character->isComatose()) {
-            $mins = ceil($character->getComaRemainingSeconds() / 60);
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in coma of Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
-            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via de Sterren Shop.");
+        $validated = $request->validate([
+            'tier' => ['required', 'string', 'in:'.implode(',', array_keys(TheftService::TIERS))],
+            'victim_id' => ['nullable', 'integer', 'exists:characters,id'],
+            'confirm_break_isolation' => ['nullable', 'boolean'],
+        ]);
+
+        if ($character->hasIsolationProtection()) {
+            if (! $request->boolean('confirm_break_isolation')) {
+                $remaining = $character->protection_until->diffForHumans(null, true);
+
+                return back()
+                    ->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om deze diefstal uit te voeren.")
+                    ->with('error_url', route('isolation.index'));
+            }
+
+            $character->breakProtection();
+            GameNotification::create([
+                'character_id' => $character->id,
+                'type' => 'warning',
+                'icon' => 'fa-door-open',
+                'title' => 'Isolatie Vroegtijdig Beëindigd',
+                'message' => 'Je hebt je cel verlaten om een beroving uit te voeren. Je isolatiebescherming is beëindigd.',
+            ]);
         }
 
         $victim = null;
@@ -72,13 +101,6 @@ class TheftController extends Controller
             $victim = Character::find($validated['victim_id']);
             if ($victim && $victim->id === $character->id) {
                 return back()->with('error', 'Je kunt je eigen zakken niet leegrollen!');
-            }
-            if ($victim) {
-                return app(FightController::class)->attack(new Request([
-                    'opponent_id' => $victim->id,
-                    'from_profile' => true,
-                    'confirm_break_isolation' => $request->boolean('confirm_break_isolation'),
-                ]));
             }
         }
 

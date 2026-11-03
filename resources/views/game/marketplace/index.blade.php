@@ -107,14 +107,14 @@
             </div>
         </div>
 
-        <!-- Pompoenpitten -->
+        <!-- Gouden Eikels -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 shadow-xs flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-sm shrink-0">
+            <div class="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
                 <i class="fa-solid fa-seedling"></i>
             </div>
             <div class="min-w-0">
-                <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide block truncate">Pitten 🎃</span>
-                <span class="text-xs font-black text-orange-700 dark:text-orange-400">{{ number_format($character->pumpkin_seeds ?? 0) }}</span>
+                <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide block truncate">Eikels 🌰</span>
+                <span class="text-xs font-black text-amber-700 dark:text-amber-400">{{ number_format($character->pumpkin_seeds ?? 0) }}</span>
             </div>
         </div>
 
@@ -166,7 +166,7 @@
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'pumpkin_seeds']) }}" 
             class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'pumpkin_seeds' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
-            <i class="fa-solid fa-seedling text-orange-500 mr-1.5"></i> Pompoenpitten 🎃
+            <i class="fa-solid fa-seedling text-amber-500 mr-1.5"></i> Gouden Eikels 🌰
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'cash']) }}" 
             class="px-3.5 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 whitespace-nowrap cursor-pointer {{ $filterType === 'cash' ? 'bg-purple-600 text-white font-black shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-purple-300 dark:hover:border-purple-700/80 border border-slate-200/90 dark:border-slate-800 font-bold' }}">
@@ -342,7 +342,7 @@
                             <option value="packages">🧳 Smokkelkoffers (beschikbaar: {{ $character->unopened_bags ?? 0 }})</option>
                             <option value="vault_codes">🔑 Geheime Kluiscodes (beschikbaar: {{ $myVaultCodes->count() }})</option>
                             <option value="masks">🎭 Maskers (beschikbaar: {{ $character->masks ?? 0 }})</option>
-                            <option value="pumpkin_seeds">🎃 Pompoenpitten (beschikbaar: {{ $character->pumpkin_seeds ?? 0 }})</option>
+                            <option value="pumpkin_seeds">🌰 Gouden Eikels (beschikbaar: {{ $character->pumpkin_seeds ?? 0 }})</option>
                             <option value="stars">⭐ Exclusieve Sterren (beschikbaar: {{ $character->stars ?? 0 }})</option>
                             <option value="cash">💶 Contant Geld (voor Sterren)</option>
                         </optgroup>

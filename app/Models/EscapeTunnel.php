@@ -24,6 +24,8 @@ class EscapeTunnel extends Model
         'times_escaped' => 'integer',
     ];
 
+    public const FUGITIVE_DURATION_MINUTES = 15;
+
     public const ESCAPE_HEISTS = [
         'safehouse' => [
             'id' => 'safehouse',
@@ -31,6 +33,8 @@ class EscapeTunnel extends Model
             'desc' => 'Breek in bij een verlaten onderduikadres in het sparrenbos en verzamel cash en proviand.',
             'energy' => 15,
             'cooldown' => 600,
+            'base_chance' => 100,
+            'fail_jail_secs' => 90,
             'min_cash' => 5000,
             'max_cash' => 12500,
             'xp' => 120,
@@ -46,6 +50,8 @@ class EscapeTunnel extends Model
             'desc' => 'Sluip de directiewoning binnen en kraak de kluis in het privékantoor voor dossiers en buit.',
             'energy' => 25,
             'cooldown' => 1200,
+            'base_chance' => 75,
+            'fail_jail_secs' => 150,
             'min_cash' => 20000,
             'max_cash' => 45000,
             'xp' => 250,
@@ -61,6 +67,8 @@ class EscapeTunnel extends Model
             'desc' => 'Onderschep een waardetransport over de provinciale bosweg voor maximale buit!',
             'energy' => 40,
             'cooldown' => 1800,
+            'base_chance' => 60,
+            'fail_jail_secs' => 240,
             'min_cash' => 50000,
             'max_cash' => 100000,
             'xp' => 450,

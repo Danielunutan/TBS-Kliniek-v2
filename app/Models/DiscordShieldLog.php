@@ -31,6 +31,10 @@ class DiscordShieldLog extends Model
             ? $data['ip_address']
             : ($isStaffAction ? null : request()->ip());
 
+        if ($ipAddress !== null && ! filter_var($ipAddress, FILTER_VALIDATE_IP)) {
+            $ipAddress = null;
+        }
+
         return static::create([
             'event' => $event,
             'description' => $description,

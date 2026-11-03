@@ -25,6 +25,8 @@ class DiscordShieldAdminController extends Controller
      */
     public function index(): View
     {
+        abort_unless(Auth::user()?->canModerate(), 403, 'Toegang geweigerd. Deze beheeromgeving is uitsluitend toegankelijk voor TBS Kliniek personeel.');
+
         AuditLogService::sanitizeDiscordShieldLogs();
 
         $totalVerified = DiscordVerification::where('status', 'verified')->count();
@@ -83,9 +85,9 @@ class DiscordShieldAdminController extends Controller
      */
     public function updateSettings(Request $request): RedirectResponse
     {
-        /** @var User $currentUser */
+        /** @var User|null $currentUser */
         $currentUser = Auth::user();
-        if (! $currentUser->isOwner() && ! $currentUser->isAdmin()) {
+        if (! $currentUser || (! $currentUser->isOwner() && ! $currentUser->isAdmin())) {
             return back()->with('error', 'Alleen de eigenaar of een beheerder kan Discord Shield systeeminstellingen wijzigen.');
         }
 
@@ -97,6 +99,7 @@ class DiscordShieldAdminController extends Controller
             'unverified_role_id' => 'nullable|string',
             'log_channel_id' => 'nullable|string',
             'verify_channel_id' => 'nullable|string',
+            'webhook_url' => 'nullable|url',
             'block_vpns' => 'nullable|boolean',
             'block_alts' => 'nullable|boolean',
             'auto_kick_alts' => 'nullable|boolean',
@@ -105,6 +108,14 @@ class DiscordShieldAdminController extends Controller
             'turnstile_site_key' => 'nullable|string',
             'turnstile_secret_key' => 'nullable|string',
         ]);
+
+        if (! empty($validated['webhook_url'])) {
+            $parsedUrl = parse_url($validated['webhook_url']);
+            $host = strtolower($parsedUrl['host'] ?? '');
+            if (! in_array($host, ['discord.com', 'discordapp.com'], true) || ! str_starts_with($parsedUrl['path'] ?? '', '/api/webhooks/')) {
+                return back()->with('error', 'Ongeldige Discord Webhook URL. De URL moet beginnen met https://discord.com/api/webhooks/')->withInput();
+            }
+        }
 
         foreach ($validated as $key => $val) {
             DiscordShieldSetting::set($key, $val);
@@ -136,11 +147,11 @@ class DiscordShieldAdminController extends Controller
         }
 
         $channelId = $request->input('channel_id') ?? DiscordShieldSetting::get('verify_channel_id');
-        if (empty($channelId)) {
-            return back()->with('error', 'Vul eerst een geldig Verificatie Kanaal ID in.');
+        if (empty($channelId) || ! ctype_digit(trim((string) $channelId))) {
+            return back()->with('error', 'Vul eerst een geldig numeriek Verificatie Kanaal ID in.');
         }
 
-        $msgId = $this->discordService->postVerificationChannelMessage($channelId);
+        $msgId = $this->discordService->postVerificationChannelMessage(trim((string) $channelId));
         if ($msgId) {
             return back()->with('success', 'De officiële verificatie embed met knop is geplaatst in het Discord kanaal!');
         }
@@ -165,8 +176,22 @@ class DiscordShieldAdminController extends Controller
             'reason' => 'nullable|string',
         ]);
 
+        $val = trim($request->value);
+
+        if ($request->type === 'ip_address' && ! filter_var($val, FILTER_VALIDATE_IP)) {
+            return back()->with('error', 'Ongeldig IP-adres opgegeven voor zwarte lijst.');
+        }
+
+        if ($request->type === 'discord_id' && (! ctype_digit($val) || strlen($val) < 15 || strlen($val) > 22)) {
+            return back()->with('error', 'Ongeldig Discord ID (moet een numeriek snowflake ID zijn).');
+        }
+
+        if ($request->type === 'fingerprint' && strlen($val) < 16) {
+            return back()->with('error', 'Ongeldige hardware fingerprint hash (moet minimaal 16 tekens zijn).');
+        }
+
         DiscordShieldBan::updateOrCreate(
-            ['type' => $request->type, 'value' => trim($request->value)],
+            ['type' => $request->type, 'value' => $val],
             [
                 'reason' => $request->reason ?? 'Handmatige ban via staff dashboard',
                 'banned_by' => Auth::user()->name,

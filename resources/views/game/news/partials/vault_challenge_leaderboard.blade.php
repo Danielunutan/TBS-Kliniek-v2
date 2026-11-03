@@ -37,6 +37,9 @@
         }
     },
     updateCountdown() {
+        if (this.loading) {
+            return;
+        }
         if (this.data.remaining_seconds <= 0) {
             this.timerDisplay = '00:00:00';
             return;
@@ -151,7 +154,7 @@
         <div class="p-4 rounded-xl bg-purple-50/90 dark:bg-purple-950/50 border border-purple-200/80 dark:border-purple-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl overflow-hidden border border-purple-300 dark:border-purple-700 shrink-0">
-                    <img :src="data.my_rank.avatar_url" class="w-full h-full object-cover">
+                    <img :src="data.my_rank.avatar_url || '/assets/characters/avatar_male_1.jpg'" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300">Jouw Huidige Status</span>
@@ -226,7 +229,7 @@
                         </div>
 
                         <!-- Avatar -->
-                        <img :src="player.avatar_url" class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-400/30 shrink-0">
+                        <img :src="player.avatar_url || '/assets/characters/avatar_male_1.jpg'" class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-400/30 shrink-0">
 
                         <!-- Name & Level -->
                         <div class="min-w-0 truncate">

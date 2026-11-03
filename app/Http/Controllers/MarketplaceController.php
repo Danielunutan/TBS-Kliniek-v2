@@ -278,14 +278,14 @@ class MarketplaceController extends Controller
                     $title = "{$amount}x Masker 🎭";
                 }
 
-                // 7. PUMPKIN SEEDS
+                // 7. PUMPKIN SEEDS (Herfst Seizoensvaluta: Gouden Eikels)
                 elseif ($itemType === 'pumpkin_seeds') {
                     if (($lockedCharacter->pumpkin_seeds ?? 0) < $amount) {
-                        throw new \RuntimeException("Je hebt niet genoeg Pompoenpitten 🎃 (je hebt er {$lockedCharacter->pumpkin_seeds}).");
+                        throw new \RuntimeException("Je hebt niet genoeg Gouden Eikels 🌰 (je hebt er {$lockedCharacter->pumpkin_seeds}).");
                     }
                     $lockedCharacter->pumpkin_seeds -= $amount;
                     $lockedCharacter->save();
-                    $title = "{$amount}x Halloween Pompoenpitten 🎃";
+                    $title = "{$amount}x Gouden Eikels 🌰";
                 }
 
                 // 8. CASH

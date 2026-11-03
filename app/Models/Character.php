@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\DailyBattleService;
+use App\Services\EconomyService;
 use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Support\ProfileStickerCatalog;
@@ -270,7 +271,7 @@ class Character extends Model
      */
     public function hasBorder(string $borderKey): bool
     {
-        $borders = $this->unlocked_borders ?? [];
+        $borders = is_array($this->unlocked_borders) ? $this->unlocked_borders : [];
 
         return in_array($borderKey, $borders, true);
     }
@@ -280,7 +281,7 @@ class Character extends Model
      */
     public function unlockBorder(string $borderKey): void
     {
-        $borders = $this->unlocked_borders ?? [];
+        $borders = is_array($this->unlocked_borders) ? $this->unlocked_borders : [];
         if (! in_array($borderKey, $borders, true)) {
             $borders[] = $borderKey;
             $this->unlocked_borders = $borders;
@@ -1336,6 +1337,11 @@ class Character extends Model
         return $this->hasOne(CharacterMemoryStat::class);
     }
 
+    public function escapeTunnel(): HasOne
+    {
+        return $this->hasOne(EscapeTunnel::class);
+    }
+
     /**
      * Get the gang the character belongs to.
      */
@@ -2165,13 +2171,63 @@ class Character extends Model
     }
 
     /**
+     * Add cash currency to character.
+     * Uses EconomyService under transaction lock if model is persisted.
+     */
+    public function addCash(int $amount, string $source = 'in_game', bool $recordEvent = true): void
+    {
+        if ($amount < 0) {
+            throw new \InvalidArgumentException('Amount must be positive');
+        }
+
+        if ($amount === 0) {
+            return;
+        }
+
+        if ($this->exists) {
+            app(EconomyService::class)->addCash($this, $amount, $source, $recordEvent);
+        } else {
+            $this->cash = ($this->cash ?? 0) + $amount;
+        }
+    }
+
+    /**
+     * Deduct cash currency from character if balance is sufficient.
+     * Uses EconomyService under transaction lock if model is persisted.
+     */
+    public function takeCash(int $amount): bool
+    {
+        if ($amount < 0) {
+            throw new \InvalidArgumentException('Amount must be positive');
+        }
+
+        if ($amount === 0) {
+            return true;
+        }
+
+        if ($this->exists) {
+            return app(EconomyService::class)->deductCash($this, $amount);
+        }
+
+        if (($this->cash ?? 0) < $amount) {
+            return false;
+        }
+
+        $this->cash -= $amount;
+
+        return true;
+    }
+
+    /**
      * Add respect to character and track daily respect earned.
      */
     public function addRespect(float|int $amount): void
     {
-        if ($amount <= 0) {
+        if ($amount <= 0 || is_nan((float) $amount) || is_infinite((float) $amount)) {
             return;
         }
+
+        $amount = (float) $amount;
 
         $today = now()->format('Y-m-d');
         $currentDate = $this->today_respect_date ? Carbon::parse($this->today_respect_date)->format('Y-m-d') : null;
@@ -2181,7 +2237,8 @@ class Character extends Model
             $this->today_respect_date = $today;
         }
 
-        $this->respect = max(0, (int) round(($this->respect ?? 0) + $amount));
+        $newRespect = (float) ($this->respect ?? 0) + $amount;
+        $this->respect = max(0, min(2000000000, (int) round($newRespect)));
         $this->today_respect = round(((float) ($this->today_respect ?? 0)) + $amount, 2);
 
         try {

@@ -201,6 +201,14 @@ class ChatController extends Controller
                 }
             }
 
+            $isGangLeaderOrCoLeader = false;
+            if ($character && str_starts_with($msg->channel, 'gang_')) {
+                $gangChannelId = (int) str_replace('gang_', '', $msg->channel);
+                if ((int) $character->gang_id === $gangChannelId && in_array($character->gang_role, ['leader', 'co_leader'], true)) {
+                    $isGangLeaderOrCoLeader = true;
+                }
+            }
+
             return [
                 'id' => (int) $msg->id,
                 'character_id' => (int) $msg->character_id,
@@ -226,6 +234,8 @@ class ChatController extends Controller
                 'has_sparkle' => (bool) ($char?->isSparkleActive()),
                 'name_classes' => $char ? $char->getNameCssClasses('') : '',
                 'name_style' => $char ? $char->getNameInlineStyle() : '',
+                'gang_id' => $gang?->id,
+                'gang_url' => $gang ? route('gangs.show', $gang->id) : null,
                 'gang_tag' => $gang?->tag ?? null,
                 'gang_color' => $gang?->color ?? 'purple',
                 'message' => $msg->message,
@@ -239,7 +249,7 @@ class ChatController extends Controller
                 'hearts_users' => array_values($heartUserIds),
                 'hearts_names' => $heartNames,
                 'hearts_text' => implode(', ', $heartNames),
-                'can_delete' => (bool) ($msg->character_id === $character->id || $isViewerStaff),
+                'can_delete' => (bool) ($msg->character_id === $character->id || $isViewerStaff || $isGangLeaderOrCoLeader),
             ];
         });
 
@@ -569,6 +579,13 @@ class ChatController extends Controller
                 ->get()
                 ->keyBy('id');
 
+            $unreadCounts = DirectMessage::where('recipient_id', $character->id)
+                ->whereIn('sender_id', $partnerIds)
+                ->where('is_read', false)
+                ->selectRaw('sender_id, count(*) as total')
+                ->groupBy('sender_id')
+                ->pluck('total', 'sender_id');
+
             $inmateConversations = [];
 
             foreach ($partnerIds as $pId) {
@@ -591,10 +608,7 @@ class ChatController extends Controller
                     continue;
                 }
 
-                $unread = DirectMessage::where('sender_id', $pId)
-                    ->where('recipient_id', $character->id)
-                    ->where('is_read', false)
-                    ->count();
+                $unread = (int) ($unreadCounts->get($pId, 0));
 
                 $isOnline = $partner->isOnline();
 
@@ -671,6 +685,8 @@ class ChatController extends Controller
                 ->where('recipient_id', $character->id)
                 ->where('is_read', false)
                 ->update(['is_read' => true, 'read_at' => now()]);
+
+            Cache::forget("dm_unread_count_{$character->id}");
 
             $partnerData = [
                 'id' => 0,
@@ -1084,6 +1100,20 @@ class ChatController extends Controller
             return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
         }
 
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 422);
+        }
+
+        if ($character->isImprisoned()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vanuit de isoleercel kun je niet reageren op openbare berichten!',
+            ], 422);
+        }
+
         return DB::transaction(function () use ($id, $character): JsonResponse {
             $msg = ChatMessage::where('id', $id)->lockForUpdate()->firstOrFail();
 
@@ -1143,6 +1173,20 @@ class ChatController extends Controller
 
         if (! $character) {
             return response()->json(['success' => false, 'message' => 'Geen personage gevonden.'], 403);
+        }
+
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 422);
+        }
+
+        if ($character->isImprisoned()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'In de isoleercel kun je niet reageren op privéberichten!',
+            ], 422);
         }
 
         return DB::transaction(function () use ($id, $character): JsonResponse {
@@ -1205,16 +1249,24 @@ class ChatController extends Controller
 
         $isAuthor = $character && ((int) $msg->character_id === (int) $character->id);
 
-        if (! ($isModeratorOrStaff || $isAuthor)) {
+        $isGangLeaderOrCoLeader = false;
+        if ($character && str_starts_with($msg->channel, 'gang_')) {
+            $gangId = (int) str_replace('gang_', '', $msg->channel);
+            if ((int) $character->gang_id === $gangId && in_array($character->gang_role, ['leader', 'co_leader'], true)) {
+                $isGangLeaderOrCoLeader = true;
+            }
+        }
+
+        if (! ($isModeratorOrStaff || $isAuthor || $isGangLeaderOrCoLeader)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Alleen moderators of de auteur kunnen chatberichten verwijderen.',
+                'message' => 'Alleen moderators, bendeleiders of de auteur kunnen chatberichten verwijderen.',
             ], 403);
         }
 
-        if (str_starts_with($msg->channel, 'gang_') && ! $isModeratorOrStaff) {
+        if (str_starts_with($msg->channel, 'gang_') && ! $isModeratorOrStaff && ! $isGangLeaderOrCoLeader) {
             $gangId = (int) str_replace('gang_', '', $msg->channel);
-            if (! $isAuthor && (! $character?->gang_id || (int) $character->gang_id !== $gangId)) {
+            if (! $character?->gang_id || (int) $character->gang_id !== $gangId) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Je hebt geen toegang tot deze bende chat.',

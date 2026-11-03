@@ -216,7 +216,7 @@ class VaultController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen kluizen kraken!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -299,7 +299,7 @@ class VaultController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscodes inwisselen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -444,7 +444,7 @@ class VaultController extends Controller
                 return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscode decoderen!');
             }
 
-            if ($character->isComatose()) {
+            if ($character->needsReviveSerum()) {
                 return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
@@ -478,7 +478,7 @@ class VaultController extends Controller
                 return back()->with('error', 'Vanuit de isoleercel kun je geen kluis-tip kopen!');
             }
 
-            if ($character->isComatose()) {
+            if ($character->needsReviveSerum()) {
                 return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
@@ -516,7 +516,7 @@ class VaultController extends Controller
                 return back()->with('error', 'Vanuit de isoleercel kun je geen Alarm Jammer kopen!');
             }
 
-            if ($character->isComatose()) {
+            if ($character->needsReviveSerum()) {
                 return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
@@ -544,11 +544,15 @@ class VaultController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscodes verkopen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        $codeId = $request->input('code_id');
+        $validated = $request->validate([
+            'code_id' => ['required', 'integer'],
+        ]);
+
+        $codeId = (int) $validated['code_id'];
         $sellValue = 3500;
 
         $soldCode = DB::transaction(function () use ($character, $codeId, $sellValue): ?string {
@@ -590,11 +594,15 @@ class VaultController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen maskers verkopen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        $amount = max(1, (int) $request->input('amount', 1));
+        $validated = $request->validate([
+            'amount' => ['nullable', 'integer', 'min:1', 'max:100000'],
+        ]);
+
+        $amount = (int) ($validated['amount'] ?? 1);
         $pricePerMask = 1500;
         $totalEarned = $amount * $pricePerMask;
 

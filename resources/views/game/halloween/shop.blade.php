@@ -184,6 +184,11 @@
                                     <span>Instellen op Profiel</span>
                                 </button>
                             </form>
+                        @elseif(!$isObtainable)
+                            <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 select-none">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Niet meer haalbaar</span>
+                            </div>
                         @else
                             <form action="{{ route('halloween.buy') }}" method="POST">
                                 @csrf
@@ -333,5 +338,92 @@
             @endforeach
         </div>
     </div>
+
+    <!-- CATEGORY 4: RETIRED HALLOWEEN 2026 COLLECTOR BORDERS ARCHIVE -->
+    @if(!empty($retiredBorders))
+    <div class="space-y-4 pt-2">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm font-bold border border-rose-200/80 dark:border-rose-800/60">
+                    <span>🎃</span>
+                </div>
+                <div>
+                    <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>Halloween 2026 Verzamelobjecten Archief</span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700">
+                            Niet meer haalbaar
+                        </span>
+                    </h2>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Exclusieve kaders uit het afgelopen Halloween-event. Bezitters behouden ze voor altijd!</p>
+                </div>
+            </div>
+            <a href="{{ route('borders.index') }}" class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline">
+                Bekijk in overzicht &raquo;
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            @foreach($retiredBorders as $border)
+                @php
+                    $isOwned = $character->hasBorder($border['key']);
+                    $isEquipped = $character->equipped_border === $border['key'];
+                @endphp
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border {{ $isEquipped ? 'border-orange-500 ring-2 ring-orange-500/25' : 'border-slate-200/90 dark:border-slate-800 opacity-90' }} shadow-xs overflow-hidden flex flex-col justify-between">
+                    <div class="p-3.5 bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
+                        <span class="text-xs font-black text-slate-900 dark:text-white truncate">{{ $border['emoji'] }} {{ $border['name'] }}</span>
+                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700 shrink-0">
+                            Niet meer haalbaar
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-3 text-center grow flex flex-col justify-between">
+                        <div class="py-2 flex justify-center">
+                            <div class="relative">
+                                <div class="w-18 h-18 rounded-2xl p-0.5 {{ $border['preview_class'] }} transition-all">
+                                    <img src="{{ $character->avatar_url }}" alt="{{ $border['name'] }}" class="w-full h-full rounded-2xl object-cover bg-slate-900">
+                                </div>
+                                <span class="absolute -bottom-1 -right-1 text-base drop-shadow">{{ $border['emoji'] }}</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{{ $border['description'] }}</p>
+                            @if($isOwned)
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-black bg-emerald-600 text-white">
+                                    ✓ In Jouw Collectie
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-slate-50/70 dark:bg-slate-800/50 border-t border-slate-200/80 dark:border-slate-800">
+                        @if($isEquipped)
+                            <div class="w-full py-2 rounded-xl bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 cursor-default">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Momenteel Actief</span>
+                            </div>
+                        @elseif($isOwned)
+                            <form action="{{ route('halloween.equip-border') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="border_key" value="{{ $border['key'] }}">
+                                <button type="submit"
+                                        @disabled($character->isImprisoned() || $character->isComatose())
+                                        class="w-full py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fa-solid fa-paintbrush text-xs"></i>
+                                    <span>Activeer Kader</span>
+                                </button>
+                            </form>
+                        @else
+                            <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs text-center flex items-center justify-center gap-1.5 select-none">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Niet meer haalbaar</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 </div>
 @endsection

@@ -658,11 +658,11 @@
         <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-purple-600/15 to-amber-500/10 dark:to-slate-900/40 border border-amber-400/60 shadow-xs flex items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-xl shrink-0 shadow-md animate-bounce">
-                    <i class="fa-solid fa-skull"></i>
+                    <i class="fa-solid fa-wheat-awn"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h4 class="text-sm font-black text-slate-900 dark:text-white">💀 Magere Hein Zegening Actief!</h4>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">🌾 Zegening van de Oogst Actief!</h4>
                         <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
                             +15% Stats
                         </span>

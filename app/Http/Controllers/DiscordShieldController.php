@@ -15,8 +15,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -177,6 +179,33 @@ class DiscordShieldController extends Controller
     }
 
     /**
+     * Resolve the client IP safely from trusted proxy headers or direct connection.
+     */
+    public function resolveClientIp(Request $request): string
+    {
+        $cfIp = $request->header('CF-Connecting-IP');
+        if (is_string($cfIp) && filter_var(trim($cfIp), FILTER_VALIDATE_IP)) {
+            return trim($cfIp);
+        }
+
+        $forwarded = $request->header('X-Forwarded-For');
+        if (is_string($forwarded) && ! empty($forwarded)) {
+            $parts = explode(',', $forwarded);
+            $candidate = trim($parts[0]);
+            if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+                return $candidate;
+            }
+        }
+
+        $directIp = $request->ip();
+        if (is_string($directIp) && filter_var(trim($directIp), FILTER_VALIDATE_IP)) {
+            return trim($directIp);
+        }
+
+        return '127.0.0.1';
+    }
+
+    /**
      * Process Turnstile + Device Fingerprint + Anti-Alt verification.
      */
     public function process(Request $request): JsonResponse
@@ -191,276 +220,317 @@ class DiscordShieldController extends Controller
 
         $discordId = (string) $discordUser['id'];
         $username = $discordUser['username'];
-        $ip = $request->header('CF-Connecting-IP') ?? $request->ip();
-        $country = $request->header('CF-IPCountry') ?? 'NL';
+        $ip = $this->resolveClientIp($request);
+        $country = (string) ($request->header('CF-IPCountry') ?: 'NL');
 
-        // 1. Validate Cloudflare Turnstile
-        $turnstileEnabled = DiscordShieldSetting::get('turnstile_enabled', '1') === '1';
-        if ($turnstileEnabled) {
-            $turnstileResponse = $request->input('turnstile_token');
-            $turnstileSecret = DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY'));
+        $throttleKey = 'discord_shield_process:'.$ip.':'.$discordId;
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
 
-            if (! $turnstileResponse) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Vul de Cloudflare Turnstile verificatie in.',
-                ], 422);
+            return response()->json([
+                'success' => false,
+                'message' => "Te veel verificatiepogingen. Probeer het over {$seconds} seconden opnieuw.",
+            ], 429);
+        }
+        RateLimiter::hit($throttleKey, 60);
+
+        try {
+            // 1. Validate Cloudflare Turnstile
+            $turnstileEnabled = DiscordShieldSetting::get('turnstile_enabled', '1') === '1';
+            if ($turnstileEnabled) {
+                $turnstileResponse = $request->input('turnstile_token');
+                $turnstileSecret = DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY'));
+
+                if (! $turnstileResponse) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Vul de Cloudflare Turnstile verificatie in.',
+                    ], 422);
+                }
+
+                try {
+                    $verifyResp = Http::asForm()->timeout(6)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                        'secret' => $turnstileSecret,
+                        'response' => $turnstileResponse,
+                        'remoteip' => $ip,
+                    ]);
+
+                    if (! $verifyResp->successful() || ! $verifyResp->json('success')) {
+                        DiscordShieldLog::log('turnstile_failed', "Turnstile verificatie mislukt voor {$username} ({$discordId})", [
+                            'discord_id' => $discordId,
+                            'username' => $username,
+                            'ip_address' => $ip,
+                            'severity' => 'warning',
+                        ]);
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'De Cloudflare beveiligingscheck is mislukt. Probeer het opnieuw.',
+                        ], 422);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Turnstile verification network error: '.$e->getMessage());
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Kon geen verbinding maken met Cloudflare beveiligingsservice. Probeer het opnieuw.',
+                    ], 503);
+                }
             }
 
-            $verifyResp = Http::asForm()->timeout(6)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-                'secret' => $turnstileSecret,
-                'response' => $turnstileResponse,
-                'remoteip' => $ip,
+            // 2. Hardware / Browser Fingerprint + WebRTC & Timezone Intelligence
+            $fingerprintHash = (string) $request->input('fingerprint_hash');
+            $fingerprintRaw = (array) $request->input('fingerprint_raw', []);
+            $deviceType = $request->input('device_type', 'Desktop');
+            $browser = $request->input('browser', 'Onbekend');
+            $os = $request->input('os', 'Onbekend');
+            $webrtcIps = (array) $request->input('webrtc_ips', []);
+            $timezoneOffset = $request->input('timezone_offset');
+            $timezoneName = (string) $request->input('timezone_name', '');
+
+            // Persistent tracking cookie UID
+            $permCookieUid = $request->cookie('tbs_perm_uid')
+                ?: ($fingerprintRaw['cookie_uid'] ?? null);
+            if (empty($permCookieUid) || ! is_string($permCookieUid)) {
+                $permCookieUid = (string) Str::uuid();
+                cookie()->queue(cookie()->forever('tbs_perm_uid', $permCookieUid));
+            }
+
+            // Enrich fingerprint raw data
+            $fingerprintRaw['cookie_uid'] = $permCookieUid;
+            $fingerprintRaw['webrtc_ips'] = $webrtcIps;
+            $fingerprintRaw['timezone_offset'] = $timezoneOffset;
+            $fingerprintRaw['timezone_name'] = $timezoneName;
+
+            if (empty($fingerprintHash) || strlen($fingerprintHash) < 16) {
+                $fingerprintHash = hash('sha256', $ip.'|'.$request->userAgent().'|'.$discordId);
+            }
+
+            // WebRTC Candidate Discovery (detect unmasked real public IP behind proxy extension)
+            $leakedPublicIp = null;
+            foreach ($webrtcIps as $candidateIp) {
+                if (is_string($candidateIp) && filter_var($candidateIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                    if ($candidateIp !== $ip) {
+                        $leakedPublicIp = $candidateIp;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Check Blacklist / Bans
+            if (
+                DiscordShieldBan::isBanned('discord_id', $discordId) ||
+                DiscordShieldBan::isBanned('fingerprint', $fingerprintHash) ||
+                DiscordShieldBan::isBanned('ip_address', $ip) ||
+                ($leakedPublicIp && DiscordShieldBan::isBanned('ip_address', $leakedPublicIp))
+            ) {
+                $this->handleRejection('banned', $discordUser, $ip, $country, $fingerprintHash, null, false, 100, 'Dit apparaat of account staat op de zwarte lijst.');
+
+                return response()->json([
+                    'success' => false,
+                    'banned' => true,
+                    'message' => 'Toegang geweigerd: Je account of apparaat is permanent verbannen van de TBS Kliniek Discord server.',
+                ], 403);
+            }
+
+            // 4. Real Multi-Layered VPN / Proxy Intelligence (ProxyCheck.io + IP-API.com)
+            $blockVpns = DiscordShieldSetting::get('block_vpns', '1') === '1';
+            $vpnService = app(VpnDetectionService::class);
+            $vpnCheck = $vpnService->check($ip);
+            $isVpn = $vpnCheck['is_vpn'];
+            $vpnProvider = $vpnCheck['provider'];
+            if (! empty($vpnCheck['country'])) {
+                $country = $vpnCheck['country'];
+            }
+
+            // If main IP is clean, also inspect leaked WebRTC public IP
+            if (! $isVpn && $leakedPublicIp) {
+                $leakedCheck = $vpnService->check($leakedPublicIp);
+                if ($leakedCheck['is_vpn']) {
+                    $isVpn = true;
+                    $vpnProvider = $leakedCheck['provider'] ? "WebRTC Leak: {$leakedCheck['provider']}" : 'WebRTC Leaked VPN/Proxy';
+                }
+            }
+
+            // Timezone consistency check (E.g. connecting via European IP but client clock is US/Asia proxy)
+            $riskScore = 5;
+            if (in_array(strtoupper($country), ['NL', 'BE', 'DE', 'FR', 'LU', 'GB']) && is_numeric($timezoneOffset)) {
+                $offsetVal = (int) $timezoneOffset;
+                if ($offsetVal > 180 || $offsetVal < -360) {
+                    $riskScore = 40;
+                    DiscordShieldLog::log('timezone_mismatch', "Tijdzone mismatch voor {$username}: Land {$country} vs browser offset {$offsetVal}m ({$timezoneName})", [
+                        'discord_id' => $discordId,
+                        'username' => $username,
+                        'ip_address' => $ip,
+                        'severity' => 'warning',
+                        'metadata' => [
+                            'country' => $country,
+                            'timezone_offset' => $offsetVal,
+                            'timezone_name' => $timezoneName,
+                            'webrtc_leak' => $leakedPublicIp,
+                        ],
+                    ]);
+                }
+            }
+
+            if ($isVpn && $blockVpns) {
+                $providerLabel = $vpnProvider ? " ({$vpnProvider})" : '';
+                $this->handleRejection('vpn_blocked', $discordUser, $ip, $country, $fingerprintHash, null, true, 85, "VPN of Proxy gedetecteerd: {$vpnProvider}");
+
+                return response()->json([
+                    'success' => false,
+                    'vpn_blocked' => true,
+                    'message' => "Je gebruikt een actieve VPN of proxy verbinding{$providerLabel}. Schakel je VPN even helemaal uit op je telefoon of computer en probeer het daarna opnieuw.",
+                ], 403);
+            }
+
+            // 5. Anti-Alt & Double Counter Check
+            $blockAlts = DiscordShieldSetting::get('block_alts', '1') === '1';
+
+            $existingVerification = DiscordVerification::where('discord_id', '!=', $discordId)
+                ->where(function ($q) use ($fingerprintHash, $permCookieUid): void {
+                    $q->where('fingerprint_hash', $fingerprintHash);
+                    if (! empty($permCookieUid)) {
+                        $q->orWhere('fingerprint_raw->cookie_uid', $permCookieUid);
+                    }
+                })
+                ->first();
+
+            if ($existingVerification && $blockAlts) {
+                $altUsername = $existingVerification->username;
+                $altId = $existingVerification->discord_id;
+
+                $this->handleRejection('alt_detected', $discordUser, $ip, $country, $fingerprintHash, $altUsername, $isVpn, 95, "Alt account van {$altUsername} ({$altId})");
+
+                return response()->json([
+                    'success' => false,
+                    'alt_detected' => true,
+                    'message' => "Toegang geweigerd: Er is al een ander Discord-account geregistreerd vanaf dit apparaat ({$altUsername}). Dubbele accounts zijn niet toegestaan.",
+                ], 403);
+            }
+
+            // 6. SUCCESS: Register Verification
+            $character = Auth::check() ? Auth::user()->character : null;
+
+            $verification = DiscordVerification::updateOrCreate(
+                ['discord_id' => $discordId],
+                [
+                    'username' => $username,
+                    'discriminator' => $discordUser['discriminator'] ?? null,
+                    'avatar' => $discordUser['avatar'] ?? null,
+                    'email' => $discordUser['email'] ?? null,
+                    'character_id' => $character?->id,
+                    'user_id' => Auth::id(),
+                    'ip_address' => $ip,
+                    'country_code' => $country,
+                    'is_vpn' => $isVpn,
+                    'vpn_provider' => $vpnProvider,
+                    'fingerprint_hash' => $fingerprintHash,
+                    'fingerprint_raw' => $fingerprintRaw,
+                    'device_type' => $deviceType,
+                    'browser' => $browser,
+                    'os' => $os,
+                    'status' => 'verified',
+                    'risk_score' => $riskScore,
+                    'turnstile_passed' => true,
+                    'verified_at' => now(),
+                ]
+            );
+
+            // 7. Assign Discord Role via Bot API
+            $guildId = $this->discordService->getGuildId();
+            $verifiedRoleId = (string) DiscordShieldSetting::get('verified_role_id', '');
+            $unverifiedRoleId = (string) DiscordShieldSetting::get('unverified_role_id', '');
+
+            $roleGiven = false;
+            if (! empty($guildId) && ! empty($verifiedRoleId)) {
+                $roleGiven = $this->discordService->addRole($guildId, $discordId, $verifiedRoleId, 'TBS Shield verificatie succesvol voltooid');
+                if (! empty($unverifiedRoleId)) {
+                    $this->discordService->removeRole($guildId, $discordId, $unverifiedRoleId, 'TBS Shield verificatie voltooid');
+                }
+            }
+
+            // 7b. Link Game Account & Grant Starter Bonus (€2.500 Cash + 3 Days VIP + Discord Speler Role)
+            $bonusAwarded = false;
+            if (Auth::check()) {
+                $authUser = Auth::user();
+                if (empty($authUser->discord_id)) {
+                    if (! User::where('discord_id', $discordId)->where('id', '!=', $authUser->id)->exists()) {
+                        $authUser->discord_id = $discordId;
+                        $authUser->save();
+                    }
+                }
+
+                if ($authUser->discord_id === $discordId && $character) {
+                    if (! $character->hasClaimedDiscordReward()) {
+                        $character->claimDiscordReward();
+                        $bonusAwarded = true;
+                    }
+                    if (! empty($guildId)) {
+                        $this->discordService->syncGameRoles($guildId, $discordId, $character);
+                    }
+                }
+            }
+
+            // 8. Log Audit & Send Staff Embed
+            DiscordShieldLog::log('verification_success', "Gebruiker {$username} ({$discordId}) succesvol geverifieerd via TBS Shield.", [
+                'discord_id' => $discordId,
+                'username' => $username,
+                'ip_address' => $ip,
+                'fingerprint_hash' => $fingerprintHash,
+                'severity' => 'success',
+                'metadata' => [
+                    'role_given' => $roleGiven,
+                    'bonus_awarded' => $bonusAwarded,
+                    'character_name' => $character?->name,
+                    'device' => "{$os} / {$browser} ({$deviceType})",
+                ],
             ]);
 
-            if (! $verifyResp->successful() || ! $verifyResp->json('success')) {
-                DiscordShieldLog::log('turnstile_failed', "Turnstile verificatie mislukt voor {$username} ({$discordId})", [
-                    'discord_id' => $discordId,
-                    'username' => $username,
-                    'ip_address' => $ip,
-                    'severity' => 'warning',
-                ]);
+            $this->discordService->sendVerificationReport(
+                'verified',
+                $discordUser,
+                $ip,
+                $country,
+                $fingerprintHash,
+                null,
+                $isVpn,
+                5
+            );
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'De Cloudflare beveiligingscheck is mislukt. Probeer het opnieuw.',
-                ], 422);
-            }
-        }
+            // Keep discord_id in session for seamless game account creation / linking
+            session([
+                'verified_discord_id' => $discordId,
+                'verified_discord_username' => $username,
+            ]);
 
-        // 2. Hardware / Browser Fingerprint + WebRTC & Timezone Intelligence
-        $fingerprintHash = (string) $request->input('fingerprint_hash');
-        $fingerprintRaw = (array) $request->input('fingerprint_raw', []);
-        $deviceType = $request->input('device_type', 'Desktop');
-        $browser = $request->input('browser', 'Onbekend');
-        $os = $request->input('os', 'Onbekend');
-        $webrtcIps = (array) $request->input('webrtc_ips', []);
-        $timezoneOffset = $request->input('timezone_offset');
-        $timezoneName = (string) $request->input('timezone_name', '');
+            // Clear verification session state
+            session()->forget(['discord_shield_user', 'discord_shield_state', 'discord_shield_access_token']);
 
-        // Enrich fingerprint raw data
-        $fingerprintRaw['webrtc_ips'] = $webrtcIps;
-        $fingerprintRaw['timezone_offset'] = $timezoneOffset;
-        $fingerprintRaw['timezone_name'] = $timezoneName;
-
-        if (empty($fingerprintHash) || strlen($fingerprintHash) < 16) {
-            $fingerprintHash = hash('sha256', $ip.'|'.$request->userAgent().'|'.$discordId);
-        }
-
-        // WebRTC Candidate Discovery (detect unmasked real public IP behind proxy extension)
-        $leakedPublicIp = null;
-        foreach ($webrtcIps as $candidateIp) {
-            if (is_string($candidateIp) && filter_var($candidateIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                if ($candidateIp !== $ip) {
-                    $leakedPublicIp = $candidateIp;
-                    break;
-                }
-            }
-        }
-
-        // 3. Check Blacklist / Bans
-        if (
-            DiscordShieldBan::isBanned('discord_id', $discordId) ||
-            DiscordShieldBan::isBanned('fingerprint', $fingerprintHash) ||
-            DiscordShieldBan::isBanned('ip_address', $ip) ||
-            ($leakedPublicIp && DiscordShieldBan::isBanned('ip_address', $leakedPublicIp))
-        ) {
-            $this->handleRejection('banned', $discordUser, $ip, $country, $fingerprintHash, null, false, 100, 'Dit apparaat of account staat op de zwarte lijst.');
+            $successMsg = $bonusAwarded
+                ? 'Gefeliciteerd! Je bent geverifieerd en je spelersaccount heeft direct €2.500 zakgeld, 3 dagen gratis VIP en de Discord spelersrol ontvangen!'
+                : 'Gefeliciteerd! Je account is succesvol geverifieerd. Je hebt nu direct toegang tot de TBS Kliniek Discord server!';
 
             return response()->json([
-                'success' => false,
-                'banned' => true,
-                'message' => 'Toegang geweigerd: Je account of apparaat is permanent verbannen van de TBS Kliniek Discord server.',
-            ], 403);
-        }
-
-        // 4. Real Multi-Layered VPN / Proxy Intelligence (ProxyCheck.io + IP-API.com)
-        $blockVpns = DiscordShieldSetting::get('block_vpns', '1') === '1';
-        $vpnService = app(VpnDetectionService::class);
-        $vpnCheck = $vpnService->check($ip);
-        $isVpn = $vpnCheck['is_vpn'];
-        $vpnProvider = $vpnCheck['provider'];
-        if (! empty($vpnCheck['country'])) {
-            $country = $vpnCheck['country'];
-        }
-
-        // If main IP is clean, also inspect leaked WebRTC public IP
-        if (! $isVpn && $leakedPublicIp) {
-            $leakedCheck = $vpnService->check($leakedPublicIp);
-            if ($leakedCheck['is_vpn']) {
-                $isVpn = true;
-                $vpnProvider = $leakedCheck['provider'] ? "WebRTC Leak: {$leakedCheck['provider']}" : 'WebRTC Leaked VPN/Proxy';
-            }
-        }
-
-        // Timezone consistency check (E.g. connecting via European IP but client clock is US/Asia proxy)
-        $riskScore = 5;
-        if (in_array(strtoupper($country), ['NL', 'BE', 'DE', 'FR', 'LU', 'GB']) && is_numeric($timezoneOffset)) {
-            $offsetVal = (int) $timezoneOffset;
-            // A genuine European visitor's browser getTimezoneOffset() is between -120 and 0.
-            // If the browser reports offset > 180 (Americas) or < -360 (Asia/Oceania), flag proxy mismatch
-            if ($offsetVal > 180 || $offsetVal < -360) {
-                $riskScore = 40;
-                DiscordShieldLog::log('timezone_mismatch', "Tijdzone mismatch voor {$username}: Land {$country} vs browser offset {$offsetVal}m ({$timezoneName})", [
-                    'discord_id' => $discordId,
-                    'username' => $username,
-                    'ip_address' => $ip,
-                    'severity' => 'warning',
-                    'metadata' => [
-                        'country' => $country,
-                        'timezone_offset' => $offsetVal,
-                        'timezone_name' => $timezoneName,
-                        'webrtc_leak' => $leakedPublicIp,
-                    ],
-                ]);
-            }
-        }
-
-        if ($isVpn && $blockVpns) {
-            $providerLabel = $vpnProvider ? " ({$vpnProvider})" : '';
-            $this->handleRejection('vpn_blocked', $discordUser, $ip, $country, $fingerprintHash, null, true, 85, "VPN of Proxy gedetecteerd: {$vpnProvider}");
-
-            return response()->json([
-                'success' => false,
-                'vpn_blocked' => true,
-                'message' => "Je gebruikt een actieve VPN of proxy verbinding{$providerLabel}. Schakel je VPN even helemaal uit op je telefoon of computer en probeer het daarna opnieuw.",
-            ], 403);
-        }
-
-        // 5. Anti-Alt & Double Counter Check
-        $blockAlts = DiscordShieldSetting::get('block_alts', '1') === '1';
-        $permCookieUid = $request->cookie('tbs_perm_uid');
-
-        $existingVerification = DiscordVerification::where('discord_id', '!=', $discordId)
-            ->where(function ($q) use ($fingerprintHash, $permCookieUid): void {
-                $q->where('fingerprint_hash', $fingerprintHash);
-                if (! empty($permCookieUid)) {
-                    $q->orWhere('fingerprint_raw->cookie_uid', $permCookieUid);
-                }
-            })
-            ->first();
-
-        if ($existingVerification && $blockAlts) {
-            $altUsername = $existingVerification->username;
-            $altId = $existingVerification->discord_id;
-
-            $this->handleRejection('alt_detected', $discordUser, $ip, $country, $fingerprintHash, $altUsername, $isVpn, 95, "Alt account van {$altUsername} ({$altId})");
-
-            return response()->json([
-                'success' => false,
-                'alt_detected' => true,
-                'message' => "Toegang geweigerd: Er is al een ander Discord-account geregistreerd vanaf dit apparaat ({$altUsername}). Dubbele accounts zijn niet toegestaan.",
-            ], 403);
-        }
-
-        // 6. SUCCESS: Register Verification
-        $character = Auth::check() ? Auth::user()->character : null;
-
-        $verification = DiscordVerification::updateOrCreate(
-            ['discord_id' => $discordId],
-            [
-                'username' => $username,
-                'discriminator' => $discordUser['discriminator'] ?? null,
-                'avatar' => $discordUser['avatar'] ?? null,
-                'email' => $discordUser['email'] ?? null,
-                'character_id' => $character?->id,
-                'user_id' => Auth::id(),
-                'ip_address' => $ip,
-                'country_code' => $country,
-                'is_vpn' => $isVpn,
-                'vpn_provider' => $vpnProvider,
-                'fingerprint_hash' => $fingerprintHash,
-                'fingerprint_raw' => $fingerprintRaw,
-                'device_type' => $deviceType,
-                'browser' => $browser,
-                'os' => $os,
-                'status' => 'verified',
-                'risk_score' => $riskScore,
-                'turnstile_passed' => true,
-                'verified_at' => now(),
-            ]
-        );
-
-        // 7. Assign Discord Role via Bot API
-        $guildId = $this->discordService->getGuildId();
-        $verifiedRoleId = (string) DiscordShieldSetting::get('verified_role_id', '');
-        $unverifiedRoleId = (string) DiscordShieldSetting::get('unverified_role_id', '');
-
-        $roleGiven = false;
-        if (! empty($guildId) && ! empty($verifiedRoleId)) {
-            $roleGiven = $this->discordService->addRole($guildId, $discordId, $verifiedRoleId, 'TBS Shield verificatie succesvol voltooid');
-            if (! empty($unverifiedRoleId)) {
-                $this->discordService->removeRole($guildId, $discordId, $unverifiedRoleId, 'TBS Shield verificatie voltooid');
-            }
-        }
-
-        // 7b. Link Game Account & Grant Starter Bonus (€2.500 Cash + 3 Days VIP + Discord Speler Role)
-        $bonusAwarded = false;
-        if (Auth::check()) {
-            $authUser = Auth::user();
-            if (empty($authUser->discord_id)) {
-                if (! User::where('discord_id', $discordId)->where('id', '!=', $authUser->id)->exists()) {
-                    $authUser->discord_id = $discordId;
-                    $authUser->save();
-                }
-            }
-
-            if ($authUser->discord_id === $discordId && $character) {
-                if (! $character->hasClaimedDiscordReward()) {
-                    $character->claimDiscordReward();
-                    $bonusAwarded = true;
-                }
-                if (! empty($guildId)) {
-                    $this->discordService->syncGameRoles($guildId, $discordId, $character);
-                }
-            }
-        }
-
-        // 8. Log Audit & Send Staff Embed
-        DiscordShieldLog::log('verification_success', "Gebruiker {$username} ({$discordId}) succesvol geverifieerd via TBS Shield.", [
-            'discord_id' => $discordId,
-            'username' => $username,
-            'ip_address' => $ip,
-            'fingerprint_hash' => $fingerprintHash,
-            'severity' => 'success',
-            'metadata' => [
+                'success' => true,
                 'role_given' => $roleGiven,
                 'bonus_awarded' => $bonusAwarded,
-                'character_name' => $character?->name,
-                'device' => "{$os} / {$browser} ({$deviceType})",
-            ],
-        ]);
+                'message' => $successMsg,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Discord Shield Process Exception: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            DiscordShieldLog::log('verification_error', "Fout tijdens verificatie voor {$username}: ".$e->getMessage(), [
+                'discord_id' => $discordId,
+                'username' => $username,
+                'ip_address' => $ip,
+                'severity' => 'danger',
+            ]);
 
-        $this->discordService->sendVerificationReport(
-            'verified',
-            $discordUser,
-            $ip,
-            $country,
-            $fingerprintHash,
-            null,
-            $isVpn,
-            5
-        );
-
-        // Keep discord_id in session for seamless game account creation / linking
-        session([
-            'verified_discord_id' => $discordId,
-            'verified_discord_username' => $username,
-        ]);
-
-        // Clear verification session state
-        session()->forget(['discord_shield_user', 'discord_shield_state', 'discord_shield_access_token']);
-
-        $successMsg = $bonusAwarded
-            ? 'Gefeliciteerd! Je bent geverifieerd en je spelersaccount heeft direct €2.500 zakgeld, 3 dagen gratis VIP en de Discord spelersrol ontvangen!'
-            : 'Gefeliciteerd! Je account is succesvol geverifieerd. Je hebt nu direct toegang tot de TBS Kliniek Discord server!';
-
-        return response()->json([
-            'success' => true,
-            'role_given' => $roleGiven,
-            'bonus_awarded' => $bonusAwarded,
-            'message' => $successMsg,
-        ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Er is een interne fout opgetreden bij de verificatie. Probeer het later opnieuw.',
+            ], 500);
+        }
     }
 
     /**
@@ -487,14 +557,16 @@ class DiscordShieldController extends Controller
             return redirect()->route('discord.verify')->with('error', 'Dit Discord account is al gekoppeld aan een ander spelersaccount.');
         }
 
-        $user->discord_id = $discordId;
-        $user->save();
-
         $claimed = false;
-        if (! $character->hasClaimedDiscordReward()) {
-            $character->claimDiscordReward();
-            $claimed = true;
-        }
+        DB::transaction(function () use ($user, $character, $discordId, &$claimed): void {
+            $user->discord_id = $discordId;
+            $user->save();
+
+            if (! $character->hasClaimedDiscordReward()) {
+                $character->claimDiscordReward();
+                $claimed = true;
+            }
+        });
 
         $guildId = $this->discordService->getGuildId();
         if (! empty($guildId)) {

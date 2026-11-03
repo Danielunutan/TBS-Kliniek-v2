@@ -176,6 +176,11 @@
                                 <span class="px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-black text-[10px]">
                                     {{ $accountTotal }} accounts ({{ $cluster->total_logs ?? 0 }} logs)
                                 </span>
+                                @if(isset($cluster->confidence_score) && (int) $cluster->confidence_score > 0)
+                                <span class="px-1.5 py-0.5 rounded-md {{ ($cluster->confidence_level ?? '') === 'hoog' ? 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300' : 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300' }} font-black text-[10px]" title="Multi-Account Vertrouwensscore">
+                                    {{ $cluster->confidence_score }}% zekerheid
+                                </span>
+                                @endif
                                 @if(($cluster->high_risk_count ?? 0) > 0)
                                 <span class="px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 font-black text-[10px]">
                                     {{ $cluster->high_risk_count }} hoog risico

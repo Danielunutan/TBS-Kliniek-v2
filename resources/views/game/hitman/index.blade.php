@@ -268,8 +268,8 @@
                     @endforeach
                 </select>
                 <button type="submit" 
-                        {{ $character->isImprisoned() || $character->isComatose() || $character->cash < $travelCost ? 'disabled' : '' }}
-                        class="py-1.5 px-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->cash < $travelCost) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} text-[11px] font-black transition-all duration-150 shrink-0 whitespace-nowrap shadow-xs">
+                        {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->cash < $travelCost ? 'disabled' : '' }}
+                        class="py-1.5 px-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->cash < $travelCost) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} text-[11px] font-black transition-all duration-150 shrink-0 whitespace-nowrap shadow-xs">
                     Reis (€{{ number_format($travelCost, 0, ',', '.') }})
                 </button>
             </form>
@@ -531,8 +531,8 @@
                             @csrf
                             <input type="hidden" name="destination" :value="selectedTargetRevealedWing">
                             <button type="submit" 
-                                    {{ $character->isImprisoned() || $character->isComatose() || $character->cash < $travelCost ? 'disabled' : '' }}
-                                    class="w-full sm:w-auto py-2 px-3.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->cash < $travelCost) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
+                                    {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->cash < $travelCost ? 'disabled' : '' }}
+                                    class="w-full sm:w-auto py-2 px-3.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->cash < $travelCost) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                                 <i class="fa-solid fa-person-running"></i>
                                 <span>Reis direct naar <span x-text="selectedTargetRevealedWing"></span> (€{{ number_format($travelCost, 0, ',', '.') }})</span>
                             </button>
@@ -547,8 +547,8 @@
                             <input type="hidden" name="intel_type" value="standard_15m">
                             <input type="hidden" name="currency" value="cash">
                             <button type="submit" 
-                                    {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 350000 ? 'disabled' : '' }}
-                                    class="w-full sm:w-auto py-2 px-3.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->cash < 350000) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
+                                    {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->cash < 350000 ? 'disabled' : '' }}
+                                    class="w-full sm:w-auto py-2 px-3.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->cash < 350000) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                                 <i class="fa-solid fa-video"></i>
                                 <span>Start 15m Schaduwing (€350.000)</span>
                             </button>
@@ -606,8 +606,8 @@
 
                         <div class="sm:col-span-7">
                             <button type="submit"
-                                    {{ $character->isImprisoned() || $character->isComatose() || $character->energy < 20 || ($character->bullets ?? 0) < 1 ? 'disabled' : '' }}
-                                    class="w-full py-3.5 px-5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->energy < 20 || ($character->bullets ?? 0) < 1) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white cursor-pointer active:scale-[0.99]' }} font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                    {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->energy < 20 || ($character->bullets ?? 0) < 1 ? 'disabled' : '' }}
+                                    class="w-full py-3.5 px-5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->energy < 20 || ($character->bullets ?? 0) < 1) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white cursor-pointer active:scale-[0.99]' }} font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-crosshairs"></i>
                                 <span x-text="bulletAmount === 1 ? 'Voer 1-Patroon Genadeschot Uit' : 'Vuur Salvo (' + bulletAmount + ' Patronen)'">
                                     Vuur Salvo ({{ $canOneTap ? 1 : $minBullets }} Patronen)
@@ -653,8 +653,8 @@
                         @csrf
                         <input type="hidden" name="currency" value="cash">
                         <button type="submit" 
-                                {{ $character->isImprisoned() || $character->isComatose() || $character->energy < 15 || $character->cash < 350000 ? 'disabled' : '' }}
-                                class="w-full py-2.5 px-3 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->energy < 15 || $character->cash < 350000) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
+                                {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->energy < 15 || $character->cash < 350000 ? 'disabled' : '' }}
+                                class="w-full py-2.5 px-3 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->energy < 15 || $character->cash < 350000) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                             <i class="fa-solid fa-money-bill-wave"></i>
                             <span>Train (€350k)</span>
                         </button>
@@ -663,8 +663,8 @@
                         @csrf
                         <input type="hidden" name="currency" value="stars">
                         <button type="submit" 
-                                {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 25 ? 'disabled' : '' }}
-                                class="w-full py-2.5 px-3 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 25) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
+                                {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->stars ?? 0) < 25 ? 'disabled' : '' }}
+                                class="w-full py-2.5 px-3 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->stars ?? 0) < 25) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
                             <i class="fa-solid fa-star text-amber-200"></i>
                             <span>Train (25 ⭐)</span>
                         </button>
@@ -1014,8 +1014,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 @foreach($vestCatalog as $vKey => $vest)
                 @php
-                    $canCashVest = ! $character->isImprisoned() && ! $character->isComatose() && $totalWealth >= $vest['cost_cash'];
-                    $canStarVest = ! $character->isImprisoned() && ! $character->isComatose() && ($character->stars ?? 0) >= $vest['cost_stars'];
+                    $canCashVest = ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum() && $totalWealth >= $vest['cost_cash'];
+                    $canStarVest = ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum() && ($character->stars ?? 0) >= $vest['cost_stars'];
                     $isPopular = ($vKey === 'tactical_3h');
                 @endphp
                 <div class="p-5 rounded-2xl border {{ $isPopular ? 'border-purple-500 dark:border-purple-600 ring-1 ring-purple-400 dark:ring-purple-600/50' : 'border-slate-200/80 dark:border-slate-700/70' }} bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 shadow-xs relative">
@@ -1092,8 +1092,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 @foreach($ammoCatalog as $ammo)
                 @php
-                    $canCashAmmo = ! $character->isImprisoned() && ! $character->isComatose() && $totalWealth >= $ammo['cost_cash'];
-                    $canStarAmmo = ! $character->isImprisoned() && ! $character->isComatose() && ($character->stars ?? 0) >= $ammo['cost_stars'];
+                    $canCashAmmo = ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum() && $totalWealth >= $ammo['cost_cash'];
+                    $canStarAmmo = ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum() && ($character->stars ?? 0) >= $ammo['cost_stars'];
                 @endphp
                 <div class="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 shadow-xs">
                     <div class="space-y-2">
@@ -1200,8 +1200,8 @@
                     <input type="hidden" name="target_name" :value="selectedTargetName">
                     <input type="hidden" name="contract_id" value="{{ $c['id'] }}">
                     <button type="submit" 
-                            {{ $character->isImprisoned() || $character->isComatose() || $character->cash < $c['cost'] || $character->energy < $c['energy'] ? 'disabled' : '' }}
-                            class="w-full py-2.5 px-4 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->cash < $c['cost'] || $character->energy < $c['energy']) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 shadow-xs">
+                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->cash < $c['cost'] || $character->energy < $c['energy'] ? 'disabled' : '' }}
+                            class="w-full py-2.5 px-4 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->cash < $c['cost'] || $character->energy < $c['energy']) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 shadow-xs">
                         Voer Contract Uit (€{{ number_format($c['cost'], 0, ',', '.') }})
                     </button>
                 </form>

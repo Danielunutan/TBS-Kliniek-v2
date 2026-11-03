@@ -157,8 +157,13 @@ class PrisonController extends Controller
         $remainingSeconds = $character->remainingPrisonSeconds();
 
         $perks = is_array($character->perks) ? $character->perks : [];
+        if (! $isImprisoned && isset($perks['prison_action_cooldown_until'])) {
+            unset($perks['prison_action_cooldown_until']);
+            $character->perks = $perks;
+            $character->save();
+        }
         $cooldownUntilTs = (int) ($perks['prison_action_cooldown_until'] ?? 0);
-        $prisonActionCooldownRemaining = max(0, $cooldownUntilTs - now()->timestamp);
+        $prisonActionCooldownRemaining = $isImprisoned ? max(0, $cooldownUntilTs - now()->timestamp) : 0;
 
         // Real prisoners currently locked up with active time
         $realPrisoners = Character::where('is_in_prison', true)
@@ -272,7 +277,7 @@ class PrisonController extends Controller
             return redirect()->route('prison')->with('info', 'Je zit momenteel niet in de isoleercel!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
             if ($request->expectsJson() && ! $request->header('X-TBS-Action')) {
                 return response()->json([
@@ -293,6 +298,12 @@ class PrisonController extends Controller
         if ($result['success']) {
             $character->refresh();
             $character->breakout_slay = ($character->breakout_slay ?? 0) + 0.1;
+
+            $perks = is_array($character->perks) ? $character->perks : [];
+            if (isset($perks['prison_action_cooldown_until'])) {
+                unset($perks['prison_action_cooldown_until']);
+                $character->perks = $perks;
+            }
             $character->save();
 
             $this->levelService->addXp($character, 35);
@@ -346,13 +357,21 @@ class PrisonController extends Controller
             return back()->with('info', 'Je zit momenteel niet in de isoleercel!');
         }
 
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $cost = 25;
 
         $bought = DB::transaction(function () use ($character, $cost): bool {
-            /** @var Character $locked */
+            /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            if (! $locked->isImprisoned() || ($locked->stars ?? 0) < $cost) {
+            if (! $locked || ! $locked->isImprisoned() || ($locked->stars ?? 0) < $cost) {
+                return false;
+            }
+
+            if ($locked->isComatose() || $locked->needsReviveSerum()) {
                 return false;
             }
 
@@ -362,6 +381,11 @@ class PrisonController extends Controller
             $locked->prison_reason = null;
             $locked->prison_escape_attempted = false;
             $locked->ad_prison_progress = 0;
+
+            $lockedPerks = is_array($locked->perks) ? $locked->perks : [];
+            unset($lockedPerks['prison_action_cooldown_until']);
+            $locked->perks = $lockedPerks;
+
             $locked->save();
 
             return true;
@@ -395,40 +419,40 @@ class PrisonController extends Controller
             return redirect()->route('prison')->with('info', 'Je zit momenteel niet in de isoleercel!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        $perks = is_array($character->perks) ? $character->perks : [];
-        $cooldownUntilTs = (int) ($perks['prison_action_cooldown_until'] ?? 0);
-        $cooldownRemaining = max(0, $cooldownUntilTs - now()->timestamp);
-
-        if ($cooldownRemaining > 0) {
-            return back()->with('error', "De gangwacht houdt je cel momenteel extra in de gaten. Wacht nog {$cooldownRemaining} seconden voor je volgende actie.");
-        }
-
-        if ($actionKey === 'wasserij') {
-            $energyCost = $actionMeta['energy_cost'];
-            if (! $this->energyService->consume($character, $energyCost)) {
-                return back()->with('error', "Onvoldoende uithoudingsvermogen: een dienst in de stoomwasserij kost {$energyCost} energie.");
+        $outcome = DB::transaction(function () use ($character, $actionKey, $actionMeta): array {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked || ! $locked->isImprisoned()) {
+                return ['status' => 'not_imprisoned'];
             }
 
-            $reduceSeconds = $actionMeta['reduce_seconds'];
-            $released = false;
-            $processed = false;
+            if ($locked->isComatose() || $locked->needsReviveSerum()) {
+                return ['status' => 'comatose'];
+            }
 
-            DB::transaction(function () use ($character, $reduceSeconds, &$released, &$processed): void {
-                /** @var Character|null $locked */
-                $locked = Character::where('id', $character->id)->lockForUpdate()->first();
-                if (! $locked || ! $locked->isImprisoned()) {
-                    return;
+            $lockedPerks = is_array($locked->perks) ? $locked->perks : [];
+            $cooldownUntilTs = (int) ($lockedPerks['prison_action_cooldown_until'] ?? 0);
+            $cooldownRemaining = max(0, $cooldownUntilTs - now()->timestamp);
+
+            if ($cooldownRemaining > 0) {
+                return ['status' => 'cooldown', 'remaining' => $cooldownRemaining];
+            }
+
+            if ($actionKey === 'wasserij') {
+                $energyCost = $actionMeta['energy_cost'];
+                if ((int) $locked->energy < $energyCost) {
+                    return ['status' => 'insufficient_energy', 'cost' => $energyCost];
                 }
 
-                $processed = true;
-                $lockedPerks = is_array($locked->perks) ? $locked->perks : [];
-
+                $locked->energy -= $energyCost;
+                $reduceSeconds = $actionMeta['reduce_seconds'];
                 $currentUntil = $locked->prison_until ? $locked->prison_until->copy() : now();
                 $newUntil = $currentUntil->subSeconds($reduceSeconds);
+                $released = false;
 
                 if ($newUntil->lte(now())) {
                     $locked->is_in_prison = false;
@@ -445,33 +469,21 @@ class PrisonController extends Controller
 
                 $locked->perks = $lockedPerks;
                 $locked->save();
-            });
 
-            if (! $processed) {
-                return redirect()->route('prison')->with('info', 'Je zit momenteel niet in de isoleercel!');
+                $this->levelService->addXp($locked, 15);
+
+                return [
+                    'status' => 'wasserij_success',
+                    'released' => $released,
+                    'seconds' => $reduceSeconds,
+                ];
             }
 
-            $this->levelService->addXp($character, 15);
-
-            if ($released) {
-                return redirect()->route('prison')->with('success', "Stoomwasserij-dienst voltooid (-{$reduceSeconds} sec & +15 XP)! Je resterende straftijd is volledig weggewerkt en je bent direct vrijgelaten!");
-            }
-
-            return redirect()->route('prison')->with('success', "Stoomwasserij-dienst afgerond! Wegens goed gedrag op de werkvloer is je celstraf met {$reduceSeconds} seconden ingekort (+15 XP).");
-        }
-
-        // Action: omkopen (Guard Bribe)
-        $bribeCost = $actionMeta['cash_cost'];
-        $outcome = DB::transaction(function () use ($character, $bribeCost, $actionMeta): array {
-            /** @var Character|null $locked */
-            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
-            if (! $locked || ! $locked->isImprisoned()) {
-                return ['status' => 'not_imprisoned'];
-            }
-
+            // Action: omkopen (Guard Bribe)
+            $bribeCost = $actionMeta['cash_cost'];
             $totalFunds = (int) $locked->cash + (int) $locked->bank;
             if ($totalFunds < $bribeCost) {
-                return ['status' => 'insufficient_funds'];
+                return ['status' => 'insufficient_funds', 'cost' => $bribeCost];
             }
 
             if ((int) $locked->cash >= $bribeCost) {
@@ -482,7 +494,6 @@ class PrisonController extends Controller
                 $locked->bank = max(0, (int) $locked->bank - $remainder);
             }
 
-            $lockedPerks = is_array($locked->perks) ? $locked->perks : [];
             $lockedPerks['prison_action_cooldown_until'] = now()->addSeconds(self::REDUCE_COOLDOWN_SECONDS)->timestamp;
 
             $roll = random_int(1, 100);
@@ -517,7 +528,6 @@ class PrisonController extends Controller
             }
 
             $locked->perks = $lockedPerks;
-
             $penaltySecs = 30;
             $locked->prison_until = $currentUntil->addSeconds($penaltySecs);
             $locked->save();
@@ -532,8 +542,28 @@ class PrisonController extends Controller
             return redirect()->route('prison')->with('info', 'Je zit momenteel niet in de isoleercel!');
         }
 
+        if ($outcome['status'] === 'comatose') {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        if ($outcome['status'] === 'cooldown') {
+            return back()->with('error', "De gangwacht houdt je cel momenteel extra in de gaten. Wacht nog {$outcome['remaining']} seconden voor je volgende actie.");
+        }
+
+        if ($outcome['status'] === 'insufficient_energy') {
+            return back()->with('error', "Onvoldoende uithoudingsvermogen: een dienst in de stoomwasserij kost {$outcome['cost']} energie.");
+        }
+
         if ($outcome['status'] === 'insufficient_funds') {
-            return back()->with('error', 'Onvoldoende saldo: de nachtcipier eist € '.number_format($bribeCost, 0, ',', '.').' aan zwijggeld.');
+            return back()->with('error', 'Onvoldoende saldo: de nachtcipier eist € '.number_format($outcome['cost'], 0, ',', '.').' aan zwijggeld.');
+        }
+
+        if ($outcome['status'] === 'wasserij_success') {
+            if (! empty($outcome['released'])) {
+                return redirect()->route('prison')->with('success', "Stoomwasserij-dienst voltooid (-{$outcome['seconds']} sec & +15 XP)! Je resterende straftijd is volledig weggewerkt en je bent direct vrijgelaten!");
+            }
+
+            return redirect()->route('prison')->with('success', "Stoomwasserij-dienst afgerond! Wegens goed gedrag op de werkvloer is je celstraf met {$outcome['seconds']} seconden ingekort (+15 XP).");
         }
 
         if ($outcome['status'] === 'bribe_success') {
@@ -562,7 +592,7 @@ class PrisonController extends Controller
             return back()->with('error', 'Je zit zelf achter de gepantserde deur en kunt geen andere cel openbreken!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -573,94 +603,147 @@ class PrisonController extends Controller
         $methodMeta = self::BREAKOUT_METHODS[$methodKey];
 
         // Validate the target before energy is spent so an invalid attempt costs nothing.
-        if (! is_numeric($id)) {
+        if (! is_numeric($id) || (int) $id <= 0) {
             return back()->with('error', 'Ongeldig celdossier geselecteerd voor deze bevrijdingsactie.');
         }
 
-        /** @var Character|null $targetInmate */
-        $targetInmate = Character::find($id);
-
-        if (! $targetInmate || ! $targetInmate->isImprisoned()) {
-            return back()->with('info', 'Deze patiënt is inmiddels al vrijgelaten uit het celblok!');
-        }
-
-        if ($targetInmate->id === $character->id) {
+        $targetId = (int) $id;
+        if ($targetId === (int) $character->id) {
             return back()->with('error', 'Je kunt niet je eigen cel van buitenaf openbreken; gebruik het ontsnappingspaneel!');
         }
 
-        $targetName = $targetInmate->name;
-
         $energyCost = 15;
-        if (! $this->energyService->consume($character, $energyCost)) {
+        if ((int) $character->energy < $energyCost) {
             return back()->with('error', "Onvoldoende energie: voor aanpak '{$methodMeta['name']}' is minimaal {$energyCost} energie vereist!");
         }
 
-        $character->breakout_attempts = ($character->breakout_attempts ?? 0) + 1;
-        $character->save();
+        // Lock both characters in consistent ID order to avoid deadlocks
+        $ids = [(int) $character->id, $targetId];
+        sort($ids);
 
-        // Breakout chance based on effective stats + chosen tactical method modifier
-        $chanceBonus = (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveStrength()) / 20);
-        $baseRate = min(35, max(8, 8 + $chanceBonus));
-        $successRate = $methodKey === 'stil'
-            ? min(45, max(10, $baseRate + $methodMeta['chance_mod']))
-            : min(35, max(5, $baseRate + $methodMeta['chance_mod']));
+        $targetName = 'Gedetineerde';
 
-        $roll = random_int(1, 100);
+        $outcome = DB::transaction(function () use ($ids, $character, $targetId, $energyCost, $methodMeta, $methodKey, &$targetName): array {
+            $lockedModels = Character::whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
+            /** @var Character|null $lockedRescuer */
+            $lockedRescuer = $lockedModels->get($character->id);
+            /** @var Character|null $lockedTarget */
+            $lockedTarget = $lockedModels->get($targetId);
 
-        if ($roll <= $successRate) {
-            $character->prison_escapes = ($character->prison_escapes ?? 0) + 1;
-            $character->breakout_slay = ($character->breakout_slay ?? 0) + $methodMeta['slay_bonus'];
-            $character->addRespect($methodMeta['respect']);
-            $this->levelService->addXp($character, $methodMeta['xp']);
-
-            // Stat bonus chance depending on chosen method (Intelligence for stealth, Strength for force)
-            $statBonusMsg = '';
-            if (random_int(1, 100) <= $methodMeta['stat_chance']) {
-                $statField = $methodMeta['stat_type'];
-                $currentStatVal = (int) ($character->{$statField} ?? 10);
-                if ($currentStatVal < $character->getMaxStatForLevel()) {
-                    $character->{$statField} = min($character->getMaxStatForLevel(), $currentStatVal + 1);
-                    $statBonusMsg = $statField === 'intelligence' ? ' (+1 Intelligentie 🧠)' : ' (+1 Kracht 💪)';
-                }
+            if (! $lockedRescuer) {
+                return ['status' => 'error', 'message' => 'Rescuer record not found.'];
             }
-            $character->save();
 
-            app(DailyBattleService::class)->record($character, 'breakouts', 1);
+            if ($lockedRescuer->isImprisoned()) {
+                return ['status' => 'rescuer_imprisoned'];
+            }
 
-            // Release real inmate under lock
-            DB::transaction(function () use ($targetInmate, $character, $methodMeta) {
-                /** @var Character|null $lockedInmate */
-                $lockedInmate = Character::where('id', $targetInmate->id)->lockForUpdate()->first();
-                if (! $lockedInmate || ! $lockedInmate->isImprisoned()) {
-                    return;
+            if ($lockedRescuer->isComatose() || $lockedRescuer->needsReviveSerum()) {
+                return ['status' => 'rescuer_comatose'];
+            }
+
+            if (! $lockedTarget || ! $lockedTarget->isImprisoned()) {
+                return ['status' => 'target_free'];
+            }
+
+            $targetName = $lockedTarget->name;
+
+            if ((int) $lockedRescuer->energy < $energyCost) {
+                return ['status' => 'insufficient_energy'];
+            }
+
+            $lockedRescuer->energy -= $energyCost;
+            $lockedRescuer->breakout_attempts = ($lockedRescuer->breakout_attempts ?? 0) + 1;
+
+            // Breakout chance based on effective stats + chosen tactical method modifier
+            $chanceBonus = (int) floor(($lockedRescuer->getEffectiveIntelligence() + $lockedRescuer->getEffectiveStrength()) / 20);
+            $baseRate = min(35, max(8, 8 + $chanceBonus));
+            $successRate = $methodKey === 'stil'
+                ? min(45, max(10, $baseRate + $methodMeta['chance_mod']))
+                : min(35, max(5, $baseRate + $methodMeta['chance_mod']));
+
+            $roll = random_int(1, 100);
+
+            if ($roll <= $successRate) {
+                $lockedRescuer->prison_escapes = ($lockedRescuer->prison_escapes ?? 0) + 1;
+                $lockedRescuer->breakout_slay = ($lockedRescuer->breakout_slay ?? 0) + $methodMeta['slay_bonus'];
+                $lockedRescuer->addRespect($methodMeta['respect']);
+                $this->levelService->addXp($lockedRescuer, $methodMeta['xp']);
+
+                $statBonusMsg = '';
+                if (random_int(1, 100) <= $methodMeta['stat_chance']) {
+                    $statField = $methodMeta['stat_type'];
+                    $currentStatVal = (int) ($lockedRescuer->{$statField} ?? 10);
+                    if ($currentStatVal < $lockedRescuer->getMaxStatForLevel()) {
+                        $lockedRescuer->{$statField} = min($lockedRescuer->getMaxStatForLevel(), $currentStatVal + 1);
+                        $statBonusMsg = $statField === 'intelligence' ? ' (+1 Intelligentie 🧠)' : ' (+1 Kracht 💪)';
+                    }
                 }
 
-                $lockedInmate->is_in_prison = false;
-                $lockedInmate->prison_until = null;
-                $lockedInmate->prison_reason = null;
-                $lockedInmate->prison_escape_attempted = false;
-                $lockedInmate->ad_prison_progress = 0;
-                $lockedInmate->save();
+                $lockedRescuer->save();
+                app(DailyBattleService::class)->record($lockedRescuer, 'breakouts', 1);
+
+                // Release target inmate
+                $lockedTarget->is_in_prison = false;
+                $lockedTarget->prison_until = null;
+                $lockedTarget->prison_reason = null;
+                $lockedTarget->prison_escape_attempted = false;
+                $lockedTarget->ad_prison_progress = 0;
+                $targetPerks = is_array($lockedTarget->perks) ? $lockedTarget->perks : [];
+                unset($targetPerks['prison_action_cooldown_until']);
+                $lockedTarget->perks = $targetPerks;
+                $lockedTarget->save();
 
                 GameNotification::create([
-                    'character_id' => $lockedInmate->id,
+                    'character_id' => $lockedTarget->id,
                     'type' => 'prison',
                     'icon' => 'fa-door-open',
                     'title' => 'Bevrijd uit het Celblok!',
-                    'message' => "{$character->name} heeft je via '{$methodMeta['name']}' uit de isoleercel bevrijd!",
+                    'message' => "{$lockedRescuer->name} heeft je via '{$methodMeta['name']}' uit de isoleercel bevrijd!",
                 ]);
 
                 GameMessage::create([
-                    'recipient_id' => $lockedInmate->id,
-                    'sender_id' => $character->id,
-                    'sender_name' => $character->name,
+                    'recipient_id' => $lockedTarget->id,
+                    'sender_id' => $lockedRescuer->id,
+                    'sender_name' => $lockedRescuer->name,
                     'subject' => '🔓 CELDOORBRAAK: Je bent op vrije voeten!',
-                    'content' => "Patiënt {$lockedInmate->name},\n\n{$character->name} heeft zojuist via de tactiek '{$methodMeta['name']}' je celvergrendeling gekraakt en je uit de isolatievleugel gehaald!",
+                    'content' => "Patiënt {$lockedTarget->name},\n\n{$lockedRescuer->name} heeft zojuist via de tactiek '{$methodMeta['name']}' je celvergrendeling gekraakt en je uit de isolatievleugel gehaald!",
                     'type' => 'jail',
                 ]);
-            });
 
-            return back()->with('success', "🔓 Operatie '{$methodMeta['name']}' geslaagd! De celvergrendeling bezwijkt en {$targetName} staat op vrije voeten! Beloning: +{$methodMeta['respect']} Respect 🔥 en +{$methodMeta['xp']} XP{$statBonusMsg}.");
+                return [
+                    'status' => 'success',
+                    'target_name' => $targetName,
+                    'statBonusMsg' => $statBonusMsg,
+                ];
+            }
+
+            $lockedRescuer->save();
+
+            return [
+                'status' => 'failed',
+                'target_name' => $targetName,
+            ];
+        });
+
+        if ($outcome['status'] === 'rescuer_imprisoned') {
+            return back()->with('error', 'Je zit zelf achter de gepantserde deur en kunt geen andere cel openbreken!');
+        }
+
+        if ($outcome['status'] === 'rescuer_comatose') {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        if ($outcome['status'] === 'target_free') {
+            return back()->with('info', 'Deze patiënt is inmiddels al vrijgelaten uit het celblok!');
+        }
+
+        if ($outcome['status'] === 'insufficient_energy') {
+            return back()->with('error', "Onvoldoende energie: voor aanpak '{$methodMeta['name']}' is minimaal {$energyCost} energie vereist!");
+        }
+
+        if ($outcome['status'] === 'success') {
+            return back()->with('success', "🔓 Operatie '{$methodMeta['name']}' geslaagd! De celvergrendeling bezwijkt en {$outcome['target_name']} staat op vrije voeten! Beloning: +{$methodMeta['respect']} Respect 🔥 en +{$methodMeta['xp']} XP{$outcome['statBonusMsg']}.");
         }
 
         // FOUTE UITBRAAK: Kom zelf direct in de isoleercel!

@@ -485,7 +485,12 @@
 
                                 <!-- GANG TAG -->
                                 <template x-if="msg.gang_tag">
-                                    <span class="px-1 py-0.5 leading-none rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[8px] font-black shrink-0" x-text="'[' + msg.gang_tag + ']'"></span>
+                                    <template x-if="msg.gang_url">
+                                        <a :href="msg.gang_url" onclick="event.stopPropagation();" class="px-1 py-0.5 leading-none rounded bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[8px] font-black shrink-0 transition" style="text-decoration:none;" x-text="'[' + msg.gang_tag + ']'"></a>
+                                    </template>
+                                    <template x-if="!msg.gang_url">
+                                        <span class="px-1 py-0.5 leading-none rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[8px] font-black shrink-0" x-text="'[' + msg.gang_tag + ']'"></span>
+                                    </template>
                                 </template>
 
                                 <!-- TIME & ACTIONS -->
@@ -503,7 +508,7 @@
                                     </button>
 
                                     <!-- MODERATOR / AUTHOR DELETE -->
-                                    <template x-if="canModerate || msg.is_me">
+                                    <template x-if="canModerate || msg.is_me || msg.can_delete">
                                         <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
@@ -548,10 +553,10 @@
                                 <div class="relative inline-flex items-center">
                                     <button type="button" 
                                             @click="togglePublicHeart(msg); hideHeartsPopup()" 
-                                            @mouseenter="showTooltip = true; showHeartsPopup($event, msg)"
-                                            @mouseleave="showTooltip = false; hideHeartsPopup()"
-                                            @focus="showTooltip = true; showHeartsPopup($event, msg)"
-                                            @blur="showTooltip = false; hideHeartsPopup()"
+                                            @mouseenter="showHeartsPopup($event, msg)"
+                                            @mouseleave="hideHeartsPopup()"
+                                            @focus="showHeartsPopup($event, msg)"
+                                            @blur="hideHeartsPopup()"
                                             :title="getHeartsTooltip(msg)"
                                             class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                             :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
@@ -922,7 +927,7 @@
                                             </button>
 
                                             <!-- Moderator/Leader/Author Delete -->
-                                            <template x-if="canModerate || msg.is_me">
+                                            <template x-if="canModerate || msg.is_me || msg.can_delete">
                                                 <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
                                                     <i class="fa-solid fa-trash-can"></i>
                                                 </button>
@@ -967,10 +972,10 @@
                                         <div class="relative inline-flex items-center">
                                             <button type="button" 
                                                     @click="togglePublicHeart(msg); hideHeartsPopup()" 
-                                                    @mouseenter="showTooltip = true; showHeartsPopup($event, msg)"
-                                                    @mouseleave="showTooltip = false; hideHeartsPopup()"
-                                                    @focus="showTooltip = true; showHeartsPopup($event, msg)"
-                                                    @blur="showTooltip = false; hideHeartsPopup()"
+                                                    @mouseenter="showHeartsPopup($event, msg)"
+                                                    @mouseleave="hideHeartsPopup()"
+                                                    @focus="showHeartsPopup($event, msg)"
+                                                    @blur="hideHeartsPopup()"
                                                     :title="getHeartsTooltip(msg)"
                                                     class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                                     :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
@@ -1416,10 +1421,10 @@
                                                     <div class="relative inline-flex items-center">
                                                         <button type="button" 
                                                                 @click="toggleDirectHeart(dm); hideHeartsPopup()" 
-                                                                @mouseenter="showTooltip = true; showHeartsPopup($event, dm)"
-                                                                @mouseleave="showTooltip = false; hideHeartsPopup()"
-                                                                @focus="showTooltip = true; showHeartsPopup($event, dm)"
-                                                                @blur="showTooltip = false; hideHeartsPopup()"
+                                                                @mouseenter="showHeartsPopup($event, dm)"
+                                                                @mouseleave="hideHeartsPopup()"
+                                                                @focus="showHeartsPopup($event, dm)"
+                                                                @blur="hideHeartsPopup()"
                                                                 :title="getHeartsTooltip(dm)"
                                                                 class="p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
                                                                 :class="dm.has_hearted ? 'text-purple-400 font-black' : 'text-slate-400/70 hover:text-purple-400'">
@@ -1850,7 +1855,8 @@
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
          role="tooltip"
-         class="pointer-events-none fixed z-[9999999] p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 shadow-xl shadow-purple-950/10 dark:shadow-2xl border border-purple-200/90 dark:border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[min(300px,calc(100vw-24px))] text-left select-none"
+         @click.stop
+         class="fixed z-[9999999] p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 shadow-xl shadow-purple-950/10 dark:shadow-2xl border border-purple-200/90 dark:border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[min(300px,calc(100vw-24px))] text-left select-none"
          :style="'left: ' + (heartsPopup ? heartsPopup.left : 0) + 'px; ' + 
                  (heartsPopup && heartsPopup.placeBelow ? ('top: ' + heartsPopup.top + 'px;') : ('bottom: ' + (heartsPopup ? heartsPopup.bottom : 0) + 'px;'))">
         <div class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-purple-100 dark:border-slate-800">
@@ -1861,7 +1867,7 @@
             <template x-for="name in (heartsPopup?.names || [])" :key="name">
                 <li class="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
                     <span class="text-purple-600 dark:text-purple-400 font-bold select-none shrink-0">-</span>
-                    <span class="font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap" x-text="name"></span>
+                    <span class="font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap truncate max-w-[220px]" x-text="name"></span>
                 </li>
             </template>
         </ul>
@@ -2112,6 +2118,7 @@
             unreadGangMentionsCount: 0,
             toastNotification: null,
             lastDirectDmId: 0,
+            hasInitializedDmPoll: false,
             isSoundMuted: localStorage.getItem('tbs_chat_muted') === '1',
             lastChimeTime: 0,
 
@@ -2124,6 +2131,7 @@
 
             // Helpbot state
             helpInput: '',
+            isHelpBotThinking: false,
             helpMessages: (function() {
                 if (cfg.isComatose) {
                     return [{
@@ -2232,6 +2240,7 @@
                     this.directConversations = cache.directConversations || [];
                     this.unreadDmsCount = cache.unreadDmsCount || 0;
                     this.lastDirectDmId = cache.lastDirectDmId || 0;
+                    this.hasInitializedDmPoll = true;
                     if (Array.isArray(cache.helpMessages) && cache.helpMessages.length > 0 && !this.isComatose && !this.isInPrison) {
                         this.helpMessages = cache.helpMessages;
                     }
@@ -2249,6 +2258,7 @@
                                     if (data.new_dm && data.new_dm.id) {
                                         this.lastDirectDmId = data.new_dm.id;
                                     }
+                                    this.hasInitializedDmPoll = true;
                                     this.syncToGlobalCache();
                                 }
                             })
@@ -2359,7 +2369,12 @@
                 if (!msg || msg.is_me) return false;
                 const myNameLower = (this.myName || '').toLowerCase();
                 if (!myNameLower) return false;
-                const isTagged = msg.message && msg.message.toLowerCase().includes('@' + myNameLower);
+                let isTagged = false;
+                if (msg.message) {
+                    const escaped = myNameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const tagRegex = new RegExp('(^|\\s)@' + escaped + '(?=$|[^\\p{L}\\p{N}])', 'iu');
+                    isTagged = tagRegex.test(msg.message);
+                }
                 const isReplied = (msg.reply_to_name && msg.reply_to_name.toLowerCase() === myNameLower);
                 return Boolean(isTagged || isReplied);
             },
@@ -2478,13 +2493,21 @@
                     return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="${linkClass}">${cleanUrl}</a>${trailing}`;
                 });
 
+                const escapeHtml = (str) => {
+                    const d = document.createElement('div');
+                    d.textContent = str;
+                    return d.innerHTML;
+                };
+
                 // Convert @username into clean, sleek clickable badges linking to dossier profile without opening new tab
                 const buildMentionPill = (username) => {
+                    const safeName = escapeHtml(username);
                     const url = '/speler/' + encodeURIComponent(username);
+                    const pillStyle = 'text-decoration:none; white-space:nowrap !important; display:inline-block !important; vertical-align:baseline !important; line-height:1 !important;';
                     if (isMe) {
-                        return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-white/20 hover:bg-white/30 dark:hover:bg-white/30 border border-white/30 text-white transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
+                        return `<a href="${url}" onclick="event.stopPropagation();" style="${pillStyle}" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded bg-white/20 hover:bg-white/30 dark:hover:bg-white/30 border border-white/30 text-white transition cursor-pointer text-[11px] tracking-tight">@${safeName}</a>`;
                     } else {
-                        return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
+                        return `<a href="${url}" onclick="event.stopPropagation();" style="${pillStyle}" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${safeName}</a>`;
                     }
                 };
 
@@ -2497,12 +2520,12 @@
                 if (knownNamesSet.size > 0) {
                     const sortedNames = Array.from(knownNamesSet).sort((a, b) => b.length - a.length);
                     const escapedPatterns = sortedNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-                    const knownRegex = new RegExp('(?<!<a[^>]*>)@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])(?![^<]*<\\/a>)', 'gu');
+                    const knownRegex = new RegExp('(?<![\\w@])@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])(?![^<]*<\\/a>)', 'gu');
                     safe = safe.replace(knownRegex, (match, username) => buildMentionPill(username));
                 }
 
                 // 3. Supports Unicode letters (e.g. ë, é, ï, etc.), digits, hyphens, underscores and dots
-                const mentionRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
+                const mentionRegex = /(?<![\w@])@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
                 safe = safe.replace(mentionRegex, (match, username) => buildMentionPill(username));
 
                 // 4. Parse custom game emojis (:tbs_shank:, etc.)
@@ -2531,7 +2554,7 @@
                 if (!inputEl) return;
                 const cursorPos = inputEl.selectionStart || 0;
                 const textBeforeCursor = text.slice(0, cursorPos);
-                const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]*)$/u);
+                const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]{1,20}(?:\s[\p{L}\p{N}_\.\-]{1,20})?)$/u);
 
                 if (match) {
                     const query = match[1] || '';
@@ -2805,7 +2828,7 @@
                     left = 12;
                 }
                 const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                const top = placeBelow ? Math.max(12, Math.round(rect.bottom + 8)) : 0;
+                const top = placeBelow ? Math.min(Math.max(12, Math.round(rect.bottom + 8)), viewportHeight - tooltipHeight - 12) : 0;
                 const bottom = !placeBelow ? Math.max(12, Math.round(viewportHeight - rect.top + 8)) : 0;
                 this.heartsPopup = {
                     visible: true,
@@ -2917,7 +2940,7 @@
                         icon: 'fa-trash-can',
                         onConfirm: doDelete,
                     });
-                } else {
+                } else if (confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) {
                     doDelete();
                 }
             },
@@ -2974,7 +2997,7 @@
                         icon: 'fa-trash-can',
                         onConfirm: doDelete,
                     });
-                } else {
+                } else if (confirm('Weet je zeker dat je dit privébericht wilt verwijderen?')) {
                     doDelete();
                 }
             },
@@ -3014,11 +3037,7 @@
                                 const myNameLower = (this.myName || '').toLowerCase();
                                 
                                 // Only pop-up toast and sound chime if tagged (@MyName) or replied to!
-                                const notifyMsg = newIncoming.find(m => {
-                                    const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
-                                    const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
-                                    return isTagged || isReplied;
-                                });
+                                const notifyMsg = newIncoming.find(m => this.isMessageMentioningMe(m));
 
                                 if (notifyMsg) {
                                     this.playChime();
@@ -3026,11 +3045,11 @@
                                         this.unreadMentionsCount = (this.unreadMentionsCount || 0) + 1;
                                     }
                                     if (!this.isOpen) {
-                                        const isTagged = myNameLower && notifyMsg.message.toLowerCase().includes('@' + myNameLower);
+                                        const isReplied = (notifyMsg.reply_to_name && notifyMsg.reply_to_name.toLowerCase() === myNameLower);
                                         this.toastNotification = {
                                             type: 'global',
                                             name: notifyMsg.name,
-                                            text: (isTagged ? '🔔 Je bent getagd: ' : '↩️ Reactie op jou: ') + notifyMsg.message,
+                                            text: (!isReplied ? '🔔 Je bent getagd: ' : '↩️ Reactie op jou: ') + notifyMsg.message,
                                             avatar: notifyMsg.avatar,
                                             time: notifyMsg.time || 'Zojuist',
                                         };
@@ -3047,7 +3066,7 @@
                             const existingIds = new Set(this.publicMessages.map(m => m.id));
                             const toAdd = data.messages.filter(m => !existingIds.has(m.id));
                             if (toAdd.length > 0) {
-                                this.publicMessages = [...this.publicMessages, ...toAdd];
+                                this.publicMessages = [...this.publicMessages, ...toAdd].slice(-150);
                                 this.scrollChatBottom();
                             }
                         }
@@ -3101,11 +3120,7 @@
                             const newIncoming = data.messages.filter(m => !m.is_me);
                             if (newIncoming.length > 0) {
                                 const myNameLower = (this.myName || '').toLowerCase();
-                                const notifyMsg = newIncoming.find(m => {
-                                    const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
-                                    const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
-                                    return isTagged || isReplied;
-                                });
+                                const notifyMsg = newIncoming.find(m => this.isMessageMentioningMe(m));
 
                                 if (notifyMsg) {
                                     this.playChime();
@@ -3113,11 +3128,11 @@
                                         this.unreadGangMentionsCount = (this.unreadGangMentionsCount || 0) + 1;
                                     }
                                     if (!this.isOpen) {
-                                        const isTagged = myNameLower && notifyMsg.message.toLowerCase().includes('@' + myNameLower);
+                                        const isReplied = (notifyMsg.reply_to_name && notifyMsg.reply_to_name.toLowerCase() === myNameLower);
                                         this.toastNotification = {
                                             type: 'gang',
                                             name: `[${this.gangTag || 'Bende'}] ` + notifyMsg.name,
-                                            text: (isTagged ? '🔔 Bende tag: ' : '↩️ Bende reactie: ') + notifyMsg.message,
+                                            text: (!isReplied ? '🔔 Bende tag: ' : '↩️ Bende reactie: ') + notifyMsg.message,
                                             avatar: notifyMsg.avatar,
                                             time: notifyMsg.time || 'Zojuist',
                                         };
@@ -3133,7 +3148,7 @@
                             const existingIds = new Set(this.gangMessages.map(m => m.id));
                             const toAdd = data.messages.filter(m => !existingIds.has(m.id));
                             if (toAdd.length > 0) {
-                                this.gangMessages = [...this.gangMessages, ...toAdd];
+                                this.gangMessages = [...this.gangMessages, ...toAdd].slice(-150);
                                 this.scrollGangBottom();
                             }
                         }
@@ -3450,6 +3465,8 @@
             },
 
             givePersonalAdvice() {
+                if (this.isHelpBotThinking) return;
+                this.isHelpBotThinking = true;
                 this.helpMessages.push({ from: 'user', text: '🎯 Geef mij persoonlijk advies op maat!' });
                 this.syncToGlobalCache();
                 this.$nextTick(() => {
@@ -3457,6 +3474,7 @@
                 });
 
                 setTimeout(() => {
+                    try {
                     const tips = [];
                     const links = [];
                     const fmtCash = new Intl.NumberFormat('nl-NL').format(this.cash || 0);
@@ -3486,7 +3504,13 @@
                         tips.push('🏦 BANKCHECK: Goed bezig! Je hebt weinig contant geld op zak (€' + fmtCash + ') en €' + fmtBank + ' veilig op de bank.');
                     }
 
-                    if ((this.energy ?? 0) >= 25) {
+                    if (this.isComatose) {
+                        tips.push('💀 CODE BLAUW: Je ligt in coma! Dagbesteding en training zijn geblokkeerd. Gebruik een Revive Serum uit je inventaris of vraag een mede-inmate om je te reanimeren!');
+                        links.push({ text: '🎒 Inventaris (Revive Serum)', url: '{{ route('shop.index', ['tab' => 'inventaris']) }}' });
+                    } else if (this.isInPrison) {
+                        tips.push('🔒 ISOLEERCEL: Je zit vast! Dagbesteding en Krachthonk zijn geblokkeerd. Werk in de stoomwasserij, ontsnap via de luchtschacht of koop jezelf vrij.');
+                        links.push({ text: '🔒 Naar Isoleercel', url: '{{ route('prison') }}' });
+                    } else if ((this.energy ?? 0) >= 25) {
                         tips.push('⚡ ENERGIE (' + (this.energy ?? 0) + '/100): Je hebt volop energie! Gebruik het nu voor veilige Dagbesteding, Hosselen of train je stats (10 Energie) in het Krachthonk.');
                         links.push({ text: '🔨 Dagbesteding (Veilig)', url: '{{ route('daycare.index') }}' });
                         links.push({ text: '🏋️ Krachthonk', url: '{{ route('training.index') }}' });
@@ -3536,10 +3560,14 @@
                     this.$nextTick(() => {
                         if (this.$refs.helpBox) this.$refs.helpBox.scrollTop = this.$refs.helpBox.scrollHeight;
                     });
+                    } finally {
+                        this.isHelpBotThinking = false;
+                    }
                 }, 200);
             },
 
             sendHelpQuery(custom = null) {
+                if (this.isHelpBotThinking) return;
                 const query = (custom || this.helpInput).trim();
                 if (!query) return;
 
@@ -3564,7 +3592,11 @@
                     return;
                 }
 
+                this.isHelpBotThinking = true;
                 this.helpMessages.push({ from: 'user', text: query });
+                if (this.helpMessages.length > 35) {
+                    this.helpMessages = this.helpMessages.slice(-30);
+                }
                 this.helpInput = '';
                 this.syncToGlobalCache();
                 this.$nextTick(() => {
@@ -3572,6 +3604,7 @@
                 });
 
                 setTimeout(() => {
+                    try {
                     // Friendly greetings & small talk handling
                     const cleanGreeting = qRaw.replace(/[^a-z\s]/g, '').trim();
                     if (['hoi', 'hallo', 'hey', 'heey', 'yo', 'goedemorgen', 'goedemiddag', 'goedenavond', 'ewaa', 'ewa', 'fakka'].includes(cleanGreeting)) {
@@ -3764,6 +3797,9 @@
                     this.$nextTick(() => {
                         if (this.$refs.helpBox) this.$refs.helpBox.scrollTop = this.$refs.helpBox.scrollHeight;
                     });
+                    } finally {
+                        this.isHelpBotThinking = false;
+                    }
                 }, 200);
             },
 
@@ -3797,8 +3833,9 @@
 
                                     if (data.new_dm && data.new_dm.id) {
                                         const dm = data.new_dm;
-                                        const isNewer = this.lastDirectDmId > 0 && dm.id > this.lastDirectDmId;
+                                        const isNewer = this.hasInitializedDmPoll ? (dm.id > this.lastDirectDmId) : false;
                                         this.lastDirectDmId = Math.max(this.lastDirectDmId, dm.id);
+                                        this.hasInitializedDmPoll = true;
 
                                         if (isNewer) {
                                             const isChattingWithSender = this.isOpen && 
@@ -3864,7 +3901,7 @@
                     }
 
                     // 3. Public Messages, Gang Messages & Active Direct Messages:
-                    // ONLY poll if chat modal is explicitly OPEN! (Saves massive server CPU when players are just browsing)
+                    // Frequent (every 4s) when OPEN. Low-frequency mention check (every 20s = 5 ticks) when CLOSED:
                     if (this.isOpen) {
                         if (this.activeTab === 'global') {
                             this.loadPublicMessages();
@@ -3872,6 +3909,11 @@
                             this.loadGangMessages();
                         } else if (this.activeTab === 'direct' && this.activeDirectPartner) {
                             this.pollActiveDirectMessages();
+                        }
+                    } else if (pollCounter % 5 === 0) {
+                        this.loadPublicMessages();
+                        if (this.hasGang && this.gangHasChat) {
+                            this.loadGangMessages();
                         }
                     }
                 }, 4000);

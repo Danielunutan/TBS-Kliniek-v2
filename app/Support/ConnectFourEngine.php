@@ -67,8 +67,12 @@ final class ConnectFourEngine
      */
     public static function lowestEmptyRow(array $board, int $column): ?int
     {
+        if ($column < 0 || $column >= self::COLUMNS) {
+            return null;
+        }
+
         for ($row = self::ROWS - 1; $row >= 0; $row--) {
-            if ($board[$row][$column] === self::EMPTY) {
+            if (isset($board[$row][$column]) && $board[$row][$column] === self::EMPTY) {
                 return $row;
             }
         }
@@ -155,7 +159,9 @@ final class ConnectFourEngine
             return $blockingColumn;
         }
 
-        return self::bestMinimaxColumn($board, self::SEARCH_DEPTH) ?? self::validColumns($board)[0];
+        $validColumns = self::validColumns($board);
+
+        return self::bestMinimaxColumn($board, self::SEARCH_DEPTH) ?? ($validColumns[0] ?? 0);
     }
 
     /**

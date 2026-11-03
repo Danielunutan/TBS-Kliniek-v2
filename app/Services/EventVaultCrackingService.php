@@ -42,7 +42,7 @@ class EventVaultCrackingService
         $start = Carbon::parse(self::EVENT_START, self::TIMEZONE);
         $end = Carbon::parse(self::EVENT_END, self::TIMEZONE);
 
-        return $now->greaterThanOrEqualTo($start) && $now->lessThan($end);
+        return $now->greaterThanOrEqualTo($start) && $now->lessThanOrEqualTo($end);
     }
 
     /**
@@ -50,7 +50,7 @@ class EventVaultCrackingService
      */
     public static function hasEnded(): bool
     {
-        return now()->greaterThanOrEqualTo(Carbon::parse(self::EVENT_END, self::TIMEZONE));
+        return now()->greaterThan(Carbon::parse(self::EVENT_END, self::TIMEZONE));
     }
 
     /**
@@ -132,12 +132,13 @@ class EventVaultCrackingService
         $hasEnded = self::hasEnded();
         $remainingSec = max(0, $end->timestamp - $now->timestamp);
 
-        // Fetch aggregated cracked codes during the event window
-        $rows = EventVaultCracking::select('character_id', DB::raw('SUM(amount) as total_cracked'))
+        // Fetch aggregated cracked codes during the event window with deterministic tie-breaking
+        $rows = EventVaultCracking::select('character_id', DB::raw('SUM(amount) as total_cracked'), DB::raw('MIN(created_at) as first_cracked_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->groupBy('character_id')
             ->orderByDesc('total_cracked')
+            ->orderBy('first_cracked_at', 'asc')
             ->get();
 
         $totalParticipants = $rows->count();
@@ -145,7 +146,7 @@ class EventVaultCrackingService
 
         $charIds = $rows->pluck('character_id')->all();
         $characters = Character::whereIn('id', $charIds)
-            ->get(['id', 'name', 'level', 'avatar', 'gender'])
+            ->get(['id', 'name', 'level', 'avatar', 'avatar_custom', 'gender'])
             ->keyBy('id');
 
         $leaderboard = [];
@@ -225,11 +226,12 @@ class EventVaultCrackingService
             return null;
         }
 
-        $topCracker = EventVaultCracking::select('character_id', DB::raw('SUM(amount) as total_cracked'))
+        $topCracker = EventVaultCracking::select('character_id', DB::raw('SUM(amount) as total_cracked'), DB::raw('MIN(created_at) as first_cracked_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->groupBy('character_id')
             ->orderByDesc('total_cracked')
+            ->orderBy('first_cracked_at', 'asc')
             ->first();
 
         if (! $topCracker) {
@@ -436,11 +438,12 @@ MARKDOWN;
         $start = Carbon::parse(self::EVENT_START, self::TIMEZONE);
         $end = Carbon::parse(self::EVENT_END, self::TIMEZONE);
 
-        $rows = EventVaultCracking::select('character_id', DB::raw('SUM(amount) as total_cracked'))
+        $rows = EventVaultCracking::select('character_id', DB::raw('SUM(amount) as total_cracked'), DB::raw('MIN(created_at) as first_cracked_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->groupBy('character_id')
             ->orderByDesc('total_cracked')
+            ->orderBy('first_cracked_at', 'asc')
             ->get();
 
         if ($rows->isEmpty()) {
@@ -454,8 +457,9 @@ MARKDOWN;
         foreach ($rows as $row) {
             $char = $characters->get($row->character_id);
             if ($char) {
+                $cleanName = str_replace(['|', '[', ']', '<', '>'], '', $char->name);
                 $ranked[] = [
-                    'name' => $char->name,
+                    'name' => $cleanName,
                     'cracked' => (int) $row->total_cracked,
                     'cracked_formatted' => number_format((int) $row->total_cracked, 0, ',', '.'),
                 ];

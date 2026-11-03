@@ -566,5 +566,69 @@ class DatabaseSeeder extends Seeder
                 'quantity' => 2,
             ]);
         }
+
+        // Seed event challenge winner article & drug productions for testing environment
+        if (class_exists(\App\Models\EventDrugProduction::class) && \App\Models\EventDrugProduction::count() === 0) {
+            $janUser = User::firstOrCreate(['email' => 'jan.molenaar@tbskliniek.nl'], [
+                'name' => 'Jan Molenaar',
+                'password' => Hash::make('secret'),
+            ]);
+            $janChar = Character::firstOrCreate(['name' => 'Jan Molenaar'], [
+                'user_id' => $janUser->id,
+                'title' => 'Drugslord',
+                'level' => 15,
+                'cash' => 5000000,
+                'bank' => 2000000,
+                'respect' => 1200,
+            ]);
+
+            $nielsUser = User::firstOrCreate(['email' => 'niels.vandermeer@tbskliniek.nl'], [
+                'name' => 'Niels van der Meer',
+                'password' => Hash::make('secret'),
+            ]);
+            $nielsChar = Character::firstOrCreate(['name' => 'Niels van der Meer'], [
+                'user_id' => $nielsUser->id,
+                'title' => 'Meesterbrouwer',
+                'level' => 12,
+                'cash' => 2500000,
+                'bank' => 1000000,
+                'respect' => 850,
+            ]);
+
+            $fabianUser = User::firstOrCreate(['email' => 'fabian.vansalmen@tbskliniek.nl'], [
+                'name' => 'ds. Fabian van Salmen Msc',
+                'password' => Hash::make('secret'),
+            ]);
+            $fabianChar = Character::firstOrCreate(['name' => 'ds. Fabian van Salmen Msc'], [
+                'user_id' => $fabianUser->id,
+                'title' => 'Pillenpastor',
+                'level' => 10,
+                'cash' => 1000000,
+                'bank' => 500000,
+                'respect' => 600,
+            ]);
+
+            \App\Models\EventDrugProduction::create([
+                'character_id' => $janChar->id,
+                'amount' => 5420,
+                'drug_type' => 'wiet',
+                'created_at' => \Carbon\Carbon::parse('2026-10-31 14:30:00'),
+            ]);
+            \App\Models\EventDrugProduction::create([
+                'character_id' => $nielsChar->id,
+                'amount' => 3850,
+                'drug_type' => 'wiet',
+                'created_at' => \Carbon\Carbon::parse('2026-10-31 16:45:00'),
+            ]);
+            \App\Models\EventDrugProduction::create([
+                'character_id' => $fabianChar->id,
+                'amount' => 1200,
+                'drug_type' => 'medicatie',
+                'created_at' => \Carbon\Carbon::parse('2026-10-31 20:00:00'),
+            ]);
+
+            \App\Services\EventDrugsProductionService::syncWinnerArticle(true);
+            \App\Services\EventVaultCrackingService::syncChallengeArticle();
+        }
     }
 }

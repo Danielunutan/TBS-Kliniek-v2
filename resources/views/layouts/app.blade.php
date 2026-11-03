@@ -2810,8 +2810,15 @@
                 <!-- Header / Player Summary -->
                 <div class="flex items-center justify-between border-b border-slate-200/90 dark:border-slate-800 pb-3">
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-10 h-10 rounded-full p-0.5 bg-purple-100 dark:bg-purple-950 ring-2 ring-purple-500/30 overflow-hidden shrink-0">
-                            <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
+                        <div class="relative shrink-0">
+                            <div class="w-10 h-10 rounded-full p-0.5 overflow-hidden {{ $mobileTopBorder ? str_replace('ring-4', 'ring-2', $mobileTopBorder['ring']) : 'bg-purple-100 dark:bg-purple-950 ring-2 ring-purple-500/30' }}">
+                                <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
+                            </div>
+                            @if($mobileTopBorder)
+                                <span class="absolute -bottom-1 -right-1 text-xs select-none drop-shadow leading-none">
+                                    {{ $mobileTopBorder['emoji'] }}
+                                </span>
+                            @endif
                         </div>
                         <div class="min-w-0">
                             <div class="font-black text-sm text-slate-900 dark:text-white leading-tight truncate">{{ $character->name }}</div>
@@ -3517,7 +3524,9 @@
 
     <!-- FLOATING MINI LIVE CHAT & UNIVERSAL REPORT MODAL -->
     @auth
-        @include('partials.mini_chat_and_report_modal')
+        @if(!request()->routeIs('chat.*'))
+            @include('partials.mini_chat_and_report_modal')
+        @endif
         <!-- GLOBAL SPOTLIGHT COMMAND PALETTE & FAST SEARCH (CTRL + K) -->
         @include('partials.spotlight_modal')
         <!-- BATTLE PASS UNCLAIMED REWARDS PROMO POPUP -->

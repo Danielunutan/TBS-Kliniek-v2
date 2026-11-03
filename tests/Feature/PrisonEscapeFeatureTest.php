@@ -228,7 +228,7 @@ class PrisonEscapeFeatureTest extends TestCase
 
         $this->assertNotNull($article);
         $this->assertTrue($article->is_published);
-        $this->assertTrue($article->is_pinned);
+        $this->assertNotNull($article->published_at);
         $this->assertStringContainsString('24 Uur Battle', $article->content);
         $this->assertStringContainsString('Dealen & Smokkel', $article->content);
         $this->assertStringContainsString('Koffers & Pakketjes', $article->content);

@@ -26,6 +26,8 @@ class AdminController extends Controller
      */
     public function dashboard(): View
     {
+        abort_unless(Auth::user()?->isStaff(), 403, 'Toegang geweigerd. Deze beheeromgeving is uitsluitend toegankelijk voor TBS Kliniek personeel.');
+
         $totalUsers = User::count();
         $totalCharacters = Character::count();
         $totalVips = Character::where('is_vip', true)->count();
@@ -60,6 +62,8 @@ class AdminController extends Controller
      */
     public function players(Request $request): View
     {
+        abort_unless(Auth::user()?->isStaff(), 403, 'Toegang geweigerd. Deze beheeromgeving is uitsluitend toegankelijk voor TBS Kliniek personeel.');
+
         $query = Character::with(['user.warnings', 'user.bannedBy', 'gang']);
 
         if ($search = $request->input('search')) {
@@ -126,8 +130,9 @@ class AdminController extends Controller
             'role' => 'nullable|string|in:user,moderator,admin,owner',
         ]);
 
-        /** @var User $currentUser */
+        /** @var User|null $currentUser */
         $currentUser = Auth::user();
+        abort_unless($currentUser?->isStaff(), 403, 'Toegang geweigerd.');
 
         if ($character->user && ($character->user->isOwner() || $character->user->role === 'admin') && ! $currentUser->isOwner()) {
             return back()->with('error', 'Alleen de eigenaar kan het profiel of de status van een Admin of Eigenaar wijzigen.');
@@ -303,6 +308,27 @@ class AdminController extends Controller
 
         $character->save();
 
+        AuditLogService::log(
+            action: 'admin_update_player',
+            category: 'admin',
+            description: "Speler {$character->name} (#{$character->id}) profiel en status bijgewerkt door {$currentUser->name}",
+            character: $character,
+            user: $character->user,
+            details: [
+                'updated_by_id' => $currentUser->id,
+                'updated_by_name' => $currentUser->name,
+                'fields_updated' => array_keys($validated),
+                'new_role' => $character->user?->role,
+                'cash' => $character->cash,
+                'bank' => $character->bank,
+                'stars' => $character->stars,
+                'respect' => $character->respect,
+                'is_vip' => (bool) $character->is_vip,
+            ],
+            customRisk: 'verdacht',
+            customReason: "Spelerprofiel of status gewijzigd via Admin Paneel door {$currentUser->name}"
+        );
+
         return back()->with('success', "Speler {$character->name} is succesvol bijgewerkt!");
     }
 
@@ -311,6 +337,8 @@ class AdminController extends Controller
      */
     public function gameplay(): View
     {
+        abort_unless(Auth::user()?->isAdmin(), 403, 'Alleen beheerders (Admin/Owner) hebben toegang tot deze instellingen.');
+
         $settings = [
             'win_rate_casino' => GameSetting::get('win_rate_casino', 45),
             'win_rate_theft' => GameSetting::get('win_rate_theft', 60),
@@ -330,7 +358,7 @@ class AdminController extends Controller
      */
     public function updateGameplay(Request $request): RedirectResponse
     {
-        if (Auth::user()->role === 'moderator') {
+        if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen deze instellingen wijzigen.');
         }
 
@@ -357,6 +385,8 @@ class AdminController extends Controller
      */
     public function chests(): View
     {
+        abort_unless(Auth::user()?->isAdmin(), 403, 'Alleen beheerders (Admin/Owner) hebben toegang tot deze instellingen.');
+
         $settings = [
             'case_xxl_price_cash' => GameSetting::get('case_xxl_price_cash', 50000),
             'case_xxl_price_stars' => GameSetting::get('case_xxl_price_stars', 100),
@@ -376,7 +406,7 @@ class AdminController extends Controller
      */
     public function updateChests(Request $request): RedirectResponse
     {
-        if (Auth::user()->role === 'moderator') {
+        if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen deze instellingen wijzigen.');
         }
 
@@ -403,6 +433,8 @@ class AdminController extends Controller
      */
     public function vault(): View
     {
+        abort_unless(Auth::user()?->isAdmin(), 403, 'Alleen beheerders (Admin/Owner) hebben toegang tot deze instellingen.');
+
         $settings = [
             'vault_code' => GameSetting::get('vault_code', '7419'),
             'vault_reward_cash' => GameSetting::get('vault_reward_cash', 500000),
@@ -425,7 +457,7 @@ class AdminController extends Controller
      */
     public function updateVault(Request $request): RedirectResponse
     {
-        if (Auth::user()->role === 'moderator') {
+        if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen deze instellingen wijzigen.');
         }
 
@@ -450,7 +482,7 @@ class AdminController extends Controller
      */
     public function randomizeVaultCode(): RedirectResponse
     {
-        if (Auth::user()->role === 'moderator') {
+        if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen deze instellingen wijzigen.');
         }
 
@@ -465,6 +497,8 @@ class AdminController extends Controller
      */
     public function referrals(Request $request): View
     {
+        abort_unless(Auth::user()?->isStaff(), 403, 'Toegang geweigerd.');
+
         $query = Referral::with(['referrer.user', 'referred.user']);
 
         if ($search = $request->input('search')) {
@@ -661,6 +695,8 @@ class AdminController extends Controller
      */
     public function buymeacoffee(Request $request): View
     {
+        abort_unless(Auth::user()?->isAdmin(), 403, 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
+
         $query = BuyMeACoffeeOrder::with('character.user');
 
         if ($search = $request->input('search')) {
@@ -712,7 +748,7 @@ class AdminController extends Controller
      */
     public function linkBuyMeACoffee(Request $request, BuyMeACoffeeOrder $order): RedirectResponse
     {
-        if (Auth::user()->role === 'moderator') {
+        if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
         }
 
@@ -785,7 +821,7 @@ class AdminController extends Controller
      */
     public function regrantBuyMeACoffee(BuyMeACoffeeOrder $order): RedirectResponse
     {
-        if (Auth::user()->role === 'moderator') {
+        if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
         }
 
@@ -835,7 +871,7 @@ class AdminController extends Controller
      */
     public function cancelBuyMeACoffee(BuyMeACoffeeOrder $order): RedirectResponse
     {
-        if (Auth::user()->role === 'moderator') {
+        if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
         }
 
@@ -853,6 +889,15 @@ class AdminController extends Controller
             ]);
         }
 
+        AuditLogService::log(
+            action: 'buymeacoffee_membership_cancelled',
+            category: 'vip',
+            description: "BuyMeACoffee order #{$order->id} geannuleerd en VIP privileges beëindigd door ".(Auth::user()?->name ?? 'Staff'),
+            character: $character,
+            user: $character?->user,
+            details: ['order_id' => $order->id, 'cancelled_by_id' => Auth::id()]
+        );
+
         return back()->with('success', 'Membership geannuleerd en VIP privileges zijn beëindigd!');
     }
 
@@ -861,7 +906,7 @@ class AdminController extends Controller
      */
     public function createBuyMeACoffeeManual(Request $request): RedirectResponse
     {
-        if (Auth::user()->role === 'moderator') {
+        if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
         }
 
@@ -926,6 +971,16 @@ class AdminController extends Controller
                 'amount' => max((float) $validated['amount'], $coffees * 3.0),
             ], $character);
         }
+
+        AuditLogService::log(
+            action: 'buymeacoffee_manual_create',
+            category: 'vip',
+            description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$character->name} ({$validated['membership_tier']}) door ".Auth::user()->name,
+            character: $character,
+            user: $character->user,
+            amount: (int) $validated['amount'],
+            details: ['order_id' => $order->id, 'tier' => $tier, 'is_membership' => $isMembership]
+        );
 
         return back()->with('success', "Handmatige Buy Me a Coffee registratie succesvol gekoppeld aan {$character->name}!");
     }

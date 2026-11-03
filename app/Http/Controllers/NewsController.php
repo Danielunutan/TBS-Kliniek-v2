@@ -145,7 +145,11 @@ class NewsController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
+
+        if (! $character) {
+            return redirect()->route('dashboard');
+        }
 
         if (! $article->comments_enabled) {
             return back()->with('error', 'Dit nieuwsbericht is gesloten voor reacties.');
@@ -155,7 +159,7 @@ class NewsController extends Controller
             return back()->with('error', 'In de isoleercel heb je geen toegang om reacties te plaatsen.');
         }
 
-        if ($character->isComatose()) {
+        if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -184,9 +188,13 @@ class NewsController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $character = $user->character;
+        $character = $user?->character;
 
-        $canDelete = ($comment->character_id === $character->id) || $user->canModerate();
+        if (! $character && ! ($user?->canModerate())) {
+            return redirect()->route('dashboard');
+        }
+
+        $canDelete = ($character && $comment->character_id === $character->id) || ($user && $user->canModerate());
 
         if (! $canDelete) {
             return back()->with('error', 'Je hebt geen toestemming om deze reactie te verwijderen.');

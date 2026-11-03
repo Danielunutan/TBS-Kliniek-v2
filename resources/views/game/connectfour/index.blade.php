@@ -138,7 +138,7 @@ body.dark .board-socket:hover,
      data-player-wins="{{ (int) ($stat->current_player_wins ?? 0) }}"
      data-arjan-wins="{{ (int) ($stat->current_arjan_wins ?? 0) }}"
      data-draws="{{ (int) ($stat->current_draws ?? 0) }}"
-     data-is-blocked="{{ ($character->isImprisoned() || $character->isComatose()) ? '1' : '0' }}">
+     data-is-blocked="{{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) ? '1' : '0' }}">
 
     @if($character->isImprisoned())
         <div class="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 p-4 text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-3">
@@ -147,7 +147,7 @@ body.dark .board-socket:hover,
                 <span>Je zit in de isoleercel! Vanuit de cel kun je niet aanschuiven bij OOHPA Arjan in de recreatiezaal.</span>
             </div>
         </div>
-    @elseif($character->isComatose())
+    @elseif($character->isComatose() || $character->needsReviveSerum())
         <div class="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-700/60 p-4 text-xs font-bold text-rose-800 dark:text-rose-200 flex items-center gap-3">
             <i class="fa-solid fa-heart-pulse text-base text-rose-600 dark:text-rose-400 shrink-0"></i>
             <div>

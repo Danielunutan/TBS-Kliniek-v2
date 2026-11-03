@@ -538,7 +538,7 @@ class FaqController extends Controller
             ],
             [
                 'title' => '🎁 €35.000+ Gratis Startgeld op Dag 1',
-                'keywords' => ['startgeld', 'rookie', 'taken', '35000', '35k', 'push', 'meldingen', 'notificaties', 'welkomstbonus', 'startersbonus', 'rondleiding', 'pak'],
+                'keywords' => ['startgeld', 'rookie', 'taken', '35000', '35k', 'push', 'meldingen', 'notificaties', 'welkomstbonus', 'startersbonus', 'rondleiding', 'pak', 'intake', 'tour', 'intakegesprek'],
                 'answer' => "💡 IN HET KORT: Op je eerste dag ligt er meer dan €35.000 aan gratis geld, 30 kogels en 4 dagen gratis VIP voor je klaar!\n\n📋 ZO PAK JE ALLE STARTERSBONUSSEN:\n• 🧭 Intake Rondleiding (FAQ): Geeft direct €1.000 cash.\n• 🎯 5 Rookie Taken (Dashboard): Geeft in totaal €6.500 cash (€1.500 + €5.000 eindprijs) + 30 kogels + 145 XP + 5 sigaretten + 1 dag gratis VIP.\n• 🔔 Push-Meldingen aanzetten (Dashboard): Geeft éénmalig €25.000 cash + 25 Respect + 20 Energie!\n• 🎮 Discord koppelen: Geeft direct €2.500 cash + 3 dagen gratis VIP!\n\n🔥 PRO-TIP: Stort na elke beloning je cash meteen gratis op De Bank!",
                 'links' => [
                     ['text' => '🎯 Rookie Taken & Push Bonus', 'url' => route('dashboard')],
@@ -864,7 +864,7 @@ class FaqController extends Controller
             ],
             [
                 'title' => '🎯 Liquidatie 2.0, Backfire-Vesten, Bloedwraak & Code Blauw',
-                'keywords' => ['liquidatie', 'liquidaties', 'kogels', 'bullets', 'schieten', 'hitman', 'coma', 'blauw', 'serum', 'reanimatie', 'vest', 'backfire', 'ricochet', 'bloedwraak', 'schaduwen', 'moord', 'brancard'],
+                'keywords' => ['liquidatie', 'liquidaties', 'kogel', 'kogels', 'bullets', 'schieten', 'hitman', 'coma', 'blauw', 'serum', 'reanimatie', 'vest', 'backfire', 'ricochet', 'bloedwraak', 'blood', 'feud', 'feuds', 'schaduwen', 'moord', 'brancard'],
                 'answer' => "💡 IN HET KORT: Bij Liquidatie 2.0 schiet je met kogels op een rivaal om 45% van zijn contante geld én 7% van zijn bankgeld te roven!\n\n📋 ZO WERKT SCHIETEN & VERDEDIGEN:\n• 🕵️ Afstandssalvo of Sluipaanval (+25%): Je kunt van afstand schieten, maar als je naar dezelfde afdeling reist krijg je +25% Sluipaanval-schadebonus!\n• 🛡️ Backfire-Vest (30%–75% Ricochet): Kaatst kogels van zwakkere schutters terug zodat de schutter zélf op de brancard belandt!\n• 🩸 Bloedwraak: Wordt een bendelid beschoten? Dan vervalt 24u lang de 15-level limiet tegen de dader (+€25.000 & +50 Respect bij wraak).\n• 💉 Code Blauw (Coma): Treffer 1 t/m 9 kun je direct doorspelen. Pas bij 10/10 treffers kom je in Code Blauw en gebruik je een Forensisch Reanimatie-Serum (de gewone ziekenboeg werkt dan niet).",
                 'links' => [
                     ['text' => '🎯 Naar Liquidatie 2.0', 'url' => route('hitman.index')],
@@ -966,7 +966,7 @@ class FaqController extends Controller
             ],
             [
                 'title' => '⚙️ Account, Spelregels (Geen VPN) & Support Tickets',
-                'keywords' => ['account', 'wachtwoord', 'naam', 'kleur', 'dark', 'regels', 'spelregels', 'vpn', 'multi', 'dubbelaccount', 'ticket', 'tickets', 'support', 'beheer', 'melden'],
+                'keywords' => ['account', 'wachtwoord', 'naam', 'kleur', 'dark', 'regels', 'spelregels', 'vpn', 'multi', 'dubbelaccount', 'ticket', 'tickets', 'support', 'beheer', 'melden', 'familie', 'ip', 'huisgenoten', 'accounts', 'hetzelfde'],
                 'answer' => "💡 IN HET KORT: Speel eerlijk en houd het gezellig. Heb je hulp nodig of wil je de Gang Overstap Bonus claimen? Open een Support Ticket!\n\n📋 DE 3 GOUDEN SPELREGELS:\n1. 👤 Maximaal 1 account per persoon (multi-accounts worden direct geblokkeerd).\n2. 🏠 Maximaal 2 accounts op hetzelfde IP-adres (voor familie/huisgenoten; meld 3+ vooraf via een ticket).\n3. 🚫 Gebruik géén VPN of Proxy.\n\n🚩 Scheldt iemand in de chat? Klik op het rode vlaggetje bij het bericht of open een Support Ticket!",
                 'links' => [
                     ['text' => '🎫 Nieuw Support Ticket', 'url' => route('help.tickets.create')],

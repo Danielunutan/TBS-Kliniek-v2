@@ -130,7 +130,7 @@ class ProfileController extends Controller
         $allStickers = ProfileStickerCatalog::stickers();
         $allThemes = ProfileStickerCatalog::themes();
         $allBorders = HalloweenService::getBorders();
-        $unlockedBorders = $myCharacter->unlocked_borders ?? [];
+        $unlockedBorders = is_array($myCharacter->unlocked_borders) ? $myCharacter->unlocked_borders : [];
         $activeSticker = $profileCharacter->getActiveSticker();
         $activeTheme = $profileCharacter->getActiveProfileTheme();
 

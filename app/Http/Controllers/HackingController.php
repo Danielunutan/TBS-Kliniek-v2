@@ -49,10 +49,13 @@ class HackingController extends Controller
      */
     public function index(Request $request): View
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        /** @var Character $character */
-        $character = $user->character;
+        /** @var Character|null $character */
+        $character = $user?->character;
+        if (! $character) {
+            abort(404, 'Karakter niet gevonden.');
+        }
         $this->energyService->refresh($character);
 
         $canHack = $character->canDailyHack();
@@ -100,10 +103,16 @@ class HackingController extends Controller
      */
     public function solvePuzzle(Request $request): JsonResponse
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        /** @var Character $character */
-        $character = $user->character;
+        /** @var Character|null $character */
+        $character = $user?->character;
+        if (! $character) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geen personage gevonden.',
+            ], 403);
+        }
 
         if ($character->isImprisoned()) {
             return response()->json([
@@ -112,7 +121,7 @@ class HackingController extends Controller
             ], 403);
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
@@ -180,10 +189,16 @@ class HackingController extends Controller
      */
     public function spin(Request $request): JsonResponse
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        /** @var Character $character */
-        $character = $user->character;
+        /** @var Character|null $character */
+        $character = $user?->character;
+        if (! $character) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geen personage gevonden.',
+            ], 403);
+        }
 
         if ($character->isImprisoned()) {
             return response()->json([
@@ -192,7 +207,7 @@ class HackingController extends Controller
             ], 403);
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
@@ -215,12 +230,19 @@ class HackingController extends Controller
         }
 
         // Random roll for one of the 10 sectors (indices 0 to 9)
-        $sectorIndex = mt_rand(0, 9);
+        $sectorIndex = random_int(0, count($this->wheelSectors) - 1);
         $sector = $this->wheelSectors[$sectorIndex];
 
         return DB::transaction(function () use ($character, $sectorIndex, $sector): JsonResponse {
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if ($lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je kunt niet draaien in je huidige toestand!',
+                ], 403);
+            }
 
             if (! $lockedCharacter->canDailyHack()) {
                 return response()->json([

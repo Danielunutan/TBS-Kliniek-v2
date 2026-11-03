@@ -16,7 +16,8 @@ class ArmWrestleOutcome
     public function isPlayerWinner(int $playerStrength, int $npcStrength): bool
     {
         $safePlayerStrength = max(1, $playerStrength);
-        $winChancePercent = (int) round(100 * $safePlayerStrength / ($safePlayerStrength + max(1, $npcStrength)));
+        $safeNpcStrength = max(1, $npcStrength);
+        $winChancePercent = min(99, max(1, (int) round(100 * $safePlayerStrength / ($safePlayerStrength + $safeNpcStrength))));
 
         return random_int(1, 100) <= $winChancePercent;
     }

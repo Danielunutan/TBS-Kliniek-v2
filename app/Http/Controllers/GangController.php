@@ -420,6 +420,11 @@ class GangController extends Controller
                 $lockedCharacter->gang_role = 'leader';
                 $lockedCharacter->last_gang_wage_at = now()->startOfHour();
 
+                // Cancel any pending join requests for this character
+                GangRequest::where('character_id', $lockedCharacter->id)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'cancelled']);
+
                 $perks = is_array($lockedCharacter->perks) ? $lockedCharacter->perks : [];
                 if (empty($perks['gang_welcome_vip_claimed'])) {
                     $hasPermanentVip = ($lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null)
@@ -436,6 +441,19 @@ class GangController extends Controller
                 }
 
                 $lockedCharacter->save();
+
+                AuditLogService::log(
+                    action: 'gang.create',
+                    category: 'gang',
+                    description: "Bende '{$newGang->name}' [{$newGang->tag}] opgericht door {$lockedCharacter->name}.",
+                    character: $lockedCharacter,
+                    user: $lockedCharacter->user,
+                    details: [
+                        'gang_id' => $newGang->id,
+                        'name' => $newGang->name,
+                        'tag' => $newGang->tag,
+                    ]
+                );
 
                 return $newGang;
             });
@@ -670,18 +688,24 @@ class GangController extends Controller
             });
         }
 
-        $requestRecord->status = 'rejected';
-        $requestRecord->save();
+        DB::transaction(function () use ($requestRecord, $gang): void {
+            /** @var GangRequest|null $lockedRequest */
+            $lockedRequest = GangRequest::where('id', $requestRecord->id)->lockForUpdate()->first();
+            if ($lockedRequest && $lockedRequest->status === 'pending') {
+                $lockedRequest->status = 'rejected';
+                $lockedRequest->save();
 
-        if ($candidate = $requestRecord->character) {
-            GameNotification::create([
-                'character_id' => $candidate->id,
-                'type' => 'gang',
-                'icon' => 'fa-xmark',
-                'title' => 'Aanvraag afgewezen',
-                'message' => "Je verzoek om lid te worden van bende '{$gang->name}' is afgewezen.",
-            ]);
-        }
+                if ($candidate = $lockedRequest->character) {
+                    GameNotification::create([
+                        'character_id' => $candidate->id,
+                        'type' => 'gang',
+                        'icon' => 'fa-xmark',
+                        'title' => 'Aanvraag afgewezen',
+                        'message' => "Je verzoek om lid te worden van bende '{$gang->name}' is afgewezen.",
+                    ]);
+                }
+            }
+        });
 
         return back()
             ->with('active_gang_tab', 'beheer')
@@ -720,18 +744,30 @@ class GangController extends Controller
                 $leaveFee = $hourlyWage * $multiplier;
 
                 if ($leaveFee > 0) {
-                    if ($lockedChar->cash < $leaveFee) {
-                        return back()->with('error', 'Je kunt de bende niet verlaten: de vertrekboete bedraagt €'.number_format($leaveFee, 0, ',', '.')." ({$multiplier}x uurloon). Je hebt momenteel slechts €".number_format($lockedChar->cash, 0, ',', '.').' contant geld op zak!');
+                    $totalFunds = (int) $lockedChar->cash + (int) ($lockedChar->bank ?? 0);
+                    if ($totalFunds < $leaveFee) {
+                        return back()->with('error', 'Je kunt de bende niet verlaten: de vertrekboete bedraagt €'.number_format($leaveFee, 0, ',', '.')." ({$multiplier}x uurloon). Je hebt momenteel slechts €".number_format($totalFunds, 0, ',', '.').' totaal vermogen (contant + bank)!');
                     }
 
-                    $lockedChar->cash -= $leaveFee;
+                    if ($lockedChar->cash >= $leaveFee) {
+                        $lockedChar->cash -= $leaveFee;
+                    } else {
+                        $remaining = $leaveFee - $lockedChar->cash;
+                        $lockedChar->cash = 0;
+                        $lockedChar->bank -= $remaining;
+                    }
                     $gang->treasury += $leaveFee;
                     $gang->save();
                 }
             }
 
             if (($lockedChar->gang_role === 'leader' || ($gang && (int) $gang->leader_character_id === (int) $lockedChar->id)) && $gang) {
-                $nextMember = $gang->members()->where('id', '!=', $lockedChar->id)->lockForUpdate()->first();
+                $nextMember = $gang->members()
+                    ->where('id', '!=', $lockedChar->id)
+                    ->orderByRaw("CASE WHEN gang_role = 'co_leader' THEN 0 ELSE 1 END")
+                    ->orderByDesc('respect')
+                    ->lockForUpdate()
+                    ->first();
                 if ($nextMember) {
                     $gang->leader_character_id = $nextMember->id;
                     $gang->save();
@@ -746,6 +782,17 @@ class GangController extends Controller
                             'stored_at' => null,
                             'stored_by_character_id' => null,
                         ]);
+                    AuditLogService::log(
+                        action: 'gang.disband',
+                        category: 'gang',
+                        description: "Bende '{$gang->name}' (#{$gang->id}) opgeheven omdat het laatste lid de bende heeft verlaten.",
+                        character: $lockedChar,
+                        user: $lockedChar->user,
+                        details: [
+                            'gang_id' => $gang->id,
+                            'gang_name' => $gang->name,
+                        ]
+                    );
                     $gang->delete();
                 }
             }
@@ -1008,19 +1055,28 @@ class GangController extends Controller
             ]);
 
             DB::transaction(function () use ($gang, $character, $validated): void {
-                $oldLeaderId = (int) $gang->leader_character_id;
-                $newLeaderId = (int) ($validated['leader_id'] ?? $validated['boss_babe_id'] ?? $gang->leader_character_id);
+                /** @var Gang|null $lockedGang */
+                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+                /** @var Character|null $lockedCharacter */
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+                if (! $lockedGang || ! $lockedCharacter) {
+                    return;
+                }
+
+                $oldLeaderId = (int) $lockedGang->leader_character_id;
+                $newLeaderId = (int) ($validated['leader_id'] ?? $validated['boss_babe_id'] ?? $lockedGang->leader_character_id);
                 $handoverOutgoingLeaderId = null;
 
                 if ($newLeaderId && $newLeaderId !== $oldLeaderId) {
-                    $newLeader = Character::where('id', $newLeaderId)->where('gang_id', $gang->id)->lockForUpdate()->first();
+                    $newLeader = Character::where('id', $newLeaderId)->where('gang_id', $lockedGang->id)->lockForUpdate()->first();
                     if ($newLeader) {
-                        $character->gang_role = 'co_leader';
-                        $character->save();
+                        $lockedCharacter->gang_role = 'co_leader';
+                        $lockedCharacter->save();
                         $newLeader->gang_role = 'leader';
                         $newLeader->save();
-                        $gang->leader_character_id = $newLeader->id;
-                        $handoverOutgoingLeaderId = (int) $character->id;
+                        $lockedGang->leader_character_id = $newLeader->id;
+                        $handoverOutgoingLeaderId = (int) $lockedCharacter->id;
                     }
                 }
 
@@ -1028,18 +1084,18 @@ class GangController extends Controller
                 $newMagnetId = ! empty($validated['money_magnet_id']) ? (int) $validated['money_magnet_id'] : null;
                 $newCoLeaderId = ! empty($validated['co_leader_id']) ? (int) $validated['co_leader_id'] : null;
 
-                $gang->personal_shopper = $newShopperId;
-                $gang->money_magnet = $newMagnetId;
-                $gang->save();
+                $lockedGang->personal_shopper = $newShopperId;
+                $lockedGang->money_magnet = $newMagnetId;
+                $lockedGang->save();
 
                 // All members assigned to key roles must be co_leader (unless they are the gang leader)
                 $targetCoLeaderIds = array_values(array_unique(array_filter(
                     [$newCoLeaderId, $newShopperId, $newMagnetId, $handoverOutgoingLeaderId],
-                    fn ($id) => ! empty($id) && (int) $id !== (int) $gang->leader_character_id
+                    fn ($id) => ! empty($id) && (int) $id !== (int) $lockedGang->leader_character_id
                 )));
 
                 foreach ($targetCoLeaderIds as $cid) {
-                    $c = Character::where('id', $cid)->where('gang_id', $gang->id)->lockForUpdate()->first();
+                    $c = Character::where('id', $cid)->where('gang_id', $lockedGang->id)->lockForUpdate()->first();
                     if ($c && $c->gang_role !== 'leader') {
                         $c->gang_role = 'co_leader';
                         $c->save();
@@ -1047,9 +1103,9 @@ class GangController extends Controller
                 }
 
                 // Demote previously appointed co-leaders who are no longer in any key role
-                Character::where('gang_id', $gang->id)
+                Character::where('gang_id', $lockedGang->id)
                     ->where('gang_role', 'co_leader')
-                    ->where('id', '!=', (int) $gang->leader_character_id)
+                    ->where('id', '!=', (int) $lockedGang->leader_character_id)
                     ->when(! empty($targetCoLeaderIds), fn ($q) => $q->whereNotIn('id', $targetCoLeaderIds))
                     ->update(['gang_role' => 'member']);
             });
@@ -1164,52 +1220,77 @@ class GangController extends Controller
             return back()->with('error', 'Je hebt geen bevoegdheid om leden te verwijderen!');
         }
 
-        if ($member->gang_id !== $gang->id) {
-            return back()->with('error', 'Deze patiënt zit niet in jouw bende.');
-        }
+        return DB::transaction(function () use ($member, $character, $gang): RedirectResponse {
+            /** @var Gang|null $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            /** @var Character|null $lockedOfficer */
+            $lockedOfficer = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var Character|null $lockedMember */
+            $lockedMember = Character::where('id', $member->id)->lockForUpdate()->first();
 
-        if ($member->id === $character->id || $member->gang_role === 'leader') {
-            return back()->with('error', 'Je kunt de bendeleider niet verwijderen.');
-        }
+            if (! $lockedGang || ! $lockedOfficer || ! $lockedMember || (int) $lockedMember->gang_id !== (int) $lockedGang->id) {
+                return back()->with('error', 'Deze patiënt zit niet (meer) in jouw bende.');
+            }
 
-        // A co-leader may not remove another co-leader; only the leader decides about the management team.
-        if ($member->gang_role === 'co_leader' && $character->gang_role !== 'leader') {
-            return back()->with('error', 'Alleen de bendeleider kan een co-leider uit de bende zetten.');
-        }
+            if (! $lockedGang->isOfficer($lockedOfficer)) {
+                return back()->with('error', 'Je hebt geen bevoegdheid om leden te verwijderen!');
+            }
 
-        // Return all gang-stored vehicles owned by the kicked member back to their personal garage
-        CharacterVehicle::where('character_id', $member->id)
-            ->where('in_gang_garage', true)
-            ->update([
-                'in_gang_garage' => false,
-                'gang_id' => null,
-                'stored_at' => null,
-                'stored_by_character_id' => null,
+            if ((int) $lockedMember->id === (int) $lockedOfficer->id || $lockedMember->gang_role === 'leader' || (int) $lockedGang->leader_character_id === (int) $lockedMember->id) {
+                return back()->with('error', 'Je kunt de bendeleider niet verwijderen.');
+            }
+
+            // A co-leader may not remove another co-leader; only the leader decides about the management team.
+            if ($lockedMember->gang_role === 'co_leader' && $lockedOfficer->gang_role !== 'leader') {
+                return back()->with('error', 'Alleen de bendeleider kan een co-leider uit de bende zetten.');
+            }
+
+            // Return all gang-stored vehicles owned by the kicked member back to their personal garage
+            CharacterVehicle::where('character_id', $lockedMember->id)
+                ->where('in_gang_garage', true)
+                ->update([
+                    'in_gang_garage' => false,
+                    'gang_id' => null,
+                    'stored_at' => null,
+                    'stored_by_character_id' => null,
+                ]);
+
+            $this->wageService->payoutPendingWages($lockedMember);
+            $lockedMember->gang_id = null;
+            $lockedMember->gang_role = 'none';
+            $lockedMember->last_gang_wage_at = null;
+            // Gang members receive no allowance; restart the clock so a kick does not pay a 24-hour backlog.
+            $lockedMember->last_allowance_at = now();
+            $lockedMember->save();
+
+            $this->clearAppointedRoles($lockedGang, $lockedMember);
+
+            AuditLogService::log(
+                action: 'gang.kick',
+                category: 'gang',
+                description: "{$lockedMember->name} is uit bende {$lockedGang->name} gezet door {$lockedOfficer->name}.",
+                character: $lockedOfficer,
+                user: $lockedOfficer->user,
+                details: [
+                    'gang_id' => $lockedGang->id,
+                    'kicked_character_id' => $lockedMember->id,
+                ]
+            );
+
+            GameMessage::create([
+                'recipient_id' => $lockedMember->id,
+                'sender_id' => $lockedOfficer->id,
+                'sender_name' => $lockedGang->name,
+                'subject' => "⚠️ Je bent verwijderd uit bende {$lockedGang->name}",
+                'content' => "Patiënt {$lockedMember->name},\n\nJe bent zojuist door {$lockedOfficer->name} uit de factie '{$lockedGang->name}' gezet.",
+                'type' => 'gang',
             ]);
 
-        $this->wageService->payoutPendingWages($member);
-        $member->gang_id = null;
-        $member->gang_role = 'none';
-        $member->last_gang_wage_at = null;
-        // Gang members receive no allowance; restart the clock so a kick does not pay a 24-hour backlog.
-        $member->last_allowance_at = now();
-        $member->save();
-
-        $this->clearAppointedRoles($gang, $member);
-
-        GameMessage::create([
-            'recipient_id' => $member->id,
-            'sender_id' => $character->id,
-            'sender_name' => $gang->name,
-            'subject' => "⚠️ Je bent verwijderd uit bende {$gang->name}",
-            'content' => "Patiënt {$member->name},\n\nJe bent zojuist door {$character->name} uit de factie '{$gang->name}' gezet.",
-            'type' => 'gang',
-        ]);
-
-        return back()
-            ->with('active_gang_tab', 'beheer')
-            ->with('beheer_tab', 'leden')
-            ->with('success', "{$member->name} is uit de bende verwijderd.");
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'leden')
+                ->with('success', "{$lockedMember->name} is uit de bende verwijderd.");
+        });
     }
 
     /**
@@ -1226,47 +1307,61 @@ class GangController extends Controller
             return back()->with('error', 'Alleen de bendeleider kan rangen en leiderschap toewijzen!');
         }
 
-        if ($member->gang_id !== $gang->id) {
-            return back()->with('error', 'Deze patiënt zit niet in jouw bende.');
-        }
-
         $role = $request->input('role');
         if (! in_array($role, ['co_leader', 'member', 'leader'], true)) {
             return back()->with('error', 'Ongeldige rol gekozen.');
         }
 
-        // A leader who demotes himself leaves the gang without any leader, so leadership must be handed over instead.
-        if ((int) $member->id === (int) $character->id) {
-            return back()->with('error', 'Je kunt je eigen leidersrol niet verlagen. Draag eerst het leiderschap over aan een ander lid.');
-        }
+        return DB::transaction(function () use ($gang, $character, $member, $role): RedirectResponse {
+            /** @var Gang|null $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            /** @var Character|null $lockedLeader */
+            $lockedLeader = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var Character|null $lockedMember */
+            $lockedMember = Character::where('id', $member->id)->lockForUpdate()->first();
 
-        if ($role === 'leader') {
-            DB::transaction(function () use ($gang, $character, $member): void {
-                $gang->leader_character_id = $member->id;
-                $gang->save();
+            if (! $lockedGang || ! $lockedLeader || ! $lockedMember || (int) $lockedMember->gang_id !== (int) $lockedGang->id) {
+                return back()->with('error', 'Deze patiënt zit niet (meer) in jouw bende.');
+            }
 
-                $character->gang_role = 'co_leader';
-                $character->save();
+            if ($lockedLeader->gang_role !== 'leader' && (int) $lockedGang->leader_character_id !== (int) $lockedLeader->id) {
+                return back()->with('error', 'Alleen de bendeleider kan rangen en leiderschap toewijzen!');
+            }
 
-                $member->gang_role = 'leader';
-                $member->save();
-            });
+            if ((int) $lockedMember->id === (int) $lockedLeader->id) {
+                return back()->with('error', 'Je kunt je eigen leidersrol niet verlagen. Draag eerst het leiderschap over aan een ander lid.');
+            }
+
+            if ($role === 'leader') {
+                $lockedGang->leader_character_id = $lockedMember->id;
+                $lockedGang->save();
+
+                $lockedLeader->gang_role = 'co_leader';
+                $lockedLeader->save();
+
+                $lockedMember->gang_role = 'leader';
+                $lockedMember->save();
+
+                return back()
+                    ->with('active_gang_tab', 'beheer')
+                    ->with('beheer_tab', 'leden')
+                    ->with('success', "Leiderschap van {$lockedGang->name} overgedragen aan {$lockedMember->name}!");
+            }
+
+            $lockedMember->gang_role = $role;
+            $lockedMember->save();
+
+            if ($role === 'member') {
+                $this->clearAppointedRoles($lockedGang, $lockedMember);
+            }
+
+            $roleTitle = $role === 'co_leader' ? 'Co-Leider' : 'Gewoon Lid';
 
             return back()
                 ->with('active_gang_tab', 'beheer')
                 ->with('beheer_tab', 'leden')
-                ->with('success', "Leiderschap van {$gang->name} overgedragen aan {$member->name}!");
-        }
-
-        $member->gang_role = $role;
-        $member->save();
-
-        $roleTitle = $role === 'co_leader' ? 'Co-Leider' : 'Gewoon Lid';
-
-        return back()
-            ->with('active_gang_tab', 'beheer')
-            ->with('beheer_tab', 'leden')
-            ->with('success', "{$member->name} is nu ingesteld als {$roleTitle}!");
+                ->with('success', "{$lockedMember->name} is nu ingesteld als {$roleTitle}!");
+        });
     }
 
     /**
@@ -1292,7 +1387,7 @@ class GangController extends Controller
         }
 
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:100'],
+            'amount' => ['required', 'integer', 'min:100', 'max:1000000000000'],
         ]);
 
         $amount = (int) $validated['amount'];
@@ -1683,10 +1778,14 @@ class GangController extends Controller
         $stars = (int) $validated['stars'];
 
         return DB::transaction(function () use ($gang, $character, $stars): RedirectResponse {
-            /** @var Character $lockedCharacter */
+            /** @var Character|null $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-            /** @var Gang $lockedGang */
+            /** @var Gang|null $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+
+            if (! $lockedCharacter || ! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
+                return back()->with('error', 'Je bent geen lid van deze bende.');
+            }
 
             if (($lockedCharacter->stars ?? 0) < $stars) {
                 return back()->with('error', "Je hebt slechts {$lockedCharacter->stars} Sterren ⭐.");
@@ -1729,16 +1828,20 @@ class GangController extends Controller
         $gang = $character->gang;
 
         $validated = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
         ]);
 
         $requestedQty = (int) $validated['quantity'];
 
         return DB::transaction(function () use ($gang, $character, $requestedQty): RedirectResponse {
-            /** @var Character $lockedCharacter */
+            /** @var Character|null $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-            /** @var Gang $lockedGang */
+            /** @var Gang|null $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+
+            if (! $lockedCharacter || ! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
+                return back()->with('error', 'Je bent geen lid van deze bende.');
+            }
 
             $currentMasks = (int) ($lockedCharacter->masks ?? 0);
             if ($currentMasks < 1) {
@@ -1756,8 +1859,10 @@ class GangController extends Controller
                 return back()->with('error', "Het Bende Depot zit te vol ({$storageUsed}/{$storageCap} plekken bezet)! Er passen maximaal {$spaceLeft} extra items/maskers bij. Schaf meer bende opslagpanden aan of laat beheerders overtollige voorraad verkopen.");
             }
 
+            $respectGain = min(2500, max(1, (int) round($quantity * 0.5)));
+
             $lockedCharacter->masks -= $quantity;
-            $lockedCharacter->addRespect(max(1, (int) round($quantity * 0.5)));
+            $lockedCharacter->addRespect($respectGain);
             $lockedCharacter->save();
 
             $lockedGang->masks = ($lockedGang->masks ?? 0) + $quantity;
@@ -1794,16 +1899,25 @@ class GangController extends Controller
 
         $validated = $request->validate([
             'character_item_id' => ['required', 'integer', 'exists:character_items,id'],
-            'quantity' => ['required', 'integer', 'min:1'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
         ]);
 
         $requestedQty = (int) $validated['quantity'];
         $charItemId = (int) $validated['character_item_id'];
 
         return DB::transaction(function () use ($gang, $character, $charItemId, $requestedQty): RedirectResponse {
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var Gang|null $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+
+            if (! $lockedCharacter || ! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
+                return back()->with('error', 'Je bent geen lid van deze bende.');
+            }
+
             /** @var CharacterItem|null $charItem */
             $charItem = CharacterItem::where('id', $charItemId)
-                ->where('character_id', $character->id)
+                ->where('character_id', $lockedCharacter->id)
                 ->lockForUpdate()
                 ->with('item')
                 ->first();
@@ -1812,8 +1926,14 @@ class GangController extends Controller
                 return back()->with('error', 'Dit voorwerp bevindt zich niet in je opbergplaats.');
             }
 
-            /** @var Gang $lockedGang */
-            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            $item = $charItem->item;
+            if (! $item) {
+                return back()->with('error', 'Item gegevens niet gevonden.');
+            }
+
+            if (str_starts_with((string) $item->slug, 'halloween_token_') || str_starts_with((string) $item->slug, 'quest_')) {
+                return back()->with('error', 'Dit speciale evenementvoorwerp kan niet worden gedoneerd aan het Bende Depot.');
+            }
 
             $quantity = min($requestedQty, $charItem->quantity);
 
@@ -1826,7 +1946,7 @@ class GangController extends Controller
                 return back()->with('error', "Het Bende Depot zit te vol ({$storageUsed}/{$storageCap} plekken bezet)! Er passen maximaal {$spaceLeft} extra items bij. Koop meer opslagpanden.");
             }
 
-            $itemName = $charItem->item->name;
+            $itemName = $item->name;
             $itemId = $charItem->item_id;
 
             // Deduct from player
@@ -1851,14 +1971,13 @@ class GangController extends Controller
                 $gangItem->save();
             }
 
-            /** @var Character $lockedCharacter */
-            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-            $lockedCharacter->addRespect(max(1, $quantity));
+            $respectGain = min(2500, max(1, (int) round($quantity * 0.5)));
+            $lockedCharacter->addRespect($respectGain);
             $lockedCharacter->save();
 
             return back()
                 ->with('active_gang_tab', 'depot')
-                ->with('success', "📦 Succesvol {$quantity}x {$itemName} gedoneerd aan het Bende Depot!");
+                ->with('success', "📦 Succesvol {$quantity}x {$itemName} gedoneerd aan het Bende Depot! (+{$respectGain} respect)");
         });
     }
 
@@ -1889,12 +2008,12 @@ class GangController extends Controller
         }
 
         $validated = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
         ]);
 
         $requestedQty = (int) $validated['quantity'];
 
-        return DB::transaction(function () use ($gang, $requestedQty): RedirectResponse {
+        return DB::transaction(function () use ($gang, $character, $requestedQty): RedirectResponse {
             /** @var Gang $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
@@ -1912,6 +2031,19 @@ class GangController extends Controller
             $lockedGang->save();
 
             $formattedCash = number_format($totalEarned, 0, ',', '.');
+
+            AuditLogService::log(
+                action: 'gang.sell_depot_masks',
+                category: 'gang',
+                description: "{$quantity}x overval maskers verkocht uit depot voor €{$formattedCash}",
+                character: $character,
+                user: $character->user,
+                amount: $totalEarned,
+                details: [
+                    'gang_id' => $lockedGang->id,
+                    'quantity' => $quantity,
+                ]
+            );
 
             return back()
                 ->with('active_gang_tab', 'depot')
@@ -1945,9 +2077,13 @@ class GangController extends Controller
             return back()->with('error', 'Alleen bendeleiders of beheerders kunnen bende-eigendommen verkopen!');
         }
 
-        $requestedQty = max(1, (int) $request->input('quantity', 1));
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
+        ]);
 
-        return DB::transaction(function () use ($gang, $gangItem, $requestedQty): RedirectResponse {
+        $requestedQty = (int) $validated['quantity'];
+
+        return DB::transaction(function () use ($gang, $character, $gangItem, $requestedQty): RedirectResponse {
             /** @var GangItem|null $lockedGangItem */
             $lockedGangItem = GangItem::where('id', $gangItem->id)
                 ->where('gang_id', $gang->id)
@@ -1981,6 +2117,20 @@ class GangController extends Controller
 
             $formattedCash = number_format($totalEarned, 0, ',', '.');
 
+            AuditLogService::log(
+                action: 'gang.sell_depot_item',
+                category: 'gang',
+                description: "{$quantity}x {$item->name} verkocht uit depot voor €{$formattedCash}",
+                character: $character,
+                user: $character->user,
+                amount: $totalEarned,
+                details: [
+                    'gang_id' => $lockedGang->id,
+                    'item_id' => $item->id,
+                    'quantity' => $quantity,
+                ]
+            );
+
             return back()
                 ->with('active_gang_tab', 'depot')
                 ->with('success', "💰 Succesvol {$quantity}x {$item->name} verkocht voor €{$formattedCash}! De opbrengst is direct gestort in de Bende Kas 🏛️.");
@@ -2011,6 +2161,10 @@ class GangController extends Controller
 
         if ($character->isComatose()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        if ($character->health < 20) {
+            return back()->with('error', 'Je hebt minimaal 20% gezondheid nodig om een bende-aanval te kunnen commanderen!');
         }
 
         $remainingCooldown = $myGang->attackCooldownRemaining();
@@ -2045,6 +2199,12 @@ class GangController extends Controller
         }
 
         return DB::transaction(function () use ($myGang, $targetGang, $character): RedirectResponse {
+            /** @var Character|null $lockedCommander */
+            $lockedCommander = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCommander || $lockedCommander->isImprisoned() || $lockedCommander->isComatose() || $lockedCommander->health < 20) {
+                return back()->with('error', 'Je bent momenteel niet in staat om een aanval te leiden.');
+            }
+
             // Lock both gangs in id order (prevents deadlocks) and re-check the limits, so parallel attacks cannot loot the same treasury twice.
             $lockedGangs = Gang::whereIn('id', [$myGang->id, $targetGang->id])->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $myGang = $lockedGangs->get($myGang->id);
@@ -2060,7 +2220,12 @@ class GangController extends Controller
             }
 
             $attackerPower = max(500, (int) ($myGang->attack_power ?? 500));
-            $targetDefense = max(500, (int) ($targetGang->protection_points ?? 1000));
+            $baseTargetDefense = max(500, (int) ($targetGang->protection_points ?? 1000));
+
+            // Factor in hired Enforcer NPCs defense bonus
+            $npcDefenseBonusPct = (int) $targetGang->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
+            $targetNpcDefenseBonus = (int) round($baseTargetDefense * ($npcDefenseBonusPct / 100));
+            $targetDefense = $baseTargetDefense + $targetNpcDefenseBonus;
 
             // Apply a 15% variance so evenly matched gangs do not have a deterministic outcome.
             $attackRollPercent = mt_rand(85, 115);
@@ -2073,8 +2238,17 @@ class GangController extends Controller
 
             $formattedAttackerPower = number_format($attackerPower, 0, ',', '.');
             $formattedTargetDefense = number_format($targetDefense, 0, ',', '.');
+            $formattedBaseDefense = number_format($baseTargetDefense, 0, ',', '.');
+            $formattedNpcDefense = number_format($targetNpcDefenseBonus, 0, ',', '.');
             $formattedAttackRoll = number_format($attackRoll, 0, ',', '.');
             $formattedDefenseRoll = number_format($defenseRoll, 0, ',', '.');
+
+            $npcBreakdownText = $npcDefenseBonusPct > 0
+                ? " (inclusief +{$npcDefenseBonusPct}% / +{$formattedNpcDefense} verdediging door Enforcer huurlingen)"
+                : '';
+
+            $myGangOfficers = $myGang->members()->whereIn('gang_role', ['leader', 'co_leader'])->get();
+            $targetOfficers = $targetGang->members()->whereIn('gang_role', ['leader', 'co_leader'])->get();
 
             if ($attackRoll > $defenseRoll) {
                 $lootPercent = $targetGang->treasury > 0 ? mt_rand(8, 16) : 0;
@@ -2094,18 +2268,25 @@ class GangController extends Controller
                 $myGang->last_attack_at = now();
                 $myGang->save();
 
-                /** @var Character|null $lockedCharacter */
-                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-                if ($lockedCharacter) {
-                    $lockedCharacter->addRespect($respectGain);
-                    $lockedCharacter->save();
+                // Attacking commander gains respect and takes light combat strain (-5 HP)
+                $lockedCommander->health = max(1, $lockedCommander->health - 5);
+                $lockedCommander->addRespect($respectGain);
+                $lockedCommander->save();
+
+                // Defending leader takes 10 HP combat damage if present
+                if ($targetGang->leader_character_id) {
+                    $defendingLeader = Character::where('id', $targetGang->leader_character_id)->lockForUpdate()->first();
+                    if ($defendingLeader) {
+                        $defendingLeader->health = max(1, $defendingLeader->health - 10);
+                        $defendingLeader->save();
+                    }
                 }
 
                 $formattedStolenCash = number_format($stolenCash, 0, ',', '.');
                 $formattedDefenseDamage = number_format($defenseDamage, 0, ',', '.');
                 $formattedRemainingDefense = number_format((int) $targetGang->protection_points, 0, ',', '.');
 
-                $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming). Buit: €{$formattedStolenCash} ({$lootPercent}% kas) geplunderd, verdediging van tegenstander -{$formattedDefenseDamage} punten (-{$damagePercent}%, nieuw: {$formattedRemainingDefense}), +{$respectGain} respect!";
+                $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming{$npcBreakdownText}). Buit: €{$formattedStolenCash} ({$lootPercent}% kas) geplunderd, verdediging van tegenstander -{$formattedDefenseDamage} punten (-{$damagePercent}%, nieuw: {$formattedRemainingDefense}), +{$respectGain} respect!";
 
                 GangAttack::create([
                     'attacker_gang_id' => $myGang->id,
@@ -2121,6 +2302,23 @@ class GangController extends Controller
                     'summary' => $summary,
                 ]);
 
+                AuditLogService::log(
+                    action: 'gang.attack_victory',
+                    category: 'gang',
+                    description: "Oorlogsoverwinning: {$myGang->name} plundert €{$formattedStolenCash} bij {$targetGang->name}",
+                    character: $lockedCommander,
+                    user: $lockedCommander->user,
+                    amount: $stolenCash > 0 ? $stolenCash : null,
+                    details: [
+                        'attacker_gang_id' => $myGang->id,
+                        'target_gang_id' => $targetGang->id,
+                        'won' => true,
+                        'stolen_cash' => $stolenCash,
+                        'attack_roll' => $attackRoll,
+                        'defense_roll' => $defenseRoll,
+                    ]
+                );
+
                 if ($targetGang->leader) {
                     GameMessage::create([
                         'recipient_id' => $targetGang->leader->id,
@@ -2131,7 +2329,7 @@ class GangController extends Controller
                             ."Jullie bende '{$targetGang->name}' is zojuist aangevallen door '{$myGang->name}' onder leiding van {$character->name}.\n\n"
                             ."📊 GEVECHTSBEREKENING (elke aanval heeft -15% tot +15% gevechtsrol):\n"
                             ."• Aanval {$myGang->name}: {$formattedAttackerPower} basispower × {$attackRollPercent}% ({$attackModifier}) = {$formattedAttackRoll} gevechtskracht\n"
-                            ."• Verdediging {$targetGang->name}: {$formattedTargetDefense} basisverdediging × {$defenseRollPercent}% ({$defenseModifier}) = {$formattedDefenseRoll} verdedigingskracht\n"
+                            ."• Verdediging {$targetGang->name}: {$formattedTargetDefense} totale verdediging ({$formattedBaseDefense} basis + {$formattedNpcDefense} NPC) × {$defenseRollPercent}% ({$defenseModifier}) = {$formattedDefenseRoll} verdedigingskracht\n"
                             ."👉 Hun gerolde aanval ({$formattedAttackRoll}) viel hoger uit dan jullie gerolde verdediging ({$formattedDefenseRoll}) en brak door jullie linie heen!\n\n"
                             ."💥 SCHADE & BUIT:\n"
                             ."• Geplunderde Bende Kas ({$lootPercent}% van kas, marge 8%-16%): €{$formattedStolenCash}\n"
@@ -2139,6 +2337,28 @@ class GangController extends Controller
                             .'• Schildbescherming: Jullie bende is nu 15 minuten beschermd tegen nieuwe aanvallen.',
                         'type' => 'gang',
                     ]);
+                }
+
+                foreach ($targetOfficers as $officer) {
+                    GameNotification::create([
+                        'character_id' => $officer->id,
+                        'type' => 'gang',
+                        'icon' => 'fa-skull-crossbones',
+                        'title' => '🚨 Bende Overval!',
+                        'message' => "Bende '{$myGang->name}' heeft jullie bende overvallen! Kas verlies: €{$formattedStolenCash}.",
+                    ]);
+                }
+
+                foreach ($myGangOfficers as $officer) {
+                    if ($officer->id !== $lockedCommander->id) {
+                        GameNotification::create([
+                            'character_id' => $officer->id,
+                            'type' => 'gang',
+                            'icon' => 'fa-trophy',
+                            'title' => '⚔️ Oorlogsoverwinning!',
+                            'message' => "{$lockedCommander->name} heeft een succesvolle overval geleid op '{$targetGang->name}'! Buit: €{$formattedStolenCash}.",
+                        ]);
+                    }
                 }
 
                 return back()
@@ -2152,10 +2372,18 @@ class GangController extends Controller
             $myGang->last_attack_at = now();
             $myGang->save();
 
+            // Attacking commander suffers 25 HP combat damage; coma if drops to 0
+            $lockedCommander->health = max(0, $lockedCommander->health - 25);
+            if ($lockedCommander->health <= 0) {
+                $lockedCommander->health = 0;
+                $lockedCommander->coma_until = now()->addMinutes(30);
+            }
+            $lockedCommander->save();
+
             $formattedPowerDamage = number_format($powerDamage, 0, ',', '.');
             $formattedRemainingPower = number_format((int) $myGang->attack_power, 0, ',', '.');
 
-            $summary = "🛡️ AANVAL AFGESLAGEN! Bende {$targetGang->name} verdedigde zich met succes tegen {$myGang->name}! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming). Jullie leden verliezen -{$formattedPowerDamage} power (-{$powerLossPercent}%, nieuw: {$formattedRemainingPower}).";
+            $summary = "🛡️ AANVAL AFGESLAGEN! Bende {$targetGang->name} verdedigde zich met succes tegen {$myGang->name}! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming{$npcBreakdownText}). Jullie leden verliezen -{$formattedPowerDamage} power (-{$powerLossPercent}%, nieuw: {$formattedRemainingPower}).";
 
             GangAttack::create([
                 'attacker_gang_id' => $myGang->id,
@@ -2170,6 +2398,23 @@ class GangController extends Controller
                 'respect_gain' => 0.00,
                 'summary' => $summary,
             ]);
+
+            AuditLogService::log(
+                action: 'gang.attack_defeat',
+                category: 'gang',
+                description: "Aanval afgeslagen: {$myGang->name} verliest van {$targetGang->name} (-{$formattedPowerDamage} power)",
+                character: $lockedCommander,
+                user: $lockedCommander->user,
+                amount: null,
+                details: [
+                    'attacker_gang_id' => $myGang->id,
+                    'target_gang_id' => $targetGang->id,
+                    'won' => false,
+                    'power_damage' => $powerDamage,
+                    'attack_roll' => $attackRoll,
+                    'defense_roll' => $defenseRoll,
+                ]
+            );
 
             if ($targetGang->leader_character_id) {
                 /** @var Character|null $lockedLeader */
@@ -2187,13 +2432,35 @@ class GangController extends Controller
                             ."Bende '{$myGang->name}' (onder leiding van {$character->name}) probeerde jullie bende '{$targetGang->name}' aan te vallen, maar jullie verdediging hield stand!\n\n"
                             ."📊 GEVECHTSBEREKENING (elke aanval heeft -15% tot +15% gevechtsrol):\n"
                             ."• Aanval {$myGang->name}: {$formattedAttackerPower} basispower × {$attackRollPercent}% ({$attackModifier}) = {$formattedAttackRoll} gevechtskracht\n"
-                            ."• Verdediging {$targetGang->name}: {$formattedTargetDefense} basisverdediging × {$defenseRollPercent}% ({$defenseModifier}) = {$formattedDefenseRoll} verdedigingskracht\n"
+                            ."• Verdediging {$targetGang->name}: {$formattedTargetDefense} totale verdediging ({$formattedBaseDefense} basis + {$formattedNpcDefense} NPC) × {$defenseRollPercent}% ({$defenseModifier}) = {$formattedDefenseRoll} verdedigingskracht\n"
                             ."👉 Jullie gerolde verdediging ({$formattedDefenseRoll}) hield stand tegen hun gerolde aanval ({$formattedAttackRoll})!\n\n"
                             ."🛡️ RESULTAAT:\n"
                             ."• Schade aan vijand ({$powerLossPercent}% van hun power, marge 5%-12%): -{$formattedPowerDamage} aanvalskracht\n"
                             ."• Jullie verdedigingsschade: 0 punten\n"
                             .'• Beloning: +2.0 respect verdiend voor de succesvolle verdediging.',
                         'type' => 'gang',
+                    ]);
+                }
+            }
+
+            foreach ($targetOfficers as $officer) {
+                GameNotification::create([
+                    'character_id' => $officer->id,
+                    'type' => 'gang',
+                    'icon' => 'fa-shield-halved',
+                    'title' => '🛡️ Aanval afgeslagen!',
+                    'message' => "Jullie bende heeft een aanval van '{$myGang->name}' met succes afgeslagen!",
+                ]);
+            }
+
+            foreach ($myGangOfficers as $officer) {
+                if ($officer->id !== $lockedCommander->id) {
+                    GameNotification::create([
+                        'character_id' => $officer->id,
+                        'type' => 'gang',
+                        'icon' => 'fa-shield-halved',
+                        'title' => '⚠️ Aanval mislukt',
+                        'message' => "De aanval op '{$targetGang->name}' is afgeslagen. Schade: -{$formattedPowerDamage} power.",
                     ]);
                 }
             }

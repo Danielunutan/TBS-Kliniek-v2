@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Character;
+use App\Models\EscapeTunnel;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,12 @@ class PrisonService
             'ad_prison_progress' => 0,
             'perks' => $perks,
         ]);
+
+        // If character was a fugitive outside the clinic, their run is ended upon arrest
+        EscapeTunnel::where('character_id', $character->id)
+            ->whereNotNull('fugitive_until')
+            ->where('fugitive_until', '>', now())
+            ->update(['fugitive_until' => null]);
 
         $timeLabel = $seconds >= 60 ? (round($seconds / 60, 1).' min ('.$seconds.' sec)') : ($seconds.' sec');
 

@@ -145,12 +145,20 @@ function tbsLiveMessenger(config) {
             tempDiv.textContent = text;
             let safe = tempDiv.innerHTML;
 
+            const escapeHtml = (str) => {
+                const p = document.createElement('p');
+                p.textContent = str;
+                return p.innerHTML;
+            };
+
             const buildMentionPill = (username) => {
+                const safeName = escapeHtml(username);
                 const url = '/speler/' + encodeURIComponent(username);
+                const pillStyle = 'text-decoration:none; white-space:nowrap !important; display:inline-block !important; vertical-align:baseline !important; line-height:1 !important;';
                 if (isMe) {
-                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-white/20 hover:bg-white/30 dark:hover:bg-white/30 text-white border border-white/30 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
+                    return `<a href="${url}" onclick="event.stopPropagation();" style="${pillStyle}" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded bg-white/20 hover:bg-white/30 dark:hover:bg-white/30 text-white border border-white/30 transition cursor-pointer text-[11px] tracking-tight">@${safeName}</a>`;
                 } else {
-                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${username}</a>`;
+                    return `<a href="${url}" onclick="event.stopPropagation();" style="${pillStyle}" class="inline-block whitespace-nowrap align-baseline leading-none font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-900/60 dark:hover:bg-purple-800/80 text-purple-700 dark:text-purple-200 border border-purple-200/80 dark:border-purple-700/60 transition cursor-pointer text-[11px] tracking-tight">@${safeName}</a>`;
                 }
             };
 
@@ -171,13 +179,13 @@ function tbsLiveMessenger(config) {
             if (Array.isArray(this.characterNames) && this.characterNames.length > 0) {
                 const sortedNames = [...this.characterNames].sort((a, b) => b.length - a.length);
                 const escapedPatterns = sortedNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-                const knownRegex = new RegExp('(?<!<a[^>]*>)@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])(?![^<]*<\\/a>)', 'gu');
+                const knownRegex = new RegExp('(?<![\\w@])@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])(?![^<]*<\\/a>)', 'gu');
                 safe = safe.replace(knownRegex, (match, username) => buildMentionPill(username));
             }
 
             // 3. Fallback regex for single-word mentions with Unicode letters, numbers, dashes, underscores, dots
-            // Only match @ if not inside an HTML tag or already wrapped in an <a> tag
-            const fallbackRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
+            // Only match @ if not preceded by word char and not already in an <a> tag
+            const fallbackRegex = /(?<![\w@])@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
             safe = safe.replace(fallbackRegex, (match, username) => {
                 return buildMentionPill(username);
             });
@@ -188,6 +196,20 @@ function tbsLiveMessenger(config) {
             }
 
             return safe;
+        },
+
+        isMessageMentioningMe(msg) {
+            if (!msg || msg.is_me) return false;
+            const myNameLower = (this.myName || this.authCharName || '').toLowerCase();
+            if (!myNameLower) return false;
+            let isTagged = false;
+            if (msg.message) {
+                const escaped = myNameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const tagRegex = new RegExp('(^|\\s)@' + escaped + '(?=$|[^\\p{L}\\p{N}])', 'iu');
+                isTagged = tagRegex.test(msg.message);
+            }
+            const isReplied = (msg.reply_to_name && msg.reply_to_name.toLowerCase() === myNameLower);
+            return Boolean(isTagged || isReplied);
         },
 
         setReplyTo(msg) {
@@ -244,7 +266,7 @@ function tbsLiveMessenger(config) {
 
             const cursorPos = inputEl.selectionStart || 0;
             const textBeforeCursor = this.messageInput.slice(0, cursorPos);
-            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-\s]*)$/u);
+            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]{1,20}(?:\s[\p{L}\p{N}_\.\-]{1,20})?)$/u);
 
             if (match) {
                 const query = match[1] || '';
@@ -549,19 +571,14 @@ function tbsLiveMessenger(config) {
                             this.registerCharacterNames(data.messages);
                             const newOthers = data.messages.filter(m => !m.is_me);
                             if (newOthers.length > 0) {
-                                const myNameLower = (this.authCharName || '').toLowerCase();
-                                const notifyMsg = newOthers.find(m => {
-                                    const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
-                                    const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
-                                    return isTagged || isReplied;
-                                });
+                                const notifyMsg = newOthers.find(m => this.isMessageMentioningMe(m));
                                 if (notifyMsg) this.playChime();
                             }
 
                             const existingIds = new Set(this.publicMessagesList.map(m => Number(m.id)));
                             const toAdd = data.messages.filter(m => !existingIds.has(Number(m.id)));
                             if (toAdd.length > 0) {
-                                this.publicMessagesList = [...this.publicMessagesList, ...toAdd];
+                                this.publicMessagesList = [...this.publicMessagesList, ...toAdd].slice(-150);
                                 this.scrollToBottom();
                             }
                             if (data.last_id > this.lastPublicId) {
@@ -585,19 +602,14 @@ function tbsLiveMessenger(config) {
                             this.registerCharacterNames(data.messages);
                             const newOthers = data.messages.filter(m => !m.is_me);
                             if (newOthers.length > 0) {
-                                const myNameLower = (this.authCharName || '').toLowerCase();
-                                const notifyMsg = newOthers.find(m => {
-                                    const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
-                                    const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
-                                    return isTagged || isReplied;
-                                });
+                                const notifyMsg = newOthers.find(m => this.isMessageMentioningMe(m));
                                 if (notifyMsg) this.playChime();
                             }
 
                             const existingIds = new Set(this.gangMessagesList.map(m => Number(m.id)));
                             const toAdd = data.messages.filter(m => !existingIds.has(Number(m.id)));
                             if (toAdd.length > 0) {
-                                this.gangMessagesList = [...this.gangMessagesList, ...toAdd];
+                                this.gangMessagesList = [...this.gangMessagesList, ...toAdd].slice(-150);
                                 this.scrollToBottom();
                             }
                             if (data.last_id > this.lastGangId) {
@@ -636,7 +648,7 @@ function tbsLiveMessenger(config) {
                             const toAdd = data.messages.filter(m => !existingIds.has(Number(m.id)));
                             if (toAdd.length > 0) {
                                 if (toAdd.some(m => !m.is_me)) this.playChime();
-                                this.directMessagesList = [...this.directMessagesList, ...toAdd];
+                                this.directMessagesList = [...this.directMessagesList, ...toAdd].slice(-150);
                                 this.scrollToBottom();
                             }
                         }
@@ -825,7 +837,7 @@ function tbsLiveMessenger(config) {
                 left = 12;
             }
             const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-            const top = placeBelow ? Math.max(12, Math.round(rect.bottom + 8)) : 0;
+            const top = placeBelow ? Math.min(Math.max(12, Math.round(rect.bottom + 8)), viewportHeight - tooltipHeight - 12) : 0;
             const bottom = !placeBelow ? Math.max(12, Math.round(viewportHeight - rect.top + 8)) : 0;
             this.heartsPopup = {
                 visible: true,
@@ -1615,7 +1627,12 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                         <!-- GANG TAG -->
                                         <template x-if="msg.gang_tag">
-                                            <span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[9px] leading-none font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                            <template x-if="msg.gang_url">
+                                                <a :href="msg.gang_url" onclick="event.stopPropagation();" class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 hover:bg-purple-200 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-300 text-[9px] leading-none font-black transition" style="text-decoration:none;" x-text="'[' + msg.gang_tag + ']'"></a>
+                                            </template>
+                                            <template x-if="!msg.gang_url">
+                                                <span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[9px] leading-none font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                            </template>
                                         </template>
 
                                         <!-- TIME & ACTIONS -->
@@ -1633,7 +1650,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                             </button>
 
                                             <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
-                                            <template x-if="canModerate || msg.is_me">
+                                            <template x-if="canModerate || msg.is_me || msg.can_delete">
                                                 <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
                                                     <i class="fa-solid fa-trash-can"></i>
                                                 </button>
@@ -1663,23 +1680,25 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                     <!-- BUBBLE & HEART REACTION (COLORS IDENTICAL TO MINI CHAT) -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                         <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
-                                             :class="msg.is_me 
-                                                ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
-                                                : (msg.is_owner 
-                                                    ? 'bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
-                                                    : (msg.is_admin || msg.is_moderator 
-                                                        ? 'bg-purple-50/70 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
-                                                        : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'))"
+                                             :class="isMessageMentioningMe(msg)
+                                                ? 'bg-amber-100 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-500 text-amber-950 dark:text-amber-100 rounded-tl-xs text-left ring-2 ring-amber-400/30'
+                                                : (msg.is_me 
+                                                    ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
+                                                    : (msg.is_owner 
+                                                        ? 'bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
+                                                        : (msg.is_admin || msg.is_moderator 
+                                                            ? 'bg-purple-50/70 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
+                                                            : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left')))"
                                              x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                         <!-- PAARS HARTJE REACTIE KNOP 💜 -->
                                         <div class="relative inline-flex items-center">
                                             <button type="button" 
                                                     @click="togglePublicHeart(msg); hideHeartsPopup()" 
-                                                    @mouseenter="showTooltip = true; showHeartsPopup($event, msg)"
-                                                    @mouseleave="showTooltip = false; hideHeartsPopup()"
-                                                    @focus="showTooltip = true; showHeartsPopup($event, msg)"
-                                                    @blur="showTooltip = false; hideHeartsPopup()"
+                                                    @mouseenter="showHeartsPopup($event, msg)"
+                                                    @mouseleave="hideHeartsPopup()"
+                                                    @focus="showHeartsPopup($event, msg)"
+                                                    @blur="hideHeartsPopup()"
                                                     :title="getHeartsTooltip(msg)"
                                                     class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                     :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
@@ -1882,7 +1901,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                     </button>
 
                                                     <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
-                                                    <template x-if="canModerate || msg.is_me">
+                                                    <template x-if="canModerate || msg.is_me || msg.can_delete">
                                                         <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
                                                             <i class="fa-solid fa-trash-can"></i>
                                                         </button>
@@ -1912,23 +1931,25 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                             <!-- BUBBLE & HEART REACTION -->
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                                 <div class="inline-block px-3 py-1.5 rounded-xl text-xs sm:text-[13px] leading-snug shadow-2xs break-words whitespace-pre-line max-w-full min-w-0 select-text cursor-text"
-                                                     :class="msg.is_me 
-                                                        ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
-                                                        : (msg.is_owner 
-                                                            ? 'bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
-                                                            : (msg.is_admin || msg.is_moderator 
-                                                                ? 'bg-purple-50/70 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
-                                                                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left'))"
+                                                     :class="isMessageMentioningMe(msg)
+                                                        ? 'bg-amber-100 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-500 text-amber-950 dark:text-amber-100 rounded-tl-xs text-left ring-2 ring-amber-400/30'
+                                                        : (msg.is_me 
+                                                            ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
+                                                            : (msg.is_owner 
+                                                                ? 'bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left' 
+                                                                : (msg.is_admin || msg.is_moderator 
+                                                                    ? 'bg-purple-50/70 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left' 
+                                                                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/90 dark:border-slate-700 text-left')))"
                                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                                 <!-- PAARS HARTJE REACTIE KNOP 💜 -->
                                                 <div class="relative inline-flex items-center">
                                                     <button type="button" 
                                                             @click="togglePublicHeart(msg); hideHeartsPopup()" 
-                                                            @mouseenter="showTooltip = true; showHeartsPopup($event, msg)"
-                                                            @mouseleave="showTooltip = false; hideHeartsPopup()"
-                                                            @focus="showTooltip = true; showHeartsPopup($event, msg)"
-                                                            @blur="showTooltip = false; hideHeartsPopup()"
+                                                            @mouseenter="showHeartsPopup($event, msg)"
+                                                            @mouseleave="hideHeartsPopup()"
+                                                            @focus="showHeartsPopup($event, msg)"
+                                                            @blur="hideHeartsPopup()"
                                                             :title="getHeartsTooltip(msg)"
                                                             class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                             :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
@@ -2117,10 +2138,10 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                                     <div class="relative inline-flex items-center">
                                                         <button type="button" @click="toggleDirectHeart(dm); hideHeartsPopup()"
-                                                                @mouseenter="showTooltip = true; showHeartsPopup($event, dm)"
-                                                                @mouseleave="showTooltip = false; hideHeartsPopup()"
-                                                                @focus="showTooltip = true; showHeartsPopup($event, dm)"
-                                                                @blur="showTooltip = false; hideHeartsPopup()"
+                                                                @mouseenter="showHeartsPopup($event, dm)"
+                                                                @mouseleave="hideHeartsPopup()"
+                                                                @focus="showHeartsPopup($event, dm)"
+                                                                @blur="hideHeartsPopup()"
                                                                 :title="getHeartsTooltip(dm)"
                                                                 class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                                 :class="dm.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
@@ -2408,6 +2429,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         <!-- SEND BUTTON -->
                         <button type="submit" 
                                 :disabled="isSending || messageInput.trim() === ''"
+                                aria-label="Verstuur bericht"
                                 @click="if(window.tbsVibrate) window.tbsVibrate(15);"
                                 class="px-3.5 sm:px-5 py-2 sm:py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-sm flex items-center justify-center gap-2 cursor-pointer shrink-0">
                             <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
@@ -2431,7 +2453,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
          role="tooltip"
-         class="pointer-events-none fixed z-[999999] p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 shadow-xl shadow-purple-950/10 dark:shadow-2xl border border-purple-200/90 dark:border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[min(320px,calc(100vw-24px))] text-left select-none"
+         @click.stop
+         class="fixed z-[999999] p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 shadow-xl shadow-purple-950/10 dark:shadow-2xl border border-purple-200/90 dark:border-purple-500/40 backdrop-blur-md min-w-[150px] max-w-[min(320px,calc(100vw-24px))] text-left select-none"
          :style="'left: ' + (heartsPopup ? heartsPopup.left : 0) + 'px; ' + 
                  (heartsPopup && heartsPopup.placeBelow ? ('top: ' + heartsPopup.top + 'px;') : ('bottom: ' + (heartsPopup ? heartsPopup.bottom : 0) + 'px;'))">
         <div class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-purple-100 dark:border-slate-800">

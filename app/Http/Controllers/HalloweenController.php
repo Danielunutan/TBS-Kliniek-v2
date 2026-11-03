@@ -9,6 +9,7 @@ use App\Models\Item;
 use App\Models\User;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\EventCashHuntService;
 use App\Services\HalloweenService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
@@ -89,6 +90,10 @@ class HalloweenController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! HalloweenService::isEventActive()) {
+            return back()->with('error', 'Het Herfstoogst-event is afgelopen. Je kunt geen quests meer claimen!');
+        }
+
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen Herfstoogst quests claimen!');
         }
@@ -117,21 +122,33 @@ class HalloweenController extends Controller
         }
 
         // Claim under a row lock so parallel requests cannot collect the same reward twice.
-        $alreadyClaimed = DB::transaction(function () use ($record, $character, $quest): bool {
-            /** @var HalloweenQuestProgress $lockedRecord */
+        $result = DB::transaction(function () use ($record, $character, $quest): string {
+            /** @var HalloweenQuestProgress|null $lockedRecord */
             $lockedRecord = HalloweenQuestProgress::where('id', $record->id)->lockForUpdate()->first();
-            if ($lockedRecord->is_claimed) {
-                return true;
+            if (! $lockedRecord || $lockedRecord->is_claimed) {
+                return 'already_claimed';
+            }
+            if ($lockedRecord->current_count < $quest['target']) {
+                return 'not_completed';
+            }
+
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCharacter) {
+                return 'not_found';
+            }
+            if ($lockedCharacter->isImprisoned()) {
+                return 'imprisoned';
+            }
+            if ($lockedCharacter->isComatose()) {
+                return 'comatose';
             }
 
             $lockedRecord->is_claimed = true;
             $lockedRecord->claimed_at = now();
             $lockedRecord->save();
 
-            /** @var Character $lockedCharacter */
-            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-
-            // Grant rewards
+            // Grant rewards safely under the row lock
             $lockedCharacter->pumpkin_seeds = ($lockedCharacter->pumpkin_seeds ?? 0) + $quest['seeds'];
 
             if (! empty($quest['xp'])) {
@@ -141,7 +158,11 @@ class HalloweenController extends Controller
                 $lockedCharacter->addRespect($quest['respect']);
             }
             if (! empty($quest['cash'])) {
-                $this->economyService->addCash($lockedCharacter, $quest['cash']);
+                $lockedCharacter->cash = ($lockedCharacter->cash ?? 0) + $quest['cash'];
+                try {
+                    EventCashHuntService::record($lockedCharacter, $quest['cash'], 'quest_reward');
+                } catch (\Throwable) {
+                }
             }
             if (! empty($quest['tokens'])) {
                 $lockedCharacter->vault_tokens = ($lockedCharacter->vault_tokens ?? 0) + $quest['tokens'];
@@ -149,11 +170,20 @@ class HalloweenController extends Controller
 
             $lockedCharacter->save();
 
-            return false;
+            return 'success';
         });
 
-        if ($alreadyClaimed) {
+        if ($result === 'already_claimed') {
             return back()->with('info', 'Je hebt de beloning voor deze quest al geclaimd.');
+        }
+        if ($result === 'imprisoned') {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen Herfstoogst quests claimen!');
+        }
+        if ($result === 'comatose') {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+        if ($result !== 'success') {
+            return back()->with('error', 'Kon beloning niet claimen.');
         }
 
         return back()->with('success', "🌰 Quest voltooid! Je hebt +{$quest['seeds']} Gouden Eikels 🌰 en alle quest-bonussen geclaimd!");
@@ -200,6 +230,10 @@ class HalloweenController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! HalloweenService::isEventActive()) {
+            return back()->with('error', 'Het Herfstoogst-event is afgelopen. De winkel is gesloten voor nieuwe aankopen!');
+        }
+
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen evenement-items kopen!');
         }
@@ -235,8 +269,19 @@ class HalloweenController extends Controller
         }
 
         return DB::transaction(function () use ($character, $itemKey, $item, $price): RedirectResponse {
-            /** @var Character $locked */
+            /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return back()->with('error', 'Karakter niet gevonden.');
+            }
+
+            if ($locked->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen evenement-items kopen!');
+            }
+
+            if ($locked->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
             if ($item['type'] === 'border' && $locked->hasBorder($itemKey)) {
                 return back()->with('info', 'Je bezit dit profielkader al!');
@@ -340,25 +385,45 @@ class HalloweenController extends Controller
 
         $key = $validated['border_key'] ?? null;
 
-        if (empty($key) || $key === 'none') {
-            $character->equipped_border = null;
-            $character->save();
+        return DB::transaction(function () use ($character, $key): RedirectResponse {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return back()->with('error', 'Karakter niet gevonden.');
+            }
 
-            return back()->with('success', 'Profielrand gedeactiveerd. Standaard weergave hersteld.');
-        }
+            if ($locked->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen profielrand instellen!');
+            }
 
-        if (! $character->hasBorder($key)) {
-            return back()->with('error', 'Je hebt dit profielkader niet in je bezit.');
-        }
+            if ($locked->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
-        $allBorders = HalloweenService::getBorders();
-        $borderInfo = $allBorders[$key] ?? null;
-        $emoji = $borderInfo['emoji'] ?? '🍂';
-        $name = $borderInfo['name'] ?? 'Profielkader';
+            if (empty($key) || $key === 'none') {
+                $locked->equipped_border = null;
+                $locked->save();
 
-        $character->equipped_border = $key;
-        $character->save();
+                return back()->with('success', 'Profielrand gedeactiveerd. Standaard weergave hersteld.');
+            }
 
-        return back()->with('success', "{$emoji} Jouw profielkader '{$name}' is succesvol ingesteld!");
+            $allBorders = HalloweenService::getBorders();
+            if (! array_key_exists($key, $allBorders)) {
+                return back()->with('error', 'Onbekend profielkader.');
+            }
+
+            if (! $locked->hasBorder($key)) {
+                return back()->with('error', 'Je hebt dit profielkader niet in je bezit.');
+            }
+
+            $borderInfo = $allBorders[$key];
+            $emoji = $borderInfo['emoji'] ?? '🍂';
+            $name = $borderInfo['name'] ?? 'Profielkader';
+
+            $locked->equipped_border = $key;
+            $locked->save();
+
+            return back()->with('success', "{$emoji} Jouw profielkader '{$name}' is succesvol ingesteld!");
+        });
     }
 }

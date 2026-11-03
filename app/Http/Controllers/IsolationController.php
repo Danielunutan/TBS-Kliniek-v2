@@ -45,6 +45,8 @@ class IsolationController extends Controller
         $cashProtectionSeconds = $character->getCashProtectionRemainingSeconds();
         $hasVest = $character->hasVest();
         $vestSeconds = $character->getVestRemainingSeconds();
+        $isImprisoned = $character->isImprisoned();
+        $isComatose = $character->isComatose() || $character->needsReviveSerum();
 
         return view('game.isolation.index', compact(
             'character',
@@ -56,7 +58,9 @@ class IsolationController extends Controller
             'hasCashProtection',
             'cashProtectionSeconds',
             'hasVest',
-            'vestSeconds'
+            'vestSeconds',
+            'isImprisoned',
+            'isComatose'
         ));
     }
 
@@ -68,7 +72,7 @@ class IsolationController extends Controller
             return back()->with('error', 'Je zit al in de isoleercel als straf! Je kunt nu geen vrijwillige isolatie kopen.');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -85,8 +89,19 @@ class IsolationController extends Controller
 
         // Pay and extend under one row lock so parallel requests cannot spend the same balance twice.
         $errorMessage = DB::transaction(function () use ($character, $currency, $hours, $costCash, $costStars): ?string {
-            /** @var Character $locked */
+            /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return 'Patiëntdossier niet gevonden.';
+            }
+
+            if ($locked->isImprisoned()) {
+                return 'Je zit al in de isoleercel als straf! Je kunt nu geen vrijwillige isolatie kopen.';
+            }
+
+            if ($locked->isComatose() || $locked->needsReviveSerum()) {
+                return 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+            }
 
             if ($currency === 'stars') {
                 if (($locked->stars ?? 0) < $costStars) {
@@ -156,11 +171,30 @@ class IsolationController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'In de straf-isoleercel kun je je celdeur niet zelf ontgrendelen!');
+        }
+
         if (! $character->hasIsolationProtection()) {
             return back()->with('info', 'Je cel zit momenteel niet op slot in vrijwillige isolatie.');
         }
 
-        $character->breakProtection();
+        $terminated = DB::transaction(function () use ($character): bool {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked || ! $locked->hasIsolationProtection()) {
+                return false;
+            }
+
+            $locked->protection_until = null;
+            $locked->save();
+
+            return true;
+        });
+
+        if (! $terminated) {
+            return back()->with('info', 'Je cel zit momenteel niet op slot in vrijwillige isolatie.');
+        }
 
         GameNotification::create([
             'character_id' => $character->id,

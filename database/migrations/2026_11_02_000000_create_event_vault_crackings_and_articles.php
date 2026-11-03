@@ -78,7 +78,7 @@ return new class extends Migration
         if (EventDrugsProductionService::hasEnded()) {
             EventDrugsProductionService::resolveWinner();
         }
-        EventDrugsProductionService::syncWinnerArticle();
+        EventDrugsProductionService::syncWinnerArticle(true);
         $challengeArticle = EventVaultCrackingService::syncChallengeArticle();
 
         // 3. Locate Author

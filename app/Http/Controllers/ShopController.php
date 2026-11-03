@@ -203,6 +203,24 @@ class ShopController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            $msg = 'Vanuit de isoleercel heb je geen toegang tot de Winkel!';
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+
+            return back()->with('shop_tab', 'items')->with('error', $msg);
+        }
+
+        if ($character->needsReviveSerum()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+
+            return back()->with('shop_tab', 'items')->with('error', $msg);
+        }
+
         if (! $item->is_buyable || $item->slug === 'smokkelpakketje') {
             $msg = 'Dit artikel is uitgesloten van reguliere toonbankverkoop.';
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
@@ -328,7 +346,11 @@ class ShopController extends Controller
         $purchaseSuccess = DB::transaction(function () use ($character, $totalCost, $item, $quantity, $isDirectDelivery, $isRestrictedStatItem, $discountNote, $formatted, &$ownedCount, &$successMsg): bool {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
-            $totalAvailable = (int) ($locked->cash + $locked->bank);
+            if (! $locked || $locked->isImprisoned() || $locked->needsReviveSerum()) {
+                return false;
+            }
+
+            $totalAvailable = max(0, (int) $locked->cash) + max(0, (int) $locked->bank);
 
             if ($totalAvailable < $totalCost) {
                 return false;
@@ -856,6 +878,14 @@ class ShopController extends Controller
                 return back()->with('shop_tab', 'sterren')->with('error', "Sterrentegoed ontoereikend: voor {$cfg['name']} zijn {$cfg['cost']} Sterren ⭐ vereist (huidig saldo: {$lockedCharacter->stars}).");
             }
 
+            if ($validated['item_type'] !== 'prison_escape' && $lockedCharacter->isImprisoned()) {
+                return back()->with('shop_tab', 'sterren')->with('error', 'Vanuit de isoleercel heb je geen toegang tot deze winkelartikelen!');
+            }
+
+            if (! in_array($validated['item_type'], ['coma_revive', 'prison_escape'], true) && $lockedCharacter->needsReviveSerum()) {
+                return back()->with('shop_tab', 'sterren')->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
+
             if ($validated['item_type'] === 'prison_escape') {
                 if (! $lockedCharacter->isImprisoned()) {
                     return back()->with('shop_tab', 'sterren')->with('error', 'Je verblijft momenteel niet achter gesloten celdeuren!');
@@ -1056,6 +1086,14 @@ class ShopController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return back()->with('shop_tab', 'pakketten')->with('error', 'Vanuit de isoleercel kun je geen pakketten bestellen!');
+        }
+
+        if ($character->needsReviveSerum()) {
+            return back()->with('shop_tab', 'pakketten')->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $allowedBundleIds = array_unique(array_merge(array_keys(self::BUNDLES), array_keys(self::BUNDLE_ALIASES)));
         $validated = $request->validate([
             'bundle_id' => ['required', 'string', 'in:'.implode(',', $allowedBundleIds)],
@@ -1091,6 +1129,10 @@ class ShopController extends Controller
 
             /** @var Character $lockedCharacter */
             $lockedCharacter = $lockedChars->get($character->id);
+
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->needsReviveSerum()) {
+                return back()->with('shop_tab', 'pakketten')->with('error', 'Je verkeert in de isoleercel of in een kritieke toestand!');
+            }
 
             if ($isGift && ! $lockedChars->has((int) $recipientId)) {
                 return back()->with('shop_tab', 'pakketten')->with('error', 'De gekozen ontvanger bestaat niet.');

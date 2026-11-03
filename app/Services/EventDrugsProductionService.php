@@ -37,7 +37,7 @@ class EventDrugsProductionService
         $start = Carbon::parse(self::EVENT_START);
         $end = Carbon::parse(self::EVENT_END);
 
-        return $now->greaterThanOrEqualTo($start) && $now->lessThan($end);
+        return $now->greaterThanOrEqualTo($start) && $now->lessThanOrEqualTo($end);
     }
 
     /**
@@ -45,7 +45,7 @@ class EventDrugsProductionService
      */
     public static function hasEnded(): bool
     {
-        return now()->greaterThanOrEqualTo(Carbon::parse(self::EVENT_END));
+        return now()->greaterThan(Carbon::parse(self::EVENT_END));
     }
 
     /**
@@ -112,12 +112,13 @@ class EventDrugsProductionService
         $hasEnded = self::hasEnded();
         $remainingSec = max(0, $end->timestamp - $now->timestamp);
 
-        // Fetch aggregated drugs produced during the event period
-        $rows = EventDrugProduction::select('character_id', DB::raw('SUM(amount) as total_produced'))
+        // Fetch aggregated drugs produced during the event period with deterministic tie-breaking
+        $rows = EventDrugProduction::select('character_id', DB::raw('SUM(amount) as total_produced'), DB::raw('MIN(created_at) as first_produced_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->groupBy('character_id')
             ->orderByDesc('total_produced')
+            ->orderBy('first_produced_at', 'asc')
             ->get();
 
         $totalParticipants = $rows->count();
@@ -125,7 +126,7 @@ class EventDrugsProductionService
 
         $charIds = $rows->pluck('character_id')->all();
         $characters = Character::whereIn('id', $charIds)
-            ->get(['id', 'name', 'level', 'avatar', 'gender'])
+            ->get(['id', 'name', 'level', 'avatar', 'avatar_custom', 'gender'])
             ->keyBy('id');
 
         $leaderboard = [];
@@ -206,11 +207,12 @@ class EventDrugsProductionService
             return null;
         }
 
-        $topProducer = EventDrugProduction::select('character_id', DB::raw('SUM(amount) as total_produced'))
+        $topProducer = EventDrugProduction::select('character_id', DB::raw('SUM(amount) as total_produced'), DB::raw('MIN(created_at) as first_produced_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->groupBy('character_id')
             ->orderByDesc('total_produced')
+            ->orderBy('first_produced_at', 'asc')
             ->first();
 
         if (! $topProducer) {
@@ -270,7 +272,7 @@ class EventDrugsProductionService
             }
 
             try {
-                self::syncWinnerArticle();
+                self::syncWinnerArticle(true);
             } catch (\Throwable $e) {
                 Log::warning('EventDrugsProductionService winner article sync failed: '.$e->getMessage());
             }
@@ -285,41 +287,53 @@ class EventDrugsProductionService
     /**
      * Synchronize the winner announcement news article with the definitive leaderboard results.
      */
-    public static function syncWinnerArticle(): ?NewsArticle
+    public static function syncWinnerArticle(bool $force = false): ?NewsArticle
     {
-        if (! Schema::hasTable('news_articles') || ! Schema::hasTable('event_drug_productions')) {
+        if ((! $force && ! self::hasEnded()) || ! Schema::hasTable('news_articles') || ! Schema::hasTable('event_drug_productions')) {
             return null;
         }
 
         $start = Carbon::parse(self::EVENT_START);
         $end = Carbon::parse(self::EVENT_END);
 
-        $rows = EventDrugProduction::select('character_id', DB::raw('SUM(amount) as total_produced'))
+        $rows = EventDrugProduction::select('character_id', DB::raw('SUM(amount) as total_produced'), DB::raw('MIN(created_at) as first_produced_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->groupBy('character_id')
             ->orderByDesc('total_produced')
+            ->orderBy('first_produced_at', 'asc')
             ->get();
+
+        if ($rows->isEmpty()) {
+            return null;
+        }
+
+        $ranked = [];
+        $totalUnits = 0;
 
         $charIds = $rows->pluck('character_id')->all();
         $characters = Character::whereIn('id', $charIds)->get(['id', 'name'])->keyBy('id');
 
-        $ranked = [];
         foreach ($rows as $row) {
             $char = $characters->get($row->character_id);
             if ($char) {
+                $cleanName = str_replace(['|', '[', ']', '<', '>'], '', $char->name);
                 $ranked[] = [
-                    'name' => $char->name,
+                    'name' => $cleanName,
                     'produced' => (int) $row->total_produced,
                     'produced_formatted' => number_format((int) $row->total_produced, 0, ',', '.'),
                 ];
             }
         }
-
-        $winnerName = $ranked[0]['name'] ?? 'Jan Molenaar';
-        $winnerProduced = $ranked[0]['produced_formatted'] ?? '5.420';
         $totalUnits = (int) $rows->sum('total_produced');
-        $totalUnitsFormatted = $totalUnits > 0 ? number_format($totalUnits, 0, ',', '.') : $winnerProduced;
+
+        if (empty($ranked)) {
+            return null;
+        }
+
+        $winnerName = $ranked[0]['name'];
+        $winnerProduced = $ranked[0]['produced_formatted'];
+        $totalUnitsFormatted = number_format($totalUnits, 0, ',', '.');
 
         $podiumLines = [];
         $podiumLines[] = "- 🥇 **#1 {$winnerName}** — {$winnerProduced} eenheden *(Winnaar van € 5.000.000 cash + 1.000 Sterren ⭐)*";
