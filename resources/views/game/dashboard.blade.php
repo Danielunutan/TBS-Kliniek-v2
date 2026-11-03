@@ -466,7 +466,8 @@ function tbsDashboardCustomizer() {
 
             <!-- SEIZOEN 1 BATTLE PASS BANNER (4 SPOREN) -->
             <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-600/15 to-indigo-600/10 dark:from-amber-950/40 dark:via-purple-950/50 dark:to-indigo-950/40 p-4 sm:p-5 text-slate-900 dark:text-white shadow-md border-2 border-amber-400 dark:border-amber-500/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-start gap-3.5">
+                <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-500/10 dark:bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-start gap-3.5">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-xl shadow-md shrink-0">
                         <i class="fa-solid fa-trophy"></i>
                     </div>
@@ -479,7 +480,7 @@ function tbsDashboardCustomizer() {
                                 1x Gratis Spoor + 3x VIP Tiers
                             </span>
                         </div>
-                        <h3 class="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                        <h3 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:!text-white">
                             Seizoen 1 Battle Pass &bull; 20 Niveaus vol Beloningen
                         </h3>
                         <p class="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
@@ -487,7 +488,7 @@ function tbsDashboardCustomizer() {
                         </p>
                     </div>
                 </div>
-                <div class="shrink-0">
+                <div class="relative z-10 shrink-0">
                     <a href="{{ route('battlepass.index') }}" class="btn-star-gold w-full sm:w-auto px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-gift"></i>
                         <span>Open Battle Pass</span>

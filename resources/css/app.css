@@ -270,8 +270,8 @@ html.dark :is(.text-red-950, .text-red-900, .text-red-800, .text-red-700, .text-
 }
 
 /* Preserve high-contrast dark text on solid bright amber, yellow, and emerald badges/buttons in dark mode */
-html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500, [class*="from-amber-3"], [class*="from-amber-4"], [class*="from-amber-5"], [class*="from-yellow-3"], [class*="from-yellow-4"], [class*="from-yellow-5"]):is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950),
-html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500, [class*="from-amber-3"], [class*="from-amber-4"], [class*="from-amber-5"], [class*="from-yellow-3"], [class*="from-yellow-4"], [class*="from-yellow-5"]) :is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950) {
+html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500, [class*="from-amber-3"], [class*="from-amber-4"], [class*="from-amber-5"], [class*="from-yellow-3"], [class*="from-yellow-4"], [class*="from-yellow-5"]):not([class*="/"]):is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950):not([class*="dark:text-"]),
+html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500, [class*="from-amber-3"], [class*="from-amber-4"], [class*="from-amber-5"], [class*="from-yellow-3"], [class*="from-yellow-4"], [class*="from-yellow-5"]):not([class*="/"]):not([class*="rounded-2xl"]):not([class*="rounded-3xl"]):not([class*="rounded-xl"]) :is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950):not([class*="dark:text-"]) {
     color: #0f172a !important;
 }
 
