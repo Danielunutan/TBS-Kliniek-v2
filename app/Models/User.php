@@ -51,6 +51,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get all social and web app reward claims for this user.
+     */
+    public function socialRewardClaims(): HasMany
+    {
+        return $this->hasMany(SocialRewardClaim::class);
+    }
+
+    /**
      * Check if user is the platform owner.
      */
     public function isOwner(): bool

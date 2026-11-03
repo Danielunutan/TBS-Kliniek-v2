@@ -5,6 +5,8 @@
         isInstalled: false,
         isIos: false,
         canNativeInstall: false,
+        hasClaimedBonus: {{ Auth::user()?->socialRewardClaims()->where('platform', 'push')->exists() ? 'true' : 'false' }},
+        claimingBonus: false,
         init() {
             // Check if already running in standalone mode
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
@@ -53,6 +55,46 @@
                 window.tbsDeferredPwaPrompt = null;
             } else {
                 this.showModal = true;
+            }
+        },
+        async claimBonus() {
+            this.claimingBonus = true;
+            try {
+                const csrfToken = document.querySelector('meta[name=\'csrf-token\']')?.getAttribute('content');
+                const res = await fetch('{{ route('community.claim', 'push') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-TBS-Standalone': '1'
+                    },
+                    body: JSON.stringify({ is_standalone: true })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    this.hasClaimedBonus = true;
+                    if (typeof window.tbsToast === 'function') {
+                        window.tbsToast(data.message, 'success', 6000);
+                    }
+                    if (typeof window.tbsRefreshStats === 'function') {
+                        window.tbsRefreshStats(true);
+                    }
+                    if (data.character) {
+                        window.dispatchEvent(new CustomEvent('tbs:stats-updated', { detail: data.character }));
+                    }
+                } else {
+                    if (typeof window.tbsToast === 'function') {
+                        window.tbsToast(data.message || 'Claimen mislukt.', 'warning');
+                    }
+                }
+            } catch (e) {
+                if (typeof window.tbsToast === 'function') {
+                    window.tbsToast('Er is een fout opgetreden bij het claimen.', 'error');
+                }
+            } finally {
+                this.claimingBonus = false;
             }
         },
         dismissBanner() {
@@ -132,6 +174,10 @@
                         <i class="fa-solid fa-bolt text-amber-500"></i> Waarom de App installeren?
                     </div>
                     <ul class="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                        <li class="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold">
+                            <i class="fa-solid fa-gift text-amber-500"></i>
+                            <span><strong>Inclusief Welkomstbonus:</strong> Ontvang direct € 25.000 cash + 25 respect bij eerste opening als Web App!</span>
+                        </li>
                         <li class="flex items-center gap-2">
                             <i class="fa-solid fa-check text-emerald-500"></i>
                             <span><strong>Geen browserbalken:</strong> Echte fullscreen gaming ervaring.</span>
@@ -180,6 +226,13 @@
                         class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer">
                     Sluiten
                 </button>
+                <template x-if="isInstalled && !hasClaimedBonus">
+                    <button type="button" @click="claimBonus()" :disabled="claimingBonus"
+                            class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center gap-1.5 disabled:opacity-50">
+                        <i class="fa-solid" :class="claimingBonus ? 'fa-spinner fa-spin' : 'fa-gift'"></i>
+                        <span x-text="claimingBonus ? 'Bezig...' : 'Claim Web App Bonus (€ 25.000)'"></span>
+                    </button>
+                </template>
                 <template x-if="canNativeInstall">
                     <button type="button" @click="installNative()"
                             class="py-2.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center gap-1.5">

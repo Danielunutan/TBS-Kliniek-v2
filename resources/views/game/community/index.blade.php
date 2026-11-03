@@ -9,15 +9,108 @@
 @endphp
 <div class="max-w-5xl mx-auto space-y-6" x-data="{
     claiming: null,
-    async claimPlatform(platformKey, url, formId) {
-        // Open the social media page in a new window/tab
-        window.open(url, '_blank', 'noopener,noreferrer');
+    claims: @js($claims),
+    claimedCount: {{ $claimedCount }},
+    totalPlatforms: {{ $totalPlatforms }},
 
-        // Submit the claim form
+    isStandalone() {
+        return Boolean(('standalone' in window.navigator && window.navigator.standalone)
+            || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches));
+    },
+
+    isClaimed(key) {
+        return Boolean(this.claims && this.claims[key]);
+    },
+
+    async claimPlatform(platformKey, url, formId) {
+        if (this.claiming || this.isClaimed(platformKey)) {
+            return;
+        }
+
+        // Open external links synchronously in the click gesture to avoid iOS popup blocking
+        if (url && url.startsWith('http')) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
         this.claiming = platformKey;
-        const form = document.getElementById(formId);
-        if (form) {
-            form.submit();
+
+        // Try push subscription if claiming push on web and supported
+        if (platformKey === 'push' && window.tbsPush && !this.isStandalone()) {
+            try {
+                const pushRes = await window.tbsPush.subscribe();
+                if (pushRes && pushRes.success) {
+                    this.claims[platformKey] = true;
+                    this.claimedCount++;
+                    if (typeof window.tbsToast === 'function') {
+                        window.tbsToast(pushRes.message || '🎉 Push bonus ontvangen!', 'success');
+                    }
+                    if (typeof window.tbsRefreshStats === 'function') {
+                        window.tbsRefreshStats(true);
+                    }
+                    this.claiming = null;
+                    return;
+                }
+            } catch (pushErr) {
+                // If push subscription failed, continue to backend claim attempt
+            }
+        }
+
+        try {
+            const csrfToken = document.querySelector('meta[name=\'csrf-token\']')?.getAttribute('content');
+            const response = await fetch('{{ url('/community/claim') }}/' + platformKey, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-TBS-Standalone': this.isStandalone() ? '1' : '0'
+                },
+                body: JSON.stringify({
+                    is_standalone: this.isStandalone()
+                }),
+                keepalive: true
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                this.claims[platformKey] = true;
+                this.claimedCount++;
+
+                if (typeof window.tbsToast === 'function') {
+                    window.tbsToast(data.message, 'success');
+                }
+                if (typeof window.tbsRefreshStats === 'function') {
+                    window.tbsRefreshStats(true);
+                }
+                if (data.character) {
+                    window.dispatchEvent(new CustomEvent('tbs:stats-updated', { detail: data.character }));
+                }
+            } else {
+                if (platformKey === 'push' && !this.isStandalone()) {
+                    if (window.tbsOpenPwaModal) {
+                        window.tbsOpenPwaModal();
+                    } else if (data.url) {
+                        window.location.href = data.url;
+                    }
+                }
+                if (typeof window.tbsToast === 'function') {
+                    window.tbsToast(data.message || 'Claimen mislukt.', 'warning');
+                }
+            }
+        } catch (e) {
+            // Fallback: submit standard form if AJAX fails
+            const form = document.getElementById(formId);
+            if (form) {
+                form.submit();
+                return;
+            }
+            if (typeof window.tbsToast === 'function') {
+                window.tbsToast('Er is een verbindingsfout opgetreden.', 'error');
+            }
+        } finally {
+            this.claiming = null;
         }
     }
 }">
@@ -74,10 +167,10 @@
                 <div class="pt-2 border-t border-slate-200/80 dark:border-slate-700/70">
                     <div class="flex items-center justify-between text-[11px] font-bold mb-1">
                         <span class="text-slate-600 dark:text-slate-300">Jouw Voortgang</span>
-                        <span class="text-purple-700 dark:text-purple-300 font-extrabold">{{ $claimedCount }} / {{ $totalPlatforms }} Geclaimd</span>
+                        <span class="text-purple-700 dark:text-purple-300 font-extrabold"><span x-text="claimedCount">{{ $claimedCount }}</span> / {{ $totalPlatforms }} Geclaimd</span>
                     </div>
                     <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-                        <div class="bg-gradient-to-r from-purple-600 to-amber-500 h-full rounded-full transition-all duration-500" style="width: {{ round(($claimedCount / max(1, $totalPlatforms)) * 100) }}%"></div>
+                        <div class="bg-gradient-to-r from-purple-600 to-amber-500 h-full rounded-full transition-all duration-500" :style="'width: ' + Math.round((claimedCount / Math.max(1, totalPlatforms)) * 100) + '%'" style="width: {{ round(($claimedCount / max(1, $totalPlatforms)) * 100) }}%"></div>
                     </div>
                 </div>
                 @endif
@@ -91,7 +184,8 @@
         @php
             $isClaimed = isset($claims[$key]);
         @endphp
-        <div class="bg-white dark:bg-slate-900 border {{ $isClaimed ? 'border-emerald-300/80 dark:border-emerald-800/60 bg-emerald-50/10 dark:bg-emerald-950/10' : 'border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80' }} rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 relative overflow-hidden transition hover:shadow-md">
+        <div class="bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 relative overflow-hidden transition hover:shadow-md {{ $isClaimed ? 'border-emerald-300/80 dark:border-emerald-800/60 bg-emerald-50/10 dark:bg-emerald-950/10' : 'border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80' }}"
+             :class="isClaimed('{{ $key }}') ? 'border-emerald-300/80 dark:border-emerald-800/60 bg-emerald-50/10 dark:bg-emerald-950/10' : 'border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80'">
             
             <div class="space-y-3">
                 <!-- Header with Icon & Name -->
@@ -116,11 +210,9 @@
                         </div>
                     </div>
 
-                    @if($isClaimed)
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-black text-[10px] uppercase tracking-wider shrink-0 shadow-2xs">
-                            <i class="fa-solid fa-check text-xs"></i> Geclaimd
-                        </span>
-                    @endif
+                    <span x-show="isClaimed('{{ $key }}')" {!! $isClaimed ? '' : 'style="display: none;"' !!} class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-black text-[10px] uppercase tracking-wider shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-check text-xs"></i> Geclaimd
+                    </span>
                 </div>
 
                 <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -148,40 +240,42 @@
 
             <!-- Action Button Area -->
             <div class="pt-2">
-                @if($isClaimed)
-                    <div class="w-full py-2.5 px-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-2 select-none">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <span>Beloning Ontvangen</span>
-                    </div>
-                @elseif(Auth::check() && $character && ($character->isImprisoned() || $character->isComatose()))
-                    <button type="button" disabled title="Je kunt geen community beloningen claimen vanuit de isoleercel of in coma" class="w-full py-2.5 px-4 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-400 text-xs font-black uppercase tracking-wider cursor-not-allowed opacity-60 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-lock"></i>
-                        <span>{{ $character->isImprisoned() ? 'In Isoleercel' : 'In Coma' }}</span>
-                    </button>
-                @elseif(Auth::check())
-                    <form id="claim-form-{{ $key }}" action="{{ route('community.claim', $key) }}" method="POST" class="w-full">
-                        @csrf
-                        <button type="button" 
-                                @click="claimPlatform(@js($key), @js($p['url']), @js('claim-form-' . $key))"
-                                :disabled="claiming === '{{ $key }}'"
-                                class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
-                            <span x-show="claiming !== '{{ $key }}'" class="flex items-center gap-2">
-                                <span>{{ $p['action_label'] }}</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
-                            </span>
-                            <span x-show="claiming === '{{ $key }}'" style="display: none;" class="flex items-center gap-2">
-                                <i class="fa-solid fa-spinner fa-spin"></i>
-                                <span>Bezig met verwerken...</span>
-                            </span>
+                <div x-show="isClaimed('{{ $key }}')" {!! $isClaimed ? '' : 'style="display: none;"' !!} class="w-full py-2.5 px-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-2 select-none">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Beloning Ontvangen</span>
+                </div>
+
+                <div x-show="!isClaimed('{{ $key }}')" {!! $isClaimed ? 'style="display: none;"' : '' !!}>
+                    @if(Auth::check() && $character && ($character->isImprisoned() || $character->isComatose()))
+                        <button type="button" disabled title="Je kunt geen community beloningen claimen vanuit de isoleercel of in coma" class="w-full py-2.5 px-4 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-400 text-xs font-black uppercase tracking-wider cursor-not-allowed opacity-60 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-lock"></i>
+                            <span>{{ $character->isImprisoned() ? 'In Isoleercel' : 'In Coma' }}</span>
                         </button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" 
-                       class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
-                        <span>Log in om te Claimen</span>
-                        <i class="fa-solid fa-arrow-right text-[11px]"></i>
-                    </a>
-                @endif
+                    @elseif(Auth::check())
+                        <form id="claim-form-{{ $key }}" action="{{ route('community.claim', $key) }}" method="POST" class="w-full" @submit.prevent="claimPlatform(@js($key), @js($p['url']), @js('claim-form-' . $key))">
+                            @csrf
+                            <button type="button" 
+                                    @click="claimPlatform(@js($key), @js($p['url']), @js('claim-form-' . $key))"
+                                    :disabled="claiming === '{{ $key }}'"
+                                    class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50">
+                                <span x-show="claiming !== '{{ $key }}'" class="flex items-center gap-2">
+                                    <span>{{ $p['action_label'] }}</span>
+                                    <i class="fa-solid {{ $key === 'push' ? 'fa-bell' : 'fa-arrow-up-right-from-square' }} text-[11px]"></i>
+                                </span>
+                                <span x-show="claiming === '{{ $key }}'" style="display: none;" class="flex items-center gap-2">
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                    <span>Bezig met verwerken...</span>
+                                </span>
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" 
+                           class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                            <span>Log in om te Claimen</span>
+                            <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                        </a>
+                    @endif
+                </div>
             </div>
 
         </div>

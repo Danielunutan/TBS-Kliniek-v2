@@ -3,7 +3,7 @@
     'use strict';
 
     window.tbsPush = {
-        async isSupported() {
+        isSupported() {
             return ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window);
         },
 
@@ -13,7 +13,7 @@
         },
 
         async getSubscription() {
-            if (!await this.isSupported()) return null;
+            if (!this.isSupported()) return null;
             try {
                 const reg = await navigator.serviceWorker.ready;
                 return await reg.pushManager.getSubscription();
@@ -28,26 +28,53 @@
         },
 
         async subscribe() {
-            if (!await this.isSupported()) {
+            if (!this.isSupported()) {
                 throw new Error('Pushmeldingen worden niet ondersteund door deze browser.');
             }
 
-            const perm = await Notification.requestPermission();
+            // iOS WebKit requires requestPermission to be called directly in the user click gesture without prior await
+            let perm = Notification.permission;
+            if (perm !== 'granted') {
+                perm = await Notification.requestPermission();
+            }
             if (perm !== 'granted') {
                 throw new Error('Toestemming voor meldingen werd geweigerd in de browserinstellingen.');
             }
 
-            const reg = await navigator.serviceWorker.ready;
+            const isStandalone = Boolean(('standalone' in navigator && navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
             // Fetch VAPID public key
-            const keyRes = await fetch('/push/key', { 
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } 
-            });
-            const keyData = await keyRes.json();
-            if (!keyData.public_key) {
-                throw new Error('Kon VAPID sleutel niet ophalen van server.');
+            let keyData = null;
+            try {
+                const keyRes = await fetch('/push/key', { 
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } 
+                });
+                keyData = await keyRes.json();
+            } catch (e) {
+                keyData = null;
             }
 
+            if (!keyData || !keyData.public_key) {
+                // If VAPID is not set on the server, claim the WebApp/Push bonus directly with permission/standalone
+                const fallbackRes = await fetch('/community/claim/push', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-TBS-Standalone': isStandalone ? '1' : '0'
+                    },
+                    body: JSON.stringify({
+                        is_standalone: isStandalone,
+                        notification_granted: true
+                    })
+                });
+                return await fallbackRes.json();
+            }
+
+            const reg = await navigator.serviceWorker.ready;
             const convertedVapidKey = this.urlBase64ToUint8Array(keyData.public_key);
 
             let sub = await reg.pushManager.getSubscription();

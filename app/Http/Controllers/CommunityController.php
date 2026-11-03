@@ -179,16 +179,21 @@ class CommunityController extends Controller
             return redirect()->route('community.index')->with('error', 'Je hebt de beloning voor '.$platformData['name'].' al geclaimd.');
         }
 
-        if ($platform === 'push' && ! $user->pushSubscriptions()->exists()) {
+        $isStandalone = $request->boolean('is_standalone')
+            || $request->header('X-TBS-Standalone') === '1'
+            || $request->input('device_standalone') === true
+            || $request->boolean('notification_granted');
+
+        if ($platform === 'push' && ! $user->pushSubscriptions()->exists() && ! $isStandalone) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Schakel eerst pushnotificaties in op deze pagina of in je accountinstellingen om de € 25.000 bonus te ontvangen.',
+                    'message' => 'Schakel pushnotificaties in of installeer de Web App op je startscherm om de € 25.000 bonus te ontvangen.',
                     'url' => route('settings.account'),
                 ]);
             }
 
-            return redirect()->route('settings.account')->with('info', 'Schakel pushnotificaties in om direct € 25.000 cash en 25 respect te ontvangen!');
+            return redirect()->route('settings.account')->with('info', 'Schakel pushnotificaties in of installeer de Web App om direct € 25.000 cash en 25 respect te ontvangen!');
         }
 
         $reward = $platformData['reward'];
@@ -231,7 +236,9 @@ class CommunityController extends Controller
 
         $character->refresh();
 
-        $successMessage = '🎉 Bedankt voor het volgen van ons '.$platformData['name'].'! Je hebt € '.number_format($reward['cash'], 0, ',', '.').' cash, '.$reward['respect'].' respect en '.$reward['energy'].' energie ontvangen!';
+        $successMessage = $platform === 'push'
+            ? '🎉 Bedankt voor het activeren van onze Desktop & Web App alerts! Je hebt € '.number_format($reward['cash'], 0, ',', '.').' cash, '.$reward['respect'].' respect en '.$reward['energy'].' energie ontvangen!'
+            : '🎉 Bedankt voor het volgen van ons '.$platformData['name'].'! Je hebt € '.number_format($reward['cash'], 0, ',', '.').' cash, '.$reward['respect'].' respect en '.$reward['energy'].' energie ontvangen!';
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

@@ -3819,6 +3819,10 @@
     </div>
 
     @auth
+    @php
+        $pushBonusClaimed = Auth::user()?->socialRewardClaims()->where('platform', 'push')->exists();
+    @endphp
+    @if(! $pushBonusClaimed)
     <!-- TBS PUSH PROMPT INCENTIVE BANNER (PC & Mobiel) -->
     <div id="tbs-push-incentive-banner"
          x-data="tbsPushBanner()"
@@ -3887,25 +3891,26 @@
                 visible: false,
                 loading: false,
                 isIosNonStandalone: false,
+                isStandalone: false,
 
                 async init() {
                     if (window.location.pathname.startsWith('/onboarding')) {
                         return;
                     }
                     const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                    const isStandalone = ('standalone' in navigator && navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
-                    this.isIosNonStandalone = isIos && !isStandalone;
+                    this.isStandalone = Boolean(('standalone' in navigator && navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches);
+                    this.isIosNonStandalone = isIos && !this.isStandalone;
 
                     const dismissedUntil = localStorage.getItem('tbs_push_dismissed_until');
                     if (dismissedUntil && Number(dismissedUntil) > Date.now()) {
                         return;
                     }
 
-                    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+                    if (!('Notification' in window) && !this.isStandalone) {
                         return;
                     }
 
-                    if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+                    if (window.Notification && (Notification.permission === 'granted' || Notification.permission === 'denied') && !this.isStandalone) {
                         return;
                     }
 
@@ -3920,32 +3925,78 @@
                 },
 
                 async enablePush() {
-                    if (!window.tbsPush) return;
                     this.loading = true;
                     try {
-                        const res = await window.tbsPush.subscribe();
-                        if (res.success) {
+                        // 1. If on iOS non-standalone, open the install modal to guide the user
+                        if (this.isIosNonStandalone) {
                             this.visible = false;
-                            localStorage.setItem('tbs_push_dismissed_until', String(Date.now() + (365 * 24 * 60 * 60 * 1000)));
-                            
-                            const msg = res.message || 'Pushnotificaties zijn geactiveerd!';
-                            if (typeof window.tbsToast === 'function') {
-                                window.tbsToast(msg, 'success', 6000);
-                            } else {
-                                alert(msg);
+                            if (window.tbsOpenPwaModal) {
+                                window.tbsOpenPwaModal();
                             }
-                        } else {
-                            if (typeof window.tbsToast === 'function') {
-                                window.tbsToast(res.message || 'Inschakelen mislukt.', 'error');
-                            } else {
-                                alert(res.message || 'Inschakelen mislukt.');
+                            return;
+                        }
+
+                        // 2. Try subscribing via WebPush if available
+                        let pushSuccess = false;
+                        if (window.tbsPush && window.tbsPush.isSupported()) {
+                            try {
+                                const res = await window.tbsPush.subscribe();
+                                if (res && res.success) {
+                                    pushSuccess = true;
+                                    this.visible = false;
+                                    localStorage.setItem('tbs_push_dismissed_until', String(Date.now() + (365 * 24 * 60 * 60 * 1000)));
+                                    const msg = res.message || 'Pushnotificaties zijn geactiveerd!';
+                                    if (typeof window.tbsToast === 'function') {
+                                        window.tbsToast(msg, 'success', 6000);
+                                    }
+                                    if (typeof window.tbsRefreshStats === 'function') {
+                                        window.tbsRefreshStats(true);
+                                    }
+                                    return;
+                                }
+                            } catch (pushErr) {
+                                console.log('Push subscription attempted:', pushErr);
                             }
+                        }
+
+                        // 3. If in standalone mode (App installed) or fallback, claim via community.claim('push')
+                        if (this.isStandalone || pushSuccess) {
+                            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                            const claimRes = await fetch('{{ route('community.claim', 'push') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-TBS-Standalone': '1'
+                                },
+                                body: JSON.stringify({ is_standalone: true })
+                            });
+                            const claimData = await claimRes.json();
+                            if (claimRes.ok && claimData.success) {
+                                this.visible = false;
+                                localStorage.setItem('tbs_push_dismissed_until', String(Date.now() + (365 * 24 * 60 * 60 * 1000)));
+                                if (typeof window.tbsToast === 'function') {
+                                    window.tbsToast(claimData.message, 'success', 6000);
+                                }
+                                if (typeof window.tbsRefreshStats === 'function') {
+                                    window.tbsRefreshStats(true);
+                                }
+                                if (claimData.character) {
+                                    window.dispatchEvent(new CustomEvent('tbs:stats-updated', { detail: claimData.character }));
+                                }
+                                return;
+                            }
+                        }
+
+                        // If not standalone and push failed, show guidance
+                        if (typeof window.tbsToast === 'function') {
+                            window.tbsToast('Installeer de Web App op je startscherm of geef meldingstoestemming om de bonus te claimen.', 'warning');
                         }
                     } catch (err) {
                         if (typeof window.tbsToast === 'function') {
                             window.tbsToast(err.message || 'Fout bij inschakelen.', 'error');
-                        } else {
-                            alert(err.message || 'Fout bij inschakelen.');
                         }
                     } finally {
                         this.loading = false;
@@ -3954,6 +4005,7 @@
             };
         }
     </script>
+    @endif
     @endauth
 
     @if(!request()->header('X-TBS-Background-Refresh') && !request()->header('X-TBS-Action'))

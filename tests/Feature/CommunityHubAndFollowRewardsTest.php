@@ -115,6 +115,56 @@ class CommunityHubAndFollowRewardsTest extends TestCase
         $this->assertEquals(3, SocialRewardClaim::where('user_id', $user->id)->count());
     }
 
+    public function test_authenticated_player_can_claim_platform_reward_via_json(): void
+    {
+        [$user, $character] = $this->createPlayerWithCharacter();
+
+        $response = $this->actingAs($user)->postJson(route('community.claim', 'youtube'));
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('platform', 'youtube');
+
+        $character->refresh();
+        $this->assertEquals(35000, $character->cash);
+        $this->assertEquals(125, $character->respect);
+        $this->assertEquals(65, $character->energy);
+        $this->assertTrue(SocialRewardClaim::where('user_id', $user->id)->where('platform', 'youtube')->exists());
+    }
+
+    public function test_player_in_standalone_webapp_can_claim_push_reward(): void
+    {
+        [$user, $character] = $this->createPlayerWithCharacter();
+
+        $response = $this->actingAs($user)->postJson(route('community.claim', 'push'), [
+            'is_standalone' => true,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('platform', 'push');
+
+        $character->refresh();
+        $this->assertEquals(35000, $character->cash);
+        $this->assertEquals(125, $character->respect);
+        $this->assertEquals(70, $character->energy);
+        $this->assertTrue(SocialRewardClaim::where('user_id', $user->id)->where('platform', 'push')->exists());
+    }
+
+    public function test_push_reward_rejected_when_not_subscribed_and_not_standalone(): void
+    {
+        [$user, $character] = $this->createPlayerWithCharacter();
+
+        $response = $this->actingAs($user)->postJson(route('community.claim', 'push'), [
+            'is_standalone' => false,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', false);
+
+        $this->assertFalse(SocialRewardClaim::where('user_id', $user->id)->where('platform', 'push')->exists());
+    }
+
     public function test_footer_does_not_contain_old_ssl_and_avg_pills(): void
     {
         $response = $this->get('/');
