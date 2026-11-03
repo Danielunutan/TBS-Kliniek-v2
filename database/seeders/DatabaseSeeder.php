@@ -10,6 +10,7 @@ use App\Models\Mission;
 use App\Models\NewsArticle;
 use App\Models\User;
 use App\Support\MissionCatalog;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -372,6 +373,17 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now()->subMonths(2)->subWeeks(1),
                 'published_at' => now()->subMonths(2)->subWeeks(1),
             ],
+            [
+                'title' => 'Winnaar Bekend: De Grote Drugsproductie — Jan Molenaar Kroont Zich Tot Drugslord!',
+                'slug' => 'winnaar-bekend-de-grote-drugsproductie',
+                'emoji' => '🏆',
+                'is_pinned' => false,
+                'comments_enabled' => true,
+                'is_published' => true,
+                'content' => "Beste patiënten, bendeleden en kliniekbewoners,\n\nHet allereerste grote weekendevent van de vernieuwde kliniek — **De Grote Drugsproductie** — is zondagavond om **23:59:59 uur** officieel tot een zinderend einde gekomen! 🌿💊\n\nTwee dagen lang draaiden de illegale plantages, geheime stokerijen en pillenlijnen op de afdelingen dag en nacht overuren. Er is massaal gesmokkeld, geritseld en geproduceerd om de begeerde titel van Drugslord te veroveren. De directie heeft de administratie van alle partijen en leveringen definitief gesloten en gecontroleerd.\n\n---\n\n### 👑 De Officiële Winnaar & Drugslord\n\nDe absolute nummer 1 van de kliniek op basis van de definitieve resultaten is geworden:\n\n[winner=Jan Molenaar|5.420 stuks|€ 5.000.000 Cash|1.000 Sterren ⭐]\n\nVan harte gefeliciteerd, **Jan Molenaar**! De hoofdprijs van **€ 5.000.000 contant geld** én **1.000 Sterren ⭐** is direct bijgeschreven op jouw account en staat klaar in je voorraad!\n\n---\n\n### 📊 De Definitieve Eindstand & Podium\n\nHieronder vind je de officiële topklassering van de definitieve resultaten:\n\n- 🥇 **#1 Jan Molenaar** — 5.420 eenheden *(Winnaar van € 5.000.000 cash + 1.000 Sterren ⭐)*\n- 🥈 **#2 Niels van der Meer** — 3.850 eenheden *(Zilveren podiumplaats)*\n- 🥉 **#3 ds. Fabian van Salmen Msc** — 1.200 eenheden *(Bronzen podiumplaats)*\n\nIn totaal hebben alle deelnemers gezamenlijk **10.470 eenheden contrabande** geproduceerd en door de beveiligingssluizen weten te loodsen!\n\n---\n\n### 🚀 Geen Tijd Te Verliezen: Direct Een Nieuwe Challenge!\n\nTreur niet als je net naast het podium bent geëindigd, want de kliniekleiding zit niet stil. Direct per maandag 2 november 00:00 uur staat er een gloednieuwe uitdaging live: [url=/nieuws/de-grote-kluiscode-challenge-2500-sterren-en-100-codes]De Grote Kluiscode Challenge[/url]!\n\nGa direct naar [url=/kluis-kraak]Kluis Kraak[/url], wissel je kluiscodes in en strijd mee voor **2.500 Sterren en 100 Kluiscodes**!\n\nBedankt aan alle producenten en smokkelaars voor een fantastisch en strijdlustig weekend!\n\n*Met criminele groet,*  \n**Daniël**  \n*Directie TBS Kliniek*",
+                'created_at' => Carbon::parse('2026-11-02 00:00:00'),
+                'published_at' => Carbon::parse('2026-11-02 00:00:00'),
+            ],
         ];
 
         foreach ($defaultArticles as $dArt) {
@@ -565,70 +577,6 @@ class DatabaseSeeder extends Seeder
             ], [
                 'quantity' => 2,
             ]);
-        }
-
-        // Seed event challenge winner article & drug productions for testing environment
-        if (class_exists(\App\Models\EventDrugProduction::class) && \App\Models\EventDrugProduction::count() === 0) {
-            $janUser = User::firstOrCreate(['email' => 'jan.molenaar@tbskliniek.nl'], [
-                'name' => 'Jan Molenaar',
-                'password' => Hash::make('secret'),
-            ]);
-            $janChar = Character::firstOrCreate(['name' => 'Jan Molenaar'], [
-                'user_id' => $janUser->id,
-                'title' => 'Drugslord',
-                'level' => 15,
-                'cash' => 5000000,
-                'bank' => 2000000,
-                'respect' => 1200,
-            ]);
-
-            $nielsUser = User::firstOrCreate(['email' => 'niels.vandermeer@tbskliniek.nl'], [
-                'name' => 'Niels van der Meer',
-                'password' => Hash::make('secret'),
-            ]);
-            $nielsChar = Character::firstOrCreate(['name' => 'Niels van der Meer'], [
-                'user_id' => $nielsUser->id,
-                'title' => 'Meesterbrouwer',
-                'level' => 12,
-                'cash' => 2500000,
-                'bank' => 1000000,
-                'respect' => 850,
-            ]);
-
-            $fabianUser = User::firstOrCreate(['email' => 'fabian.vansalmen@tbskliniek.nl'], [
-                'name' => 'ds. Fabian van Salmen Msc',
-                'password' => Hash::make('secret'),
-            ]);
-            $fabianChar = Character::firstOrCreate(['name' => 'ds. Fabian van Salmen Msc'], [
-                'user_id' => $fabianUser->id,
-                'title' => 'Pillenpastor',
-                'level' => 10,
-                'cash' => 1000000,
-                'bank' => 500000,
-                'respect' => 600,
-            ]);
-
-            \App\Models\EventDrugProduction::create([
-                'character_id' => $janChar->id,
-                'amount' => 5420,
-                'drug_type' => 'wiet',
-                'created_at' => \Carbon\Carbon::parse('2026-10-31 14:30:00'),
-            ]);
-            \App\Models\EventDrugProduction::create([
-                'character_id' => $nielsChar->id,
-                'amount' => 3850,
-                'drug_type' => 'wiet',
-                'created_at' => \Carbon\Carbon::parse('2026-10-31 16:45:00'),
-            ]);
-            \App\Models\EventDrugProduction::create([
-                'character_id' => $fabianChar->id,
-                'amount' => 1200,
-                'drug_type' => 'medicatie',
-                'created_at' => \Carbon\Carbon::parse('2026-10-31 20:00:00'),
-            ]);
-
-            \App\Services\EventDrugsProductionService::syncWinnerArticle(true);
-            \App\Services\EventVaultCrackingService::syncChallengeArticle();
         }
     }
 }
