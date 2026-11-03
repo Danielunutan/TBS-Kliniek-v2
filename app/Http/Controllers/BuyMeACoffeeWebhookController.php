@@ -448,14 +448,18 @@ class BuyMeACoffeeWebhookController extends Controller
         $perks = $character->perks ?? [];
 
         if (str_contains($tierLower, 'lifetime')) {
+            $alreadyLifetime = ((int) ($perks['supporter_tier'] ?? 0) === 4);
             $character->vip_expires_at = Carbon::now()->addYears(99);
-            $character->stars = ($character->stars ?? 0) + 1500;
-            $character->xxl_cases = ($character->xxl_cases ?? 0) + 10;
-            $character->masks = ($character->masks ?? 0) + 30;
+            if (! $alreadyLifetime || ! empty($data['force_grant'])) {
+                $character->stars = ($character->stars ?? 0) + 1500;
+                $character->xxl_cases = ($character->xxl_cases ?? 0) + 10;
+                $character->masks = ($character->masks ?? 0) + 30;
+            }
             $perks['supporter_tier'] = 4;
             $perks['has_custom_name_color'] = true;
             $perks['has_sparkle_effect'] = true;
             $perks['hourly_cash_bonus'] = 50000;
+            $perks['is_donator'] = true;
             $tierLabel = 'VIP LIFETIME';
         } elseif (str_contains($tierLower, 'baas')) {
             $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()

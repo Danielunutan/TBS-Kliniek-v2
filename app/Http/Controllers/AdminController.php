@@ -1130,6 +1130,16 @@ class AdminController extends Controller
         $isCoffee = str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie') || (! $order->is_membership);
 
         if (! $isCoffee && $order->is_membership) {
+            if (str_contains($tierLower, 'lifetime') && $character->getVipTier() === 4) {
+                $orderPayload = $order->payload ?? [];
+                $orderPayload['rewards_granted'] = true;
+                $orderPayload['rewards_granted_at'] = now()->toIso8601String();
+                $order->payload = $orderPayload;
+                $order->save();
+
+                return back()->with('info', "{$character->name} heeft al VIP LIFETIME actief. Er zijn geen dubbele beloningen toegekend.");
+            }
+
             $webhookController->grantMembershipTier($character, $tier, $order->payload ?? []);
         } else {
             $coffees = 1;
@@ -1242,53 +1252,57 @@ class AdminController extends Controller
             $coffees = 3;
         }
 
-        $order = BuyMeACoffeeOrder::create([
-            'event' => $isMembership ? 'membership.manual' : 'donation.manual',
-            'external_id' => 'manual_'.uniqid(),
-            'supporter_name' => $validated['supporter_name'],
-            'supporter_email' => $validated['supporter_email'],
-            'amount' => $validated['amount'],
-            'currency' => 'EUR',
-            'membership_tier' => $validated['membership_tier'],
-            'message' => $validated['message'],
-            'character_id' => $character->id,
-            'status' => 'manually_linked',
-            'is_membership' => $isMembership,
-            'membership_status' => $isMembership ? 'active' : null,
-            'linked_at' => now(),
-            'payload' => [
-                'manual' => true,
-                'created_by' => Auth::id(),
-                'support_coffees' => $coffees,
-                'quantity' => $coffees,
-                'amount' => max((float) $validated['amount'], $coffees * 3.0),
-            ],
-        ]);
+        DB::transaction(function () use ($isMembership, $validated, $character, $coffees, $tier, $currentUser): void {
+            $order = BuyMeACoffeeOrder::create([
+                'event' => $isMembership ? 'membership.manual' : 'donation.manual',
+                'external_id' => 'manual_'.uniqid(),
+                'supporter_name' => $validated['supporter_name'],
+                'supporter_email' => $validated['supporter_email'],
+                'amount' => $validated['amount'],
+                'currency' => 'EUR',
+                'membership_tier' => $validated['membership_tier'],
+                'message' => $validated['message'],
+                'character_id' => $character->id,
+                'status' => 'manually_linked',
+                'is_membership' => $isMembership,
+                'membership_status' => $isMembership ? 'active' : null,
+                'linked_at' => now(),
+                'payload' => [
+                    'manual' => true,
+                    'created_by' => Auth::id(),
+                    'support_coffees' => $coffees,
+                    'quantity' => $coffees,
+                    'amount' => max((float) $validated['amount'], $coffees * 3.0),
+                    'rewards_granted' => true,
+                    'rewards_granted_at' => now()->toIso8601String(),
+                ],
+            ]);
 
-        $webhookController = app(BuyMeACoffeeWebhookController::class);
-        if ($isMembership) {
-            $webhookController->grantMembershipTier($character, $validated['membership_tier'], ['manual' => true]);
-        } else {
-            $webhookController->processEvent('donation', [
-                'support_coffees' => $coffees,
-                'quantity' => $coffees,
-                'amount' => max((float) $validated['amount'], $coffees * 3.0),
-            ], $character);
-        }
+            $webhookController = app(BuyMeACoffeeWebhookController::class);
+            if ($isMembership) {
+                $webhookController->grantMembershipTier($character, $validated['membership_tier'], ['manual' => true, 'order_id' => $order->id]);
+            } else {
+                $webhookController->processEvent('donation', [
+                    'support_coffees' => $coffees,
+                    'quantity' => $coffees,
+                    'amount' => max((float) $validated['amount'], $coffees * 3.0),
+                ], $character);
+            }
 
-        try {
-            AuditLogService::log(
-                action: 'buymeacoffee_manual_create',
-                category: 'vip',
-                description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$character->name} ({$validated['membership_tier']}) door ".($currentUser?->name ?? Auth::user()?->name ?? 'Staff'),
-                character: $character,
-                user: $character->user,
-                amount: (int) $validated['amount'],
-                details: ['order_id' => $order->id, 'tier' => $tier, 'is_membership' => $isMembership]
-            );
-        } catch (\Throwable $e) {
-            Log::warning('Failed to log buymeacoffee_manual_create audit record: '.$e->getMessage());
-        }
+            try {
+                AuditLogService::log(
+                    action: 'buymeacoffee_manual_create',
+                    category: 'vip',
+                    description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$character->name} ({$validated['membership_tier']}) door ".($currentUser?->name ?? Auth::user()?->name ?? 'Staff'),
+                    character: $character,
+                    user: $character->user,
+                    amount: (int) $validated['amount'],
+                    details: ['order_id' => $order->id, 'tier' => $tier, 'is_membership' => $isMembership]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Failed to log buymeacoffee_manual_create audit record: '.$e->getMessage());
+            }
+        });
 
         return back()->with('success', "Handmatige Buy Me a Coffee registratie succesvol gekoppeld aan {$character->name}!");
     }
