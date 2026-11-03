@@ -176,7 +176,7 @@ html.dark footer:not([class*="dark:bg-"]) {
 }
 
 /* Neutral Text Hierarchy in Dark Mode (preserves dark text on bright amber/yellow/emerald badges & buttons) */
-html.dark :is(.text-slate-950, .text-purple-950, .text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800):not([class*="dark:text-"]):not([class*="peer-checked:text-"]):not([class*="bg-amber-3"]):not([class*="bg-amber-4"]):not([class*="bg-amber-5"]):not([class*="bg-yellow-3"]):not([class*="bg-yellow-4"]):not([class*="bg-yellow-5"]):not([class*="bg-emerald-4"]):not([class*="bg-emerald-5"]):not([class*="bg-orange-4"]):not([class*="bg-orange-5"]) {
+html.dark :is(.text-slate-950, .text-purple-950, .text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800):not([class*="dark:text-"]):not([class*="peer-checked:text-"]):not([class*="bg-amber-3"]):not([class*="bg-amber-4"]):not([class*="bg-amber-5"]):not([class*="bg-yellow-3"]):not([class*="bg-yellow-4"]):not([class*="bg-yellow-5"]):not([class*="bg-emerald-4"]):not([class*="bg-emerald-5"]):not([class*="bg-orange-4"]):not([class*="bg-orange-5"]):not([class*="from-amber-3"]):not([class*="from-amber-4"]):not([class*="from-amber-5"]):not([class*="from-yellow-3"]):not([class*="from-yellow-4"]):not([class*="from-yellow-5"]) {
     color: #f8fafc !important;
 }
 
@@ -270,8 +270,8 @@ html.dark :is(.text-red-950, .text-red-900, .text-red-800, .text-red-700, .text-
 }
 
 /* Preserve high-contrast dark text on solid bright amber, yellow, and emerald badges/buttons in dark mode */
-html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500):is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950),
-html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500) :is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950) {
+html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500, [class*="from-amber-3"], [class*="from-amber-4"], [class*="from-amber-5"], [class*="from-yellow-3"], [class*="from-yellow-4"], [class*="from-yellow-5"]):is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950),
+html.dark :is(.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-emerald-400, .bg-emerald-500, [class*="from-amber-3"], [class*="from-amber-4"], [class*="from-amber-5"], [class*="from-yellow-3"], [class*="from-yellow-4"], [class*="from-yellow-5"]) :is(.text-slate-950, .text-slate-900, .text-purple-950, .text-amber-950, .text-amber-900, .text-yellow-950, .text-emerald-950) {
     color: #0f172a !important;
 }
 

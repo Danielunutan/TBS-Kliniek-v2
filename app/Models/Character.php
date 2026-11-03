@@ -940,7 +940,7 @@ class Character extends Model
                 'label' => 'Lifetime V.I.P.',
                 'short_label' => 'Lifetime',
                 'icon' => 'fa-crown',
-                'class' => 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 border-amber-300 shadow-md shadow-amber-500/20',
+                'class' => 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 dark:text-slate-950 border-amber-300 dark:border-amber-400 shadow-md shadow-amber-500/20',
                 'border_color' => 'border-amber-400',
                 'glow' => 'shadow-[0_0_15px_rgba(251,191,36,0.6)]',
             ],

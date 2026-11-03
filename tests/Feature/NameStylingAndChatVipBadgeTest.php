@@ -101,4 +101,20 @@ class NameStylingAndChatVipBadgeTest extends TestCase
             ->assertJsonPath('messages.0.name_gradient', 'syndicate')
             ->assertJsonPath('messages.0.name_glow', 'pulse');
     }
+
+    public function test_lifetime_vip_badge_attributes_and_dark_mode_classes(): void
+    {
+        $character = new Character([
+            'is_vip' => true,
+            'vip_expires_at' => now()->addYears(10),
+            'perks' => ['supporter_tier' => 4],
+        ]);
+
+        $badge = $character->vip_badge;
+        $this->assertNotNull($badge);
+        $this->assertEquals(4, $badge['tier']);
+        $this->assertEquals('Lifetime V.I.P.', $badge['label']);
+        $this->assertStringContainsString('text-slate-950', $badge['class']);
+        $this->assertStringContainsString('dark:text-slate-950', $badge['class']);
+    }
 }
