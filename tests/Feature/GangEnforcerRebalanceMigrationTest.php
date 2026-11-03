@@ -255,4 +255,48 @@ class GangEnforcerRebalanceMigrationTest extends TestCase
         $this->assertGreaterThanOrEqual(80000, $defenderGang->protection_points);
         $this->assertLessThanOrEqual(90000, $defenderGang->protection_points);
     }
+
+    public function test_rebalance_normalizes_uneven_procedural_enforcers_to_exact_100_percent(): void
+    {
+        $user = User::factory()->create();
+        $leader = Character::create([
+            'user_id' => $user->id,
+            'name' => 'ProceduralLeader',
+            'gender' => 'male',
+            'level' => 25,
+        ]);
+
+        $gang = Gang::create([
+            'name' => 'ProceduralEnforcersGang',
+            'tag' => 'PEG',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $leader->id,
+            'attack_power' => 100000,
+            'protection_points' => 100000,
+            'treasury' => 100000,
+        ]);
+        $leader->update(['gang_id' => $gang->id, 'gang_role' => 'leader']);
+
+        // Create procedural Enforcers: 35% + 35% + 22% (= 92%) + 30% + 30% (= 152% total)
+        foreach ([35, 35, 22, 30, 30] as $idx => $bonus) {
+            GangNpc::create([
+                'gang_id' => $gang->id,
+                'npc_key' => 'enforcer_kapitein',
+                'name' => 'Procedural Boris '.($idx + 1),
+                'role_title' => 'Enforcer',
+                'bonus_type' => 'defense',
+                'bonus_value' => $bonus,
+                'hired_at' => now()->subHours(5 - $idx),
+            ]);
+        }
+
+        $migration = require database_path('migrations/2026_11_03_133000_rebalance_gang_enforcers_and_refund_excess.php');
+        $migration->up();
+
+        $gang->refresh();
+        $this->assertCount(3, $gang->npcs()->where('bonus_type', 'defense')->get());
+        $this->assertEquals(100, (int) $gang->npcs()->where('bonus_type', 'defense')->sum('bonus_value'));
+        $this->assertEquals(100, $gang->npc_defense_bonus_percent);
+        $this->assertEquals(1100000, $gang->treasury); // 100k + 2 * 500k refunded
+    }
 }

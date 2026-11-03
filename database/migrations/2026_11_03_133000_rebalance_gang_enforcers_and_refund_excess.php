@@ -74,6 +74,18 @@ return new class extends Migration
                     GangNpc::whereIn('id', $removedIds)->delete();
                 }
 
+                // Ensure kept Enforcers sum to the exact 100% cap if procedural values left a small gap (e.g. 92%)
+                if ($runningBonus < $maxAllowedBonus && ! empty($keptNpcIds)) {
+                    $shortfall = $maxAllowedBonus - $runningBonus;
+                    $lastKeptNpcId = end($keptNpcIds);
+                    $lastKeptNpc = GangNpc::find($lastKeptNpcId);
+                    if ($lastKeptNpc) {
+                        $lastKeptNpc->bonus_value = (int) $lastKeptNpc->bonus_value + $shortfall;
+                        $lastKeptNpc->save();
+                        $runningBonus = $maxAllowedBonus;
+                    }
+                }
+
                 // Refund the total cost back into the gang treasury
                 if ($totalRefund > 0) {
                     $lockedGang->treasury += $totalRefund;

@@ -587,7 +587,8 @@ class GangPropertyController extends Controller
         $errorMessage = DB::transaction(function () use ($gang, $npcKey, $npcData, $cost): ?string {
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-            if (($npcData['bonus_type'] ?? '') === 'defense' && $lockedGang->npc_defense_bonus_percent >= Gang::MAX_NPC_DEFENSE_BONUS_PERCENT) {
+            $currentDefenseBonus = $lockedGang->npc_defense_bonus_percent;
+            if (($npcData['bonus_type'] ?? '') === 'defense' && $currentDefenseBonus >= Gang::MAX_NPC_DEFENSE_BONUS_PERCENT) {
                 return 'Jullie bende heeft het maximale Enforcer-verdedigingslimiet van +'.Gang::MAX_NPC_DEFENSE_BONUS_PERCENT.'% al bereikt! Huur een ander type specialist in.';
             }
 
@@ -603,13 +604,18 @@ class GangPropertyController extends Controller
             $lockedGang->treasury -= $cost;
             $lockedGang->save();
 
+            $effectiveBonusValue = (int) $npcData['bonus_value'];
+            if (($npcData['bonus_type'] ?? '') === 'defense') {
+                $effectiveBonusValue = min($effectiveBonusValue, max(1, Gang::MAX_NPC_DEFENSE_BONUS_PERCENT - $currentDefenseBonus));
+            }
+
             GangNpc::create([
                 'gang_id' => $lockedGang->id,
                 'npc_key' => $npcKey,
                 'name' => $npcData['name'],
                 'role_title' => $npcData['role_title'],
                 'bonus_type' => $npcData['bonus_type'],
-                'bonus_value' => $npcData['bonus_value'],
+                'bonus_value' => $effectiveBonusValue,
                 'hired_at' => now(),
             ]);
 
