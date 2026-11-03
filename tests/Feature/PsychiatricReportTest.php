@@ -306,4 +306,85 @@ class PsychiatricReportTest extends TestCase
         // Barcode
         $response->assertSee($report['dossier_nr'].'-DJI-NETHERLANDS');
     }
+
+    public function test_singular_activity_counts_and_role_formatting_in_doctor_notes(): void
+    {
+        $user = User::factory()->create();
+        $gang = Gang::create([
+            'name' => 'Linkerbaan Gang',
+            'tag' => 'LBG',
+            'description' => 'Test gang',
+            'specialty' => 'smuggling',
+            'leader_id' => $user->id,
+        ]);
+
+        $character = $this->createCharacter($user, [
+            'name' => 'Dave',
+            'fights_won' => 1,
+            'fights_lost' => 1,
+            'thefts_succeeded' => 1,
+            'thefts_failed' => 1,
+            'breakout_attempts' => 1,
+            'prison_escapes' => 1,
+            'palmed_pills_count' => 1,
+            'hacks_completed_total' => 1,
+            'kills_count' => 1,
+            'bullets' => 1,
+            'dagbesteding_shifts_completed' => 1,
+            'dagbesteding_earned_total' => 500,
+            'gang_id' => $gang->id,
+            'gang_role' => 'co_leader',
+            'respect' => 12185,
+        ]);
+
+        CharacterArmWrestleStat::create([
+            'character_id' => $character->id,
+            'wins' => 1,
+            'losses' => 1,
+        ]);
+
+        EscapeTunnel::create([
+            'character_id' => $character->id,
+            'progress_pct' => 20,
+            'spoons_used' => 1,
+            'times_escaped' => 1,
+        ]);
+
+        $report = $character->getPsychiatricReport();
+        $notes = $report['doctor_notes'];
+
+        // Singular grammar checks
+        $this->assertStringContainsString('1 geweldsconfrontatie', $notes);
+        $this->assertStringNotContainsString('1 geweldsconfrontaties', $notes);
+        $this->assertStringContainsString('1 incassatie', $notes);
+        $this->assertStringNotContainsString('1 incassaties', $notes);
+        $this->assertStringContainsString('1 zege', $notes);
+        $this->assertStringNotContainsString('1 zeges', $notes);
+        $this->assertStringContainsString('1 dodelijke liquidatie', $notes);
+        $this->assertStringNotContainsString('1 dodelijke liquidaties', $notes);
+        $this->assertStringContainsString('1 patroon', $notes);
+        $this->assertStringNotContainsString('1 patronen', $notes);
+        $this->assertStringContainsString('1 geslaagde ontvreemding.', $notes);
+        $this->assertStringNotContainsString('1 geslaagde ontvreemdingen', $notes);
+        $this->assertStringContainsString('1 uitbraakpoging', $notes);
+        $this->assertStringNotContainsString('1 uitbraakpogingen', $notes);
+        $this->assertStringContainsString('1 afgesleten eetlepel', $notes);
+        $this->assertStringNotContainsString('1 afgesleten eetlepels', $notes);
+        $this->assertStringContainsString('1 pil verdonkeremaand', $notes);
+        $this->assertStringNotContainsString('1 pillen verdonkeremaand', $notes);
+        $this->assertStringContainsString('1 ongeautoriseerde inbraak', $notes);
+        $this->assertStringNotContainsString('1 ongeautoriseerde inbraken', $notes);
+        $this->assertStringContainsString('1 werkdienst', $notes);
+        $this->assertStringNotContainsString('1 werkdiensten', $notes);
+
+        // Role & respect formatting checks
+        $this->assertStringContainsString('Onderbaas', $notes);
+        $this->assertStringNotContainsString('co_leader', $notes);
+        $this->assertStringContainsString('12.185 respectpunten', $notes);
+        $this->assertStringNotContainsString('12185 respectpunten', $notes);
+
+        // Check multi-paragraph structure (at least 4 paragraphs separated by \n\n)
+        $paragraphs = explode("\n\n", $notes);
+        $this->assertGreaterThanOrEqual(4, count($paragraphs));
+    }
 }

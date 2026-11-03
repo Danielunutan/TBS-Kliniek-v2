@@ -1141,10 +1141,14 @@
                         </span>
                         <span class="text-[10px] text-stone-400 dark:text-slate-400 font-mono">Vertrouwelijk Inrichtingsverslag</span>
                     </div>
-                    <div class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed bg-stone-50/80 dark:bg-slate-900/80 p-4 rounded-xl border border-stone-200/80 dark:border-slate-700/80 italic font-serif relative">
+                    <div class="text-xs text-slate-800 dark:text-slate-200 bg-stone-50/80 dark:bg-slate-900/80 p-4 sm:p-5 rounded-xl border border-stone-200/80 dark:border-slate-700/80 italic font-serif relative">
                         <span class="text-2xl text-stone-300 dark:text-slate-600 absolute -top-1 left-2 font-serif select-none">&ldquo;</span>
-                        <div class="relative z-10 pl-3 space-y-2 whitespace-pre-line">
-                            {{ $psychiatricReport['doctor_notes'] }}
+                        <div class="relative z-10 pl-3.5 space-y-3.5">
+                            @foreach(explode("\n\n", $psychiatricReport['doctor_notes']) as $noteParagraph)
+                                @if(trim($noteParagraph))
+                                    <p class="leading-relaxed">{{ trim($noteParagraph) }}</p>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-stone-100 dark:border-slate-700/60 text-[10px] text-stone-500 dark:text-slate-400">
