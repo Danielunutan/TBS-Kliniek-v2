@@ -194,19 +194,23 @@ class AdminController extends Controller
             $targetUser->save();
 
             if ($oldRole !== $newRole) {
-                GameNotification::create([
-                    'character_id' => $character->id,
-                    'type' => 'role_change',
-                    'icon' => match ($newRole) {
-                        'owner' => 'fa-crown',
-                        'admin' => 'fa-user-shield',
-                        'moderator' => 'fa-gavel',
-                        default => 'fa-user',
-                    },
-                    'title' => 'Rol Status Aangepast',
-                    'message' => 'Je accountrol is aangepast naar '.ucfirst($newRole).' door de directie.',
-                    'is_read' => false,
-                ]);
+                try {
+                    GameNotification::create([
+                        'character_id' => $character->id,
+                        'type' => 'role_change',
+                        'icon' => match ($newRole) {
+                            'owner' => 'fa-crown',
+                            'admin' => 'fa-user-shield',
+                            'moderator' => 'fa-gavel',
+                            default => 'fa-user',
+                        },
+                        'title' => 'Rol Status Aangepast',
+                        'message' => 'Je accountrol is aangepast naar '.ucfirst($newRole).' door de directie.',
+                        'is_read' => false,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to create role change game notification: '.$e->getMessage());
+                }
             }
         }
 
@@ -803,24 +807,32 @@ class AdminController extends Controller
             }
         }
 
-        GameNotification::create([
-            'character_id' => $character->id,
-            'type' => 'bmac_linked',
-            'icon' => 'fa-mug-hot',
-            'title' => 'Buy Me a Coffee Gekoppeld!',
-            'message' => "Je Buy Me a Coffee bijdrage van {$order->formatted_amount} is handmatig door het beheer gekoppeld aan je account. Al je voordelen zijn direct geactiveerd!",
-            'is_read' => false,
-        ]);
+        try {
+            GameNotification::create([
+                'character_id' => $character->id,
+                'type' => 'bmac_linked',
+                'icon' => 'fa-mug-hot',
+                'title' => 'Buy Me a Coffee Gekoppeld!',
+                'message' => "Je Buy Me a Coffee bijdrage van {$order->formatted_amount} is handmatig door het beheer gekoppeld aan je account. Al je voordelen zijn direct geactiveerd!",
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to create BMAC linked notification: '.$e->getMessage());
+        }
 
-        AuditLogService::log(
-            action: 'buymeacoffee_manual_link',
-            category: 'vip',
-            description: "BuyMeACoffee order #{$order->id} ({$order->supporter_name}) handmatig gekoppeld aan {$character->name} met tier {$tierName}",
-            character: $character,
-            user: $character->user,
-            amount: (int) $order->amount,
-            details: ['order_id' => $order->id, 'tier' => $tierName]
-        );
+        try {
+            AuditLogService::log(
+                action: 'buymeacoffee_manual_link',
+                category: 'vip',
+                description: "BuyMeACoffee order #{$order->id} ({$order->supporter_name}) handmatig gekoppeld aan {$character->name} met tier {$tierName}",
+                character: $character,
+                user: $character->user,
+                amount: (int) $order->amount,
+                details: ['order_id' => $order->id, 'tier' => $tierName]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log buymeacoffee_manual_link audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Buy Me a Coffee order succesvol gekoppeld aan {$character->name}!");
     }
@@ -862,15 +874,19 @@ class AdminController extends Controller
             $webhookController->processEvent('donation', $payload, $character);
         }
 
-        AuditLogService::log(
-            action: 'buymeacoffee_regrant',
-            category: 'vip',
-            description: "BuyMeACoffee order #{$order->id} beloningen ({$order->rewards_summary}) handmatig her-uitgekeerd aan {$character->name}",
-            character: $character,
-            user: $character->user,
-            amount: (int) $order->amount,
-            details: ['order_id' => $order->id]
-        );
+        try {
+            AuditLogService::log(
+                action: 'buymeacoffee_regrant',
+                category: 'vip',
+                description: "BuyMeACoffee order #{$order->id} beloningen ({$order->rewards_summary}) handmatig her-uitgekeerd aan {$character->name}",
+                character: $character,
+                user: $character->user,
+                amount: (int) $order->amount,
+                details: ['order_id' => $order->id]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log buymeacoffee_regrant audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Beloningen ({$order->rewards_summary}) zijn zojuist succesvol uitgekeerd aan {$character->name}!");
     }

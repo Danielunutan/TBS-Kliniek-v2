@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class AdminModerationController extends Controller
@@ -130,23 +131,29 @@ class AdminModerationController extends Controller
         $targetName = $user->character?->name ?? $user->name;
         $durationLabel = $until ? 'tot '.$until->locale('nl')->isoFormat('D MMMM [om] HH:mm') : 'permanent';
 
-        AuditLogService::log(
-            action: 'user_ban',
-            category: 'moderation',
-            description: "Speler verbannen door {$currentUser->name}: {$validated['reason']} ({$durationLabel})",
-            character: $user->character,
-            user: $user,
-            details: [
-                'source_key' => "ban_{$ban->id}",
-                'reason' => $validated['reason'],
-                'duration' => $validated['duration'],
-                'banned_until' => $until?->toIso8601String(),
-                'banned_by_id' => $currentUser->id,
-                'banned_by_name' => $currentUser->name,
-            ],
-            customRisk: 'hoog',
-            customReason: "Account verbannen door {$currentUser->name}: {$validated['reason']}"
-        );
+        $adminName = $currentUser?->name ?? 'Staff';
+
+        try {
+            AuditLogService::log(
+                action: 'user_ban',
+                category: 'moderation',
+                description: "Speler verbannen door {$adminName}: {$validated['reason']} ({$durationLabel})",
+                character: $user->character,
+                user: $user,
+                details: [
+                    'source_key' => "ban_{$ban->id}",
+                    'reason' => $validated['reason'],
+                    'duration' => $validated['duration'],
+                    'banned_until' => $until?->toIso8601String(),
+                    'banned_by_id' => $currentUser?->id,
+                    'banned_by_name' => $adminName,
+                ],
+                customRisk: 'hoog',
+                customReason: "Account verbannen door {$adminName}: {$validated['reason']}"
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log user_ban audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Patiënt {$targetName} is succesvol verbannen ({$durationLabel}).");
     }
@@ -172,19 +179,25 @@ class AdminModerationController extends Controller
 
         $targetName = $user->character?->name ?? $user->name;
 
-        AuditLogService::log(
-            action: 'user_unban',
-            category: 'moderation',
-            description: "Verbanning van {$targetName} opgeheven door {$currentUser->name}",
-            character: $user->character,
-            user: $user,
-            details: [
-                'unbanned_by_id' => $currentUser->id,
-                'unbanned_by_name' => $currentUser->name,
-            ],
-            customRisk: 'verdacht',
-            customReason: "Verbanning handmatig opgeheven door {$currentUser->name}"
-        );
+        $adminName = $currentUser?->name ?? 'Staff';
+
+        try {
+            AuditLogService::log(
+                action: 'user_unban',
+                category: 'moderation',
+                description: "Verbanning van {$targetName} opgeheven door {$adminName}",
+                character: $user->character,
+                user: $user,
+                details: [
+                    'unbanned_by_id' => $currentUser?->id,
+                    'unbanned_by_name' => $adminName,
+                ],
+                customRisk: 'verdacht',
+                customReason: "Verbanning handmatig opgeheven door {$adminName}"
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log user_unban audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "De verbanning van {$targetName} is opgeheven. De patiënt heeft weer toegang.");
     }
@@ -214,21 +227,27 @@ class AdminModerationController extends Controller
 
         $targetName = $user->character?->name ?? $user->name;
 
-        AuditLogService::log(
-            action: 'user_warning',
-            category: 'moderation',
-            description: "Officiële waarschuwing uitgedeeld aan {$targetName} door {$currentUser->name}: {$validated['reason']}",
-            character: $user->character,
-            user: $user,
-            details: [
-                'source_key' => "warn_{$warning->id}",
-                'reason' => $validated['reason'],
-                'issuer_id' => $currentUser->id,
-                'issuer_name' => $currentUser->name,
-            ],
-            customRisk: 'verdacht',
-            customReason: "Officiële waarschuwing: {$validated['reason']}"
-        );
+        $adminName = $currentUser?->name ?? 'Staff';
+
+        try {
+            AuditLogService::log(
+                action: 'user_warning',
+                category: 'moderation',
+                description: "Officiële waarschuwing uitgedeeld aan {$targetName} door {$adminName}: {$validated['reason']}",
+                character: $user->character,
+                user: $user,
+                details: [
+                    'source_key' => "warn_{$warning->id}",
+                    'reason' => $validated['reason'],
+                    'issuer_id' => $currentUser?->id,
+                    'issuer_name' => $adminName,
+                ],
+                customRisk: 'verdacht',
+                customReason: "Officiële waarschuwing: {$validated['reason']}"
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log user_warning audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Officiële waarschuwing succesvol uitgedeeld aan {$targetName}. De melding verschijnt direct bij de speler.");
     }
@@ -250,23 +269,27 @@ class AdminModerationController extends Controller
         $warningUser = $warning->user;
         $warningReason = $warning->reason;
 
-        DB::transaction(fn () => $warning->delete());
+        $adminName = $currentUser?->name ?? 'Staff';
 
-        AuditLogService::log(
-            action: 'warning_deleted',
-            category: 'moderation',
-            description: "Waarschuwing #{$warningId} voor ".($warningUser?->name ?? 'onbekend')." ingetrokken door {$currentUser->name}",
-            character: $warningUser?->character,
-            user: $warningUser,
-            details: [
-                'warning_id' => $warningId,
-                'original_reason' => $warningReason,
-                'deleted_by_id' => $currentUser->id,
-                'deleted_by_name' => $currentUser->name,
-            ],
-            customRisk: 'verdacht',
-            customReason: 'Waarschuwing ingetrokken door staff'
-        );
+        try {
+            AuditLogService::log(
+                action: 'warning_deleted',
+                category: 'moderation',
+                description: "Waarschuwing #{$warningId} voor ".($warningUser?->name ?? 'onbekend')." ingetrokken door {$adminName}",
+                character: $warningUser?->character,
+                user: $warningUser,
+                details: [
+                    'warning_id' => $warningId,
+                    'original_reason' => $warningReason,
+                    'deleted_by_id' => $currentUser?->id,
+                    'deleted_by_name' => $adminName,
+                ],
+                customRisk: 'verdacht',
+                customReason: 'Waarschuwing ingetrokken door staff'
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log warning_deleted audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', 'Waarschuwing is verwijderd uit het dossier.');
     }
@@ -287,21 +310,25 @@ class AdminModerationController extends Controller
             ]);
         });
 
-        AuditLogService::log(
-            action: 'report_resolved',
-            category: 'moderation',
-            description: "Melding #{$report->id} ({$report->reason}) opgelost door ".(Auth::user()?->name ?? 'Staff'),
-            character: Auth::user()?->character,
-            user: Auth::user(),
-            details: [
-                'report_id' => $report->id,
-                'reporter_character_id' => $report->reporter_id,
-                'reason' => $report->reason,
-                'reported_name' => $report->reported_name,
-                'notes' => $request->input('notes'),
-                'handled_by_id' => Auth::id(),
-            ]
-        );
+        try {
+            AuditLogService::log(
+                action: 'report_resolved',
+                category: 'moderation',
+                description: "Melding #{$report->id} ({$report->reason}) opgelost door ".(Auth::user()?->name ?? 'Staff'),
+                character: Auth::user()?->character,
+                user: Auth::user(),
+                details: [
+                    'report_id' => $report->id,
+                    'reporter_character_id' => $report->reporter_id,
+                    'reason' => $report->reason,
+                    'reported_name' => $report->reported_name,
+                    'notes' => $request->input('notes'),
+                    'handled_by_id' => Auth::id(),
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log report_resolved audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', 'Melding gemarkeerd als opgelost / afgehandeld.');
     }
@@ -322,21 +349,25 @@ class AdminModerationController extends Controller
             ]);
         });
 
-        AuditLogService::log(
-            action: 'report_dismissed',
-            category: 'moderation',
-            description: "Melding #{$report->id} ({$report->reason}) verworpen door ".(Auth::user()?->name ?? 'Staff'),
-            character: Auth::user()?->character,
-            user: Auth::user(),
-            details: [
-                'report_id' => $report->id,
-                'reporter_character_id' => $report->reporter_id,
-                'reason' => $report->reason,
-                'reported_name' => $report->reported_name,
-                'notes' => $request->input('notes'),
-                'handled_by_id' => Auth::id(),
-            ]
-        );
+        try {
+            AuditLogService::log(
+                action: 'report_dismissed',
+                category: 'moderation',
+                description: "Melding #{$report->id} ({$report->reason}) verworpen door ".(Auth::user()?->name ?? 'Staff'),
+                character: Auth::user()?->character,
+                user: Auth::user(),
+                details: [
+                    'report_id' => $report->id,
+                    'reporter_character_id' => $report->reporter_id,
+                    'reason' => $report->reason,
+                    'reported_name' => $report->reported_name,
+                    'notes' => $request->input('notes'),
+                    'handled_by_id' => Auth::id(),
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log report_dismissed audit record: '.$e->getMessage());
+        }
 
         return back()->with('info', 'Melding is verworpen en gearchiveerd.');
     }
@@ -356,22 +387,28 @@ class AdminModerationController extends Controller
 
         DB::transaction(fn () => $report->delete());
 
-        AuditLogService::log(
-            action: 'report_deleted',
-            category: 'moderation',
-            description: "Melding #{$reportId} ({$reason}) definitief verwijderd door {$currentUser->name}",
-            character: $currentUser->character,
-            user: $currentUser,
-            details: [
-                'report_id' => $reportId,
-                'reported_name' => $reportedName,
-                'reason' => $reason,
-                'deleted_by_id' => $currentUser->id,
-                'deleted_by_name' => $currentUser->name,
-            ],
-            customRisk: 'verdacht',
-            customReason: 'Melding definitief verwijderd uit het dossier door beheerder'
-        );
+        $adminName = $currentUser?->name ?? 'Staff';
+
+        try {
+            AuditLogService::log(
+                action: 'report_deleted',
+                category: 'moderation',
+                description: "Melding #{$reportId} ({$reason}) definitief verwijderd door {$adminName}",
+                character: $currentUser?->character,
+                user: $currentUser,
+                details: [
+                    'report_id' => $reportId,
+                    'reported_name' => $reportedName,
+                    'reason' => $reason,
+                    'deleted_by_id' => $currentUser?->id,
+                    'deleted_by_name' => $adminName,
+                ],
+                customRisk: 'verdacht',
+                customReason: 'Melding definitief verwijderd uit het dossier door beheerder'
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log report_deleted audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', 'Melding definitief verwijderd.');
     }

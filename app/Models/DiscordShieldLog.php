@@ -24,7 +24,7 @@ class DiscordShieldLog extends Model
     /**
      * Quickly create a new log entry.
      */
-    public static function log(string $event, string $description, array $data = []): static
+    public static function log(string $event, string $description, array $data = []): ?static
     {
         $isStaffAction = in_array($event, ['manual_approval', 'manual_ban', 'manual_unban', 'settings_updated'], true);
         $ipAddress = array_key_exists('ip_address', $data)
@@ -35,15 +35,19 @@ class DiscordShieldLog extends Model
             $ipAddress = null;
         }
 
-        return static::create([
-            'event' => $event,
-            'description' => $description,
-            'discord_id' => $data['discord_id'] ?? null,
-            'username' => $data['username'] ?? null,
-            'ip_address' => $ipAddress,
-            'fingerprint_hash' => $data['fingerprint_hash'] ?? null,
-            'severity' => $data['severity'] ?? 'info',
-            'metadata' => $data['metadata'] ?? null,
-        ]);
+        try {
+            return static::create([
+                'event' => $event,
+                'description' => $description,
+                'discord_id' => $data['discord_id'] ?? null,
+                'username' => $data['username'] ?? null,
+                'ip_address' => $ipAddress,
+                'fingerprint_hash' => $data['fingerprint_hash'] ?? null,
+                'severity' => $data['severity'] ?? 'info',
+                'metadata' => $data['metadata'] ?? null,
+            ]);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

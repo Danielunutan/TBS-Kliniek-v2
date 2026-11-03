@@ -12,6 +12,7 @@ use App\Services\DiscordShieldService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class DiscordShieldAdminController extends Controller
@@ -213,21 +214,27 @@ class DiscordShieldAdminController extends Controller
             'severity' => 'warning',
         ]);
 
-        AuditLogService::log(
-            action: 'discord_shield_ban_add',
-            category: 'moderation',
-            description: "Discord Shield ban toegevoegd voor {$request->type}: {$request->value} door {$currentUser->name}",
-            character: $currentUser->character,
-            user: $currentUser,
-            details: [
-                'type' => $request->type,
-                'value' => trim($request->value),
-                'reason' => $request->reason ?? 'Handmatige ban via staff dashboard',
-                'banned_by' => $currentUser->name,
-            ],
-            customRisk: 'hoog',
-            customReason: "Discord Shield zwarte lijst toevoeging ({$request->type})"
-        );
+        $adminName = $currentUser?->name ?? 'Staff';
+
+        try {
+            AuditLogService::log(
+                action: 'discord_shield_ban_add',
+                category: 'moderation',
+                description: "Discord Shield ban toegevoegd voor {$request->type}: {$request->value} door {$adminName}",
+                character: $currentUser?->character,
+                user: $currentUser,
+                details: [
+                    'type' => $request->type,
+                    'value' => trim($request->value),
+                    'reason' => $request->reason ?? 'Handmatige ban via staff dashboard',
+                    'banned_by' => $adminName,
+                ],
+                customRisk: 'hoog',
+                customReason: "Discord Shield zwarte lijst toevoeging ({$request->type})"
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log discord_shield_ban_add audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', 'Zwarte lijst ban is succesvol toegevoegd.');
     }
@@ -255,20 +262,26 @@ class DiscordShieldAdminController extends Controller
             'severity' => 'info',
         ]);
 
-        AuditLogService::log(
-            action: 'discord_shield_ban_remove',
-            category: 'moderation',
-            description: "Discord Shield ban opgeheven voor {$val} door {$currentUser->name}",
-            character: $currentUser->character,
-            user: $currentUser,
-            details: [
-                'ban_id' => $id,
-                'value' => $val,
-                'unbanned_by' => $currentUser->name,
-            ],
-            customRisk: 'verdacht',
-            customReason: 'Discord Shield zwarte lijst ban verwijderd'
-        );
+        $adminName = $currentUser?->name ?? 'Staff';
+
+        try {
+            AuditLogService::log(
+                action: 'discord_shield_ban_remove',
+                category: 'moderation',
+                description: "Discord Shield ban opgeheven voor {$val} door {$adminName}",
+                character: $currentUser?->character,
+                user: $currentUser,
+                details: [
+                    'ban_id' => $id,
+                    'value' => $val,
+                    'unbanned_by' => $adminName,
+                ],
+                customRisk: 'verdacht',
+                customReason: 'Discord Shield zwarte lijst ban verwijderd'
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log discord_shield_ban_remove audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Ban voor {$val} is opgeheven.");
     }
@@ -298,7 +311,9 @@ class DiscordShieldAdminController extends Controller
             $this->discordService->addRole($guildId, $verification->discord_id, $roleId, 'Handmatig goedgekeurd door staff');
         }
 
-        DiscordShieldLog::log('manual_approval', "Gebruiker {$verification->username} ({$verification->discord_id}) handmatig goedgekeurd door ".Auth::user()->name, [
+        $adminName = $currentUser?->name ?? 'Staff';
+
+        DiscordShieldLog::log('manual_approval', "Gebruiker {$verification->username} ({$verification->discord_id}) handmatig goedgekeurd door ".$adminName, [
             'discord_id' => $verification->discord_id,
             'username' => $verification->username,
             'ip_address' => $verification->ip_address,
@@ -306,21 +321,25 @@ class DiscordShieldAdminController extends Controller
             'severity' => 'success',
         ]);
 
-        AuditLogService::log(
-            action: 'discord_shield_manual_approval',
-            category: 'moderation',
-            description: "Discord verificatie voor {$verification->username} ({$verification->discord_id}) handmatig goedgekeurd door {$currentUser->name}",
-            character: $verification->character,
-            user: $verification->user,
-            details: [
-                'verification_id' => $verification->id,
-                'discord_id' => $verification->discord_id,
-                'username' => $verification->username,
-                'approved_by' => $currentUser->name,
-            ],
-            customRisk: 'verdacht',
-            customReason: 'Handmatige goedkeuring van Discord verificatie'
-        );
+        try {
+            AuditLogService::log(
+                action: 'discord_shield_manual_approval',
+                category: 'moderation',
+                description: "Discord verificatie voor {$verification->username} ({$verification->discord_id}) handmatig goedgekeurd door {$adminName}",
+                character: $verification->character,
+                user: $verification->user,
+                details: [
+                    'verification_id' => $verification->id,
+                    'discord_id' => $verification->discord_id,
+                    'username' => $verification->username,
+                    'approved_by' => $adminName,
+                ],
+                customRisk: 'verdacht',
+                customReason: 'Handmatige goedkeuring van Discord verificatie'
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log discord_shield_manual_approval audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Gebruiker {$verification->username} is handmatig goedgekeurd en heeft de Discord rol ontvangen!");
     }
