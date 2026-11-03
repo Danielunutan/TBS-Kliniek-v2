@@ -72,11 +72,43 @@ class MaintenanceModeTest extends TestCase
         $res->assertOk();
     }
 
-    public function test_bypass_query_param_sets_cookie_and_allows_access(): void
+    public function test_guest_cannot_bypass_maintenance_with_the_old_query_parameter(): void
     {
         Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
 
-        $res = $this->get('/?bypass=daniel');
-        $res->assertCookie('tbs_maintenance_bypass');
+        $this->get('/dashboard?bypass=daniel')->assertRedirect(route('login'));
+        $this->get('/?bypass=daniel')->assertOk()->assertCookieMissing('tbs_maintenance_bypass');
+    }
+
+    public function test_an_owner_can_log_in_during_maintenance(): void
+    {
+        Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
+        $owner = User::factory()->create(['role' => 'owner']);
+        Character::create([
+            'user_id' => $owner->id,
+            'name' => 'Kliniekdirecteur',
+            'is_onboarded' => true,
+        ]);
+
+        $this->post(route('login.post'), [
+            'email' => $owner->email,
+            'password' => 'password',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->assertAuthenticatedAs($owner);
+        $this->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_a_regular_user_cannot_access_the_dashboard_after_logging_in_during_maintenance(): void
+    {
+        Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
+        $user = User::factory()->create();
+
+        $this->post(route('login.post'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->get(route('dashboard'))->assertStatus(503);
     }
 }

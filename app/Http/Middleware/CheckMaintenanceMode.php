@@ -39,28 +39,15 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
-        // Check if Daniel is accessing via bypass query param
-        if ($request->query('bypass') === 'daniel') {
-            cookie()->queue(cookie()->forever('tbs_maintenance_bypass', 'daniel-tbs-secret-access'));
-
-            return $next($request);
-        }
-
-        // Check bypass cookie
-        if ($request->cookie('tbs_maintenance_bypass') === 'daniel-tbs-secret-access') {
-            return $next($request);
-        }
-
-        // Check if the currently authenticated user is the platform owner or an administrator
+        // Guests need the login form to authenticate; other routes remain unavailable until
+        // the resulting session has been checked for an explicit administrator role.
         $user = $request->user();
-        if ($user) {
-            $isDaniel = $user->isOwner()
-                || $user->isAdmin()
-                || in_array(strtolower($user->email), ['danielunutan@icloud.com', 'admin@tbskliniek.nl'], true);
+        if (! $user && $request->routeIs('login', 'login.post')) {
+            return $next($request);
+        }
 
-            if ($isDaniel) {
-                return $next($request);
-            }
+        if ($user && $user->isAdmin()) {
+            return $next($request);
         }
 
         // For API / JSON requests, return a clean JSON 503 response

@@ -2,9 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\BuyMeACoffeeWebhookController;
+use App\Models\AuditLog;
 use App\Models\BuyMeACoffeeOrder;
+use App\Models\Character;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
+use Mockery;
 use Tests\TestCase;
 
 class BuyMeACoffeeAdminTest extends TestCase
@@ -15,6 +20,69 @@ class BuyMeACoffeeAdminTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+    }
+
+    public function test_failed_reward_processing_does_not_mark_an_order_as_processed(): void
+    {
+        $character = User::where('email', 'demo@tbskliniek.nl')->firstOrFail()->character;
+        $this->app->instance(BuyMeACoffeeWebhookController::class, new class extends BuyMeACoffeeWebhookController
+        {
+            public function processEvent(string $event, array $data, Character $character): void
+            {
+                throw new \RuntimeException('Reward processing failed');
+            }
+        });
+
+        $this->postJson(route('webhooks.buymeacoffee'), [
+            'event' => 'support.created',
+            'data' => [
+                'support_id' => 'support-transaction-failure',
+                'support_message' => 'TBS-'.$character->id,
+                'amount' => 6,
+            ],
+        ])->assertStatus(500);
+
+        $this->assertDatabaseMissing('buymeacoffee_orders', ['external_id' => 'support-transaction-failure']);
+    }
+
+    public function test_webhook_audit_records_do_not_store_supporter_payload(): void
+    {
+        $character = User::where('email', 'demo@tbskliniek.nl')->firstOrFail()->character;
+
+        $this->postJson(route('webhooks.buymeacoffee'), [
+            'event' => 'support.created',
+            'data' => [
+                'support_id' => 'support-privacy-check',
+                'support_message' => 'TBS-'.$character->id,
+                'supporter_email' => 'donateur@example.invalid',
+                'amount' => 6,
+            ],
+        ])->assertOk();
+
+        $audit = AuditLog::where('action', 'buymeacoffee_donation')->latest('id')->firstOrFail();
+        $this->assertArrayNotHasKey('supporter_email', $audit->details);
+        $this->assertArrayNotHasKey('support_message', $audit->details);
+    }
+
+    public function test_unmatched_webhook_does_not_log_supporter_details(): void
+    {
+        Log::spy();
+
+        $this->postJson(route('webhooks.buymeacoffee'), [
+            'event' => 'membership.started',
+            'data' => [
+                'subscription_id' => 'supporter-unmatched-394',
+                'supporter_name' => 'Anonieme Donateur',
+                'supporter_email' => 'donateur@example.invalid',
+                'support_message' => 'Bijdrage voor de kliniek',
+                'amount' => 14,
+            ],
+        ])->assertOk()->assertJsonPath('matched', false);
+
+        Log::shouldHaveReceived('warning')->with(
+            'BuyMeACoffee Webhook: Player could not be matched automatically',
+            Mockery::on(fn (array $context): bool => array_keys($context) === ['event', 'order_id'])
+        )->once();
     }
 
     public function test_webhook_stores_unmatched_order_when_tag_is_missing(): void

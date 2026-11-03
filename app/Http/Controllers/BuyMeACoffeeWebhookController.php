@@ -126,7 +126,7 @@ class BuyMeACoffeeWebhookController extends Controller
 
         $lockKey = 'bmac_webhook_'.md5(($externalId ?: uniqid()).'_'.$event);
 
-        return Cache::lock($lockKey, 15)->block(5, function () use ($externalId, $event, $supporterName, $supporterEmail, $amount, $currency, $tierName, $message, $character, $isMembership, $payload, $data): JsonResponse {
+        return Cache::lock($lockKey, 15)->block(5, fn (): JsonResponse => DB::transaction(function () use ($externalId, $event, $supporterName, $supporterEmail, $amount, $currency, $tierName, $message, $character, $isMembership, $payload, $data): JsonResponse {
             // Normal Order / Donation / Membership: prevent replay attacks from granting duplicate rewards for the same event.
             if (! empty($externalId)) {
                 $alreadyProcessed = BuyMeACoffeeOrder::where('external_id', $externalId)
@@ -166,7 +166,6 @@ class BuyMeACoffeeWebhookController extends Controller
             } else {
                 Log::warning('BuyMeACoffee Webhook: Player could not be matched automatically', [
                     'event' => $event,
-                    'data' => $data,
                     'order_id' => $order->id,
                 ]);
             }
@@ -176,7 +175,7 @@ class BuyMeACoffeeWebhookController extends Controller
                 'order_id' => $order->id,
                 'matched' => $character !== null,
             ], 200);
-        });
+        }));
     }
 
     /**
@@ -256,7 +255,7 @@ class BuyMeACoffeeWebhookController extends Controller
             // A. Single Coffee / Donation / Support
             if (str_contains($eventNormalized, 'donation') || str_contains($eventNormalized, 'support')) {
                 if (str_contains($eventNormalized, 'refunded')) {
-                    Log::info("BuyMeACoffee: Donation refunded for {$locked->name}", $data);
+                    Log::info('BuyMeACoffee: Donation refunded', ['character_id' => $locked->id]);
 
                     return;
                 }
@@ -316,7 +315,7 @@ class BuyMeACoffeeWebhookController extends Controller
                         character: $locked,
                         user: $locked->user,
                         amount: $starsAwarded,
-                        details: $data
+                        details: self::auditDetails($data)
                     );
                 } catch (\Throwable $e) {
                     Log::warning('Failed to log buymeacoffee_donation audit record: '.$e->getMessage());
@@ -326,7 +325,7 @@ class BuyMeACoffeeWebhookController extends Controller
             // B. Extras (Shop Items)
             if (str_contains($eventNormalized, 'extra')) {
                 if (str_contains($eventNormalized, 'refunded')) {
-                    Log::info("BuyMeACoffee: Extra refunded for {$locked->name}", $data);
+                    Log::info('BuyMeACoffee: Extra refunded', ['character_id' => $locked->id]);
 
                     return;
                 }
@@ -394,7 +393,7 @@ class BuyMeACoffeeWebhookController extends Controller
                     description: "BuyMeACoffee Membership opgezegd voor {$locked->name}, VIP privileges beëindigd",
                     character: $locked,
                     user: $locked->user,
-                    details: $data
+                    details: self::auditDetails($data)
                 );
             } catch (\Throwable $e) {
                 Log::warning('Failed to log buymeacoffee_membership_cancelled audit record: '.$e->getMessage());
@@ -455,7 +454,7 @@ class BuyMeACoffeeWebhookController extends Controller
                 description: "BuyMeACoffee Extra gekocht ({$title}) door {$character->name}",
                 character: $character,
                 user: $character->user,
-                details: $data
+                details: self::auditDetails($data)
             );
         } catch (\Throwable $e) {
             Log::warning('Failed to log buymeacoffee_extra audit record: '.$e->getMessage());
@@ -509,7 +508,7 @@ class BuyMeACoffeeWebhookController extends Controller
                     description: "Extra BuyMeACoffee donatie ({$tierName}) toegevoegd aan Lifetime VIP {$character->name}",
                     character: $character,
                     user: $character->user,
-                    details: $data
+                    details: self::auditDetails($data)
                 );
             } catch (\Throwable $e) {
                 Log::warning('Failed to log buymeacoffee_membership_extra audit record: '.$e->getMessage());
@@ -596,10 +595,25 @@ class BuyMeACoffeeWebhookController extends Controller
                 description: "BuyMeACoffee Membership geactiveerd ({$tierName}) voor {$character->name}",
                 character: $character,
                 user: $character->user,
-                details: $data
+                details: self::auditDetails($data)
             );
         } catch (\Throwable $e) {
             Log::warning('Failed to log buymeacoffee_membership audit record: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Audit only reward-relevant numeric values, not supporter-provided personal data.
+     */
+    private static function auditDetails(array $data): array
+    {
+        $details = [];
+        foreach (['amount', 'total_amount', 'quantity', 'support_coffees'] as $key) {
+            if (isset($data[$key]) && is_numeric($data[$key])) {
+                $details[$key] = $data[$key];
+            }
+        }
+
+        return $details;
     }
 }

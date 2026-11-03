@@ -194,29 +194,14 @@
                     <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
                     <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">2-Factor Authenticatie</h3>
                 </div>
-                <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full {{ $user->two_factor_enabled ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700' }}">
-                    {{ $user->two_factor_enabled ? 'Ingeschakeld' : 'Uitgeschakeld' }}
+                <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70">
+                    Niet beschikbaar
                 </span>
             </div>
 
-            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Beveilig je account extra met een tweede verificatiestap. Hierdoor kan niemand zonder jouw toestemming inloggen op je TBS profiel.
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Twee-factor-authenticatie is momenteel niet beschikbaar. Een eerdere instelling activeerde geen tweede verificatiestap; je account is daarmee dus niet extra beveiligd. Gebruik een uniek wachtwoord en controleer je actieve sessies hieronder.
             </p>
-
-            <form action="{{ route('settings.2fa.toggle') }}" method="POST">
-                @csrf
-                <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
-                    <div>
-                        <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">Status van 2FA</span>
-                        <span class="text-[11px] text-slate-500 dark:text-slate-400">
-                            {{ $user->two_factor_enabled ? 'Jouw account is extra beveiligd.' : 'Schakel 2FA in voor extra veiligheid.' }}
-                        </span>
-                    </div>
-                    <button type="submit" class="px-4 py-2 rounded-xl {{ $user->two_factor_enabled ? 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500' }} text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
-                        {{ $user->two_factor_enabled ? 'Uitschakelen' : 'Inschakelen' }}
-                    </button>
-                </div>
-            </form>
         </div>
 
         <!-- 5. ACTIEVE SESSIES & AFSTAND -->

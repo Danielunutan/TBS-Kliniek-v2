@@ -6,7 +6,6 @@ use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\NewsArticle;
-use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -144,7 +143,7 @@ MARKDOWN;
                                 ."• 🩸 **Verlaagde Verliesstraf:** Bij een afgeslagen aanval verliest de aanvaller nu slechts 2% tot 5% power (was 5% tot 12%).\n\n"
                                 ."Lees het volledige nieuwsbericht op de nieuwspagina voor alle details!\n\n"
                                 ."Met vriendelijke groet,\n"
-                                ."De Directie van FPC De Balk",
+                                .'De Directie van FPC De Balk',
                             'type' => 'gang',
                         ]);
                     }

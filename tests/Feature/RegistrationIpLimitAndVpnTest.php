@@ -13,7 +13,7 @@ class RegistrationIpLimitAndVpnTest extends TestCase
 
     public function test_registration_is_blocked_when_vpn_is_detected(): void
     {
-        $mockVpn = $this->createMock(VpnDetectionService::class);
+        $mockVpn = $this->createStub(VpnDetectionService::class);
         $mockVpn->method('check')->willReturn([
             'is_vpn' => true,
             'provider' => 'NordVPN Test',
@@ -35,7 +35,7 @@ class RegistrationIpLimitAndVpnTest extends TestCase
 
     public function test_registration_allows_up_to_two_accounts_per_ip_and_blocks_third(): void
     {
-        $mockVpn = $this->createMock(VpnDetectionService::class);
+        $mockVpn = $this->createStub(VpnDetectionService::class);
         $mockVpn->method('check')->willReturn([
             'is_vpn' => false,
             'provider' => null,
@@ -87,7 +87,7 @@ class RegistrationIpLimitAndVpnTest extends TestCase
 
     public function test_exempt_accounts_do_not_count_towards_ip_limit(): void
     {
-        $mockVpn = $this->createMock(VpnDetectionService::class);
+        $mockVpn = $this->createStub(VpnDetectionService::class);
         $mockVpn->method('check')->willReturn([
             'is_vpn' => false,
             'provider' => null,

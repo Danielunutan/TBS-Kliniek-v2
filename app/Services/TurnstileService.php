@@ -14,9 +14,10 @@ class TurnstileService
     {
         $secret = config('services.turnstile.secret_key');
 
-        // If no secret key is set yet, gracefully pass to allow testing until keys are added to .env
-        if (empty($secret)) {
-            return true;
+        if (! is_string($secret) || trim($secret) === '') {
+            Log::warning('Turnstile verification unavailable: secret key is not configured.');
+
+            return false;
         }
 
         if (empty($token)) {
@@ -31,9 +32,7 @@ class TurnstileService
             ]);
 
             if ($response->successful()) {
-                $data = $response->json();
-
-                return (bool) ($data['success'] ?? false);
+                return $response->json('success') === true;
             }
         } catch (\Throwable $e) {
             Log::warning('Turnstile verification failed: '.$e->getMessage());

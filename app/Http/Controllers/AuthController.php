@@ -196,10 +196,19 @@ class AuthController extends Controller
                                 return redirect()->route('discord.verify')->with('success', 'Discord account gekoppeld! Voltooi nu de korte beveiligingscheck.');
                             }
 
-                            // Only a verified Discord email may match an existing account. An unverified address
-                            // could belong to someone else, so it falls back to the Discord-based address.
+                            // A generated address is not proof of ownership: a matching account could belong to anyone.
+                            $discordId = $discordUser['id'] ?? null;
+                            if (! is_string($discordId) || ! preg_match('/^[0-9]{1,20}$/', $discordId)) {
+                                return redirect()->route('login')->withErrors(['email' => 'Discord heeft geen geldige accountidentiteit teruggegeven.']);
+                            }
+
+                            $linkedUser = User::where('discord_id', $discordId)->first();
                             $discordEmail = ($discordUser['verified'] ?? false) === true ? ($discordUser['email'] ?? null) : null;
-                            $email = $discordEmail ?? ($discordUser['username'].'@discord.tbskliniek.nl');
+                            if (! $linkedUser && (! is_string($discordEmail) || ! filter_var($discordEmail, FILTER_VALIDATE_EMAIL))) {
+                                return redirect()->route('login')->withErrors(['email' => 'Bevestig eerst je e-mailadres bij Discord of koppel Discord aan een bestaand account.']);
+                            }
+
+                            $email = $linkedUser?->email ?? $discordEmail;
                             $rawName = $discordUser['global_name'] ?? $discordUser['username'] ?? 'Discord Speler';
                             $cleanUsername = strtolower((string) preg_replace('/[^a-zA-Z0-9_-]/', '', (string) ($discordUser['username'] ?? 'inmate')));
                             if (strlen($cleanUsername) < 3) {
@@ -240,7 +249,7 @@ class AuthController extends Controller
                                 }
                             }
 
-                            $user = User::firstOrCreate(
+                            $user = $linkedUser ?? User::firstOrCreate(
                                 ['email' => $email],
                                 [
                                     'name' => $cleanUsername,
@@ -248,9 +257,14 @@ class AuthController extends Controller
                                     'registration_ip' => $request->ip(),
                                     'last_login_ip' => $request->ip(),
                                     'email_verified_at' => now(),
+                                    'discord_id' => $discordId,
                                     'is_onboarded' => false,
                                 ]
                             );
+
+                            if ($user->discord_id && $user->discord_id !== $discordId) {
+                                return redirect()->route('login')->withErrors(['email' => 'Dit account is al gekoppeld aan een ander Discord-account.']);
+                            }
 
                             if (! $isNew) {
                                 $user->forceFill(['last_login_ip' => $request->ip()])->saveQuietly();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Character;
 use App\Models\SocialRewardClaim;
 use App\Services\WebPushService;
+use App\Support\PushEndpoint;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,7 +47,11 @@ class PushSubscriptionController extends Controller
     public function subscribe(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'endpoint' => ['required', 'string'],
+            'endpoint' => ['required', 'string', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) || ! PushEndpoint::isAllowed($value)) {
+                    $fail('Dit pushadres is niet afkomstig van een ondersteunde browserdienst.');
+                }
+            }],
             'public_key' => ['nullable', 'string'],
             'auth_token' => ['nullable', 'string'],
             'content_encoding' => ['nullable', 'string'],

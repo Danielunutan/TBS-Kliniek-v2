@@ -19,7 +19,7 @@ class MaintenanceCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Toggle TBS Kliniek maintenance mode with exclusive access for Daniel';
+    protected $description = 'Toggle TBS Kliniek maintenance mode with access for administrators';
 
     /**
      * Execute the console command.
@@ -40,7 +40,7 @@ class MaintenanceCommand extends Command
 
         if ($action === 'status') {
             if (file_exists($lockFile)) {
-                $this->warn('Onderhoudsmodus is momenteel ACTIEF (Alleen Daniel heeft toegang).');
+                $this->warn('Onderhoudsmodus is momenteel ACTIEF (alleen beheerders hebben toegang).');
                 $data = json_decode((string) file_get_contents($lockFile), true);
                 if (is_array($data)) {
                     $this->line('Verwachte eindtijd: '.($data['target_time'] ?? '22:00'));
@@ -67,7 +67,7 @@ class MaintenanceCommand extends Command
 
         file_put_contents($lockFile, json_encode($payload, JSON_PRETTY_PRINT));
         $this->info("TBS Kliniek is nu in ONDERHOUDSMODUS geplaatst! Verwachte heropening: {$targetTime}.");
-        $this->line('Alleen Daniel heeft toegang via login of via de geheime bypass url (?bypass=daniel).');
+        $this->line('Beheerders hebben na inloggen toegang.');
 
         return Command::SUCCESS;
     }

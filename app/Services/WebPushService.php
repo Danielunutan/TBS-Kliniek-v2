@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Character;
 use App\Models\PushSubscription;
 use App\Models\User;
+use App\Support\PushEndpoint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Minishlink\WebPush\Subscription;
@@ -116,6 +117,11 @@ class WebPushService
         $staleIds = [];
 
         foreach ($subscriptions as $sub) {
+            // Older subscriptions predate endpoint validation; never send to an untrusted host.
+            if (! PushEndpoint::isAllowed($sub->endpoint)) {
+                continue;
+            }
+
             try {
                 $webPushSub = Subscription::create([
                     'endpoint' => $sub->endpoint,

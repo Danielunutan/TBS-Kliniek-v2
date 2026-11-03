@@ -183,26 +183,9 @@ class DiscordShieldController extends Controller
      */
     public function resolveClientIp(Request $request): string
     {
-        $cfIp = $request->header('CF-Connecting-IP');
-        if (is_string($cfIp) && filter_var(trim($cfIp), FILTER_VALIDATE_IP)) {
-            return trim($cfIp);
-        }
+        $ip = $request->ip();
 
-        $forwarded = $request->header('X-Forwarded-For');
-        if (is_string($forwarded) && ! empty($forwarded)) {
-            $parts = explode(',', $forwarded);
-            $candidate = trim($parts[0]);
-            if (filter_var($candidate, FILTER_VALIDATE_IP)) {
-                return $candidate;
-            }
-        }
-
-        $directIp = $request->ip();
-        if (is_string($directIp) && filter_var(trim($directIp), FILTER_VALIDATE_IP)) {
-            return trim($directIp);
-        }
-
-        return '127.0.0.1';
+        return is_string($ip) && filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '127.0.0.1';
     }
 
     /**

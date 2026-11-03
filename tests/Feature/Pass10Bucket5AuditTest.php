@@ -203,9 +203,9 @@ class Pass10Bucket5AuditTest extends TestCase
     {
         $service = app(TurnstileService::class);
 
-        // When secret is not configured, it gracefully passes
+        // A missing secret cannot establish that the response is genuine.
         config(['services.turnstile.secret_key' => '']);
-        $this->assertTrue($service->verify('dummy-token'));
+        $this->assertFalse($service->verify('dummy-token'));
 
         // When secret is configured, empty token fails
         config(['services.turnstile.secret_key' => 'test-secret']);

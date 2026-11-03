@@ -25,8 +25,10 @@ Artisan::command('chat:directie-tiktok-announcement', function () {
         ]
     );
 
-    if ($user->role !== 'admin' || ! $user->is_staff) {
-        $user->update(['role' => 'admin', 'is_staff' => true]);
+    if (! $user->isAdmin()) {
+        $this->error('Het bestaande directieaccount heeft geen beheerdersrechten; de aankondiging is niet verstuurd.');
+
+        return 1;
     }
 
     $character = Character::firstOrCreate(

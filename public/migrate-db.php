@@ -15,10 +15,16 @@ use Illuminate\Support\Facades\DB;
 $kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-$secretKey = (string) (config('services.db_setup.key') ?: (env('DB_SETUP_KEY') ?? getenv('DB_SETUP_KEY') ?? ''));
-$providedKey = (string) ($_GET['key'] ?? $_POST['key'] ?? '');
+header('Cache-Control: no-store, private');
+header('Referrer-Policy: no-referrer');
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
 
-if (empty($secretKey) || ! hash_equals($secretKey, $providedKey)) {
+$secretKey = (string) (config('services.db_setup.key') ?: (env('DB_SETUP_KEY') ?? getenv('DB_SETUP_KEY') ?? ''));
+$providedKey = $_POST['key'] ?? '';
+$isPost = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
+
+if (! $isPost || empty($secretKey) || ! is_string($providedKey) || ! hash_equals($secretKey, $providedKey)) {
     http_response_code(403);
     ?>
     <!DOCTYPE html>
@@ -40,8 +46,12 @@ if (empty($secretKey) || ! hash_equals($secretKey, $providedKey)) {
             <?php if (empty($secretKey)) { ?>
                 <p>De web-installer is uitgeschakeld. Configureer een veilige <code>DB_SETUP_KEY</code> in uw <code>.env</code> bestand of voer migraties uit via het commandline interface (CLI).</p>
             <?php } else { ?>
-                <p>Dit script is beveiligd met een geautoriseerde sleutel. Geef de sleutel op via de URL parameter:</p>
-                <p><code>/migrate-db.php?key=[uw_geheime_sleutel]</code></p>
+                <p>Voer de installatiesleutel in. Gebruik deze pagina uitsluitend via een beveiligde HTTPS-verbinding.</p>
+                <form method="POST" action="/migrate-db.php" autocomplete="off">
+                    <label for="setup-key">Installatiesleutel</label>
+                    <input id="setup-key" type="password" name="key" required autocomplete="off">
+                    <button type="submit">Doorgaan</button>
+                </form>
             <?php } ?>
         </div>
     </body>
@@ -182,8 +192,9 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
                 <pre><?= htmlspecialchars($outputLog) ?></pre>
                 <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center; justify-content: space-between;">
                     <a href="/" class="btn" style="background: #10b981; color: #fff;">🎉 Naar de website</a>
-                    <form method="POST" style="margin: 0;">
-                        <input type="hidden" name="key" value="<?= htmlspecialchars($providedKey) ?>">
+                    <form method="POST" action="/migrate-db.php" style="margin: 0;" autocomplete="off">
+                        <label for="delete-key">Installatiesleutel</label>
+                        <input id="delete-key" type="password" name="key" required autocomplete="off">
                         <input type="hidden" name="action" value="delete">
                         <button type="submit" class="btn btn-danger" onclick="return confirm('Weet je zeker dat je dit script wilt verwijderen?')">🗑️ Verwijder dit script van de server</button>
                     </form>
@@ -195,8 +206,9 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
             <div class="card">
                 <h3 style="margin-top:0;">Actie uitvoeren:</h3>
                 <p style="color: #94a3b8; font-size: 0.9rem;">Klik op de onderstaande knop om alle tabellen aan te maken (migraties) en de initiële content (frikandellen, gangs, missies, items) in te laden.</p>
-                <form method="POST">
-                    <input type="hidden" name="key" value="<?= htmlspecialchars($providedKey) ?>">
+                <form method="POST" action="/migrate-db.php" autocomplete="off">
+                    <label for="run-key">Installatiesleutel</label>
+                    <input id="run-key" type="password" name="key" required autocomplete="off">
                     <input type="hidden" name="action" value="run_all">
                     <button type="submit" class="btn btn-primary" onclick="this.innerHTML='Even geduld... Bezig met installeren...'; this.style.opacity='0.7';">
                         🚀 Start Volledige Database Installatie (Migrate + Seed)

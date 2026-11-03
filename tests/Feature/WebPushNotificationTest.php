@@ -9,6 +9,7 @@ use App\Models\GameNotification;
 use App\Models\User;
 use App\Services\WebPushService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Minishlink\WebPush\WebPush;
 use Mockery;
 use Tests\TestCase;
 
@@ -91,6 +92,69 @@ class WebPushNotificationTest extends TestCase
         $this->assertDatabaseMissing('push_subscriptions', [
             'endpoint' => 'https://fcm.googleapis.com/fcm/send/test-endpoint-token-123',
         ]);
+    }
+
+    public function test_push_subscription_rejects_internal_or_untrusted_endpoints(): void
+    {
+        $user = User::factory()->create();
+        $this->createCharacter($user);
+
+        foreach ([
+            'http://127.0.0.1:8080/admin',
+            'https://169.254.169.254/latest/meta-data/',
+            'https://fcm.googleapis.com.attacker.example/push',
+            'https://fcm.googleapis.com@attacker.example/push',
+            'https://fcm.googleapis.com:8443/push',
+        ] as $endpoint) {
+            $this->actingAs($user)->postJson('/push/subscribe', ['endpoint' => $endpoint])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['endpoint']);
+        }
+
+        $this->assertDatabaseCount('push_subscriptions', 0);
+        $this->assertDatabaseCount('social_reward_claims', 0);
+    }
+
+    public function test_supported_browser_push_services_are_accepted(): void
+    {
+        $user = User::factory()->create();
+        $this->createCharacter($user);
+
+        foreach ([
+            'https://fcm.googleapis.com/fcm/send/device-a',
+            'https://updates.push.services.mozilla.com/wpush/v2/device-b',
+            'https://web.push.apple.com/QDeviceC',
+            'https://example.notify.windows.com/w/device-d',
+        ] as $endpoint) {
+            $this->actingAs($user)->postJson('/push/subscribe', ['endpoint' => $endpoint])
+                ->assertOk()
+                ->assertJsonPath('success', true);
+        }
+
+        $this->assertDatabaseCount('push_subscriptions', 4);
+        $this->assertDatabaseCount('social_reward_claims', 1);
+    }
+
+    public function test_an_existing_untrusted_push_endpoint_is_not_contacted(): void
+    {
+        $user = User::factory()->create();
+        $this->createCharacter($user);
+        $user->pushSubscriptions()->create([
+            'endpoint' => 'https://127.0.0.1/internal',
+            'endpoint_hash' => hash('sha256', 'https://127.0.0.1/internal'),
+        ]);
+
+        $webPush = Mockery::mock(WebPush::class);
+        $webPush->shouldNotReceive('sendOneNotification');
+        $service = new class($webPush) extends WebPushService
+        {
+            public function __construct(WebPush $webPush)
+            {
+                $this->webPush = $webPush;
+            }
+        };
+
+        $this->assertSame(0, $service->sendToUser($user, 'Beveiligingsmelding', 'Controleer je sessies.'));
     }
 
     public function test_game_notification_triggers_push_dispatch(): void

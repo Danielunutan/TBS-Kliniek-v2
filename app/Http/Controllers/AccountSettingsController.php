@@ -254,27 +254,11 @@ class AccountSettingsController extends Controller
     }
 
     /**
-     * Toggle 2FA authentication state.
+     * Reject the legacy toggle: it never enforced a second authentication factor.
      */
     public function toggleTwoFactor(Request $request): RedirectResponse
     {
-        $user = Auth::user();
-
-        if ($user->two_factor_enabled) {
-            $user->two_factor_enabled = false;
-            $user->two_factor_secret = null;
-            $user->save();
-
-            return back()->with('success', 'Twee-factor-authenticatie (2FA) is uitgeschakeld.');
-        }
-
-        $user->two_factor_enabled = true;
-        if (! $user->two_factor_secret) {
-            $user->two_factor_secret = Str::upper(Str::random(16));
-        }
-        $user->save();
-
-        return back()->with('success', 'Twee-factor-authenticatie (2FA) is ingeschakeld op je account!');
+        return back()->with('error', 'Twee-factor-authenticatie is momenteel niet beschikbaar. Je account wordt nog niet met een tweede factor beveiligd.');
     }
 
     /**

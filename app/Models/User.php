@@ -79,7 +79,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isOwner(): bool
     {
-        return $this->role === 'owner' || in_array($this->email, ['admin@tbskliniek.nl', 'danielunutan@icloud.com'], true);
+        return $this->role === 'owner';
     }
 
     /**
@@ -111,7 +111,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isStaff(): bool
     {
-        return $this->canModerate() || (bool) $this->is_staff || in_array($this->email, ['admin@tbskliniek.nl', 'demo@tbskliniek.nl', 'danielunutan@icloud.com'], true);
+        return $this->canModerate();
     }
 
     /**

@@ -345,28 +345,21 @@ class ComprehensiveAuditBucket6Test extends TestCase
     {
         $controller = new DiscordShieldController(app(DiscordShieldService::class));
 
-        // Valid Cloudflare IP
-        $request1 = Request::create('/discord/verifieer/submit', 'POST', [], [], [], [
+        // Headers from an untrusted peer must never override its actual address.
+        $request = Request::create('/discord/verifieer/submit', 'POST', [], [], [], [
             'HTTP_CF_CONNECTING_IP' => '198.51.100.12',
-            'REMOTE_ADDR' => '127.0.0.1',
+            'HTTP_X_FORWARDED_FOR' => '203.0.113.15',
+            'REMOTE_ADDR' => '192.0.2.50',
         ]);
-        $this->assertEquals('198.51.100.12', $controller->resolveClientIp($request1));
+        $this->assertSame('192.0.2.50', $controller->resolveClientIp($request));
 
-        // Malicious spoofed string in CF header falls back to X-Forwarded-For or remote IP
-        $request2 = Request::create('/discord/verifieer/submit', 'POST', [], [], [], [
-            'HTTP_CF_CONNECTING_IP' => '<script>alert(1)</script>',
-            'HTTP_X_FORWARDED_FOR' => '203.0.113.15, 10.0.0.1',
-            'REMOTE_ADDR' => '127.0.0.1',
-        ]);
-        $this->assertEquals('203.0.113.15', $controller->resolveClientIp($request2));
-
-        // Complete spoofing falls back to valid IP
-        $request3 = Request::create('/discord/verifieer/submit', 'POST', [], [], [], [
-            'HTTP_CF_CONNECTING_IP' => 'evil-payload',
-            'HTTP_X_FORWARDED_FOR' => 'another-evil-payload',
-            'REMOTE_ADDR' => '127.0.0.1',
-        ]);
-        $this->assertEquals('127.0.0.1', $controller->resolveClientIp($request3));
+        // The framework may use forwarded addresses only when the proxy is explicitly trusted.
+        Request::setTrustedProxies(['192.0.2.50'], Request::HEADER_X_FORWARDED_FOR);
+        try {
+            $this->assertSame('203.0.113.15', $controller->resolveClientIp($request));
+        } finally {
+            Request::setTrustedProxies([], -1);
+        }
     }
 
     public function test_discord_shield_rate_limiter_blocks_spam(): void
