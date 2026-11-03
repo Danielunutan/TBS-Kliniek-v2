@@ -50,6 +50,7 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.players') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-users"></i> Spelers & VIP
             </a>
+            @if(auth()->user()?->isAdmin())
             <a href="{{ route('admin.gameplay') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.gameplay') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-sliders"></i> Winkansen & Balans
@@ -62,10 +63,12 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.vault') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-vault"></i> Kluis & Codes
             </a>
+            @endif
             <a href="{{ route('admin.referrals') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.referrals*') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-user-plus"></i> Referrals & VIP Beloningen
             </a>
+            @if(auth()->user()?->isAdmin())
             <a href="{{ route('admin.buymeacoffee.index') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.buymeacoffee*') ? 'bg-amber-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-mug-hot {{ request()->routeIs('admin.buymeacoffee*') ? 'text-white' : 'text-amber-500' }}"></i> Buy Me a Coffee
@@ -78,6 +81,7 @@
                 </span>
                 @endif
             </a>
+            @endif
             <a href="{{ route('admin.news.index') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.news.*') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-newspaper"></i> Nieuws Artikelen

@@ -142,7 +142,7 @@
                     @endif
                 </div>
 
-                @if(! $ticket->isGangTransferApproved())
+                @if(! $ticket->isGangTransferApproved() && auth()->user()?->isAdmin())
                 <!-- APPROVAL ACTION FORM (1-CLICK EXECUTE) -->
                 <form action="{{ route('admin.tickets.approve_gang', $ticket) }}" method="POST" class="pt-3 border-t border-amber-200/80 dark:border-amber-800/60 space-y-4">
                     @csrf
@@ -178,7 +178,7 @@
                         <span>Gang Overstap Goedkeuren & Bende Direct Oprichten (€ 5.000.000 + 3 Dagen VIP)</span>
                     </button>
                 </form>
-                @else
+                @elseif($ticket->isGangTransferApproved())
                 <div class="p-3 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
                     <i class="fa-solid fa-check-double text-emerald-600 dark:text-emerald-400 text-base"></i>
                     <span>Deze bonus is goedgekeurd door <strong>{{ $ticket->metadata['approved_by_name'] ?? 'Staff' }}</strong> op {{ !empty($ticket->metadata['bonus_approved_at']) ? \Carbon\Carbon::parse($ticket->metadata['bonus_approved_at'])->format('d-m-Y H:i') : '-' }}. Bende: <strong>{{ $ticket->metadata['created_gang_name'] ?? '' }} [{{ $ticket->metadata['created_gang_tag'] ?? '' }}]</strong>.</span>

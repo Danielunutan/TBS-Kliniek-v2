@@ -65,7 +65,7 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">
-            @if(Auth::user()?->isOwner() || Auth::user()?->role === 'admin' || Auth::user()?->is_staff)
+            @if(Auth::user()?->isAdmin())
             <form action="{{ route('admin.system.migrate') }}" method="POST" class="inline"
                   data-confirm="Wil je alle openstaande database migraties én de balanscontrole direct uitvoeren?"
                   data-confirm-btn="Migraties Uitvoeren"
@@ -91,11 +91,13 @@
                 <i class="fa-solid fa-headset mr-1 text-purple-600 dark:text-purple-400"></i> Support Tickets
             </a>
             <a href="{{ route('admin.players') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 text-white shadow-xs">
-                <i class="fa-solid fa-crown mr-1"></i> VIP Toekennen
+                <i class="fa-solid fa-crown mr-1"></i> Spelers &amp; VIP
             </a>
+            @if(Auth::user()?->isAdmin())
             <a href="{{ route('admin.gameplay') }}" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700">
                 <i class="fa-solid fa-sliders mr-1 text-slate-500 dark:text-slate-400"></i> Winkansen
             </a>
+            @endif
         </div>
     </div>
 
@@ -143,6 +145,7 @@
                 @endif
             </div>
         </div>
+        @if(Auth::user()?->isAdmin())
         <div class="shrink-0 flex flex-wrap items-center gap-2">
             <form action="{{ route('admin.system.migrate') }}" method="POST">
                 @csrf
@@ -159,6 +162,7 @@
                 </button>
             </form>
         </div>
+        @endif
     </div>
 
     <!-- Recent Registrations Table -->

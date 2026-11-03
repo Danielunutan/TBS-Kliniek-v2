@@ -487,6 +487,7 @@
                                     </form>
                                     @endif
 
+                                    @if(auth()->user()?->isAdmin())
                                     <form action="{{ route('admin.moderation.report.destroy', $report) }}" method="POST" class="inline"
                                           data-confirm="Weet je zeker dat je deze melding wilt wissen?"
                                           data-confirm-title="Melding Wissen"
@@ -499,6 +500,7 @@
                                             <i class="fa-solid fa-trash text-xs"></i>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

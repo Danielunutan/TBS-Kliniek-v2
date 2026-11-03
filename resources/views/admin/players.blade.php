@@ -1,7 +1,7 @@
 @extends('admin.layout')
 
 @section('admin-content')
-<div class="space-y-6" x-data="{ editingId: null }">
+<div class="space-y-6" x-data="{ editingId: {{ (int) (session('editing_player_id') ?? 0) ?: 'null' }} }">
 
     <!-- Filters & Search Toolbar -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-900 dark:text-white">
@@ -327,7 +327,11 @@
                                     </div>
                                 </div>
 
-                                <div class="flex justify-end gap-2 pt-2">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
+                                    <label class="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400 font-bold cursor-pointer select-none" title="Overschrijf waarden zelfs als de speler in de tussentijd geld of stats heeft verdiend">
+                                        <input type="checkbox" name="force_overwrite" value="1" class="rounded text-amber-600 focus:ring-amber-500">
+                                        <span>Forceer overschrijven bij tussentijdse wijzigingen</span>
+                                    </label>
                                     <button type="submit" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
                                         <i class="fa-solid fa-floppy-disk mr-1"></i> Wijzigingen Opslaan
                                     </button>

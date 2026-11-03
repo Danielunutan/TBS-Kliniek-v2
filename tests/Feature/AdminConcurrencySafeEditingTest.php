@@ -294,4 +294,65 @@ class AdminConcurrencySafeEditingTest extends TestCase
 
         $this->assertDatabaseMissing('user_warnings', ['id' => $warning->id]);
     }
+
+    /**
+     * Test that concurrent VIP activation is not revoked when an admin edits stars with a stale non-VIP form snapshot.
+     */
+    public function test_concurrent_vip_purchase_is_not_revoked_when_admin_edits_stars(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_staff' => true]);
+        $targetUser = User::factory()->create();
+        $targetChar = $this->createCharacter($targetUser, [
+            'cash' => 10000,
+            'stars' => 5,
+            'is_vip' => false,
+            'vip_expires_at' => null,
+        ]);
+
+        // Form loaded while player was NOT VIP
+        $originalPayload = [
+            'original_updated_at' => $targetChar->updated_at->timestamp,
+            'original_cash' => 10000,
+            'original_bank' => $targetChar->bank,
+            'original_stars' => 5,
+            'original_respect' => $targetChar->respect,
+            'original_vip_points' => 0,
+            'original_health' => 100,
+            'original_energy' => 100,
+            'original_role' => 'user',
+            'original_username' => $targetUser->name,
+            'original_character_name' => $targetChar->name,
+            'original_is_vip' => 0,
+        ];
+
+        // Player buys or redeems VIP concurrently while admin has drawer open
+        $targetChar->is_vip = true;
+        $targetChar->vip_expires_at = now()->addDays(30);
+        $targetChar->perks = ['supporter_tier' => 2, 'hourly_cash_bonus' => 7500];
+        $targetChar->save();
+
+        // Admin submits form with stars = 25, without checking is_vip (since it was unchecked when loaded)
+        $response = $this->actingAs($admin)->post(route('admin.player.update', $targetChar), array_merge($originalPayload, [
+            'username' => $targetUser->name,
+            'character_name' => $targetChar->name,
+            'cash' => 10000,
+            'bank' => $targetChar->bank,
+            'stars' => 25,
+            'respect' => $targetChar->respect,
+            'vip_points' => 0,
+            'health' => 100,
+            'energy' => 100,
+            'role' => 'user',
+            'vip_action' => 'no_change',
+        ]));
+
+        $response->assertSessionHas('success');
+        $response->assertSessionHas('warning');
+        $response->assertSessionHas('editing_player_id', $targetChar->id);
+
+        $targetChar->refresh();
+        $this->assertEquals(25, $targetChar->stars);
+        $this->assertTrue($targetChar->isVip());
+        $this->assertEquals(2, $targetChar->getSupporterTier());
+    }
 }
