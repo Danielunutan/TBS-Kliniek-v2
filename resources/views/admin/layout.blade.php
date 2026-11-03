@@ -132,6 +132,19 @@
         </div>
     </div>
 
+    <!-- Warning Banner -->
+    @if(session('warning'))
+    <div class="bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-4 shadow-xs text-amber-900 dark:text-amber-200 text-xs font-bold flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="flex-1 leading-relaxed">
+            <span class="font-black uppercase tracking-wider block text-[10px] text-amber-800 dark:text-amber-400">Waarschuwing bij bewerken</span>
+            <span>{{ session('warning') }}</span>
+        </div>
+    </div>
+    @endif
+
     <!-- Admin Content Sub-View -->
     @yield('admin-content')
 

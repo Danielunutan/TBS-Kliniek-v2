@@ -161,6 +161,18 @@
                         <td colspan="11" class="p-6 border-y border-purple-200 dark:border-slate-800">
                             <form action="{{ route('admin.player.update', $player) }}" method="POST" class="space-y-4">
                                 @csrf
+                                <input type="hidden" name="original_updated_at" value="{{ $player->updated_at?->timestamp ?? 0 }}">
+                                <input type="hidden" name="original_cash" value="{{ (int) $player->cash }}">
+                                <input type="hidden" name="original_bank" value="{{ (int) $player->bank }}">
+                                <input type="hidden" name="original_stars" value="{{ (int) $player->stars }}">
+                                <input type="hidden" name="original_respect" value="{{ (float) $player->respect }}">
+                                <input type="hidden" name="original_vip_points" value="{{ (int) ($player->vip_points ?? 0) }}">
+                                <input type="hidden" name="original_health" value="{{ (int) $player->health }}">
+                                <input type="hidden" name="original_energy" value="{{ (int) $player->energy }}">
+                                <input type="hidden" name="original_role" value="{{ $player->user?->role ?? 'user' }}">
+                                <input type="hidden" name="original_username" value="{{ $player->user?->name ?? '' }}">
+                                <input type="hidden" name="original_character_name" value="{{ $player->name }}">
+                                <input type="hidden" name="original_is_vip" value="{{ $player->isVip() ? 1 : 0 }}">
                                 <div class="flex items-center justify-between border-b border-purple-200 dark:border-slate-800 pb-2">
                                     <h4 class="text-xs font-black uppercase tracking-wider text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
                                         <i class="fa-solid fa-sliders text-purple-600 dark:text-purple-400"></i> Patiënt Aanpassen: {{ $player->name }}

@@ -29,6 +29,7 @@
     <form action="{{ route('admin.news.update', $article) }}" method="POST" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
         @csrf
         @method('PUT')
+        <input type="hidden" name="original_updated_at" value="{{ $article->updated_at?->timestamp ?? 0 }}">
 
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <!-- Emoji Picker -->

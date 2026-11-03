@@ -269,6 +269,8 @@ class AdminModerationController extends Controller
         $warningUser = $warning->user;
         $warningReason = $warning->reason;
 
+        DB::transaction(fn () => $warning->delete());
+
         $adminName = $currentUser?->name ?? 'Staff';
 
         try {

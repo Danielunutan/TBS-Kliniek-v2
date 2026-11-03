@@ -3994,7 +3994,28 @@
         if (! $flashErrorUrl && $flashError && str_contains($flashError, 'Vrijwillige Isolatie')) {
             $flashErrorUrl = route('isolation.index');
         }
+
+        $flashWarning = session('warning');
     @endphp
+
+    @if($flashWarning)
+    <script>
+        (function() {
+            function fireToast() {
+                if (typeof window.tbsToast === 'function') {
+                    window.tbsToast(@js($flashWarning), 'warning', 8000);
+                } else {
+                    setTimeout(fireToast, 50);
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fireToast);
+            } else {
+                fireToast();
+            }
+        })();
+    </script>
+    @endif
 
     @if($flashSuccess)
     <script>

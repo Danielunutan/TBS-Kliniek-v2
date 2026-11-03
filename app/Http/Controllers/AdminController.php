@@ -127,8 +127,21 @@ class AdminController extends Controller
             'custom_name_color' => 'nullable|string|max:10',
             'release_prison' => 'nullable|boolean',
             'health' => 'required|integer|between:0,100',
-            'energy' => 'required|integer|between:0,1000',
+            'energy' => 'required|integer|between:0,100',
             'role' => 'nullable|string|in:user,moderator,admin,owner',
+            'original_updated_at' => 'nullable|integer',
+            'original_cash' => 'nullable|numeric',
+            'original_bank' => 'nullable|numeric',
+            'original_stars' => 'nullable|numeric',
+            'original_respect' => 'nullable|numeric',
+            'original_vip_points' => 'nullable|numeric',
+            'original_health' => 'nullable|integer',
+            'original_energy' => 'nullable|integer',
+            'original_role' => 'nullable|string',
+            'original_username' => 'nullable|string',
+            'original_character_name' => 'nullable|string',
+            'original_is_vip' => 'nullable|boolean',
+            'force_overwrite' => 'nullable|boolean',
         ]);
 
         /** @var User|null $currentUser */
@@ -140,32 +153,120 @@ class AdminController extends Controller
         }
 
         if (! $currentUser->isAdmin()) {
-            if ($request->filled('role') && $request->input('role') !== $character->user?->role) {
+            $roleInput = $request->input('role');
+            $originalRole = $request->input('original_role', $character->user?->role);
+            if ($request->filled('role') && $roleInput !== $character->user?->role && $roleInput !== $originalRole) {
                 return back()->with('error', 'Alleen administrators kunnen gebruikersrollen toewijzen of wijzigen.');
             }
+
+            $modAttemptedCash = $request->has('original_cash') ? ((int) $validated['cash'] !== (int) $request->input('original_cash')) : ((int) $validated['cash'] !== (int) $character->cash);
+            $modAttemptedBank = $request->has('original_bank') ? ((int) $validated['bank'] !== (int) $request->input('original_bank')) : ((int) $validated['bank'] !== (int) $character->bank);
+            $modAttemptedStars = $request->has('original_stars') ? ((int) $validated['stars'] !== (int) $request->input('original_stars')) : ((int) $validated['stars'] !== (int) $character->stars);
+            $modAttemptedRespect = $request->has('original_respect') ? ((int) round((float) $validated['respect']) !== (int) round((float) $request->input('original_respect'))) : ((float) $validated['respect'] !== (float) $character->respect);
+            $modAttemptedVipPoints = $request->has('original_vip_points') ? ((int) $validated['vip_points'] !== (int) $request->input('original_vip_points')) : ((int) $validated['vip_points'] !== (int) $character->vip_points);
+            $modAttemptedVipAction = $request->has('vip_action') && $request->input('vip_action') !== 'no_change';
+            $modAttemptedIsVip = $request->has('original_is_vip') ? ($request->boolean('is_vip') !== $request->boolean('original_is_vip')) : ($request->has('is_vip') && $request->boolean('is_vip') !== (bool) $character->is_vip);
+            $modAttemptedVipTier = $request->filled('vip_tier') && (int) $request->input('vip_tier') !== $character->getSupporterTier();
+
             if (
-                (int) $validated['cash'] !== (int) $character->cash ||
-                (int) $validated['bank'] !== (int) $character->bank ||
-                (int) $validated['stars'] !== (int) $character->stars ||
-                (float) $validated['respect'] !== (float) $character->respect ||
-                (int) $validated['vip_points'] !== (int) $character->vip_points ||
-                ($request->has('vip_action') && $request->input('vip_action') !== 'no_change') ||
-                ($request->has('is_vip') && $request->boolean('is_vip') !== (bool) $character->is_vip) ||
-                ($request->filled('vip_tier') && (int) $request->input('vip_tier') !== $character->getSupporterTier())
+                $modAttemptedCash ||
+                $modAttemptedBank ||
+                $modAttemptedStars ||
+                $modAttemptedRespect ||
+                $modAttemptedVipPoints ||
+                $modAttemptedVipAction ||
+                $modAttemptedIsVip ||
+                $modAttemptedVipTier
             ) {
                 return back()->with('error', 'Alleen administrators kunnen economische tegoeden en VIP status handmatig wijzigen.');
             }
         }
 
+        // Refresh character to read latest database state
+        $character->refresh();
+        $concurrencyWarnings = [];
+        $forceOverwrite = $request->boolean('force_overwrite');
+
         // Moderatie: Update login gebruikersnaam (User name)
-        if ($request->filled('username') && $character->user) {
-            $character->user->name = trim((string) $validated['username']);
-            $character->user->save();
+        if ($character->user) {
+            $targetUser = $character->user;
+
+            if ($request->filled('username')) {
+                $newUsername = trim((string) $validated['username']);
+                $origUsername = $request->input('original_username', $targetUser->name);
+                $dbUsername = $targetUser->name;
+
+                if ($dbUsername !== $origUsername && $newUsername === $origUsername) {
+                    $concurrencyWarnings[] = 'Inlognaam is tussentijds gewijzigd door een andere beheerder en niet overschreven';
+                } elseif ($dbUsername !== $origUsername && $newUsername !== $origUsername && ! $forceOverwrite) {
+                    $concurrencyWarnings[] = 'Inlognaam is tussentijds gewijzigd door een andere beheerder en veilig behouden';
+                } else {
+                    $targetUser->name = $newUsername;
+                    $targetUser->save();
+                }
+            }
+
+            // Update user platform role if provided
+            if ($request->filled('role')) {
+                $newRole = (string) $validated['role'];
+                $origRole = $request->input('original_role', $targetUser->role);
+                $dbRole = $targetUser->role;
+
+                if ($dbRole !== $origRole && $newRole === $origRole) {
+                    $concurrencyWarnings[] = 'Gebruikersrol is tussentijds gewijzigd en niet overschreven';
+                } elseif ($dbRole !== $origRole && $newRole !== $origRole && ! $forceOverwrite) {
+                    $concurrencyWarnings[] = 'Gebruikersrol is tussentijds gewijzigd en veilig behouden';
+                } else {
+                    // Only the owner can grant or remove staff power above moderator
+                    if (in_array($newRole, ['owner', 'admin'], true) && ! $currentUser->isOwner()) {
+                        return back()->with('error', 'Alleen de eigenaar kan de Admin- of Eigenaar-rol toekennen.');
+                    }
+
+                    if (($targetUser->isOwner() || $targetUser->role === 'admin') && ! $currentUser->isOwner()) {
+                        return back()->with('error', 'Je hebt geen bevoegdheid om de rol van een Admin of Eigenaar te wijzigen.');
+                    }
+
+                    $oldRole = $targetUser->role;
+                    $targetUser->role = $newRole;
+                    $targetUser->is_staff = in_array($newRole, ['owner', 'admin', 'moderator'], true);
+                    $targetUser->save();
+
+                    if ($oldRole !== $newRole) {
+                        try {
+                            GameNotification::create([
+                                'character_id' => $character->id,
+                                'type' => 'role_change',
+                                'icon' => match ($newRole) {
+                                    'owner' => 'fa-crown',
+                                    'admin' => 'fa-user-shield',
+                                    'moderator' => 'fa-gavel',
+                                    default => 'fa-user',
+                                },
+                                'title' => 'Rol Status Aangepast',
+                                'message' => 'Je accountrol is aangepast naar '.ucfirst($newRole).' door de directie.',
+                                'is_read' => false,
+                            ]);
+                        } catch (\Throwable $e) {
+                            Log::warning('Failed to create role change game notification: '.$e->getMessage());
+                        }
+                    }
+                }
+            }
         }
 
         // Moderatie: Update weergavenaam (Character name)
         if ($request->filled('character_name')) {
-            $character->name = trim((string) $validated['character_name']);
+            $newCharName = trim((string) $validated['character_name']);
+            $origCharName = $request->input('original_character_name', $character->name);
+            $dbCharName = $character->name;
+
+            if ($dbCharName !== $origCharName && $newCharName === $origCharName) {
+                $concurrencyWarnings[] = 'Personagenaam is tussentijds gewijzigd en niet overschreven';
+            } elseif ($dbCharName !== $origCharName && $newCharName !== $origCharName && ! $forceOverwrite) {
+                $concurrencyWarnings[] = 'Personagenaam is tussentijds gewijzigd en veilig behouden';
+            } else {
+                $character->name = $newCharName;
+            }
         }
 
         // Moderatie: Reset profielfoto naar standaard default avatar
@@ -174,53 +275,139 @@ class AdminController extends Controller
             $character->avatar = 'assets/characters/avatar_male_1.jpg';
         }
 
-        // Update user platform role if provided
-        if ($request->filled('role') && $character->user) {
-            $newRole = (string) $validated['role'];
-            $targetUser = $character->user;
+        // Concurrency-safe economic and stat updates
+        // 1. Cash
+        if ($request->has('original_cash')) {
+            $origCash = (int) $request->input('original_cash');
+            $submittedCash = (int) $validated['cash'];
+            $dbCash = (int) $character->cash;
+            $adminChangedCash = ($submittedCash !== $origCash);
+            $dbChangedCash = ($dbCash !== $origCash);
 
-            // Only the owner can grant or remove staff power above moderator, so a moderator cannot promote anyone (or himself) to admin.
-            if (in_array($newRole, ['owner', 'admin'], true) && ! $currentUser->isOwner()) {
-                return back()->with('error', 'Alleen de eigenaar kan de Admin- of Eigenaar-rol toekennen.');
+            if ($dbChangedCash && ! $adminChangedCash) {
+                $concurrencyWarnings[] = 'Contant geld is tussentijds gewijzigd (nu: €'.number_format($dbCash, 0, ',', '.').') en niet overschreven';
+            } elseif ($dbChangedCash && $adminChangedCash && ! $forceOverwrite) {
+                $concurrencyWarnings[] = 'Contant geld is tussentijds gewijzigd (nu: €'.number_format($dbCash, 0, ',', '.').') vóór je bewerking en veilig behouden';
+            } else {
+                $character->cash = $submittedCash;
             }
-
-            if (($targetUser->isOwner() || $targetUser->role === 'admin') && ! $currentUser->isOwner()) {
-                return back()->with('error', 'Je hebt geen bevoegdheid om de rol van een Admin of Eigenaar te wijzigen.');
-            }
-
-            $oldRole = $targetUser->role;
-            $targetUser->role = $newRole;
-            $targetUser->is_staff = in_array($newRole, ['owner', 'admin', 'moderator'], true);
-            $targetUser->save();
-
-            if ($oldRole !== $newRole) {
-                try {
-                    GameNotification::create([
-                        'character_id' => $character->id,
-                        'type' => 'role_change',
-                        'icon' => match ($newRole) {
-                            'owner' => 'fa-crown',
-                            'admin' => 'fa-user-shield',
-                            'moderator' => 'fa-gavel',
-                            default => 'fa-user',
-                        },
-                        'title' => 'Rol Status Aangepast',
-                        'message' => 'Je accountrol is aangepast naar '.ucfirst($newRole).' door de directie.',
-                        'is_read' => false,
-                    ]);
-                } catch (\Throwable $e) {
-                    Log::warning('Failed to create role change game notification: '.$e->getMessage());
-                }
-            }
+        } else {
+            $character->cash = (int) $validated['cash'];
         }
 
-        $character->cash = (int) $validated['cash'];
-        $character->bank = (int) $validated['bank'];
-        $character->stars = (int) $validated['stars'];
-        $character->respect = max(0, (int) round((float) $validated['respect']));
-        $character->vip_points = (int) $validated['vip_points'];
-        $character->health = max(0, min(100, (int) $validated['health']));
-        $character->energy = max(0, min(100, (int) $validated['energy']));
+        // 2. Bank
+        if ($request->has('original_bank')) {
+            $origBank = (int) $request->input('original_bank');
+            $submittedBank = (int) $validated['bank'];
+            $dbBank = (int) $character->bank;
+            $adminChangedBank = ($submittedBank !== $origBank);
+            $dbChangedBank = ($dbBank !== $origBank);
+
+            if ($dbChangedBank && ! $adminChangedBank) {
+                $concurrencyWarnings[] = 'Bank saldo is tussentijds gewijzigd (nu: €'.number_format($dbBank, 0, ',', '.').') en niet overschreven';
+            } elseif ($dbChangedBank && $adminChangedBank && ! $forceOverwrite) {
+                $concurrencyWarnings[] = 'Bank saldo is tussentijds gewijzigd (nu: €'.number_format($dbBank, 0, ',', '.').') vóór je bewerking en veilig behouden';
+            } else {
+                $character->bank = $submittedBank;
+            }
+        } else {
+            $character->bank = (int) $validated['bank'];
+        }
+
+        // 3. Stars
+        if ($request->has('original_stars')) {
+            $origStars = (int) $request->input('original_stars');
+            $submittedStars = (int) $validated['stars'];
+            $dbStars = (int) $character->stars;
+            $adminChangedStars = ($submittedStars !== $origStars);
+            $dbChangedStars = ($dbStars !== $origStars);
+
+            if ($dbChangedStars && ! $adminChangedStars) {
+                $concurrencyWarnings[] = 'Sterren zijn tussentijds gewijzigd (nu: '.$dbStars.') en niet overschreven';
+            } elseif ($dbChangedStars && $adminChangedStars && ! $forceOverwrite) {
+                $concurrencyWarnings[] = 'Sterren zijn tussentijds gewijzigd (nu: '.$dbStars.') vóór je bewerking en veilig behouden';
+            } else {
+                $character->stars = $submittedStars;
+            }
+        } else {
+            $character->stars = (int) $validated['stars'];
+        }
+
+        // 4. Respect
+        if ($request->has('original_respect')) {
+            $origRespect = (int) round((float) $request->input('original_respect'));
+            $submittedRespect = max(0, (int) round((float) $validated['respect']));
+            $dbRespect = (int) round((float) $character->respect);
+            $adminChangedRespect = ($submittedRespect !== $origRespect);
+            $dbChangedRespect = ($dbRespect !== $origRespect);
+
+            if ($dbChangedRespect && ! $adminChangedRespect) {
+                $concurrencyWarnings[] = 'Respect is tussentijds gewijzigd (nu: '.$dbRespect.') en niet overschreven';
+            } elseif ($dbChangedRespect && $adminChangedRespect && ! $forceOverwrite) {
+                $concurrencyWarnings[] = 'Respect is tussentijds gewijzigd (nu: '.$dbRespect.') vóór je bewerking en veilig behouden';
+            } else {
+                $character->respect = $submittedRespect;
+            }
+        } else {
+            $character->respect = max(0, (int) round((float) $validated['respect']));
+        }
+
+        // 5. VIP Points
+        if ($request->has('original_vip_points')) {
+            $origVipPoints = (int) $request->input('original_vip_points');
+            $submittedVipPoints = (int) $validated['vip_points'];
+            $dbVipPoints = (int) ($character->vip_points ?? 0);
+            $adminChangedVipPoints = ($submittedVipPoints !== $origVipPoints);
+            $dbChangedVipPoints = ($dbVipPoints !== $origVipPoints);
+
+            if ($dbChangedVipPoints && ! $adminChangedVipPoints) {
+                $concurrencyWarnings[] = 'VIP punten zijn tussentijds gewijzigd (nu: '.$dbVipPoints.') en niet overschreven';
+            } elseif ($dbChangedVipPoints && $adminChangedVipPoints && ! $forceOverwrite) {
+                $concurrencyWarnings[] = 'VIP punten zijn tussentijds gewijzigd (nu: '.$dbVipPoints.') vóór je bewerking en veilig behouden';
+            } else {
+                $character->vip_points = $submittedVipPoints;
+            }
+        } else {
+            $character->vip_points = (int) $validated['vip_points'];
+        }
+
+        // 6. Health
+        if ($request->has('original_health')) {
+            $origHealth = (int) $request->input('original_health');
+            $submittedHealth = max(0, min(100, (int) $validated['health']));
+            $dbHealth = (int) $character->health;
+            $adminChangedHealth = ($submittedHealth !== $origHealth);
+            $dbChangedHealth = ($dbHealth !== $origHealth);
+
+            if ($dbChangedHealth && ! $adminChangedHealth) {
+                $concurrencyWarnings[] = 'HP is tussentijds gewijzigd (nu: '.$dbHealth.'%) en niet overschreven';
+            } elseif ($dbChangedHealth && $adminChangedHealth && ! $forceOverwrite) {
+                $concurrencyWarnings[] = 'HP is tussentijds gewijzigd (nu: '.$dbHealth.'%) vóór je bewerking en veilig behouden';
+            } else {
+                $character->health = $submittedHealth;
+            }
+        } else {
+            $character->health = max(0, min(100, (int) $validated['health']));
+        }
+
+        // 7. Energy
+        if ($request->has('original_energy')) {
+            $origEnergy = (int) $request->input('original_energy');
+            $submittedEnergy = max(0, min(100, (int) $validated['energy']));
+            $dbEnergy = (int) $character->energy;
+            $adminChangedEnergy = ($submittedEnergy !== $origEnergy);
+            $dbChangedEnergy = ($dbEnergy !== $origEnergy);
+
+            if ($dbChangedEnergy && ! $adminChangedEnergy) {
+                $concurrencyWarnings[] = 'Energie is tussentijds gewijzigd (nu: '.$dbEnergy.') en niet overschreven';
+            } elseif ($dbChangedEnergy && $adminChangedEnergy && ! $forceOverwrite) {
+                $concurrencyWarnings[] = 'Energie is tussentijds gewijzigd (nu: '.$dbEnergy.') vóór je bewerking en veilig behouden';
+            } else {
+                $character->energy = $submittedEnergy;
+            }
+        } else {
+            $character->energy = max(0, min(100, (int) $validated['energy']));
+        }
 
         // VIP beheer & handmatige toekenning (alleen voor administrators/eigenaar)
         if ($currentUser->isAdmin()) {
@@ -342,7 +529,14 @@ class AdminController extends Controller
             Log::warning('Failed to log admin_update_player audit record: '.$e->getMessage());
         }
 
-        return back()->with('success', "Speler {$character->name} is succesvol bijgewerkt!");
+        $redirect = back()->with('success', "Speler {$character->name} is succesvol bijgewerkt!");
+
+        if (! empty($concurrencyWarnings)) {
+            $warningText = 'Let op: De volgende gegevens zijn tijdens het bewerken tussentijds gewijzigd en niet overschreven: '.implode('; ', $concurrencyWarnings).'.';
+            $redirect->with('warning', $warningText);
+        }
+
+        return $redirect;
     }
 
     /**
@@ -390,6 +584,19 @@ class AdminController extends Controller
             GameSetting::set($key, $value, "Beheerd via Admin Paneel ({$key})");
         }
 
+        try {
+            AuditLogService::log(
+                action: 'admin_update_gameplay',
+                category: 'system',
+                description: 'Gameplay winkansen en instellingen bijgewerkt door '.(Auth::user()?->name ?? 'Staff'),
+                character: Auth::user()?->character,
+                user: Auth::user(),
+                details: $validated
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log admin_update_gameplay audit record: '.$e->getMessage());
+        }
+
         return back()->with('success', 'Gameplay winkansen en instellingen succesvol opgeslagen!');
     }
 
@@ -427,15 +634,28 @@ class AdminController extends Controller
             'case_xxl_price_cash' => 'required|numeric|min:0',
             'case_xxl_price_stars' => 'required|numeric|min:0',
             'case_xxl_min_cash' => 'required|numeric|min:0',
-            'case_xxl_max_cash' => 'required|numeric|min:0',
+            'case_xxl_max_cash' => 'required|numeric|gte:case_xxl_min_cash',
             'case_xxl_stars_reward' => 'required|integer|min:0',
             'bag_sell_reward' => 'required|numeric|min:0',
             'bag_open_min_cash' => 'required|numeric|min:0',
-            'bag_open_max_cash' => 'required|numeric|min:0',
+            'bag_open_max_cash' => 'required|numeric|gte:bag_open_min_cash',
         ]);
 
         foreach ($validated as $key => $value) {
             GameSetting::set($key, $value, "Beheerd via Admin Paneel ({$key})");
+        }
+
+        try {
+            AuditLogService::log(
+                action: 'admin_update_chests',
+                category: 'system',
+                description: 'Kisten en loot instellingen bijgewerkt door '.(Auth::user()?->name ?? 'Staff'),
+                character: Auth::user()?->character,
+                user: Auth::user(),
+                details: $validated
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log admin_update_chests audit record: '.$e->getMessage());
         }
 
         return back()->with('success', 'Kisten, koffers en loot-inhoud succesvol bijgewerkt!');
@@ -487,6 +707,23 @@ class AdminController extends Controller
             GameSetting::set($key, $value, "Beheerd via Admin Paneel ({$key})");
         }
 
+        try {
+            AuditLogService::log(
+                action: 'admin_update_vault',
+                category: 'system',
+                description: 'Kluisinstellingen bijgewerkt door '.(Auth::user()?->name ?? 'Staff'),
+                character: Auth::user()?->character,
+                user: Auth::user(),
+                details: [
+                    'reward_cash' => $validated['vault_reward_cash'],
+                    'reward_tokens' => $validated['vault_reward_tokens'],
+                    'reward_respect' => $validated['vault_reward_respect'],
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log admin_update_vault audit record: '.$e->getMessage());
+        }
+
         return back()->with('success', 'Kluiscode en kluisinhoud succesvol opgeslagen!');
     }
 
@@ -501,6 +738,19 @@ class AdminController extends Controller
 
         $newCode = (string) rand(1000, 9999);
         GameSetting::set('vault_code', $newCode, 'Automatisch gegenereerde kluiscode');
+
+        try {
+            AuditLogService::log(
+                action: 'admin_randomize_vault_code',
+                category: 'system',
+                description: 'Nieuwe geheime kluiscode gegenereerd door '.(Auth::user()?->name ?? 'Staff'),
+                character: Auth::user()?->character,
+                user: Auth::user(),
+                details: ['code_set' => true]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log admin_randomize_vault_code audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Nieuwe geheime kluiscode gegenereerd: {$newCode}");
     }
@@ -568,14 +818,18 @@ class AdminController extends Controller
             $output = trim(Artisan::output());
             $summary = $this->executeNormalizationMigration($exceededBefore);
 
-            AuditLogService::log(
-                action: 'admin_run_migrations',
-                category: 'system',
-                description: "Database migraties ({$pendingBefore} openstaand) en spelbalanscontrole uitgevoerd vanuit /admin",
-                character: $user->character,
-                user: $user,
-                details: ['pending_before' => $pendingBefore, 'exceeded_before' => $exceededBefore]
-            );
+            try {
+                AuditLogService::log(
+                    action: 'admin_run_migrations',
+                    category: 'system',
+                    description: "Database migraties ({$pendingBefore} openstaand) en spelbalanscontrole uitgevoerd vanuit /admin",
+                    character: $user->character,
+                    user: $user,
+                    details: ['pending_before' => $pendingBefore, 'exceeded_before' => $exceededBefore]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Failed to log admin_run_migrations audit record: '.$e->getMessage());
+            }
 
             return back()->with('success', "Database migraties en balancering succesvol uitgevoerd ({$summary}). ".($output !== '' ? "Output: {$output}" : ''));
         } catch (\Throwable $e) {
@@ -602,14 +856,18 @@ class AdminController extends Controller
             Artisan::call('migrate', ['--force' => true]);
             $summary = $this->executeNormalizationMigration($exceededBefore);
 
-            AuditLogService::log(
-                action: 'admin_run_normalization',
-                category: 'system',
-                description: "Systeem- en spelbalans herstelmigratie uitgevoerd vanuit /admin ({$summary})",
-                character: $user->character,
-                user: $user,
-                details: ['pending_before' => $pendingBefore, 'exceeded_before' => $exceededBefore]
-            );
+            try {
+                AuditLogService::log(
+                    action: 'admin_run_normalization',
+                    category: 'system',
+                    description: "Systeem- en spelbalans herstelmigratie uitgevoerd vanuit /admin ({$summary})",
+                    character: $user->character,
+                    user: $user,
+                    details: ['pending_before' => $pendingBefore, 'exceeded_before' => $exceededBefore]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Failed to log admin_run_normalization audit record: '.$e->getMessage());
+            }
 
             return back()->with('success', "Systeem- en spelbalanscontrole voltooid! {$summary}");
         } catch (\Throwable $e) {
@@ -764,6 +1022,9 @@ class AdminController extends Controller
         if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
         }
+
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
 
         $validated = $request->validate([
             'character_id' => 'required|exists:characters,id',
@@ -938,6 +1199,9 @@ class AdminController extends Controller
         if (! Auth::user()?->isAdmin()) {
             return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
         }
+
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
 
         $validated = $request->validate([
             'supporter_name' => 'required|string|max:100',

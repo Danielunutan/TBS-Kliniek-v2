@@ -97,7 +97,13 @@ class AdminNewsController extends Controller
             'is_pinned' => ['nullable', 'boolean'],
             'comments_enabled' => ['nullable', 'boolean'],
             'is_published' => ['nullable', 'boolean'],
+            'original_updated_at' => ['nullable', 'integer'],
         ]);
+
+        $article->refresh();
+        $wasModifiedConcurrently = $request->filled('original_updated_at')
+            && $article->updated_at
+            && $article->updated_at->timestamp > (int) $request->input('original_updated_at');
 
         $article->update([
             'title' => $validated['title'],
@@ -109,7 +115,12 @@ class AdminNewsController extends Controller
             'is_published' => $request->boolean('is_published'),
         ]);
 
-        return redirect()->route('admin.news.index')->with('success', 'Nieuwsartikel succesvol bijgewerkt!');
+        $redirect = redirect()->route('admin.news.index')->with('success', 'Nieuwsartikel succesvol bijgewerkt!');
+        if ($wasModifiedConcurrently) {
+            $redirect->with('warning', 'Let op: Dit nieuwsartikel is tussentijds gewijzigd door een andere beheerder vóór deze bewerking.');
+        }
+
+        return $redirect;
     }
 
     /**

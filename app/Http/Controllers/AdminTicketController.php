@@ -8,10 +8,12 @@ use App\Models\Gang;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class AdminTicketController extends Controller
@@ -345,6 +347,28 @@ class AdminTicketController extends Controller
 
         if (! $gang) {
             return back()->with('error', 'Deze Gang Overstap Bonus is al goedgekeurd!');
+        }
+
+        try {
+            AuditLogService::log(
+                action: 'gang_transfer_approved',
+                category: 'moderation',
+                description: "Gang Overstap Bonus goedgekeurd voor {$gangName} door {$staffName}",
+                character: $character,
+                user: $character->user,
+                amount: $bonusCash,
+                details: [
+                    'ticket_id' => $ticket->id,
+                    'gang_id' => $gang->id,
+                    'gang_name' => $gang->name,
+                    'gang_tag' => $gang->tag,
+                    'vip_days' => $vipDays,
+                    'approved_by_id' => Auth::id(),
+                    'approved_by_name' => $staffName,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log gang_transfer_approved audit record: '.$e->getMessage());
         }
 
         return back()->with('success', "Gang Overstap Bonus succesvol goedgekeurd! Bende '{$gang->name}' [{$gang->tag}] is aangemaakt met €".number_format($bonusCash, 0, ',', '.')." kluisgeld en {$vipDays} dagen VIP.");
