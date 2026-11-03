@@ -142,4 +142,24 @@ class ProfileAndCasinoTest extends TestCase
         $this->assertCount(24, $badges);
         $this->assertCount(6, Character::getBadgeSets());
     }
+
+    public function test_profile_customization_modal_defaults_to_name_style_and_status_has_closing_quote(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'status_message' => 'Vers binnengebracht via Discord!',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('profile.me'));
+        $response->assertStatus(200);
+
+        // Verification 1: Modal defaults to 'name_style' (Naam en glow)
+        $response->assertSee("activeCustomTab: 'name_style'", false);
+        $response->assertSee("activeCustomTab = 'name_style'", false);
+
+        // Verification 2: Status is wrapped in opening and closing purple quotes
+        $response->assertSee('<i class="fa-solid fa-quote-left text-purple-400 mr-2 opacity-75"></i>', false);
+        $response->assertSee('<span>Vers binnengebracht via Discord!</span>', false);
+        $response->assertSee('<i class="fa-solid fa-quote-right text-purple-400 ml-2 opacity-75"></i>', false);
+    }
 }

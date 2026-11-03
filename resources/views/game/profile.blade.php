@@ -11,9 +11,9 @@
     $safeProfileTab = in_array($rawProfileTab, $allowedProfileTabs, true) ? $rawProfileTab : 'overzicht';
     $hasExplicitProfileTab = session()->has('profile_tab') || in_array((string) request('tab'), $allowedProfileTabs, true);
 
-    $allowedCustomTabs = ['sticker', 'name_style', 'frame', 'theme', 'title', 'bio'];
-    $rawCustomTab = (string) request('custom_tab', 'sticker');
-    $safeCustomTab = in_array($rawCustomTab, $allowedCustomTabs, true) ? $rawCustomTab : 'sticker';
+    $allowedCustomTabs = ['name_style', 'sticker', 'frame', 'theme', 'title', 'bio'];
+    $rawCustomTab = (string) request('custom_tab', 'name_style');
+    $safeCustomTab = in_array($rawCustomTab, $allowedCustomTabs, true) ? $rawCustomTab : 'name_style';
 
     $recentVisitors = $recentVisitors ?? collect();
     $recentlyVisited = $recentlyVisited ?? collect();
@@ -390,7 +390,7 @@
                     @if(Auth::user()->character->id === $profileCharacter->id)
                     <!-- Edit Actions: Prominente Personalisatie Knop Rechtsboven -->
                     <div class="flex items-center justify-center md:justify-end">
-                        <button @click="customizeModalOpen = true" type="button" 
+                        <button @click="customizeModalOpen = true; activeCustomTab = 'name_style'" type="button" 
                                 class="px-4 py-2.5 text-xs font-black bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl transition-all duration-200 shadow-md shadow-purple-600/25 hover:shadow-lg hover:shadow-purple-600/35 border border-purple-400/30 flex items-center gap-2 cursor-pointer active:scale-95 group"
                                 title="Personaliseer je profiel">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-300 group-hover:rotate-12 transition-transform duration-200"></i>
@@ -582,6 +582,7 @@
                 <div class="{{ $isDarkCard ? 'bg-white/10 border-white/15 text-white/90' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200' }} border rounded-xl px-4 py-2 inline-flex items-center text-left text-xs font-medium backdrop-blur-xs shadow-2xs">
                     <i class="fa-solid fa-quote-left text-purple-400 mr-2 opacity-75"></i>
                     <span>{{ $profileCharacter->status_message ?: 'Geen statusbericht ingesteld. "Kliniekleven is overleven."' }}</span>
+                    <i class="fa-solid fa-quote-right text-purple-400 ml-2 opacity-75"></i>
                 </div>
             </div>
         </div>

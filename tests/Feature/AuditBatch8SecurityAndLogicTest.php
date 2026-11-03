@@ -201,7 +201,7 @@ class AuditBatch8SecurityAndLogicTest extends TestCase
         ]));
         $profileRes->assertStatus(200);
         $profileRes->assertSee("activeTab: 'overzicht'", false);
-        $profileRes->assertSee("activeCustomTab: 'sticker'", false);
+        $profileRes->assertSee("activeCustomTab: 'name_style'", false);
         $profileRes->assertDontSee('alert(1)', false);
 
         // 3. Gangs view whitelists tab and beheer_tab
