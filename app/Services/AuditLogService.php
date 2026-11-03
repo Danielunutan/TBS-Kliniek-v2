@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -36,6 +37,11 @@ class AuditLogService
         'player_updated',
         'report_deleted',
     ];
+
+    /**
+     * Cached check for audit_logs table existence to avoid query overhead during high-volume operations.
+     */
+    protected static ?bool $auditLogsTableExists = null;
 
     /**
      * Log an action with automatic risk assessment.
@@ -111,7 +117,16 @@ class AuditLogService
             $log->updated_at = $createdAt;
         }
 
-        $log->save();
+        try {
+            if (self::$auditLogsTableExists ??= Schema::hasTable('audit_logs')) {
+                $log->save();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('AuditLogService failed to save audit log: '.$e->getMessage(), [
+                'action' => $action,
+                'category' => $category,
+            ]);
+        }
 
         return $log;
     }

@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class ComprehensiveAuditBucket6Test extends TestCase
@@ -274,6 +275,37 @@ class ComprehensiveAuditBucket6Test extends TestCase
             'character_id' => $targetChar->id,
             'category' => 'admin',
         ]);
+    }
+
+    public function test_admin_can_update_player_cash_and_stars_even_if_audit_log_fails(): void
+    {
+        [$adminUser] = $this->createPlayer(['role' => 'admin', 'is_staff' => true]);
+        [$targetUser, $targetChar] = $this->createPlayer(['role' => 'user'], ['cash' => 250, 'bank' => 500, 'stars' => 5]);
+
+        Schema::dropIfExists('audit_logs');
+
+        $response = $this->actingAs($adminUser)
+            ->post(route('admin.player.update', $targetChar), [
+                'username' => $targetUser->name,
+                'character_name' => $targetChar->name,
+                'cash' => 750000,
+                'bank' => 250000,
+                'stars' => 45,
+                'respect' => 120,
+                'vip_points' => 10,
+                'health' => 100,
+                'energy' => 100,
+                'role' => 'user',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $targetChar->refresh();
+        $this->assertEquals(750000, $targetChar->cash);
+        $this->assertEquals(250000, $targetChar->bank);
+        $this->assertEquals(45, $targetChar->stars);
+        $this->assertEquals(120, $targetChar->respect);
     }
 
     public function test_moderation_report_deletion_is_restricted_to_admins_and_audited(): void

@@ -277,7 +277,7 @@
                                         </div>
                                         <div>
                                             <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Respect</label>
-                                            <input type="number" name="respect" value="{{ $player->respect }}" min="0" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
+                                            <input type="number" name="respect" value="{{ $player->respect ?? 0 }}" min="0" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
                                         </div>
                                     </div>
 
@@ -285,11 +285,11 @@
                                     <div class="bg-slate-50/90 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/70 space-y-2">
                                         <div>
                                             <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Contant Geld (€)</label>
-                                            <input type="number" name="cash" value="{{ $player->cash }}" min="0" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
+                                            <input type="number" name="cash" value="{{ $player->cash ?? 0 }}" min="0" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
                                         </div>
                                         <div>
                                             <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Bank Saldo (€)</label>
-                                            <input type="number" name="bank" value="{{ $player->bank }}" min="0" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
+                                            <input type="number" name="bank" value="{{ $player->bank ?? 0 }}" min="0" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
                                         </div>
                                     </div>
 
@@ -298,14 +298,14 @@
                                         <div class="grid grid-cols-2 gap-2">
                                             <div>
                                                 <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Sterren</label>
-                                                <input type="number" name="stars" value="{{ $player->stars }}" min="0" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
+                                                <input type="number" name="stars" value="{{ $player->stars ?? 0 }}" min="0" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
                                             </div>
                                             <div>
                                                 <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">HP %</label>
-                                                <input type="number" name="health" value="{{ $player->health }}" min="0" max="100" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
+                                                <input type="number" name="health" value="{{ $player->health ?? 100 }}" min="0" max="100" class="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1 text-xs font-mono font-bold text-slate-900 dark:text-slate-100">
                                             </div>
                                         </div>
-                                        <input type="hidden" name="energy" value="{{ $player->energy }}">
+                                        <input type="hidden" name="energy" value="{{ $player->energy ?? 100 }}">
                                         @if($player->is_in_prison)
                                         <label class="flex items-center gap-1.5 pt-1 text-xs text-rose-700 dark:text-rose-400 font-bold cursor-pointer">
                                             <input type="checkbox" name="release_prison" value="1" class="rounded text-rose-600">

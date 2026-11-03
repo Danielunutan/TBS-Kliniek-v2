@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -209,13 +210,13 @@ class AdminController extends Controller
             }
         }
 
-        $character->cash = $validated['cash'];
-        $character->bank = $validated['bank'];
-        $character->stars = $validated['stars'];
-        $character->respect = $validated['respect'];
-        $character->vip_points = $validated['vip_points'];
-        $character->health = $validated['health'];
-        $character->energy = min(100, (int) $validated['energy']);
+        $character->cash = (int) $validated['cash'];
+        $character->bank = (int) $validated['bank'];
+        $character->stars = (int) $validated['stars'];
+        $character->respect = max(0, (int) round((float) $validated['respect']));
+        $character->vip_points = (int) $validated['vip_points'];
+        $character->health = max(0, min(100, (int) $validated['health']));
+        $character->energy = max(0, min(100, (int) $validated['energy']));
 
         // VIP beheer & handmatige toekenning (alleen voor administrators/eigenaar)
         if ($currentUser->isAdmin()) {
@@ -285,14 +286,18 @@ class AdminController extends Controller
                         2 => 'Gangster Elite V.I.P. (Tier 2)',
                         default => 'TBS V.I.P. Lid (Tier 1)',
                     };
-                    GameNotification::create([
-                        'character_id' => $character->id,
-                        'type' => 'vip_granted',
-                        'icon' => 'fa-crown',
-                        'title' => 'VIP Status Toegekend!',
-                        'message' => "Gefeliciteerd! De administratie heeft je {$tierTitle} status toegekend.",
-                        'is_read' => false,
-                    ]);
+                    try {
+                        GameNotification::create([
+                            'character_id' => $character->id,
+                            'type' => 'vip_granted',
+                            'icon' => 'fa-crown',
+                            'title' => 'VIP Status Toegekend!',
+                            'message' => "Gefeliciteerd! De administratie heeft je {$tierTitle} status toegekend.",
+                            'is_read' => false,
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::warning('Failed to create VIP grant game notification: '.$e->getMessage());
+                    }
                 }
             }
 
@@ -308,26 +313,30 @@ class AdminController extends Controller
 
         $character->save();
 
-        AuditLogService::log(
-            action: 'admin_update_player',
-            category: 'admin',
-            description: "Speler {$character->name} (#{$character->id}) profiel en status bijgewerkt door {$currentUser->name}",
-            character: $character,
-            user: $character->user,
-            details: [
-                'updated_by_id' => $currentUser->id,
-                'updated_by_name' => $currentUser->name,
-                'fields_updated' => array_keys($validated),
-                'new_role' => $character->user?->role,
-                'cash' => $character->cash,
-                'bank' => $character->bank,
-                'stars' => $character->stars,
-                'respect' => $character->respect,
-                'is_vip' => (bool) $character->is_vip,
-            ],
-            customRisk: 'verdacht',
-            customReason: "Spelerprofiel of status gewijzigd via Admin Paneel door {$currentUser->name}"
-        );
+        try {
+            AuditLogService::log(
+                action: 'admin_update_player',
+                category: 'admin',
+                description: "Speler {$character->name} (#{$character->id}) profiel en status bijgewerkt door ".($currentUser?->name ?? 'Staff'),
+                character: $character,
+                user: $character->user,
+                details: [
+                    'updated_by_id' => $currentUser?->id,
+                    'updated_by_name' => $currentUser?->name,
+                    'fields_updated' => array_keys($validated),
+                    'new_role' => $character->user?->role,
+                    'cash' => $character->cash,
+                    'bank' => $character->bank,
+                    'stars' => $character->stars,
+                    'respect' => $character->respect,
+                    'is_vip' => (bool) $character->is_vip,
+                ],
+                customRisk: 'verdacht',
+                customReason: 'Spelerprofiel of status gewijzigd via Admin Paneel door '.($currentUser?->name ?? 'Staff')
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log admin_update_player audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Speler {$character->name} is succesvol bijgewerkt!");
     }
@@ -889,14 +898,18 @@ class AdminController extends Controller
             ]);
         }
 
-        AuditLogService::log(
-            action: 'buymeacoffee_membership_cancelled',
-            category: 'vip',
-            description: "BuyMeACoffee order #{$order->id} geannuleerd en VIP privileges beëindigd door ".(Auth::user()?->name ?? 'Staff'),
-            character: $character,
-            user: $character?->user,
-            details: ['order_id' => $order->id, 'cancelled_by_id' => Auth::id()]
-        );
+        try {
+            AuditLogService::log(
+                action: 'buymeacoffee_membership_cancelled',
+                category: 'vip',
+                description: "BuyMeACoffee order #{$order->id} geannuleerd en VIP privileges beëindigd door ".(Auth::user()?->name ?? 'Staff'),
+                character: $character,
+                user: $character?->user,
+                details: ['order_id' => $order->id, 'cancelled_by_id' => Auth::id()]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log buymeacoffee_membership_cancelled audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', 'Membership geannuleerd en VIP privileges zijn beëindigd!');
     }
@@ -972,15 +985,19 @@ class AdminController extends Controller
             ], $character);
         }
 
-        AuditLogService::log(
-            action: 'buymeacoffee_manual_create',
-            category: 'vip',
-            description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$character->name} ({$validated['membership_tier']}) door ".Auth::user()->name,
-            character: $character,
-            user: $character->user,
-            amount: (int) $validated['amount'],
-            details: ['order_id' => $order->id, 'tier' => $tier, 'is_membership' => $isMembership]
-        );
+        try {
+            AuditLogService::log(
+                action: 'buymeacoffee_manual_create',
+                category: 'vip',
+                description: "Handmatige BuyMeACoffee order #{$order->id} aangemaakt voor {$character->name} ({$validated['membership_tier']}) door ".($currentUser?->name ?? Auth::user()?->name ?? 'Staff'),
+                character: $character,
+                user: $character->user,
+                amount: (int) $validated['amount'],
+                details: ['order_id' => $order->id, 'tier' => $tier, 'is_membership' => $isMembership]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log buymeacoffee_manual_create audit record: '.$e->getMessage());
+        }
 
         return back()->with('success', "Handmatige Buy Me a Coffee registratie succesvol gekoppeld aan {$character->name}!");
     }
