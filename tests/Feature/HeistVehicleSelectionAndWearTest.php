@@ -9,6 +9,7 @@ use App\Models\GangProperty;
 use App\Models\Heist;
 use App\Models\User;
 use App\Models\Vehicle;
+use Database\Seeders\VehicleAndHeistSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -974,5 +975,87 @@ class HeistVehicleSelectionAndWearTest extends TestCase
         $this->assertSame(5, $gang->masks);
         // Vehicle condition was degraded due to wear
         $this->assertLessThan(100, $cv->current_condition);
+    }
+
+    public function test_gang_has_required_property_handles_strings_and_empty_inputs(): void
+    {
+        $heist = new Heist([
+            'is_gang_heist' => true,
+            'required_property_keys' => 'kleine_loods,haven_loods',
+        ]);
+
+        $gang = Gang::create([
+            'name' => 'Property Gang',
+            'tag' => 'PG',
+            'specialty' => 'combat',
+        ]);
+
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'kleine_loods',
+            'name' => 'Kleine Loods',
+            'type' => 'storage',
+            'purchase_price' => 50000,
+        ]);
+
+        $this->assertTrue($heist->gangHasRequiredProperty($gang));
+
+        // Corrupted / empty property keys safely return true
+        $corruptHeist = new Heist([
+            'is_gang_heist' => true,
+            'required_property_keys' => '',
+        ]);
+        $this->assertTrue($corruptHeist->gangHasRequiredProperty($gang));
+    }
+
+    public function test_gang_heists_tab_renders_with_seeded_heists_and_gang_properties(): void
+    {
+        $this->seed(VehicleAndHeistSeeder::class);
+
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'SeededGangster',
+            'level' => 15,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 50,
+            'is_onboarded' => true,
+        ]);
+
+        $gang = Gang::create([
+            'name' => 'Elite Cartel',
+            'tag' => 'EC',
+            'leader_character_id' => $char->id,
+            'specialty' => 'combat',
+            'masks' => 100,
+            'treasury' => 5000000,
+            'respect' => 1000,
+        ]);
+        $char->update(['gang_id' => $gang->id]);
+
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'chop_shop_garage',
+            'name' => 'Chop-Shop Garage',
+            'type' => 'storage',
+            'purchase_price' => 100000,
+        ]);
+
+        $car = Vehicle::first();
+        CharacterVehicle::create([
+            'character_id' => $char->id,
+            'gang_id' => $gang->id,
+            'vehicle_id' => $car->id,
+            'in_gang_garage' => true,
+            'current_condition' => 95,
+            'tuned_speed' => 90,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('heists.index', ['tab' => 'gang']));
+        $response->assertOk();
+        $response->assertSee('Het Heist Planningsbord');
+        $response->assertSee('Bende Heists');
+        $response->assertSee('Chop-Shop: -25% Slijtage');
     }
 }

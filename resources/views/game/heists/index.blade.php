@@ -428,33 +428,33 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 @foreach($gangHeists as $heist)
                 @php
-                    $gang = $myGang;
-                    $gangMemberCount = $gang ? $gang->members()->count() : 0;
+                    $gang = $myGang ?? $character->gang;
+                    $gangMemberCount = $gang ? ($gang->members_count ?? $gang->members()->count()) : 0;
                     $hasGang = !empty($gang);
-                    $hasGangMembers = $gangMemberCount >= $heist->min_gang_members;
-                    $hasLevel = $character->level >= $heist->min_level;
+                    $hasGangMembers = $gangMemberCount >= ($heist->min_gang_members ?? 1);
+                    $hasLevel = $character->level >= ($heist->min_level ?? 1);
                     $gangMaskCount = (int) ($gang->masks ?? 0);
-                    $hasGangMasks = $gangMaskCount >= $heist->required_mask_count;
+                    $hasGangMasks = $gangMaskCount >= ($heist->required_mask_count ?? 1);
                     $hasProperty = $heist->gangHasRequiredProperty($gang);
 
                     $effectiveVehicle = $heist->getEffectiveVehicle($character);
                     $hasVehicle = !empty($effectiveVehicle);
                     $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle?->type === $heist->required_vehicle_type);
-                    $hasSpeed = $effectiveVehicle && ($effectiveVehicle->effective_speed >= $heist->min_speed_required);
-                    $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= $heist->min_condition_required);
+                    $hasSpeed = $effectiveVehicle && ($effectiveVehicle->effective_speed >= ($heist->min_speed_required ?? 0));
+                    $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= ($heist->min_condition_required ?? 0));
                     $isGangGarageVehicle = $effectiveVehicle && $effectiveVehicle->in_gang_garage;
 
                     $tierLabel = match (true) {
-                        $heist->min_gang_members >= 10 => 'Tier 4: 10+ Leden Quota',
-                        $heist->min_gang_members >= 5 => 'Tier 3: 5+ Leden Quota',
-                        $heist->min_gang_members >= 3 => 'Tier 2: 3+ Leden Quota',
+                        ($heist->min_gang_members ?? 0) >= 10 => 'Tier 4: 10+ Leden Quota',
+                        ($heist->min_gang_members ?? 0) >= 5 => 'Tier 3: 5+ Leden Quota',
+                        ($heist->min_gang_members ?? 0) >= 3 => 'Tier 2: 3+ Leden Quota',
                         default => 'Tier 1: 2+ Leden Quota',
                     };
 
                     $tierBadgeColor = match (true) {
-                        $heist->min_gang_members >= 10 => 'bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800',
-                        $heist->min_gang_members >= 5 => 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800',
-                        $heist->min_gang_members >= 3 => 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+                        ($heist->min_gang_members ?? 0) >= 10 => 'bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800',
+                        ($heist->min_gang_members ?? 0) >= 5 => 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800',
+                        ($heist->min_gang_members ?? 0) >= 3 => 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800',
                         default => 'bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800',
                     };
 
@@ -462,10 +462,12 @@
                     $arrestRisk = $heist->calculateArrestRisk($character, $effectiveVehicle);
                     $gangBonus = $heist->calculateGangBonus($character);
 
-                    $personalMin = (int) round($heist->payout_min * 0.5);
-                    $personalMax = (int) round($heist->payout_max * 0.5);
-                    $gangShareMin = $heist->payout_min - $personalMin;
-                    $gangShareMax = $heist->payout_max - $personalMax;
+                    $payoutMin = (int) ($heist->payout_min ?? 0);
+                    $payoutMax = (int) ($heist->payout_max ?? 0);
+                    $personalMin = (int) round($payoutMin * 0.5);
+                    $personalMax = (int) round($payoutMax * 0.5);
+                    $gangShareMin = max(0, $payoutMin - $personalMin);
+                    $gangShareMax = max(0, $payoutMax - $personalMax);
                 @endphp
 
                 <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 transition-all duration-200 group relative overflow-hidden">
@@ -528,7 +530,7 @@
                             </div>
                             <div class="flex items-center justify-between text-xs pt-1.5 border-t border-slate-200/80 dark:border-slate-700/70 text-[11px]">
                                 <span class="text-slate-500 dark:text-slate-400">Bende Beloning:</span>
-                                <span class="font-extrabold text-purple-700 dark:text-purple-300">+{{ $heist->gang_respect_reward }} Bende Respect ⭐</span>
+                                <span class="font-extrabold text-purple-700 dark:text-purple-300">+{{ $heist->gang_respect_reward ?? 0 }} Bende Respect ⭐</span>
                             </div>
                         </div>
 
@@ -587,7 +589,7 @@
                         <!-- Slagingskans Bar -->
                         <div class="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
                             <div class="flex items-center justify-between text-xs font-bold">
-                                <span class="text-slate-600 dark:text-slate-400">Slagingskans (incl. Bende Bonus +{{ $gangBonus }}%):</span>
+                                <span class="text-slate-600 dark:text-slate-400">Slagingskans (incl. Bende Bonus +{{ $gangBonus ?? 0 }}%):</span>
                                 <span class="font-mono {{ $estChance >= 60 ? 'text-emerald-600 dark:text-emerald-400' : ($estChance >= 40 ? 'text-amber-500' : 'text-rose-600 dark:text-rose-400') }}">{{ $estChance }}%</span>
                             </div>
                             <div class="w-full bg-slate-100 dark:bg-slate-800/80 rounded-full h-2 overflow-hidden">

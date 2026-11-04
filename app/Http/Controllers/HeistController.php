@@ -37,25 +37,32 @@ class HeistController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
-        $this->energyService->refresh($character);
+        if ($character) {
+            $this->energyService->refresh($character);
+        }
 
         $heists = Heist::orderBy('min_level')->get();
         $soloHeists = $heists->where('is_gang_heist', false);
         $gangHeists = $heists->where('is_gang_heist', true);
-        $myGang = $character->gang;
+        $myGang = $character?->gang;
         if ($myGang) {
             $myGang->load(['properties', 'storedVehicles.vehicle']);
+            $myGang->loadCount('members');
         }
 
-        $activeVehicle = CharacterVehicle::where('character_id', $character->id)
-            ->where('is_active', true)
-            ->with('vehicle')
-            ->first() ?? CharacterVehicle::where('character_id', $character->id)->with('vehicle')->first();
+        $activeVehicle = $character
+            ? (CharacterVehicle::where('character_id', $character->id)
+                ->where('is_active', true)
+                ->with('vehicle')
+                ->first() ?? CharacterVehicle::where('character_id', $character->id)->with('vehicle')->first())
+            : null;
 
-        $ownedVehicles = CharacterVehicle::where('character_id', $character->id)->with('vehicle')->get();
+        $ownedVehicles = $character
+            ? CharacterVehicle::where('character_id', $character->id)->with('vehicle')->get()
+            : collect();
         $personalVehicles = $ownedVehicles->where('in_gang_garage', false)->where('is_for_sale', false)->values();
         $gangVehicles = $myGang
-            ? $myGang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get()
+            ? ($myGang->relationLoaded('storedVehicles') ? $myGang->storedVehicles : $myGang->storedVehicles()->with('vehicle')->get())
             : collect();
 
         // Recent heists by all players

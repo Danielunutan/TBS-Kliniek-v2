@@ -36,7 +36,17 @@ class Heist extends Model
      */
     public function gangHasRequiredProperty(?Gang $gang): bool
     {
-        if (! $this->is_gang_heist || empty($this->required_property_keys)) {
+        if (! $this->is_gang_heist) {
+            return true;
+        }
+
+        $keys = $this->required_property_keys;
+        if (is_string($keys)) {
+            $decoded = json_decode($keys, true);
+            $keys = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode(',', $keys)));
+        }
+
+        if (empty($keys) || ! is_array($keys)) {
             return true;
         }
 
@@ -44,9 +54,10 @@ class Heist extends Model
             return false;
         }
 
-        $ownedKeys = $gang->properties->pluck('property_key')->all();
+        $ownedProperties = $gang->relationLoaded('properties') ? $gang->properties : $gang->properties()->get();
+        $ownedKeys = $ownedProperties ? $ownedProperties->pluck('property_key')->all() : [];
 
-        foreach ($this->required_property_keys as $key) {
+        foreach ($keys as $key) {
             if (in_array($key, $ownedKeys, true)) {
                 return true;
             }
@@ -68,7 +79,9 @@ class Heist extends Model
                 return null;
             }
 
-            $gangVehicles = $character->gang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get();
+            $gangVehicles = $character->gang->relationLoaded('storedVehicles')
+                ? $character->gang->storedVehicles
+                : $character->gang->storedVehicles()->with('vehicle')->get();
 
             if ($selectedVehicleId) {
                 $selected = $gangVehicles->firstWhere('id', $selectedVehicleId);
@@ -201,7 +214,11 @@ class Heist extends Model
     public function calculateGangBonus(?Character $character): int
     {
         if ($this->is_gang_heist && $character && $character->gang) {
-            return min(15, (int) ($character->gang->members()->count() * 2));
+            $memberCount = $character->gang->relationLoaded('members')
+                ? $character->gang->members->count()
+                : ($character->gang->members_count ?? $character->gang->members()->count());
+
+            return min(15, (int) ($memberCount * 2));
         }
 
         return 0;
