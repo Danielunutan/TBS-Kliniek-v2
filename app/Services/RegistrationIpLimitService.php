@@ -12,17 +12,35 @@ class RegistrationIpLimitService
     public function register(string $ip, callable $create): mixed
     {
         return DB::transaction(function () use ($ip, $create) {
-            $packed = inet_pton($ip);
-            $hash = hash('sha256', $packed === false ? $ip : $packed);
+            $ipClean = trim($ip);
+            $packed = @inet_pton($ipClean);
+            $hash = hash('sha256', $packed === false ? $ipClean : $packed);
+            $canonicalIp = $packed !== false ? inet_ntop($packed) : $ipClean;
+
             DB::table('registration_ip_locks')->insertOrIgnore(['ip_hash' => $hash]);
             DB::table('registration_ip_locks')->where('ip_hash', $hash)->lockForUpdate()->first();
 
-            $count = User::where('registration_ip', $ip)->where('ip_limit_exempt', false)->count();
+            $count = User::where(function ($q) use ($ipClean, $canonicalIp) {
+                $q->where('registration_ip', $ipClean)
+                    ->orWhere('registration_ip', $canonicalIp);
+            })
+                ->where('ip_limit_exempt', false)
+                ->count();
+
             if ($count < 2) {
-                $legacyIds = DB::table('sessions')->where('ip_address', $ip)
-                    ->whereNotNull('user_id')->distinct()->pluck('user_id');
-                $count += User::whereIn('id', $legacyIds)->where('ip_limit_exempt', false)
-                    ->whereNull('registration_ip')->count();
+                $legacyIds = DB::table('sessions')
+                    ->where(function ($q) use ($ipClean, $canonicalIp) {
+                        $q->where('ip_address', $ipClean)
+                            ->orWhere('ip_address', $canonicalIp);
+                    })
+                    ->whereNotNull('user_id')
+                    ->distinct()
+                    ->pluck('user_id');
+
+                $count += User::whereIn('id', $legacyIds)
+                    ->where('ip_limit_exempt', false)
+                    ->whereNull('registration_ip')
+                    ->count();
             }
             if ($count >= 2) {
                 throw ValidationException::withMessages([

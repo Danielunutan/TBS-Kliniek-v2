@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class CharacterMemoryStat extends Model
 {
@@ -51,5 +52,51 @@ class CharacterMemoryStat extends Model
         }
 
         return max(0, (int) ceil(now()->diffInSeconds($this->cooldown_until)));
+    }
+
+    public function getDailyGamesCount(): int
+    {
+        $today = now()->toDateString();
+        $key = 'memory_daily_games_'.$this->character_id.'_'.$today;
+
+        $cached = Cache::get($key);
+        if ($cached !== null) {
+            return (int) $cached;
+        }
+
+        $charPerks = $this->character?->perks ?? [];
+        if (($charPerks['memory_daily_date'] ?? null) === $today) {
+            $count = (int) ($charPerks['memory_daily_count'] ?? 0);
+            Cache::put($key, $count, now()->endOfDay());
+
+            return $count;
+        }
+
+        return 0;
+    }
+
+    public function incrementDailyGames(): int
+    {
+        $today = now()->toDateString();
+        $key = 'memory_daily_games_'.$this->character_id.'_'.$today;
+        $current = $this->getDailyGamesCount();
+        $newCount = $current + 1;
+        Cache::put($key, $newCount, now()->endOfDay());
+
+        $char = $this->character;
+        if ($char) {
+            $perks = $char->perks ?? [];
+            $perks['memory_daily_date'] = $today;
+            $perks['memory_daily_count'] = $newCount;
+            $char->perks = $perks;
+            $char->save();
+        }
+
+        return $newCount;
+    }
+
+    public function hasReachedDailyLimit(int $limit = 30): bool
+    {
+        return $this->getDailyGamesCount() >= $limit;
     }
 }

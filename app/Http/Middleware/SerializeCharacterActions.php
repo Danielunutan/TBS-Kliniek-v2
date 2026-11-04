@@ -7,6 +7,7 @@ use Closure;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -40,10 +41,21 @@ class SerializeCharacterActions
 
         $lock = Cache::lock('character_action_'.$user->id, self::LOCK_TTL_SECONDS);
 
+        $configuredWait = config('game.action_lock_wait_seconds');
+        $waitSeconds = ($configuredWait !== null && is_numeric($configuredWait))
+            ? max(0, (int) $configuredWait)
+            : self::DEFAULT_WAIT_SECONDS;
+
         try {
-            $lock->block((int) config('game.action_lock_wait_seconds', self::DEFAULT_WAIT_SECONDS));
+            $lock->block($waitSeconds);
         } catch (LockTimeoutException) {
             return $this->busyResponse($request);
+        } catch (\Throwable $e) {
+            Log::warning('SerializeCharacterActions: Lock acquisition failed: '.$e->getMessage(), [
+                'user_id' => $user->id,
+            ]);
+
+            return $next($request);
         }
 
         try {
@@ -59,7 +71,13 @@ class SerializeCharacterActions
 
             return $next($request);
         } finally {
-            $lock->release();
+            try {
+                $lock->release();
+            } catch (\Throwable $e) {
+                Log::warning('SerializeCharacterActions: Lock release failed: '.$e->getMessage(), [
+                    'user_id' => $user->id,
+                ]);
+            }
         }
     }
 

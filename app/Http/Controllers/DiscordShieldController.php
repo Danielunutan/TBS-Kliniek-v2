@@ -238,7 +238,7 @@ class DiscordShieldController extends Controller
                         'remoteip' => $ip,
                     ]);
 
-                    if (! $verifyResp->successful() || ! $verifyResp->json('success')) {
+                    if (! $verifyResp->successful() || $verifyResp->json('success') !== true) {
                         DiscordShieldLog::log('turnstile_failed', "Turnstile verificatie mislukt voor {$username} ({$discordId})", [
                             'discord_id' => $discordId,
                             'username' => $username,
@@ -535,21 +535,32 @@ class DiscordShieldController extends Controller
             return redirect()->route('discord.redirect');
         }
 
-        // Prevent linking if this Discord account is already linked to another player
-        if ($user->discord_id !== $discordId && User::where('discord_id', $discordId)->where('id', '!=', $user->id)->exists()) {
-            return redirect()->route('discord.verify')->with('error', 'Dit Discord account is al gekoppeld aan een ander spelersaccount.');
-        }
-
         $claimed = false;
-        DB::transaction(function () use ($user, $character, $discordId, &$claimed): void {
+        $linkSuccess = false;
+
+        DB::transaction(function () use ($user, $character, $discordId, &$claimed, &$linkSuccess): void {
+            $alreadyLinked = User::where('discord_id', $discordId)
+                ->where('id', '!=', $user->id)
+                ->lockForUpdate()
+                ->exists();
+
+            if ($alreadyLinked) {
+                return;
+            }
+
             $user->discord_id = $discordId;
             $user->save();
+            $linkSuccess = true;
 
             if (! $character->hasClaimedDiscordReward()) {
                 $character->claimDiscordReward();
                 $claimed = true;
             }
         });
+
+        if (! $linkSuccess) {
+            return redirect()->route('discord.verify')->with('error', 'Dit Discord account is al gekoppeld aan een ander spelersaccount.');
+        }
 
         $guildId = $this->discordService->getGuildId();
         if (! empty($guildId)) {

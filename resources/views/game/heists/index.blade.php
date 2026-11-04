@@ -147,19 +147,8 @@
                 $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= $heist->min_condition_required);
                 $canLaunch = $hasLevel && $hasMasks && $hasVehicle && $hasType && $hasSpeed && $hasCondition && ($character->energy >= $heist->energy_cost);
 
-                $baseChance = match ($heist->difficulty) {
-                    'makkelijk' => 75,
-                    'normaal' => 65,
-                    'zwaar' => 52,
-                    'extreem' => 42,
-                    'legendarisch' => 32,
-                    default => 50,
-                };
-                $speedDiff = $effectiveVehicle ? ($effectiveVehicle->effective_speed - $heist->min_speed_required) : 0;
-                $speedBonus = (int) round($speedDiff * 0.4);
-                $condBonus = $effectiveVehicle ? (int) round(($effectiveVehicle->current_condition - 70) * 0.25) : 0;
-                $statBonus = min(15, (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveDiscipline()) / 30));
-                $estChance = max(15, min(92, $baseChance + $speedBonus + $condBonus + $statBonus));
+                $estChance = $heist->calculateSuccessChance($character, $effectiveVehicle);
+                $arrestRisk = $heist->calculateArrestRisk($character, $effectiveVehicle);
             @endphp
 
             <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 transition-all duration-200 group relative overflow-hidden">
@@ -256,13 +245,17 @@
                         <div class="w-full bg-slate-100 dark:bg-slate-800/80 rounded-full h-2 overflow-hidden">
                             <div class="h-full rounded-full transition-all duration-300 {{ $estChance >= 60 ? 'bg-emerald-500' : ($estChance >= 40 ? 'bg-amber-500' : 'bg-rose-500') }}" style="width: {{ $estChance }}%"></div>
                         </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                            <span>Arrestatie Risico:</span>
+                            <span class="font-mono font-bold text-rose-500">{{ $arrestRisk }}%</span>
+                        </div>
                     </div>
                     @endif
                 </div>
 
                 <!-- Action Button -->
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-                    @if($character->isComatose())
+                    @if($character->isComatose() || $character->needsReviveSerum())
                         <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-rose-500 border border-rose-200/80 dark:border-rose-900/40 font-bold text-xs cursor-not-allowed text-center">
                             Niet beschikbaar in Code Blauw (Coma)
                         </button>
@@ -303,8 +296,35 @@
                             Ontgrendelt op Level {{ $heist->min_level }}
                         </button>
                     @else
-                        <form action="{{ route('heists.launch', $heist->id) }}" method="POST">
+                        <form action="{{ route('heists.launch', $heist->id) }}" method="POST" class="space-y-2.5">
                             @csrf
+                            @if(isset($personalVehicles) && $personalVehicles->isNotEmpty())
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
+                                    <span class="flex items-center gap-1">
+                                        <i class="fa-solid fa-car-side text-purple-600 dark:text-purple-400"></i>
+                                        <span>Kies Vluchtwagen</span>
+                                    </span>
+                                    @if($effectiveVehicle && $effectiveVehicle->isReinforced())
+                                        <span class="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200/80 dark:border-amber-800/70">
+                                            🛡️ Gepantserd (-20% Wear)
+                                        </span>
+                                    @endif
+                                </label>
+                                <select name="character_vehicle_id" class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-2 focus:ring-2 focus:ring-purple-500">
+                                    @foreach($personalVehicles as $pv)
+                                        @php
+                                            $pvDestroyed = $pv->current_condition <= 0;
+                                        @endphp
+                                        <option value="{{ $pv->id }}" {{ ($effectiveVehicle && $effectiveVehicle->id === $pv->id) ? 'selected' : '' }} {{ $pvDestroyed ? 'disabled' : '' }}>
+                                            {{ $pv->vehicle->name }} ({{ $pv->effective_speed }} km/u, {{ $pv->current_condition }}% Conditie){{ $pvDestroyed ? ' [TOTAL LOSS]' : ($pv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @elseif($effectiveVehicle)
+                                <input type="hidden" name="character_vehicle_id" value="{{ $effectiveVehicle->id }}">
+                            @endif
                             <button type="submit" 
                                     data-confirm="Weet je zeker dat je de {{ $heist->name }} wilt starten? Bij mislukking riskeer je de isoleercel!"
                                     data-confirm-title="Solo Heist Starten"
@@ -438,20 +458,8 @@
                         default => 'bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800',
                     };
 
-                    $baseChance = match ($heist->difficulty) {
-                        'makkelijk' => 75,
-                        'normaal' => 65,
-                        'zwaar' => 52,
-                        'extreem' => 42,
-                        'legendarisch' => 32,
-                        default => 50,
-                    };
-                    $speedDiff = $effectiveVehicle ? ($effectiveVehicle->effective_speed - $heist->min_speed_required) : 0;
-                    $speedBonus = (int) round($speedDiff * 0.4);
-                    $condBonus = $effectiveVehicle ? (int) round(($effectiveVehicle->current_condition - 70) * 0.25) : 0;
-                    $statBonus = min(15, (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveDiscipline()) / 30));
-                    $gangBonus = min(15, $gangMemberCount * 2);
-                    $estChance = max(15, min(92, $baseChance + $speedBonus + $condBonus + $statBonus + $gangBonus));
+                    $estChance = $heist->calculateSuccessChance($character, $effectiveVehicle);
+                    $arrestRisk = $heist->calculateArrestRisk($character, $effectiveVehicle);
 
                     $personalMin = (int) round($heist->payout_min * 0.5);
                     $personalMax = (int) round($heist->payout_max * 0.5);
@@ -584,13 +592,17 @@
                             <div class="w-full bg-slate-100 dark:bg-slate-800/80 rounded-full h-2 overflow-hidden">
                                 <div class="h-full rounded-full transition-all duration-300 {{ $estChance >= 60 ? 'bg-emerald-500' : ($estChance >= 40 ? 'bg-amber-500' : 'bg-rose-500') }}" style="width: {{ $estChance }}%"></div>
                             </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                                <span>Arrestatie Risico:</span>
+                                <span class="font-mono font-bold text-rose-500">{{ $arrestRisk }}%</span>
+                            </div>
                         </div>
                         @endif
                     </div>
 
                     <!-- Action Button -->
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-                        @if($character->isComatose())
+                        @if($character->isComatose() || $character->needsReviveSerum())
                             <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-rose-500 border border-rose-200/80 dark:border-rose-900/40 font-bold text-xs cursor-not-allowed text-center">
                                 Niet beschikbaar in Code Blauw (Coma)
                             </button>
@@ -647,8 +659,35 @@
                                 Vereist Level {{ $heist->min_level }}
                             </button>
                         @else
-                            <form action="{{ route('heists.launch', $heist->id) }}" method="POST">
+                            <form action="{{ route('heists.launch', $heist->id) }}" method="POST" class="space-y-2.5">
                                 @csrf
+                                @if(isset($gangVehicles) && $gangVehicles->isNotEmpty())
+                                <div>
+                                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
+                                        <span class="flex items-center gap-1">
+                                            <i class="fa-solid fa-car text-amber-500"></i>
+                                            <span>Bende Garage Wagen</span>
+                                        </span>
+                                        @if($effectiveVehicle && $effectiveVehicle->isReinforced())
+                                            <span class="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200/80 dark:border-amber-800/70">
+                                                🛡️ Gepantserd (-20% Wear)
+                                            </span>
+                                        @endif
+                                    </label>
+                                    <select name="character_vehicle_id" class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-2 focus:ring-2 focus:ring-purple-500">
+                                        @foreach($gangVehicles as $gv)
+                                            @php
+                                                $gvDestroyed = $gv->current_condition <= 0;
+                                            @endphp
+                                            <option value="{{ $gv->id }}" {{ ($effectiveVehicle && $effectiveVehicle->id === $gv->id) ? 'selected' : '' }} {{ $gvDestroyed ? 'disabled' : '' }}>
+                                                {{ $gv->vehicle->name }} ({{ $gv->effective_speed }} km/u, {{ $gv->current_condition }}% Conditie){{ $gvDestroyed ? ' [TOTAL LOSS]' : ($gv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @elseif($effectiveVehicle)
+                                    <input type="hidden" name="character_vehicle_id" value="{{ $effectiveVehicle->id }}">
+                                @endif
                                 <button type="submit" 
                                         data-confirm="Weet je zeker dat je de Bende Heist {{ $heist->name }} wilt starten namens jullie bende?"
                                         data-confirm-title="Bende Heist Starten"

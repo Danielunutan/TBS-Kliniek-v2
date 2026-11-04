@@ -346,7 +346,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen bende oprichten!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -489,7 +489,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen lidmaatschapsverzoek indienen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -845,7 +845,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen geld doneren aan de bende!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -864,10 +864,10 @@ class GangController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            if (! $lockedCharacter || $lockedCharacter->cash < $amount) {
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum() || $lockedCharacter->cash < $amount) {
                 return back()
                     ->with('active_gang_tab', 'doneren')
-                    ->with('error', 'Je hebt niet genoeg contant geld om dit bedrag te doneren.');
+                    ->with('error', 'Je hebt niet genoeg contant geld om dit bedrag te doneren of je kunt momenteel niet doneren.');
             }
 
             /** @var Gang $lockedGang */
@@ -1383,7 +1383,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen geld opnemen uit de bendekas!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -1398,6 +1398,10 @@ class GangController extends Controller
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                return back()->with('error', 'Je bent momenteel niet in staat om geld op te nemen.');
+            }
 
             if (! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id || (! in_array($lockedCharacter->gang_role, ['leader', 'co_leader'], true) && (int) $lockedGang->money_magnet !== (int) $lockedCharacter->id)) {
                 return back()->with('error', 'Alleen de bendeleider, co-leider of de aangewezen Kasbeheerder kan geld uit de kas opnemen!');
@@ -1619,7 +1623,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen aankopen doen in de bendewinkel!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -1639,6 +1643,12 @@ class GangController extends Controller
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                return back()
+                    ->with('active_gang_tab', 'winkel')
+                    ->with('error', 'Je bent momenteel niet in staat om aankopen te doen.');
+            }
 
             // Upgrades paid from the treasury spend shared gang money, so only officers may buy them.
             $isTreasuryPurchase = in_array($itemType, ['bling_shops', 'protection', 'power'], true);
@@ -1768,7 +1778,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen sterren doneren aan de bende!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -1784,7 +1794,11 @@ class GangController extends Controller
             /** @var Gang|null $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-            if (! $lockedCharacter || ! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                return back()->with('error', 'Je bent momenteel niet in staat om sterren te doneren.');
+            }
+
+            if (! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
                 return back()->with('error', 'Je bent geen lid van deze bende.');
             }
 
@@ -1822,7 +1836,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen maskers doneren aan de bende!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -1840,7 +1854,11 @@ class GangController extends Controller
             /** @var Gang|null $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-            if (! $lockedCharacter || ! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                return back()->with('error', 'Je bent momenteel niet in staat om maskers te doneren.');
+            }
+
+            if (! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
                 return back()->with('error', 'Je bent geen lid van deze bende.');
             }
 
@@ -1892,7 +1910,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen voorwerpen doneren aan de bende!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -1912,7 +1930,11 @@ class GangController extends Controller
             /** @var Gang|null $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-            if (! $lockedCharacter || ! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                return back()->with('error', 'Je bent momenteel niet in staat om voorwerpen te doneren.');
+            }
+
+            if (! $lockedGang || (int) $lockedCharacter->gang_id !== (int) $lockedGang->id) {
                 return back()->with('error', 'Je bent geen lid van deze bende.');
             }
 
@@ -1999,7 +2021,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen maskers uit het Bende Depot verkopen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -2015,6 +2037,12 @@ class GangController extends Controller
         $requestedQty = (int) $validated['quantity'];
 
         return DB::transaction(function () use ($gang, $character, $requestedQty): RedirectResponse {
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                return back()->with('error', 'Je bent momenteel niet in staat om depot voorraad te verkopen.');
+            }
+
             /** @var Gang $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
@@ -2069,7 +2097,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen voorwerpen uit het Bende Depot verkopen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -2085,6 +2113,12 @@ class GangController extends Controller
         $requestedQty = (int) $validated['quantity'];
 
         return DB::transaction(function () use ($gang, $character, $gangItem, $requestedQty): RedirectResponse {
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
+                return back()->with('error', 'Je bent momenteel niet in staat om depot items te verkopen.');
+            }
+
             /** @var GangItem|null $lockedGangItem */
             $lockedGangItem = GangItem::where('id', $gangItem->id)
                 ->where('gang_id', $gang->id)
@@ -2160,7 +2194,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen bende-aanval leiden!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -2202,7 +2236,7 @@ class GangController extends Controller
         return DB::transaction(function () use ($myGang, $targetGang, $character): RedirectResponse {
             /** @var Character|null $lockedCommander */
             $lockedCommander = Character::where('id', $character->id)->lockForUpdate()->first();
-            if (! $lockedCommander || $lockedCommander->isImprisoned() || $lockedCommander->isComatose() || $lockedCommander->health < 20) {
+            if (! $lockedCommander || $lockedCommander->isImprisoned() || $lockedCommander->isComatose() || $lockedCommander->needsReviveSerum() || $lockedCommander->health < 20) {
                 return back()->with('error', 'Je bent momenteel niet in staat om een aanval te leiden.');
             }
 
@@ -2210,6 +2244,20 @@ class GangController extends Controller
             $lockedGangs = Gang::whereIn('id', [$myGang->id, $targetGang->id])->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $myGang = $lockedGangs->get($myGang->id);
             $targetGang = $lockedGangs->get($targetGang->id);
+
+            if (! $myGang || ! $targetGang || (int) $lockedCommander->gang_id !== (int) $myGang->id || ! $myGang->isOfficer($lockedCommander)) {
+                return back()->with('error', 'Je bent niet bevoegd om deze bende-aanval uit te voeren.');
+            }
+
+            $isAlly = GangAlliance::where(function ($q) use ($myGang, $targetGang) {
+                $q->where('gang_id', $myGang->id)->where('ally_gang_id', $targetGang->id);
+            })->orWhere(function ($q) use ($myGang, $targetGang) {
+                $q->where('gang_id', $targetGang->id)->where('ally_gang_id', $myGang->id);
+            })->exists();
+
+            if ($isAlly) {
+                return back()->with('error', "{$targetGang->name} is een bondgenoot! Verbreek eerst het bondgenootschap om oorlog te voeren.");
+            }
 
             $remainingCooldown = $myGang->attackCooldownRemaining();
             if ($remainingCooldown > 0) {
@@ -2225,9 +2273,9 @@ class GangController extends Controller
 
             // Factor in hired Enforcer NPCs defense bonus (capped at max 100% to ensure fair balance)
             $rawNpcDefenseBonusPct = (int) $targetGang->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
-            $npcDefenseBonusPct = min(Gang::MAX_NPC_DEFENSE_BONUS_PERCENT, $rawNpcDefenseBonusPct);
+            $npcDefenseBonusPct = max(0, min(Gang::MAX_NPC_DEFENSE_BONUS_PERCENT, $rawNpcDefenseBonusPct));
             $targetNpcDefenseBonus = (int) round($baseTargetDefense * ($npcDefenseBonusPct / 100));
-            $targetDefense = $baseTargetDefense + $targetNpcDefenseBonus;
+            $targetDefense = max(500, $baseTargetDefense + $targetNpcDefenseBonus);
 
             // Apply a 15% variance so evenly matched gangs do not have a deterministic outcome.
             $attackRollPercent = mt_rand(85, 115);
@@ -2515,7 +2563,7 @@ class GangController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen bende-uurloon opeisen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 

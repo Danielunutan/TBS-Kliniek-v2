@@ -3,6 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\Gang;
+use App\Models\GangAlliance;
+use App\Models\GangNpc;
+use App\Models\GangProperty;
 use App\Models\User;
 use App\Models\VaultCode;
 use App\Services\EventCashHuntService;
@@ -11,6 +15,7 @@ use App\Services\EventVaultCrackingService;
 use App\Services\HalloweenService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class ComprehensiveAuditBucket1Test extends TestCase
@@ -451,5 +456,371 @@ class ComprehensiveAuditBucket1Test extends TestCase
         $resCash = $this->actingAs($user)->getJson(route('api.event.cash_hunt_leaderboard', ['limit' => 10]));
         $resCash->assertOk();
         $resCash->assertJsonStructure(['is_active', 'has_ended', 'leaderboard', 'my_rank', 'total_participants']);
+    }
+
+    // =========================================================================
+    // 7. GANG WAR BALANCE, ENFORCERS & PROPERTY RIPDEAL AUDIT TESTS (DOMAIN 1)
+    // =========================================================================
+
+    public function test_gang_enforcer_cap_and_defense_calculations_cannot_exceed_100_percent_or_go_negative(): void
+    {
+        [$user, $character] = $this->createCharacter();
+        $gang = Gang::create([
+            'name' => 'CapGang',
+            'tag' => 'CG',
+            'specialty' => 'vechten',
+            'treasury' => 500000,
+            'protection_points' => 2000,
+            'leader_character_id' => $character->id,
+        ]);
+        $character->update(['gang_id' => $gang->id, 'gang_role' => 'leader']);
+
+        // Base defense with 0 enforcers
+        $this->assertEquals(0, $gang->npc_defense_bonus_percent);
+        $this->assertEquals(2000, $gang->total_defense);
+
+        // Add an enforcer with +30%
+        GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'enforcer_1',
+            'name' => 'Guard 1',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 30,
+        ]);
+        $gang->refresh();
+        $this->assertEquals(30, $gang->npc_defense_bonus_percent);
+        $this->assertEquals(2600, $gang->total_defense); // 2000 + 30% = 2600
+
+        // Add more enforcers exceeding 100% total (e.g. 30 + 40 + 50 = 120%)
+        GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'enforcer_2',
+            'name' => 'Guard 2',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 40,
+        ]);
+        GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'enforcer_3',
+            'name' => 'Guard 3',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 50,
+        ]);
+        $gang->refresh();
+
+        // Must be capped at exactly 100%
+        $this->assertEquals(100, $gang->npc_defense_bonus_percent);
+        $this->assertEquals(4000, $gang->total_defense); // 2000 + 100% = 4000
+
+        // Test boundary: corrupted negative enforcer bonus in database must clamp to 0
+        $gang->npcs()->delete();
+        GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'corrupted_enforcer',
+            'name' => 'Bad Guard',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => -50,
+        ]);
+        $gang->refresh();
+        $this->assertEquals(0, $gang->npc_defense_bonus_percent);
+        $this->assertEquals(2000, $gang->total_defense);
+    }
+
+    public function test_hiring_enforcer_when_at_cap_is_strictly_blocked_and_partial_bonus_clamped_to_exact_cap(): void
+    {
+        [$user, $character] = $this->createCharacter(['cash' => 100000]);
+        $gang = Gang::create([
+            'name' => 'HireCapGang',
+            'tag' => 'HCG',
+            'specialty' => 'smokkel',
+            'treasury' => 5000000,
+            'protection_points' => 2000,
+            'leader_character_id' => $character->id,
+        ]);
+        $character->update(['gang_id' => $gang->id, 'gang_role' => 'leader']);
+
+        // Give gang villa property so it has 10 NPC capacity
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'gang_villa',
+            'name' => 'Gang Villa',
+            'type' => 'luxury',
+            'purchase_price' => 7500000,
+            'npc_capacity' => 10,
+        ]);
+
+        // Add enforcer that gives +90%
+        GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'guard_90',
+            'name' => 'Elite Guard',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 90,
+        ]);
+
+        $this->assertEquals(90, $gang->fresh()->npc_defense_bonus_percent);
+
+        // Hire enforcer_kapitein (+20% base bonus, cost €500.000)
+        // With 90% already active, this should only get +10% to hit exactly 100%
+        $hireRes = $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'enforcer_kapitein'));
+        $hireRes->assertSessionHas('success');
+
+        $hired = GangNpc::where('gang_id', $gang->id)->where('npc_key', 'enforcer_kapitein')->first();
+        $this->assertNotNull($hired);
+        $this->assertEquals(10, $hired->bonus_value); // Clamped from 20 down to 10
+        $this->assertEquals(100, $gang->fresh()->npc_defense_bonus_percent);
+
+        // Attempting to hire another enforcer must now fail immediately
+        $secondHire = $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'enforcer_kapitein'));
+        $secondHire->assertSessionHas('error');
+        $this->assertStringContainsString('maximale Enforcer-verdedigingslimiet', (string) session('error'));
+    }
+
+    public function test_lab_ripdeal_steals_35_percent_and_splits_50_50_between_player_and_gang_treasury(): void
+    {
+        // Setup attacker
+        [$attackerUser, $attacker] = $this->createCharacter(['cash' => 5000, 'energy' => 100, 'respect' => 50]);
+        $attackerGang = Gang::create([
+            'name' => 'RaiderGang',
+            'tag' => 'RAID',
+            'specialty' => 'smokkel',
+            'treasury' => 10000,
+            'leader_character_id' => $attacker->id,
+        ]);
+        $attacker->update(['gang_id' => $attackerGang->id, 'gang_role' => 'leader']);
+
+        // Setup defender gang with a chemical lab
+        [$defenderUser, $defenderLeader] = $this->createCharacter(['name' => 'DefLeader']);
+        $defenderGang = Gang::create([
+            'name' => 'VictimGang',
+            'tag' => 'VICT',
+            'specialty' => 'smokkel',
+            'treasury' => 50000,
+            'leader_character_id' => $defenderLeader->id,
+        ]);
+        $defenderLeader->update(['gang_id' => $defenderGang->id, 'gang_role' => 'leader']);
+
+        $lab = GangProperty::create([
+            'gang_id' => $defenderGang->id,
+            'property_key' => 'chemisch_lab',
+            'name' => 'Geheim Chemisch Smokkel-Lab',
+            'type' => 'production',
+            'purchase_price' => 1750000,
+            'production_status' => 'producing',
+            'production_duration_minutes' => 240,
+            'production_reward_cash' => 210000,
+            'production_reward_respect' => 75,
+            'production_started_at' => now()->subMinutes(60),
+            'production_ends_at' => now()->addMinutes(180),
+        ]);
+
+        // Attacker stats high to guarantee victory
+        $attacker->update(['level' => 50, 'strength' => 500, 'defense' => 500]);
+
+        $response = $this->actingAs($attackerUser)->post(route('gangs.panden.rip', $lab));
+        $response->assertSessionHas('success');
+
+        // Expected batch reward = 210,000. 35% of 210,000 = 73,500.
+        // Split 50/50: player gets floor(73500 * 0.5) = 36,750, gang gets 36,750.
+        $attacker->refresh();
+        $attackerGang->refresh();
+        $lab->refresh();
+
+        $this->assertEquals(5000 + 36750, $attacker->cash);
+        $this->assertEquals(10000 + 36750, $attackerGang->treasury);
+        $this->assertEquals(75, $attacker->energy); // Consumed 25 energy
+        $this->assertTrue($attacker->isOnCooldown('gang_lab_rip'));
+
+        // Lab production delayed by 30 minutes
+        $this->assertTrue($lab->production_ends_at->greaterThan(now()->addMinutes(180)));
+
+        // 2-hour raid shield must be active in Cache
+        $this->assertTrue(Cache::has("gang_lab_ripped_{$lab->id}"));
+
+        // Defender leader received attack notification
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $defenderLeader->id,
+            'type' => 'attack',
+        ]);
+    }
+
+    public function test_lab_ripdeal_applies_2_hour_raid_shield_and_blocks_subsequent_attempts(): void
+    {
+        [$attackerUser, $attacker] = $this->createCharacter(['energy' => 100]);
+        $attackerGang = Gang::create(['name' => 'WolfGang', 'tag' => 'WG', 'specialty' => 'smokkel', 'treasury' => 1000]);
+        $attacker->update(['gang_id' => $attackerGang->id, 'gang_role' => 'leader']);
+
+        [$defenderUser, $defenderLeader] = $this->createCharacter(['name' => 'LabOwner']);
+        $defenderGang = Gang::create(['name' => 'BearGang', 'tag' => 'BG', 'specialty' => 'smokkel', 'treasury' => 2000]);
+        $defenderLeader->update(['gang_id' => $defenderGang->id, 'gang_role' => 'leader']);
+
+        $lab = GangProperty::create([
+            'gang_id' => $defenderGang->id,
+            'property_key' => 'chemisch_lab',
+            'name' => 'Target Lab',
+            'type' => 'production',
+            'purchase_price' => 1750000,
+            'production_status' => 'producing',
+            'production_duration_minutes' => 240,
+            'production_reward_cash' => 210000,
+            'production_reward_respect' => 75,
+        ]);
+
+        // Place active raid shield in cache
+        Cache::put("gang_lab_ripped_{$lab->id}", now()->addHours(2)->timestamp, now()->addHours(2));
+
+        $response = $this->actingAs($attackerUser)->post(route('gangs.panden.rip', $lab));
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('verscherpte bewaking', (string) session('error'));
+
+        // Energy was not consumed
+        $this->assertEquals(100, $attacker->fresh()->energy);
+    }
+
+    public function test_lab_ripdeal_blocks_attacks_on_allied_gangs_and_filters_allies_from_rival_labs(): void
+    {
+        [$attackerUser, $attacker] = $this->createCharacter(['energy' => 100]);
+        $attackerGang = Gang::create(['name' => 'AlliedGangA', 'tag' => 'AGA', 'specialty' => 'smokkel', 'treasury' => 1000]);
+        $attacker->update(['gang_id' => $attackerGang->id, 'gang_role' => 'leader']);
+
+        [$allyUser, $allyLeader] = $this->createCharacter(['name' => 'AllyLeader']);
+        $allyGang = Gang::create(['name' => 'AlliedGangB', 'tag' => 'AGB', 'specialty' => 'smokkel', 'treasury' => 1000]);
+        $allyLeader->update(['gang_id' => $allyGang->id, 'gang_role' => 'leader']);
+
+        // Form alliance
+        GangAlliance::create([
+            'gang_id' => $attackerGang->id,
+            'ally_gang_id' => $allyGang->id,
+        ]);
+
+        $allyLab = GangProperty::create([
+            'gang_id' => $allyGang->id,
+            'property_key' => 'valsgeld_drukkerij',
+            'name' => 'Bondgenoot Drukkerij',
+            'type' => 'production',
+            'purchase_price' => 750000,
+            'production_status' => 'producing',
+            'production_reward_cash' => 90000,
+        ]);
+
+        // 1. Attempting to rip ally lab must fail
+        $res = $this->actingAs($attackerUser)->post(route('gangs.panden.rip', $allyLab));
+        $res->assertSessionHas('error');
+        $this->assertStringContainsString('bondgenoot', (string) session('error'));
+
+        // 2. Panden view does not list ally lab in rival labs
+        $viewRes = $this->actingAs($attackerUser)->get(route('gangs.panden'));
+        $viewRes->assertOk();
+        $viewRes->assertDontSee('Bondgenoot Drukkerij');
+    }
+
+    public function test_comatose_or_needs_revive_serum_player_is_strictly_blocked_from_ripdeals_and_gang_attacks(): void
+    {
+        [$user, $character] = $this->createCharacter(['energy' => 100, 'health' => 100]);
+        $gang = Gang::create(['name' => 'PatientGang', 'tag' => 'PG', 'specialty' => 'smokkel', 'treasury' => 10000, 'attack_power' => 5000]);
+        $character->update(['gang_id' => $gang->id, 'gang_role' => 'leader']);
+
+        $enemyGang = Gang::create(['name' => 'EnemyGang', 'tag' => 'EG', 'specialty' => 'smokkel', 'treasury' => 10000, 'protection_points' => 1000]);
+        $enemyLab = GangProperty::create([
+            'gang_id' => $enemyGang->id,
+            'property_key' => 'valsgeld_drukkerij',
+            'name' => 'Enemy Drukkerij',
+            'type' => 'production',
+            'purchase_price' => 750000,
+            'production_status' => 'producing',
+            'production_reward_cash' => 90000,
+        ]);
+
+        // 1. In Coma (coma_until in future)
+        $character->update(['coma_until' => now()->addMinutes(20)]);
+        $this->assertTrue($character->isComatose());
+        $this->assertTrue($character->needsReviveSerum());
+
+        $ripRes = $this->actingAs($user)->post(route('gangs.panden.rip', $enemyLab));
+        $ripRes->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', (string) session('error'));
+
+        $attackRes = $this->actingAs($user)->post(route('gangs.attack'), ['target_gang_id' => $enemyGang->id]);
+        $attackRes->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', (string) session('error'));
+
+        // 2. Coma cleared, but at 10 liquidation streak deaths (needsReviveSerum() = true)
+        $perks = $character->perks ?? [];
+        $perks['liquidation_streak_deaths'] = 10;
+        $character->update(['coma_until' => null, 'perks' => $perks]);
+        $character->refresh();
+        $this->assertFalse($character->isComatose());
+        $this->assertTrue($character->needsReviveSerum());
+
+        $ripRes2 = $this->actingAs($user)->post(route('gangs.panden.rip', $enemyLab));
+        $ripRes2->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', (string) session('error'));
+
+        $attackRes2 = $this->actingAs($user)->post(route('gangs.attack'), ['target_gang_id' => $enemyGang->id]);
+        $attackRes2->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', (string) session('error'));
+    }
+
+    public function test_gang_attack_respects_enforcer_defense_cap_and_updates_treasury_atomically(): void
+    {
+        [$attackerUser, $attacker] = $this->createCharacter(['health' => 100]);
+        $attackerGang = Gang::create([
+            'name' => 'ConquerorGang',
+            'tag' => 'CQ',
+            'specialty' => 'smokkel',
+            'attack_power' => 100000,
+            'treasury' => 5000,
+            'protection_points' => 2000,
+            'leader_character_id' => $attacker->id,
+        ]);
+        $attacker->update(['gang_id' => $attackerGang->id, 'gang_role' => 'leader']);
+
+        [$defenderUser, $defenderLeader] = $this->createCharacter(['name' => 'BunkerBoss']);
+        $defenderGang = Gang::create([
+            'name' => 'BunkerGang',
+            'tag' => 'BG',
+            'specialty' => 'smokkel',
+            'attack_power' => 500,
+            'protection_points' => 2000,
+            'treasury' => 100000,
+            'leader_character_id' => $defenderLeader->id,
+        ]);
+        $defenderLeader->update(['gang_id' => $defenderGang->id, 'gang_role' => 'leader']);
+
+        // Give defender 3 enforcers totaling 150% bonus - must be capped at 100%
+        for ($i = 1; $i <= 3; $i++) {
+            GangNpc::create([
+                'gang_id' => $defenderGang->id,
+                'npc_key' => "enforcer_{$i}",
+                'name' => "Enforcer {$i}",
+                'role_title' => 'Enforcer',
+                'bonus_type' => 'defense',
+                'bonus_value' => 50,
+            ]);
+        }
+        $this->assertEquals(100, $defenderGang->fresh()->npc_defense_bonus_percent);
+
+        $response = $this->actingAs($attackerUser)->post(route('gangs.attack'), [
+            'target_gang_id' => $defenderGang->id,
+        ]);
+        $response->assertSessionHas('success');
+
+        $attackerGang->refresh();
+        $defenderGang->refresh();
+
+        // Plunder occurred
+        $this->assertGreaterThan(5000, $attackerGang->treasury);
+        $this->assertLessThan(100000, $defenderGang->treasury);
+        $this->assertTrue($defenderGang->isUnderShield());
+        $this->assertNotNull($attackerGang->last_attack_at);
+
+        // Success summary mentions capped Enforcer bonus (+100%)
+        $summary = (string) session('success');
+        $this->assertStringContainsString('+100%', $summary);
     }
 }

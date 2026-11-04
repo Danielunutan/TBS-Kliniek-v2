@@ -8,6 +8,7 @@ use App\Models\GameNotification;
 use App\Models\User;
 use App\Services\AuditLogService;
 use Carbon\Carbon;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -22,7 +23,10 @@ class BuyMeACoffeeWebhookController extends Controller
     public function handle(Request $request): JsonResponse
     {
         $secret = config('services.buymeacoffee.webhook_secret');
-        $signature = $request->header('x-signature-sha256') ?? $request->header('X-Signature-Sha256');
+        $rawSignature = $request->header('x-signature-sha256') ?? $request->header('X-Signature-Sha256') ?? $request->header('x-signature');
+        $signature = is_string($rawSignature)
+            ? (str_starts_with($rawSignature, 'sha256=') ? substr($rawSignature, 7) : $rawSignature)
+            : '';
 
         // Fail closed in non-test environments when secret is missing, and always verify when secret is configured.
         if (empty($secret) && ! app()->environment('testing', 'local')) {
@@ -63,7 +67,7 @@ class BuyMeACoffeeWebhookController extends Controller
         $eventNormalized = strtolower(str_replace(['.', ' '], '_', (string) $event));
 
         // Extract metadata from BMC payload
-        $externalId = (string) ($data['subscription_id'] ?? $data['sub_id'] ?? $data['membership_id'] ?? $data['support_id'] ?? $data['id'] ?? '');
+        $externalId = (string) ($data['subscription_id'] ?? $data['sub_id'] ?? $data['membership_id'] ?? $data['support_id'] ?? $data['order_id'] ?? $data['payment_id'] ?? $data['order_number'] ?? $data['id'] ?? '');
         $supporterName = (string) ($data['supporter_name'] ?? $data['payer_name'] ?? $data['name'] ?? '');
         $supporterEmail = strtolower(trim((string) ($data['supporter_email'] ?? $data['payer_email'] ?? $data['email'] ?? '')));
         $amount = (float) ($data['amount'] ?? $data['total_amount'] ?? $data['item_price'] ?? 0);
@@ -126,56 +130,63 @@ class BuyMeACoffeeWebhookController extends Controller
 
         $lockKey = 'bmac_webhook_'.md5(($externalId ?: uniqid()).'_'.$event);
 
-        return Cache::lock($lockKey, 15)->block(5, fn (): JsonResponse => DB::transaction(function () use ($externalId, $event, $supporterName, $supporterEmail, $amount, $currency, $tierName, $message, $character, $isMembership, $payload, $data): JsonResponse {
-            // Normal Order / Donation / Membership: prevent replay attacks from granting duplicate rewards for the same event.
-            if (! empty($externalId)) {
-                $alreadyProcessed = BuyMeACoffeeOrder::where('external_id', $externalId)
-                    ->where('event', $event)
-                    ->whereIn('status', ['matched', 'manually_linked'])
-                    ->exists();
-                if ($alreadyProcessed) {
-                    return response()->json([
-                        'status' => 'success',
-                        'action' => 'already_processed',
-                        'matched' => true,
-                    ], 200);
+        try {
+            return Cache::lock($lockKey, 15)->block(5, fn (): JsonResponse => DB::transaction(function () use ($externalId, $event, $supporterName, $supporterEmail, $amount, $currency, $tierName, $message, $character, $isMembership, $payload, $data): JsonResponse {
+                // Normal Order / Donation / Membership: prevent replay attacks from granting duplicate rewards for the same event.
+                if (! empty($externalId)) {
+                    $alreadyProcessed = BuyMeACoffeeOrder::where('external_id', $externalId)
+                        ->where('event', $event)
+                        ->whereIn('status', ['matched', 'manually_linked'])
+                        ->exists();
+                    if ($alreadyProcessed) {
+                        return response()->json([
+                            'status' => 'success',
+                            'action' => 'already_processed',
+                            'matched' => true,
+                        ], 200);
+                    }
                 }
-            }
 
-            $order = BuyMeACoffeeOrder::updateOrCreate(
-                ['external_id' => $externalId ?: ('order_'.uniqid())],
-                [
-                    'event' => $event,
-                    'supporter_name' => $supporterName ?: null,
-                    'supporter_email' => $supporterEmail ?: null,
-                    'amount' => $amount,
-                    'currency' => $currency,
-                    'membership_tier' => $tierName ?: null,
-                    'message' => $message ?: null,
-                    'character_id' => $character?->id,
-                    'status' => $character ? 'matched' : 'unmatched',
-                    'is_membership' => $isMembership,
-                    'membership_status' => $isMembership ? 'active' : null,
-                    'payload' => $payload,
-                    'linked_at' => $character ? now() : null,
-                ]
-            );
+                $order = BuyMeACoffeeOrder::updateOrCreate(
+                    ['external_id' => $externalId ?: ('order_'.uniqid())],
+                    [
+                        'event' => $event,
+                        'supporter_name' => $supporterName ?: null,
+                        'supporter_email' => $supporterEmail ?: null,
+                        'amount' => $amount,
+                        'currency' => $currency,
+                        'membership_tier' => $tierName ?: null,
+                        'message' => $message ?: null,
+                        'character_id' => $character?->id,
+                        'status' => $character ? 'matched' : 'unmatched',
+                        'is_membership' => $isMembership,
+                        'membership_status' => $isMembership ? 'active' : null,
+                        'payload' => $payload,
+                        'linked_at' => $character ? now() : null,
+                    ]
+                );
 
-            if ($character) {
-                $this->processEvent($event, $data, $character);
-            } else {
-                Log::warning('BuyMeACoffee Webhook: Player could not be matched automatically', [
-                    'event' => $event,
+                if ($character) {
+                    $this->processEvent($event, $data, $character);
+                } else {
+                    Log::warning('BuyMeACoffee Webhook: Player could not be matched automatically', [
+                        'event' => $event,
+                        'order_id' => $order->id,
+                    ]);
+                }
+
+                return response()->json([
+                    'status' => 'success',
                     'order_id' => $order->id,
-                ]);
-            }
-
+                    'matched' => $character !== null,
+                ], 200);
+            }));
+        } catch (LockTimeoutException) {
             return response()->json([
-                'status' => 'success',
-                'order_id' => $order->id,
-                'matched' => $character !== null,
-            ], 200);
-        }));
+                'status' => 'pending',
+                'message' => 'Webhook is already being processed',
+            ], 202);
+        }
     }
 
     /**

@@ -41,7 +41,8 @@ class MaintenanceCommand extends Command
         if ($action === 'status') {
             if (file_exists($lockFile)) {
                 $this->warn('Onderhoudsmodus is momenteel ACTIEF (alleen beheerders hebben toegang).');
-                $data = json_decode((string) file_get_contents($lockFile), true);
+                $content = @file_get_contents($lockFile);
+                $data = $content !== false ? json_decode($content, true) : null;
                 if (is_array($data)) {
                     $this->line('Verwachte eindtijd: '.($data['target_time'] ?? '22:00'));
                 }
@@ -65,7 +66,7 @@ class MaintenanceCommand extends Command
             mkdir(dirname($lockFile), 0755, true);
         }
 
-        file_put_contents($lockFile, json_encode($payload, JSON_PRETTY_PRINT));
+        file_put_contents($lockFile, json_encode($payload, JSON_PRETTY_PRINT), LOCK_EX);
         $this->info("TBS Kliniek is nu in ONDERHOUDSMODUS geplaatst! Verwachte heropening: {$targetTime}.");
         $this->line('Beheerders hebben na inloggen toegang.');
 

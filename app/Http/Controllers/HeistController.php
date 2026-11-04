@@ -53,6 +53,10 @@ class HeistController extends Controller
             ->first() ?? CharacterVehicle::where('character_id', $character->id)->with('vehicle')->first();
 
         $ownedVehicles = CharacterVehicle::where('character_id', $character->id)->with('vehicle')->get();
+        $personalVehicles = $ownedVehicles->where('in_gang_garage', false)->where('is_for_sale', false)->values();
+        $gangVehicles = $myGang
+            ? $myGang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get()
+            : collect();
 
         // Recent heists by all players
         $recentLogs = HeistLog::with(['character', 'heist', 'vehicle', 'gang'])
@@ -70,6 +74,8 @@ class HeistController extends Controller
             'myGang',
             'activeVehicle',
             'ownedVehicles',
+            'personalVehicles',
+            'gangVehicles',
             'recentLogs',
             'topRankings'
         ));
@@ -88,7 +94,7 @@ class HeistController extends Controller
             return back()->with('error', 'Je zit in de isoleercel en kunt geen Heist organiseren!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -127,30 +133,57 @@ class HeistController extends Controller
             }
 
             // 2. Vehicle requirement strictly from Gang Garage fleet
-            $gangVehicles = $gang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get();
-            if ($gangVehicles->isEmpty()) {
-                return back()->with('error', 'Geen bendevoertuig in de Bende Garage! Voor Bende Heists kunnen enkel voertuigen worden gebruikt die zijn gestald in de Bende Garage van jullie panden. Parkeer een vluchtvoertuig in de Bende Garage!');
-            }
-
-            $qualifyingVehicles = $gangVehicles->filter(function ($cv) use ($heist) {
-                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $cv->vehicle->type !== $heist->required_vehicle_type) {
-                    return false;
+            $selectedVehicleId = $request->input('character_vehicle_id') ?? $request->input('vehicle_id');
+            if ($selectedVehicleId) {
+                $selected = CharacterVehicle::with('vehicle')->find($selectedVehicleId);
+                if (! $selected) {
+                    return back()->with('error', 'Het geselecteerde bendevoertuig is niet gevonden.');
+                }
+                if (! $selected->in_gang_garage || (int) $selected->gang_id !== (int) $gang->id) {
+                    return back()->with('error', 'Dit voertuig staat niet in de Bende Garage van jouw bende!');
+                }
+                if ($selected->current_condition <= 0) {
+                    return back()->with('error', "De {$selected->vehicle->name} is total loss (100% schade) en kan niet worden gebruikt als vluchtwagen!");
+                }
+                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $selected->vehicle->type !== $heist->required_vehicle_type) {
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist. Jouw wagen is een {$selected->vehicle->type}.");
+                }
+                if ($selected->effective_speed < $heist->min_speed_required) {
+                    return back()->with('error', "De snelheid van de {$selected->vehicle->name} is te laag ({$selected->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u.");
+                }
+                if ($selected->current_condition < $heist->min_condition_required) {
+                    return back()->with('error', "De conditie van de {$selected->vehicle->name} is te laag ({$selected->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}%.");
+                }
+                $charVehicle = $selected;
+            } else {
+                $gangVehicles = $gang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get();
+                if ($gangVehicles->isEmpty()) {
+                    return back()->with('error', 'Geen bendevoertuig in de Bende Garage! Voor Bende Heists kunnen enkel voertuigen worden gebruikt die zijn gestald in de Bende Garage van jullie panden. Parkeer een vluchtvoertuig in de Bende Garage!');
                 }
 
-                return $cv->effective_speed >= $heist->min_speed_required && $cv->current_condition >= $heist->min_condition_required;
-            });
+                $qualifyingVehicles = $gangVehicles->filter(function ($cv) use ($heist) {
+                    if ($cv->current_condition <= 0) {
+                        return false;
+                    }
+                    if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $cv->vehicle->type !== $heist->required_vehicle_type) {
+                        return false;
+                    }
 
-            if ($qualifyingVehicles->isEmpty()) {
-                return back()->with('error', "Geen enkel voertuig in de Bende Garage voldoet aan de eisen voor de {$heist->name} (Type: {$heist->required_vehicle_type}, Min. Snelheid: {$heist->min_speed_required} km/u, Min. Conditie: {$heist->min_condition_required}%). Breng een geschikte wagen naar de Bende Garage!");
-            }
+                    return $cv->effective_speed >= $heist->min_speed_required && $cv->current_condition >= $heist->min_condition_required;
+                });
 
-            $charVehicle = $qualifyingVehicles->sort(function ($a, $b) {
-                if ($a->effective_speed !== $b->effective_speed) {
-                    return $b->effective_speed <=> $a->effective_speed;
+                if ($qualifyingVehicles->isEmpty()) {
+                    return back()->with('error', "Geen enkel voertuig in de Bende Garage voldoet aan de eisen voor de {$heist->name} (Type: {$heist->required_vehicle_type}, Min. Snelheid: {$heist->min_speed_required} km/u, Min. Conditie: {$heist->min_condition_required}%). Breng een geschikte wagen naar de Bende Garage!");
                 }
 
-                return $b->current_condition <=> $a->current_condition;
-            })->first();
+                $charVehicle = $qualifyingVehicles->sort(function ($a, $b) {
+                    if ($a->effective_speed !== $b->effective_speed) {
+                        return $b->effective_speed <=> $a->effective_speed;
+                    }
+
+                    return $b->current_condition <=> $a->current_condition;
+                })->first();
+            }
 
             // Deduct masks directly from Gang Depot atomically under row lock
             $masksDeducted = DB::transaction(function () use ($gang, $heist): bool {
@@ -176,22 +209,56 @@ class HeistController extends Controller
             }
         } else {
             // Solo Heist: Personal masks & Personal garage vehicle
-            $charVehicle = $heist->getEffectiveVehicle($character);
+            $selectedVehicleId = $request->input('character_vehicle_id') ?? $request->input('vehicle_id');
+            if ($selectedVehicleId) {
+                $selected = CharacterVehicle::with('vehicle')->find($selectedVehicleId);
+                if (! $selected) {
+                    return back()->with('error', 'Het geselecteerde vluchtvoertuig is niet gevonden.');
+                }
+                if ((int) $selected->character_id !== (int) $character->id) {
+                    return back()->with('error', 'Dit voertuig is niet in jouw bezit en kan niet worden geselecteerd!');
+                }
+                if ($selected->in_gang_garage) {
+                    return back()->with('error', 'Dit voertuig staat gestald in de Bende Garage en kan niet voor een Solo Heist worden gebruikt!');
+                }
+                if ($selected->is_for_sale) {
+                    return back()->with('error', 'Dit voertuig staat te koop op de marktplaats en kan niet als vluchtwagen worden gebruikt!');
+                }
+                if ($selected->current_condition <= 0) {
+                    return back()->with('error', "De {$selected->vehicle->name} is total loss (100% schade) en kan niet worden gebruikt als vluchtwagen! Laat het eerst repareren in de Garage.");
+                }
+                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $selected->vehicle->type !== $heist->required_vehicle_type) {
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$selected->vehicle->type}.");
+                }
+                if ($selected->effective_speed < $heist->min_speed_required) {
+                    return back()->with('error', "De topsnelheid van je {$selected->vehicle->name} is te laag ({$selected->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
+                }
+                if ($selected->current_condition < $heist->min_condition_required) {
+                    return back()->with('error', "De conditie van je {$selected->vehicle->name} is te laag ({$selected->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
+                }
+                $charVehicle = $selected;
+            } else {
+                $charVehicle = $heist->getEffectiveVehicle($character);
 
-            if (! $charVehicle) {
-                return back()->with('error', 'Je hebt een geregistreerd vluchtvoertuig nodig (in je eigen garage) om een Heist te plegen!');
-            }
+                if (! $charVehicle) {
+                    return back()->with('error', 'Je hebt een geregistreerd vluchtvoertuig nodig (in je eigen garage) om een Heist te plegen!');
+                }
 
-            if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $charVehicle->vehicle->type !== $heist->required_vehicle_type) {
-                return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$charVehicle->vehicle->type}.");
-            }
+                if ($charVehicle->current_condition <= 0) {
+                    return back()->with('error', 'Je hebt een rijdend vluchtvoertuig nodig! Je geselecteerde wagen is total loss (100% schade).');
+                }
 
-            if ($charVehicle->effective_speed < $heist->min_speed_required) {
-                return back()->with('error', "De topsnelheid van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
-            }
+                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $charVehicle->vehicle->type !== $heist->required_vehicle_type) {
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$charVehicle->vehicle->type}.");
+                }
 
-            if ($charVehicle->current_condition < $heist->min_condition_required) {
-                return back()->with('error', "De conditie van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
+                if ($charVehicle->effective_speed < $heist->min_speed_required) {
+                    return back()->with('error', "De topsnelheid van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
+                }
+
+                if ($charVehicle->current_condition < $heist->min_condition_required) {
+                    return back()->with('error', "De conditie van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
+                }
             }
 
             if ($heist->required_mask_count > 0) {
@@ -217,33 +284,7 @@ class HeistController extends Controller
         }
 
         // Calculate Success Chance
-        // 1. Base difficulty
-        $baseChance = match ($heist->difficulty) {
-            'makkelijk' => 75,
-            'normaal' => 65,
-            'zwaar' => 52,
-            'extreem' => 42,
-            'legendarisch' => 32,
-            default => 50,
-        };
-
-        // 2. Vehicle speed bonus/penalty (relative to min_speed_required)
-        $speedDiff = $charVehicle->effective_speed - $heist->min_speed_required;
-        $speedBonus = (int) round($speedDiff * 0.4); // e.g. +10 speed = +4% chance
-
-        // 3. Vehicle condition factor
-        $conditionBonus = (int) round(($charVehicle->current_condition - 70) * 0.25); // 100% = +7.5%, 30% = -10%
-
-        // 4. Character stats influence (Intelligence & Discipline for planning)
-        $statBonus = min(15, (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveDiscipline()) / 30));
-
-        // 5. Gang synergy bonus for Bende Heists
-        $gangBonus = 0;
-        if ($heist->is_gang_heist && $character->gang) {
-            $gangBonus = min(15, $character->gang->members()->count() * 2);
-        }
-
-        $finalChance = max(15, min(92, $baseChance + $speedBonus + $conditionBonus + $statBonus + $gangBonus));
+        $finalChance = $heist->calculateSuccessChance($character, $charVehicle);
         $roll = mt_rand(1, 100);
         $success = ($roll <= $finalChance);
 
@@ -282,11 +323,20 @@ class HeistController extends Controller
             // Vehicle wear & tear (5% to 15% condition lost)
             $conditionLoss = mt_rand(6, 16);
             $wearBonusMsg = '';
+
+            // Reinforced vehicle wear protection
+            $vehicleWearMult = $charVehicle->getWearMultiplier();
+            if ($vehicleWearMult < 1.0) {
+                $conditionLoss = max(1, (int) round($conditionLoss * $vehicleWearMult));
+                $pctSaved = (int) round((1.0 - $vehicleWearMult) * 100);
+                $wearBonusMsg .= " 🛡️ Pantser: -{$pctSaved}% slijtage!";
+            }
+
             if ($heist->is_gang_heist && $character->gang) {
                 $wearMultiplier = $character->gang->getHeistWearMultiplier();
                 if ($wearMultiplier < 1.0) {
                     $conditionLoss = max(1, (int) round($conditionLoss * $wearMultiplier));
-                    $wearBonusMsg = ' 🛡️ Chop-Shop: -25% slijtage!';
+                    $wearBonusMsg .= ' 🛡️ Chop-Shop: -25% slijtage!';
                 }
             }
             $newCondition = $this->applyVehicleWear($charVehicle, $conditionLoss, true);
@@ -329,11 +379,20 @@ class HeistController extends Controller
             // Failure: Heavy vehicle damage and isolation imprisonment
             $conditionLoss = mt_rand(20, 35);
             $wearBonusMsg = '';
+
+            // Reinforced vehicle wear protection
+            $vehicleWearMult = $charVehicle->getWearMultiplier();
+            if ($vehicleWearMult < 1.0) {
+                $conditionLoss = max(1, (int) round($conditionLoss * $vehicleWearMult));
+                $pctSaved = (int) round((1.0 - $vehicleWearMult) * 100);
+                $wearBonusMsg .= " 🛡️ Pantser: -{$pctSaved}% schade!";
+            }
+
             if ($heist->is_gang_heist && $character->gang) {
                 $wearMultiplier = $character->gang->getHeistWearMultiplier();
                 if ($wearMultiplier < 1.0) {
                     $conditionLoss = max(1, (int) round($conditionLoss * $wearMultiplier));
-                    $wearBonusMsg = ' 🛡️ Chop-Shop: -25% schade';
+                    $wearBonusMsg .= ' 🛡️ Chop-Shop: -25% schade';
                 }
             }
             $newCondition = $this->applyVehicleWear($charVehicle, $conditionLoss, false);
@@ -367,9 +426,14 @@ class HeistController extends Controller
     private function applyVehicleWear(CharacterVehicle $vehicle, int $conditionLoss, bool $countHeist): int
     {
         return DB::transaction(function () use ($vehicle, $conditionLoss, $countHeist): int {
-            /** @var CharacterVehicle $locked */
+            /** @var CharacterVehicle|null $locked */
             $locked = CharacterVehicle::where('id', $vehicle->id)->lockForUpdate()->first();
-            $locked->current_condition = max(0, (int) $locked->current_condition - $conditionLoss);
+            if (! $locked) {
+                return 0;
+            }
+
+            $loss = max(0, $conditionLoss);
+            $locked->current_condition = max(0, min(100, (int) $locked->current_condition - $loss));
             if ($countHeist) {
                 $locked->total_heists_done = (int) $locked->total_heists_done + 1;
             }

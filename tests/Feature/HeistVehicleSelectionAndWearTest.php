@@ -369,4 +369,366 @@ class HeistVehicleSelectionAndWearTest extends TestCase
             'is_published' => true,
         ]);
     }
+
+    public function test_user_cannot_select_vehicle_owned_by_another_player(): void
+    {
+        $user1 = User::factory()->create();
+        $char1 = Character::create([
+            'user_id' => $user1->id,
+            'name' => 'Driver1',
+            'cash' => 50000,
+            'bank' => 100000,
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+        ]);
+
+        $user2 = User::factory()->create();
+        $char2 = Character::create([
+            'user_id' => $user2->id,
+            'name' => 'Driver2',
+            'cash' => 50000,
+            'bank' => 100000,
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+        ]);
+
+        $car = Vehicle::create([
+            'name' => 'Fast Car',
+            'slug' => 'fast-car',
+            'type' => 'car',
+            'price_cash' => 50000,
+            'speed_pct' => 80,
+            'reliability_pct' => 80,
+            'min_level' => 1,
+        ]);
+
+        $char1Car = CharacterVehicle::create([
+            'character_id' => $char1->id,
+            'vehicle_id' => $car->id,
+            'current_condition' => 90,
+            'tuned_speed' => 80,
+        ]);
+
+        $char2Car = CharacterVehicle::create([
+            'character_id' => $char2->id,
+            'vehicle_id' => $car->id,
+            'current_condition' => 95,
+            'tuned_speed' => 80,
+        ]);
+
+        $heist = Heist::create([
+            'name' => 'Solo Street Heist',
+            'slug' => 'solo-street-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 50,
+            'min_condition_required' => 50,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => false,
+        ]);
+
+        // Char1 tries to use Char2's car
+        $response = $this->actingAs($user1)->post(route('heists.launch', $heist), [
+            'character_vehicle_id' => $char2Car->id,
+        ]);
+
+        $response->assertSessionHas('error', 'Dit voertuig is niet in jouw bezit en kan niet worden geselecteerd!');
+        $char2Car->refresh();
+        $this->assertSame(95, $char2Car->current_condition);
+    }
+
+    public function test_user_cannot_select_destroyed_vehicle_or_total_loss(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'WreckDriver',
+            'cash' => 50000,
+            'bank' => 100000,
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+        ]);
+
+        $car = Vehicle::create([
+            'name' => 'Wrecked Sedan',
+            'slug' => 'wrecked-sedan',
+            'type' => 'car',
+            'price_cash' => 20000,
+            'speed_pct' => 60,
+            'reliability_pct' => 60,
+            'min_level' => 1,
+        ]);
+
+        $wreckedCar = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $car->id,
+            'current_condition' => 0,
+            'tuned_speed' => 60,
+        ]);
+
+        $this->assertTrue($wreckedCar->isDestroyed());
+        $this->assertSame(100, $wreckedCar->damage_percentage);
+        $this->assertSame(100, $wreckedCar->wear_percentage);
+
+        $heist = Heist::create([
+            'name' => 'Target Heist',
+            'slug' => 'target-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 20,
+            'min_condition_required' => 0,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => false,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('heists.launch', $heist), [
+            'character_vehicle_id' => $wreckedCar->id,
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('total loss', session('error'));
+    }
+
+    public function test_user_cannot_select_vehicle_in_gang_garage_for_solo_heist(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'GarageTester',
+            'cash' => 50000,
+            'bank' => 100000,
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+        ]);
+
+        $car = Vehicle::create([
+            'name' => 'Gang Van',
+            'slug' => 'gang-van',
+            'type' => 'car',
+            'price_cash' => 30000,
+            'speed_pct' => 60,
+            'reliability_pct' => 80,
+            'min_level' => 1,
+        ]);
+
+        $gangCar = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $car->id,
+            'current_condition' => 80,
+            'tuned_speed' => 60,
+            'in_gang_garage' => true,
+        ]);
+
+        $heist = Heist::create([
+            'name' => 'Solo Mini Heist',
+            'slug' => 'solo-mini-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 40,
+            'min_condition_required' => 30,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => false,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('heists.launch', $heist), [
+            'character_vehicle_id' => $gangCar->id,
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('Bende Garage', session('error'));
+    }
+
+    public function test_user_can_explicitly_select_qualifying_vehicle(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'FleetSelector',
+            'cash' => 50000,
+            'bank' => 100000,
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+        ]);
+
+        $fastCar = Vehicle::create([
+            'name' => 'Fast Exotic',
+            'slug' => 'fast-exotic',
+            'type' => 'car',
+            'price_cash' => 100000,
+            'speed_pct' => 95,
+            'reliability_pct' => 80,
+            'min_level' => 1,
+        ]);
+
+        $reliableCar = Vehicle::create([
+            'name' => 'Reliable Sedan',
+            'slug' => 'reliable-sedan',
+            'type' => 'car',
+            'price_cash' => 40000,
+            'speed_pct' => 70,
+            'reliability_pct' => 80,
+            'min_level' => 1,
+        ]);
+
+        $fastCharVehicle = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $fastCar->id,
+            'current_condition' => 100,
+            'tuned_speed' => 95,
+        ]);
+
+        $reliableCharVehicle = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $reliableCar->id,
+            'current_condition' => 100,
+            'tuned_speed' => 70,
+        ]);
+
+        $heist = Heist::create([
+            'name' => 'City Heist',
+            'slug' => 'city-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 50,
+            'min_condition_required' => 50,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => false,
+        ]);
+
+        // Explicitly select the reliableCar instead of the auto-selected fastest car
+        $response = $this->actingAs($user)->post(route('heists.launch', $heist), [
+            'character_vehicle_id' => $reliableCharVehicle->id,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $reliableCharVehicle->refresh();
+        $fastCharVehicle->refresh();
+
+        // The chosen reliable car incurred wear, while the fast car remains at 100%
+        $this->assertLessThan(100, $reliableCharVehicle->current_condition);
+        $this->assertSame(100, $fastCharVehicle->current_condition);
+    }
+
+    public function test_reinforced_armored_vehicle_provides_wear_reduction(): void
+    {
+        $vehicle = Vehicle::create([
+            'name' => 'Gepantserde Mercedes G63 AMG V8',
+            'slug' => 'gepantserde-mercedes-g63-amg-v8',
+            'type' => 'car',
+            'price_cash' => 150000,
+            'speed_pct' => 85,
+            'reliability_pct' => 96,
+            'min_level' => 1,
+        ]);
+
+        $charVehicle = new CharacterVehicle([
+            'current_condition' => 100,
+        ]);
+        $charVehicle->setRelation('vehicle', $vehicle);
+
+        $this->assertTrue($charVehicle->isReinforced());
+        $this->assertSame(0.80, $charVehicle->getWearMultiplier());
+    }
+
+    public function test_comatose_or_needing_revive_serum_player_blocked_from_heist(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'ComaVictim',
+            'cash' => 50000,
+            'bank' => 100000,
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+            'deaths_count' => 10,
+            'perks' => ['liquidation_streak_deaths' => 10],
+        ]);
+
+        $this->assertTrue($char->needsReviveSerum());
+
+        $heist = Heist::create([
+            'name' => 'Block Heist',
+            'slug' => 'block-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'any',
+            'min_speed_required' => 10,
+            'min_condition_required' => 10,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => false,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('heists.launch', $heist));
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', session('error'));
+    }
+
+    public function test_heist_methods_handle_zero_boundaries_without_errors(): void
+    {
+        $heist = new Heist([
+            'min_speed_required' => 0,
+            'difficulty' => 'makkelijk',
+        ]);
+
+        $cv = new CharacterVehicle([
+            'current_condition' => 0,
+            'tuned_speed' => 0,
+        ]);
+
+        $this->assertSame(0, $heist->calculateSpeedBonus(null));
+        $this->assertSame(0, $heist->calculateConditionBonus(null));
+
+        $speedBonus = $heist->calculateSpeedBonus($cv);
+        $conditionBonus = $heist->calculateConditionBonus($cv);
+
+        $this->assertIsInt($speedBonus);
+        $this->assertIsInt($conditionBonus);
+    }
 }

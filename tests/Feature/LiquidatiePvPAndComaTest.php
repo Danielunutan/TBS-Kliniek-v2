@@ -173,6 +173,10 @@ class LiquidatiePvPAndComaTest extends TestCase
         $target->refresh();
         $this->assertFalse($target->isComatose());
         $this->assertEquals(20, $target->health);
+        $this->assertTrue($target->hasIsolationProtection());
+
+        // Simulate 30-minute post-coma medical recovery shield expiring for 10th shot test
+        $target->update(['protection_until' => null]);
 
         // 5. 10th liquidation triggers Code Blauw (Coma) requiring the Forensisch Reanimatie-Serum
         $shooter->update([

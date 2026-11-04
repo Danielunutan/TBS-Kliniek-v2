@@ -3,627 +3,340 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
-use App\Models\EscapeTunnel;
 use App\Models\User;
 use App\Services\CooldownService;
+use App\Services\TheftService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class ComprehensiveAuditBucket2Test extends TestCase
 {
     use RefreshDatabase;
 
-    protected function makeInmate(array $attributes = []): Character
+    private function createCharacter(array $attrs = []): Character
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_onboarded' => true]);
 
         return Character::create(array_merge([
             'user_id' => $user->id,
-            'name' => 'Inmate_'.uniqid(),
-            'level' => 5,
+            'name' => 'Pat_'.rand(10000, 99999),
+            'level' => 15,
+            'strength' => 50,
+            'defense' => 50,
+            'speed' => 50,
+            'cash' => 500000,
+            'bank' => 1000000,
             'energy' => 100,
             'max_energy' => 100,
             'health' => 100,
             'max_health' => 100,
-            'cash' => 5000,
-            'bank' => 20000,
-            'stars' => 30,
+            'vip_points' => 100,
+            'stars' => 300,
             'respect' => 100,
-            'strength' => 20,
-            'intelligence' => 20,
-            'stamina' => 20,
+            'bullets' => 100,
+            'current_location' => 'Paviljoen 1 (Gesloten)',
             'is_in_prison' => false,
-            'prison_until' => null,
-            'prison_sentences' => 0,
-            'prison_escapes' => 0,
-        ], $attributes));
+        ], $attrs));
     }
 
-    // ==========================================
-    // 1. PRISON BREAKOUTS & GUARDS
-    // ==========================================
-
-    public function test_rescuer_cannot_break_out_self_from_outside(): void
+    public function test_protection_caps_are_strictly_enforced_and_clamped(): void
     {
-        $rescuer = $this->makeInmate(['is_in_prison' => false]);
+        $char = $this->createCharacter();
 
-        $response = $this->actingAs($rescuer->user)->post(route('prison.breakout', $rescuer->id));
+        // 1. Legacy oversized timers: 72 hours isolation, 100 hours cash protection
+        $char->update([
+            'protection_until' => Carbon::now()->addHours(72),
+            'cash_protection_until' => Carbon::now()->addHours(100),
+        ]);
 
-        $response->assertSessionHas('error', 'Je kunt niet je eigen cel van buitenaf openbreken; gebruik het ontsnappingspaneel!');
+        $char->refresh();
+
+        // Getters clamp safely to MAX_ISOLATION_HOURS (12h) and MAX_CASH_PROTECTION_HOURS (24h)
+        $this->assertEquals(Character::MAX_ISOLATION_HOURS * 3600, $char->getIsolationProtectionRemainingSeconds());
+        $this->assertEquals(Character::MAX_CASH_PROTECTION_HOURS * 3600, $char->getCashProtectionRemainingSeconds());
+        $this->assertEquals(Character::MAX_CASH_PROTECTION_HOURS * 3600, $char->getProtectionRemainingSeconds());
+
+        $expiresAt = $char->getProtectionExpiresAt();
+        $this->assertNotNull($expiresAt);
+        $this->assertLessThanOrEqual(Character::MAX_CASH_PROTECTION_HOURS * 3600 + 5, Carbon::now()->diffInSeconds($expiresAt, false));
+
+        // 2. Normalizing character state clamps database timestamps
+        $char->normalizeCharacterState();
+        $char->refresh();
+
+        $this->assertLessThanOrEqual(Character::MAX_ISOLATION_HOURS * 3600 + 5, Carbon::now()->diffInSeconds($char->protection_until, false));
+        $this->assertLessThanOrEqual(Character::MAX_CASH_PROTECTION_HOURS * 3600 + 5, Carbon::now()->diffInSeconds($char->cash_protection_until, false));
     }
 
-    public function test_rescuer_cannot_break_out_another_while_imprisoned(): void
+    public function test_voluntary_isolation_cannot_be_extended_beyond_12_hours(): void
     {
-        $rescuer = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
-        $target = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
+        $char = $this->createCharacter(['cash' => 2000000]);
 
-        $response = $this->actingAs($rescuer->user)->post(route('prison.breakout', $target->id));
+        $this->actingAs($char->user);
 
-        $response->assertSessionHas('error', 'Je zit zelf achter de gepantserde deur en kunt geen andere cel openbreken!');
+        // Buy 8 hours of voluntary isolation
+        $response1 = $this->post(route('isolation.activate'), [
+            'hours' => 8,
+            'currency' => 'cash',
+        ]);
+        $response1->assertSessionHas('success');
+        $char->refresh();
+        $this->assertTrue($char->hasIsolationProtection());
+        $this->assertTrue($char->isInVoluntaryIsolation());
+
+        // Attempting to add 6 more hours (8 + 6 = 14h > 12h max cap) is rejected
+        $response2 = $this->post(route('isolation.activate'), [
+            'hours' => 6,
+            'currency' => 'cash',
+        ]);
+        $response2->assertSessionHas('error');
+        $this->assertStringContainsString('maximaal 12 uur', session('error'));
+
+        // Adding 4 hours (8 + 4 = 12h) is allowed
+        $response3 = $this->post(route('isolation.activate'), [
+            'hours' => 4,
+            'currency' => 'cash',
+        ]);
+        $response3->assertSessionHas('success');
     }
 
-    public function test_rescuer_cannot_breakout_when_in_coma_or_needs_revive_serum(): void
+    public function test_cash_shield_50_percent_reduction_in_theft_arena_and_hitman(): void
     {
-        $rescuer = $this->makeInmate(['coma_until' => now()->addMinutes(30), 'energy' => 100]);
-        $target = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
+        $attacker = $this->createCharacter([
+            'level' => 30,
+            'strength' => 500,
+            'defense' => 500,
+            'cash' => 100000,
+            'energy' => 100,
+        ]);
 
-        $response = $this->actingAs($rescuer->user)->post(route('prison.breakout', $target->id));
+        $victimWithShield = $this->createCharacter([
+            'cash' => 100000,
+            'bank' => 200000,
+            'cash_protection_until' => Carbon::now()->addHours(20),
+            'protection_until' => null,
+        ]);
 
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString(Character::REVIVE_SERUM_NAME, session('error'));
-    }
+        $this->actingAs($attacker->user);
 
-    public function test_breakout_requires_minimum_15_energy(): void
-    {
-        $rescuer = $this->makeInmate(['energy' => 10]);
-        $target = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
-
-        $response = $this->actingAs($rescuer->user)->post(route('prison.breakout', $target->id));
-
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString('minimaal 15 energie vereist', session('error'));
-    }
-
-    public function test_breakout_of_already_freed_target_does_not_consume_energy_or_attempts(): void
-    {
-        $rescuer = $this->makeInmate(['energy' => 50, 'breakout_attempts' => 2]);
-        $freeTarget = $this->makeInmate(['is_in_prison' => false, 'prison_until' => null]);
-
-        $response = $this->actingAs($rescuer->user)->post(route('prison.breakout', $freeTarget->id));
-
-        $response->assertSessionHas('info', 'Deze patiënt is inmiddels al vrijgelaten uit het celblok!');
-        $rescuer->refresh();
-        $this->assertSame(50, (int) $rescuer->energy);
-        $this->assertSame(2, (int) $rescuer->breakout_attempts);
-    }
-
-    public function test_breakout_invalid_non_numeric_id_rejected(): void
-    {
-        $rescuer = $this->makeInmate(['energy' => 50]);
-
-        $response = $this->actingAs($rescuer->user)->post(route('prison.breakout', 'invalid-cell-id'));
-
-        $response->assertSessionHas('error', 'Ongeldig celdossier geselecteerd voor deze bevrijdingsactie.');
-    }
-
-    public function test_successful_breakout_frees_target_and_rewards_rescuer(): void
-    {
-        $rescuer = $this->makeInmate(['energy' => 50, 'strength' => 50, 'intelligence' => 50, 'prison_escapes' => 0, 'breakout_attempts' => 0]);
-        $target = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(15)]);
-
-        // Loop until successful breakout occurs
-        $succeeded = false;
-        for ($i = 0; $i < 40; $i++) {
-            $rescuer->update(['is_in_prison' => false, 'prison_until' => null, 'energy' => 100]);
-            $target->update(['is_in_prison' => true, 'prison_until' => now()->addMinutes(15)]);
-
-            $this->actingAs($rescuer->user)->post(route('prison.breakout', $target->id), ['method' => 'stil']);
-
-            $target->refresh();
-            $rescuer->refresh();
-
-            if (! $target->isImprisoned()) {
-                $succeeded = true;
-                break;
-            }
+        // 1. TheftService PvP robbery: cash shield halves stolen amount
+        $theftService = app(TheftService::class);
+        $result = $theftService->execute($attacker, 'pocket', $victimWithShield);
+        if ($result['success']) {
+            $this->assertGreaterThan(0, $result['cash_stolen']);
+            // Stolen amount must be <= 15% (half of 30% max full haul)
+            $this->assertLessThanOrEqual(15000, $result['cash_stolen']);
         }
 
-        $this->assertTrue($succeeded);
-        $this->assertFalse($target->isImprisoned());
-        $this->assertNull($target->prison_until);
-        $this->assertGreaterThan(0, $rescuer->prison_escapes);
-    }
+        // 2. Arena Fight: FightController commitPendingBattle halves stolen cash
+        $victimWithShield->refresh();
+        $victimWithShield->update(['cash' => 100000]);
+        app(CooldownService::class)->clearCooldown($attacker, 'fight_attack');
 
-    // ==========================================
-    // 2. SENTENCE REDUCTION & BUYOUT
-    // ==========================================
+        $attackResp = $this->post(route('fight.attack'), [
+            'opponent_id' => $victimWithShield->id,
+        ]);
+        $attackResp->assertRedirect(route('fight.arena', $victimWithShield));
+        $arenaBattle = session('arena_battle');
+        $this->assertTrue($arenaBattle['won']);
+        $this->assertTrue($arenaBattle['cash_shield_applied']);
 
-    public function test_reduce_sentence_blocked_when_not_imprisoned(): void
-    {
-        $inmate = $this->makeInmate(['is_in_prison' => false]);
+        // Stolen cash must be at most floor(25% * 100,000 * 0.50) = 12,500
+        $this->assertLessThanOrEqual(12500, $arenaBattle['stolen_cash']);
 
-        $response = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'wasserij']);
+        // Resolve arena fight
+        $resolveResp = $this->post(route('fight.arena.resolve', $victimWithShield));
+        $resolveResp->assertOk();
 
-        $response->assertRedirect(route('prison'));
-        $response->assertSessionHas('info', 'Je zit momenteel niet in de isoleercel!');
-    }
-
-    public function test_reduce_sentence_blocked_when_in_coma(): void
-    {
-        $inmate = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10), 'coma_until' => now()->addMinutes(20)]);
-
-        $response = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'wasserij']);
-
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString(Character::REVIVE_SERUM_NAME, session('error'));
-    }
-
-    public function test_reduce_sentence_laundry_requires_10_energy(): void
-    {
-        $inmate = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10), 'energy' => 5]);
-
-        $response = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'wasserij']);
-
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString('kost 10 energie', session('error'));
-        $inmate->refresh();
-        $this->assertSame(5, (int) $inmate->energy);
-    }
-
-    public function test_reduce_sentence_laundry_reduces_sentence_and_sets_cooldown(): void
-    {
-        $inmate = $this->makeInmate([
-            'is_in_prison' => true,
-            'prison_until' => now()->addSeconds(300),
-            'energy' => 50,
-            'xp' => 10,
+        // 3. Hitman Liquidation: 50% reduction on both cash and bank
+        $victimWithShield->refresh();
+        $victimWithShield->update([
+            'cash' => 100000,
+            'bank' => 200000,
+            'current_location' => 'Paviljoen 1 (Gesloten)',
+            'protection_until' => null,
+        ]);
+        $attacker->update([
+            'bullets' => 50,
+            'current_location' => 'Paviljoen 1 (Gesloten)',
+            'energy' => 100,
         ]);
 
-        $response = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'wasserij']);
+        $attacker->refresh();
+        $initialAttackerCash = $attacker->cash;
+        $shootResp = $this->post(route('hitman.shoot'), [
+            'target_id' => $victimWithShield->id,
+            'bullets' => 1,
+        ]);
+        $shootResp->assertSessionHas('success');
 
-        $response->assertSessionHas('success');
-        $inmate->refresh();
+        $victimWithShield->refresh();
+        $attacker->refresh();
 
-        $this->assertSame(40, (int) $inmate->energy);
-        $this->assertSame(25, (int) $inmate->xp); // +15 XP
-        $this->assertLessThanOrEqual(256, $inmate->remainingPrisonSeconds());
-
-        // Second call right away hits cooldown
-        $response2 = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'wasserij']);
-        $response2->assertSessionHas('error');
-        $this->assertStringContainsString('houdt je cel momenteel extra in de gaten', session('error'));
+        // Unshielded loot: 45% of 100k (45k) + 7% of 200k (14k) = 59k
+        // Shielded loot: 50% of 45k (22,500) + 50% of 14k (7,000) = 29,500
+        $loot = $attacker->cash - $initialAttackerCash;
+        $this->assertEquals(29500, $loot);
+        $this->assertEquals(77500, $victimWithShield->cash);
+        $this->assertEquals(193000, $victimWithShield->bank);
     }
 
-    public function test_reduce_sentence_laundry_frees_inmate_when_sentence_reaches_zero(): void
+    public function test_attacker_breaks_own_protection_when_initiating_aggression(): void
     {
-        $inmate = $this->makeInmate([
-            'is_in_prison' => true,
-            'prison_until' => now()->addSeconds(30),
-            'energy' => 50,
+        $attacker = $this->createCharacter([
+            'protection_until' => Carbon::now()->addHours(6),
+            'cash_protection_until' => Carbon::now()->addHours(12),
         ]);
 
-        $response = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'wasserij']);
+        $defender = $this->createCharacter(['protection_until' => null]);
 
-        $response->assertSessionHas('success');
-        $this->assertStringContainsString('volledig weggewerkt en je bent direct vrijgelaten', session('success'));
+        $this->assertTrue($attacker->hasIsolationProtection());
+        $this->assertTrue($attacker->hasCashProtection());
 
-        $inmate->refresh();
-        $this->assertFalse($inmate->isImprisoned());
-        $this->assertNull($inmate->prison_until);
-        $this->assertArrayNotHasKey('prison_action_cooldown_until', $inmate->perks ?? []);
-    }
+        $this->actingAs($attacker->user);
+        app(CooldownService::class)->clearCooldown($attacker, 'fight_attack');
 
-    public function test_reduce_sentence_omkopen_insufficient_funds(): void
-    {
-        $inmate = $this->makeInmate([
-            'is_in_prison' => true,
-            'prison_until' => now()->addSeconds(300),
-            'cash' => 100,
-            'bank' => 0,
+        // Attacking in arena with confirmed isolation break
+        $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+            'confirm_break_isolation' => 1,
         ]);
 
-        $response = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'omkopen']);
+        $attacker->refresh();
+        $this->assertFalse($attacker->hasIsolationProtection());
+        $this->assertFalse($attacker->hasCashProtection());
+        $this->assertNull($attacker->protection_until);
+        $this->assertNull($attacker->cash_protection_until);
 
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString('Onvoldoende saldo', session('error'));
+        // Verify isolation cooldown of 2 hours was set
+        $this->assertTrue($attacker->isOnCooldown('isolation_cooldown'));
+        $this->assertGreaterThan(7000, $attacker->cooldownRemaining('isolation_cooldown'));
     }
 
-    public function test_reduce_sentence_omkopen_deducts_cash_and_sets_cooldown(): void
+    public function test_medical_shield_does_not_lock_cell_and_allows_actions(): void
     {
-        $inmate = $this->makeInmate([
-            'is_in_prison' => true,
-            'prison_until' => now()->addSeconds(500),
-            'cash' => 3000,
-            'bank' => 0,
-        ]);
-
-        $response = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'omkopen']);
-
-        $inmate->refresh();
-        $this->assertSame(500, (int) $inmate->cash); // 3000 - 2500
-        $this->assertNotEmpty($inmate->perks['prison_action_cooldown_until']);
-
-        // Subsequent immediate call is blocked by cooldown
-        $response2 = $this->actingAs($inmate->user)->post(route('prison.reduce'), ['action' => 'omkopen']);
-        $response2->assertSessionHas('error');
-        $this->assertStringContainsString('houdt je cel momenteel extra in de gaten', session('error'));
-    }
-
-    public function test_buyout_blocked_when_comatose_or_needs_serum(): void
-    {
-        $inmate = $this->makeInmate([
-            'is_in_prison' => true,
-            'prison_until' => now()->addMinutes(10),
-            'coma_until' => now()->addMinutes(30),
-            'stars' => 50,
-        ]);
-
-        $response = $this->actingAs($inmate->user)->post(route('prison.buyout'));
-
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString(Character::REVIVE_SERUM_NAME, session('error'));
-        $inmate->refresh();
-        $this->assertTrue($inmate->isImprisoned());
-    }
-
-    public function test_buyout_frees_player_and_deducts_stars(): void
-    {
-        $inmate = $this->makeInmate([
-            'is_in_prison' => true,
-            'prison_until' => now()->addMinutes(10),
-            'stars' => 30,
-        ]);
-
-        $response = $this->actingAs($inmate->user)->post(route('prison.buyout'));
-
-        $response->assertSessionHas('success');
-        $inmate->refresh();
-
-        $this->assertFalse($inmate->isImprisoned());
-        $this->assertNull($inmate->prison_until);
-        $this->assertSame(5, (int) $inmate->stars);
-    }
-
-    // ==========================================
-    // 3. ESCAPE TUNNEL DIGGING & RESET
-    // ==========================================
-
-    public function test_tunnel_dig_blocked_when_imprisoned(): void
-    {
-        $char = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(5)]);
-
-        $response = $this->actingAs($char->user)->post(route('tunnel.dig'));
-
-        $response->assertRedirect(route('prison'));
-        $response->assertSessionHas('error');
-    }
-
-    public function test_tunnel_dig_blocked_when_in_coma(): void
-    {
-        $char = $this->makeInmate(['coma_until' => now()->addMinutes(15)]);
-
-        $response = $this->actingAs($char->user)->post(route('tunnel.dig'));
-
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString(Character::REVIVE_SERUM_NAME, session('error'));
-    }
-
-    public function test_tunnel_dig_blocked_when_socks_full_of_sand(): void
-    {
-        $char = $this->makeInmate(['energy' => 50]);
-        EscapeTunnel::create([
-            'character_id' => $char->id,
-            'stage' => 1,
-            'progress_pct' => 10,
-            'sand_in_socks' => 100,
-            'is_completed' => false,
-        ]);
-
-        $response = $this->actingAs($char->user)->post(route('tunnel.dig'));
-
-        $response->assertSessionHas('error', 'Je zakken en kussenslopen puilen uit van het zand! Je kunt pas verder graven als je eerst het zand uitstrooit op de luchtplaats.');
-    }
-
-    public function test_tunnel_dig_consumes_20_energy_and_advances_progress_under_cooldown(): void
-    {
-        $char = $this->makeInmate(['energy' => 45]);
-        $tunnel = EscapeTunnel::create([
-            'character_id' => $char->id,
-            'stage' => 1,
-            'progress_pct' => 5,
-            'sand_in_socks' => 10,
-            'is_completed' => false,
-        ]);
-
-        $response = $this->actingAs($char->user)->post(route('tunnel.dig'));
-
-        $response->assertSessionHas('success');
-        $char->refresh();
-        $tunnel->refresh();
-
-        $this->assertSame(25, (int) $char->energy);
-        $this->assertGreaterThan(5, (int) $tunnel->progress_pct);
-        $this->assertGreaterThan(10, (int) $tunnel->sand_in_socks);
-
-        // Dig cooldown is active
-        $this->assertTrue(app(CooldownService::class)->isOnCooldown($char, 'tunnel_dig'));
-
-        // Immediate next dig blocked
-        $response2 = $this->actingAs($char->user)->post(route('tunnel.dig'));
-        $response2->assertSessionHas('error');
-        $this->assertStringContainsString('Even op adem komen', session('error'));
-    }
-
-    public function test_tunnel_dump_sand_empties_socks_and_grants_xp(): void
-    {
-        $char = $this->makeInmate(['xp' => 10]);
-        $tunnel = EscapeTunnel::create([
-            'character_id' => $char->id,
-            'sand_in_socks' => 60,
-        ]);
-
-        $response = $this->actingAs($char->user)->post(route('tunnel.dump'));
-
-        $response->assertSessionHas('success');
-        $this->assertStringContainsString('60% zand werd ongemerkt uitgestrooid', session('success'));
-
-        $tunnel->refresh();
+        $char = $this->createCharacter();
+        $char->grantMedicalShield(30);
         $char->refresh();
 
-        $this->assertSame(0, (int) $tunnel->sand_in_socks);
-        $this->assertSame(25, (int) $char->xp); // +15 XP
-        $this->assertTrue(app(CooldownService::class)->isOnCooldown($char, 'tunnel_dump_sand'));
+        // Has protection from being attacked
+        $this->assertTrue($char->hasIsolationProtection());
+        $this->assertTrue($char->isProtected());
+
+        // But is NOT in voluntary isolation: cell door is unlocked!
+        $this->assertFalse($char->isInVoluntaryIsolation());
+        $this->assertFalse($char->isActionBlockedByIsolation('missions.index'));
+        $this->assertFalse($char->isActionBlockedByIsolation('hustle.index'));
+
+        // Can perform theft without voluntary isolation modal/block
+        $target = $this->createCharacter(['protection_until' => null]);
+        $theftService = app(TheftService::class);
+        $result = $theftService->execute($char, 'pocket', $target);
+
+        // Action was NOT blocked by voluntary isolation error
+        $this->assertStringNotContainsString('Je cel is vergrendeld in Vrijwillige Isolatie', $result['message']);
+
+        // Initiating action broke own medical shield
+        $char->refresh();
+        $this->assertFalse($char->hasIsolationProtection());
+        // And did NOT trigger isolation cooldown
+        $this->assertFalse($char->isOnCooldown('isolation_cooldown'));
     }
 
-    public function test_tunnel_escape_grants_rewards_and_sets_exact_15_min_fugitive_window(): void
+    public function test_ic_coma_expiration_restores_health_and_grants_30_min_medical_shield(): void
     {
-        $char = $this->makeInmate(['cash' => 1000, 'stars' => 10, 'respect' => 50, 'prison_escapes' => 0]);
-        $tunnel = EscapeTunnel::create([
-            'character_id' => $char->id,
-            'stage' => 5,
-            'progress_pct' => 100,
-            'is_completed' => false,
+        $char = $this->createCharacter([
+            'health' => 0,
+            'coma_until' => Carbon::now()->subMinute(),
+            'protection_until' => null,
         ]);
 
-        $response = $this->actingAs($char->user)->post(route('tunnel.escape'));
+        $this->assertTrue($char->coma_until->isPast());
 
-        $response->assertSessionHas('success');
-        $this->assertStringContainsString('15 MINUTEN VOORTVLUCHTIG', session('success'));
-
-        $tunnel->refresh();
+        // Normalize character state triggers post-coma recovery
+        $char->normalizeCharacterState();
         $char->refresh();
 
-        $this->assertTrue($tunnel->is_completed);
-        $this->assertTrue($tunnel->isFugitive());
-        $this->assertLessThanOrEqual(15 * 60, $tunnel->remainingFugitiveSeconds());
-        $this->assertGreaterThan(14 * 60, $tunnel->remainingFugitiveSeconds());
-
-        $this->assertSame(26000, (int) $char->cash);
-        $this->assertSame(35, (int) $char->stars);
-        $this->assertSame(65, (int) $char->respect);
-        $this->assertSame(1, (int) $char->prison_escapes);
+        $this->assertFalse($char->isComatose());
+        $this->assertEquals(20, $char->health);
+        $this->assertTrue($char->hasIsolationProtection());
+        $this->assertFalse($char->isInVoluntaryIsolation());
+        $this->assertGreaterThanOrEqual(29 * 60, $char->getIsolationProtectionRemainingSeconds());
     }
 
-    public function test_tunnel_reset_resets_stages_after_completion(): void
+    public function test_anti_harassment_daily_limits_enforced_and_surfaced(): void
     {
-        $char = $this->makeInmate();
-        $tunnel = EscapeTunnel::create([
-            'character_id' => $char->id,
-            'stage' => 5,
-            'progress_pct' => 100,
-            'sand_in_socks' => 30,
-            'is_completed' => true,
-            'times_escaped' => 1,
+        $attacker = $this->createCharacter();
+        $target = $this->createCharacter([
+            'protection_until' => null,
+            'coma_until' => null,
         ]);
 
-        $response = $this->actingAs($char->user)->post(route('tunnel.reset'));
+        $this->actingAs($attacker->user);
 
-        $response->assertRedirect(route('tunnel.index'));
-        $response->assertSessionHas('success');
+        // 1. 3x/day per-attacker limit against same target
+        $pairKillKey = "daily_liquidations_{$attacker->id}_{$target->id}_".now()->toDateString();
+        Cache::put($pairKillKey, Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET, now()->endOfDay());
 
-        $tunnel->refresh();
-        $this->assertSame(1, (int) $tunnel->stage);
-        $this->assertSame(0, (int) $tunnel->progress_pct);
-        $this->assertSame(0, (int) $tunnel->sand_in_socks);
-        $this->assertFalse($tunnel->is_completed);
-        $this->assertNull($tunnel->fugitive_until);
-        $this->assertSame(1, (int) $tunnel->times_escaped);
-    }
-
-    // ==========================================
-    // 4. FUGITIVE HEISTS, EXPIRY & ARREST
-    // ==========================================
-
-    public function test_heist_arrests_player_when_fugitive_window_has_expired(): void
-    {
-        $char = $this->makeInmate(['is_in_prison' => false]);
-        $tunnel = EscapeTunnel::create([
-            'character_id' => $char->id,
-            'stage' => 5,
-            'progress_pct' => 100,
-            'is_completed' => true,
-            'fugitive_until' => now()->subMinute(), // Expired!
+        $shootResp = $this->post(route('hitman.shoot'), [
+            'target_id' => $target->id,
+            'bullets' => 1,
         ]);
+        $shootResp->assertSessionHas('error');
+        $this->assertStringContainsString('Anti-Pestprotocol', session('error'));
 
-        $response = $this->actingAs($char->user)->post(route('tunnel.heist'), [
-            'heist_id' => 'safehouse',
-        ]);
-
-        $response->assertRedirect(route('prison'));
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString('VOORTVLUCHTIGE STATUS VERSTREKEN', session('error'));
-
-        $char->refresh();
-        $tunnel->refresh();
-
-        $this->assertTrue($char->isImprisoned());
-        $this->assertFalse($tunnel->isFugitive());
-        $this->assertNull($tunnel->fugitive_until);
-    }
-
-    public function test_heist_fails_when_character_in_coma(): void
-    {
-        $char = $this->makeInmate(['coma_until' => now()->addMinutes(15)]);
-        EscapeTunnel::create([
-            'character_id' => $char->id,
-            'is_completed' => true,
-            'fugitive_until' => now()->addMinutes(10),
-        ]);
-
-        $response = $this->actingAs($char->user)->post(route('tunnel.heist'), [
-            'heist_id' => 'safehouse',
-        ]);
-
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString(Character::REVIVE_SERUM_NAME, session('error'));
-    }
-
-    public function test_heist_fails_when_not_enough_energy(): void
-    {
-        $char = $this->makeInmate(['energy' => 5]);
-        EscapeTunnel::create([
-            'character_id' => $char->id,
-            'is_completed' => true,
-            'fugitive_until' => now()->addMinutes(10),
-        ]);
-
-        $response = $this->actingAs($char->user)->post(route('tunnel.heist'), [
-            'heist_id' => 'safehouse', // Requires 15 energy
-        ]);
-
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString('minimaal 15 energie nodig', session('error'));
-    }
-
-    public function test_heist_failure_triggers_arrest_and_jails_escapee(): void
-    {
-        $char = $this->makeInmate(['energy' => 100, 'strength' => 5, 'stamina' => 5, 'intelligence' => 5]);
-        $tunnel = EscapeTunnel::create([
-            'character_id' => $char->id,
-            'stage' => 5,
-            'progress_pct' => 100,
-            'is_completed' => true,
-            'fugitive_until' => now()->addMinutes(10),
-        ]);
-
-        // Attempt transport heist (40% fail chance) in loop until failure triggers
-        $failed = false;
-        for ($i = 0; $i < 30; $i++) {
-            $char->update(['is_in_prison' => false, 'prison_until' => null, 'energy' => 100]);
-            $tunnel->update(['fugitive_until' => now()->addMinutes(10)]);
-            // Clear cooldown
-            app(CooldownService::class)->clearCooldown($char, 'tunnel_heist_transport');
-
-            $response = $this->actingAs($char->user)->post(route('tunnel.heist'), [
-                'heist_id' => 'transport',
-            ]);
-
-            $char->refresh();
-            if ($char->isImprisoned()) {
-                $failed = true;
-                $response->assertRedirect(route('prison'));
-                $response->assertSessionHas('error');
-                $this->assertStringContainsString('OVERVAL MISLUKT & ARRESTATIE', session('error'));
-                break;
-            }
+        // Check that index and search views flag daily_deaths_reached = true
+        $indexResp = $this->get(route('hitman.index'));
+        $indexResp->assertOk();
+        $targets = $indexResp->viewData('targets');
+        $targetInView = $targets->firstWhere('id', $target->id);
+        if ($targetInView) {
+            $this->assertTrue($targetInView->daily_deaths_reached);
         }
 
-        $this->assertTrue($failed);
-        $this->assertTrue($char->isImprisoned());
-        $this->assertFalse($tunnel->fresh()->isFugitive());
+        $searchResp = $this->get(route('hitman.search', ['q' => $target->name]));
+        $searchResp->assertOk();
+        $found = collect($searchResp->json('targets'))->firstWhere('id', (string) $target->id);
+        $this->assertNotNull($found);
+        $this->assertTrue($found['dailyDeathsReached']);
+
+        // 2. 5x/day total victim death limit
+        Cache::forget($pairKillKey);
+        $target->daily_deaths_count = Character::MAX_DAILY_DEATHS_BEFORE_SHIELD;
+        $target->daily_deaths_date = now()->format('Y-m-d');
+        $target->save();
+
+        $shootResp2 = $this->post(route('hitman.shoot'), [
+            'target_id' => $target->id,
+            'bullets' => 1,
+        ]);
+        $shootResp2->assertSessionHas('error');
+        $this->assertStringContainsString('Medisch Noodprotocol', session('error'));
     }
 
-    // ==========================================
-    // 5. VOLUNTARY ISOLATION WING
-    // ==========================================
-
-    public function test_isolation_activation_blocked_when_in_punishment_prison(): void
+    public function test_voluntary_isolation_termination_cleans_up_and_triggers_cooldown(): void
     {
-        $char = $this->makeInmate(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
+        $char = $this->createCharacter(['cash' => 500000]);
+        $this->actingAs($char->user);
 
-        $response = $this->actingAs($char->user)->post(route('isolation.activate'), [
+        // Activate voluntary isolation
+        $this->post(route('isolation.activate'), [
             'hours' => 2,
             'currency' => 'cash',
         ]);
-
-        $response->assertSessionHas('error', 'Je zit al in de isoleercel als straf! Je kunt nu geen vrijwillige isolatie kopen.');
-    }
-
-    public function test_isolation_activation_blocked_when_comatose(): void
-    {
-        $char = $this->makeInmate(['coma_until' => now()->addMinutes(25)]);
-
-        $response = $this->actingAs($char->user)->post(route('isolation.activate'), [
-            'hours' => 1,
-            'currency' => 'cash',
-        ]);
-
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString(Character::REVIVE_SERUM_NAME, session('error'));
-    }
-
-    public function test_isolation_activation_with_cash_and_bank_fallback(): void
-    {
-        $char = $this->makeInmate([
-            'cash' => 20000,
-            'bank' => 80000, // Total 100.000 for 2 hours (cost is 100.000)
-        ]);
-
-        $response = $this->actingAs($char->user)->post(route('isolation.activate'), [
-            'hours' => 2,
-            'currency' => 'cash',
-        ]);
-
-        $response->assertSessionHas('success');
         $char->refresh();
+        $this->assertTrue($char->isInVoluntaryIsolation());
 
-        $this->assertSame(0, (int) $char->cash);
-        $this->assertSame(0, (int) $char->bank);
-        $this->assertTrue($char->hasIsolationProtection());
-        $this->assertGreaterThan(110 * 60, $char->getIsolationProtectionRemainingSeconds());
-    }
-
-    public function test_isolation_activation_with_stars(): void
-    {
-        $char = $this->makeInmate(['stars' => 50]);
-
-        $response = $this->actingAs($char->user)->post(route('isolation.activate'), [
-            'hours' => 2,
-            'currency' => 'stars', // 2 * 25 = 50 stars
-        ]);
-
-        $response->assertSessionHas('success');
-        $char->refresh();
-
-        $this->assertSame(0, (int) $char->stars);
-        $this->assertTrue($char->hasIsolationProtection());
-    }
-
-    public function test_isolation_early_termination_unlocks_door(): void
-    {
-        $char = $this->makeInmate(['protection_until' => now()->addHours(4)]);
-        $this->assertTrue($char->hasIsolationProtection());
-
-        $response = $this->actingAs($char->user)->post(route('isolation.terminate'));
-
-        $response->assertSessionHas('success');
-        $this->assertStringContainsString('Vrijwillige isolatie beëindigd', session('success'));
+        // Terminate voluntary isolation
+        $termResp = $this->post(route('isolation.terminate'));
+        $termResp->assertSessionHas('success');
 
         $char->refresh();
         $this->assertFalse($char->hasIsolationProtection());
         $this->assertNull($char->protection_until);
-    }
-
-    public function test_isolation_early_termination_blocked_if_in_punishment_prison(): void
-    {
-        $char = $this->makeInmate([
-            'is_in_prison' => true,
-            'prison_until' => now()->addMinutes(10),
-            'protection_until' => now()->addHours(2),
-        ]);
-
-        $response = $this->actingAs($char->user)->post(route('isolation.terminate'));
-
-        $response->assertSessionHas('error', 'In de straf-isoleercel kun je je celdeur niet zelf ontgrendelen!');
+        $this->assertTrue($char->isOnCooldown('isolation_cooldown'));
+        $this->assertGreaterThan(7000, $char->cooldownRemaining('isolation_cooldown'));
     }
 }

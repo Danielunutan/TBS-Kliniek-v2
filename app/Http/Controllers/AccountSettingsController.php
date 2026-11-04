@@ -152,6 +152,8 @@ class AccountSettingsController extends Controller
                 'max:20',
                 'regex:/^[a-zA-Z0-9_\-]+$/',
                 'unique:characters,username,'.$character->id,
+                'unique:characters,name,'.$character->id,
+                'unique:users,name,'.Auth::id(),
             ];
         }
 
@@ -241,6 +243,15 @@ class AccountSettingsController extends Controller
         file_put_contents($filePath, $data);
 
         $relativePath = 'uploads/avatars/'.$filename;
+
+        // Clean up previous custom avatar file if present
+        $oldCustom = $character->avatar_custom;
+        if ($oldCustom && str_starts_with($oldCustom, 'uploads/avatars/')) {
+            $oldPath = public_path($oldCustom);
+            if (is_file($oldPath)) {
+                @unlink($oldPath);
+            }
+        }
 
         $character->avatar_custom = $relativePath;
         $character->avatar = $relativePath;

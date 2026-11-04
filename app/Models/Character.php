@@ -1754,8 +1754,11 @@ class Character extends Model
             }
         }
 
-        if ($hadExpiredComa && (int) ($this->health ?? 0) <= 0 && $this->getLiquidationStreakDeaths() < self::MAX_LIQUIDATIONS_BEFORE_SERUM) {
-            $this->health = max(20, (int) floor(($this->max_health ?? 100) * 0.20));
+        if ($hadExpiredComa && $this->getLiquidationStreakDeaths() < self::MAX_LIQUIDATIONS_BEFORE_SERUM) {
+            if ((int) ($this->health ?? 0) <= 0) {
+                $this->health = max(20, (int) floor(($this->max_health ?? 100) * 0.20));
+            }
+            $this->grantMedicalShield(30);
             $dirty = true;
         }
 
@@ -1984,7 +1987,9 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) ceil(now()->diffInSeconds($this->protection_until, false)));
+        $seconds = max(0, (int) ceil(now()->diffInSeconds($this->protection_until, false)));
+
+        return min(self::MAX_ISOLATION_HOURS * 3600, $seconds);
     }
 
     /**
@@ -1996,7 +2001,9 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) ceil(now()->diffInSeconds($this->cash_protection_until, false)));
+        $seconds = max(0, (int) ceil(now()->diffInSeconds($this->cash_protection_until, false)));
+
+        return min(self::MAX_CASH_PROTECTION_HOURS * 3600, $seconds);
     }
 
     /**
@@ -2015,8 +2022,15 @@ class Character extends Model
      */
     public function getProtectionExpiresAt(): ?Carbon
     {
-        $iso = $this->hasIsolationProtection() ? $this->protection_until : null;
-        $cash = $this->hasCashProtection() ? $this->cash_protection_until : null;
+        $maxIso = now()->addHours(self::MAX_ISOLATION_HOURS);
+        $maxCash = now()->addHours(self::MAX_CASH_PROTECTION_HOURS);
+
+        $iso = $this->hasIsolationProtection()
+            ? ($this->protection_until->gt($maxIso) ? $maxIso : $this->protection_until)
+            : null;
+        $cash = $this->hasCashProtection()
+            ? ($this->cash_protection_until->gt($maxCash) ? $maxCash : $this->cash_protection_until)
+            : null;
 
         if ($iso && $cash) {
             return $iso->gt($cash) ? $iso : $cash;
@@ -2060,6 +2074,10 @@ class Character extends Model
         $perks = is_array($this->perks) ? $this->perks : [];
         $perks['medical_shield_until'] = max((int) ($perks['medical_shield_until'] ?? 0), $until->timestamp);
         $this->perks = $perks;
+
+        if ($this->exists) {
+            $this->save();
+        }
     }
 
     /**
@@ -2155,6 +2173,11 @@ class Character extends Model
 
         if ($this->protection_until && now()->lt($this->protection_until)) {
             $this->protection_until = null;
+            if (isset($this->perks['medical_shield_until'])) {
+                $perks = $this->perks ?? [];
+                unset($perks['medical_shield_until']);
+                $this->perks = $perks;
+            }
             $dirty = true;
         }
 

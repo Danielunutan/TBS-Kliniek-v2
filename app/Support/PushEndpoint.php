@@ -29,9 +29,16 @@ final class PushEndpoint
             return false;
         }
 
-        $host = strtolower($parts['host'] ?? '');
+        $host = rtrim(strtolower($parts['host'] ?? ''), '.');
+        $host = trim($host, '[]');
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return false;
+        }
 
         return in_array($host, self::ALLOWED_HOSTS, true)
+            || str_ends_with($host, '.fcm.googleapis.com')
+            || str_ends_with($host, '.push.services.mozilla.com')
             || str_ends_with($host, '.push.apple.com')
             || str_ends_with($host, '.notify.windows.com');
     }

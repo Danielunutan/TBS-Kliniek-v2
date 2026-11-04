@@ -187,13 +187,13 @@ class Gang extends Model
             ? (int) $this->npcs->where('bonus_type', 'defense')->sum('bonus_value')
             : (int) $this->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
 
-        return min(self::MAX_NPC_DEFENSE_BONUS_PERCENT, $sum);
+        return max(0, min(self::MAX_NPC_DEFENSE_BONUS_PERCENT, $sum));
     }
 
     public function getTotalDefenseAttribute(): int
     {
         $baseDefense = max(500, (int) ($this->protection_points ?? 1000));
-        $bonusPct = $this->npc_defense_bonus_percent;
+        $bonusPct = max(0, min(self::MAX_NPC_DEFENSE_BONUS_PERCENT, $this->npc_defense_bonus_percent));
         if ($bonusPct <= 0) {
             return $baseDefense;
         }

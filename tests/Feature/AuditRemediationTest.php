@@ -47,7 +47,9 @@ class AuditRemediationTest extends TestCase
         }
         foreach ($pairs as [$first, $second]) {
             $this->postJson(route('memory.move'), ['game_id' => $game['id'], 'card' => $first])->assertOk();
+            $this->travel(1)->seconds();
             $this->postJson(route('memory.move'), ['game_id' => $game['id'], 'card' => $second])->assertJsonPath('match', true);
+            $this->travel(1)->seconds();
         }
         $this->postJson(route('memory.finish'), ['game_id' => $game['id']])->assertJsonPath('won', true);
         $cash = $user->character->fresh()->cash;

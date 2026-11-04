@@ -6,7 +6,10 @@ use App\Models\ArmWrestleMatch;
 use App\Models\BankTransaction;
 use App\Models\Bounty;
 use App\Models\Character;
+use App\Models\CharacterVehicle;
+use App\Models\Heist;
 use App\Models\User;
+use App\Models\Vehicle;
 use App\Support\ArmWrestleOutcome;
 use App\Support\ConnectFourEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -435,5 +438,229 @@ class ComprehensiveAuditBucket3Test extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['tier']);
+    }
+
+    // =========================================================================
+    // 6. DOMAIN 3 AUDIT: HEIST VEHICLE SELECTION & CHOP-SHOP WEAR PROTECTION
+    // =========================================================================
+
+    public function test_heist_vehicle_selection_blocks_unowned_vehicle_idor(): void
+    {
+        $owner = $this->makeCharacter(['energy' => 100, 'masks' => 10]);
+        $attacker = $this->makeCharacter(['energy' => 100, 'masks' => 10]);
+
+        $car = Vehicle::create([
+            'name' => 'Mercedes E63',
+            'slug' => 'mercedes-e63-'.uniqid(),
+            'type' => 'car',
+            'price_cash' => 80000,
+            'speed_pct' => 80,
+            'reliability_pct' => 80,
+            'min_level' => 1,
+        ]);
+
+        $ownerVehicle = CharacterVehicle::create([
+            'character_id' => $owner->id,
+            'vehicle_id' => $car->id,
+            'current_condition' => 100,
+            'tuned_speed' => 80,
+        ]);
+
+        $heist = Heist::create([
+            'name' => 'Overval Test',
+            'slug' => 'overval-test-'.uniqid(),
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 40,
+            'min_condition_required' => 30,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 1000,
+            'payout_max' => 2000,
+            'respect_reward' => 2,
+            'xp_reward' => 10,
+            'is_gang_heist' => false,
+        ]);
+
+        $response = $this->actingAs($attacker->user)->post(route('heists.launch', $heist), [
+            'character_vehicle_id' => $ownerVehicle->id,
+        ]);
+
+        $response->assertSessionHas('error', 'Dit voertuig is niet in jouw bezit en kan niet worden geselecteerd!');
+    }
+
+    public function test_heist_blocks_destroyed_vehicle_with_zero_condition(): void
+    {
+        $char = $this->makeCharacter(['energy' => 100, 'masks' => 10]);
+
+        $car = Vehicle::create([
+            'name' => 'Wrecked BMW',
+            'slug' => 'wrecked-bmw-'.uniqid(),
+            'type' => 'car',
+            'price_cash' => 50000,
+            'speed_pct' => 70,
+            'reliability_pct' => 70,
+            'min_level' => 1,
+        ]);
+
+        $wreckedVehicle = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $car->id,
+            'current_condition' => 0,
+            'tuned_speed' => 70,
+        ]);
+
+        $this->assertTrue($wreckedVehicle->isDestroyed());
+        $this->assertSame(100, $wreckedVehicle->damage_percentage);
+        $this->assertSame(100, $wreckedVehicle->wear_percentage);
+
+        $heist = Heist::create([
+            'name' => 'Wreck Heist',
+            'slug' => 'wreck-heist-'.uniqid(),
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 40,
+            'min_condition_required' => 0,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 1000,
+            'payout_max' => 2000,
+            'respect_reward' => 2,
+            'xp_reward' => 10,
+            'is_gang_heist' => false,
+        ]);
+
+        $response = $this->actingAs($char->user)->post(route('heists.launch', $heist), [
+            'character_vehicle_id' => $wreckedVehicle->id,
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('total loss', session('error'));
+    }
+
+    public function test_heist_vehicle_selection_allows_choosing_specific_owned_vehicle(): void
+    {
+        $char = $this->makeCharacter(['energy' => 100, 'masks' => 10]);
+
+        $carModel = Vehicle::create([
+            'name' => 'Sports Coupe',
+            'slug' => 'sports-coupe-'.uniqid(),
+            'type' => 'car',
+            'price_cash' => 60000,
+            'speed_pct' => 85,
+            'reliability_pct' => 80,
+            'min_level' => 1,
+        ]);
+
+        $carA = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $carModel->id,
+            'current_condition' => 100,
+            'tuned_speed' => 85,
+        ]);
+
+        $carB = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $carModel->id,
+            'current_condition' => 100,
+            'tuned_speed' => 85,
+        ]);
+
+        $heist = Heist::create([
+            'name' => 'Selection Heist',
+            'slug' => 'selection-heist-'.uniqid(),
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 40,
+            'min_condition_required' => 30,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 1000,
+            'payout_max' => 2000,
+            'respect_reward' => 2,
+            'xp_reward' => 10,
+            'is_gang_heist' => false,
+        ]);
+
+        // Explicitly launch using Car B
+        $response = $this->actingAs($char->user)->post(route('heists.launch', $heist), [
+            'character_vehicle_id' => $carB->id,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+
+        $carA->refresh();
+        $carB->refresh();
+
+        $this->assertSame(100, $carA->current_condition, 'Car A should remain untouched');
+        $this->assertLessThan(100, $carB->current_condition, 'Car B should have incurred wear');
+    }
+
+    public function test_heist_wear_boundaries_and_reinforced_protection(): void
+    {
+        $armoredCar = Vehicle::create([
+            'name' => 'Gepantserde AMG',
+            'slug' => 'gepantserde-amg-'.uniqid(),
+            'type' => 'car',
+            'price_cash' => 150000,
+            'speed_pct' => 80,
+            'reliability_pct' => 95,
+            'min_level' => 1,
+        ]);
+
+        $cv = new CharacterVehicle([
+            'current_condition' => 100,
+        ]);
+        $cv->setRelation('vehicle', $armoredCar);
+
+        $this->assertTrue($cv->isReinforced());
+        $this->assertSame(0.80, $cv->getWearMultiplier());
+
+        // Boundary testing
+        $cv->current_condition = -50;
+        $this->assertSame(100, $cv->damage_percentage);
+        $this->assertSame(100, $cv->wear_percentage);
+        $this->assertTrue($cv->isDestroyed());
+
+        $cv->current_condition = 150;
+        $this->assertSame(0, $cv->damage_percentage);
+        $this->assertSame(0, $cv->wear_percentage);
+        $this->assertFalse($cv->isDestroyed());
+    }
+
+    public function test_heist_blocked_when_character_needs_revive_serum(): void
+    {
+        $char = $this->makeCharacter([
+            'energy' => 100,
+            'masks' => 10,
+            'deaths_count' => 10,
+            'perks' => ['liquidation_streak_deaths' => 10],
+        ]);
+
+        $this->assertTrue($char->needsReviveSerum());
+
+        $heist = Heist::create([
+            'name' => 'Serum Heist',
+            'slug' => 'serum-heist-'.uniqid(),
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'any',
+            'min_speed_required' => 10,
+            'min_condition_required' => 10,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 1000,
+            'payout_max' => 2000,
+            'respect_reward' => 2,
+            'xp_reward' => 10,
+            'is_gang_heist' => false,
+        ]);
+
+        $response = $this->actingAs($char->user)->post(route('heists.launch', $heist));
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', session('error'));
     }
 }

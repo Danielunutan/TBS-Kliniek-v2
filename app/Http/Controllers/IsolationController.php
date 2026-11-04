@@ -39,7 +39,7 @@ class IsolationController extends Controller
 
         $isProtected = $character->hasIsolationProtection();
         $remainingSeconds = $character->getIsolationProtectionRemainingSeconds();
-        $remainingMinutes = $isProtected && $character->protection_until ? max(0, (int) ceil(now()->diffInSeconds($character->protection_until, false) / 60)) : 0;
+        $remainingMinutes = (int) ceil($remainingSeconds / 60);
         $remainingHours = $isProtected ? round($remainingMinutes / 60, 1) : 0;
         $cooldownSeconds = $character->cooldownRemaining('isolation_cooldown');
 
@@ -212,6 +212,11 @@ class IsolationController extends Controller
 
             $wasVoluntary = $locked->isInVoluntaryIsolation();
             $locked->protection_until = null;
+            if (isset($locked->perks['medical_shield_until'])) {
+                $perks = $locked->perks ?? [];
+                unset($perks['medical_shield_until']);
+                $locked->perks = $perks;
+            }
             $locked->save();
 
             if ($wasVoluntary) {

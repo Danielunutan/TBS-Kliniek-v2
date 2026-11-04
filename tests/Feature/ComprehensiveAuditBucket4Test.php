@@ -2,18 +2,28 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\CheckMaintenanceMode;
+use App\Http\Middleware\SerializeCharacterActions;
 use App\Models\Character;
 use App\Models\CharacterItem;
+use App\Models\CharacterMemoryStat;
 use App\Models\CharacterVehicle;
 use App\Models\Gang;
 use App\Models\GangNpc;
 use App\Models\GangProperty;
 use App\Models\GangRequest;
 use App\Models\Item;
+use App\Models\PushSubscription;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\VpnDetectionService;
 use App\Support\GangPropertyCatalog;
+use App\Support\PushEndpoint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -27,6 +37,15 @@ class ComprehensiveAuditBucket4Test extends TestCase
         if (! Route::has('inventory.index')) {
             Route::get('/inventaris-test', fn () => 'ok')->name('inventory.index');
         }
+    }
+
+    protected function tearDown(): void
+    {
+        $lock = CheckMaintenanceMode::lockFilePath();
+        if (file_exists($lock)) {
+            @unlink($lock);
+        }
+        parent::tearDown();
     }
 
     private function createPlayer(array $attributes = []): array
@@ -627,5 +646,280 @@ class ComprehensiveAuditBucket4Test extends TestCase
 
         $response = $this->actingAs($user)->get(route('depot.index'));
         $response->assertOk();
+    }
+
+    // =========================================================================
+    // 8. DOMAIN 4 AUDIT: SERIALIZE CHARACTER ACTIONS LOCK SAFETY
+    // =========================================================================
+
+    public function test_serialize_character_actions_releases_lock_on_exception_and_handles_safe_config_defaults(): void
+    {
+        [$user, $character] = $this->createPlayer();
+
+        Route::post('/test-serialize-action-fail', function () {
+            throw new \RuntimeException('Simulated action crash');
+        })->middleware(SerializeCharacterActions::class);
+
+        // Test with safe config fallback (e.g. invalid string or null)
+        config(['game.action_lock_wait_seconds' => -1]);
+
+        try {
+            $this->actingAs($user)->post('/test-serialize-action-fail');
+        } catch (\Throwable $e) {
+            $this->assertSame('Simulated action crash', $e->getMessage());
+        }
+
+        // Lock must be released in finally block
+        $lock = Cache::lock('character_action_'.$user->id, SerializeCharacterActions::LOCK_TTL_SECONDS);
+        $this->assertTrue($lock->get(), 'Lock must be released even after an unexpected exception.');
+        $lock->release();
+    }
+
+    // =========================================================================
+    // 9. DOMAIN 4 AUDIT: MAINTENANCE MODE PROPER JSON 503 & WEBHOOK PASSTHROUGH
+    // =========================================================================
+
+    public function test_maintenance_mode_returns_json_503_for_ajax_and_api_requests(): void
+    {
+        Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '23:45']);
+
+        [$user, $character] = $this->createPlayer();
+
+        // API request receives clean JSON 503 with the configured return time
+        $apiRes = $this->actingAs($user)->getJson('/api/character/realtime-stats');
+        $apiRes->assertStatus(503)
+            ->assertJsonPath('maintenance', true)
+            ->assertJsonPath('target_time', '23:45')
+            ->assertJsonStructure(['maintenance', 'message', 'target_time']);
+
+        // AJAX request without json header receives JSON 503 as well
+        $ajaxRes = $this->actingAs($user)->get('/dashboard', ['X-Requested-With' => 'XMLHttpRequest']);
+        $ajaxRes->assertStatus(503)
+            ->assertJsonPath('maintenance', true);
+
+        // Regular browser request receives HTML view
+        $htmlRes = $this->actingAs($user)->get('/dashboard');
+        $htmlRes->assertStatus(503)
+            ->assertSee('23:45');
+
+        // Webhooks pass through
+        $webhookRes = $this->post('/api/webhooks/buymeacoffee');
+        $this->assertNotEquals(503, $webhookRes->getStatusCode());
+    }
+
+    // =========================================================================
+    // 10. DOMAIN 4 AUDIT: DISCORD CALLBACK ONBOARDING NAME DEDUPLICATION
+    // =========================================================================
+
+    public function test_discord_callback_deduplicates_character_name_when_taken(): void
+    {
+        config([
+            'services.discord.client_id' => 'test-id',
+            'services.discord.client_secret' => 'test-secret',
+        ]);
+
+        $mockVpn = $this->createStub(VpnDetectionService::class);
+        $mockVpn->method('check')->willReturn(['is_vpn' => false, 'provider' => null, 'country' => 'NL']);
+        $this->app->instance(VpnDetectionService::class, $mockVpn);
+
+        // Existing character with name 'GroteSpeler'
+        Character::factory()->create(['name' => 'GroteSpeler']);
+
+        Http::fake([
+            'discord.com/api/oauth2/token' => Http::response(['access_token' => 'mock-token']),
+            'discord.com/api/users/@me' => Http::response([
+                'id' => '998877665544332211',
+                'username' => 'grotespeler',
+                'global_name' => 'GroteSpeler',
+                'email' => 'discord_unique@example.com',
+                'verified' => true,
+            ]),
+        ]);
+
+        $response = $this->withSession(['oauth2state' => 'test-state'])
+            ->get('/discord/callback?code=mock_code&state=test-state');
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('users', ['email' => 'discord_unique@example.com']);
+
+        $user = User::where('email', 'discord_unique@example.com')->firstOrFail();
+        $this->assertNotNull($user->character);
+        // Name must be deduplicated with suffix, avoiding unique constraint violation
+        $this->assertNotEquals('GroteSpeler', $user->character->name);
+        $this->assertStringStartsWith('GroteSpeler #', $user->character->name);
+    }
+
+    // =========================================================================
+    // 11. DOMAIN 4 AUDIT: BUY ME A COFFEE LOCK TIMEOUT & SIGNATURE NORMALIZATION
+    // =========================================================================
+
+    public function test_bmac_webhook_handles_lock_timeout_gracefully(): void
+    {
+        config(['services.buymeacoffee.webhook_secret' => 'secret123']);
+
+        $payload = [
+            'event' => 'donation.created',
+            'data' => [
+                'support_id' => 'sup_audit_123',
+                'amount' => 10,
+                'supporter_name' => 'Supporter',
+                'supporter_email' => 'supporter@example.com',
+            ],
+        ];
+
+        $rawBody = json_encode($payload);
+        $signature = hash_hmac('sha256', $rawBody, 'secret123');
+
+        // Pre-acquire lock to simulate concurrency
+        $lockKey = 'bmac_webhook_'.md5('sup_audit_123_donation.created');
+        $lock = Cache::lock($lockKey, 30);
+        $this->assertTrue($lock->get());
+
+        // Should return 202 pending instead of 500 error
+        $response = $this->call(
+            'POST',
+            '/api/webhooks/buymeacoffee',
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_SIGNATURE_SHA256' => 'sha256='.$signature, // with prefix
+            ],
+            $rawBody
+        );
+
+        $response->assertStatus(202)
+            ->assertJsonPath('status', 'pending');
+
+        $lock->release();
+    }
+
+    // =========================================================================
+    // 12. DOMAIN 4 AUDIT: PUSH SUBSCRIPTION RATE LIMITING & DEVICE CAP & SSRF
+    // =========================================================================
+
+    public function test_push_subscription_enforces_rate_limit_and_maximum_device_cap(): void
+    {
+        [$user, $character] = $this->createPlayer();
+
+        // 1. SSRF prevention on PushEndpoint
+        $this->assertFalse(PushEndpoint::isAllowed('https://127.0.0.1:443/push'));
+        $this->assertFalse(PushEndpoint::isAllowed('https://169.254.169.254/latest/meta-data'));
+        $this->assertTrue(PushEndpoint::isAllowed('https://fcm.googleapis.com/fcm/send/token1'));
+        $this->assertTrue(PushEndpoint::isAllowed('https://fcm.googleapis.com./fcm/send/token1'));
+
+        // 2. Add subscriptions up to cap of 15
+        for ($i = 1; $i <= 16; $i++) {
+            RateLimiter::clear('push_subscribe:'.$user->id);
+            $res = $this->actingAs($user)->postJson(route('push.subscribe'), [
+                'endpoint' => "https://fcm.googleapis.com/fcm/send/device-{$i}",
+                'public_key' => 'key',
+                'auth_token' => 'token',
+            ]);
+            $res->assertOk();
+        }
+
+        // Cap must be maintained at 15
+        $this->assertEquals(15, PushSubscription::where('user_id', $user->id)->count());
+
+        // 3. Rate limiting after 10 requests within a minute
+        RateLimiter::clear('push_subscribe:'.$user->id);
+        for ($i = 1; $i <= 10; $i++) {
+            $this->actingAs($user)->postJson(route('push.subscribe'), [
+                'endpoint' => 'https://fcm.googleapis.com/fcm/send/device-rate-test',
+            ]);
+        }
+        $throttledRes = $this->actingAs($user)->postJson(route('push.subscribe'), [
+            'endpoint' => 'https://fcm.googleapis.com/fcm/send/device-rate-test',
+        ]);
+        $throttledRes->assertStatus(429);
+    }
+
+    // =========================================================================
+    // 13. DOMAIN 4 AUDIT: MEMORY GAME ANTI-EXPLOIT & DAILY LIMIT
+    // =========================================================================
+
+    public function test_memory_game_enforces_daily_limit_and_rejects_impossible_completion(): void
+    {
+        [$user, $character] = $this->createPlayer();
+
+        // 1. Start game successfully
+        $startRes = $this->actingAs($user)->postJson(route('memory.start'));
+        $startRes->assertOk()->assertJsonPath('success', true);
+        $gameId = $startRes->json('game.id');
+
+        // 2. Finish with impossible human reaction time (< 3 seconds)
+        $stat = CharacterMemoryStat::where('character_id', $character->id)->firstOrFail();
+        $activeGame = $stat->active_game;
+        $activeGame['completed_at'] = $activeGame['started_at'] + 6;
+        $activeGame['matched'] = range(0, 15);
+        $activeGame['moves'] = 8;
+        $stat->active_game = $activeGame;
+        $stat->save();
+
+        $finishRes = $this->actingAs($user)->postJson(route('memory.finish'), ['game_id' => $gameId]);
+        $finishRes->assertOk();
+        // Won must be false due to impossible speed (time_taken = 1s < 3s)
+        $this->assertFalse($finishRes->json('won'));
+        $this->assertEquals(3000, $finishRes->json('reward_cash')); // consolation prize
+
+        // 3. Daily limit of 30 games
+        for ($i = 0; $i < 30; $i++) {
+            $stat->incrementDailyGames();
+        }
+        $this->assertTrue($stat->hasReachedDailyLimit(30));
+
+        // Start must now be rejected
+        $stat->update(['cooldown_until' => null, 'active_game' => null]);
+        $blockedStart = $this->actingAs($user)->postJson(route('memory.start'));
+        $blockedStart->assertStatus(422)
+            ->assertJsonPath('daily_limit_reached', true);
+
+        // Skip cooldown with stars must also be blocked
+        $blockedStars = $this->actingAs($user)->post(route('memory.skip_cooldown_stars'));
+        $blockedStars->assertSessionHas('error');
+        $this->assertStringContainsString('dagelijkse limiet', session('error'));
+    }
+
+    // =========================================================================
+    // 14. DOMAIN 4 AUDIT: REVIVE SERUM GUARDS ON SHOP CONSUME & VIP REDEEM
+    // =========================================================================
+
+    public function test_shop_and_vip_condition_guards_block_when_revive_serum_needed(): void
+    {
+        [$user, $character] = $this->createPlayer(['cash' => 100000, 'vip_points' => 100]);
+
+        // Put character into liquidation streak condition requiring revive serum
+        $character->perks = ['liquidation_streak_deaths' => 10];
+        $character->save();
+        $this->assertTrue($character->needsReviveSerum());
+
+        // 1. Consuming items in shop
+        $item = Item::firstOrCreate(
+            ['slug' => 'test_energie_drank'],
+            ['name' => 'Test Drankje', 'description' => 'Test omschrijving', 'price_kc' => 100, 'category' => 'consumable', 'energy_restore' => 20]
+        );
+        $charItem = CharacterItem::create([
+            'character_id' => $character->id,
+            'item_id' => $item->id,
+            'quantity' => 2,
+        ]);
+
+        $consumeRes = $this->actingAs($user)->post(route('shop.consume', $charItem));
+        $consumeRes->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', session('error'));
+
+        // 2. Auto-refill in shop
+        $refillRes = $this->actingAs($user)->post(route('shop.auto-refill'));
+        $refillRes->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', session('error'));
+
+        // 3. VIP redeem
+        $vipRes = $this->actingAs($user)->post(route('vip.redeem'), [
+            'reward_type' => 'energy_restore',
+        ]);
+        $vipRes->assertSessionHas('error');
+        $this->assertStringContainsString('Code Blauw', session('error'));
     }
 }

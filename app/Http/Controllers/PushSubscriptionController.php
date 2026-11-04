@@ -10,6 +10,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 
 class PushSubscriptionController extends Controller
 {
@@ -62,8 +63,25 @@ class PushSubscriptionController extends Controller
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
+        $throttleKey = 'push_subscribe:'.$user->id;
+        if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return response()->json([
+                'success' => false,
+                'message' => "Te veel push-verzoeken. Wacht {$seconds} seconden.",
+            ], 429);
+        }
+        RateLimiter::hit($throttleKey, 60);
+
         $endpoint = $validated['endpoint'];
         $hash = hash('sha256', $endpoint);
+
+        // Limit maximum active push subscriptions per user to 15 to prevent notification fanout DoS
+        if ($user->pushSubscriptions()->count() >= 15 && ! $user->pushSubscriptions()->where('endpoint_hash', $hash)->exists()) {
+            $oldest = $user->pushSubscriptions()->orderBy('updated_at', 'asc')->first();
+            $oldest?->delete();
+        }
 
         $subscription = $user->pushSubscriptions()->updateOrCreate(
             ['endpoint_hash' => $hash],

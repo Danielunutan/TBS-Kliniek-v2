@@ -144,7 +144,7 @@ class VipController extends Controller
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            if ($locked->isComatose()) {
+            if ($locked->isComatose() || $locked->needsReviveSerum()) {
                 return 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
             }
 

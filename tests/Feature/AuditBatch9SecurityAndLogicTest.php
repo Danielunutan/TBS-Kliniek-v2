@@ -85,7 +85,7 @@ class AuditBatch9SecurityAndLogicTest extends TestCase
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
             'name' => 'ProtectedPlayer',
-            'cash_protection_until' => Carbon::now()->addHours(26)->addMinutes(15),
+            'cash_protection_until' => Carbon::now()->addHours(24),
         ]);
 
         $this->assertTrue($character->hasCashProtection());
@@ -93,10 +93,10 @@ class AuditBatch9SecurityAndLogicTest extends TestCase
         $response = $this->actingAs($user)->get(route('vip.index', ['tab' => 'uitgeven']));
         $response->assertStatus(200);
 
-        // If gmdate('H:i:s') was used, 26 hours would roll over to '02:xx:xx'.
-        // With our fix, it displays 26 hours in both the digital clock and human description.
+        // If gmdate('H:i:s') was used, 24 hours would roll over to '00:xx:xx'.
+        // With our fix, it displays 24 hours in both the digital clock and human description.
         $content = $response->getContent();
-        $this->assertMatchesRegularExpression('#26:\d{2}:\d{2} \(26u \d{1,2}m\)#', $content);
+        $this->assertMatchesRegularExpression('#24:\d{2}:\d{2} \(24u \d{1,2}m\)#', $content);
     }
 
     /**

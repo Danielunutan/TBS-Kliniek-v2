@@ -466,7 +466,7 @@
                                 || $profileCharacter->isImprisoned()
                                 || $profileCharacter->isComatose()
                                 || $profileCharacter->isProtected();
-                            $viewerHasIsolation = Auth::user()->character->hasIsolationProtection();
+                            $viewerHasIsolation = Auth::user()->character->isInVoluntaryIsolation();
                         @endphp
                         <div x-data="{
                             isolationModalOpen: false,

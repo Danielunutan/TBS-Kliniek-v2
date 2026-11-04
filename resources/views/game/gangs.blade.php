@@ -4303,7 +4303,7 @@
                                     $isAlly = $myGang->alliances()->where('ally_gang_id', $rg->id)->exists();
                                     $hasShield = $rg->isUnderShield();
                                     $onCooldown = $myGang->attackCooldownRemaining() > 0;
-                                    $isBlockedByState = $character->isImprisoned() || $character->isComatose();
+                                    $isBlockedByState = $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->health ?? 0) < 20;
                                     $canAttack = $myGang->isOfficer($character) && ! $isAlly && ! $hasShield && ! $onCooldown && ! $isBlockedByState;
                                 @endphp
                                 <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition hover:border-purple-300 dark:hover:border-purple-700/80">

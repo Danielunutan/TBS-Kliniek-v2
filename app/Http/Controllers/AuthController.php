@@ -254,16 +254,23 @@ class AuthController extends Controller
                             if (! $user->character) {
                                 $candidateUsername = $cleanUsername;
                                 $counter = 1;
-                                while (Character::where('username', $candidateUsername)->exists()) {
+                                while (Character::where('username', $candidateUsername)->exists() || Character::where('name', $candidateUsername)->exists() || User::where('name', $candidateUsername)->exists()) {
                                     $candidateUsername = substr($cleanUsername, 0, 15).'_'.$counter;
                                     $counter++;
+                                }
+
+                                $candidateName = $rawName;
+                                $nameCounter = 1;
+                                while (Character::where('name', $candidateName)->exists()) {
+                                    $candidateName = substr($rawName, 0, 20).' #'.$nameCounter;
+                                    $nameCounter++;
                                 }
 
                                 $newChar = Character::create([
                                     'user_id' => $user->id,
                                     'username' => $candidateUsername,
-                                    'name' => $rawName,
-                                    'display_name' => $rawName,
+                                    'name' => $candidateName,
+                                    'display_name' => $candidateName,
                                     'title' => 'Nieuwe Patiënt',
                                     'avatar' => 'assets/characters/avatar_male_1.jpg',
                                     'bio' => 'Aangemeld via Discord bij de TBS Kliniek.',
@@ -464,25 +471,37 @@ class AuthController extends Controller
 
         // Auto-link verified Discord and award Starter Bonus (€2.500 Cash + 3 Days VIP + Roles)
         $verifiedDiscordId = $request->session()->get('verified_discord_id');
-        if ($verifiedDiscordId && ! User::where('discord_id', $verifiedDiscordId)->exists()) {
-            $user->discord_id = $verifiedDiscordId;
-            $user->save();
-            DiscordVerification::where('discord_id', $verifiedDiscordId)
-                ->update([
-                    'user_id' => $user->id,
-                    'character_id' => $character->id,
-                ]);
-            $character->claimDiscordReward();
+        $discordLinked = false;
+        if ($verifiedDiscordId) {
+            DB::transaction(function () use ($user, $character, $verifiedDiscordId, &$discordLinked): void {
+                $alreadyTaken = User::where('discord_id', $verifiedDiscordId)
+                    ->lockForUpdate()
+                    ->exists();
+
+                if (! $alreadyTaken) {
+                    $user->discord_id = $verifiedDiscordId;
+                    $user->save();
+                    DiscordVerification::where('discord_id', $verifiedDiscordId)
+                        ->update([
+                            'user_id' => $user->id,
+                            'character_id' => $character->id,
+                        ]);
+                    $character->claimDiscordReward();
+                    $discordLinked = true;
+                }
+            });
+
             $request->session()->forget(['verified_discord_id', 'verified_discord_username']);
 
-            $shieldService = app(DiscordShieldService::class);
-            $guildId = $shieldService->getGuildId();
-            if (! empty($guildId)) {
-                $shieldService->syncGameRoles($guildId, $verifiedDiscordId, $character);
+            if ($discordLinked) {
+                $shieldService = app(DiscordShieldService::class);
+                $guildId = $shieldService->getGuildId();
+                if (! empty($guildId)) {
+                    $shieldService->syncGameRoles($guildId, $verifiedDiscordId, $character);
+                }
+            } else {
+                $verifiedDiscordId = null;
             }
-        } elseif ($verifiedDiscordId) {
-            $request->session()->forget(['verified_discord_id', 'verified_discord_username']);
-            $verifiedDiscordId = null;
         }
 
         Auth::login($user, true);

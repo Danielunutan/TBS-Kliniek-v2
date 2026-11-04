@@ -59,7 +59,7 @@ class Heist extends Model
      *
      * Prioritizes qualifying vehicles by highest effective speed, then highest condition.
      */
-    public function getEffectiveVehicle(Character $character): ?CharacterVehicle
+    public function getEffectiveVehicle(Character $character, ?int $selectedVehicleId = null): ?CharacterVehicle
     {
         // For gang heists, vehicle must be from the Bende Garage
         if ($this->is_gang_heist) {
@@ -68,6 +68,14 @@ class Heist extends Model
             }
 
             $gangVehicles = $character->gang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get();
+
+            if ($selectedVehicleId) {
+                $selected = $gangVehicles->firstWhere('id', $selectedVehicleId);
+                if ($selected && $selected->current_condition > 0 && $this->vehicleQualifies($selected)) {
+                    return $selected;
+                }
+            }
+
             $qualifying = $gangVehicles->filter(fn ($gv) => $this->vehicleQualifies($gv));
 
             if ($qualifying->isNotEmpty()) {
@@ -80,7 +88,7 @@ class Heist extends Model
                 })->first();
             }
 
-            return $gangVehicles->first();
+            return $gangVehicles->where('current_condition', '>', 0)->first() ?? $gangVehicles->first();
         }
 
         $personalVehicles = CharacterVehicle::where('character_id', $character->id)
@@ -88,6 +96,13 @@ class Heist extends Model
             ->where('is_for_sale', false)
             ->with('vehicle')
             ->get();
+
+        if ($selectedVehicleId) {
+            $selected = $personalVehicles->firstWhere('id', $selectedVehicleId);
+            if ($selected && $selected->current_condition > 0 && $this->vehicleQualifies($selected)) {
+                return $selected;
+            }
+        }
 
         $qualifying = $personalVehicles->filter(fn ($pv) => $this->vehicleQualifies($pv));
 
@@ -105,8 +120,18 @@ class Heist extends Model
             })->first();
         }
 
-        return $personalVehicles->firstWhere('is_active', true)
+        return $personalVehicles->where('current_condition', '>', 0)->firstWhere('is_active', true)
+            ?? $personalVehicles->where('current_condition', '>', 0)->sortByDesc('current_condition')->first()
+            ?? $personalVehicles->firstWhere('is_active', true)
             ?? $personalVehicles->sortByDesc('current_condition')->first();
+    }
+
+    /**
+     * Getaway vehicle helper alias for this heist.
+     */
+    public function getawayVehicle(Character $character, ?int $selectedVehicleId = null): ?CharacterVehicle
+    {
+        return $this->getEffectiveVehicle($character, $selectedVehicleId);
     }
 
     /**
@@ -115,6 +140,11 @@ class Heist extends Model
     public function vehicleQualifies(?CharacterVehicle $cv): bool
     {
         if (! $cv || ! $cv->vehicle) {
+            return false;
+        }
+
+        // Destroyed (0% condition) or for sale vehicles cannot qualify
+        if ($cv->current_condition <= 0 || $cv->is_for_sale) {
             return false;
         }
 
@@ -133,6 +163,78 @@ class Heist extends Model
         }
 
         return true;
+    }
+
+    /**
+     * Calculate vehicle speed bonus percentage relative to required speed.
+     */
+    public function calculateSpeedBonus(?CharacterVehicle $vehicle): int
+    {
+        if (! $vehicle) {
+            return 0;
+        }
+
+        $minSpeed = max(0, (int) $this->min_speed_required);
+        $speedDiff = (int) $vehicle->effective_speed - $minSpeed;
+
+        return (int) round($speedDiff * 0.4);
+    }
+
+    /**
+     * Calculate vehicle condition bonus percentage relative to 70% threshold.
+     */
+    public function calculateConditionBonus(?CharacterVehicle $vehicle): int
+    {
+        if (! $vehicle) {
+            return 0;
+        }
+
+        $condition = max(0, min(100, (int) $vehicle->current_condition));
+
+        return (int) round(($condition - 70) * 0.25);
+    }
+
+    /**
+     * Calculate final heist success chance (clamped between 15% and 92%).
+     */
+    public function calculateSuccessChance(Character $character, ?CharacterVehicle $vehicle = null): int
+    {
+        $vehicle = $vehicle ?? $this->getEffectiveVehicle($character);
+
+        $baseChance = match ($this->difficulty) {
+            'makkelijk' => 75,
+            'normaal' => 65,
+            'zwaar' => 52,
+            'extreem' => 42,
+            'legendarisch' => 32,
+            default => 50,
+        };
+
+        $speedBonus = $this->calculateSpeedBonus($vehicle);
+        $conditionBonus = $this->calculateConditionBonus($vehicle);
+        $statBonus = min(15, (int) floor(((int) $character->getEffectiveIntelligence() + (int) $character->getEffectiveDiscipline()) / 30));
+
+        $gangBonus = 0;
+        if ($this->is_gang_heist && $character->gang) {
+            $gangBonus = min(15, $character->gang->members()->count() * 2);
+        }
+
+        return max(15, min(92, $baseChance + $speedBonus + $conditionBonus + $statBonus + $gangBonus));
+    }
+
+    /**
+     * Calculate arrest risk percentage (chance of failure and isolation imprisonment).
+     */
+    public function calculateArrestRisk(Character $character, ?CharacterVehicle $vehicle = null): int
+    {
+        $chance = $this->calculateSuccessChance($character, $vehicle);
+
+        return max(8, min(85, 100 - $chance));
+    }
+
+    public function getawayVehicles(): HasManyThrough
+    {
+        return $this->hasManyThrough(Vehicle::class, HeistLog::class, 'heist_id', 'id', 'id', 'vehicle_id');
     }
 
     public function logs(): HasMany

@@ -108,7 +108,10 @@ class HitmanController extends Controller
                 $onCooldown = false;
                 $cooldownSec = 0;
                 $streakDeaths = $target->getLiquidationStreakDeaths();
-                $dailyDeathsReached = $target->needsReviveSerum();
+                $pairKillKey = "daily_liquidations_{$character->id}_{$target->id}_".now()->toDateString();
+                $dailyDeathsReached = $target->needsReviveSerum()
+                    || $target->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD
+                    || (int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET;
                 $isLevelRestricted = ! $hasBloodFeud && (($character->level - $target->level) > 15);
 
                 $intel = $intelMap->get($target->id);
@@ -182,9 +185,9 @@ class HitmanController extends Controller
         $intelMap = collect($character->getActiveIntelOps())->keyBy('target_id');
         $attackerWing = $character->current_location ?? 'Paviljoen 1 (Gesloten)';
 
-        $escapedQ = addcslashes(strtolower($q), '%_\\');
+        $escapedQ = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], strtolower($q));
         $targets = Character::where('id', '!=', $character->id)
-            ->whereRaw("LOWER(name) LIKE ? ESCAPE '\\\\'", ['%'.$escapedQ.'%'])
+            ->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", ['%'.$escapedQ.'%'])
             ->orderBy('name')
             ->limit(20)
             ->get()
@@ -585,7 +588,7 @@ class HitmanController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen liquidatieopdrachten uitvoeren!');
         }
 
-        if ($character->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
+        if ($character->isInVoluntaryIsolation() && ! $request->boolean('confirm_break_isolation')) {
             $remaining = $character->protection_until->diffForHumans(null, true);
 
             return back()
@@ -749,7 +752,7 @@ class HitmanController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand liquideren!');
         }
 
-        if ($attacker->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
+        if ($attacker->isInVoluntaryIsolation() && ! $request->boolean('confirm_break_isolation')) {
             $remaining = $attacker->protection_until->diffForHumans(null, true);
 
             return back()
@@ -1032,10 +1035,10 @@ class HitmanController extends Controller
                         $newWing = $this->evacuateToRandomWing($lockedDefender);
 
                         if ($defenderStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
-                            // Victims on hits 1-9 enter a 20-minute Intensive Care Coma with 30-minute medical shield
+                            // Victims on hits 1-9 enter a 20-minute Intensive Care Coma with 30-minute post-coma medical shield (50 min total)
                             $lockedDefender->health = 0;
                             $lockedDefender->coma_until = now()->addMinutes(Character::LIQUIDATION_IC_COMA_MINUTES);
-                            $lockedDefender->grantMedicalShield(30);
+                            $lockedDefender->grantMedicalShield(Character::LIQUIDATION_IC_COMA_MINUTES + 30);
                             $lockedDefender->save();
                         } else {
                             // 10th liquidation: Code Blauw (requires Forensisch Reanimatie-Serum)

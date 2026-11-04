@@ -20,6 +20,8 @@ class MemoryController extends Controller
 
     public const COOLDOWN_LOSS_SECONDS = 600; // 10 minuten
 
+    public const DAILY_GAME_LIMIT = 30; // Maximaal 30 spellen per dag om bot-exploitatie te voorkomen
+
     public const CARD_CATALOG = [
         [
             'id' => 'smokkelkoffer',
@@ -200,6 +202,8 @@ class MemoryController extends Controller
         );
 
         $cooldownRemaining = $stat->getCooldownSecondsRemaining();
+        $dailyGamesPlayed = $stat->getDailyGamesCount();
+        $dailyGamesLimit = self::DAILY_GAME_LIMIT;
 
         // Generate 16 card deck (8 pairs)
         $deck = $this->generateDeck();
@@ -208,7 +212,9 @@ class MemoryController extends Controller
             'character',
             'stat',
             'cooldownRemaining',
-            'deck'
+            'deck',
+            'dailyGamesPlayed',
+            'dailyGamesLimit'
         ));
     }
 
@@ -255,6 +261,13 @@ class MemoryController extends Controller
                 return response()->json(['success' => false, 'message' => 'Je kunt nu geen Memory spelen.'], 422);
             }
             $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $locked->id]);
+            if ($stat->hasReachedDailyLimit(self::DAILY_GAME_LIMIT)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt vandaag je dagelijkse limiet van '.self::DAILY_GAME_LIMIT.' Memory sessies bereikt. Morgen om 00:00 uur kun je weer spelen!',
+                    'daily_limit_reached' => true,
+                ], 422);
+            }
             if ($stat->isOnCooldown()) {
                 return response()->json(['success' => false, 'message' => 'Wacht eerst de cooldown af.', 'cooldown' => $stat->getCooldownSecondsRemaining()], 422);
             }
@@ -351,11 +364,14 @@ class MemoryController extends Controller
             if ($game['completed_at'] === null && now()->timestamp < $game['started_at'] + 65) {
                 return response()->json(['success' => false, 'message' => 'Deze ronde is nog niet afgelopen.'], 422);
             }
-            $won = count($game['matched']) === 16 && $game['lives'] > 0;
+            // Anti-exploit: realistic minimum reaction time and move count verification.
+            // Matching 8 distinct pairs across 16 cards requires at least 8 moves and at least 3 seconds.
             $timeTaken = max(1, min(60, ($game['completed_at'] ?? now()->timestamp) - $game['started_at'] - 5));
             $livesLeft = $game['lives'];
             $moves = $game['moves'];
+            $won = count($game['matched']) === 16 && $game['lives'] > 0 && $moves >= 8 && $timeTaken >= 3;
             $stat->active_game = null;
+            $stat->incrementDailyGames();
 
             $rewardCash = 0;
             $rewardXp = 0;
@@ -425,6 +441,8 @@ class MemoryController extends Controller
                 'cooldown' => $stat->getCooldownSecondsRemaining(),
                 'games_played' => $stat->games_played,
                 'games_won' => $stat->games_won,
+                'daily_games_played' => $stat->getDailyGamesCount(),
+                'daily_games_limit' => self::DAILY_GAME_LIMIT,
             ]);
         });
     }
@@ -456,6 +474,10 @@ class MemoryController extends Controller
             if (! $stat->isOnCooldown()) {
                 return redirect()->route('memory.index')
                     ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+            }
+
+            if ($stat->hasReachedDailyLimit(self::DAILY_GAME_LIMIT)) {
+                return back()->with('error', 'Je hebt vandaag je dagelijkse limiet van '.self::DAILY_GAME_LIMIT.' Memory sessies bereikt. Morgen kun je weer spelen!');
             }
 
             if (($lockedChar->stars ?? 0) < 10) {
@@ -504,6 +526,11 @@ class MemoryController extends Controller
         if (! $stat->isOnCooldown()) {
             return redirect()->route('memory.index')
                 ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+        }
+
+        if ($stat->hasReachedDailyLimit(self::DAILY_GAME_LIMIT)) {
+            return redirect()->route('memory.index')
+                ->with('error', 'Je hebt vandaag je dagelijkse limiet van '.self::DAILY_GAME_LIMIT.' Memory sessies bereikt. Morgen kun je weer spelen!');
         }
 
         $request->merge(['reward_type' => 'cooldown_memory']);

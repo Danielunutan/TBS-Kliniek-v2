@@ -540,7 +540,7 @@ class ShopController extends Controller
 
             $this->energyService->refresh($lockedCharacter);
 
-            if ($lockedCharacter->isComatose()) {
+            if ($lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
                 $comaMsg = 'Kritieke Code Blauw status! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe om bij bewustzijn te komen.';
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json(['success' => false, 'message' => $comaMsg], 422);
@@ -1246,7 +1246,7 @@ class ShopController extends Controller
         return DB::transaction(function () use ($request, $character, $targetStat): RedirectResponse|JsonResponse {
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-            if ($lockedCharacter->isComatose()) {
+            if ($lockedCharacter->isComatose() || $lockedCharacter->needsReviveSerum()) {
                 $msg = 'Kritieke Code Blauw status! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
 
                 return ($request->wantsJson() || $request->ajax())

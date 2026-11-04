@@ -141,7 +141,7 @@ class TheftService
             ];
         }
 
-        if ($character->hasIsolationProtection()) {
+        if ($character->isInVoluntaryIsolation()) {
             $remaining = $character->protection_until->diffForHumans(null, true);
 
             return [

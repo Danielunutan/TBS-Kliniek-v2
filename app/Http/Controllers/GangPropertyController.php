@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\CharacterVehicle;
 use App\Models\GameNotification;
 use App\Models\Gang;
+use App\Models\GangAlliance;
 use App\Models\GangNpc;
 use App\Models\GangProperty;
 use App\Models\User;
@@ -62,8 +63,14 @@ class GangPropertyController extends Controller
 
         $isOfficer = $gang->isOfficer($character);
 
+        $excludedGangIds = GangAlliance::where('gang_id', $gang->id)->pluck('ally_gang_id')
+            ->merge(GangAlliance::where('ally_gang_id', $gang->id)->pluck('gang_id'))
+            ->push($gang->id)
+            ->unique()
+            ->all();
+
         $rivalLabs = GangProperty::with(['gang', 'assignedNpc'])
-            ->where('gang_id', '!=', $gang->id)
+            ->whereNotIn('gang_id', $excludedGangIds)
             ->where('type', 'production')
             ->whereIn('production_status', ['producing', 'ready'])
             ->orderByDesc('production_reward_cash')
@@ -149,7 +156,7 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen voertuigen stallen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -176,6 +183,12 @@ class GangPropertyController extends Controller
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             /** @var CharacterVehicle|null $lockedVehicle */
             $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
+            /** @var Character|null $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return 'Je bent momenteel niet in staat om voertuigen te stallen.';
+            }
 
             if (! $lockedGang || ! $lockedVehicle || $lockedVehicle->character_id !== $character->id) {
                 return 'Dit voertuig is niet van jou.';
@@ -226,7 +239,7 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen voertuigen ophalen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -255,6 +268,11 @@ class GangPropertyController extends Controller
         $errorMessage = DB::transaction(function () use ($character, $characterVehicle, $gang): ?string {
             /** @var Character $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return 'Je bent momenteel niet in staat om voertuigen op te halen.';
+            }
+
             /** @var CharacterVehicle|null $lockedVehicle */
             $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
 
@@ -305,7 +323,7 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen bendepanden aanschaffen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -349,6 +367,12 @@ class GangPropertyController extends Controller
         }
 
         $errorMessage = DB::transaction(function () use ($gang, $character, $propertyKey, $catalogProp, $price): ?string {
+            /** @var Character|null $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return 'Je bent momenteel niet in staat om bendepanden aan te schaffen.';
+            }
+
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
             // Re-check under the gang lock so parallel requests cannot overspend the treasury or buy the same property twice.
@@ -417,7 +441,7 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen productieprocessen starten!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -439,14 +463,47 @@ class GangPropertyController extends Controller
             return back()->with('error', 'De vorige productiecyclus is voltooid! Claim eerst de opbrengst.');
         }
 
-        $durationMinutes = $property->effective_duration_minutes;
-        $completesAt = now()->addMinutes($durationMinutes);
+        try {
+            $durationMinutes = DB::transaction(function () use ($character, $property, $gang): int {
+                /** @var GangProperty|null $lockedProperty */
+                $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
+                /** @var Character|null $lockedChar */
+                $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $property->update([
-            'production_status' => 'producing',
-            'production_started_at' => now(),
-            'production_ends_at' => $completesAt,
-        ]);
+                if (! $lockedProperty || ! $lockedChar || (int) $lockedProperty->gang_id !== (int) $gang->id) {
+                    throw new \RuntimeException('Ongeldig bende-pand.');
+                }
+
+                if ($lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                    throw new \RuntimeException('Je bent momenteel niet in staat om productieprocessen te beheren.');
+                }
+
+                if ($lockedProperty->type !== 'production') {
+                    throw new \RuntimeException('Dit pand heeft geen productiefaciliteit.');
+                }
+
+                if ($lockedProperty->isProducing()) {
+                    throw new \RuntimeException('De productie is al in volle gang!');
+                }
+
+                if ($lockedProperty->isProductionReady()) {
+                    throw new \RuntimeException('De vorige productiecyclus is voltooid! Claim eerst de opbrengst.');
+                }
+
+                $durationMinutes = $lockedProperty->effective_duration_minutes;
+                $completesAt = now()->addMinutes($durationMinutes);
+
+                $lockedProperty->update([
+                    'production_status' => 'producing',
+                    'production_started_at' => now(),
+                    'production_ends_at' => $completesAt,
+                ]);
+
+                return $durationMinutes;
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', "🏭 Productie gestart in '{$property->name}'! Over {$durationMinutes} minuten kan de opbrengst worden geclaimd.");
     }
@@ -464,7 +521,7 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen productieopbrengsten claimen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -479,6 +536,12 @@ class GangPropertyController extends Controller
         }
 
         $claimedData = DB::transaction(function () use ($gang, $character, $property): ?array {
+            /** @var Character|null $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return null;
+            }
+
             // Lock the property first so parallel claims cannot pay the same cycle twice.
             $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
             if (! $lockedProperty || ! $lockedProperty->isProductionReady()) {
@@ -496,11 +559,8 @@ class GangPropertyController extends Controller
             $lockedGang->save();
 
             if ($respect > 0) {
-                $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
-                if ($lockedChar) {
-                    $lockedChar->addRespect($respect);
-                    $lockedChar->save();
-                }
+                $lockedChar->addRespect($respect);
+                $lockedChar->save();
             }
 
             $lockedProperty->update([
@@ -513,8 +573,8 @@ class GangPropertyController extends Controller
                 action: 'gang.claim_production',
                 category: 'gang',
                 description: "Productie geclaimd van {$lockedProperty->name} voor €".number_format($cash, 0, ',', '.')." en {$respect} respect",
-                character: $character,
-                user: $character->user,
+                character: $lockedChar,
+                user: $lockedChar->user,
                 amount: $cash,
                 details: [
                     'gang_id' => $lockedGang->id,
@@ -566,7 +626,7 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen NPC bendeleden aannemen!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -599,7 +659,13 @@ class GangPropertyController extends Controller
             return back()->with('error', "Niet genoeg geld in de bendekas! Je komt nog €{$shortage} tekort voor dit NPC bendelid.");
         }
 
-        $errorMessage = DB::transaction(function () use ($gang, $npcKey, $npcData, $cost): ?string {
+        $errorMessage = DB::transaction(function () use ($gang, $character, $npcKey, $npcData, $cost): ?string {
+            /** @var Character|null $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return 'Je bent momenteel niet in staat om NPC bendeleden aan te nemen.';
+            }
+
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
             $currentDefenseBonus = $lockedGang->npc_defense_bonus_percent;
@@ -616,13 +682,17 @@ class GangPropertyController extends Controller
                 return 'Niet genoeg geld in de bendekas voor dit NPC bendelid.';
             }
 
-            $lockedGang->treasury -= $cost;
-            $lockedGang->save();
-
             $effectiveBonusValue = (int) $npcData['bonus_value'];
             if (($npcData['bonus_type'] ?? '') === 'defense') {
-                $effectiveBonusValue = min($effectiveBonusValue, max(1, Gang::MAX_NPC_DEFENSE_BONUS_PERCENT - $currentDefenseBonus));
+                $remainingBonus = max(0, Gang::MAX_NPC_DEFENSE_BONUS_PERCENT - $currentDefenseBonus);
+                if ($remainingBonus <= 0) {
+                    return 'Jullie bende heeft het maximale Enforcer-verdedigingslimiet van +'.Gang::MAX_NPC_DEFENSE_BONUS_PERCENT.'% al bereikt! Huur een ander type specialist in.';
+                }
+                $effectiveBonusValue = min($effectiveBonusValue, $remainingBonus);
             }
+
+            $lockedGang->treasury -= $cost;
+            $lockedGang->save();
 
             GangNpc::create([
                 'gang_id' => $lockedGang->id,
@@ -657,7 +727,7 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen NPC bendeleden beheren!');
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
@@ -674,7 +744,13 @@ class GangPropertyController extends Controller
         $npcId = $validated['npc_id'] ?? null;
 
         try {
-            $successMessage = DB::transaction(function () use ($gang, $property, $npcId): string {
+            $successMessage = DB::transaction(function () use ($gang, $character, $property, $npcId): string {
+                /** @var Character|null $lockedChar */
+                $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+                if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                    throw new \RuntimeException('Je bent momenteel niet in staat om NPC bendeleden te beheren.');
+                }
+
                 /** @var GangProperty|null $lockedProperty */
                 $lockedProperty = GangProperty::where('id', $property->id)
                     ->where('gang_id', $gang->id)
@@ -790,12 +866,9 @@ class GangPropertyController extends Controller
             return back()->with('error', "⏳ Je bende-ripploeg moet eerst hergroeperen! Wacht nog {$remMins} min voor je volgende Ripdeal.");
         }
 
-        if (! app(EnergyService::class)->consume($character, 25)) {
+        if ($character->energy < 25) {
             return back()->with('error', 'Je hebt minimaal 25 Energie nodig om een vijandelijk bende-lab te overvallen.');
         }
-
-        $character->breakProtection();
-        app(CooldownService::class)->setCooldown($character, 'gang_lab_rip', 900);
 
         return DB::transaction(function () use ($user, $character, $property, $raidShieldKey): RedirectResponse {
             /** @var GangProperty|null $lockedProp */
@@ -807,12 +880,58 @@ class GangPropertyController extends Controller
                 return back()->with('error', 'Doelwit-laboratorium kon niet worden gevonden.');
             }
 
-            if (! in_array($lockedProp->production_status, ['producing', 'ready'], true)) {
-                return back()->with('error', 'De productie van dit lab was al binnengehaald voordat je binnenviel!');
+            if ($lockedChar->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen vijandelijke bende-labs overvallen!');
+            }
+
+            if ($lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
+
+            if (! $lockedChar->gang_id) {
+                return back()->with('error', 'Je moet lid zijn van een bende om een Bende Ripdeal uit te voeren.');
+            }
+
+            if ((int) $lockedProp->gang_id === (int) $lockedChar->gang_id) {
+                return back()->with('error', 'Je kunt niet je eigen bende-laboratorium beroven!');
             }
 
             $attackerGang = $lockedChar->gang;
             $defenderGang = $lockedProp->gang;
+
+            // Block ripdeals against allied gangs
+            $isAlly = GangAlliance::where(function ($q) use ($attackerGang, $defenderGang) {
+                $q->where('gang_id', $attackerGang->id)->where('ally_gang_id', $defenderGang->id);
+            })->orWhere(function ($q) use ($attackerGang, $defenderGang) {
+                $q->where('gang_id', $defenderGang->id)->where('ally_gang_id', $attackerGang->id);
+            })->exists();
+
+            if ($isAlly) {
+                return back()->with('error', "Je kunt geen bondgenoot [{$defenderGang->tag}] overvallen!");
+            }
+
+            // Re-check raid shield under row lock to prevent race conditions and duplicate loot
+            if (Cache::has($raidShieldKey)) {
+                return back()->with('error', "🛡️ Dit laboratorium ('{$lockedProp->name}') is onlangs al overvallen en staat nu tijdelijk onder verscherpte bewaking!");
+            }
+
+            if (! in_array($lockedProp->production_status, ['producing', 'ready'], true)) {
+                return back()->with('error', 'De productie van dit lab was al binnengehaald voordat je binnenviel!');
+            }
+
+            if ($lockedChar->isOnCooldown('gang_lab_rip')) {
+                $remMins = max(1, (int) ceil($lockedChar->cooldownRemaining('gang_lab_rip') / 60));
+
+                return back()->with('error', "⏳ Je bende-ripploeg moet eerst hergroeperen! Wacht nog {$remMins} min voor je volgende Ripdeal.");
+            }
+
+            // Atomically consume energy and set cooldown inside transaction
+            if (! app(EnergyService::class)->consume($lockedChar, 25)) {
+                return back()->with('error', 'Je hebt minimaal 25 Energie nodig om een vijandelijk bende-lab te overvallen.');
+            }
+
+            $lockedChar->breakProtection();
+            app(CooldownService::class)->setCooldown($lockedChar, 'gang_lab_rip', 900);
 
             $attackerPower = $lockedChar->getEffectiveStrength()
                 + $lockedChar->getEffectiveDefense()
@@ -841,8 +960,11 @@ class GangPropertyController extends Controller
 
                 if ($lockedProp->production_ends_at && $lockedProp->production_ends_at->isFuture()) {
                     $lockedProp->production_ends_at = $lockedProp->production_ends_at->copy()->addMinutes(30);
-                    $lockedProp->save();
+                } else {
+                    $lockedProp->production_ends_at = now()->addMinutes(30);
+                    $lockedProp->production_status = 'producing';
                 }
+                $lockedProp->save();
 
                 Cache::put($raidShieldKey, now()->addHours(2)->timestamp, now()->addHours(2));
 

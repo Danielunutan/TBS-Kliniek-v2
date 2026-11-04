@@ -565,13 +565,13 @@
                         <form method="POST" action="{{ route('gangs.panden.hire-npc', $npcKey) }}">
                             @csrf
                             <button type="submit"
-                                    @if(! $hasFreeSlot || ! $canAffordNpc || $isEnforcerAtCap || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    @if(! $hasFreeSlot || ! $canAffordNpc || $isEnforcerAtCap || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
                                     data-confirm="Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?"
                                     data-confirm-title="NPC Specialist Aannemen"
                                     data-confirm-btn="Ja, Aannemen"
                                     data-confirm-type="success"
                                     data-confirm-icon="fa-user-plus"
-                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
+                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i>
                                 @if($isEnforcerAtCap)
                                     <span>Max +{{ \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT }}% Enforcer Limiet</span>
@@ -620,7 +620,7 @@
                     @php
                         $isShielded = \Illuminate\Support\Facades\Cache::has("gang_lab_ripped_{$rivalLab->id}");
                         $estimatedLoot = max(10000, (int) round($rivalLab->effective_reward_cash * 0.35));
-                        $canRip = ! $isShielded && $character->energy >= 25 && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->isOnCooldown('gang_lab_rip');
+                        $canRip = ! $isShielded && $character->energy >= 25 && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum() && ! $character->isOnCooldown('gang_lab_rip');
                     @endphp
                     <div class="bg-slate-50/90 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-4 flex flex-col justify-between gap-4">
                         <div class="space-y-2">

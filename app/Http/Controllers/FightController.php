@@ -352,7 +352,7 @@ class FightController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand beroven!');
         }
 
-        $wasInIsolation = $attacker->hasIsolationProtection();
+        $wasInIsolation = $attacker->isInVoluntaryIsolation();
         if ($wasInIsolation && ! $request->boolean('confirm_break_isolation')) {
             $remaining = $attacker->protection_until->diffForHumans(null, true);
 
