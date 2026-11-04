@@ -142,17 +142,20 @@ class HeistController extends Controller
                 if (! $selected->in_gang_garage || (int) $selected->gang_id !== (int) $gang->id) {
                     return back()->with('error', 'Dit voertuig staat niet in de Bende Garage van jouw bende!');
                 }
+                $selectedName = $selected->vehicle?->name ?? 'vluchtwagen';
                 if ($selected->current_condition <= 0) {
-                    return back()->with('error', "De {$selected->vehicle->name} is total loss (100% schade) en kan niet worden gebruikt als vluchtwagen!");
+                    return back()->with('error', "De {$selectedName} is total loss (100% schade) en kan niet worden gebruikt als vluchtwagen!");
                 }
-                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $selected->vehicle->type !== $heist->required_vehicle_type) {
-                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist. Jouw wagen is een {$selected->vehicle->type}.");
+                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $selected->vehicle?->type !== $heist->required_vehicle_type) {
+                    $selectedType = $selected->vehicle?->type ?? 'onbekend';
+
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist. Jouw wagen is een {$selectedType}.");
                 }
                 if ($selected->effective_speed < $heist->min_speed_required) {
-                    return back()->with('error', "De snelheid van de {$selected->vehicle->name} is te laag ({$selected->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u.");
+                    return back()->with('error', "De snelheid van de {$selectedName} is te laag ({$selected->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u.");
                 }
                 if ($selected->current_condition < $heist->min_condition_required) {
-                    return back()->with('error', "De conditie van de {$selected->vehicle->name} is te laag ({$selected->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}%.");
+                    return back()->with('error', "De conditie van de {$selectedName} is te laag ({$selected->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}%.");
                 }
                 $charVehicle = $selected;
             } else {
@@ -165,7 +168,7 @@ class HeistController extends Controller
                     if ($cv->current_condition <= 0) {
                         return false;
                     }
-                    if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $cv->vehicle->type !== $heist->required_vehicle_type) {
+                    if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $cv->vehicle?->type !== $heist->required_vehicle_type) {
                         return false;
                     }
 
@@ -224,17 +227,20 @@ class HeistController extends Controller
                 if ($selected->is_for_sale) {
                     return back()->with('error', 'Dit voertuig staat te koop op de marktplaats en kan niet als vluchtwagen worden gebruikt!');
                 }
+                $selectedName = $selected->vehicle?->name ?? 'vluchtwagen';
                 if ($selected->current_condition <= 0) {
-                    return back()->with('error', "De {$selected->vehicle->name} is total loss (100% schade) en kan niet worden gebruikt als vluchtwagen! Laat het eerst repareren in de Garage.");
+                    return back()->with('error', "De {$selectedName} is total loss (100% schade) en kan niet worden gebruikt als vluchtwagen! Laat het eerst repareren in de Garage.");
                 }
-                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $selected->vehicle->type !== $heist->required_vehicle_type) {
-                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$selected->vehicle->type}.");
+                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $selected->vehicle?->type !== $heist->required_vehicle_type) {
+                    $selectedType = $selected->vehicle?->type ?? 'onbekend';
+
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$selectedType}.");
                 }
                 if ($selected->effective_speed < $heist->min_speed_required) {
-                    return back()->with('error', "De topsnelheid van je {$selected->vehicle->name} is te laag ({$selected->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
+                    return back()->with('error', "De topsnelheid van je {$selectedName} is te laag ({$selected->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
                 }
                 if ($selected->current_condition < $heist->min_condition_required) {
-                    return back()->with('error', "De conditie van je {$selected->vehicle->name} is te laag ({$selected->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
+                    return back()->with('error', "De conditie van je {$selectedName} is te laag ({$selected->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
                 }
                 $charVehicle = $selected;
             } else {
@@ -244,20 +250,23 @@ class HeistController extends Controller
                     return back()->with('error', 'Je hebt een geregistreerd vluchtvoertuig nodig (in je eigen garage) om een Heist te plegen!');
                 }
 
+                $charVehicleName = $charVehicle->vehicle?->name ?? 'vluchtwagen';
                 if ($charVehicle->current_condition <= 0) {
                     return back()->with('error', 'Je hebt een rijdend vluchtvoertuig nodig! Je geselecteerde wagen is total loss (100% schade).');
                 }
 
-                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $charVehicle->vehicle->type !== $heist->required_vehicle_type) {
-                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$charVehicle->vehicle->type}.");
+                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $charVehicle->vehicle?->type !== $heist->required_vehicle_type) {
+                    $vehicleType = $charVehicle->vehicle?->type ?? 'onbekend';
+
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$vehicleType}.");
                 }
 
                 if ($charVehicle->effective_speed < $heist->min_speed_required) {
-                    return back()->with('error', "De topsnelheid van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
+                    return back()->with('error', "De topsnelheid van je {$charVehicleName} is te laag ({$charVehicle->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
                 }
 
                 if ($charVehicle->current_condition < $heist->min_condition_required) {
-                    return back()->with('error', "De conditie van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
+                    return back()->with('error', "De conditie van je {$charVehicleName} is te laag ({$charVehicle->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
                 }
             }
 
@@ -355,6 +364,8 @@ class HeistController extends Controller
                 $bonusMsg = ' 🗝️ EXTRA: Je vond een zeldzame Kluiscode in de vluchtbuit!';
             }
 
+            $vehicleName = $charVehicle->vehicle?->name ?? 'vluchtwagen';
+
             HeistLog::create([
                 'character_id' => $character->id,
                 'heist_id' => $heist->id,
@@ -366,7 +377,7 @@ class HeistController extends Controller
                 'xp_earned' => $heist->xp_reward,
                 'respect_earned' => $heist->respect_reward,
                 'condition_loss' => $conditionLoss,
-                'notes' => "Succesvolle vlucht met {$charVehicle->vehicle->name}. Slagingskans was {$finalChance}%.",
+                'notes' => "Succesvolle vlucht met {$vehicleName}. Slagingskans was {$finalChance}%.",
             ]);
 
             $character->save();
@@ -374,7 +385,7 @@ class HeistController extends Controller
             $formattedPlayerCash = number_format($playerPayout, 0, ',', '.');
             $redirectParams = $heist->is_gang_heist ? ['tab' => 'gang'] : [];
 
-            return redirect()->route('heists.index', $redirectParams)->with('success', "💥 KRAAK GESLAAGD! De {$heist->name} is vlekkeloos uitgevoerd met je {$charVehicle->vehicle->name}! Persoonlijke buit: +€{$formattedPlayerCash}, +{$heist->xp_reward} XP en +{$heist->respect_reward} Respect. (Wagen slijtage: -{$conditionLoss}% conditie{$wearBonusMsg}).{$gangMsg}{$bonusMsg}");
+            return redirect()->route('heists.index', $redirectParams)->with('success', "💥 KRAAK GESLAAGD! De {$heist->name} is vlekkeloos uitgevoerd met je {$vehicleName}! Persoonlijke buit: +€{$formattedPlayerCash}, +{$heist->xp_reward} XP en +{$heist->respect_reward} Respect. (Wagen slijtage: -{$conditionLoss}% conditie{$wearBonusMsg}).{$gangMsg}{$bonusMsg}");
         } else {
             // Failure: Heavy vehicle damage and isolation imprisonment
             $conditionLoss = mt_rand(20, 35);
@@ -401,6 +412,8 @@ class HeistController extends Controller
             $prisonMinutes = $heist->isolation_risk_minutes;
             app(PrisonService::class)->jail($character, $prisonMinutes, "Betrapt tijdens {$heist->name}! Klemgereden door arrestatieteam.");
 
+            $vehicleName = $charVehicle->vehicle?->name ?? 'vluchtwagen';
+
             HeistLog::create([
                 'character_id' => $character->id,
                 'gang_id' => $heist->is_gang_heist ? $character->gang_id : null,
@@ -414,7 +427,7 @@ class HeistController extends Controller
                 'notes' => "Achtervolging mislukt! Klemgereden. Wagenschade: -{$conditionLoss}%.",
             ]);
 
-            return redirect()->route('prison')->with('error', "🚨 HEIST MISLUKT! Het alarm ging af en de politie ramde je {$charVehicle->vehicle->name} van de weg (-{$conditionLoss}% conditie{$wearBonusMsg}). Je bent overgebracht naar de isoleercel voor {$prisonMinutes} minuten!");
+            return redirect()->route('prison')->with('error', "🚨 HEIST MISLUKT! Het alarm ging af en de politie ramde je {$vehicleName} van de weg (-{$conditionLoss}% conditie{$wearBonusMsg}). Je bent overgebracht naar de isoleercel voor {$prisonMinutes} minuten!");
         }
     }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Heist extends Model
 {
@@ -195,6 +196,18 @@ class Heist extends Model
     }
 
     /**
+     * Calculate gang member synergy bonus percentage.
+     */
+    public function calculateGangBonus(?Character $character): int
+    {
+        if ($this->is_gang_heist && $character && $character->gang) {
+            return min(15, (int) ($character->gang->members()->count() * 2));
+        }
+
+        return 0;
+    }
+
+    /**
      * Calculate final heist success chance (clamped between 15% and 92%).
      */
     public function calculateSuccessChance(Character $character, ?CharacterVehicle $vehicle = null): int
@@ -213,11 +226,7 @@ class Heist extends Model
         $speedBonus = $this->calculateSpeedBonus($vehicle);
         $conditionBonus = $this->calculateConditionBonus($vehicle);
         $statBonus = min(15, (int) floor(((int) $character->getEffectiveIntelligence() + (int) $character->getEffectiveDiscipline()) / 30));
-
-        $gangBonus = 0;
-        if ($this->is_gang_heist && $character->gang) {
-            $gangBonus = min(15, $character->gang->members()->count() * 2);
-        }
+        $gangBonus = $this->calculateGangBonus($character);
 
         return max(15, min(92, $baseChance + $speedBonus + $conditionBonus + $statBonus + $gangBonus));
     }

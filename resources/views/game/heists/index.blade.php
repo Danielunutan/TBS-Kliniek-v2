@@ -76,12 +76,12 @@
                 <!-- Actief Voertuig Badge -->
                 <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
                     <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs shrink-0">
-                        <i class="fa-solid {{ $activeVehicle ? $activeVehicle->vehicle->icon : 'fa-car' }}"></i>
+                        <i class="fa-solid {{ $activeVehicle ? ($activeVehicle->vehicle?->icon ?? 'fa-car') : 'fa-car' }}"></i>
                     </div>
                     <div class="min-w-0">
                         <span class="text-[8px] sm:text-[9px] uppercase font-extrabold text-slate-400 dark:text-slate-500 block tracking-wider leading-none mb-0.5 truncate">Wagen</span>
                         <span class="text-[10px] sm:text-xs font-black text-slate-900 dark:text-white truncate max-w-[80px] sm:max-w-[120px] block leading-none">
-                            {{ $activeVehicle ? $activeVehicle->vehicle->name : 'Geen' }}
+                            {{ $activeVehicle ? ($activeVehicle->vehicle?->name ?? 'Wagen') : 'Geen' }}
                         </span>
                     </div>
                     <a href="{{ route('garage.index') }}" title="Garage" class="text-[10px] sm:text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-extrabold whitespace-nowrap hidden sm:inline">Garage</a>
@@ -142,7 +142,7 @@
                 $hasLevel = $character->level >= $heist->min_level;
                 $hasMasks = ($character->masks ?? 0) >= $heist->required_mask_count;
                 $hasVehicle = !empty($effectiveVehicle);
-                $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle->type === $heist->required_vehicle_type);
+                $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle?->type === $heist->required_vehicle_type);
                 $hasSpeed = $effectiveVehicle && ($effectiveVehicle->effective_speed >= $heist->min_speed_required);
                 $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= $heist->min_condition_required);
                 $canLaunch = $hasLevel && $hasMasks && $hasVehicle && $hasType && $hasSpeed && $hasCondition && ($character->energy >= $heist->energy_cost);
@@ -317,7 +317,7 @@
                                             $pvDestroyed = $pv->current_condition <= 0;
                                         @endphp
                                         <option value="{{ $pv->id }}" {{ ($effectiveVehicle && $effectiveVehicle->id === $pv->id) ? 'selected' : '' }} {{ $pvDestroyed ? 'disabled' : '' }}>
-                                            {{ $pv->vehicle->name }} ({{ $pv->effective_speed }} km/u, {{ $pv->current_condition }}% Conditie){{ $pvDestroyed ? ' [TOTAL LOSS]' : ($pv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
+                                            {{ $pv->vehicle?->name ?? 'Voertuig' }} ({{ $pv->effective_speed }} km/u, {{ $pv->current_condition }}% Conditie){{ $pvDestroyed ? ' [TOTAL LOSS]' : ($pv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -439,7 +439,7 @@
 
                     $effectiveVehicle = $heist->getEffectiveVehicle($character);
                     $hasVehicle = !empty($effectiveVehicle);
-                    $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle->type === $heist->required_vehicle_type);
+                    $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle?->type === $heist->required_vehicle_type);
                     $hasSpeed = $effectiveVehicle && ($effectiveVehicle->effective_speed >= $heist->min_speed_required);
                     $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= $heist->min_condition_required);
                     $isGangGarageVehicle = $effectiveVehicle && $effectiveVehicle->in_gang_garage;
@@ -460,6 +460,7 @@
 
                     $estChance = $heist->calculateSuccessChance($character, $effectiveVehicle);
                     $arrestRisk = $heist->calculateArrestRisk($character, $effectiveVehicle);
+                    $gangBonus = $heist->calculateGangBonus($character);
 
                     $personalMin = (int) round($heist->payout_min * 0.5);
                     $personalMax = (int) round($heist->payout_max * 0.5);
@@ -680,7 +681,7 @@
                                                 $gvDestroyed = $gv->current_condition <= 0;
                                             @endphp
                                             <option value="{{ $gv->id }}" {{ ($effectiveVehicle && $effectiveVehicle->id === $gv->id) ? 'selected' : '' }} {{ $gvDestroyed ? 'disabled' : '' }}>
-                                                {{ $gv->vehicle->name }} ({{ $gv->effective_speed }} km/u, {{ $gv->current_condition }}% Conditie){{ $gvDestroyed ? ' [TOTAL LOSS]' : ($gv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
+                                                {{ $gv->vehicle?->name ?? 'Voertuig' }} ({{ $gv->effective_speed }} km/u, {{ $gv->current_condition }}% Conditie){{ $gvDestroyed ? ' [TOTAL LOSS]' : ($gv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
                                             </option>
                                         @endforeach
                                     </select>

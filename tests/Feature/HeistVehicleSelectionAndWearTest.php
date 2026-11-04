@@ -731,4 +731,248 @@ class HeistVehicleSelectionAndWearTest extends TestCase
         $this->assertIsInt($speedBonus);
         $this->assertIsInt($conditionBonus);
     }
+
+    public function test_heist_getaway_vehicles_relation_returns_valid_relation(): void
+    {
+        $heist = Heist::create([
+            'name' => 'Relation Test Heist',
+            'slug' => 'relation-test-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 20,
+            'min_condition_required' => 20,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 1000,
+            'payout_max' => 2000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => false,
+        ]);
+
+        $this->assertNotNull($heist->getawayVehicles);
+        $this->assertCount(0, $heist->getawayVehicles);
+    }
+
+    public function test_gang_heists_index_tab_renders_without_500_error_when_gang_has_vehicle(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'BendeLeader',
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+        ]);
+        $gang = Gang::create([
+            'name' => 'TestBende',
+            'tag' => 'TB',
+            'leader_character_id' => $char->id,
+            'specialty' => 'combat',
+            'masks' => 50,
+        ]);
+        $char->update(['gang_id' => $gang->id]);
+
+        $car = Vehicle::create([
+            'name' => 'Bende Wagen',
+            'slug' => 'bende-wagen',
+            'type' => 'car',
+            'price_cash' => 50000,
+            'speed_pct' => 80,
+            'reliability_pct' => 80,
+            'min_level' => 1,
+        ]);
+
+        CharacterVehicle::create([
+            'character_id' => $char->id,
+            'gang_id' => $gang->id,
+            'vehicle_id' => $car->id,
+            'in_gang_garage' => true,
+            'current_condition' => 100,
+            'tuned_speed' => 80,
+        ]);
+
+        Heist::create([
+            'name' => 'Grote Bende Heist',
+            'slug' => 'grote-bende-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 50,
+            'min_condition_required' => 50,
+            'difficulty' => 'normaal',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => true,
+            'min_gang_members' => 1,
+            'gang_treasury_share_pct' => 50,
+            'gang_respect_reward' => 100,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('heists.index', ['tab' => 'gang']));
+        $response->assertOk();
+        $response->assertSee('Grote Bende Heist');
+        $response->assertSee('Bende Wagen');
+    }
+
+    public function test_gang_heists_tab_renders_cleanly_without_gang(): void
+    {
+        $user = User::factory()->create();
+        Character::create([
+            'user_id' => $user->id,
+            'name' => 'SoloWanderer',
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+        ]);
+
+        Heist::create([
+            'name' => 'Gang Syndicate Heist',
+            'slug' => 'gang-syndicate-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 50,
+            'min_condition_required' => 50,
+            'difficulty' => 'normaal',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => true,
+            'min_gang_members' => 1,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('heists.index', ['tab' => 'gang']));
+        $response->assertOk();
+        $response->assertSee('Geen Bende Gevonden');
+    }
+
+    public function test_gang_heists_tab_renders_cleanly_when_gang_has_no_vehicles(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'PedestrianGangster',
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 20,
+            'is_onboarded' => true,
+        ]);
+        $gang = Gang::create([
+            'name' => 'Walkers Guild',
+            'tag' => 'WG',
+            'leader_character_id' => $char->id,
+            'specialty' => 'combat',
+            'masks' => 50,
+        ]);
+        $char->update(['gang_id' => $gang->id]);
+
+        Heist::create([
+            'name' => 'Pedestrian Target Heist',
+            'slug' => 'pedestrian-target-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 1,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 50,
+            'min_condition_required' => 50,
+            'difficulty' => 'normaal',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => true,
+            'min_gang_members' => 1,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('heists.index', ['tab' => 'gang']));
+        $response->assertOk();
+        $response->assertSee('Koppel Wagen in Bende Garage');
+    }
+
+    public function test_launching_gang_heist_deducts_masks_and_applies_wear(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'HeistBoss',
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'masks' => 0,
+            'is_onboarded' => true,
+        ]);
+        $gang = Gang::create([
+            'name' => 'Crown Syndicate',
+            'tag' => 'CS',
+            'leader_character_id' => $char->id,
+            'specialty' => 'combat',
+            'masks' => 10,
+            'treasury' => 100000,
+        ]);
+        $char->update(['gang_id' => $gang->id]);
+
+        $car = Vehicle::create([
+            'name' => 'Syndicate Van',
+            'slug' => 'syndicate-van',
+            'type' => 'car',
+            'price_cash' => 50000,
+            'speed_pct' => 80,
+            'reliability_pct' => 80,
+            'min_level' => 1,
+        ]);
+
+        $cv = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'gang_id' => $gang->id,
+            'vehicle_id' => $car->id,
+            'in_gang_garage' => true,
+            'current_condition' => 100,
+            'tuned_speed' => 80,
+        ]);
+
+        $heist = Heist::create([
+            'name' => 'Depot Raad Heist',
+            'slug' => 'depot-raad-heist',
+            'min_level' => 1,
+            'energy_cost' => 10,
+            'required_mask_count' => 5,
+            'required_vehicle_type' => 'car',
+            'min_speed_required' => 50,
+            'min_condition_required' => 50,
+            'difficulty' => 'makkelijk',
+            'payout_min' => 5000,
+            'payout_max' => 10000,
+            'respect_reward' => 5,
+            'xp_reward' => 25,
+            'is_gang_heist' => true,
+            'min_gang_members' => 1,
+            'gang_treasury_share_pct' => 50,
+            'gang_respect_reward' => 50,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('heists.launch', $heist), [
+            'character_vehicle_id' => $cv->id,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $gang->refresh();
+        $cv->refresh();
+
+        // Masks were deducted from gang depot (10 - 5 = 5)
+        $this->assertSame(5, $gang->masks);
+        // Vehicle condition was degraded due to wear
+        $this->assertLessThan(100, $cv->current_condition);
+    }
 }
