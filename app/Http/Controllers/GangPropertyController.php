@@ -65,11 +65,10 @@ class GangPropertyController extends Controller
         $rivalLabs = GangProperty::with(['gang', 'assignedNpc'])
             ->where('gang_id', '!=', $gang->id)
             ->where('type', 'production')
+            ->whereIn('production_status', ['producing', 'ready'])
             ->orderByDesc('production_reward_cash')
             ->limit(12)
-            ->get()
-            ->filter(fn (GangProperty $prop) => in_array($prop->production_status, ['producing', 'ready'], true))
-            ->values();
+            ->get();
 
         return view('game.gangs.panden', compact(
             'character',

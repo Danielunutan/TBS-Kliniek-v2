@@ -62,7 +62,11 @@ class Heist extends Model
     public function getEffectiveVehicle(Character $character): ?CharacterVehicle
     {
         // For gang heists, vehicle must be from the Bende Garage
-        if ($this->is_gang_heist && $character->gang) {
+        if ($this->is_gang_heist) {
+            if (! $character->gang) {
+                return null;
+            }
+
             $gangVehicles = $character->gang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get();
             $qualifying = $gangVehicles->filter(fn ($gv) => $this->vehicleQualifies($gv));
 

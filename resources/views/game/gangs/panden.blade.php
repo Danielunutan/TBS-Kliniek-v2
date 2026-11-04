@@ -626,7 +626,7 @@
                         <div class="space-y-2">
                             <div class="flex items-center justify-between gap-2">
                                 <span class="px-2.5 py-0.5 rounded-lg bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-wider">
-                                    [{{ $rivalLab->gang->tag ?? 'RIVAAL' }}] {{ $rivalLab->gang->name ?? 'Bende' }}
+                                    [{{ $rivalLab->gang?->tag ?? 'RIVAAL' }}] {{ $rivalLab->gang?->name ?? 'Bende' }}
                                 </span>
                                 <span class="text-[11px] font-bold {{ $rivalLab->production_status === 'ready' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
                                     {{ $rivalLab->production_status === 'ready' ? '⚡ Klaar voor transport' : '🧪 In productie' }}
@@ -640,7 +640,7 @@
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span>Lab-Verdediging:</span>
-                                    <span class="font-bold text-slate-700 dark:text-slate-300">+{{ $rivalLab->gang->npc_defense_bonus_percent ?? 0 }}% Enforcer Bonus</span>
+                                    <span class="font-bold text-slate-700 dark:text-slate-300">+{{ $rivalLab->gang?->npc_defense_bonus_percent ?? 0 }}% Enforcer Bonus</span>
                                 </div>
                             </div>
                         </div>

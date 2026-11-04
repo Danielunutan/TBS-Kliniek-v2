@@ -29,8 +29,8 @@ class CheckMaintenanceMode
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Always pass through static assets, health check, webhooks, api, and vite dev server
-        if ($request->is('build/*', 'css/*', 'js/*', 'images/*', 'favicon.ico', 'up', '@vite/*', 'webhooks/*', 'api/*')) {
+        // Always pass through static assets, health check, webhooks, and vite dev server
+        if ($request->is('build/*', 'css/*', 'js/*', 'images/*', 'favicon.ico', 'up', '@vite/*', 'webhooks/*')) {
             return $next($request);
         }
 

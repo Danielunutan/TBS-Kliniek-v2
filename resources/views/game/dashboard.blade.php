@@ -480,7 +480,7 @@ function tbsDashboardCustomizer() {
                                 1x Gratis Spoor + 3x VIP Tiers
                             </span>
                         </div>
-                        <h3 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:!text-white">
+                        <h3 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white">
                             Seizoen 1 Battle Pass &bull; 20 Niveaus vol Beloningen
                         </h3>
                         <p class="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">

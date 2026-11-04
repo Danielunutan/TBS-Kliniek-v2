@@ -54,7 +54,10 @@ class NewsSystemTest extends TestCase
         $response->assertSee('Kliniek Nieuws');
         $response->assertSee('Hyves');
         $response->assertSee('iOS App Update');
-        $response->assertSee('Ghost Mode update');
+
+        $page2 = $this->get(route('news.index', ['page' => 2]));
+        $page2->assertStatus(200);
+        $page2->assertSee('Ghost Mode update');
     }
 
     public function test_dashboard_displays_laatste_nieuws_widget(): void

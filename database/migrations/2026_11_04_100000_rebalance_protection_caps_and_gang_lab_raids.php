@@ -4,6 +4,7 @@ use App\Models\Character;
 use App\Models\ChatMessage;
 use App\Models\GameNotification;
 use App\Models\NewsArticle;
+use App\Services\EventVaultCrackingService;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -100,6 +101,7 @@ MARKDOWN;
 
             NewsArticle::where('is_pinned', true)
                 ->where('slug', '!=', self::ARTICLE_SLUG)
+                ->where('slug', '!=', EventVaultCrackingService::EVENT_SLUG)
                 ->update(['is_pinned' => false]);
 
             NewsArticle::updateOrCreate(

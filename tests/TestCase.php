@@ -3,10 +3,30 @@
 namespace Tests;
 
 use App\Support\ArmWrestleOutcome;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $lock = storage_path('framework/tbs_maintenance.json');
+        if (file_exists($lock)) {
+            @unlink($lock);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        $lock = storage_path('framework/tbs_maintenance.json');
+        if (file_exists($lock)) {
+            @unlink($lock);
+        }
+        parent::tearDown();
+    }
+
     /**
      * Fix the arm wrestling server roll, so a test does not depend on randomness.
      */

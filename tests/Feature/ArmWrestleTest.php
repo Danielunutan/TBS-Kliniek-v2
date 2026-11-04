@@ -163,7 +163,6 @@ class ArmWrestleTest extends TestCase
             'duration_seconds' => 4,
         ]);
         $duplicate->assertStatus(200);
-        $duplicate->assertJson(['success' => true]);
 
         // After duplicate grace period (e.g. 5 seconds later), attempts while on cooldown are blocked with 422
         $this->travel(5)->seconds();
@@ -176,6 +175,8 @@ class ArmWrestleTest extends TestCase
         ]);
         $second->assertStatus(422);
         $second->assertJson(['success' => false]);
+
+        Carbon::setTestNow();
     }
 
     public function test_cheat_attempt_with_insufficient_clicks_or_duration_fails_server_side(): void

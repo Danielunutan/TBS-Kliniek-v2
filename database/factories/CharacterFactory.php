@@ -28,6 +28,7 @@ class CharacterFactory extends Factory
             'max_energy' => 100,
             'health' => 100,
             'max_health' => 100,
+            'is_onboarded' => true,
         ];
     }
 }
