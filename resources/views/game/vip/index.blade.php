@@ -804,9 +804,9 @@
                             $redeemOptions = [
                                 [
                                     'type' => 'cash_protection',
-                                    'name' => '24 Uur Cash Bescherming',
+                                    'name' => '24 Uur Cash-Schild (50%)',
                                     'cost' => 20,
-                                    'desc' => 'Je contante geld is 24 uur beschermd tegen diefstal bij aanvallen.',
+                                    'desc' => 'Halveert gestolen buit met 50% gedurende 24 uur (max 24u, vervalt als je zelf aanvalt).',
                                     'icon' => 'fa-shield-halved',
                                     'iconColor' => 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/60',
                                 ],

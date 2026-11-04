@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\GameNotification;
+use App\Services\CooldownService;
 use App\Services\EconomyService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -31,15 +32,16 @@ class IsolationController extends Controller
             ['hours' => 1, 'cost_cash' => 50000, 'cost_stars' => 25, 'label' => '1 uur isolatie'],
             ['hours' => 2, 'cost_cash' => 100000, 'cost_stars' => 50, 'label' => '2 uur isolatie'],
             ['hours' => 4, 'cost_cash' => 200000, 'cost_stars' => 100, 'label' => '4 uur isolatie'],
+            ['hours' => 6, 'cost_cash' => 300000, 'cost_stars' => 150, 'label' => '6 uur isolatie'],
             ['hours' => 8, 'cost_cash' => 400000, 'cost_stars' => 200, 'label' => '8 uur isolatie'],
-            ['hours' => 12, 'cost_cash' => 600000, 'cost_stars' => 300, 'label' => '12 uur isolatie'],
-            ['hours' => 24, 'cost_cash' => 1200000, 'cost_stars' => 600, 'label' => '24 uur isolatie (1 dag)'],
+            ['hours' => 12, 'cost_cash' => 600000, 'cost_stars' => 300, 'label' => '12 uur isolatie (Max Cap)'],
         ];
 
         $isProtected = $character->hasIsolationProtection();
         $remainingSeconds = $character->getIsolationProtectionRemainingSeconds();
         $remainingMinutes = $isProtected && $character->protection_until ? max(0, (int) ceil(now()->diffInSeconds($character->protection_until, false) / 60)) : 0;
         $remainingHours = $isProtected ? round($remainingMinutes / 60, 1) : 0;
+        $cooldownSeconds = $character->cooldownRemaining('isolation_cooldown');
 
         $hasCashProtection = $character->hasCashProtection();
         $cashProtectionSeconds = $character->getCashProtectionRemainingSeconds();
@@ -55,6 +57,7 @@ class IsolationController extends Controller
             'remainingSeconds',
             'remainingMinutes',
             'remainingHours',
+            'cooldownSeconds',
             'hasCashProtection',
             'cashProtectionSeconds',
             'hasVest',
@@ -76,8 +79,14 @@ class IsolationController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
+        if ($character->isOnCooldown('isolation_cooldown')) {
+            $cdMins = max(1, (int) ceil($character->cooldownRemaining('isolation_cooldown') / 60));
+
+            return back()->with('error', "⏳ Je hebt je cel onlangs voortijdig ontgrendeld! Je moet nog {$cdMins} minuten wachten voordat je weer vrijwillig in isolatie kunt gaan.");
+        }
+
         $validated = $request->validate([
-            'hours' => ['required', 'integer', 'min:1', 'max:72'],
+            'hours' => ['required', 'integer', 'min:1', 'max:'.Character::MAX_ISOLATION_HOURS],
             'currency' => ['required', 'string', 'in:cash,stars'],
         ]);
 
@@ -101,6 +110,26 @@ class IsolationController extends Controller
 
             if ($locked->isComatose() || $locked->needsReviveSerum()) {
                 return 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+            }
+
+            if ($locked->isOnCooldown('isolation_cooldown')) {
+                $cdMins = max(1, (int) ceil($locked->cooldownRemaining('isolation_cooldown') / 60));
+
+                return "⏳ Je hebt je cel onlangs voortijdig ontgrendeld! Je moet nog {$cdMins} minuten wachten voordat je weer vrijwillig in isolatie kunt gaan.";
+            }
+
+            $baseTime = ($locked->protection_until && Carbon::now()->lt($locked->protection_until))
+                ? $locked->protection_until->copy()
+                : Carbon::now();
+            $proposedUntil = $baseTime->copy()->addHours($hours);
+            $maxAllowedUntil = Carbon::now()->addHours(Character::MAX_ISOLATION_HOURS)->addMinutes(1);
+
+            if ($proposedUntil->gt($maxAllowedUntil)) {
+                $currentMins = $locked->hasIsolationProtection()
+                    ? max(1, (int) ceil($locked->getIsolationProtectionRemainingSeconds() / 60))
+                    : 0;
+
+                return '🔒 Je kunt maximaal '.Character::MAX_ISOLATION_HOURS." uur achter elkaar in Vrijwillige Isolatie zitten! (Huidige resterende tijd: {$currentMins} min).";
             }
 
             if ($currency === 'stars') {
@@ -132,12 +161,7 @@ class IsolationController extends Controller
                 }
             }
 
-            // Extend if already active, or start fresh
-            if ($locked->protection_until && Carbon::now()->lt($locked->protection_until)) {
-                $locked->protection_until = $locked->protection_until->copy()->addHours($hours);
-            } else {
-                $locked->protection_until = Carbon::now()->addHours($hours);
-            }
+            $locked->protection_until = $proposedUntil;
             $locked->save();
 
             return null;
@@ -186,8 +210,17 @@ class IsolationController extends Controller
                 return false;
             }
 
+            $wasVoluntary = $locked->isInVoluntaryIsolation();
             $locked->protection_until = null;
             $locked->save();
+
+            if ($wasVoluntary) {
+                app(CooldownService::class)->setCooldown(
+                    $locked,
+                    'isolation_cooldown',
+                    Character::ISOLATION_COOLDOWN_SECONDS
+                );
+            }
 
             return true;
         });
@@ -201,9 +234,9 @@ class IsolationController extends Controller
             'type' => 'protection',
             'icon' => 'fa-door-open',
             'title' => 'Isolatie Vroegtijdig Beëindigd',
-            'message' => 'Je hebt je vrijwillige isolatie handmatig beëindigd. Je celdeur is weer van het slot.',
+            'message' => 'Je hebt je vrijwillige isolatie handmatig beëindigd. Je celdeur is weer van het slot (2 uur afkoeltijd voor nieuwe isolatie).',
         ]);
 
-        return back()->with('success', '🔓 Vrijwillige isolatie beëindigd! Je celdeur is ontgrendeld en je kunt weer deelnemen aan gevechten en overvallen.');
+        return back()->with('success', '🔓 Vrijwillige isolatie beëindigd! Je celdeur is ontgrendeld en je kunt weer misdaden, klussen en gevechten uitvoeren (2u afkoeltijd voor hernieuwde isolatie).');
     }
 }

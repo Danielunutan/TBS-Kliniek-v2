@@ -574,6 +574,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/gangs/panden/{property}/claim-productie', [GangPropertyController::class, 'claimProduction'])->name('gangs.panden.claim-production');
     Route::post('/gangs/panden/hire-npc/{npcKey}', [GangPropertyController::class, 'hireNpc'])->name('gangs.panden.hire-npc');
     Route::post('/gangs/panden/{property}/assign-npc', [GangPropertyController::class, 'assignNpc'])->name('gangs.panden.assign-npc');
+    Route::post('/gangs/panden/{property}/rip', [GangPropertyController::class, 'ripLab'])->middleware('throttle:20,1')->name('gangs.panden.rip');
 
     // Bende Garage & Wagenpark
     Route::get('/gangs/garage', [GangPropertyController::class, 'garage'])->name('gangs.garage');

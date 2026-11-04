@@ -199,10 +199,15 @@ class FightController extends Controller
             if ($battle['won']) {
                 $defenderCash = max(0, (int) $lockedDefender->cash);
                 $stolenCash = (int) ($battle['stolen_cash'] ?? 0);
-                if ($lockedDefender->isProtected() || $lockedDefender->hasCashProtection()) {
+                if ($lockedDefender->isProtected()) {
                     $stolenCash = 0;
-                } elseif ($stolenCash > $defenderCash) {
-                    $stolenCash = $defenderCash;
+                } else {
+                    if ($lockedDefender->hasCashProtection() && empty($battle['cash_shield_applied']) && $stolenCash > 0) {
+                        $stolenCash = max(1, (int) floor($stolenCash * 0.50));
+                    }
+                    if ($stolenCash > $defenderCash) {
+                        $stolenCash = $defenderCash;
+                    }
                 }
 
                 if ($stolenCash > 0) {
@@ -425,12 +430,6 @@ class FightController extends Controller
             return back()->with('error', "{$defender->name} ligt in Intensive Care Coma en kan niet worden bestolen.");
         }
 
-        if ($defender->hasCashProtection()) {
-            $remaining = $defender->cash_protection_until->diffForHumans(null, true);
-
-            return back()->with('error', "🛡️ {$defender->name} heeft actieve 24u Cash Bescherming (nog {$remaining}) en kan niet worden bestolen!");
-        }
-
         if ($defender->isProtected()) {
             return back()->with('error', "{$defender->name} zit in isolatie en kan niet worden bestolen!");
         }
@@ -480,12 +479,14 @@ class FightController extends Controller
         if ($attackerPower >= $defenderPower) {
             $defenderCash = max(0, (int) $defender->cash);
             $stolenCash = 0;
+            $hasCashShield = $defender->hasCashProtection();
 
-            if ($defender->hasCashProtection()) {
-                $stolenCash = 0;
-            } elseif ($defenderCash > 0) {
+            if ($defenderCash > 0) {
                 $stolenRatio = random_int(10, 25) / 100;
                 $stolenCash = max(15, (int) round($defenderCash * $stolenRatio));
+                if ($hasCashShield) {
+                    $stolenCash = max(1, (int) floor($stolenCash * 0.50));
+                }
                 if ($stolenCash > $defenderCash) {
                     $stolenCash = $defenderCash;
                 }
@@ -503,6 +504,7 @@ class FightController extends Controller
                 'defender_level' => $defender->level,
                 'won' => true,
                 'stolen_cash' => $stolenCash,
+                'cash_shield_applied' => $hasCashShield,
                 'claimed_bounty' => 0,
                 'defender_had_no_cash' => ($defenderCash <= 0),
                 'damage_taken' => $damageTaken,

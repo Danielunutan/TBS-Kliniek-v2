@@ -595,5 +595,80 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- RIVALISERENDE BENDE-LABS & RIPDEALS        -->
+    <!-- ========================================== -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200/90 dark:border-rose-900/60 p-6 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                    <i class="fa-solid fa-skull-crossbones"></i>
+                </div>
+                <div>
+                    <h2 class="text-base font-black text-slate-900 dark:text-white tracking-tight">Rivaliserende Bende-Labs & Ripdeals</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Overval draaiende productielabs van vijandelijke bendes voor 35% van de batchwaarde (50% eigen zak / 50% bendekas) + 25 Respect</p>
+                </div>
+            </div>
+            <span class="px-3 py-1 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-extrabold">
+                Kosten: 25 Energie • 15m Cooldown
+            </span>
+        </div>
+
+        @if(!empty($rivalLabs) && count($rivalLabs) > 0)
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach($rivalLabs as $rivalLab)
+                    @php
+                        $isShielded = \Illuminate\Support\Facades\Cache::has("gang_lab_ripped_{$rivalLab->id}");
+                        $estimatedLoot = max(10000, (int) round($rivalLab->effective_reward_cash * 0.35));
+                        $canRip = ! $isShielded && $character->energy >= 25 && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->isOnCooldown('gang_lab_rip');
+                    @endphp
+                    <div class="bg-slate-50/90 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-4 flex flex-col justify-between gap-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="px-2.5 py-0.5 rounded-lg bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-wider">
+                                    [{{ $rivalLab->gang->tag ?? 'RIVAAL' }}] {{ $rivalLab->gang->name ?? 'Bende' }}
+                                </span>
+                                <span class="text-[11px] font-bold {{ $rivalLab->production_status === 'ready' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
+                                    {{ $rivalLab->production_status === 'ready' ? '⚡ Klaar voor transport' : '🧪 In productie' }}
+                                </span>
+                            </div>
+                            <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $rivalLab->name }}</h3>
+                            <div class="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span>Geschatte Rip-Buit (35%):</span>
+                                    <span class="font-black text-emerald-600 dark:text-emerald-400">€{{ number_format($estimatedLoot, 0, ',', '.') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>Lab-Verdediging:</span>
+                                    <span class="font-bold text-slate-700 dark:text-slate-300">+{{ $rivalLab->gang->npc_defense_bonus_percent ?? 0 }}% Enforcer Bonus</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{{ route('gangs.panden.rip', $rivalLab) }}">
+                            @csrf
+                            <button type="submit"
+                                    @if(! $canRip) disabled @endif
+                                    class="w-full py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 {{ $canRip ? 'bg-rose-600 hover:bg-rose-700 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' }}">
+                                <i class="fa-solid fa-burst"></i>
+                                @if($isShielded)
+                                    <span>Onder Bewaking (Recent Overvallen)</span>
+                                @elseif($character->isOnCooldown('gang_lab_rip'))
+                                    <span>Ripploeg Herstelt ({{ ceil($character->cooldownRemaining('gang_lab_rip') / 60) }}m)</span>
+                                @else
+                                    <span>Lab Rippen (25 EP)</span>
+                                @endif
+                            </button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="p-6 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 text-center text-xs text-slate-500 dark:text-slate-400">
+                Er zijn op dit moment geen actieve of rijpe productielabs van rivaliserende bendes gedetecteerd. Zodra een andere bende een lab opstart, verschijnt deze hier als doelwit voor een Ripdeal!
+            </div>
+        @endif
+    </div>
+
 </div>
 @endsection

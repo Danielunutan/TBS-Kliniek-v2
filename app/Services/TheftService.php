@@ -188,19 +188,6 @@ class TheftService
                 ];
             }
 
-            if ($victim->hasCashProtection()) {
-                $remaining = $victim->cash_protection_until->diffForHumans(null, true);
-
-                return [
-                    'success' => false,
-                    'message' => "🛡️ {$victim->name} heeft actieve Cash Bescherming (nog {$remaining}) en kan momenteel niet worden bestolen!",
-                    'cash_stolen' => 0,
-                    'xp_gained' => 0,
-                    'jailed' => false,
-                    'jail_minutes' => 0,
-                ];
-            }
-
             if ($victim->isProtected()) {
                 $remaining = $victim->protection_until ? $victim->protection_until->diffForHumans(null, true) : 'even';
 
@@ -371,22 +358,22 @@ class TheftService
      */
     private function finishPvpSuccess(Character $character, Character $victim, array $tier, string $tierKey, int $cashStolen, string $haulType): array
     {
-        if ($victim->hasCashProtection()) {
-            $cashStolen = 0;
-        }
-
         if ($cashStolen > 0) {
             // Take the cash from the victim under a row lock and cap it by the fresh balance.
             // Two thieves who hit the same victim at once can then never take more than the victim owns.
             $cashStolen = DB::transaction(function () use ($victim, $cashStolen): int {
                 /** @var Character|null $lockedVictim */
                 $lockedVictim = Character::where('id', $victim->id)->lockForUpdate()->first();
-                if (! $lockedVictim || $lockedVictim->hasCashProtection()) {
+                if (! $lockedVictim || $lockedVictim->isProtected()) {
                     return 0;
                 }
 
+                $effectiveCashStolen = $lockedVictim->hasCashProtection()
+                    ? max(1, (int) floor($cashStolen * 0.50))
+                    : $cashStolen;
+
                 $available = max(0, (int) $lockedVictim->cash);
-                $taken = min($cashStolen, $available);
+                $taken = min($effectiveCashStolen, $available);
 
                 if ($taken > 0) {
                     $lockedVictim->cash -= $taken;

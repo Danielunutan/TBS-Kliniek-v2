@@ -919,6 +919,18 @@ class ShopController extends Controller
                 return back()->with('shop_tab', 'sterren')->with('error', 'Kritieke Code Blauw status! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe voordat je een vitale reset gebruikt.');
             }
 
+            if ($validated['item_type'] === 'protection_24h') {
+                if ($lockedCharacter->isOnCooldown('isolation_cooldown')) {
+                    $cdMins = max(1, (int) ceil($lockedCharacter->cooldownRemaining('isolation_cooldown') / 60));
+
+                    return back()->with('shop_tab', 'sterren')->with('error', "⏳ Je hebt je cel onlangs voortijdig ontgrendeld! Wacht nog {$cdMins} minuten voordat je weer in isolatie kunt gaan.");
+                }
+
+                if ($lockedCharacter->getIsolationProtectionRemainingSeconds() >= (Character::MAX_ISOLATION_HOURS * 3600) - 300) {
+                    return back()->with('shop_tab', 'sterren')->with('error', '🔒 Je zit al op de maximale limiet van '.Character::MAX_ISOLATION_HOURS.' uur isolatiebescherming!');
+                }
+            }
+
             $lockedCharacter->stars -= $cfg['cost'];
 
             if ($validated['item_type'] === 'full_restore') {
@@ -1013,12 +1025,14 @@ class ShopController extends Controller
 
             if ($validated['item_type'] === 'protection_24h') {
                 $curProt = $lockedCharacter->protection_until && now()->lt($lockedCharacter->protection_until) ? $lockedCharacter->protection_until : now();
-                $lockedCharacter->protection_until = $curProt->copy()->addHours(24);
+                $maxUntil = now()->addHours(Character::MAX_ISOLATION_HOURS);
+                $proposed = $curProt->copy()->addHours(Character::MAX_ISOLATION_HOURS);
+                $lockedCharacter->protection_until = $proposed->gt($maxUntil) ? $maxUntil : $proposed;
                 $lockedCharacter->save();
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "🛡️ Paviljoenimmuniteit actief! Geen enkele rivaal kan je aanvallen tot {$lockedCharacter->protection_until->format('d-m-Y H:i')} ({$cfg['cost']} Sterren ⭐)!");
+                    ->with('success', "🛡️ Paviljoenimmuniteit (max 12u) actief! Geen enkele rivaal kan je aanvallen tot {$lockedCharacter->protection_until->format('d-m-Y H:i')} ({$cfg['cost']} Sterren ⭐)!");
             }
 
             if ($validated['item_type'] === 'xxl_cases_3') {

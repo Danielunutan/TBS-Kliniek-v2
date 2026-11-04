@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Character;
 use Closure;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
@@ -50,10 +51,37 @@ class SerializeCharacterActions
             // Drop it so the controller reads the state that the previous request left behind.
             $user->unsetRelation('character');
 
+            $character = $user->character;
+            $routeName = $request->route()?->getName();
+            if ($character && $character->isActionBlockedByIsolation($routeName)) {
+                return $this->isolationBlockedResponse($request, $character);
+            }
+
             return $next($request);
         } finally {
             $lock->release();
         }
+    }
+
+    /**
+     * Build the response when a player in voluntary isolation attempts a blocked clinic action.
+     */
+    protected function isolationBlockedResponse(Request $request, Character $character): Response
+    {
+        $remaining = $character->protection_until?->diffForHumans(null, true) ?? 'enkele minuten';
+        $message = "🔒 Je cel zit op slot in Vrijwillige Isolatie (nog {$remaining})! Zolang je in isolatie zit kun je zelf geen misdaden, klussen of acties uitvoeren. Ontgrendel eerst je celdeur als je weer op pad wilt.";
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'error_url' => route('isolation.index'),
+            ], 403);
+        }
+
+        return back()
+            ->with('error', $message)
+            ->with('error_url', route('isolation.index'));
     }
 
     /**

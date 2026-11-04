@@ -143,7 +143,7 @@ class LiquidatiePvPAndComaTest extends TestCase
         // 3. Travel to the target's wing ('Het Kookhuis (Keuken)')
         $shooter->update(['current_location' => 'Het Kookhuis (Keuken)']);
 
-        // 4. Execute 1-Bullet Genadeschot (9th liquidation for target -> survives at 20 HP, evacuated to new wing, 45% cash + 7% bank stolen!)
+        // 4. Execute 1-Bullet Genadeschot (9th liquidation for target -> 20-minute IC coma, evacuated to new wing, 45% cash + 7% bank stolen!)
         $shootResp = $this->post(route('hitman.shoot'), [
             'target_id' => $target->id,
             'bullets' => 1,
@@ -159,15 +159,22 @@ class LiquidatiePvPAndComaTest extends TestCase
         $this->assertEquals(55000, $target->cash);
         $this->assertEquals(186000, $target->bank);
         $this->assertEquals(9, $target->getLiquidationStreakDeaths());
-        $this->assertFalse($target->isComatose());
-        $this->assertEquals(20, $target->health);
+        $this->assertTrue($target->isComatose());
+        $this->assertEquals(0, $target->health);
         $this->assertNotEquals('Het Kookhuis (Keuken)', $target->current_location);
 
-        // 5. 10th liquidation triggers Code Blauw (Coma) requiring the Forensisch Reanimatie-Serum
+        // Simulate the 20-minute IC coma expiring so the target wakes up with 20 HP
         $target->update([
+            'coma_until' => Carbon::now()->subMinute(),
             'protection_until' => null,
             'current_location' => 'De Luchtplaats',
         ]);
+        $target->normalizeCharacterState();
+        $target->refresh();
+        $this->assertFalse($target->isComatose());
+        $this->assertEquals(20, $target->health);
+
+        // 5. 10th liquidation triggers Code Blauw (Coma) requiring the Forensisch Reanimatie-Serum
         $shooter->update([
             'energy' => 100,
             'current_location' => 'De Luchtplaats',
@@ -213,5 +220,83 @@ class LiquidatiePvPAndComaTest extends TestCase
         $this->assertStringContainsString('Liquidatie 2.0', $latestPinned->title);
         $this->assertStringContainsString('45% van het contante geld', $latestPinned->content);
         $this->assertStringContainsString('7% van het geld op de bankrekening', $latestPinned->content);
+    }
+
+    public function test_daily_liquidation_anti_bully_cap_blocks_4th_kill_on_same_target(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $shooter = $user->character;
+
+        $targetUser = User::where('email', '!=', 'demo@tbskliniek.nl')->first();
+        $target = $targetUser->character;
+
+        $this->actingAs($user);
+
+        $target->update(['daily_deaths_count' => 0, 'daily_deaths_date' => now()->format('Y-m-d')]);
+
+        for ($hit = 1; $hit <= 3; $hit++) {
+            $shooter->refresh();
+            $target->refresh();
+            $shooter->update([
+                'bullets' => 100,
+                'energy' => 100,
+                'level' => 26,
+                'xp' => 0,
+                'strength' => 150,
+                'is_in_prison' => false,
+                'prison_until' => null,
+                'current_location' => 'De Luchtplaats',
+                'coma_until' => null,
+                'protection_until' => null,
+                'perks' => ['cold_blooded_pct' => 50, 'liquidation_streak_deaths' => 0],
+            ]);
+            $target->update([
+                'level' => 25,
+                'defense' => 10,
+                'health' => 100,
+                'is_in_prison' => false,
+                'prison_until' => null,
+                'vest_until' => null,
+                'coma_until' => null,
+                'protection_until' => null,
+                'current_location' => 'De Luchtplaats',
+                'perks' => ['liquidation_streak_deaths' => 0],
+            ]);
+
+            $resp = $this->post(route('hitman.shoot'), [
+                'target_id' => $target->id,
+                'bullets' => 1,
+            ]);
+            $resp->assertSessionHas('success');
+        }
+
+        // 4th attempt on the same target today is blocked by Anti-Pestprotocol (max 3 per target per day)
+        $shooter->refresh();
+        $target->refresh();
+        $shooter->update([
+            'bullets' => 100,
+            'energy' => 100,
+            'is_in_prison' => false,
+            'prison_until' => null,
+            'current_location' => 'De Luchtplaats',
+            'perks' => ['cold_blooded_pct' => 50, 'liquidation_streak_deaths' => 0],
+        ]);
+        $target->update([
+            'health' => 100,
+            'is_in_prison' => false,
+            'prison_until' => null,
+            'vest_until' => null,
+            'coma_until' => null,
+            'protection_until' => null,
+            'current_location' => 'De Luchtplaats',
+            'perks' => ['liquidation_streak_deaths' => 0],
+        ]);
+
+        $blockedResp = $this->post(route('hitman.shoot'), [
+            'target_id' => $target->id,
+            'bullets' => 1,
+        ]);
+        $blockedResp->assertSessionHas('error');
+        $this->assertStringContainsString('Anti-Pestprotocol', session('error'));
     }
 }

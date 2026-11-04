@@ -192,7 +192,10 @@ class HitmanController extends Controller
                 $hasBloodFeud = BloodFeud::hasClaimAgainst($character, $target->id) !== null;
                 $onCooldown = false;
                 $cooldownSec = 0;
-                $dailyDeathsReached = $target->needsReviveSerum();
+                $pairKillKey = "daily_liquidations_{$character->id}_{$target->id}_".now()->toDateString();
+                $dailyDeathsReached = $target->needsReviveSerum()
+                    || $target->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD
+                    || (int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET;
                 $isLevelRestricted = ! $hasBloodFeud && (($character->level - $target->level) > 15);
 
                 $intel = $intelMap->get($target->id);
@@ -789,6 +792,16 @@ class HitmanController extends Controller
             return back()->with('error', "{$defender->name} heeft momenteel een actief Medisch Infuus-Schild of Isolatiebescherming en kan even niet worden beschoten.");
         }
 
+        $todayStr = now()->toDateString();
+        $pairKillKey = "daily_liquidations_{$attacker->id}_{$defender->id}_{$todayStr}";
+        if ((int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET) {
+            return back()->with('error', "⛔ Anti-Pestprotocol: Je hebt {$defender->name} vandaag al ".Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET.' keer geliquideerd! Zoek vandaag een ander doelwit.');
+        }
+
+        if ($defender->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD) {
+            return back()->with('error', "🏥 Medisch Noodprotocol: {$defender->name} is vandaag al ".Character::MAX_DAILY_DEATHS_BEFORE_SHIELD.' keer geliquideerd en staat de rest van de dag onder verscherpte IC-bewaking!');
+        }
+
         // Clinic Wing / Location status
         $attackerWing = $attacker->current_location ?? 'Paviljoen 1 (Gesloten)';
         $defenderWing = $defender->current_location ?? 'Paviljoen 1 (Gesloten)';
@@ -857,6 +870,16 @@ class HitmanController extends Controller
                         return back()->with('error', "{$lockedDefender->name} is zojuist al geraakt of beschermd en kan nu niet worden beschoten.");
                     }
 
+                    $pairKillKey = "daily_liquidations_{$lockedAttacker->id}_{$lockedDefender->id}_".now()->toDateString();
+                    $pairKillsToday = (int) Cache::get($pairKillKey, 0);
+                    if ($pairKillsToday >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET) {
+                        return back()->with('error', "⛔ Anti-Pestprotocol: Je hebt {$lockedDefender->name} vandaag al ".Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET.' keer geliquideerd! Zoek vandaag een ander doelwit.');
+                    }
+
+                    if ($lockedDefender->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD) {
+                        return back()->with('error', "🏥 Medisch Noodprotocol: {$lockedDefender->name} is vandaag al ".Character::MAX_DAILY_DEATHS_BEFORE_SHIELD.' keer geliquideerd en staat de rest van de dag onder verscherpte IC-bewaking!');
+                    }
+
                     if (($lockedAttacker->bullets ?? 0) < $bulletCount) {
                         return back()->with('error', "Onvoldoende munitie! Je hebt {$lockedAttacker->bullets} patronen op zak, maar je probeert er {$bulletCount} af te vuren. Koop een munitiekist in het Wapenarsenaal.");
                     }
@@ -913,12 +936,12 @@ class HitmanController extends Controller
                         if ($attackerStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
                             $lockedAttacker->health = 20;
                             $lockedAttacker->coma_until = null;
-                            $lockedAttacker->protection_until = now()->addMinutes(15);
+                            $lockedAttacker->grantMedicalShield(15);
                             $lockedAttacker->save();
                         } else {
                             $lockedAttacker->health = 0;
                             $lockedAttacker->coma_until = now()->addHours(6);
-                            $lockedAttacker->protection_until = now()->addMinutes(30);
+                            $lockedAttacker->grantMedicalShield(30);
                             $lockedAttacker->save();
                         }
 
@@ -975,9 +998,10 @@ class HitmanController extends Controller
                             return back()->with('info', "🛡️ PANTSEBREUK! Je schot op {$lockedDefender->name} heeft zijn {$vestInfo['name']} volledig aan flarden geschoten (-{$dmg} HP)! Het doelwit heeft nu géén pantser meer.");
                         }
 
-                        // Plunder 45% Cash + 7% Bank (tenzij doelwit 24u Cash Bescherming heeft)
-                        $stolenCash = $lockedDefender->hasCashProtection() ? 0 : (int) floor(max(0, (int) $lockedDefender->cash) * 0.45);
-                        $stolenBank = $lockedDefender->hasCashProtection() ? 0 : (int) floor(max(0, (int) $lockedDefender->bank) * 0.07);
+                        // Plunder 45% Cash + 7% Bank (halved by 50% when defender has active Cash Shield)
+                        $shieldMultiplier = $lockedDefender->hasCashProtection() ? 0.50 : 1.0;
+                        $stolenCash = (int) floor(max(0, (int) $lockedDefender->cash) * 0.45 * $shieldMultiplier);
+                        $stolenBank = (int) floor(max(0, (int) $lockedDefender->bank) * 0.07 * $shieldMultiplier);
                         $totalStolen = $stolenCash + $stolenBank;
 
                         if ($stolenCash > 0) {
@@ -1001,20 +1025,21 @@ class HitmanController extends Controller
 
                         $lockedDefender->deaths_count = ($lockedDefender->deaths_count ?? 0) + 1;
                         $lockedDefender->incrementDailyDeaths();
+                        Cache::put($pairKillKey, $pairKillsToday + 1, now()->endOfDay());
 
                         // Increment 0/10 liquidation streak counter
                         $defenderStreak = $lockedDefender->incrementLiquidationStreakDeaths();
                         $newWing = $this->evacuateToRandomWing($lockedDefender);
 
                         if ($defenderStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
-                            // Victims on hits 1-9 stay at 20 HP, NO coma lockout, can immediately eat/heal & play!
-                            $lockedDefender->health = 20;
-                            $lockedDefender->coma_until = null;
-                            $lockedDefender->protection_until = now()->addMinutes(15);
+                            // Victims on hits 1-9 enter a 20-minute Intensive Care Coma with 30-minute medical shield
+                            $lockedDefender->health = 0;
+                            $lockedDefender->coma_until = now()->addMinutes(Character::LIQUIDATION_IC_COMA_MINUTES);
+                            $lockedDefender->grantMedicalShield(30);
                             $lockedDefender->save();
                         } else {
                             // 10th liquidation: Code Blauw (requires Forensisch Reanimatie-Serum)
-                            $lockedDefender->protection_until = now()->addMinutes(30);
+                            $lockedDefender->grantMedicalShield(30);
                             $lockedDefender->save();
                         }
 
@@ -1112,7 +1137,7 @@ class HitmanController extends Controller
                             // 2. Defender (victim) report
                             $defenderMedical = $defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
                                 ? "\n\n🚨 Medische Status (10/10 — CODE BLAUW): Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!'
-                                : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!";
+                                : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met spoed per brancard naar de Intensive Care afgevoerd (".Character::LIQUIDATION_IC_COMA_MINUTES." min IC-Coma & 30 min Medisch Infuus-Schild) op {$newWing}!";
                             $botService->sendLiquidationNotice($lockedDefender, $headline.$feudSection.$bountySection.$defenderMedical, array_merge($commonMeta, ['role' => 'defender']));
 
                             // 3. Additional involved parties (original blood-feud victim and/or bounty placers)
@@ -1147,7 +1172,7 @@ class HitmanController extends Controller
                                 'type' => 'skull',
                                 'icon' => 'fa-skull',
                                 'title' => "🚨 GELIQUIDEERD OP {$defenderWing} ({$defenderStreak}/10)!",
-                                'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!",
+                                'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je ligt ".Character::LIQUIDATION_IC_COMA_MINUTES." min op de Intensive Care ({$newWing}) met 30 min Medisch Infuus-Schild!",
                             ]);
                         }
 

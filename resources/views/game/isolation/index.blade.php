@@ -322,13 +322,13 @@
             <span>Of kies zelf het aantal uren isolatie</span>
         </div>
         <p class="text-xs text-slate-500 dark:text-slate-400">
-            Kies precies hoeveel uur je achter slot en grendel wilt blijven (1 tot 24 uur). Het tarief is €50.000 of 25 Sterren per uur.
+            Kies precies hoeveel uur je achter slot en grendel wilt blijven (1 tot 12 uur maximaal). Zolang je cel op slot zit kun je niet worden aangevallen of bestolen, maar kun je zelf ook geen misdaden of klussen uitvoeren (bankieren kan wel).
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-slate-50/90 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
             <div class="md:col-span-4 space-y-1">
-                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Aantal Uren (1 - 24)</label>
-                <input type="number" min="1" max="24" x-model.number="hours" 
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Aantal Uren (1 - 12)</label>
+                <input type="number" min="1" max="12" x-model.number="hours" 
                        class="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
             </div>
 

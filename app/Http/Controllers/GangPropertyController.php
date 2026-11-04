@@ -4,16 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\CharacterVehicle;
+use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\GangNpc;
 use App\Models\GangProperty;
 use App\Models\User;
 use App\Services\AuditLogService;
+use App\Services\CooldownService;
+use App\Services\EnergyService;
 use App\Services\EventDrugsProductionService;
+use App\Services\LevelService;
+use App\Services\PrisonService;
 use App\Support\GangPropertyCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -56,6 +62,15 @@ class GangPropertyController extends Controller
 
         $isOfficer = $gang->isOfficer($character);
 
+        $rivalLabs = GangProperty::with(['gang', 'assignedNpc'])
+            ->where('gang_id', '!=', $gang->id)
+            ->where('type', 'production')
+            ->orderByDesc('production_reward_cash')
+            ->limit(12)
+            ->get()
+            ->filter(fn (GangProperty $prop) => in_array($prop->production_status, ['producing', 'ready'], true))
+            ->values();
+
         return view('game.gangs.panden', compact(
             'character',
             'gang',
@@ -70,7 +85,8 @@ class GangPropertyController extends Controller
             'storedVehiclesCount',
             'totalNpcCap',
             'availableNpcSlots',
-            'isOfficer'
+            'isOfficer',
+            'rivalLabs'
         ));
     }
 
@@ -732,5 +748,157 @@ class GangPropertyController extends Controller
         }
 
         return back()->with('success', $successMessage);
+    }
+
+    /**
+     * Execute a gang ripdeal raid against a rival gang's active production laboratory.
+     */
+    public function ripLab(Request $request, GangProperty $property): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        /** @var Character $character */
+        $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen vijandelijke bende-labs overvallen!');
+        }
+
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        if (! $character->gang_id) {
+            return back()->with('error', 'Je moet lid zijn van een bende om een Bende Ripdeal uit te voeren.');
+        }
+
+        if ((int) $property->gang_id === (int) $character->gang_id) {
+            return back()->with('error', 'Je kunt niet je eigen bende-laboratorium beroven!');
+        }
+
+        if ($property->type !== 'production' || ! in_array($property->production_status, ['producing', 'ready'], true)) {
+            return back()->with('error', 'Dit pand draait momenteel geen actieve productie om te rippen.');
+        }
+
+        $raidShieldKey = "gang_lab_ripped_{$property->id}";
+        if (Cache::has($raidShieldKey)) {
+            return back()->with('error', "🛡️ Dit laboratorium ('{$property->name}') is onlangs al overvallen en staat nu tijdelijk onder verscherpte bewaking!");
+        }
+
+        if ($character->isOnCooldown('gang_lab_rip')) {
+            $remMins = max(1, (int) ceil($character->cooldownRemaining('gang_lab_rip') / 60));
+
+            return back()->with('error', "⏳ Je bende-ripploeg moet eerst hergroeperen! Wacht nog {$remMins} min voor je volgende Ripdeal.");
+        }
+
+        if (! app(EnergyService::class)->consume($character, 25)) {
+            return back()->with('error', 'Je hebt minimaal 25 Energie nodig om een vijandelijk bende-lab te overvallen.');
+        }
+
+        $character->breakProtection();
+        app(CooldownService::class)->setCooldown($character, 'gang_lab_rip', 900);
+
+        return DB::transaction(function () use ($user, $character, $property, $raidShieldKey): RedirectResponse {
+            /** @var GangProperty|null $lockedProp */
+            $lockedProp = GangProperty::with('gang')->where('id', $property->id)->lockForUpdate()->first();
+            /** @var Character|null $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $lockedProp || ! $lockedChar || ! $lockedProp->gang) {
+                return back()->with('error', 'Doelwit-laboratorium kon niet worden gevonden.');
+            }
+
+            if (! in_array($lockedProp->production_status, ['producing', 'ready'], true)) {
+                return back()->with('error', 'De productie van dit lab was al binnengehaald voordat je binnenviel!');
+            }
+
+            $attackerGang = $lockedChar->gang;
+            $defenderGang = $lockedProp->gang;
+
+            $attackerPower = $lockedChar->getEffectiveStrength()
+                + $lockedChar->getEffectiveDefense()
+                + (($lockedChar->level ?? 1) * 5)
+                + rand(15, 55);
+
+            $defenderDefense = 60
+                + (int) round(($lockedProp->production_reward_cash / 20000))
+                + (int) round(($defenderGang->npc_defense_bonus_percent ?? 0) * 2.5)
+                + rand(10, 40);
+
+            if ($attackerPower >= $defenderDefense) {
+                $lootTotal = max(10000, (int) round($lockedProp->effective_reward_cash * 0.35));
+                $personalShare = (int) floor($lootTotal * 0.50);
+                $gangShare = $lootTotal - $personalShare;
+
+                $lockedChar->cash = (int) $lockedChar->cash + $personalShare;
+                $lockedChar->addRespect(25);
+                $lockedChar->save();
+
+                app(LevelService::class)->addXp($lockedChar, 200);
+
+                if ($attackerGang) {
+                    $attackerGang->increment('treasury', $gangShare);
+                }
+
+                if ($lockedProp->production_ends_at && $lockedProp->production_ends_at->isFuture()) {
+                    $lockedProp->production_ends_at = $lockedProp->production_ends_at->copy()->addMinutes(30);
+                    $lockedProp->save();
+                }
+
+                Cache::put($raidShieldKey, now()->addHours(2)->timestamp, now()->addHours(2));
+
+                $leaderCharId = $defenderGang->leader_character_id ?? $defenderGang->leader_id ?? null;
+                if ($leaderCharId) {
+                    GameNotification::create([
+                        'character_id' => $leaderCharId,
+                        'type' => 'attack',
+                        'icon' => 'fa-flask-vial',
+                        'title' => "💊 Bende-Lab Overvallen: {$lockedProp->name}!",
+                        'message' => "{$lockedChar->name} [".($attackerGang->tag ?? 'SOLO')."] heeft jullie lab '{$lockedProp->name}' overvallen (Ripdeal) en voor €".number_format($lootTotal, 0, ',', '.').' aan grondstoffen en handelswaar buitgemaakt!',
+                    ]);
+                }
+
+                AuditLogService::log(
+                    action: 'gang_property.rip_lab',
+                    category: 'gang',
+                    description: "Ripdeal uitgevoerd op '{$lockedProp->name}' van [{$defenderGang->tag}] voor €".number_format($lootTotal, 0, ',', '.').'.',
+                    character: $lockedChar,
+                    user: $user,
+                    amount: $lootTotal,
+                    details: [
+                        'property_id' => $lockedProp->id,
+                        'defender_gang_id' => $defenderGang->id,
+                        'loot_total' => $lootTotal,
+                        'personal_share' => $personalShare,
+                        'gang_share' => $gangShare,
+                    ]
+                );
+
+                return back()->with(
+                    'success',
+                    "💊 RIPDEAL GESLAAGD! Je hebt '{$lockedProp->name}' van [{$defenderGang->tag}] overvallen! Totale buit: €"
+                    .number_format($lootTotal, 0, ',', '.').' (€'.number_format($personalShare, 0, ',', '.').' contant op zak + €'
+                    .number_format($gangShare, 0, ',', '.').' in de bendekas) + 25 Respect & 200 XP!'
+                );
+            }
+
+            $dmg = rand(20, 35);
+            $lockedChar->health = max(5, (int) $lockedChar->health - $dmg);
+            $lockedChar->save();
+
+            if (rand(1, 100) <= 40) {
+                app(PrisonService::class)->jail($lockedChar, 10, "Betrapt bij een mislukte ripdeal op '{$lockedProp->name}'");
+
+                return redirect()->route('prison')->with(
+                    'error',
+                    "🚨 RIPDEAL MISLUKT & OPGEPAKT! De enforcers van [{$defenderGang->tag}] sloegen je aanval op '{$lockedProp->name}' af (-{$dmg} HP) en de bewakers hebben je 10 minuten in de isoleercel gezet!"
+                );
+            }
+
+            return back()->with(
+                'error',
+                "🚨 RIPDEAL MISLUKT! De bewakers en enforcers van [{$defenderGang->tag}] sloegen je overval op '{$lockedProp->name}' keihard af (-{$dmg} HP)!"
+            );
+        });
     }
 }

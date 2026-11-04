@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CooldownService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\HalloweenService;
@@ -1735,6 +1736,8 @@ class Character extends Model
             }
         }
 
+        $hadExpiredComa = $this->coma_until !== null && ! $this->coma_until->isFuture();
+
         $timerFields = [
             'protection_until',
             'cash_protection_until',
@@ -1749,6 +1752,23 @@ class Character extends Model
                 $this->{$timerField} = null;
                 $dirty = true;
             }
+        }
+
+        if ($hadExpiredComa && (int) ($this->health ?? 0) <= 0 && $this->getLiquidationStreakDeaths() < self::MAX_LIQUIDATIONS_BEFORE_SERUM) {
+            $this->health = max(20, (int) floor(($this->max_health ?? 100) * 0.20));
+            $dirty = true;
+        }
+
+        $maxIsolationUntil = now()->addHours(self::MAX_ISOLATION_HOURS);
+        if ($this->protection_until !== null && $this->protection_until->gt($maxIsolationUntil)) {
+            $this->protection_until = $maxIsolationUntil;
+            $dirty = true;
+        }
+
+        $maxCashProtectionUntil = now()->addHours(self::MAX_CASH_PROTECTION_HOURS);
+        if ($this->cash_protection_until !== null && $this->cash_protection_until->gt($maxCashProtectionUntil)) {
+            $this->cash_protection_until = $maxCashProtectionUntil;
+            $dirty = true;
         }
 
         $activePrison = $this->prison_until !== null && $this->prison_until->isFuture();
@@ -2006,11 +2026,95 @@ class Character extends Model
     }
 
     /**
-     * Check if currently under voluntary isolation protection or cash protection.
+     * Check whether the character has active isolation or medical shield protection.
      */
     public function isProtected(): bool
     {
-        return $this->hasIsolationProtection() || $this->hasCashProtection();
+        return $this->hasIsolationProtection();
+    }
+
+    /**
+     * Check whether the character is locked inside voluntary isolation rather than a medical recovery shield.
+     */
+    public function isInVoluntaryIsolation(): bool
+    {
+        if (! $this->hasIsolationProtection()) {
+            return false;
+        }
+
+        $medicalShieldUntil = (int) (($this->perks ?? [])['medical_shield_until'] ?? 0);
+
+        return $this->protection_until->timestamp > $medicalShieldUntil;
+    }
+
+    /**
+     * Grant a temporary post-liquidation medical shield without locking the voluntary isolation cell door.
+     */
+    public function grantMedicalShield(int $minutes): void
+    {
+        $until = now()->addMinutes($minutes);
+        if (! $this->protection_until || $this->protection_until->lt($until)) {
+            $this->protection_until = $until;
+        }
+
+        $perks = is_array($this->perks) ? $this->perks : [];
+        $perks['medical_shield_until'] = max((int) ($perks['medical_shield_until'] ?? 0), $until->timestamp);
+        $this->perks = $perks;
+    }
+
+    /**
+     * Check whether a state-changing route is blocked while the character is in voluntary isolation.
+     */
+    public function isActionBlockedByIsolation(?string $routeName): bool
+    {
+        if (! $this->isInVoluntaryIsolation() || ! $routeName) {
+            return false;
+        }
+
+        $blockedPrefixes = [
+            'missions.',
+            'hustle.',
+            'smuggle.',
+            'extort.',
+            'pickpocket.',
+            'lockers.',
+            'packages.',
+            'heists.',
+            'tunnel.',
+            'training.',
+            'combat_training.',
+            'control-points.',
+            'gangs.attack',
+            'gangs.panden.rip',
+            'gangs.panden.start',
+            'gangs.panden.claim',
+            'hacking.',
+            'vault.',
+            'daycare.',
+            'treatment.',
+            'infirmary.',
+            'travel.',
+            'hitman.quick_travel',
+            'hitman.intel',
+            'hitman.train_cold_blooded',
+            'casino.',
+            'roulette.',
+            'blackjack.',
+            'slots.',
+            'higher-lower.',
+            'scratch.',
+            'horse-racing.',
+            'wheel.',
+            'crack-the-safe.',
+        ];
+
+        foreach ($blockedPrefixes as $prefix) {
+            if ($routeName === $prefix || str_starts_with($routeName, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -2042,14 +2146,33 @@ class Character extends Model
     }
 
     /**
-     * Cancel voluntary or recovery protection when the character initiates an attack.
-     * Note: Paid 24h VIP Cash Protection is preserved and NEVER breaks when attacking!
+     * Clear active isolation protection and cash shield when the character initiates an attack.
      */
     public function breakProtection(): void
     {
+        $wasVoluntaryIsolation = $this->isInVoluntaryIsolation();
+        $dirty = false;
+
         if ($this->protection_until && now()->lt($this->protection_until)) {
             $this->protection_until = null;
+            $dirty = true;
+        }
+
+        if ($this->cash_protection_until && now()->lt($this->cash_protection_until)) {
+            $this->cash_protection_until = null;
+            $dirty = true;
+        }
+
+        if ($dirty) {
             $this->save();
+        }
+
+        if ($wasVoluntaryIsolation) {
+            app(CooldownService::class)->setCooldown(
+                $this,
+                'isolation_cooldown',
+                self::ISOLATION_COOLDOWN_SECONDS
+            );
         }
     }
 
@@ -3109,6 +3232,18 @@ class Character extends Model
 
     public const MAX_LIQUIDATIONS_BEFORE_SERUM = 10;
 
+    public const MAX_ISOLATION_HOURS = 12;
+
+    public const MAX_CASH_PROTECTION_HOURS = 24;
+
+    public const ISOLATION_COOLDOWN_SECONDS = 7200;
+
+    public const LIQUIDATION_IC_COMA_MINUTES = 20;
+
+    public const MAX_DAILY_LIQUIDATIONS_PER_TARGET = 3;
+
+    public const MAX_DAILY_DEATHS_BEFORE_SHIELD = 5;
+
     /**
      * Catalog of the 30 TBS Forensic & Syndicate Dossier Grades.
      *
@@ -3558,7 +3693,7 @@ class Character extends Model
         $this->coma_until = null;
         $this->ad_coma_progress = 0;
         $this->health = $this->max_health;
-        $this->protection_until = now()->addMinutes(30);
+        $this->grantMedicalShield(30);
         $this->save();
     }
 

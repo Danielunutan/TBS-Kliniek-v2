@@ -99,8 +99,8 @@ class VipController extends Controller
             'cash_protection' => [
                 'cost' => 20,
                 'currency' => 'vip_points',
-                'name' => '24 Uur Cash Bescherming',
-                'description' => 'Je cash is 24 uur beschermd tegen diefstal bij aanvallen.',
+                'name' => '24 Uur Cash-Schild (50% Buitreductie)',
+                'description' => 'Halveert gestolen buit met 50% gedurende 24u (max 24u, vervalt als je zelf aanvalt).',
             ],
             'energy_restore' => [
                 'cost' => 10,
@@ -152,6 +152,12 @@ class VipController extends Controller
                 return 'Vanuit de isoleercel kun je geen VIP-beloningen inwisselen!';
             }
 
+            if ($rewardType === 'cash_protection' && $locked->getCashProtectionRemainingSeconds() > 7200) {
+                $rem = $locked->cash_protection_until?->diffForHumans(null, true) ?? 'enkele uren';
+
+                return "🛡️ Je 24u Cash-Schild is nog actief (nog {$rem})! Je kunt dit schild niet stapelen boven 24 uur.";
+            }
+
             if ($currency === 'stars') {
                 if (($locked->stars ?? 0) < $cost) {
                     return "Niet genoeg Gouden Sterren! Je hebt {$locked->stars} sterren, maar {$cost} sterren zijn vereist.";
@@ -166,10 +172,7 @@ class VipController extends Controller
 
             switch ($rewardType) {
                 case 'cash_protection':
-                    $curCashProt = ($locked->cash_protection_until && $locked->cash_protection_until->isFuture())
-                        ? $locked->cash_protection_until
-                        : now();
-                    $locked->cash_protection_until = $curCashProt->copy()->addHours(24);
+                    $locked->cash_protection_until = now()->addHours(Character::MAX_CASH_PROTECTION_HOURS);
                     break;
                 case 'energy_restore':
                     $locked->energy = $locked->max_energy;
@@ -212,7 +215,7 @@ class VipController extends Controller
         $currencyLabel = $currency === 'stars' ? 'Gouden Sterren ⭐' : 'VIP Punten';
 
         if ($validated['reward_type'] === 'cash_protection') {
-            return back()->with('success', "🛡️ 24 Uur Cash Bescherming actief! Je contante geld is tot {$character->cash_protection_until->format('d-m-Y H:i')} 100% beschermd tegen diefstal bij aanvallen.");
+            return back()->with('success', "🛡️ 24 Uur Cash-Schild actief tot {$character->cash_protection_until->format('d-m-Y H:i')}! Vijandelijke diefstallen en berovingen leveren 50% minder buit op (vervalt zodra je zelf iemand aanvalt).");
         }
 
         return back()->with('success', "🎉 Gefeliciteerd! Je hebt succesvol '{$reward['name']}' geclaimd voor {$cost} {$currencyLabel}!");

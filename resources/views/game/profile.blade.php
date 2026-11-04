@@ -465,7 +465,6 @@
                                 || Auth::user()->character->energy < 20
                                 || $profileCharacter->isImprisoned()
                                 || $profileCharacter->isComatose()
-                                || $profileCharacter->hasCashProtection()
                                 || $profileCharacter->isProtected();
                             $viewerHasIsolation = Auth::user()->character->hasIsolationProtection();
                         @endphp
