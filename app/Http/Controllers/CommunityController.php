@@ -181,21 +181,16 @@ class CommunityController extends Controller
             return redirect()->route('community.index')->with('error', 'Je hebt de beloning voor '.$platformData['name'].' al geclaimd.');
         }
 
-        $isStandalone = $request->boolean('is_standalone')
-            || $request->header('X-TBS-Standalone') === '1'
-            || $request->input('device_standalone') === true
-            || $request->boolean('notification_granted');
-
-        if ($platform === 'push' && ! $user->pushSubscriptions()->exists() && ! $isStandalone) {
+        if ($platform === 'push' && ! $user->pushSubscriptions()->exists()) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Schakel pushnotificaties in of installeer de Web App op je startscherm om de € 25.000 bonus te ontvangen.',
+                    'message' => 'Schakel pushnotificaties in om de € 25.000 bonus te ontvangen.',
                     'url' => route('settings.account'),
                 ]);
             }
 
-            return redirect()->route('settings.account')->with('info', 'Schakel pushnotificaties in of installeer de Web App om direct € 25.000 cash en 25 respect te ontvangen!');
+            return redirect()->route('settings.account')->with('info', 'Schakel pushnotificaties in om direct € 25.000 cash en 25 respect te ontvangen!');
         }
 
         $reward = $platformData['reward'];

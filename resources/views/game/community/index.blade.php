@@ -34,8 +34,8 @@
 
         this.claiming = platformKey;
 
-        // Try push subscription if claiming push on web and supported
-        if (platformKey === 'push' && window.tbsPush && !this.isStandalone()) {
+        // A server-recorded push subscription is required on both web and installed apps.
+        if (platformKey === 'push' && window.tbsPush) {
             try {
                 const pushRes = await window.tbsPush.subscribe();
                 if (pushRes && pushRes.success) {
@@ -88,7 +88,7 @@
                     window.dispatchEvent(new CustomEvent('tbs:stats-updated', { detail: data.character }));
                 }
             } else {
-                if (platformKey === 'push' && !this.isStandalone()) {
+                if (platformKey === 'push') {
                     if (window.tbsOpenPwaModal) {
                         window.tbsOpenPwaModal();
                     } else if (data.url) {

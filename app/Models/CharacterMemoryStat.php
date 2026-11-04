@@ -18,6 +18,7 @@ class CharacterMemoryStat extends Model
         'best_time_seconds',
         'best_moves',
         'cooldown_until',
+        'active_game',
     ];
 
     protected function casts(): array
@@ -29,6 +30,7 @@ class CharacterMemoryStat extends Model
             'best_time_seconds' => 'integer',
             'best_moves' => 'integer',
             'cooldown_until' => 'datetime',
+            'active_game' => 'array',
         ];
     }
 

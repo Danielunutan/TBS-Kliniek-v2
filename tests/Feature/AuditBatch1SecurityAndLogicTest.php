@@ -390,12 +390,12 @@ class AuditBatch1SecurityAndLogicTest extends TestCase
         $this->actingAs($user2);
 
         // Attempting to link without Discord OAuth session redirects to discord.redirect (no IP sniffing)
-        $noOAuthResponse = $this->get(route('discord.link'));
+        $noOAuthResponse = $this->post(route('discord.link'));
         $noOAuthResponse->assertRedirect(route('discord.redirect'));
 
         // Attempting to link when Discord ID is already bound to user1
         $this->withSession(['verified_discord_id' => '123456789012345678']);
-        $duplicateResponse = $this->get(route('discord.link'));
+        $duplicateResponse = $this->post(route('discord.link'));
         $duplicateResponse->assertRedirect(route('discord.verify'));
         $duplicateResponse->assertSessionHas('error');
         $this->assertStringContainsString('al gekoppeld', session('error'));

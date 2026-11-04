@@ -7,6 +7,8 @@
      x-data="memoryGame({
          deckData: @js($deck),
          cooldown: {{ (int) $cooldownRemaining }},
+         startUrl: '{{ route('memory.start') }}',
+         moveUrl: '{{ route('memory.move') }}',
          finishUrl: '{{ route('memory.finish') }}',
          csrfToken: '{{ csrf_token() }}',
          canPlay: {{ (! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'true' : 'false' }}
@@ -190,7 +192,7 @@
                         {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
                         class="px-8 py-3.5 rounded-xl {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' }} font-black text-sm uppercase tracking-wider transition-all duration-150 shadow-xs inline-flex items-center gap-2.5">
                     <i class="fa-solid fa-play"></i>
-                    <span>Start Ronde (5s Inkijkfase + 55s Speeltijd)</span>
+                    <span>Start Ronde (5s Inkijkfase + 60s Speeltijd)</span>
                 </button>
             </div>
         </div>
@@ -411,6 +413,7 @@ function memoryGame(config) {
         cooldownRemaining: config.cooldown || 0,
         canPlay: Boolean(config.canPlay),
         gameState: 'idle', // 'idle', 'preview', 'playing', 'finished'
+        gameId: null,
         gameResult: null, // null, 'won', 'lost'
         lossReason: '',
         previewSeconds: 5,
@@ -539,16 +542,6 @@ function memoryGame(config) {
             });
         },
 
-        shuffleDeck() {
-            // Fisher-Yates shuffle algorithm
-            const array = [...this.cards];
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            this.cards = array;
-        },
-
         startCooldownTimer() {
             if (this.cooldownInterval) clearInterval(this.cooldownInterval);
             this.cooldownInterval = setInterval(() => {
@@ -560,51 +553,68 @@ function memoryGame(config) {
             }, 1000);
         },
 
-        startGame() {
-            if (!this.canPlay || this.cooldownRemaining > 0) return;
-            
-            // Clear any lingering intervals
-            if (this.previewInterval) clearInterval(this.previewInterval);
-            if (this.timerInterval) clearInterval(this.timerInterval);
-
-            // Reshuffle deck for every single new game
-            this.shuffleDeck();
-
-            // Reset board state
-            this.lives = 3;
-            this.moves = 0;
-            this.matchedPairs = 0;
-            this.streak = 0;
-            this.firstCardIndex = null;
-            this.secondCardIndex = null;
-            this.isLocked = true; // cards non-clickable during preview
-            this.gameResult = null;
-            this.previewSeconds = 5;
-            this.timerSeconds = 60;
-            this.gameState = 'preview';
-
-            // Flip all cards open for the 5-second preview
-            this.cards.forEach(c => {
-                c.flipped = true;
-                c.matched = false;
-                c.shake = false;
+        async requestGame(url, body = {}) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken, 'Accept': 'application/json' },
+                body: JSON.stringify(body)
             });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                if (data.cooldown) this.cooldownRemaining = data.cooldown;
+                throw new Error(data.message || 'De ronde kon niet worden verwerkt.');
+            }
+            return data;
+        },
 
-            this.playTone(440, 'sine', 0.2, 0.12);
+        showGameError(error) {
+            if (window.tbsToast) window.tbsToast(error.message || 'Verbinding mislukt. Probeer opnieuw.', 'error');
+            else alert(error.message || 'Verbinding mislukt. Probeer opnieuw.');
+        },
 
-            // Start preview countdown (5s)
-            this.previewInterval = setInterval(() => {
-                this.previewSeconds--;
-                if (this.previewSeconds <= 0) {
-                    clearInterval(this.previewInterval);
+        async startGame() {
+            if (!this.canPlay || this.cooldownRemaining > 0 || this.isLocked) return;
+            this.isLocked = true;
+            try {
+                const data = await this.requestGame(config.startUrl);
+                const game = data.game;
+                this.gameId = game.id;
+                this.cards = game.deck.map((card, index) => ({ ...card, matched: game.matched.includes(index), flipped: game.matched.includes(index) || game.first === index, shake: false }));
+                this.lives = game.lives;
+                this.moves = game.moves;
+                this.matchedPairs = game.matched.length / 2;
+                this.firstCardIndex = game.first;
+                this.secondCardIndex = null;
+                this.gameResult = null;
+                const elapsed = Math.max(0, data.server_time - game.started_at);
+                this.previewSeconds = Math.max(0, 5 - elapsed);
+                this.timerSeconds = Math.max(0, 65 - Math.max(5, elapsed));
+                if (game.completed_at !== null || elapsed >= 65) {
+                    this.gameState = 'finished';
+                    await this.sendFinishRequest();
+                    return;
+                }
+                if (this.previewSeconds > 0) {
+                    this.gameState = 'preview';
+                    this.cards.forEach(c => c.flipped = true);
+                    this.previewInterval = setInterval(() => {
+                        if (--this.previewSeconds <= 0) {
+                            clearInterval(this.previewInterval);
+                            this.endPreviewAndStartPlaying();
+                        }
+                    }, 1000);
+                } else {
                     this.endPreviewAndStartPlaying();
                 }
-            }, 1000);
+            } catch (error) {
+                this.showGameError(error);
+                this.isLocked = false;
+            }
         },
 
         endPreviewAndStartPlaying() {
             // Flip all cards face down
-            this.cards.forEach(c => c.flipped = false);
+            this.cards.forEach((c, index) => c.flipped = c.matched || index === this.firstCardIndex);
             this.playFlipSound();
             
             this.gameState = 'playing';
@@ -617,33 +627,41 @@ function memoryGame(config) {
                 this.timerSeconds--;
                 if (this.timerSeconds <= 0) {
                     clearInterval(this.timerInterval);
-                    this.handleLoss('Tijd verstreken! De 60 seconden zijn voorbij voordat je alle paren vond.');
+                    if (!this.isLocked) this.handleLoss('Tijd verstreken! De 60 seconden zijn voorbij voordat je alle paren vond.');
                 }
             }, 1000);
         },
 
-        flipCard(index) {
-            if (this.isLocked) return;
-            if (this.gameState !== 'playing') return;
-
+        async flipCard(index) {
+            if (this.isLocked || this.gameState !== 'playing') return;
             const card = this.cards[index];
             if (!card || card.flipped || card.matched) return;
-            if (this.firstCardIndex === index) return;
-
-            // Flip card face-up
-            card.flipped = true;
-            this.playFlipSound();
-
-            if (this.firstCardIndex === null) {
-                this.firstCardIndex = index;
-            } else {
-                this.secondCardIndex = index;
-                this.moves++;
-                this.checkMatch();
+            this.isLocked = true;
+            try {
+                const data = await this.requestGame(config.moveUrl, { game_id: this.gameId, card: index });
+                card.flipped = true;
+                this.playFlipSound();
+                if (data.match === null) {
+                    this.firstCardIndex = index;
+                    this.isLocked = false;
+                } else {
+                    this.secondCardIndex = index;
+                    this.moves = data.game.moves;
+                    this.lives = data.game.lives;
+                    this.checkMatch(data.match);
+                }
+                if (this.timerSeconds <= 0 && data.game.completed_at === null) {
+                    this.handleLoss('Tijd verstreken! De 60 seconden zijn voorbij voordat je alle paren vond.');
+                }
+            } catch (error) {
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                this.gameState = 'idle';
+                this.showGameError(error);
+                this.isLocked = false;
             }
         },
 
-        checkMatch() {
+        checkMatch(isMatch) {
             this.isLocked = true;
             const c1 = this.cards[this.firstCardIndex];
             const c2 = this.cards[this.secondCardIndex];
@@ -655,7 +673,7 @@ function memoryGame(config) {
                 return;
             }
 
-            if (c1.id === c2.id) {
+            if (isMatch) {
                 // MATCH!
                 c1.matched = true;
                 c2.matched = true;
@@ -675,7 +693,6 @@ function memoryGame(config) {
                 this.streak = 0;
                 c1.shake = true;
                 c2.shake = true;
-                this.lives = Math.max(0, this.lives - 1);
 
                 this.playMismatchSound();
 
@@ -689,6 +706,8 @@ function memoryGame(config) {
 
                     if (this.lives <= 0 && this.gameState === 'playing') {
                         this.handleLoss('Geheugenverlies! Je hebt al je 3 levenspunten verspeeld door foute combinaties.');
+                    } else if (this.timerSeconds <= 0 && this.gameState === 'playing') {
+                        this.handleLoss('Tijd verstreken! De 60 seconden zijn voorbij voordat je alle paren vond.');
                     } else if (this.gameState === 'playing') {
                         this.isLocked = false;
                     }
@@ -702,7 +721,7 @@ function memoryGame(config) {
             this.gameState = 'finished';
 
             this.playVictorySound();
-            this.sendFinishRequest(true);
+            this.sendFinishRequest();
         },
 
         handleLoss(reason) {
@@ -712,39 +731,25 @@ function memoryGame(config) {
             this.gameState = 'finished';
 
             this.playLoseSound();
-            this.sendFinishRequest(false);
+            this.sendFinishRequest();
         },
 
-        sendFinishRequest(won) {
-            fetch(config.finishUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': config.csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    won: won,
-                    time_taken: Math.max(1, this.timeTaken),
-                    lives_left: Math.max(0, this.lives),
-                    moves: Math.max(1, this.moves)
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    this.lastResult = data;
-                    this.cooldownRemaining = data.cooldown || 0;
-                    this.stats.games_won = data.games_won;
-                    this.stats.games_played = data.games_played;
-                    this.startCooldownTimer();
-                    this.gameResult = won ? 'won' : 'lost';
-                }
-            })
-            .catch(err => {
-                console.error('Error submitting memory game result:', err);
-                this.gameResult = won ? 'won' : 'lost';
-            });
+        async sendFinishRequest() {
+            try {
+                const data = await this.requestGame(config.finishUrl, { game_id: this.gameId });
+                this.lastResult = data;
+                this.timeTaken = data.time_taken;
+                this.cooldownRemaining = data.cooldown || 0;
+                this.stats.games_won = data.games_won;
+                this.stats.games_played = data.games_played;
+                this.startCooldownTimer();
+                this.gameResult = data.won ? 'won' : 'lost';
+                this.isLocked = false;
+            } catch (error) {
+                this.showGameError(error);
+                this.gameState = 'idle';
+                this.isLocked = false;
+            }
         },
 
         closeModal() {

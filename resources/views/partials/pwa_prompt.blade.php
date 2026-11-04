@@ -59,42 +59,18 @@
         async claimBonus() {
             this.claimingBonus = true;
             try {
-                const csrfToken = document.querySelector('meta[name=\'csrf-token\']')?.getAttribute('content');
-                const res = await fetch('{{ route('community.claim', 'push') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-TBS-Standalone': '1'
-                    },
-                    body: JSON.stringify({ is_standalone: true })
-                });
-                const data = await res.json();
-                if (res.ok && data.success) {
-                    this.hasClaimedBonus = true;
-                    if (typeof window.tbsToast === 'function') {
-                        window.tbsToast(data.message, 'success', 6000);
-                    }
-                    if (typeof window.tbsRefreshStats === 'function') {
-                        window.tbsRefreshStats(true);
-                    }
-                    if (data.character) {
-                        window.dispatchEvent(new CustomEvent('tbs:stats-updated', { detail: data.character }));
-                    }
-                } else {
-                    if (typeof window.tbsToast === 'function') {
-                        const errMsg = res.status === 401
-                            ? 'Log eerst in om je web app bonus te claimen.'
-                            : (data?.message || 'Claimen mislukt.');
-                        window.tbsToast(errMsg, 'warning');
-                    }
+                if (!window.tbsPush || !window.tbsPush.isSupported()) {
+                    throw new Error('Pushnotificaties zijn niet beschikbaar op dit apparaat.');
                 }
+                const result = await window.tbsPush.subscribe();
+                if (!result || !result.success) {
+                    throw new Error(result?.message || 'Pushnotificaties konden niet worden ingeschakeld.');
+                }
+                this.hasClaimedBonus = true;
+                if (typeof window.tbsToast === 'function') window.tbsToast(result.message, 'success', 6000);
+                if (typeof window.tbsRefreshStats === 'function') window.tbsRefreshStats(true);
             } catch (e) {
-                if (typeof window.tbsToast === 'function') {
-                    window.tbsToast('Er is een fout opgetreden bij het claimen.', 'error');
-                }
+                if (typeof window.tbsToast === 'function') window.tbsToast(e.message || 'Er is een fout opgetreden bij het inschakelen.', 'warning');
             } finally {
                 this.claimingBonus = false;
             }
@@ -179,7 +155,7 @@
                     <ul class="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
                         <li class="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold">
                             <i class="fa-solid fa-gift text-amber-500"></i>
-                            <span><strong>Inclusief Welkomstbonus:</strong> Ontvang direct € 25.000 cash + 25 respect bij eerste opening als Web App!</span>
+                            <span><strong>Inclusief Welkomstbonus:</strong> Ontvang € 25.000 cash + 25 respect na het inschakelen van pushnotificaties!</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i class="fa-solid fa-check text-emerald-500"></i>
@@ -234,13 +210,13 @@
                     <button type="button" @click="claimBonus()" :disabled="claimingBonus"
                             class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center gap-1.5 disabled:opacity-50">
                         <i class="fa-solid" :class="claimingBonus ? 'fa-spinner fa-spin' : 'fa-gift'"></i>
-                        <span x-text="claimingBonus ? 'Bezig...' : 'Claim Web App Bonus (€ 25.000)'"></span>
+                        <span x-text="claimingBonus ? 'Bezig...' : 'Schakel push in en claim € 25.000'"></span>
                     </button>
                 </template>
                 <template x-if="isInstalled && hasClaimedBonus">
                     <span class="inline-flex items-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
                         <i class="fa-solid fa-circle-check"></i>
-                        <span>Web App Bonus Geclaimd</span>
+                        <span>Pushbonus geclaimd</span>
                     </span>
                 </template>
                 @endauth

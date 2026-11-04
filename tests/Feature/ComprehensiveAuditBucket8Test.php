@@ -193,9 +193,11 @@ class ComprehensiveAuditBucket8Test extends TestCase
         $this->assertFalse(SocialRewardClaim::where('user_id', $user->id)->where('platform', 'youtube')->exists());
     }
 
-    public function test_pwa_standalone_claim_grants_expected_rewards(): void
+    public function test_push_subscription_claim_grants_expected_rewards(): void
     {
         [$user, $character] = $this->createPlayer();
+        $endpoint = 'https://push.example.test/audit';
+        $user->pushSubscriptions()->create(['endpoint' => $endpoint, 'endpoint_hash' => hash('sha256', $endpoint)]);
 
         $initialCash = $character->cash;
         $initialEnergy = $character->energy;

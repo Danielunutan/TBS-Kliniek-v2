@@ -132,9 +132,11 @@ class CommunityHubAndFollowRewardsTest extends TestCase
         $this->assertTrue(SocialRewardClaim::where('user_id', $user->id)->where('platform', 'youtube')->exists());
     }
 
-    public function test_player_in_standalone_webapp_can_claim_push_reward(): void
+    public function test_player_with_push_subscription_can_claim_push_reward(): void
     {
         [$user, $character] = $this->createPlayerWithCharacter();
+        $endpoint = 'https://push.example.test/community';
+        $user->pushSubscriptions()->create(['endpoint' => $endpoint, 'endpoint_hash' => hash('sha256', $endpoint)]);
 
         $response = $this->actingAs($user)->postJson(route('community.claim', 'push'), [
             'is_standalone' => true,

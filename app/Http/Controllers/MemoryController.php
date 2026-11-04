@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MemoryController extends Controller
@@ -243,71 +244,118 @@ class MemoryController extends Controller
         return $deck;
     }
 
-    /**
-     * Handle game completion (win or loss) and distribute rewards.
-     */
-    public function finish(Request $request): JsonResponse
+    /** Start or resume the server-owned round. */
+    public function start(): JsonResponse
     {
-        /** @var Character $character */
         $character = Auth::user()->character;
 
-        if ($character->isImprisoned()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Vanuit de isoleercel kun je geen Memory spelen!',
-            ], 422);
-        }
-
-        if ($character->isComatose()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
-            ], 422);
-        }
-
-        /** @var CharacterMemoryStat $stat */
-        $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $character->id]);
-
-        if ($stat->isOnCooldown()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Je brein moet nog even bijkomen. Wacht de cooldown af of bekijk een ad!',
-                'cooldown' => $stat->getCooldownSecondsRemaining(),
-            ], 422);
-        }
-
-        $validated = $request->validate([
-            'won' => ['required', 'boolean'],
-            'time_taken' => ['required', 'integer', 'min:1', 'max:65'],
-            'lives_left' => ['required', 'integer', 'min:0', 'max:3'],
-            'moves' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $won = (bool) $validated['won'];
-        $timeTaken = (int) $validated['time_taken'];
-        $livesLeft = (int) $validated['lives_left'];
-        $moves = (int) $validated['moves'];
-
-        if ($won && ($moves < 8 || $timeTaken < 3)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ongeldig spelresultaat: voor alle 8 paren zijn minimaal 8 zetten vereist.',
-            ], 422);
-        }
-
-        return DB::transaction(function () use ($character, $won, $timeTaken, $livesLeft, $moves) {
-            /** @var Character $lockedChar */
-            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
-            /** @var CharacterMemoryStat $stat */
-            $stat = CharacterMemoryStat::where('character_id', $lockedChar->id)->lockForUpdate()->firstOrFail();
-
-            if ($stat->isOnCooldown()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Je brein moet nog even bijkomen. Wacht de cooldown af of bekijk een ad!',
-                    'cooldown' => $stat->getCooldownSecondsRemaining(),
-                ], 422);
+        return DB::transaction(function () use ($character): JsonResponse {
+            $locked = Character::whereKey($character->id)->lockForUpdate()->firstOrFail();
+            if ($locked->isImprisoned() || $locked->isComatose() || $locked->needsReviveSerum()) {
+                return response()->json(['success' => false, 'message' => 'Je kunt nu geen Memory spelen.'], 422);
             }
+            $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $locked->id]);
+            if ($stat->isOnCooldown()) {
+                return response()->json(['success' => false, 'message' => 'Wacht eerst de cooldown af.', 'cooldown' => $stat->getCooldownSecondsRemaining()], 422);
+            }
+
+            $game = $stat->active_game;
+            if (! is_array($game)) {
+                $game = [
+                    'id' => (string) Str::uuid(),
+                    'deck' => $this->generateDeck(),
+                    'started_at' => now()->timestamp,
+                    'matched' => [],
+                    'first' => null,
+                    'moves' => 0,
+                    'lives' => 3,
+                    'completed_at' => null,
+                ];
+                $stat->active_game = $game;
+                $stat->save();
+            }
+
+            return response()->json(['success' => true, 'game' => $game, 'server_time' => now()->timestamp]);
+        });
+    }
+
+    /** Record one card selection; the server owns the board and match state. */
+    public function move(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'game_id' => ['required', 'uuid'],
+            'card' => ['required', 'integer', 'between:0,15'],
+        ]);
+        $character = Auth::user()->character;
+
+        return DB::transaction(function () use ($character, $validated): JsonResponse {
+            $locked = Character::whereKey($character->id)->lockForUpdate()->firstOrFail();
+            if ($locked->isImprisoned() || $locked->isComatose() || $locked->needsReviveSerum()) {
+                return response()->json(['success' => false, 'message' => 'Je kunt nu geen Memory spelen.'], 422);
+            }
+            $stat = CharacterMemoryStat::where('character_id', $locked->id)->lockForUpdate()->first();
+            $game = $stat?->active_game;
+            if (! is_array($game) || $game['id'] !== $validated['game_id']) {
+                return response()->json(['success' => false, 'message' => 'Deze ronde is niet actief.'], 422);
+            }
+            $now = now()->timestamp;
+            if ($game['completed_at'] !== null || $now < $game['started_at'] + 5 || $now >= $game['started_at'] + 65) {
+                return response()->json(['success' => false, 'message' => 'De ronde is nog niet begonnen of is afgelopen.'], 422);
+            }
+            $card = (int) $validated['card'];
+            if (in_array($card, $game['matched'], true) || $game['first'] === $card) {
+                return response()->json(['success' => false, 'message' => 'Deze kaart is al gekozen.'], 422);
+            }
+
+            $match = null;
+            if ($game['first'] === null) {
+                $game['first'] = $card;
+            } else {
+                $first = $game['first'];
+                $match = $game['deck'][$first]['id'] === $game['deck'][$card]['id'];
+                $game['moves']++;
+                if ($match) {
+                    $game['matched'][] = $first;
+                    $game['matched'][] = $card;
+                } else {
+                    $game['lives']--;
+                }
+                $game['first'] = null;
+                if (count($game['matched']) === 16 || $game['lives'] === 0) {
+                    $game['completed_at'] = $now;
+                }
+            }
+            $stat->active_game = $game;
+            $stat->save();
+
+            return response()->json(['success' => true, 'match' => $match, 'game' => $game, 'server_time' => $now]);
+        });
+    }
+
+    /** Settle a completed or timed-out round exactly once. */
+    public function finish(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['game_id' => ['required', 'uuid']]);
+        $character = Auth::user()->character;
+
+        return DB::transaction(function () use ($character, $validated): JsonResponse {
+            $lockedChar = Character::whereKey($character->id)->lockForUpdate()->firstOrFail();
+            if ($lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return response()->json(['success' => false, 'message' => 'Je kunt nu geen Memory spelen.'], 422);
+            }
+            $stat = CharacterMemoryStat::where('character_id', $lockedChar->id)->lockForUpdate()->first();
+            $game = $stat?->active_game;
+            if (! is_array($game) || $game['id'] !== $validated['game_id']) {
+                return response()->json(['success' => false, 'message' => 'Deze ronde is niet actief.'], 422);
+            }
+            if ($game['completed_at'] === null && now()->timestamp < $game['started_at'] + 65) {
+                return response()->json(['success' => false, 'message' => 'Deze ronde is nog niet afgelopen.'], 422);
+            }
+            $won = count($game['matched']) === 16 && $game['lives'] > 0;
+            $timeTaken = max(1, min(60, ($game['completed_at'] ?? now()->timestamp) - $game['started_at'] - 5));
+            $livesLeft = $game['lives'];
+            $moves = $game['moves'];
+            $stat->active_game = null;
 
             $rewardCash = 0;
             $rewardXp = 0;

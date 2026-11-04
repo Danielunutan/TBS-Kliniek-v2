@@ -9,6 +9,7 @@ use App\Models\GameMessage;
 use App\Models\User;
 use App\Services\DiscordShieldService;
 use App\Services\ReferralService;
+use App\Services\RegistrationIpLimitService;
 use App\Services\VpnDetectionService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -18,12 +19,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -224,32 +225,9 @@ class AuthController extends Controller
                                 if ($vpnCheck['is_vpn']) {
                                     return redirect()->route('login')->withErrors(['email' => 'Het gebruik van een VPN of proxy is niet toegestaan tijdens registratie. Schakel je VPN uit en probeer het opnieuw.']);
                                 }
-
-                                $registeredCount = User::where('registration_ip', $clientIp)
-                                    ->where('ip_limit_exempt', false)
-                                    ->count();
-
-                                if ($registeredCount < 2) {
-                                    $legacyUserIds = DB::table('sessions')
-                                        ->where('ip_address', $clientIp)
-                                        ->whereNotNull('user_id')
-                                        ->pluck('user_id')
-                                        ->unique();
-
-                                    if ($legacyUserIds->isNotEmpty()) {
-                                        $registeredCount += User::whereIn('id', $legacyUserIds)
-                                            ->where('ip_limit_exempt', false)
-                                            ->whereNull('registration_ip')
-                                            ->count();
-                                    }
-                                }
-
-                                if ($registeredCount >= 2) {
-                                    return redirect()->route('login')->withErrors(['email' => 'Er zijn al maximaal 2 accounts geregistreerd vanaf dit IP-adres (toegestaan voor bijv. gezinsleden). Wil je een uitzondering aanvragen voor een extra gezinslid? Maak dan een ticket aan via support.']);
-                                }
                             }
 
-                            $user = $linkedUser ?? User::firstOrCreate(
+                            $createUser = fn () => User::firstOrCreate(
                                 ['email' => $email],
                                 [
                                     'name' => $cleanUsername,
@@ -261,6 +239,9 @@ class AuthController extends Controller
                                     'is_onboarded' => false,
                                 ]
                             );
+                            $user = $linkedUser ?? ($isNew
+                                ? app(RegistrationIpLimitService::class)->register($request->ip(), $createUser)
+                                : $createUser());
 
                             if ($user->discord_id && $user->discord_id !== $discordId) {
                                 return redirect()->route('login')->withErrors(['email' => 'Dit account is al gekoppeld aan een ander Discord-account.']);
@@ -318,6 +299,8 @@ class AuthController extends Controller
                         }
                     }
                 }
+            } catch (ValidationException $e) {
+                return redirect()->route('login')->withErrors(['email' => $e->errors()['username'][0]]);
             } catch (\Throwable $e) {
                 Log::warning('Discord OAuth error: '.$e->getMessage());
             }
@@ -371,32 +354,6 @@ class AuthController extends Controller
             ])->withInput($request->except('password', 'password_confirmation'));
         }
 
-        // 2. Max 2 accounts per IP limit
-        $registeredCount = User::where('registration_ip', $clientIp)
-            ->where('ip_limit_exempt', false)
-            ->count();
-
-        if ($registeredCount < 2) {
-            $legacyUserIds = DB::table('sessions')
-                ->where('ip_address', $clientIp)
-                ->whereNotNull('user_id')
-                ->pluck('user_id')
-                ->unique();
-
-            if ($legacyUserIds->isNotEmpty()) {
-                $registeredCount += User::whereIn('id', $legacyUserIds)
-                    ->where('ip_limit_exempt', false)
-                    ->whereNull('registration_ip')
-                    ->count();
-            }
-        }
-
-        if ($registeredCount >= 2) {
-            return back()->withErrors([
-                'username' => 'Er zijn al maximaal 2 accounts geregistreerd vanaf dit IP-adres (toegestaan voor bijv. gezinsleden). Wil je een uitzondering aanvragen voor een extra gezinslid? Maak dan een ticket aan via support.',
-            ])->withInput($request->except('password', 'password_confirmation'));
-        }
-
         $username = $request->input('username') ?? $request->input('character_name') ?? $request->input('name');
         $request->merge(['username' => $username, 'name' => $username]);
 
@@ -440,7 +397,7 @@ class AuthController extends Controller
 
         $avatar = $avatarInput ?? ($gender === 'female' ? 'assets/characters/avatar_female_1.jpg' : 'assets/characters/avatar_male_1.jpg');
 
-        [$user, $character] = DB::transaction(function () use ($validated, $clientIp, $gender, $avatar): array {
+        [$user, $character] = app(RegistrationIpLimitService::class)->register($clientIp, function () use ($validated, $clientIp, $gender, $avatar): array {
             $user = User::create([
                 'name' => $validated['username'],
                 'email' => $validated['email'],

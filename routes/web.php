@@ -138,8 +138,8 @@ Route::get('/discord/verifieer', [DiscordShieldController::class, 'show'])->name
 Route::get('/discord/login', [DiscordShieldController::class, 'redirect'])->name('discord.redirect');
 Route::get('/discord/callback', [DiscordShieldController::class, 'callback'])->name('discord.callback');
 Route::post('/discord/verifieer/submit', [DiscordShieldController::class, 'process'])->middleware('throttle:20,1')->name('discord.process');
-Route::match(['GET', 'POST'], '/discord/koppel', [DiscordShieldController::class, 'linkGameAccount'])->middleware('throttle:20,1')->name('discord.link');
-Route::match(['GET', 'POST'], '/discord/sync-roles', [DiscordShieldController::class, 'syncRoles'])->middleware('throttle:20,1')->name('discord.sync_roles');
+Route::post('/discord/koppel', [DiscordShieldController::class, 'linkGameAccount'])->middleware('throttle:20,1')->name('discord.link');
+Route::post('/discord/sync-roles', [DiscordShieldController::class, 'syncRoles'])->middleware('throttle:20,1')->name('discord.sync_roles');
 Route::get('/discord/widget-data', [DiscordShieldController::class, 'widgetData'])->name('discord.widget_data');
 
 // Community Hub & Social Follow Rewards
@@ -639,6 +639,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Minigame: TBS Kliniek Memory (Extreem Geheugenspel met Rainbow)
     Route::get('/memory', [MemoryController::class, 'index'])->name('memory.index');
+    Route::post('/memory/start', [MemoryController::class, 'start'])->middleware('throttle:30,1')->name('memory.start');
+    Route::post('/memory/move', [MemoryController::class, 'move'])->middleware('throttle:60,1')->name('memory.move');
     Route::post('/memory/finish', [MemoryController::class, 'finish'])->middleware('throttle:30,1')->name('memory.finish');
     Route::post('/memory/skip-cooldown-stars', [MemoryController::class, 'skipCooldownWithStars'])->name('memory.skip_cooldown_stars');
     Route::post('/memory/skip-cooldown-ad', [MemoryController::class, 'skipCooldownWithAd'])->name('memory.skip_cooldown_ad');

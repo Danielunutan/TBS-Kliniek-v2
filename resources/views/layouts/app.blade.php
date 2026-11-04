@@ -3942,12 +3942,10 @@
                         }
 
                         // 2. Try subscribing via WebPush if available
-                        let pushSuccess = false;
                         if (window.tbsPush && window.tbsPush.isSupported()) {
                             try {
                                 const res = await window.tbsPush.subscribe();
                                 if (res && res.success) {
-                                    pushSuccess = true;
                                     this.visible = false;
                                     localStorage.setItem('tbs_push_dismissed_until', String(Date.now() + (365 * 24 * 60 * 60 * 1000)));
                                     const msg = res.message || 'Pushnotificaties zijn geactiveerd!';
@@ -3964,40 +3962,9 @@
                             }
                         }
 
-                        // 3. If in standalone mode (App installed) or fallback, claim via community.claim('push')
-                        if (this.isStandalone || pushSuccess) {
-                            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                            const claimRes = await fetch('{{ route('community.claim', 'push') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken,
-                                    'Accept': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'X-TBS-Standalone': '1'
-                                },
-                                body: JSON.stringify({ is_standalone: true })
-                            });
-                            const claimData = await claimRes.json();
-                            if (claimRes.ok && claimData.success) {
-                                this.visible = false;
-                                localStorage.setItem('tbs_push_dismissed_until', String(Date.now() + (365 * 24 * 60 * 60 * 1000)));
-                                if (typeof window.tbsToast === 'function') {
-                                    window.tbsToast(claimData.message, 'success', 6000);
-                                }
-                                if (typeof window.tbsRefreshStats === 'function') {
-                                    window.tbsRefreshStats(true);
-                                }
-                                if (claimData.character) {
-                                    window.dispatchEvent(new CustomEvent('tbs:stats-updated', { detail: claimData.character }));
-                                }
-                                return;
-                            }
-                        }
-
-                        // If not standalone and push failed, show guidance
+                        // Installing the app alone cannot verify a push subscription.
                         if (typeof window.tbsToast === 'function') {
-                            window.tbsToast('Installeer de Web App op je startscherm of geef meldingstoestemming om de bonus te claimen.', 'warning');
+                            window.tbsToast('Schakel pushnotificaties in om de bonus te claimen.', 'warning');
                         }
                     } catch (err) {
                         if (typeof window.tbsToast === 'function') {
