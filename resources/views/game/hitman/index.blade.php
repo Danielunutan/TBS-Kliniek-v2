@@ -31,7 +31,7 @@
     searchQuery: '',
     searchResults: [],
     isSearching: false,
-    hasIsolation: {{ $character->hasIsolationProtection() ? 'true' : 'false' }},
+    hasIsolation: {{ $character->isInVoluntaryIsolation() ? 'true' : 'false' }},
     isolationModalOpen: false,
     pendingForm: null,
     handleHitmanAction(event) {
@@ -87,7 +87,7 @@
     }
 }">
 
-    @if($character->hasIsolationProtection())
+    @if($character->isInVoluntaryIsolation())
     <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
@@ -106,6 +106,23 @@
         <a href="{{ route('isolation.index') }}" class="inline-flex items-center justify-center px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shrink-0 transition shadow-xs">
             Bekijk Isolatie &raquo;
         </a>
+    </div>
+    @elseif($character->hasMedicalShield())
+    <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <div>
+                <div class="text-xs font-black text-emerald-950 dark:text-emerald-200 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>Medisch Herstelschild Actief</span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-200/80 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-200 text-[10px]">Herstelbescherming</span>
+                </div>
+                <p class="text-xs text-emerald-900 dark:text-emerald-300 mt-0.5">
+                    Je herstelt van een liquidatie of IC-opname tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>. Niemand kan jou beschieten en je celdeur zit <strong>niet</strong> op slot. Als je zelf een aanval uitvoert, vervalt je herstelschild direct.
+                </p>
+            </div>
+        </div>
     </div>
     @endif
 

@@ -2062,6 +2062,26 @@ class Character extends Model
     }
 
     /**
+     * Check whether the character currently holds a non-locking medical recovery shield.
+     */
+    public function hasMedicalShield(): bool
+    {
+        return $this->hasIsolationProtection() && ! $this->isInVoluntaryIsolation();
+    }
+
+    /**
+     * Get the remaining medical recovery shield time in seconds.
+     */
+    public function getMedicalShieldRemainingSeconds(): int
+    {
+        if (! $this->hasMedicalShield()) {
+            return 0;
+        }
+
+        return max(0, (int) ceil(now()->diffInSeconds($this->protection_until, false)));
+    }
+
+    /**
      * Grant a temporary post-liquidation medical shield without locking the voluntary isolation cell door.
      */
     public function grantMedicalShield(int $minutes): void

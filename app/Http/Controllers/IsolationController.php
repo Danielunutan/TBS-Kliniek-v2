@@ -38,6 +38,8 @@ class IsolationController extends Controller
         ];
 
         $isProtected = $character->hasIsolationProtection();
+        $isInVoluntaryIsolation = $character->isInVoluntaryIsolation();
+        $hasMedicalShield = $character->hasMedicalShield();
         $remainingSeconds = $character->getIsolationProtectionRemainingSeconds();
         $remainingMinutes = (int) ceil($remainingSeconds / 60);
         $remainingHours = $isProtected ? round($remainingMinutes / 60, 1) : 0;
@@ -54,6 +56,8 @@ class IsolationController extends Controller
             'character',
             'packages',
             'isProtected',
+            'isInVoluntaryIsolation',
+            'hasMedicalShield',
             'remainingSeconds',
             'remainingMinutes',
             'remainingHours',

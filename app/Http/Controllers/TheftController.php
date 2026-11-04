@@ -77,7 +77,7 @@ class TheftController extends Controller
             'confirm_break_isolation' => ['nullable', 'boolean'],
         ]);
 
-        if ($character->hasIsolationProtection()) {
+        if ($character->isInVoluntaryIsolation()) {
             if (! $request->boolean('confirm_break_isolation')) {
                 $remaining = $character->protection_until->diffForHumans(null, true);
 

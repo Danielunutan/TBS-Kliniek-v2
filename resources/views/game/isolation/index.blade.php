@@ -62,7 +62,7 @@
     </div>
 
     <!-- Status Card with Live Countdown Timer -->
-    @if($isProtected)
+    @if($isInVoluntaryIsolation ?? $character->isInVoluntaryIsolation())
     <div data-testid="isolation-countdown-timer"
          x-data="{
              sec: {{ max(0, (int) ($remainingSeconds ?? 0)) }},
@@ -155,6 +155,36 @@
                     <span>Beëindig Isolatie Voortijdig</span>
                 </button>
             </form>
+        </div>
+    </div>
+    @elseif($hasMedicalShield ?? $character->hasMedicalShield())
+    <div class="border-2 border-emerald-300 dark:border-emerald-700/70 rounded-2xl p-5 bg-emerald-50 dark:bg-emerald-950/40 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+        <div class="flex items-start sm:items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="text-sm sm:text-base font-extrabold text-emerald-950 dark:text-emerald-200">
+                        Medisch Herstelschild Actief (Cel niet vergrendeld)
+                    </h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-200/80 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-200">
+                        Herstelbescherming
+                    </span>
+                </div>
+                <p class="text-xs leading-relaxed text-emerald-800 dark:text-emerald-300">
+                    Je hebt herstelbescherming tot <span class="font-extrabold">{{ $character->protection_until?->format('d-m-Y \o\m H:i') }} uur</span> na een liquidatie of IC-opname. Andere patiënten kunnen jou niet aanvallen of bestelen. Je celdeur zit <strong>niet</strong> op slot, dus je kunt gewoon trainen, klussen en misdaden plegen. Als je zelf iemand aanvalt, vervalt je medische bescherming direct.
+                </p>
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row md:flex-col items-stretch sm:items-center md:items-end justify-between gap-1.5 bg-white/90 dark:bg-slate-900/80 border border-emerald-200 dark:border-emerald-800/60 rounded-xl px-4 py-3 shrink-0 shadow-2xs">
+            <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-stopwatch animate-pulse text-emerald-600 dark:text-emerald-400"></i>
+                <span>Resterende hersteltijd</span>
+            </span>
+            <span class="text-lg sm:text-xl font-black font-mono tracking-tight text-emerald-700 dark:text-emerald-400">
+                {{ sprintf('%02d:%02d:%02d', intdiv((int) ($remainingSeconds ?? 0), 3600), intdiv(((int) ($remainingSeconds ?? 0)) % 3600, 60), ((int) ($remainingSeconds ?? 0)) % 60) }}
+            </span>
         </div>
     </div>
     @else
