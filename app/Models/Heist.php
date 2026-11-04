@@ -55,17 +55,25 @@ class Heist extends Model
     }
 
     /**
-     * Determine the effective vehicle used for this heist (personal active vehicle or qualifying vehicle from Bende Garage).
+     * Determine the effective vehicle used for this heist.
+     *
+     * Prioritizes qualifying vehicles by highest effective speed, then highest condition.
      */
     public function getEffectiveVehicle(Character $character): ?CharacterVehicle
     {
         // For gang heists, vehicle must be from the Bende Garage
         if ($this->is_gang_heist && $character->gang) {
             $gangVehicles = $character->gang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get();
-            foreach ($gangVehicles as $gv) {
-                if ($this->vehicleQualifies($gv)) {
-                    return $gv;
-                }
+            $qualifying = $gangVehicles->filter(fn ($gv) => $this->vehicleQualifies($gv));
+
+            if ($qualifying->isNotEmpty()) {
+                return $qualifying->sort(function ($a, $b) {
+                    if ($a->effective_speed !== $b->effective_speed) {
+                        return $b->effective_speed <=> $a->effective_speed;
+                    }
+
+                    return $b->current_condition <=> $a->current_condition;
+                })->first();
             }
 
             return $gangVehicles->first();
@@ -74,17 +82,27 @@ class Heist extends Model
         $personalVehicles = CharacterVehicle::where('character_id', $character->id)
             ->where('in_gang_garage', false)
             ->where('is_for_sale', false)
-            ->orderByDesc('is_active')
             ->with('vehicle')
             ->get();
 
-        foreach ($personalVehicles as $pv) {
-            if ($this->vehicleQualifies($pv)) {
-                return $pv;
-            }
+        $qualifying = $personalVehicles->filter(fn ($pv) => $this->vehicleQualifies($pv));
+
+        if ($qualifying->isNotEmpty()) {
+            return $qualifying->sort(function ($a, $b) {
+                if ($a->effective_speed !== $b->effective_speed) {
+                    return $b->effective_speed <=> $a->effective_speed;
+                }
+
+                if ($a->current_condition !== $b->current_condition) {
+                    return $b->current_condition <=> $a->current_condition;
+                }
+
+                return ($b->is_active ? 1 : 0) <=> ($a->is_active ? 1 : 0);
+            })->first();
         }
 
-        return $personalVehicles->firstWhere('is_active', true) ?? $personalVehicles->first();
+        return $personalVehicles->firstWhere('is_active', true)
+            ?? $personalVehicles->sortByDesc('current_condition')->first();
     }
 
     /**

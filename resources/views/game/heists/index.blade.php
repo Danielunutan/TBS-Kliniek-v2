@@ -138,12 +138,13 @@
         <div x-show="mode === 'solo'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($soloHeists as $heist)
             @php
+                $effectiveVehicle = $heist->getEffectiveVehicle($character);
                 $hasLevel = $character->level >= $heist->min_level;
                 $hasMasks = ($character->masks ?? 0) >= $heist->required_mask_count;
-                $hasVehicle = !empty($activeVehicle);
-                $hasType = $activeVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $activeVehicle->vehicle->type === $heist->required_vehicle_type);
-                $hasSpeed = $activeVehicle && ($activeVehicle->effective_speed >= $heist->min_speed_required);
-                $hasCondition = $activeVehicle && ($activeVehicle->current_condition >= $heist->min_condition_required);
+                $hasVehicle = !empty($effectiveVehicle);
+                $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle->type === $heist->required_vehicle_type);
+                $hasSpeed = $effectiveVehicle && ($effectiveVehicle->effective_speed >= $heist->min_speed_required);
+                $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= $heist->min_condition_required);
                 $canLaunch = $hasLevel && $hasMasks && $hasVehicle && $hasType && $hasSpeed && $hasCondition && ($character->energy >= $heist->energy_cost);
 
                 $baseChance = match ($heist->difficulty) {
@@ -154,9 +155,9 @@
                     'legendarisch' => 32,
                     default => 50,
                 };
-                $speedDiff = $activeVehicle ? ($activeVehicle->effective_speed - $heist->min_speed_required) : 0;
+                $speedDiff = $effectiveVehicle ? ($effectiveVehicle->effective_speed - $heist->min_speed_required) : 0;
                 $speedBonus = (int) round($speedDiff * 0.4);
-                $condBonus = $activeVehicle ? (int) round(($activeVehicle->current_condition - 70) * 0.25) : 0;
+                $condBonus = $effectiveVehicle ? (int) round(($effectiveVehicle->current_condition - 70) * 0.25) : 0;
                 $statBonus = min(15, (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveDiscipline()) / 30));
                 $estChance = max(15, min(92, $baseChance + $speedBonus + $condBonus + $statBonus));
             @endphp
@@ -229,10 +230,10 @@
                         <!-- Vluchtwagen Conditie -->
                         <div class="flex items-center justify-between p-2 rounded-xl {{ ($hasVehicle && $hasCondition) ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}">
                             <span class="flex items-center gap-1 font-bold truncate">
-                                <i class="fa-solid fa-car {{ ($hasVehicle && $hasCondition) ? 'text-emerald-600' : 'text-rose-500' }}"></i>
-                                <span>Wagen &ge;{{ $heist->min_condition_required }}%</span>
+                                <i class="fa-solid {{ ($effectiveVehicle && $effectiveVehicle->vehicle) ? $effectiveVehicle->vehicle->icon : 'fa-car' }} {{ ($hasVehicle && $hasCondition) ? 'text-emerald-600' : 'text-rose-500' }}"></i>
+                                <span>{{ $effectiveVehicle && $effectiveVehicle->vehicle ? $effectiveVehicle->vehicle->name : 'Wagen' }} &ge;{{ $heist->min_condition_required }}%</span>
                             </span>
-                            <span class="font-mono font-black text-[10px]">{{ $activeVehicle ? $activeVehicle->current_condition : 0 }}%</span>
+                            <span class="font-mono font-black text-[10px]">{{ $effectiveVehicle ? $effectiveVehicle->current_condition : 0 }}%</span>
                         </div>
 
                         <!-- Energie -->
@@ -285,7 +286,7 @@
                         <a href="{{ route('garage.index') }}" 
                            class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-wrench"></i>
-                            <span>Wagen Repareren in Garage</span>
+                            <span>{{ $effectiveVehicle && $effectiveVehicle->vehicle ? $effectiveVehicle->vehicle->name : 'Wagen' }} Repareren in Garage</span>
                         </a>
                     @elseif(! $hasMasks)
                         <a href="{{ route('shop.index', ['tab' => 'items']) }}" 
@@ -481,6 +482,11 @@
                                 <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[10px] font-black uppercase">
                                     Bende Co-Op Heist
                                 </span>
+                                @if($gang && $gang->hasProperty('chop_shop_garage'))
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                                    <i class="fa-solid fa-wrench mr-1"></i>Chop-Shop: -25% Slijtage
+                                </span>
+                                @endif
                                 <span class="text-[11px] font-black text-purple-600 dark:text-purple-400">
                                     Level {{ $heist->min_level }}+
                                 </span>

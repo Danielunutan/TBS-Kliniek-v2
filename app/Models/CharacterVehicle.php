@@ -70,7 +70,13 @@ class CharacterVehicle extends Model
         }
         // Base vehicle price factor (approx 10% of vehicle value for 100% repair)
         $costPerPct = max(50, (int) round(($this->vehicle?->price_cash ?? 10000) * 0.001));
+        $baseCost = $missing * $costPerPct;
 
-        return $missing * $costPerPct;
+        // Chop-Shop Garage provides 20% discount on gang vehicle fleet repairs
+        if ($this->in_gang_garage && $this->gang_id && $this->gang?->hasProperty('chop_shop_garage')) {
+            return (int) round($baseCost * 0.80);
+        }
+
+        return $baseCost;
     }
 }

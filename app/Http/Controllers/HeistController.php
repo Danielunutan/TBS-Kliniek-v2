@@ -144,7 +144,13 @@ class HeistController extends Controller
                 return back()->with('error', "Geen enkel voertuig in de Bende Garage voldoet aan de eisen voor de {$heist->name} (Type: {$heist->required_vehicle_type}, Min. Snelheid: {$heist->min_speed_required} km/u, Min. Conditie: {$heist->min_condition_required}%). Breng een geschikte wagen naar de Bende Garage!");
             }
 
-            $charVehicle = $qualifyingVehicles->sortByDesc('effective_speed')->first();
+            $charVehicle = $qualifyingVehicles->sort(function ($a, $b) {
+                if ($a->effective_speed !== $b->effective_speed) {
+                    return $b->effective_speed <=> $a->effective_speed;
+                }
+
+                return $b->current_condition <=> $a->current_condition;
+            })->first();
 
             // Deduct masks directly from Gang Depot atomically under row lock
             $masksDeducted = DB::transaction(function () use ($gang, $heist): bool {
@@ -275,6 +281,14 @@ class HeistController extends Controller
 
             // Vehicle wear & tear (5% to 15% condition lost)
             $conditionLoss = mt_rand(6, 16);
+            $wearBonusMsg = '';
+            if ($heist->is_gang_heist && $character->gang) {
+                $wearMultiplier = $character->gang->getHeistWearMultiplier();
+                if ($wearMultiplier < 1.0) {
+                    $conditionLoss = max(1, (int) round($conditionLoss * $wearMultiplier));
+                    $wearBonusMsg = ' 🛡️ Chop-Shop: -25% slijtage!';
+                }
+            }
             $newCondition = $this->applyVehicleWear($charVehicle, $conditionLoss, true);
 
             // Record Daily Battle
@@ -310,10 +324,18 @@ class HeistController extends Controller
             $formattedPlayerCash = number_format($playerPayout, 0, ',', '.');
             $redirectParams = $heist->is_gang_heist ? ['tab' => 'gang'] : [];
 
-            return redirect()->route('heists.index', $redirectParams)->with('success', "💥 KRAAK GESLAAGD! De {$heist->name} is vlekkeloos uitgevoerd met je {$charVehicle->vehicle->name}! Persoonlijke buit: +€{$formattedPlayerCash}, +{$heist->xp_reward} XP en +{$heist->respect_reward} Respect. (Wagen slijtage: -{$conditionLoss}% conditie).{$gangMsg}{$bonusMsg}");
+            return redirect()->route('heists.index', $redirectParams)->with('success', "💥 KRAAK GESLAAGD! De {$heist->name} is vlekkeloos uitgevoerd met je {$charVehicle->vehicle->name}! Persoonlijke buit: +€{$formattedPlayerCash}, +{$heist->xp_reward} XP en +{$heist->respect_reward} Respect. (Wagen slijtage: -{$conditionLoss}% conditie{$wearBonusMsg}).{$gangMsg}{$bonusMsg}");
         } else {
             // Failure: Heavy vehicle damage and isolation imprisonment
             $conditionLoss = mt_rand(20, 35);
+            $wearBonusMsg = '';
+            if ($heist->is_gang_heist && $character->gang) {
+                $wearMultiplier = $character->gang->getHeistWearMultiplier();
+                if ($wearMultiplier < 1.0) {
+                    $conditionLoss = max(1, (int) round($conditionLoss * $wearMultiplier));
+                    $wearBonusMsg = ' 🛡️ Chop-Shop: -25% schade';
+                }
+            }
             $newCondition = $this->applyVehicleWear($charVehicle, $conditionLoss, false);
 
             // Use the prison service so perks (advocaat), the sentence counter and the notification all apply.
@@ -333,7 +355,7 @@ class HeistController extends Controller
                 'notes' => "Achtervolging mislukt! Klemgereden. Wagenschade: -{$conditionLoss}%.",
             ]);
 
-            return redirect()->route('prison')->with('error', "🚨 HEIST MISLUKT! Het alarm ging af en de politie ramde je {$charVehicle->vehicle->name} van de weg (-{$conditionLoss}% conditie). Je bent overgebracht naar de isoleercel voor {$prisonMinutes} minuten!");
+            return redirect()->route('prison')->with('error', "🚨 HEIST MISLUKT! Het alarm ging af en de politie ramde je {$charVehicle->vehicle->name} van de weg (-{$conditionLoss}% conditie{$wearBonusMsg}). Je bent overgebracht naar de isoleercel voor {$prisonMinutes} minuten!");
         }
     }
 

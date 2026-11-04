@@ -105,7 +105,7 @@ class GangPropertyCatalog
                 'production_reward_respect' => 20,
                 'tagline' => 'Geavanceerde werkplaats voor wagenpark modificaties',
                 'description' => 'Volledig uitgeruste autowerkplaats met spuitcabine, hefbruggen en lasapparatuur. Biedt plaats aan 12 bendevoertuigen en 1 NPC monteur/specialist.',
-                'perks_summary' => '+250 Bende Opslag • 12 Voertuigplekken • 1 NPC Slot',
+                'perks_summary' => '+250 Bende Opslag • 12 Voertuigplekken • 1 NPC Slot • -25% Heist Slijtage & 20% Reparatiekorting',
             ],
             'trucking_terminal' => [
                 'key' => 'trucking_terminal',

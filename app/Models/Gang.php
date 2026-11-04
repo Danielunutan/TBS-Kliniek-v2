@@ -258,4 +258,29 @@ class Gang extends Model
             || ((int) $this->personal_shopper === (int) $character->id)
             || ((int) $this->money_magnet === (int) $character->id);
     }
+
+    /**
+     * Check if this gang owns a specific property key.
+     */
+    public function hasProperty(string $propertyKey): bool
+    {
+        if ($this->relationLoaded('properties')) {
+            return $this->properties->contains('property_key', $propertyKey);
+        }
+
+        return $this->properties()->where('property_key', $propertyKey)->exists();
+    }
+
+    /**
+     * Get the vehicle wear reduction multiplier for gang heists.
+     */
+    public function getHeistWearMultiplier(): float
+    {
+        // Chop-Shop Garage provides 25% wear protection on bende heists
+        if ($this->hasProperty('chop_shop_garage')) {
+            return 0.75;
+        }
+
+        return 1.0;
+    }
 }
