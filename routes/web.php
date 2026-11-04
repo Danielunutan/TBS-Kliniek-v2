@@ -59,6 +59,7 @@ use App\Http\Controllers\MissionController;
 use App\Http\Controllers\MurderStatsController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewspaperController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NumberGameController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PackageController;
@@ -177,6 +178,10 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/help/tickets/{ticket}', [SupportTicketController::class, 'show'])->name('help.tickets.show');
     Route::post('/help/tickets/{ticket}/reactie', [SupportTicketController::class, 'reply'])->middleware('throttle:20,1')->name('help.tickets.reply');
     Route::post('/help/tickets/{ticket}/sluiten', [SupportTicketController::class, 'close'])->name('help.tickets.close');
+
+    // Persoonlijke spelmeldingen
+    Route::get('/meldingen', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/meldingen/alles-lezen', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
 
     // Dashboard & Widgets
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

@@ -595,6 +595,8 @@ class DashboardController extends Controller
             GameNotification::whereIn('id', $unreadAlerts->pluck('id'))->update(['is_read' => true]);
         }
 
+        $data['unread_notifications'] = $character->notifications()->where('is_read', false)->count();
+
         return response()->json($data);
     }
 

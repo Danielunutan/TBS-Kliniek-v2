@@ -237,6 +237,7 @@
     @php
         $character = $character ?? (Auth::check() ? Auth::user()->character : null);
         $onlineCount = $character ? \App\Models\Character::getOnlineCount() : 0;
+        $unreadNotificationCount = $character ? $character->notifications()->where('is_read', false)->count() : 0;
         $reqXp = 100;
         $pctXp = 0;
         $quickFoodItems = collect();
@@ -334,7 +335,8 @@
                     vip_points_formatted: @js(number_format($character->vip_points ?? 0, 0, ',', '.')),
                     respect: @js((string) $character->formatted_respect),
                     formatted_respect: @js((string) $character->formatted_respect),
-                    onlineCount: {{ (int)$onlineCount }}
+                    onlineCount: {{ (int)$onlineCount }},
+                    unreadNotifications: {{ $unreadNotificationCount }}
                 },
                 init() {
                     window.tbsStatsTrackerInstance = this;
@@ -445,6 +447,9 @@
                     }
                     if (data.onlineCount !== undefined) {
                         this.stats.onlineCount = data.onlineCount;
+                    }
+                    if (data.unread_notifications !== undefined) {
+                        this.stats.unreadNotifications = data.unread_notifications;
                     }
 
                     if (data && data.is_in_prison !== undefined) {
@@ -1664,6 +1669,7 @@
 
                 <!-- 2. Right: Quick Eat Rugzak, Refresh, Theme Toggle & Prominent Menu Trigger -->
                 <div class="flex items-center gap-1 shrink-0">
+                    @include('partials.notification_bell')
                     <!-- Quick Eat / Rugzak Button -->
                     <button type="button"
                             @click="mobileQuickSheetOpen = true"
@@ -2155,6 +2161,7 @@
 
                 <!-- 5. FAR RIGHT: Search, Radio, Theme Switch & Profile Icon -->
                 <div class="flex items-center gap-2 xl:gap-2.5 shrink-0">
+                    @include('partials.notification_bell')
                     <!-- TBS RADIO TOPBAR WIDGET -->
                     @include('partials.radio_player', ['isMobile' => false])
 
