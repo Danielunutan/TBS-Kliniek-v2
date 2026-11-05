@@ -337,6 +337,22 @@ class ReplyTicketCommand extends Command
                 ."Nogmaals ontzettend bedankt voor je toffe idee en je enthousiaste woorden over het spel. Heel veel succes met graven en plunderen!\n\n"
                 ."Met vriendelijke groet,\n"
                 .'Dave • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-7UD-342' || str_contains(strtolower($ticket->subject), '3x geliquideerd') || str_contains(strtolower($ticket->subject), 'anti-pest') || str_contains(strtolower($ticket->character?->name ?? ''), 'dennis')) {
+            $replyMessage = "Beste Dennis,\n\n"
+                ."Bedankt voor je melding en scherpe oplettendheid via dit ticket! 🎯🛡️\n\n"
+                ."We hebben het incident direct voor je nagekeken in de server- en update-logs. De limiet van maximaal 3 liquidaties per dader per dag werkt technisch zoals bedoeld, maar jouw situatie ontstond door de overgang naar de nieuwe update:\n\n"
+                ."1. **Tijdstip van de Balans-Update (4 november)**:\n"
+                ."   - De grote Balans-Update met het Anti-Pestprotocol is op 4 november rond 10:30-10:48 uur live gezet.\n"
+                ."   - Eén van jouw liquidaties vond plaats vóórdat de update live was. De eerdere liquidatie van die ochtend telde daardoor nog niet mee in de nieuwe dagteller.\n"
+                ."   - Na de update had de dader op diezelfde kalenderdag nog 3 geldige liquidaties beschikbaar volgens het nieuwe protocol.\n\n"
+                ."2. **Dagteller per Kalenderdag (00:00 - 23:59)**:\n"
+                ."   - De anti-pestlimiet geldt per kalenderdag en reset elke nacht om 00:00:00 uur middernacht, niet per rollend venster van 24 uur.\n\n"
+                ."3. **Automatisch Medisch Schild (5x Liquidaties)**:\n"
+                ."   - Het beschermende noodprotocol activeert automatisch bij de 5e liquidatie op één dag. Omdat je op 4 liquidaties zat, was die specifieke bescherming nog net niet van toepassing.\n\n"
+                ."Het systeem blokkeert nu wel degelijk verdere pogingen zodra een aanvaller de 3 liquidaties op dezelfde speler binnen één kalenderdag bereikt.\n\n"
+                ."Mocht je in de toekomst toch nog onregelmatigheden ervaren, laat het ons gerust weten. Veel succes en speelplezier in de kliniek!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
         } else {
             $replyMessage = "Beste {$ticket->character?->name},\n\n"
                 ."Bedankt voor je support ticket. We hebben je verzoek zorgvuldig bekeken en afgehandeld.\n\n"

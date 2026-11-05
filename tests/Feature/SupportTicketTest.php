@@ -316,4 +316,39 @@ class SupportTicketTest extends TestCase
         $this->assertStringContainsString('€ 5.000.000', $ticket->messages->first()->message);
         $this->assertStringContainsString('31 dagen', $ticket->messages->first()->message);
     }
+
+    public function test_auto_reply_command_answers_liquidation_ticket(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'email' => 'danielunutan@icloud.com',
+            'role' => 'admin',
+            'is_staff' => true,
+        ]);
+        $this->createCharacter($admin, ['name' => 'Daniel']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, ['name' => 'Dennis']);
+
+        $ticket = SupportTicket::create([
+            'user_id' => $user->id,
+            'character_id' => $character->id,
+            'ticket_number' => 'TBS-7UD-342',
+            'subject' => 'Meer dan 3x geliquideerd door 1 dader binnen 24 uur',
+            'category' => 'bug',
+            'priority' => 'hoog',
+            'status' => 'open',
+        ]);
+
+        $exitCode = $this->artisan('ticket:auto-reply', ['ticket_number' => 'TBS-7UD-342'])->run();
+        $this->assertSame(0, $exitCode);
+
+        $ticket->refresh();
+        $this->assertSame('beantwoord', $ticket->status);
+        $this->assertCount(1, $ticket->messages);
+        $this->assertTrue($ticket->messages->first()->is_staff);
+        $this->assertStringContainsString('Anti-Pestprotocol', $ticket->messages->first()->message);
+        $this->assertStringContainsString('Beste Dennis', $ticket->messages->first()->message);
+    }
 }
