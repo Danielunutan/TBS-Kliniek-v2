@@ -201,6 +201,10 @@
                             <div class="cf-turnstile" 
                                  data-sitekey="{{ $turnstileSiteKey }}" 
                                  data-callback="onTurnstileSuccess"
+                                 data-expired-callback="onTurnstileExpired"
+                                 data-error-callback="onTurnstileError"
+                                 data-retry="auto"
+                                 data-refresh-expired="auto"
                                  data-theme="auto"></div>
                             <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-2 flex items-center gap-1 font-semibold">
                                 <i class="fa-solid fa-shield-halved text-[10px] text-purple-600 dark:text-purple-400"></i> Beveiligd met Cloudflare Turnstile
@@ -655,6 +659,22 @@
             globalTurnstileToken = token;
         }
 
+        function onTurnstileExpired() {
+            globalTurnstileToken = '';
+            if (window.turnstile && typeof window.turnstile.reset === 'function') {
+                try { window.turnstile.reset(); } catch (e) {}
+            }
+        }
+
+        function onTurnstileError() {
+            globalTurnstileToken = '';
+            setTimeout(() => {
+                if (window.turnstile && typeof window.turnstile.reset === 'function') {
+                    try { window.turnstile.reset(); } catch (e) {}
+                }
+            }, 1500);
+        }
+
         function discordShieldApp() {
             return {
                 isLoading: false,
@@ -770,6 +790,10 @@
                             this.launchConfetti();
                         } else {
                             this.errorMessage = data.message || 'Verificatie geweigerd.';
+                            globalTurnstileToken = '';
+                            if (window.turnstile && typeof window.turnstile.reset === 'function') {
+                                try { window.turnstile.reset(); } catch (e) {}
+                            }
                             // Start 5 second cooldown to prevent accidental or automated spamming
                             this.cooldown = 5;
                             if (this.cooldownTimer) clearInterval(this.cooldownTimer);
@@ -783,6 +807,10 @@
                         }
                     } catch (err) {
                         this.errorMessage = 'Er is een verbindingsfout opgetreden. Probeer het opnieuw.';
+                        globalTurnstileToken = '';
+                        if (window.turnstile && typeof window.turnstile.reset === 'function') {
+                            try { window.turnstile.reset(); } catch (e) {}
+                        }
                     } finally {
                         this.isLoading = false;
                     }

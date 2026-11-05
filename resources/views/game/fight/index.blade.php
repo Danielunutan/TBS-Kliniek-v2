@@ -265,16 +265,208 @@
 
             <script>
                 window.tbsTurnstileToken = '';
+                window.tbsTurnstileVerified = false;
                 window.tbsTurnstileWidgetId = null;
+                window.tbsTurnstileAutoRetries = 0;
+                window._tbsTurnstileWatchdog = null;
+                window._tbsTurnstileRetryTimer = null;
+
+                function clearTurnstileTimers() {
+                    if (window._tbsTurnstileWatchdog) {
+                        clearTimeout(window._tbsTurnstileWatchdog);
+                        window._tbsTurnstileWatchdog = null;
+                    }
+                    if (window._tbsTurnstileRetryTimer) {
+                        clearTimeout(window._tbsTurnstileRetryTimer);
+                        window._tbsTurnstileRetryTimer = null;
+                    }
+                }
+
+                window.tbsEnsureTurnstileScript = function(forceReload = false) {
+                    if (!forceReload && window.turnstile && typeof window.turnstile.render === 'function') {
+                        return Promise.resolve(window.turnstile);
+                    }
+
+                    if (forceReload) {
+                        document.querySelectorAll('script[data-tbs-turnstile-api], script[src*="challenges.cloudflare.com/turnstile"]').forEach(function(el) {
+                            el.remove();
+                        });
+                        window._tbsTurnstileScriptPromise = null;
+                    }
+
+                    if (window._tbsTurnstileScriptPromise && !forceReload) {
+                        return window._tbsTurnstileScriptPromise;
+                    }
+
+                    window._tbsTurnstileScriptPromise = new Promise(function(resolve, reject) {
+                        if (window.turnstile && typeof window.turnstile.render === 'function') {
+                            resolve(window.turnstile);
+                            return;
+                        }
+
+                        let settled = false;
+                        const existingScript = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+
+                        if (!existingScript || forceReload) {
+                            const script = document.createElement('script');
+                            const cacheBuster = forceReload ? ('&_ts=' + Date.now()) : '';
+                            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoaded&render=explicit' + cacheBuster;
+                            script.async = true;
+                            script.defer = true;
+                            script.setAttribute('data-tbs-turnstile-api', '1');
+                            script.onerror = function() {
+                                if (!settled) {
+                                    settled = true;
+                                    window._tbsTurnstileScriptPromise = null;
+                                    reject(new Error('Turnstile script failed to load'));
+                                }
+                            };
+                            document.head.appendChild(script);
+                        }
+
+                        const startedAt = Date.now();
+                        const pollInterval = setInterval(function() {
+                            if (window.turnstile && typeof window.turnstile.render === 'function') {
+                                clearInterval(pollInterval);
+                                if (!settled) {
+                                    settled = true;
+                                    resolve(window.turnstile);
+                                }
+                            } else if (Date.now() - startedAt > 6000) {
+                                clearInterval(pollInterval);
+                                if (!settled) {
+                                    settled = true;
+                                    window._tbsTurnstileScriptPromise = null;
+                                    reject(new Error('Turnstile script load timeout'));
+                                }
+                            }
+                        }, 100);
+                    });
+
+                    return window._tbsTurnstileScriptPromise;
+                };
+
+                function scheduleTurnstileWatchdog() {
+                    if (window._tbsTurnstileWatchdog) {
+                        clearTimeout(window._tbsTurnstileWatchdog);
+                    }
+                    window._tbsTurnstileWatchdog = setTimeout(function() {
+                        const target = document.getElementById('turnstile-widget');
+                        const skeleton = document.getElementById('turnstile-skeleton');
+                        if (!target || window.tbsTurnstileVerified || window.tbsTurnstileToken) {
+                            return;
+                        }
+                        const hasIframe = Boolean(target.querySelector('iframe'));
+                        const skeletonVisible = skeleton && skeleton.style.display !== 'none';
+                        if (!hasIframe || skeletonVisible) {
+                            scheduleTurnstileAutoRecovery('watchdog_timeout');
+                        }
+                    }, 5000);
+                }
+
+                function scheduleTurnstileAutoRecovery(reason) {
+                    const target = document.getElementById('turnstile-widget');
+                    const skeleton = document.getElementById('turnstile-skeleton');
+                    const statusText = document.getElementById('turnstile-status-text');
+                    if (!target || window.tbsTurnstileVerified) {
+                        return;
+                    }
+
+                    clearTurnstileTimers();
+                    window.tbsTurnstileAutoRetries = (window.tbsTurnstileAutoRetries || 0) + 1;
+                    const maxRetries = 4;
+                    const attempt = window.tbsTurnstileAutoRetries;
+
+                    if (attempt <= maxRetries) {
+                        const delayMs = Math.min(4000, 1000 + (attempt * 750));
+                        if (statusText) {
+                            statusText.innerHTML = '<span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-rotate fa-spin"></i> Verificatie wordt automatisch hersteld (poging ' + attempt + '/' + maxRetries + ')...</span>';
+                        }
+                        if (skeleton) {
+                            skeleton.style.display = 'flex';
+                            skeleton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-600"></i> <span>Automatisch herstel bezig (' + attempt + '/' + maxRetries + ')...</span>';
+                        }
+
+                        window._tbsTurnstileRetryTimer = setTimeout(function() {
+                            const forceScriptReload = attempt >= 2 || !window.turnstile;
+                            window.tbsEnsureTurnstileScript(forceScriptReload)
+                                .then(function() {
+                                    renderTurnstileWidget(true);
+                                })
+                                .catch(function() {
+                                    scheduleTurnstileAutoRecovery('retry_script_failed');
+                                });
+                        }, delayMs);
+                    } else {
+                        if (skeleton) {
+                            skeleton.style.display = 'none';
+                        }
+                        if (statusText) {
+                            statusText.innerHTML = '<span class="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Verificatie kon niet automatisch laden (controleer eventuele adblockers). Klik op \'Ververs verificatie\' om opnieuw te proberen.</span>';
+                        }
+                    }
+                }
+
+                async function verifyTurnstileTokenOnServer(token) {
+                    const target = document.getElementById('turnstile-widget');
+                    const banner = document.getElementById('turnstile-container-banner');
+                    const statusText = document.getElementById('turnstile-status-text');
+                    const verifyUrl = (target && target.dataset.verifyUrl) ? target.dataset.verifyUrl : '{{ route('fight.turnstile.verify') }}';
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
+                    try {
+                        const response = await fetch(verifyUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify({
+                                'cf-turnstile-response': token
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (response.ok && data && data.success) {
+                            window.tbsTurnstileVerified = true;
+                            if (statusText) {
+                                statusText.innerHTML = '<span class="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-600"></i> Zaalwacht controle voltooid! Je kunt nu direct op \'Steel Geld\' klikken.</span>';
+                            }
+                            if (window.tbsToast && !data.already_verified) {
+                                window.tbsToast(data.message || '🛡️ Zaalwacht controle voltooid!', 'success');
+                            }
+                            if (banner) {
+                                setTimeout(function() {
+                                    banner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                    banner.style.opacity = '0';
+                                    banner.style.transform = ' translateY(-4px)';
+                                    setTimeout(function() {
+                                        banner.style.display = 'none';
+                                    }, 300);
+                                }, 1000);
+                            }
+                        } else if (data && data.retry) {
+                            window.tbsTurnstileToken = '';
+                            window.tbsTurnstileVerified = false;
+                            scheduleTurnstileAutoRecovery('server_verify_rejected');
+                        }
+                    } catch (err) {
+                        // Keep client token populated in form inputs so the next form submit still verifies on the backend
+                    }
+                }
 
                 function onTurnstileSuccess(token) {
+                    clearTurnstileTimers();
+                    window.tbsTurnstileAutoRetries = 0;
                     window.tbsTurnstileToken = token;
                     document.querySelectorAll('input.turnstile-token-input').forEach(function(el) {
                         el.value = token;
                     });
                     const banner = document.getElementById('turnstile-container-banner');
                     if (banner) {
-                        banner.classList.remove('bg-purple-50', 'dark:bg-slate-900', 'border-purple-300', 'dark:border-purple-800', 'dark:border-purple-800/80');
+                        banner.classList.remove('bg-purple-50', 'dark:bg-slate-900', 'dark:bg-slate-800/60', 'border-purple-300', 'dark:border-purple-800', 'dark:border-purple-800/80');
                         banner.classList.add('bg-emerald-50', 'dark:bg-emerald-950/40', 'border-emerald-300', 'dark:border-emerald-800');
                     }
                     const statusText = document.getElementById('turnstile-status-text');
@@ -283,86 +475,154 @@
                     }
                     const skeleton = document.getElementById('turnstile-skeleton');
                     if (skeleton) skeleton.style.display = 'none';
+
+                    verifyTurnstileTokenOnServer(token);
                 }
 
-                function onTurnstileError() {
-                    const statusText = document.getElementById('turnstile-status-text');
-                    if (statusText) {
-                        statusText.innerHTML = '<span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Verificatie laden duurde te lang. Klik op \'Ververs verificatie\'.</span>';
-                    }
+                function onTurnstileError(errorCode) {
+                    scheduleTurnstileAutoRecovery('widget_error_' + (errorCode || 'unknown'));
+                }
+
+                function onTurnstileTimeout() {
+                    scheduleTurnstileAutoRecovery('widget_timeout');
                 }
 
                 function onTurnstileExpired() {
                     window.tbsTurnstileToken = '';
+                    window.tbsTurnstileVerified = false;
                     document.querySelectorAll('input.turnstile-token-input').forEach(function(el) {
                         el.value = '';
                     });
                     const statusText = document.getElementById('turnstile-status-text');
                     if (statusText) {
-                        statusText.innerHTML = '<span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left"></i> Verificatie verlopen. Klik op het vakje om opnieuw te verifiëren.</span>';
+                        statusText.innerHTML = '<span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left fa-spin"></i> Verificatie verlopen — wordt automatisch vernieuwd...</span>';
                     }
+                    setTimeout(function() {
+                        renderTurnstileWidget(false);
+                    }, 300);
                 }
 
-                function renderTurnstileWidget() {
+                function renderTurnstileWidget(forceRemount = false) {
                     const target = document.getElementById('turnstile-widget');
                     const skeleton = document.getElementById('turnstile-skeleton');
-                    if (!target || !window.turnstile) return;
+                    if (!target) return;
+
+                    scheduleTurnstileWatchdog();
+
+                    if (!window.turnstile || typeof window.turnstile.render !== 'function') {
+                        if (skeleton) {
+                            skeleton.style.display = 'flex';
+                        }
+                        window.tbsEnsureTurnstileScript(forceRemount)
+                            .then(function() {
+                                renderTurnstileWidget(forceRemount);
+                            })
+                            .catch(function() {
+                                scheduleTurnstileAutoRecovery('script_unavailable');
+                            });
+                        return;
+                    }
 
                     try {
-                        if (window.tbsTurnstileWidgetId !== null) {
+                        const hasIframe = Boolean(target.querySelector('iframe'));
+                        const sameMountedWidget = !forceRemount
+                            && hasIframe
+                            && window.tbsTurnstileWidgetId !== null
+                            && target.dataset.widgetId === String(window.tbsTurnstileWidgetId);
+
+                        if (sameMountedWidget) {
                             window.turnstile.reset(window.tbsTurnstileWidgetId);
                         } else {
-                            window.tbsTurnstileWidgetId = window.turnstile.render('#turnstile-widget', {
-                                sitekey: '{{ $turnstileSiteKey ?? "1x00000000000000000000AA" }}',
+                            if (window.tbsTurnstileWidgetId !== null && typeof window.turnstile.remove === 'function') {
+                                try {
+                                    window.turnstile.remove(window.tbsTurnstileWidgetId);
+                                } catch (removeErr) {}
+                                window.tbsTurnstileWidgetId = null;
+                            }
+                            target.innerHTML = '';
+                            const sitekey = target.dataset.sitekey || '{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : "1x00000000000000000000AA" }}';
+                            const widgetId = window.turnstile.render(target, {
+                                sitekey: sitekey,
                                 callback: onTurnstileSuccess,
                                 'error-callback': onTurnstileError,
                                 'expired-callback': onTurnstileExpired,
+                                'timeout-callback': onTurnstileTimeout,
+                                retry: 'auto',
+                                'retry-interval': 1500,
+                                'refresh-expired': 'auto',
+                                'refresh-timeout': 'auto',
                                 theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                                 appearance: 'always'
                             });
+                            window.tbsTurnstileWidgetId = widgetId;
+                            target.dataset.widgetId = String(widgetId);
                         }
+
                         if (skeleton) {
-                            setTimeout(() => { skeleton.style.display = 'none'; }, 200);
+                            setTimeout(function() {
+                                skeleton.style.display = 'none';
+                            }, 150);
                         }
                     } catch (err) {
                         console.warn('Turnstile render notice:', err);
+                        scheduleTurnstileAutoRecovery('render_exception');
                     }
                 }
 
-                window.onTurnstileLoaded = function() {
-                    renderTurnstileWidget();
+                window.tbsInitTurnstile = function(forceRemount = false) {
+                    const target = document.getElementById('turnstile-widget');
+                    if (!target) return;
+                    renderTurnstileWidget(forceRemount);
                 };
 
-                window.reloadTurnstileWidget = function() {
+                window.onTurnstileLoaded = function() {
+                    renderTurnstileWidget(false);
+                };
+
+                window.reloadTurnstileWidget = function(manualClick = true) {
+                    clearTurnstileTimers();
+                    if (manualClick) {
+                        window.tbsTurnstileAutoRetries = 0;
+                    }
                     const skeleton = document.getElementById('turnstile-skeleton');
                     if (skeleton) {
                         skeleton.style.display = 'flex';
                         skeleton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-600"></i> <span>Verificatie opnieuw laden...</span>';
                     }
-                    if (window.turnstile && window.tbsTurnstileWidgetId !== null) {
-                        window.turnstile.reset(window.tbsTurnstileWidgetId);
-                        setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, 400);
-                    } else {
-                        renderTurnstileWidget();
+                    const statusText = document.getElementById('turnstile-status-text');
+                    if (statusText) {
+                        statusText.innerHTML = 'Bevestig via de Turnstile verificatie dat je een echte speler bent om contanten te kunnen stelen op de luchtplaats.';
                     }
+                    window.tbsEnsureTurnstileScript(!window.turnstile)
+                        .then(function() {
+                            renderTurnstileWidget(true);
+                        })
+                        .catch(function() {
+                            scheduleTurnstileAutoRecovery('manual_reload_failed');
+                        });
                 };
 
                 window.onTurnstileSuccess = onTurnstileSuccess;
+                window.onTurnstileError = onTurnstileError;
+                window.onTurnstileExpired = onTurnstileExpired;
+                window.onTurnstileTimeout = onTurnstileTimeout;
 
-                // If turnstile script was already cached/loaded, mount immediately
                 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                    setTimeout(() => { if (window.turnstile) renderTurnstileWidget(); }, 100);
+                    setTimeout(function() { window.tbsInitTurnstile(false); }, 50);
                 } else {
                     document.addEventListener('DOMContentLoaded', function() {
-                        setTimeout(() => { if (window.turnstile) renderTurnstileWidget(); }, 100);
+                        setTimeout(function() { window.tbsInitTurnstile(false); }, 50);
                     });
                 }
             </script>
 
             <!-- CLOUDFLARE TURNSTILE SECURITY BANNER IF REQUIRED -->
             @if($isCaptchaRequired)
-            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoaded&render=explicit" async defer></script>
-            <div id="turnstile-container-banner" class="bg-purple-50 dark:bg-slate-800/60 border-2 border-purple-300 dark:border-purple-800/80 rounded-xl p-4 shadow-xs space-y-3 transition-colors">
+            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoaded&render=explicit" async defer data-tbs-turnstile-api="1"></script>
+            <div id="turnstile-container-banner"
+                 x-data="{}"
+                 x-init="$nextTick(() => { if (window.tbsInitTurnstile) window.tbsInitTurnstile(false); })"
+                 class="bg-purple-50 dark:bg-slate-800/60 border-2 border-purple-300 dark:border-purple-800/80 rounded-xl p-4 shadow-xs space-y-3 transition-colors">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid fa-shield-halved"></i>
@@ -383,10 +643,12 @@
                         <span>Beveiligingscontrole initialiseren...</span>
                     </div>
 
-                    <div id="turnstile-widget"></div>
+                    <div id="turnstile-widget"
+                         data-sitekey="{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : '1x00000000000000000000AA' }}"
+                         data-verify-url="{{ route('fight.turnstile.verify') }}"></div>
 
                     <div class="flex items-center justify-between w-full pt-1 text-[11px] text-slate-400">
-                        <button type="button" onclick="reloadTurnstileWidget()" class="hover:text-purple-600 dark:hover:text-purple-400 underline font-bold cursor-pointer inline-flex items-center gap-1">
+                        <button type="button" onclick="reloadTurnstileWidget(true)" class="hover:text-purple-600 dark:hover:text-purple-400 underline font-bold cursor-pointer inline-flex items-center gap-1">
                             <i class="fa-solid fa-rotate text-[10px]"></i> Ververs verificatie
                         </button>
                     </div>

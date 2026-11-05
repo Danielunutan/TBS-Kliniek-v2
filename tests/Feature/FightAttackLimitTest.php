@@ -205,4 +205,107 @@ class FightAttackLimitTest extends TestCase
         $this->assertEquals(1000 - $arenaBattle['stolen_cash'], $defender->cash);
         $this->assertEquals(100 + $arenaBattle['stolen_cash'], $attacker->cash);
     }
+
+    public function test_ajax_turnstile_verification_endpoint_clears_captcha_and_handles_retry(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $attacker = $user->character;
+        $attacker->update([
+            'energy' => 100,
+            'health' => 100,
+            'is_in_prison' => false,
+            'vip_until' => null,
+        ]);
+
+        $this->actingAs($user);
+
+        session([
+            'fight_captcha_required' => true,
+            'fight_consecutive_attacks' => 35,
+        ]);
+
+        $turnstileMock = $this->mock(TurnstileService::class);
+        $turnstileMock->shouldReceive('verify')->with('expired_token', \Mockery::any())->once()->andReturn(false);
+        $turnstileMock->shouldReceive('verify')->with('fresh_valid_token', \Mockery::any())->once()->andReturn(true);
+
+        // 1. Invalid or expired token returns 422 with retry flag and keeps captcha active
+        $failResp = $this->postJson(route('fight.turnstile.verify'), [
+            'cf-turnstile-response' => 'expired_token',
+        ]);
+        $failResp->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'retry' => true,
+            ]);
+        $this->assertTrue((bool) session('fight_captcha_required'));
+
+        // 2. Valid token clears captcha requirement immediately via AJAX
+        $okResp = $this->postJson(route('fight.turnstile.verify'), [
+            'cf-turnstile-response' => 'fresh_valid_token',
+        ]);
+        $okResp->assertOk()
+            ->assertJson([
+                'success' => true,
+            ]);
+        $this->assertFalse((bool) session('fight_captcha_required'));
+        $this->assertSame(0, (int) session('fight_consecutive_attacks'));
+    }
+
+    public function test_valid_turnstile_token_during_cooldown_is_not_wasted(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $attacker = $user->character;
+        $attacker->update([
+            'energy' => 100,
+            'health' => 100,
+            'is_in_prison' => false,
+            'vip_until' => null,
+            'daily_attacks_count' => 10,
+            'daily_attacks_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+
+        $defender = Character::where('id', '!=', $attacker->id)->first();
+        $defender->update(['is_in_prison' => false, 'protection_until' => null]);
+
+        $this->actingAs($user);
+
+        session(['fight_captcha_required' => true]);
+        app(CooldownService::class)->setCooldown($attacker, 'fight_attack', 3);
+
+        $turnstileMock = $this->mock(TurnstileService::class);
+        $turnstileMock->shouldReceive('verify')->with('single_use_valid_token', \Mockery::any())->once()->andReturn(true);
+
+        // Attack during cooldown returns cooldown message, but consumes and saves the valid Turnstile verification
+        $cooldownResponse = $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+            'cf-turnstile-response' => 'single_use_valid_token',
+        ]);
+        $cooldownResponse->assertSessionHas('error');
+        $this->assertStringContainsString('Even ademhalen', session('error'));
+        $this->assertFalse((bool) session('fight_captcha_required'));
+
+        // Subsequent attack after cooldown succeeds without needing another Turnstile token
+        app(CooldownService::class)->clearCooldown($attacker, 'fight_attack');
+        $attackResponse = $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+        ]);
+        $attackResponse->assertRedirect(route('fight.arena', $defender));
+    }
+
+    public function test_fight_index_renders_turnstile_auto_recovery_hooks_when_required(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $user->character->update(['vip_until' => null]);
+        $this->actingAs($user);
+
+        session(['fight_captcha_required' => true]);
+        config(['services.turnstile.site_key' => '']);
+
+        $response = $this->get(route('fight.index'));
+        $response->assertOk()
+            ->assertSee('Cloudflare Turnstile Zaalwacht Controle')
+            ->assertSee('data-sitekey="1x00000000000000000000AA"', false)
+            ->assertSee('scheduleTurnstileAutoRecovery', false)
+            ->assertSee('tbsEnsureTurnstileScript', false);
+    }
 }

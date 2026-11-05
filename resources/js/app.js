@@ -40,6 +40,9 @@ document.addEventListener('turbo:load', () => {
     if (typeof window.tbsRefreshStats === 'function') {
         window.tbsRefreshStats();
     }
+    if (typeof window.tbsInitTurnstile === 'function' && document.getElementById('turnstile-widget')) {
+        window.tbsInitTurnstile(false);
+    }
 });
 
 // Initialize Alpine
@@ -327,6 +330,9 @@ if (!window.tbsFormInterceptorInitialized) {
                             if (window.Alpine && window.Alpine.initTree) {
                                 window.Alpine.initTree(curMain);
                             }
+                            if (typeof window.tbsInitTurnstile === 'function' && curMain.querySelector('#turnstile-widget')) {
+                                window.tbsInitTurnstile(true);
+                            }
                             window.scrollTo({ top: savedScrollY, behavior: 'instant' });
                         }
                     }
@@ -361,6 +367,9 @@ if (!window.tbsFormInterceptorInitialized) {
                 curMain.innerHTML = newMain.innerHTML;
                 if (window.Alpine && window.Alpine.initTree) {
                     window.Alpine.initTree(curMain);
+                }
+                if (typeof window.tbsInitTurnstile === 'function' && curMain.querySelector('#turnstile-widget')) {
+                    window.tbsInitTurnstile(true);
                 }
                 window.scrollTo({ top: savedScrollY, behavior: 'instant' });
             }

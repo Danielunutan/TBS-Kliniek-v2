@@ -65,7 +65,7 @@ class FightController extends Controller
         // Check if captcha is required (only for non-VIPs if session flag is set)
         $isCaptchaRequired = ! $character->isVip() && (bool) session('fight_captcha_required', false);
 
-        $turnstileSiteKey = config('services.turnstile.site_key');
+        $turnstileSiteKey = trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA';
 
         $sort = $request->query('sort', 'respect');
 
@@ -337,6 +337,45 @@ class FightController extends Controller
         return $battle;
     }
 
+    /**
+     * Verify a Cloudflare Turnstile token immediately via AJAX and clear the captcha requirement.
+     */
+    public function verifyTurnstile(Request $request): JsonResponse
+    {
+        $character = Auth::user()->character;
+
+        if ($character->isVip() || ! session('fight_captcha_required')) {
+            session()->forget('fight_captcha_required');
+            session(['fight_consecutive_attacks' => 0]);
+
+            return response()->json([
+                'success' => true,
+                'already_verified' => true,
+                'message' => 'Zaalwacht controle is al voltooid.',
+            ]);
+        }
+
+        $turnstileToken = $request->input('cf-turnstile-response')
+            ?: $request->input('token')
+            ?: $request->header('X-Turnstile-Token');
+
+        if (! $this->turnstileService->verify(is_string($turnstileToken) ? $turnstileToken : null, $request->ip())) {
+            return response()->json([
+                'success' => false,
+                'retry' => true,
+                'message' => 'De Turnstile verificatie kon niet worden gevalideerd. De controle wordt automatisch vernieuwd.',
+            ], 422);
+        }
+
+        session()->forget('fight_captcha_required');
+        session(['fight_consecutive_attacks' => 0]);
+
+        return response()->json([
+            'success' => true,
+            'message' => '🛡️ Zaalwacht controle voltooid! Je kunt direct weer contanten stelen op de luchtplaats.',
+        ]);
+    }
+
     public function attack(Request $request): RedirectResponse
     {
         $attacker = Auth::user()->character;
@@ -347,6 +386,21 @@ class FightController extends Controller
         }
 
         $this->energy->refresh($attacker);
+
+        // Consume a valid Turnstile token immediately so a single-use token is never wasted if cooldown or isolation checks trigger.
+        $turnstileVerifiedInRequest = false;
+        $turnstileAttemptedInRequest = false;
+        if (! $attacker->isVip() && session('fight_captcha_required')) {
+            $submittedToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
+            if (is_string($submittedToken) && trim($submittedToken) !== '') {
+                $turnstileAttemptedInRequest = true;
+                if ($this->turnstileService->verify($submittedToken, $request->ip())) {
+                    $turnstileVerifiedInRequest = true;
+                    session()->forget('fight_captcha_required');
+                    session(['fight_consecutive_attacks' => 0]);
+                }
+            }
+        }
 
         if ($attacker->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand beroven!');
@@ -388,10 +442,14 @@ class FightController extends Controller
         }
 
         // 3. Cloudflare Turnstile Captcha check if required (VIPs are exempt)
-        if (! $attacker->isVip() && session('fight_captcha_required')) {
+        if (! $attacker->isVip() && session('fight_captcha_required') && ! $turnstileVerifiedInRequest) {
             $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
 
-            if (! $this->turnstileService->verify($turnstileToken, $request->ip())) {
+            $isValid = $turnstileAttemptedInRequest
+                ? false
+                : $this->turnstileService->verify(is_string($turnstileToken) ? $turnstileToken : null, $request->ip());
+
+            if (! $isValid) {
                 return redirect()->route('fight.index')->with('error', '🛡️ Zaalwacht controle vereist! Bevestig via de Cloudflare Turnstile verificatie op de luchtplaats dat je een echte speler bent om te kunnen beroven.');
             }
 

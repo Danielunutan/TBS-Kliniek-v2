@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -25,11 +26,14 @@ class TurnstileService
         }
 
         try {
-            $response = Http::asForm()->timeout(5)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-                'secret' => $secret,
-                'response' => $token,
-                'remoteip' => $ip ?? request()->ip(),
-            ]);
+            $response = Http::asForm()
+                ->timeout(5)
+                ->retry(2, 150, fn (\Throwable $exception): bool => $exception instanceof ConnectionException, throw: false)
+                ->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                    'secret' => $secret,
+                    'response' => $token,
+                    'remoteip' => $ip ?? request()->ip(),
+                ]);
 
             if ($response->successful()) {
                 return $response->json('success') === true;

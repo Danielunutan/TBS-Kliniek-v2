@@ -449,6 +449,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/luchtplaats/arena/{defender}', [FightController::class, 'arena'])->name('fight.arena');
     Route::post('/luchtplaats/arena/{defender}/resolve', [FightController::class, 'resolveArena'])->name('fight.arena.resolve');
     Route::post('/luchtplaats/attack', [FightController::class, 'attack'])->middleware('throttle:60,1')->name('fight.attack');
+    Route::post('/luchtplaats/verifieer-turnstile', [FightController::class, 'verifyTurnstile'])->middleware('throttle:30,1')->name('fight.turnstile.verify');
 
     // Bank & Financieel Centrum (Geldmaat)
     Route::get('/bank', [BankController::class, 'index'])->name('bank.index');
