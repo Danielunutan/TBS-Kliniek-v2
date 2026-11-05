@@ -86,6 +86,24 @@ class ReplyTicketCommand extends Command
                 ."Veel succes en speelplezier in de kliniek!\n\n"
                 ."Met vriendelijke groet,\n"
                 .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-UPB-767' || $ticket->id === 767 || (str_contains(strtolower($ticket->subject), 'terminal') && (str_contains(strtolower($ticket->subject), 'kliniek') || str_contains(strtolower($ticket->character?->name ?? ''), 'arjan')))) {
+            $replyMessage = "Beste {$ticket->character?->name},\n\n"
+                ."Ontzettend bedankt voor je melding via dit ticket! 💻⚡\n\n"
+                ."Je had helemaal gelijk: bij Puzzel 2 van de Kliniek Terminal (de Cypher Poorten Decryptie) trad een probleem op waardoor de plusknoppen (+) op sommige apparaten niet goed reageerden, en als de timer afliep raakten de poortfrequenties gedesynchroniseerd. Daardoor kon je de datakanalen inderdaad niet vol krijgen en liep de hack vast.\n\n"
+                ."We hebben dit zojuist direct grondig aangepakt en geoptimaliseerd in de TBS Kliniek Terminal (/hacking):\n\n"
+                ."1. **Verbeterde Plusknoppen & Touch Ergonomie**:\n"
+                ."   - De plus- en minknoppen zijn vergroot met een ruime interactieve touch-zone en responsieve klik/tik-feedback.\n"
+                ."   - Snelle tikken op mobiel worden nu altijd direct geregistreerd zonder vertraging of ongewenste schermzoom.\n\n"
+                ."2. **Nieuwe 'VOL' Knop per Datakanaal**:\n"
+                ."   - Naast de plus- en minknoppen heeft elk kanaal nu direct een eigen **'VOL'** knop waarmee je de poort met één klik direct exact op zijn vereiste doelfrequentie zet.\n\n"
+                ."3. **Nieuwe 'Alles Vol Zetten (Auto-Sync)' Knop**:\n"
+                ."   - Precies zoals je vroeg: onder de 4 datakanalen vind je nu direct de knop **'⚡ Alles Vol Zetten (Auto-Sync)'**! Hiermee synchroniseer je alle 4 de poorten in één enkele klik direct naar 100% en vlieg je soepel door naar Puzzel 3 (Root Access)!\n\n"
+                ."4. **Reset- & Doelwaarde Bescherming**:\n"
+                ."   - De frequenties stoppen nu altijd exact op hun vereiste doelfrequentie (45, 80, 90 en 60 MHz) en kunnen nooit meer voorbij het doel schieten.\n"
+                ."   - Als de alarmtimer afloopt, resetten alle waarden weer netjes naar de beginstand zodat je altijd opnieuw kunt proberen.\n\n"
+                ."Nogmaals enorm bedankt voor het melden van deze bug. Je kunt nu direct weer naar **'Kliniek Terminal'** in het menu om je dagelijkse cyber hack uit te voeren en te draaien aan de Hacker Spinner!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
         } elseif ($ticketNumber === 'TBS-GE4-318' || $ticket->id === 14 || str_contains(strtolower($ticket->subject), 'hacking') || str_contains(strtolower($ticket->subject), 'computer')) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Wat een fenomenaal en vernieuwend idee voor TBS Kliniek! Een echte interactieve cyber-terminal met minigames en een beloningsrad sluit perfect aan bij de mysterieuze, clandestiene sfeer van de kliniek. We hebben jouw complete concept direct ontworpen, geprogrammeerd en zojuist live gezet onder 'Bonus & Kluizen' -> 'Kliniek Terminal' (/hacking)! 💻⚡🔓\n\n"

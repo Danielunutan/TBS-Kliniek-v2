@@ -351,4 +351,82 @@ class SupportTicketTest extends TestCase
         $this->assertStringContainsString('Anti-Pestprotocol', $ticket->messages->first()->message);
         $this->assertStringContainsString('Beste Dennis', $ticket->messages->first()->message);
     }
+
+    public function test_auto_reply_command_answers_kliniek_terminal_ticket(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'email' => 'danielunutan@icloud.com',
+            'role' => 'admin',
+            'is_staff' => true,
+        ]);
+        $this->createCharacter($admin, ['name' => 'Daniel']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, ['name' => 'OOHPA Arjan']);
+
+        $ticket = SupportTicket::create([
+            'user_id' => $user->id,
+            'character_id' => $character->id,
+            'ticket_number' => 'TBS-UPB-767',
+            'subject' => 'kliniek terminal',
+            'category' => 'bug',
+            'priority' => 'normaal',
+            'status' => 'open',
+        ]);
+
+        $exitCode = $this->artisan('ticket:auto-reply', ['ticket_number' => 'TBS-UPB-767'])->run();
+        $this->assertSame(0, $exitCode);
+
+        $ticket->refresh();
+        $this->assertSame('beantwoord', $ticket->status);
+        $this->assertCount(1, $ticket->messages);
+        $this->assertTrue($ticket->messages->first()->is_staff);
+        $this->assertStringContainsString('Beste OOHPA Arjan', $ticket->messages->first()->message);
+        $this->assertStringContainsString('Alles Vol Zetten', $ticket->messages->first()->message);
+        $this->assertStringContainsString('Kliniek Terminal', $ticket->messages->first()->message);
+    }
+
+    public function test_migration_auto_solves_kliniek_terminal_ticket(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'email' => 'danielunutan@icloud.com',
+            'role' => 'admin',
+            'is_staff' => true,
+        ]);
+        $this->createCharacter($admin, ['name' => 'Daniel']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, ['name' => 'OOHPA Arjan']);
+
+        $ticket = SupportTicket::create([
+            'user_id' => $user->id,
+            'character_id' => $character->id,
+            'ticket_number' => 'TBS-UPB-767',
+            'subject' => 'kliniek terminal',
+            'category' => 'bug',
+            'priority' => 'normaal',
+            'status' => 'open',
+        ]);
+
+        $migration = require database_path('migrations/2026_11_05_070000_auto_solve_support_ticket_tbs_upb_767.php');
+        $migration->up();
+
+        $ticket->refresh();
+        $this->assertSame('beantwoord', $ticket->status);
+        $this->assertCount(1, $ticket->messages);
+        $this->assertTrue($ticket->messages->first()->is_staff);
+        $this->assertStringContainsString('Beste OOHPA Arjan', $ticket->messages->first()->message);
+        $this->assertStringContainsString('Cypher Poorten Decryptie', $ticket->messages->first()->message);
+        $this->assertStringContainsString('Alles Vol Zetten (Auto-Sync)', $ticket->messages->first()->message);
+        $this->assertTrue($ticket->last_reply_by_staff);
+
+        // Test idempotency: calling up() again should not create duplicate reply
+        $migration->up();
+        $ticket->refresh();
+        $this->assertCount(1, $ticket->messages);
+    }
 }

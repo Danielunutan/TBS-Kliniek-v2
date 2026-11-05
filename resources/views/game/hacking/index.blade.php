@@ -168,7 +168,7 @@
                         <!-- 4 Sync Ports -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                             <template x-for="(port, idx) in p2Ports" :key="idx">
-                                <div class="p-3.5 rounded-xl border transition-all"
+                                <div class="p-3.5 sm:p-4 rounded-xl border transition-all select-none"
                                      :class="port.synced ? 'bg-emerald-950/40 border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-slate-900/80 border-slate-700'">
                                     <div class="flex items-center justify-between mb-2">
                                         <span class="text-xs font-black text-white" x-text="port.name"></span>
@@ -177,29 +177,42 @@
                                             <span x-text="port.synced ? 'LOCKED' : 'DESYNC'"></span>
                                         </span>
                                     </div>
-                                    <div class="space-y-1.5">
+                                    <div class="space-y-2">
                                         <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                                            <span>Frequentie: <span class="text-emerald-400" x-text="port.current + ' MHz'"></span></span>
-                                            <span>Doel: <span class="text-amber-300" x-text="port.target + ' MHz'"></span></span>
+                                            <span>Frequentie: <span class="text-emerald-400 font-bold" x-text="port.current + ' MHz'"></span></span>
+                                            <span>Doel: <span class="text-amber-300 font-bold" x-text="port.target + ' MHz'"></span></span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <button type="button" @click="adjustPort(idx, -5)" :disabled="port.synced"
-                                                    class="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">-</button>
-                                            <div class="flex-1 bg-slate-950 rounded-full h-2.5 border border-slate-700 overflow-hidden relative">
-                                                <div class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full rounded-full transition-all"
+                                                    class="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black text-sm disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition select-none touch-manipulation flex items-center justify-center shadow-xs"
+                                                    title="Frequentie -5 MHz">-</button>
+                                            <div class="flex-1 bg-slate-950 rounded-full h-3 border border-slate-700 overflow-hidden relative">
+                                                <div class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full rounded-full transition-all duration-150"
                                                      :style="'width: ' + Math.min(100, Math.max(0, (port.current / port.target) * 100)) + '%'"></div>
                                             </div>
-                                            <button type="button" @click="adjustPort(idx, +5)" :disabled="port.synced"
-                                                    class="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">+</button>
+                                            <button type="button" @click="adjustPort(idx, 5)" :disabled="port.synced"
+                                                    class="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black text-sm disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition select-none touch-manipulation flex items-center justify-center shadow-xs"
+                                                    title="Frequentie +5 MHz">+</button>
+                                            <button type="button" @click="setPortMax(idx)" :disabled="port.synced"
+                                                    class="px-2.5 h-10 min-h-[40px] rounded-xl bg-emerald-600/30 hover:bg-emerald-500 active:scale-95 text-emerald-300 hover:text-slate-950 border border-emerald-500/40 text-[10px] font-black uppercase tracking-wider disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition select-none touch-manipulation flex items-center justify-center shadow-xs"
+                                                    title="Direct synchroniseren op doelwaarde">VOL</button>
                                         </div>
                                     </div>
                                 </div>
                             </template>
                         </div>
 
-                        <p class="text-center text-[11px] text-slate-400 italic">
-                            Stel de frequenties van alle 4 de poorten af op exact hun doelwaarde om de tunnel te openen.
-                        </p>
+                        <!-- Quick Action & Helpful Notice -->
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <button type="button" @click="syncAllPorts()" :disabled="p2Ports.every(p => p.synced)"
+                                    class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black text-xs uppercase tracking-wider transition duration-150 shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2 cursor-pointer select-none touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Alles Vol Zetten (Auto-Sync)</span>
+                            </button>
+                            <p class="text-[11px] text-slate-400 italic text-center sm:text-right">
+                                Stel poorten af met <span class="text-white font-bold">+</span> of <span class="text-emerald-400 font-bold">VOL</span>, of gebruik direct <span class="text-emerald-400 font-bold">Alles Vol Zetten</span>.
+                            </p>
+                        </div>
                     </div>
 
                     <!-- PUZZLE 3: HOOFDSERVER ROOT ACCESS (CIRCUIT OVERRIDE) -->
@@ -547,7 +560,11 @@ function tbsHackingTerminal(config) {
                 this.p1UserStep = 0;
                 this.initP1Grid();
             } else if (this.stage == 2) {
-                this.p2Ports.forEach(p => p.synced = false);
+                const initialFreqs = [20, 50, 30, 15];
+                this.p2Ports.forEach((p, i) => {
+                    p.current = initialFreqs[i] ?? 20;
+                    p.synced = false;
+                });
             } else if (this.stage == 3) {
                 this.p3Cores.forEach(c => c.active = false);
             }
@@ -582,15 +599,49 @@ function tbsHackingTerminal(config) {
 
         // --- PUZZLE 2 LOGIC ---
         adjustPort(idx, delta) {
-            const port = this.p2Ports[idx];
-            port.current = Math.min(100, Math.max(0, port.current + delta));
+            const port = this.p2Ports[Number(idx)];
+            if (!port || port.synced) return;
+
+            if (delta > 0 && port.current < port.target && port.current + delta >= port.target) {
+                port.current = port.target;
+            } else if (delta < 0 && port.current > port.target && port.current + delta <= port.target) {
+                port.current = port.target;
+            } else {
+                port.current = Math.min(100, Math.max(0, port.current + delta));
+            }
+
             if (port.current === port.target) {
                 port.synced = true;
+                if (typeof window.tbsVibrate === 'function') window.tbsVibrate(25);
                 this.statusLog = `${port.name} poort gesynchroniseerd op ${port.target} MHz!`;
                 if (this.p2Ports.every(p => p.synced)) {
                     this.submitPuzzle(2);
                 }
+            } else if (typeof window.tbsVibrate === 'function') {
+                window.tbsVibrate(15);
             }
+        },
+
+        setPortMax(idx) {
+            const port = this.p2Ports[Number(idx)];
+            if (!port || port.synced) return;
+            port.current = port.target;
+            port.synced = true;
+            if (typeof window.tbsVibrate === 'function') window.tbsVibrate(25);
+            this.statusLog = `${port.name} direct gekoppeld op ${port.target} MHz!`;
+            if (this.p2Ports.every(p => p.synced)) {
+                this.submitPuzzle(2);
+            }
+        },
+
+        syncAllPorts() {
+            this.p2Ports.forEach(port => {
+                port.current = port.target;
+                port.synced = true;
+            });
+            if (typeof window.tbsVibrate === 'function') window.tbsVibrate([25, 40, 25]);
+            this.statusLog = 'Alle 4 datakanalen succesvol gesynchroniseerd op doelwaarde!';
+            this.submitPuzzle(2);
         },
 
         // --- PUZZLE 3 LOGIC ---

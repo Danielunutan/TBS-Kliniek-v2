@@ -59,6 +59,9 @@ class Pass10Bucket11AuditTest extends TestCase
         $this->assertStringContainsString('Cyber Inbraak & Mainframe Root', $view);
         $this->assertStringContainsString('"1"', $view);
         $this->assertStringContainsString('Zojuist', $view);
+        $this->assertStringContainsString('Alles Vol Zetten', $view);
+        $this->assertStringContainsString('setPortMax', $view);
+        $this->assertStringContainsString('syncAllPorts', $view);
     }
 
     public function test_halloween_quests_and_shop_render_with_guards(): void
