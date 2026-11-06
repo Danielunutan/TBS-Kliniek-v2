@@ -10,8 +10,8 @@
     $safeAvatar = preg_match('~^assets/characters/avatar_(fe)?male_[1-6]\.jpg$~', (string) old('avatar')) ? old('avatar') : 'assets/characters/avatar_male_1.jpg';
     $defaultTab = (request()->routeIs('register') || request('tab') === 'register' || $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || $errors->has('turnstile') || old('username') || request()->has('ref') || session()->has('referral_name')) ? 'register' : 'login';
     $turnstileSiteKey = !empty($turnstileSiteKey) ? $turnstileSiteKey : (trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA');
-    $turnstileLoginCdata = $turnstileLoginCdata ?? \App\Services\TurnstileService::generateCdata('auth_login', request()->ip() ?: 'guest');
-    $turnstileRegisterCdata = $turnstileRegisterCdata ?? \App\Services\TurnstileService::generateCdata('auth_register', request()->ip() ?: 'guest');
+    $turnstileLoginCdata = $turnstileLoginCdata ?? \App\Services\TurnstileService::generateCdata('auth_login', 'guest');
+    $turnstileRegisterCdata = $turnstileRegisterCdata ?? \App\Services\TurnstileService::generateCdata('auth_register', 'guest');
 @endphp
 <div class="max-w-6xl xl:max-w-7xl mx-auto space-y-6" x-data="{ 
     tab: @js($defaultTab), 
@@ -673,12 +673,61 @@
         const form = e.target;
         if (!form || form.tagName !== 'FORM') return;
         const loginInput = form.querySelector('#turnstile-login-token');
-        if (loginInput && !loginInput.value && window.turnstile && typeof window.turnstile.getResponse === 'function' && window.tbsAuthTurnstileWidgets.login !== null) {
-            try { loginInput.value = window.turnstile.getResponse(window.tbsAuthTurnstileWidgets.login) || ''; } catch (err) {}
-        }
         const registerInput = form.querySelector('#turnstile-register-token');
-        if (registerInput && !registerInput.value && window.turnstile && typeof window.turnstile.getResponse === 'function' && window.tbsAuthTurnstileWidgets.register !== null) {
-            try { registerInput.value = window.turnstile.getResponse(window.tbsAuthTurnstileWidgets.register) || ''; } catch (err) {}
+        const mode = loginInput ? 'login' : (registerInput ? 'register' : null);
+        const tokenInput = loginInput || registerInput;
+        if (!mode || !tokenInput) return;
+
+        const readToken = function() {
+            if (tokenInput.value) return tokenInput.value;
+            const wId = window.tbsAuthTurnstileWidgets ? window.tbsAuthTurnstileWidgets[mode] : null;
+            if (window.turnstile && typeof window.turnstile.getResponse === 'function' && wId !== null) {
+                try {
+                    const resp = window.turnstile.getResponse(wId) || '';
+                    if (resp) tokenInput.value = resp;
+                    return resp;
+                } catch (err) {}
+            }
+            return '';
+        };
+
+        if (readToken()) {
+            return;
+        }
+
+        // If Turnstile is active in the browser and still verifying, wait up to 3.5s before submitting so autofill users never lose their typed form
+        if (window.turnstile && form.dataset.tbsWaitingTurnstile !== '1') {
+            e.preventDefault();
+            form.dataset.tbsWaitingTurnstile = '1';
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const origHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> <span>Beveiliging controleren...</span>';
+            }
+            const started = Date.now();
+            const waitTimer = setInterval(function() {
+                if (readToken()) {
+                    clearInterval(waitTimer);
+                    form.dataset.tbsWaitingTurnstile = '0';
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origHtml;
+                    }
+                    HTMLFormElement.prototype.submit.call(form);
+                } else if (Date.now() - started > 3500) {
+                    clearInterval(waitTimer);
+                    form.dataset.tbsWaitingTurnstile = '0';
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origHtml;
+                    }
+                    const widgetBox = document.getElementById('turnstile-' + mode + '-widget');
+                    if (widgetBox && typeof widgetBox.scrollIntoView === 'function') {
+                        widgetBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }, 100);
         }
     });
 

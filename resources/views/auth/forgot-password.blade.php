@@ -62,7 +62,7 @@
 
             @php
                 $turnstileSiteKey = !empty($turnstileSiteKey) ? $turnstileSiteKey : (trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA');
-                $turnstileForgotCdata = $turnstileForgotCdata ?? \App\Services\TurnstileService::generateCdata('auth_forgot_password', request()->ip() ?: 'guest');
+                $turnstileForgotCdata = $turnstileForgotCdata ?? \App\Services\TurnstileService::generateCdata('auth_forgot_password', 'guest');
             @endphp
 
             <form action="{{ route('password.email') }}" method="POST" class="space-y-4">
@@ -259,8 +259,52 @@
             const form = e.target;
             if (!form || form.tagName !== 'FORM') return;
             const forgotInput = form.querySelector('#turnstile-forgot-token');
-            if (forgotInput && !forgotInput.value && window.turnstile && typeof window.turnstile.getResponse === 'function' && window.tbsForgotTurnstileWidgetId !== null) {
-                try { forgotInput.value = window.turnstile.getResponse(window.tbsForgotTurnstileWidgetId) || ''; } catch (err) {}
+            if (!forgotInput) return;
+
+            const readToken = function() {
+                if (forgotInput.value) return forgotInput.value;
+                if (window.turnstile && typeof window.turnstile.getResponse === 'function' && window.tbsForgotTurnstileWidgetId !== null) {
+                    try {
+                        const resp = window.turnstile.getResponse(window.tbsForgotTurnstileWidgetId) || '';
+                        if (resp) forgotInput.value = resp;
+                        return resp;
+                    } catch (err) {}
+                }
+                return '';
+            };
+
+            if (readToken()) {
+                return;
+            }
+
+            if (window.turnstile && form.dataset.tbsWaitingTurnstile !== '1') {
+                e.preventDefault();
+                form.dataset.tbsWaitingTurnstile = '1';
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const origHtml = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> <span>Beveiliging controleren...</span>';
+                }
+                const started = Date.now();
+                const waitTimer = setInterval(function() {
+                    if (readToken()) {
+                        clearInterval(waitTimer);
+                        form.dataset.tbsWaitingTurnstile = '0';
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = origHtml;
+                        }
+                        HTMLFormElement.prototype.submit.call(form);
+                    } else if (Date.now() - started > 3500) {
+                        clearInterval(waitTimer);
+                        form.dataset.tbsWaitingTurnstile = '0';
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = origHtml;
+                        }
+                    }
+                }, 100);
             }
         });
 

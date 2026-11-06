@@ -67,9 +67,8 @@ class AuthController extends Controller
         }
 
         $turnstileSiteKey = trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA';
-        $clientIp = $request->ip() ?: 'guest';
-        $turnstileLoginCdata = TurnstileService::generateCdata('auth_login', $clientIp);
-        $turnstileRegisterCdata = TurnstileService::generateCdata('auth_register', $clientIp);
+        $turnstileLoginCdata = TurnstileService::generateCdata('auth_login', 'guest');
+        $turnstileRegisterCdata = TurnstileService::generateCdata('auth_register', 'guest');
 
         return view('auth.login', compact(
             'totalPlayers',
@@ -350,7 +349,7 @@ class AuthController extends Controller
         $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
         $request->attributes->set('turnstile_context', [
             'action' => 'auth_login',
-            'cdata' => TurnstileService::generateCdata('auth_login', $request->ip() ?: 'guest'),
+            'cdata' => TurnstileService::generateCdata('auth_login', 'guest'),
         ]);
 
         if (! app(TurnstileService::class)->verify(is_string($turnstileToken) ? $turnstileToken : null, $request->ip())) {
@@ -422,7 +421,7 @@ class AuthController extends Controller
         $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
         $request->attributes->set('turnstile_context', [
             'action' => 'auth_register',
-            'cdata' => TurnstileService::generateCdata('auth_register', $clientIp ?: 'guest'),
+            'cdata' => TurnstileService::generateCdata('auth_register', 'guest'),
         ]);
 
         if (! app(TurnstileService::class)->verify(is_string($turnstileToken) ? $turnstileToken : null, $clientIp)) {
@@ -574,7 +573,7 @@ class AuthController extends Controller
     public function showForgotPassword(Request $request): View
     {
         $turnstileSiteKey = trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA';
-        $turnstileForgotCdata = TurnstileService::generateCdata('auth_forgot_password', $request->ip() ?: 'guest');
+        $turnstileForgotCdata = TurnstileService::generateCdata('auth_forgot_password', 'guest');
 
         return view('auth.forgot-password', compact('turnstileSiteKey', 'turnstileForgotCdata'));
     }
@@ -595,7 +594,7 @@ class AuthController extends Controller
         $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
         $request->attributes->set('turnstile_context', [
             'action' => 'auth_forgot_password',
-            'cdata' => TurnstileService::generateCdata('auth_forgot_password', $request->ip() ?: 'guest'),
+            'cdata' => TurnstileService::generateCdata('auth_forgot_password', 'guest'),
         ]);
 
         if (! app(TurnstileService::class)->verify(is_string($turnstileToken) ? $turnstileToken : null, $request->ip())) {
