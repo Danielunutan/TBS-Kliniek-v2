@@ -139,23 +139,11 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Login) -->
-                        <div class="w-full space-y-1.5">
-                            <div id="turnstile-login-widget"
-                                 data-sitekey="{{ $turnstileSiteKey }}"
-                                 data-action="auth_login"
-                                 data-cdata="{{ $turnstileLoginCdata }}"
-                                 class="w-full min-h-[65px] rounded-xl overflow-hidden flex items-center justify-center [&>div]:!w-full [&_iframe]:!w-full [&_iframe]:!max-w-full"></div>
-                            <div id="turnstile-login-status" class="flex items-center justify-between px-1 text-[11px] text-slate-500 dark:text-slate-400">
-                                <span id="turnstile-login-status-text" class="flex items-center gap-1.5 font-medium">
-                                    <i class="fa-solid fa-shield-halved text-purple-500"></i>
-                                    <span>Kliniek Zaalwacht beveiliging</span>
-                                </span>
-                                <button type="button" onclick="window.resetAuthTurnstile && window.resetAuthTurnstile('login')" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold inline-flex items-center gap-1 transition cursor-pointer">
-                                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
-                                    <span>Ververs verificatie</span>
-                                </button>
-                            </div>
-                        </div>
+                        <div id="turnstile-login-widget"
+                             data-sitekey="{{ $turnstileSiteKey }}"
+                             data-action="auth_login"
+                             data-cdata="{{ $turnstileLoginCdata }}"
+                             class="flex justify-center min-h-[65px]"></div>
 
                         <!-- Submit Button -->
                         <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
@@ -355,23 +343,11 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Register) -->
-                        <div class="w-full space-y-1.5">
-                            <div id="turnstile-register-widget"
-                                 data-sitekey="{{ $turnstileSiteKey }}"
-                                 data-action="auth_register"
-                                 data-cdata="{{ $turnstileRegisterCdata }}"
-                                 class="w-full min-h-[65px] rounded-xl overflow-hidden flex items-center justify-center [&>div]:!w-full [&_iframe]:!w-full [&_iframe]:!max-w-full"></div>
-                            <div id="turnstile-register-status" class="flex items-center justify-between px-1 text-[11px] text-slate-500 dark:text-slate-400">
-                                <span id="turnstile-register-status-text" class="flex items-center gap-1.5 font-medium">
-                                    <i class="fa-solid fa-shield-halved text-purple-500"></i>
-                                    <span>Kliniek Zaalwacht beveiliging</span>
-                                </span>
-                                <button type="button" onclick="window.resetAuthTurnstile && window.resetAuthTurnstile('register')" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold inline-flex items-center gap-1 transition cursor-pointer">
-                                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
-                                    <span>Ververs verificatie</span>
-                                </button>
-                            </div>
-                        </div>
+                        <div id="turnstile-register-widget"
+                             data-sitekey="{{ $turnstileSiteKey }}"
+                             data-action="auth_register"
+                             data-cdata="{{ $turnstileRegisterCdata }}"
+                             class="flex justify-center min-h-[65px]"></div>
 
                         <!-- 4. SUBMIT BUTTON -->
                         <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
@@ -575,7 +551,6 @@
                 sitekey: sitekey,
                 action: actionName,
                 cData: cdataVal,
-                size: 'flexible',
                 language: 'nl',
                 theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                 appearance: 'always',

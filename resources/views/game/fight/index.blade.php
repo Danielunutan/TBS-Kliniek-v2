@@ -547,7 +547,6 @@
                                 sitekey: sitekey,
                                 action: actionName,
                                 cData: cdataVal,
-                                size: 'flexible',
                                 language: 'nl',
                                 callback: onTurnstileSuccess,
                                 'error-callback': onTurnstileError,
@@ -643,8 +642,8 @@
                     </div>
                 </div>
 
-                <div class="w-full space-y-1.5">
-                    <div id="turnstile-skeleton" class="flex items-center gap-2 text-xs text-slate-500 font-semibold py-2 px-1">
+                <div class="w-full space-y-2">
+                    <div id="turnstile-skeleton" class="flex items-center justify-center gap-2 text-xs text-slate-500 font-semibold py-2 px-1">
                         <i class="fa-solid fa-circle-notch fa-spin text-purple-600"></i>
                         <span>Beveiligingscontrole initialiseren...</span>
                     </div>
@@ -654,18 +653,7 @@
                          data-action="luchtplaats_attack"
                          data-cdata="{{ $turnstileCdata ?? '' }}"
                          data-verify-url="{{ route('fight.turnstile.verify') }}"
-                         class="w-full min-h-[65px] rounded-xl overflow-hidden flex items-center justify-center [&>div]:!w-full [&_iframe]:!w-full [&_iframe]:!max-w-full"></div>
-
-                    <div class="flex items-center justify-between px-1 text-[11px] text-slate-500 dark:text-slate-400">
-                        <span class="flex items-center gap-1.5 font-medium">
-                            <i class="fa-solid fa-shield-halved text-purple-500"></i>
-                            <span>Kliniek Zaalwacht beveiliging</span>
-                        </span>
-                        <button type="button" onclick="reloadTurnstileWidget(true)" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold cursor-pointer inline-flex items-center gap-1 transition">
-                            <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
-                            <span>Ververs verificatie</span>
-                        </button>
-                    </div>
+                         class="flex justify-center min-h-[65px]"></div>
                 </div>
             </div>
             @endif

@@ -46,6 +46,9 @@ document.addEventListener('turbo:load', () => {
     if (typeof window.tbsInitAuthTurnstile === 'function' && (document.getElementById('turnstile-login-widget') || document.getElementById('turnstile-register-widget'))) {
         window.tbsInitAuthTurnstile();
     }
+    if (typeof window.tbsMountForgotTurnstile === 'function' && document.getElementById('turnstile-forgot-widget')) {
+        window.tbsMountForgotTurnstile(false);
+    }
 });
 
 // Initialize Alpine
@@ -197,6 +200,8 @@ if (!window.tbsFormInterceptorInitialized) {
             actionAttr.includes('/chat') ||
             actionAttr.includes('/logout') ||
             actionAttr.includes('/login') ||
+            actionAttr.includes('/register') ||
+            actionAttr.includes('/wachtwoord') ||
             actionAttr.includes('/auth') ||
             form.closest('[x-data*="Messenger"]') ||
             form.closest('#chat-messages-container') ||

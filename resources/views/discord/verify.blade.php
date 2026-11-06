@@ -197,30 +197,17 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Box -->
-                        <div class="w-full space-y-1.5">
-                            <div class="cf-turnstile w-full min-h-[65px] rounded-xl overflow-hidden flex items-center justify-center [&>div]:!w-full [&_iframe]:!w-full [&_iframe]:!max-w-full" 
-                                 data-sitekey="{{ $turnstileSiteKey }}" 
-                                 data-action="discord_shield_verify"
-                                 data-cdata="{{ $turnstileCdata ?? '' }}"
-                                 data-size="flexible"
-                                 data-language="nl"
-                                 data-callback="onTurnstileSuccess"
-                                 data-expired-callback="onTurnstileExpired"
-                                 data-error-callback="onTurnstileError"
-                                 data-retry="auto"
-                                 data-refresh-expired="auto"
-                                 data-theme="auto"></div>
-                            <div class="flex items-center justify-between px-1 text-[11px] text-slate-500 dark:text-slate-400">
-                                <span class="flex items-center gap-1.5 font-medium">
-                                    <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
-                                    <span>Kliniek Zaalwacht beveiliging</span>
-                                </span>
-                                <button type="button" onclick="window.resetDiscordTurnstile && window.resetDiscordTurnstile()" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold inline-flex items-center gap-1 transition cursor-pointer">
-                                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
-                                    <span>Ververs verificatie</span>
-                                </button>
-                            </div>
-                        </div>
+                        <div class="cf-turnstile flex justify-center min-h-[65px]" 
+                             data-sitekey="{{ $turnstileSiteKey }}" 
+                             data-action="discord_shield_verify"
+                             data-cdata="{{ $turnstileCdata ?? '' }}"
+                             data-language="nl"
+                             data-callback="onTurnstileSuccess"
+                             data-expired-callback="onTurnstileExpired"
+                             data-error-callback="onTurnstileError"
+                             data-retry="auto"
+                             data-refresh-expired="auto"
+                             data-theme="auto"></div>
 
                         <!-- Error Message -->
                         <div x-show="errorMessage" x-cloak class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-800 dark:text-rose-300 text-xs font-bold flex items-start gap-3 shadow-xs">
