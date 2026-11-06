@@ -86,11 +86,13 @@
 
                 <!-- Cloudflare Turnstile Security Verification (Forgot Password) -->
                 <div class="tbs-turnstile-shell">
-                    <div id="turnstile-forgot-widget"
-                         data-sitekey="{{ $turnstileSiteKey }}"
-                         data-action="auth_forgot_password"
-                         data-cdata="{{ $turnstileForgotCdata }}"
-                         class="tbs-turnstile-frame"></div>
+                    <div class="tbs-turnstile-crop">
+                        <div id="turnstile-forgot-widget"
+                             data-sitekey="{{ $turnstileSiteKey }}"
+                             data-action="auth_forgot_password"
+                             data-cdata="{{ $turnstileForgotCdata }}"
+                             class="tbs-turnstile-frame"></div>
+                    </div>
                 </div>
 
                 <button type="submit"
@@ -124,7 +126,8 @@
             }
 
             try {
-                if (!forceRemount && container.querySelector('iframe') && window.tbsForgotTurnstileWidgetId !== null) {
+                const hasMounted = Boolean(container.querySelector('iframe') || container.childNodes.length > 0);
+                if (!forceRemount && hasMounted && window.tbsForgotTurnstileWidgetId !== null) {
                     return;
                 }
 

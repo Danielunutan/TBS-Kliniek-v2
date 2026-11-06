@@ -356,7 +356,7 @@
                         if (!target || window.tbsTurnstileVerified || window.tbsTurnstileToken) {
                             return;
                         }
-                        const hasIframe = Boolean(target.querySelector('iframe'));
+                        const hasIframe = Boolean(target.querySelector('iframe') || target.childNodes.length > 0);
                         const skeletonVisible = skeleton && skeleton.style.display !== 'none';
                         if (!hasIframe || skeletonVisible) {
                             scheduleTurnstileAutoRecovery('watchdog_timeout');
@@ -524,7 +524,7 @@
                     }
 
                     try {
-                        const hasIframe = Boolean(target.querySelector('iframe'));
+                        const hasIframe = Boolean(target.querySelector('iframe') || target.childNodes.length > 0);
                         const sameMountedWidget = !forceRemount
                             && hasIframe
                             && window.tbsTurnstileWidgetId !== null
@@ -650,12 +650,14 @@
                     </div>
 
                     <div class="tbs-turnstile-shell">
-                        <div id="turnstile-widget"
-                             data-sitekey="{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : '1x00000000000000000000AA' }}"
-                             data-action="luchtplaats_attack"
-                             data-cdata="{{ $turnstileCdata ?? '' }}"
-                             data-verify-url="{{ route('fight.turnstile.verify') }}"
-                             class="tbs-turnstile-frame"></div>
+                        <div class="tbs-turnstile-crop">
+                            <div id="turnstile-widget"
+                                 data-sitekey="{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : '1x00000000000000000000AA' }}"
+                                 data-action="luchtplaats_attack"
+                                 data-cdata="{{ $turnstileCdata ?? '' }}"
+                                 data-verify-url="{{ route('fight.turnstile.verify') }}"
+                                 class="tbs-turnstile-frame"></div>
+                        </div>
                     </div>
                 </div>
             </div>

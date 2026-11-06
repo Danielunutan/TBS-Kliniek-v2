@@ -140,11 +140,13 @@
 
                         <!-- Cloudflare Turnstile Security Verification (Login) -->
                         <div class="tbs-turnstile-shell">
-                            <div id="turnstile-login-widget"
-                                 data-sitekey="{{ $turnstileSiteKey }}"
-                                 data-action="auth_login"
-                                 data-cdata="{{ $turnstileLoginCdata }}"
-                                 class="tbs-turnstile-frame"></div>
+                            <div class="tbs-turnstile-crop">
+                                <div id="turnstile-login-widget"
+                                     data-sitekey="{{ $turnstileSiteKey }}"
+                                     data-action="auth_login"
+                                     data-cdata="{{ $turnstileLoginCdata }}"
+                                     class="tbs-turnstile-frame"></div>
+                            </div>
                         </div>
 
                         <!-- Submit Button -->
@@ -346,11 +348,13 @@
 
                         <!-- Cloudflare Turnstile Security Verification (Register) -->
                         <div class="tbs-turnstile-shell">
-                            <div id="turnstile-register-widget"
-                                 data-sitekey="{{ $turnstileSiteKey }}"
-                                 data-action="auth_register"
-                                 data-cdata="{{ $turnstileRegisterCdata }}"
-                                 class="tbs-turnstile-frame"></div>
+                            <div class="tbs-turnstile-crop">
+                                <div id="turnstile-register-widget"
+                                     data-sitekey="{{ $turnstileSiteKey }}"
+                                     data-action="auth_register"
+                                     data-cdata="{{ $turnstileRegisterCdata }}"
+                                     class="tbs-turnstile-frame"></div>
+                            </div>
                         </div>
 
                         <!-- 4. SUBMIT BUTTON -->
@@ -518,6 +522,11 @@
         const statusText = document.getElementById('turnstile-' + mode + '-status-text');
         if (!container) return;
 
+        // Do not mount while the tab is hidden (offsetWidth === 0), otherwise flexible size falls back to 300px
+        if (container.offsetWidth === 0) {
+            return;
+        }
+
         if (!window.turnstile || typeof window.turnstile.render !== 'function') {
             window.tbsEnsureAuthTurnstileScript(forceRemount)
                 .then(function() {
@@ -533,9 +542,9 @@
 
         try {
             const existingWidgetId = window.tbsAuthTurnstileWidgets[mode];
-            const hasIframe = Boolean(container.querySelector('iframe'));
+            const hasMounted = Boolean(container.querySelector('iframe') || container.childNodes.length > 0);
 
-            if (!forceRemount && hasIframe && existingWidgetId !== null && container.dataset.widgetId === String(existingWidgetId)) {
+            if (!forceRemount && hasMounted && existingWidgetId !== null && container.dataset.widgetId === String(existingWidgetId)) {
                 return;
             }
 
