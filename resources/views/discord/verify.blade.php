@@ -654,6 +654,12 @@
     <!-- Client-side Fingerprinting & Verification Engine -->
     <script>
         let globalTurnstileToken = '';
+        (function() {
+            const cfEl = document.querySelector('.cf-turnstile');
+            if (cfEl) {
+                cfEl.setAttribute('data-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            }
+        })();
 
         function onTurnstileSuccess(token) {
             globalTurnstileToken = token;

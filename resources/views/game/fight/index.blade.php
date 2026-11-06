@@ -356,7 +356,7 @@
                         if (!target || window.tbsTurnstileVerified || window.tbsTurnstileToken) {
                             return;
                         }
-                        const hasIframe = Boolean(target.querySelector('iframe') || target.childNodes.length > 0);
+                        const hasIframe = Boolean(target.querySelector('iframe') || target.children.length > 0);
                         const skeletonVisible = skeleton && skeleton.style.display !== 'none';
                         if (!hasIframe || skeletonVisible) {
                             scheduleTurnstileAutoRecovery('watchdog_timeout');
@@ -524,7 +524,7 @@
                     }
 
                     try {
-                        const hasIframe = Boolean(target.querySelector('iframe') || target.childNodes.length > 0);
+                        const hasIframe = Boolean(target.querySelector('iframe') || target.children.length > 0);
                         const sameMountedWidget = !forceRemount
                             && hasIframe
                             && window.tbsTurnstileWidgetId !== null

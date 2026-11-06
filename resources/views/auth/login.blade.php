@@ -455,6 +455,12 @@
 <script>
     window.tbsAuthTurnstileWidgets = window.tbsAuthTurnstileWidgets || { login: null, register: null };
     window.tbsAuthTurnstileMounting = window.tbsAuthTurnstileMounting || { login: false, register: false };
+    window.tbsAuthTurnstileTabTimers = window.tbsAuthTurnstileTabTimers || { login: null, register: null };
+
+    window.tbsHasMountedTurnstileDom = function(container) {
+        if (!container) return false;
+        return Boolean(container.querySelector('iframe') || container.children.length > 0);
+    };
 
     window.tbsEnsureAuthTurnstileScript = function(forceReload = false) {
         if (!forceReload && window.turnstile && typeof window.turnstile.render === 'function') {
@@ -520,16 +526,20 @@
 
     window.tbsMountAuthTab = function(mode) {
         const container = document.getElementById('turnstile-' + mode + '-widget');
-        if (window.tbsAuthTurnstileWidgets[mode] !== null && container && container.querySelector('iframe')) {
+        if (window.tbsAuthTurnstileWidgets[mode] !== null && window.tbsHasMountedTurnstileDom(container)) {
             return;
         }
         window.tbsMountAuthWidget(mode, false);
-        setTimeout(function() {
+        if (window.tbsAuthTurnstileTabTimers[mode]) {
+            clearTimeout(window.tbsAuthTurnstileTabTimers[mode]);
+        }
+        window.tbsAuthTurnstileTabTimers[mode] = setTimeout(function() {
+            window.tbsAuthTurnstileTabTimers[mode] = null;
             const currentContainer = document.getElementById('turnstile-' + mode + '-widget');
-            if (window.tbsAuthTurnstileWidgets[mode] === null || !currentContainer || !currentContainer.querySelector('iframe')) {
+            if (window.tbsAuthTurnstileWidgets[mode] === null || !window.tbsHasMountedTurnstileDom(currentContainer)) {
                 window.tbsMountAuthWidget(mode, false);
             }
-        }, 100);
+        }, 60);
     };
 
     window.tbsMountAuthWidget = function(mode, forceRemount = false) {
@@ -543,12 +553,12 @@
             return;
         }
 
-        // Prevent concurrent or duplicate mounts if an active iframe already exists
+        // Prevent concurrent or duplicate mounts if an active widget already exists
         if (window.tbsAuthTurnstileMounting[mode]) {
             return;
         }
-        const hasIframe = Boolean(container.querySelector('iframe'));
-        if (!forceRemount && window.tbsAuthTurnstileWidgets[mode] !== null && hasIframe) {
+        const hasMountedDom = window.tbsHasMountedTurnstileDom(container);
+        if (!forceRemount && window.tbsAuthTurnstileWidgets[mode] !== null && hasMountedDom) {
             return;
         }
 
@@ -571,6 +581,7 @@
                 } catch (e) {}
                 window.tbsAuthTurnstileWidgets[mode] = null;
             }
+            container.innerHTML = '';
 
             const sitekey = container.dataset.sitekey || '{{ $turnstileSiteKey }}';
             const actionName = container.dataset.action || ('auth_' + mode);
@@ -660,8 +671,13 @@
         window.tbsInitAuthTurnstile();
     });
     document.addEventListener('turbo:before-render', function() {
+        if (window.tbsAuthTurnstileTabTimers) {
+            clearTimeout(window.tbsAuthTurnstileTabTimers.login);
+            clearTimeout(window.tbsAuthTurnstileTabTimers.register);
+        }
         window.tbsAuthTurnstileWidgets = { login: null, register: null };
         window.tbsAuthTurnstileMounting = { login: false, register: false };
+        window.tbsAuthTurnstileTabTimers = { login: null, register: null };
     });
     document.addEventListener('turbo:load', function() {
         window.tbsInitAuthTurnstile();

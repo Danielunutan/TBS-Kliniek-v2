@@ -112,19 +112,21 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onForgotTurnstileLoaded&render=explicit" async defer data-tbs-turnstile-api="1"></script>
     <script>
         window.tbsForgotTurnstileWidgetId = null;
+        window.tbsForgotTurnstileMounting = false;
 
         window.tbsMountForgotTurnstile = function(forceRemount = false) {
             const container = document.getElementById('turnstile-forgot-widget');
             const tokenInput = document.getElementById('turnstile-forgot-token');
-            const statusText = document.getElementById('turnstile-forgot-status-text');
-            if (!container) return;
+            if (!container || window.tbsForgotTurnstileMounting) return;
 
             if (!window.turnstile || typeof window.turnstile.render !== 'function') {
                 return;
             }
 
+            window.tbsForgotTurnstileMounting = true;
+
             try {
-                const hasMounted = Boolean(container.querySelector('iframe') || container.childNodes.length > 0);
+                const hasMounted = Boolean(container.querySelector('iframe') || container.children.length > 0);
                 if (!forceRemount && hasMounted && window.tbsForgotTurnstileWidgetId !== null) {
                     return;
                 }
@@ -150,22 +152,13 @@
                     'refresh-timeout': 'auto',
                     callback: function(token) {
                         if (tokenInput) tokenInput.value = token || '';
-                        if (statusText) {
-                            statusText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400 font-bold">Zaalwacht controle voltooid</span>';
-                        }
                     },
                     'expired-callback': function() {
                         if (tokenInput) tokenInput.value = '';
-                        if (statusText) {
-                            statusText.innerHTML = '<i class="fa-solid fa-clock-rotate-left fa-spin text-amber-500"></i> <span>Verificatie verlopen, vernieuwen...</span>';
-                        }
                         setTimeout(function() { window.resetForgotTurnstile(); }, 300);
                     },
                     'error-callback': function() {
                         if (tokenInput) tokenInput.value = '';
-                        if (statusText) {
-                            statusText.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin text-amber-500"></i> <span>Verificatie opnieuw laden...</span>';
-                        }
                         setTimeout(function() { window.resetForgotTurnstile(); }, 1200);
                         return true;
                     },
@@ -180,6 +173,8 @@
                 }
             } catch (e) {
                 setTimeout(function() { window.tbsMountForgotTurnstile(true); }, 1200);
+            } finally {
+                window.tbsForgotTurnstileMounting = false;
             }
         };
 
