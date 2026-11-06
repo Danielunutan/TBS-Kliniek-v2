@@ -638,6 +638,5 @@
     document.addEventListener('turbo:load', function() {
         window.tbsInitAuthTurnstile();
     });
-    });
 </script>
 @endsection
