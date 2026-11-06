@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Middleware\CheckMaintenanceMode;
 use App\Models\Character;
 use App\Models\User;
+use App\Services\TurnstileService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
@@ -90,9 +91,14 @@ class MaintenanceModeTest extends TestCase
             'is_onboarded' => true,
         ]);
 
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         $this->post(route('login.post'), [
             'email' => $owner->email,
             'password' => 'password',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ])->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($owner);
@@ -104,9 +110,14 @@ class MaintenanceModeTest extends TestCase
         Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
         $user = User::factory()->create();
 
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         $this->post(route('login.post'), [
             'email' => $user->email,
             'password' => 'password',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ])->assertRedirect(route('dashboard'));
 
         $this->get(route('dashboard'))->assertStatus(503);

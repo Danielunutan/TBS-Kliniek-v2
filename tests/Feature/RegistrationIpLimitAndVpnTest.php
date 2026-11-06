@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Services\TurnstileService;
 use App\Services\VpnDetectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -43,6 +44,10 @@ class RegistrationIpLimitAndVpnTest extends TestCase
         ]);
         $this->app->instance(VpnDetectionService::class, $mockVpn);
 
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         $ip = '198.51.100.42';
 
         // Account 1
@@ -52,6 +57,7 @@ class RegistrationIpLimitAndVpnTest extends TestCase
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
             'terms' => '1',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
         $response1->assertSessionHasNoErrors();
         $this->assertDatabaseHas('users', ['email' => 'family1@example.com', 'registration_ip' => $ip]);
@@ -66,6 +72,7 @@ class RegistrationIpLimitAndVpnTest extends TestCase
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
             'terms' => '1',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
         $response2->assertSessionHasNoErrors();
         $this->assertDatabaseHas('users', ['email' => 'family2@example.com', 'registration_ip' => $ip]);
@@ -80,6 +87,7 @@ class RegistrationIpLimitAndVpnTest extends TestCase
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
             'terms' => '1',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
         $response3->assertSessionHasErrors(['username']);
         $this->assertDatabaseMissing('users', ['email' => 'family3@example.com']);
@@ -95,6 +103,10 @@ class RegistrationIpLimitAndVpnTest extends TestCase
         ]);
         $this->app->instance(VpnDetectionService::class, $mockVpn);
 
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         $ip = '203.0.113.88';
 
         // Create 2 existing users on this IP, but 1 is marked as exempt by admin
@@ -108,6 +120,7 @@ class RegistrationIpLimitAndVpnTest extends TestCase
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
             'terms' => '1',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
 
         $response->assertSessionHasNoErrors();

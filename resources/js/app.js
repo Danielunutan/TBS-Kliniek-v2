@@ -43,6 +43,9 @@ document.addEventListener('turbo:load', () => {
     if (typeof window.tbsInitTurnstile === 'function' && document.getElementById('turnstile-widget')) {
         window.tbsInitTurnstile(false);
     }
+    if (typeof window.tbsInitAuthTurnstile === 'function' && (document.getElementById('turnstile-login-widget') || document.getElementById('turnstile-register-widget'))) {
+        window.tbsInitAuthTurnstile();
+    }
 });
 
 // Initialize Alpine

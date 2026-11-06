@@ -16,6 +16,7 @@ use App\Services\MissionService;
 use App\Services\PrisonService;
 use App\Services\TheftService;
 use App\Services\TrainingService;
+use App\Services\TurnstileService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -41,9 +42,14 @@ class GameFeatureTest extends TestCase
 
     public function test_standard_login_authenticates_and_redirects_to_dashboard(): void
     {
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         $response = $this->post('/login', [
             'email' => 'demo@tbskliniek.nl',
             'password' => 'wachtwoord123',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
 
         $response->assertRedirect('/dashboard');
@@ -144,6 +150,10 @@ class GameFeatureTest extends TestCase
 
     public function test_registration_with_custom_username_avatar_gender_and_terms(): void
     {
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         $response = $this->post('/register', [
             'username' => 'Samantha_Sluw',
             'email' => 'samantha@tbskliniek.nl',
@@ -152,6 +162,7 @@ class GameFeatureTest extends TestCase
             'gender' => 'female',
             'avatar' => 'assets/characters/avatar_female_2.jpg',
             'terms' => '1',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
 
         $response->assertRedirect('/email/verify');
@@ -163,6 +174,68 @@ class GameFeatureTest extends TestCase
             'avatar' => 'assets/characters/avatar_female_2.jpg',
             'title' => 'Nieuwe Patiënte',
         ]);
+    }
+
+    public function test_login_and_register_require_valid_turnstile_verification_and_block_honeypot(): void
+    {
+        $page = $this->get('/');
+        $page->assertOk()
+            ->assertSee('id="turnstile-login-widget"', false)
+            ->assertSee('data-action="auth_login"', false)
+            ->assertSee('id="turnstile-register-widget"', false)
+            ->assertSee('data-action="auth_register"', false);
+
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(false);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
+        // 1. Login rejected when Turnstile verification fails
+        $loginFail = $this->post('/login', [
+            'email' => 'demo@tbskliniek.nl',
+            'password' => 'wachtwoord123',
+            'cf-turnstile-response' => 'invalid-token',
+        ]);
+        $loginFail->assertSessionHasErrors(['email']);
+        $this->assertGuest();
+
+        // 2. Login rejected when honeypot trap is filled
+        $loginHoneypot = $this->post('/login', [
+            'email' => 'demo@tbskliniek.nl',
+            'password' => 'wachtwoord123',
+            'tbs_guard_hp' => 'bot-value',
+            'cf-turnstile-response' => 'valid-token',
+        ]);
+        $loginHoneypot->assertSessionHasErrors(['email']);
+        $this->assertGuest();
+
+        // 3. Register rejected when Turnstile verification fails
+        $regFail = $this->post('/register', [
+            'username' => 'Bot_Inmate_1',
+            'email' => 'bot1@tbskliniek.nl',
+            'password' => 'geheim123',
+            'password_confirmation' => 'geheim123',
+            'gender' => 'male',
+            'terms' => '1',
+            'cf-turnstile-response' => 'invalid-token',
+        ]);
+        $regFail->assertSessionHasErrors(['turnstile']);
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'bot1@tbskliniek.nl']);
+
+        // 4. Register rejected when honeypot trap is filled
+        $regHoneypot = $this->post('/register', [
+            'username' => 'Bot_Inmate_2',
+            'email' => 'bot2@tbskliniek.nl',
+            'password' => 'geheim123',
+            'password_confirmation' => 'geheim123',
+            'gender' => 'male',
+            'terms' => '1',
+            'tbs_guard_hp' => 'bot-value',
+            'cf-turnstile-response' => 'valid-token',
+        ]);
+        $regHoneypot->assertSessionHasErrors(['turnstile']);
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'bot2@tbskliniek.nl']);
     }
 
     public function test_registration_fails_without_accepting_terms(): void

@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\DiscordShieldService;
 use App\Services\ReferralService;
 use App\Services\RegistrationIpLimitService;
+use App\Services\TurnstileService;
 use App\Services\VpnDetectionService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -65,7 +66,19 @@ class AuthController extends Controller
             $topCharacters = collect();
         }
 
-        return view('auth.login', compact('totalPlayers', 'totalCash', 'topCharacters'));
+        $turnstileSiteKey = trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA';
+        $clientIp = $request->ip() ?: 'guest';
+        $turnstileLoginCdata = TurnstileService::generateCdata('auth_login', $clientIp);
+        $turnstileRegisterCdata = TurnstileService::generateCdata('auth_register', $clientIp);
+
+        return view('auth.login', compact(
+            'totalPlayers',
+            'totalCash',
+            'topCharacters',
+            'turnstileSiteKey',
+            'turnstileLoginCdata',
+            'turnstileRegisterCdata'
+        ));
     }
 
     /**
@@ -328,6 +341,24 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        if ($request->filled('tbs_guard_hp')) {
+            return back()->withErrors([
+                'email' => '🛡️ Beveiligingscontrole mislukt: geautomatiseerde aanvraag gedetecteerd.',
+            ])->onlyInput('email');
+        }
+
+        $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
+        $request->attributes->set('turnstile_context', [
+            'action' => 'auth_login',
+            'cdata' => TurnstileService::generateCdata('auth_login', $request->ip() ?: 'guest'),
+        ]);
+
+        if (! app(TurnstileService::class)->verify(is_string($turnstileToken) ? $turnstileToken : null, $request->ip())) {
+            return back()->withErrors([
+                'email' => '🛡️ Voltooi eerst de Cloudflare Turnstile beveiligingscontrole om in te loggen.',
+            ])->onlyInput('email');
+        }
+
         if (Auth::attempt($credentials, $request->boolean('remember', true))) {
             $request->session()->regenerate();
 
@@ -380,6 +411,25 @@ class AuthController extends Controller
             'password.min' => 'Het wachtwoord moet minimaal 6 tekens bevatten.',
             'password.confirmed' => 'De wachtwoorden komen niet overeen.',
         ]);
+
+        // 2. Cloudflare Turnstile & Anti-Bot Honeypot Check
+        if ($request->filled('tbs_guard_hp')) {
+            return back()->withErrors([
+                'turnstile' => '🛡️ Beveiligingscontrole mislukt: geautomatiseerde aanvraag gedetecteerd.',
+            ])->withInput($request->except('password', 'password_confirmation'));
+        }
+
+        $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
+        $request->attributes->set('turnstile_context', [
+            'action' => 'auth_register',
+            'cdata' => TurnstileService::generateCdata('auth_register', $clientIp ?: 'guest'),
+        ]);
+
+        if (! app(TurnstileService::class)->verify(is_string($turnstileToken) ? $turnstileToken : null, $clientIp)) {
+            return back()->withErrors([
+                'turnstile' => '🛡️ Voltooi eerst de Cloudflare Turnstile beveiligingscontrole om een account aan te maken.',
+            ])->withInput($request->except('password', 'password_confirmation'));
+        }
 
         $gender = $validated['gender'] ?? 'male';
 

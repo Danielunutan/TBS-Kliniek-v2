@@ -6,6 +6,7 @@ use App\Mail\VerificationIssueFixedMail;
 use App\Mail\VerifyEmailCodeMail;
 use App\Models\Character;
 use App\Models\User;
+use App\Services\TurnstileService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -42,6 +43,10 @@ class EmailVerificationCodeTest extends TestCase
     {
         Mail::fake();
 
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         $response = $this->post('/register', [
             'username' => 'TestPatient123',
             'email' => 'patient@tbskliniek.nl',
@@ -50,6 +55,7 @@ class EmailVerificationCodeTest extends TestCase
             'gender' => 'male',
             'avatar' => 'assets/characters/avatar_male_1.jpg',
             'terms' => '1',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
 
         $response->assertRedirect('/email/verify');

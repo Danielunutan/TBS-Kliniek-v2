@@ -7,6 +7,7 @@ use App\Models\GameMessage;
 use App\Models\Referral;
 use App\Models\User;
 use App\Services\ReferralService;
+use App\Services\TurnstileService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
@@ -88,6 +89,10 @@ class ReferralSystemTest extends TestCase
 
         $referralService = app(ReferralService::class);
 
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         // 1. First friend registers
         $res1 = $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.1'])->post(route('register.post'), [
             'username' => 'VriendEen',
@@ -97,6 +102,7 @@ class ReferralSystemTest extends TestCase
             'gender' => 'male',
             'terms' => '1',
             'ref' => $referrerChar->name,
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
         $res1->assertRedirect();
 
@@ -122,6 +128,7 @@ class ReferralSystemTest extends TestCase
             'gender' => 'male',
             'terms' => '1',
             'ref' => $referrerChar->name,
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
 
         $referrerChar->refresh();
@@ -138,6 +145,7 @@ class ReferralSystemTest extends TestCase
             'gender' => 'female',
             'terms' => '1',
             'ref' => $referrerChar->name,
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ]);
 
         $referrerChar->refresh();

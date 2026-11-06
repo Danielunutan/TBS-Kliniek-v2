@@ -23,12 +23,17 @@ class AccessControlRegressionTest extends TestCase
         $vpn->method('check')->willReturn(['is_vpn' => false, 'provider' => null, 'country' => 'NL']);
         $this->app->instance(VpnDetectionService::class, $vpn);
 
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(true);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
         $this->post(route('register.post'), [
             'username' => 'NieuwePatient',
             'email' => 'demo@tbskliniek.nl',
             'password' => 'patient-password',
             'password_confirmation' => 'patient-password',
             'terms' => '1',
+            'cf-turnstile-response' => 'valid-turnstile-token',
         ])->assertSessionHasNoErrors();
 
         $user = User::where('email', 'demo@tbskliniek.nl')->firstOrFail();
