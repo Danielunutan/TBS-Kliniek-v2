@@ -208,7 +208,7 @@
                                  data-error-callback="onTurnstileError"
                                  data-retry="auto"
                                  data-refresh-expired="auto"
-                                 data-theme="auto"></div>
+                                 data-theme="dark"></div>
                         </div>
 
                         <!-- Error Message -->
@@ -749,6 +749,10 @@
                 
                 async submitVerification() {
                     if (this.cooldown > 0) return;
+                    if (!globalTurnstileToken) {
+                        this.errorMessage = 'Voltooi eerst de Cloudflare beveiligingscontrole hierboven.';
+                        return;
+                    }
                     this.errorMessage = '';
                     this.isLoading = true;
 

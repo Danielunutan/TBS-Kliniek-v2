@@ -519,12 +519,14 @@
     };
 
     window.tbsMountAuthTab = function(mode) {
-        if (window.tbsAuthTurnstileWidgets[mode] !== null) {
+        const container = document.getElementById('turnstile-' + mode + '-widget');
+        if (window.tbsAuthTurnstileWidgets[mode] !== null && container && container.querySelector('iframe')) {
             return;
         }
         window.tbsMountAuthWidget(mode, false);
         setTimeout(function() {
-            if (window.tbsAuthTurnstileWidgets[mode] === null) {
+            const currentContainer = document.getElementById('turnstile-' + mode + '-widget');
+            if (window.tbsAuthTurnstileWidgets[mode] === null || !currentContainer || !currentContainer.querySelector('iframe')) {
                 window.tbsMountAuthWidget(mode, false);
             }
         }, 100);
@@ -541,11 +543,12 @@
             return;
         }
 
-        // Prevent concurrent or duplicate mounts
+        // Prevent concurrent or duplicate mounts if an active iframe already exists
         if (window.tbsAuthTurnstileMounting[mode]) {
             return;
         }
-        if (!forceRemount && window.tbsAuthTurnstileWidgets[mode] !== null) {
+        const hasIframe = Boolean(container.querySelector('iframe'));
+        if (!forceRemount && window.tbsAuthTurnstileWidgets[mode] !== null && hasIframe) {
             return;
         }
 
@@ -655,6 +658,10 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         window.tbsInitAuthTurnstile();
+    });
+    document.addEventListener('turbo:before-render', function() {
+        window.tbsAuthTurnstileWidgets = { login: null, register: null };
+        window.tbsAuthTurnstileMounting = { login: false, register: false };
     });
     document.addEventListener('turbo:load', function() {
         window.tbsInitAuthTurnstile();

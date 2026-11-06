@@ -402,7 +402,7 @@
                             skeleton.style.display = 'none';
                         }
                         if (statusText) {
-                            statusText.innerHTML = '<span class="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Verificatie kon niet automatisch laden (controleer eventuele adblockers). Klik op \'Ververs verificatie\' om opnieuw te proberen.</span>';
+                            statusText.innerHTML = '<span class="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Verificatie kon niet automatisch laden. <button type="button" onclick="reloadTurnstileWidget(true)" class="underline font-black cursor-pointer hover:text-rose-500">Klik hier om opnieuw te proberen.</button></span>';
                         }
                     }
                 }

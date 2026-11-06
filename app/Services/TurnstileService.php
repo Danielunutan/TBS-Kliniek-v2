@@ -67,7 +67,7 @@ class TurnstileService
         }
 
         $replayKey = 'turnstile_used_token:'.hash('sha256', $trimmedToken);
-        if (Cache::has($replayKey)) {
+        if (! Cache::add($replayKey, true, now()->addMinutes(10))) {
             Log::warning('Turnstile verification rejected: single-use token replay detected.');
 
             return false;
@@ -85,6 +85,12 @@ class TurnstileService
                 ]);
 
             if (! $response->successful() || $response->json('success') !== true) {
+                if ($response->json('error-codes')) {
+                    Log::warning('Turnstile verification rejected by Cloudflare.', [
+                        'error_codes' => $response->json('error-codes'),
+                    ]);
+                }
+
                 return false;
             }
 
@@ -95,7 +101,7 @@ class TurnstileService
 
             $expectedAction = isset($context['action']) && is_string($context['action']) ? trim($context['action']) : '';
             $actualAction = isset($payload['action']) && is_string($payload['action']) ? trim($payload['action']) : '';
-            if ($expectedAction !== '' && $actualAction !== '' && ! hash_equals($expectedAction, $actualAction)) {
+            if ($expectedAction !== '' && ! hash_equals($expectedAction, $actualAction)) {
                 Log::warning('Turnstile verification rejected: action mismatch.', [
                     'expected' => $expectedAction,
                     'actual' => $actualAction,
@@ -106,7 +112,7 @@ class TurnstileService
 
             $expectedCdata = isset($context['cdata']) && is_string($context['cdata']) ? trim($context['cdata']) : '';
             $actualCdata = isset($payload['cdata']) && is_string($payload['cdata']) ? trim($payload['cdata']) : '';
-            if ($expectedCdata !== '' && $actualCdata !== '' && ! hash_equals($expectedCdata, $actualCdata)) {
+            if ($expectedCdata !== '' && ! hash_equals($expectedCdata, $actualCdata)) {
                 Log::warning('Turnstile verification rejected: cData binding mismatch.');
 
                 return false;
@@ -116,7 +122,7 @@ class TurnstileService
                 ? trim($context['hostname'])
                 : trim((string) config('services.turnstile.expected_hostname', ''));
             $actualHostname = isset($payload['hostname']) && is_string($payload['hostname']) ? trim($payload['hostname']) : '';
-            if ($expectedHostname !== '' && $actualHostname !== '' && strcasecmp($expectedHostname, $actualHostname) !== 0) {
+            if ($expectedHostname !== '' && ! hash_equals(strtolower($expectedHostname), strtolower($actualHostname))) {
                 Log::warning('Turnstile verification rejected: hostname mismatch.', [
                     'expected' => $expectedHostname,
                     'actual' => $actualHostname,
@@ -141,10 +147,9 @@ class TurnstileService
                 }
             }
 
-            Cache::put($replayKey, true, now()->addMinutes(10));
-
             return true;
         } catch (\Throwable $e) {
+            Cache::forget($replayKey);
             Log::warning('Turnstile verification failed: '.$e->getMessage());
         }
 
