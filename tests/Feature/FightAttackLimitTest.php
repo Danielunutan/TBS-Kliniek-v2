@@ -214,7 +214,8 @@ class FightAttackLimitTest extends TestCase
             'energy' => 100,
             'health' => 100,
             'is_in_prison' => false,
-            'vip_until' => null,
+            'is_vip' => false,
+            'vip_expires_at' => null,
         ]);
 
         $this->actingAs($user);
@@ -259,7 +260,8 @@ class FightAttackLimitTest extends TestCase
             'energy' => 100,
             'health' => 100,
             'is_in_prison' => false,
-            'vip_until' => null,
+            'is_vip' => false,
+            'vip_expires_at' => null,
             'daily_attacks_count' => 10,
             'daily_attacks_date' => Carbon::today()->format('Y-m-d'),
         ]);
@@ -295,7 +297,7 @@ class FightAttackLimitTest extends TestCase
     public function test_fight_index_renders_turnstile_auto_recovery_hooks_when_required(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
-        $user->character->update(['vip_until' => null]);
+        $user->character->update(['is_vip' => false, 'vip_expires_at' => null]);
         $this->actingAs($user);
 
         session(['fight_captcha_required' => true]);
@@ -305,7 +307,76 @@ class FightAttackLimitTest extends TestCase
         $response->assertOk()
             ->assertSee('Cloudflare Turnstile Zaalwacht Controle')
             ->assertSee('data-sitekey="1x00000000000000000000AA"', false)
+            ->assertSee('data-action="luchtplaats_attack"', false)
             ->assertSee('scheduleTurnstileAutoRecovery', false)
             ->assertSee('tbsEnsureTurnstileScript', false);
+    }
+
+    public function test_hard_mode_anti_bot_blocks_honeypot_headless_ua_and_cookie_clear_bypass(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $attacker = $user->character;
+        $attacker->update([
+            'energy' => 100,
+            'health' => 100,
+            'is_in_prison' => false,
+            'is_vip' => false,
+            'vip_expires_at' => null,
+            'daily_attacks_count' => 0,
+            'daily_attacks_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+
+        $defender = Character::where('id', '!=', $attacker->id)->first();
+        $defender->update(['is_in_prison' => false, 'protection_until' => null]);
+
+        $this->actingAs($user);
+        app(CooldownService::class)->clearCooldown($attacker, 'fight_attack');
+
+        // 1. Honeypot trap triggers persistent captcha requirement and blocks attack
+        $hpResponse = $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+            'tbs_guard_hp' => 'bot-filled-value',
+        ]);
+        $hpResponse->assertRedirect(route('fight.index'));
+        $hpResponse->assertSessionHas('error');
+        $this->assertTrue((bool) cache()->get("fight_captcha_required_{$attacker->id}"));
+
+        // 2. Clearing session cookie does NOT bypass persistent cache-backed captcha requirement
+        session()->forget('fight_captcha_required');
+        $bypassAttempt = $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+        ]);
+        $bypassAttempt->assertRedirect(route('fight.index'));
+        $bypassAttempt->assertSessionHas('error');
+
+        // 3. Clear captcha, then test headless browser User-Agent detection
+        cache()->forget("fight_captcha_required_{$attacker->id}");
+        session()->forget('fight_captcha_required');
+
+        $uaResponse = $this->withHeaders([
+            'User-Agent' => 'Mozilla/5.0 HeadlessChrome/120.0.0.0 Safari/537.36',
+        ])->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+        ]);
+        $uaResponse->assertRedirect(route('fight.index'));
+        $this->assertTrue((bool) cache()->get("fight_captcha_required_{$attacker->id}"));
+
+        // 4. VIP characters are also strictly subject to Turnstile and anti-bot protection
+        $attacker->update([
+            'is_vip' => true,
+            'vip_expires_at' => now()->addDays(7),
+        ]);
+        $this->assertTrue($attacker->fresh()->isVip());
+
+        $vipIndexResponse = $this->get(route('fight.index'));
+        $vipIndexResponse->assertOk()
+            ->assertSee('Cloudflare Turnstile Zaalwacht Controle');
+
+        $vipBlockedAttempt = $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+        ]);
+        $vipBlockedAttempt->assertRedirect(route('fight.index'));
+        $vipBlockedAttempt->assertSessionHas('error');
+        $this->assertTrue((bool) cache()->get("fight_captcha_required_{$attacker->id}"));
     }
 }

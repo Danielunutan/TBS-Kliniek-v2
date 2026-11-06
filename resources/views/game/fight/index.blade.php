@@ -541,8 +541,12 @@
                             }
                             target.innerHTML = '';
                             const sitekey = target.dataset.sitekey || '{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : "1x00000000000000000000AA" }}';
+                            const actionName = target.dataset.action || 'luchtplaats_attack';
+                            const cdataVal = target.dataset.cdata || '{{ $turnstileCdata ?? "" }}';
                             const widgetId = window.turnstile.render(target, {
                                 sitekey: sitekey,
+                                action: actionName,
+                                cData: cdataVal,
                                 callback: onTurnstileSuccess,
                                 'error-callback': onTurnstileError,
                                 'expired-callback': onTurnstileExpired,
@@ -645,6 +649,8 @@
 
                     <div id="turnstile-widget"
                          data-sitekey="{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : '1x00000000000000000000AA' }}"
+                         data-action="luchtplaats_attack"
+                         data-cdata="{{ $turnstileCdata ?? '' }}"
                          data-verify-url="{{ route('fight.turnstile.verify') }}"></div>
 
                     <div class="flex items-center justify-between w-full pt-1 text-[11px] text-slate-400">
@@ -740,6 +746,7 @@
                             @csrf
                             <input type="hidden" name="opponent_id" value="{{ $opp->id }}">
                             <input type="hidden" name="cf-turnstile-response" class="turnstile-token-input" value="">
+                            <input type="text" name="tbs_guard_hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true" class="hidden" style="display:none !important;">
 
                             <button type="submit"
                                     :disabled="globalCd > 0 || {{ ($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) ? 'true' : 'false' }}"
@@ -846,6 +853,7 @@
                                     @csrf
                                     <input type="hidden" name="opponent_id" value="{{ $opp->id }}">
                                     <input type="hidden" name="cf-turnstile-response" class="turnstile-token-input" value="">
+                                    <input type="text" name="tbs_guard_hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true" class="hidden" style="display:none !important;">
 
                                     <button type="submit"
                                             :disabled="globalCd > 0 || {{ ($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) ? 'true' : 'false' }}"

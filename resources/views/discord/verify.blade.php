@@ -200,6 +200,8 @@
                         <div class="flex flex-col items-center justify-center p-5 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl">
                             <div class="cf-turnstile" 
                                  data-sitekey="{{ $turnstileSiteKey }}" 
+                                 data-action="discord_shield_verify"
+                                 data-cdata="{{ $turnstileCdata ?? '' }}"
                                  data-callback="onTurnstileSuccess"
                                  data-expired-callback="onTurnstileExpired"
                                  data-error-callback="onTurnstileError"

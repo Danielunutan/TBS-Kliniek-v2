@@ -18,6 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 
 class FightController extends Controller
@@ -56,16 +57,14 @@ class FightController extends Controller
 
         $cooldownSeconds = $this->cooldownService->getRemainingSeconds($character, 'fight_attack');
 
-        // VIP members are exempt from routine captcha interruptions
-        if ($character->isVip()) {
-            session()->forget('fight_captcha_required');
-            session(['fight_consecutive_attacks' => 0]);
+        // Check if captcha is required (persisted in both session and character cache)
+        $isCaptchaRequired = $this->isCaptchaRequired($character);
+        if ($isCaptchaRequired) {
+            session(['fight_captcha_required' => true]);
         }
 
-        // Check if captcha is required (only for non-VIPs if session flag is set)
-        $isCaptchaRequired = ! $character->isVip() && (bool) session('fight_captcha_required', false);
-
         $turnstileSiteKey = trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA';
+        $turnstileCdata = TurnstileService::generateCdata('luchtplaats', $character->id);
 
         $sort = $request->query('sort', 'respect');
 
@@ -93,6 +92,7 @@ class FightController extends Controller
             'cooldownSeconds',
             'isCaptchaRequired',
             'turnstileSiteKey',
+            'turnstileCdata',
             'sort'
         ));
     }
@@ -338,15 +338,121 @@ class FightController extends Controller
     }
 
     /**
+     * Check whether Turnstile verification is required for the character.
+     */
+    protected function isCaptchaRequired(Character $character): bool
+    {
+        return (bool) session('fight_captcha_required', false)
+            || (bool) cache()->get("fight_captcha_required_{$character->id}", false);
+    }
+
+    /**
+     * Require Turnstile verification across both session and persistent cache.
+     */
+    protected function requireCaptcha(Character $character): void
+    {
+        session([
+            'fight_captcha_required' => true,
+            'fight_consecutive_attacks' => 0,
+        ]);
+        cache()->put("fight_captcha_required_{$character->id}", true, now()->addHours(2));
+        cache()->forget("fight_consecutive_attacks_{$character->id}");
+    }
+
+    /**
+     * Clear Turnstile requirement and reset anti-bot counters after successful verification.
+     */
+    protected function clearCaptcha(Character $character): void
+    {
+        session()->forget('fight_captcha_required');
+        session(['fight_consecutive_attacks' => 0]);
+        cache()->forget("fight_captcha_required_{$character->id}");
+        cache()->forget("fight_consecutive_attacks_{$character->id}");
+        cache()->forget("fight_bot_timings_{$character->id}");
+        cache()->forget("fight_cd_spam_{$character->id}");
+        RateLimiter::clear("fight_turnstile_fail:{$character->id}");
+    }
+
+    /**
+     * Detect honeypot traps or headless/automated bot User-Agent signatures.
+     */
+    protected function hasSuspiciousBotSignals(Request $request): bool
+    {
+        if ($request->filled('tbs_guard_hp')) {
+            return true;
+        }
+
+        $ua = strtolower((string) $request->userAgent());
+        if ($ua === '') {
+            return true;
+        }
+
+        $botSignatures = [
+            'headlesschrome',
+            'phantomjs',
+            'puppeteer',
+            'playwright',
+            'selenium',
+            'webdriver',
+            'python-requests',
+            'python-urllib',
+            'curl/',
+            'wget/',
+            'go-http-client',
+            'scrapy',
+            'httrack',
+        ];
+
+        foreach ($botSignatures as $signature) {
+            if (str_contains($ua, $signature)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Attach Turnstile hard-mode verification context to the current request.
+     */
+    protected function bindTurnstileContext(Request $request, Character $character): void
+    {
+        $request->attributes->set('turnstile_context', [
+            'action' => 'luchtplaats_attack',
+            'cdata' => TurnstileService::generateCdata('luchtplaats', $character->id),
+        ]);
+    }
+
+    /**
      * Verify a Cloudflare Turnstile token immediately via AJAX and clear the captcha requirement.
      */
     public function verifyTurnstile(Request $request): JsonResponse
     {
         $character = Auth::user()->character;
 
-        if ($character->isVip() || ! session('fight_captcha_required')) {
-            session()->forget('fight_captcha_required');
-            session(['fight_consecutive_attacks' => 0]);
+        if ($this->hasSuspiciousBotSignals($request)) {
+            $this->requireCaptcha($character);
+
+            return response()->json([
+                'success' => false,
+                'retry' => true,
+                'message' => 'Geautomatiseerde aanvraag gedetecteerd. Probeer het opnieuw.',
+            ], 422);
+        }
+
+        $failThrottleKey = "fight_turnstile_fail:{$character->id}";
+        if (RateLimiter::tooManyAttempts($failThrottleKey, 5)) {
+            $seconds = RateLimiter::availableIn($failThrottleKey);
+
+            return response()->json([
+                'success' => false,
+                'retry' => false,
+                'message' => "Te veel mislukte verificatiepogingen. Wacht {$seconds} seconden en probeer het opnieuw.",
+            ], 429);
+        }
+
+        if (! $this->isCaptchaRequired($character)) {
+            $this->clearCaptcha($character);
 
             return response()->json([
                 'success' => true,
@@ -359,7 +465,11 @@ class FightController extends Controller
             ?: $request->input('token')
             ?: $request->header('X-Turnstile-Token');
 
+        $this->bindTurnstileContext($request, $character);
+
         if (! $this->turnstileService->verify(is_string($turnstileToken) ? $turnstileToken : null, $request->ip())) {
+            RateLimiter::hit($failThrottleKey, 300);
+
             return response()->json([
                 'success' => false,
                 'retry' => true,
@@ -367,8 +477,7 @@ class FightController extends Controller
             ], 422);
         }
 
-        session()->forget('fight_captcha_required');
-        session(['fight_consecutive_attacks' => 0]);
+        $this->clearCaptcha($character);
 
         return response()->json([
             'success' => true,
@@ -387,17 +496,33 @@ class FightController extends Controller
 
         $this->energy->refresh($attacker);
 
+        // Hard-mode anti-bot check: honeypot trap or headless/automated script User-Agent
+        if ($this->hasSuspiciousBotSignals($request)) {
+            $this->requireCaptcha($attacker);
+
+            return redirect()->route('fight.index')->with('error', '🛡️ Zaalwacht controle vereist! Verdachte geautomatiseerde activiteit gedetecteerd.');
+        }
+
+        $failThrottleKey = "fight_turnstile_fail:{$attacker->id}";
+        if ($this->isCaptchaRequired($attacker) && RateLimiter::tooManyAttempts($failThrottleKey, 5)) {
+            $seconds = RateLimiter::availableIn($failThrottleKey);
+
+            return redirect()->route('fight.index')->with('error', "🛡️ Te veel mislukte beveiligingscontroles! Wacht nog {$seconds}s voordat je opnieuw verifieert.");
+        }
+
         // Consume a valid Turnstile token immediately so a single-use token is never wasted if cooldown or isolation checks trigger.
         $turnstileVerifiedInRequest = false;
         $turnstileAttemptedInRequest = false;
-        if (! $attacker->isVip() && session('fight_captcha_required')) {
+        if ($this->isCaptchaRequired($attacker)) {
             $submittedToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
             if (is_string($submittedToken) && trim($submittedToken) !== '') {
                 $turnstileAttemptedInRequest = true;
+                $this->bindTurnstileContext($request, $attacker);
                 if ($this->turnstileService->verify($submittedToken, $request->ip())) {
                     $turnstileVerifiedInRequest = true;
-                    session()->forget('fight_captcha_required');
-                    session(['fight_consecutive_attacks' => 0]);
+                    $this->clearCaptcha($attacker);
+                } else {
+                    RateLimiter::hit($failThrottleKey, 300);
                 }
             }
         }
@@ -421,9 +546,16 @@ class FightController extends Controller
             return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via een sponsor advertentie.");
         }
 
-        // 1. 3-second cooldown check
+        // 1. 3-second cooldown check (with anti-bot cooldown hammering detection)
         if ($this->cooldownService->isOnCooldown($attacker, 'fight_attack')) {
             $remaining = $this->cooldownService->getRemainingSeconds($attacker, 'fight_attack');
+
+            $cdSpamKey = "fight_cd_spam_{$attacker->id}";
+            $cdHits = (int) cache()->get($cdSpamKey, 0) + 1;
+            cache()->put($cdSpamKey, $cdHits, now()->addSeconds(30));
+            if ($cdHits >= 3) {
+                $this->requireCaptcha($attacker);
+            }
 
             return back()->with('error', "⏳ Even ademhalen! Wacht nog {$remaining}s voor je volgende beroving.");
         }
@@ -441,21 +573,23 @@ class FightController extends Controller
             return back()->with('error', "⛔ Je hebt je dagelijkse limiet van {$dailyLimit} aanvallen bereikt! Morgen kun je weer geld stelen.");
         }
 
-        // 3. Cloudflare Turnstile Captcha check if required (VIPs are exempt)
-        if (! $attacker->isVip() && session('fight_captcha_required') && ! $turnstileVerifiedInRequest) {
+        // 3. Cloudflare Turnstile Captcha check if required
+        if ($this->isCaptchaRequired($attacker) && ! $turnstileVerifiedInRequest) {
             $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
 
+            $this->bindTurnstileContext($request, $attacker);
             $isValid = $turnstileAttemptedInRequest
                 ? false
                 : $this->turnstileService->verify(is_string($turnstileToken) ? $turnstileToken : null, $request->ip());
 
             if (! $isValid) {
+                $this->requireCaptcha($attacker);
+
                 return redirect()->route('fight.index')->with('error', '🛡️ Zaalwacht controle vereist! Bevestig via de Cloudflare Turnstile verificatie op de luchtplaats dat je een echte speler bent om te kunnen beroven.');
             }
 
             // Captcha passed
-            session()->forget('fight_captcha_required');
-            session(['fight_consecutive_attacks' => 0]);
+            $this->clearCaptcha($attacker);
         }
 
         if ($attacker->health < 15) {
@@ -519,15 +653,35 @@ class FightController extends Controller
 
         cache()->put($targetKey, $targetAttacks + 1, now()->endOfDay());
 
-        // Anti-bot trigger: require Cloudflare Turnstile verification after consecutive attacks (VIPs are exempt)
-        if (! $attacker->isVip()) {
-            $consecutive = (int) session('fight_consecutive_attacks', 0) + 1;
-            if ($consecutive >= 35) {
-                session(['fight_captcha_required' => true]);
-                session(['fight_consecutive_attacks' => 0]);
-            } else {
-                session(['fight_consecutive_attacks' => $consecutive]);
+        // Anti-bot trigger: require Cloudflare Turnstile verification after consecutive attacks or robotic cadence
+        $cachedConsecutive = (int) cache()->get("fight_consecutive_attacks_{$attacker->id}", 0);
+        $consecutive = max((int) session('fight_consecutive_attacks', 0), $cachedConsecutive) + 1;
+
+        $nowMs = (int) round(microtime(true) * 1000);
+        $timingsKey = "fight_bot_timings_{$attacker->id}";
+        $timings = (array) cache()->get($timingsKey, []);
+        $timings[] = $nowMs;
+        if (count($timings) > 6) {
+            $timings = array_slice($timings, -6);
+        }
+        cache()->put($timingsKey, $timings, now()->addMinutes(15));
+
+        $isRoboticCadence = false;
+        if (count($timings) >= 5) {
+            $intervals = [];
+            for ($i = 1, $n = count($timings); $i < $n; $i++) {
+                $intervals[] = max(0, (int) $timings[$i] - (int) $timings[$i - 1]);
             }
+            if (max($intervals) <= 8000 && min($intervals) >= 2500 && (max($intervals) - min($intervals)) <= 220) {
+                $isRoboticCadence = true;
+            }
+        }
+
+        if ($consecutive >= 25 || $isRoboticCadence) {
+            $this->requireCaptcha($attacker);
+        } else {
+            session(['fight_consecutive_attacks' => $consecutive]);
+            cache()->put("fight_consecutive_attacks_{$attacker->id}", $consecutive, now()->addHours(2));
         }
 
         // Combat calculation using effective strength & defense (including backpack equipment)

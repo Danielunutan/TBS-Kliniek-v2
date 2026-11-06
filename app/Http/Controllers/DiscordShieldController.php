@@ -8,6 +8,7 @@ use App\Models\DiscordShieldSetting;
 use App\Models\DiscordVerification;
 use App\Models\User;
 use App\Services\DiscordShieldService;
+use App\Services\TurnstileService;
 use App\Services\VpnDetectionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +35,8 @@ class DiscordShieldController extends Controller
     public function show(Request $request): View
     {
         $discordUser = session('discord_shield_user');
-        $turnstileSiteKey = DiscordShieldSetting::get('turnstile_site_key', env('TURNSTILE_SITE_KEY', '0x4AAAAAAFTb6Vv0yuFCIDYU'));
+        $turnstileSiteKey = DiscordShieldSetting::get('turnstile_site_key', config('services.turnstile.site_key', '0x4AAAAAAFTb6Vv0yuFCIDYU'));
+        $turnstileCdata = ! empty($discordUser['id']) ? TurnstileService::generateCdata('discord', (string) $discordUser['id']) : '';
         $user = Auth::user();
         $character = $user?->character;
         $widgetData = $this->getDiscordWidgetData();
@@ -42,6 +44,7 @@ class DiscordShieldController extends Controller
         return view('discord.verify', [
             'discordUser' => $discordUser,
             'turnstileSiteKey' => $turnstileSiteKey,
+            'turnstileCdata' => $turnstileCdata,
             'user' => $user,
             'character' => $character,
             'hasClaimedBonus' => $character?->hasClaimedDiscordReward() ?? false,
@@ -222,42 +225,33 @@ class DiscordShieldController extends Controller
             $turnstileEnabled = DiscordShieldSetting::get('turnstile_enabled', '1') === '1';
             if ($turnstileEnabled) {
                 $turnstileResponse = $request->input('turnstile_token');
-                $turnstileSecret = DiscordShieldSetting::get('turnstile_secret_key', env('TURNSTILE_SECRET_KEY'));
+                $turnstileSecret = DiscordShieldSetting::get('turnstile_secret_key', config('services.turnstile.secret_key'));
 
-                if (! $turnstileResponse) {
+                if (! is_string($turnstileResponse) || trim($turnstileResponse) === '') {
                     return response()->json([
                         'success' => false,
                         'message' => 'Vul de Cloudflare Turnstile verificatie in.',
                     ], 422);
                 }
 
-                try {
-                    $verifyResp = Http::asForm()->timeout(6)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-                        'secret' => $turnstileSecret,
-                        'response' => $turnstileResponse,
-                        'remoteip' => $ip,
+                $request->attributes->set('turnstile_context', [
+                    'secret' => $turnstileSecret,
+                    'action' => 'discord_shield_verify',
+                    'cdata' => TurnstileService::generateCdata('discord', (string) $discordId),
+                ]);
+
+                if (! app(TurnstileService::class)->verify($turnstileResponse, $ip)) {
+                    DiscordShieldLog::log('turnstile_failed', "Turnstile verificatie mislukt voor {$username} ({$discordId})", [
+                        'discord_id' => $discordId,
+                        'username' => $username,
+                        'ip_address' => $ip,
+                        'severity' => 'warning',
                     ]);
-
-                    if (! $verifyResp->successful() || $verifyResp->json('success') !== true) {
-                        DiscordShieldLog::log('turnstile_failed', "Turnstile verificatie mislukt voor {$username} ({$discordId})", [
-                            'discord_id' => $discordId,
-                            'username' => $username,
-                            'ip_address' => $ip,
-                            'severity' => 'warning',
-                        ]);
-
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'De Cloudflare beveiligingscheck is mislukt. Probeer het opnieuw.',
-                        ], 422);
-                    }
-                } catch (\Throwable $e) {
-                    Log::warning('Turnstile verification network error: '.$e->getMessage());
 
                     return response()->json([
                         'success' => false,
-                        'message' => 'Kon geen verbinding maken met Cloudflare beveiligingsservice. Probeer het opnieuw.',
-                    ], 503);
+                        'message' => 'De Cloudflare beveiligingscheck is mislukt. Probeer het opnieuw.',
+                    ], 422);
                 }
             }
 

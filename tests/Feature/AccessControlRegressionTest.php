@@ -200,6 +200,51 @@ class AccessControlRegressionTest extends TestCase
         $this->assertFalse(app(TurnstileService::class)->verify('unverified-response'));
     }
 
+    public function test_turnstile_hard_mode_rejects_replay_malformed_and_mismatched_context(): void
+    {
+        config(['services.turnstile.secret_key' => 'test-secret']);
+        $service = app(TurnstileService::class);
+
+        Http::fake([
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::response([
+                'success' => true,
+                'action' => 'luchtplaats_attack',
+                'cdata' => TurnstileService::generateCdata('luchtplaats', 42),
+                'challenge_ts' => now()->toIso8601String(),
+            ], 200),
+        ]);
+
+        // 1. Rejects oversized (>2048 chars) or whitespace-injected tokens without network call
+        $this->assertFalse($service->verify(str_repeat('a', 2049)));
+        $this->assertFalse($service->verify("valid_token\ninjected"));
+        Http::assertNothingSent();
+
+        // 2. Single-use token replay protection blocks reuse of an already verified token
+        request()->attributes->set('turnstile_context', [
+            'action' => 'luchtplaats_attack',
+            'cdata' => TurnstileService::generateCdata('luchtplaats', 42),
+        ]);
+
+        $this->assertTrue($service->verify('one-time-token-123'));
+        $this->assertFalse($service->verify('one-time-token-123'));
+
+        // 3. Action mismatch fails closed
+        request()->attributes->set('turnstile_context', [
+            'action' => 'discord_shield_verify',
+            'cdata' => TurnstileService::generateCdata('luchtplaats', 42),
+        ]);
+        $this->assertFalse($service->verify('action-mismatch-token'));
+
+        // 4. cData mismatch (cross-account token harvesting) fails closed
+        request()->attributes->set('turnstile_context', [
+            'action' => 'luchtplaats_attack',
+            'cdata' => TurnstileService::generateCdata('luchtplaats', 999),
+        ]);
+        $this->assertFalse($service->verify('cdata-mismatch-token'));
+
+        request()->attributes->remove('turnstile_context');
+    }
+
     public function test_unimplemented_two_factor_authentication_cannot_be_enabled(): void
     {
         $user = User::factory()->create(['two_factor_enabled' => false]);
