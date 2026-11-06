@@ -238,6 +238,31 @@ class GameFeatureTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => 'bot2@tbskliniek.nl']);
     }
 
+    public function test_forgot_password_requires_valid_turnstile_verification_and_blocks_honeypot(): void
+    {
+        $forgotPage = $this->get('/wachtwoord-vergeten');
+        $forgotPage->assertOk()
+            ->assertSee('id="turnstile-forgot-widget"', false)
+            ->assertSee('data-action="auth_forgot_password"', false);
+
+        $turnstile = $this->createStub(TurnstileService::class);
+        $turnstile->method('verify')->willReturn(false);
+        $this->app->instance(TurnstileService::class, $turnstile);
+
+        $forgotFail = $this->post('/wachtwoord-vergeten', [
+            'email' => 'demo@tbskliniek.nl',
+            'cf-turnstile-response' => 'invalid-token',
+        ]);
+        $forgotFail->assertSessionHasErrors(['email']);
+
+        $forgotHoneypot = $this->post('/wachtwoord-vergeten', [
+            'email' => 'demo@tbskliniek.nl',
+            'tbs_guard_hp' => 'bot-value',
+            'cf-turnstile-response' => 'valid-token',
+        ]);
+        $forgotHoneypot->assertSessionHasErrors(['email']);
+    }
+
     public function test_registration_fails_without_accepting_terms(): void
     {
         $response = $this->post('/register', [

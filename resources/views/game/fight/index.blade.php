@@ -547,6 +547,8 @@
                                 sitekey: sitekey,
                                 action: actionName,
                                 cData: cdataVal,
+                                size: 'flexible',
+                                language: 'nl',
                                 callback: onTurnstileSuccess,
                                 'error-callback': onTurnstileError,
                                 'expired-callback': onTurnstileExpired,
@@ -641,8 +643,8 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-purple-200/80 dark:border-purple-800/60 inline-flex flex-col items-start gap-2 shadow-xs min-h-[85px] w-full sm:w-auto sm:min-w-[310px] max-w-full overflow-x-auto relative">
-                    <div id="turnstile-skeleton" class="flex items-center gap-2 text-xs text-slate-500 font-semibold py-2">
+                <div class="w-full space-y-1.5">
+                    <div id="turnstile-skeleton" class="flex items-center gap-2 text-xs text-slate-500 font-semibold py-2 px-1">
                         <i class="fa-solid fa-circle-notch fa-spin text-purple-600"></i>
                         <span>Beveiligingscontrole initialiseren...</span>
                     </div>
@@ -651,11 +653,17 @@
                          data-sitekey="{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : '1x00000000000000000000AA' }}"
                          data-action="luchtplaats_attack"
                          data-cdata="{{ $turnstileCdata ?? '' }}"
-                         data-verify-url="{{ route('fight.turnstile.verify') }}"></div>
+                         data-verify-url="{{ route('fight.turnstile.verify') }}"
+                         class="w-full min-h-[65px] rounded-xl overflow-hidden flex items-center justify-center [&>div]:!w-full [&_iframe]:!w-full [&_iframe]:!max-w-full"></div>
 
-                    <div class="flex items-center justify-between w-full pt-1 text-[11px] text-slate-400">
-                        <button type="button" onclick="reloadTurnstileWidget(true)" class="hover:text-purple-600 dark:hover:text-purple-400 underline font-bold cursor-pointer inline-flex items-center gap-1">
-                            <i class="fa-solid fa-rotate text-[10px]"></i> Ververs verificatie
+                    <div class="flex items-center justify-between px-1 text-[11px] text-slate-500 dark:text-slate-400">
+                        <span class="flex items-center gap-1.5 font-medium">
+                            <i class="fa-solid fa-shield-halved text-purple-500"></i>
+                            <span>Kliniek Zaalwacht beveiliging</span>
+                        </span>
+                        <button type="button" onclick="reloadTurnstileWidget(true)" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold cursor-pointer inline-flex items-center gap-1 transition">
+                            <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                            <span>Ververs verificatie</span>
                         </button>
                     </div>
                 </div>

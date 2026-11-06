@@ -60,8 +60,16 @@
                 </div>
             @endif
 
+            @php
+                $turnstileSiteKey = !empty($turnstileSiteKey) ? $turnstileSiteKey : (trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA');
+                $turnstileForgotCdata = $turnstileForgotCdata ?? \App\Services\TurnstileService::generateCdata('auth_forgot_password', request()->ip() ?: 'guest');
+            @endphp
+
             <form action="{{ route('password.email') }}" method="POST" class="space-y-4">
                 @csrf
+                <input type="text" name="tbs_guard_hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;">
+                <input type="hidden" name="cf-turnstile-response" id="turnstile-forgot-token" value="">
+
                 <div>
                     <label class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block mb-1.5">
                         Jouw E-mailadres
@@ -73,6 +81,25 @@
                         <input type="email" name="email" value="{{ old('email') }}" required autofocus
                                placeholder="bijv. patient@tbskliniek.nl"
                                class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    </div>
+                </div>
+
+                <!-- Cloudflare Turnstile Security Verification (Forgot Password) -->
+                <div class="w-full space-y-1.5">
+                    <div id="turnstile-forgot-widget"
+                         data-sitekey="{{ $turnstileSiteKey }}"
+                         data-action="auth_forgot_password"
+                         data-cdata="{{ $turnstileForgotCdata }}"
+                         class="w-full min-h-[65px] rounded-xl overflow-hidden flex items-center justify-center [&>div]:!w-full [&_iframe]:!w-full [&_iframe]:!max-w-full"></div>
+                    <div class="flex items-center justify-between px-1 text-[11px] text-slate-500 dark:text-slate-400">
+                        <span id="turnstile-forgot-status-text" class="flex items-center gap-1.5 font-medium">
+                            <i class="fa-solid fa-shield-halved text-purple-500"></i>
+                            <span>Kliniek Zaalwacht beveiliging</span>
+                        </span>
+                        <button type="button" onclick="window.resetForgotTurnstile && window.resetForgotTurnstile()" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold inline-flex items-center gap-1 transition cursor-pointer">
+                            <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                            <span>Ververs verificatie</span>
+                        </button>
                     </div>
                 </div>
 
@@ -92,5 +119,100 @@
 
     </div>
 
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onForgotTurnstileLoaded&render=explicit" async defer data-tbs-turnstile-api="1"></script>
+    <script>
+        window.tbsForgotTurnstileWidgetId = null;
+
+        window.tbsMountForgotTurnstile = function(forceRemount = false) {
+            const container = document.getElementById('turnstile-forgot-widget');
+            const tokenInput = document.getElementById('turnstile-forgot-token');
+            const statusText = document.getElementById('turnstile-forgot-status-text');
+            if (!container) return;
+
+            if (!window.turnstile || typeof window.turnstile.render !== 'function') {
+                return;
+            }
+
+            try {
+                if (!forceRemount && container.querySelector('iframe') && window.tbsForgotTurnstileWidgetId !== null) {
+                    return;
+                }
+
+                if (window.tbsForgotTurnstileWidgetId !== null && typeof window.turnstile.remove === 'function') {
+                    try {
+                        window.turnstile.remove(window.tbsForgotTurnstileWidgetId);
+                    } catch (e) {}
+                    window.tbsForgotTurnstileWidgetId = null;
+                }
+
+                container.innerHTML = '';
+                const widgetId = window.turnstile.render(container, {
+                    sitekey: container.dataset.sitekey || '{{ $turnstileSiteKey }}',
+                    action: container.dataset.action || 'auth_forgot_password',
+                    cData: container.dataset.cdata || '',
+                    size: 'flexible',
+                    language: 'nl',
+                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                    appearance: 'always',
+                    retry: 'auto',
+                    'retry-interval': 1500,
+                    'refresh-expired': 'auto',
+                    'refresh-timeout': 'auto',
+                    callback: function(token) {
+                        if (tokenInput) tokenInput.value = token || '';
+                        if (statusText) {
+                            statusText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400 font-bold">Zaalwacht controle voltooid</span>';
+                        }
+                    },
+                    'expired-callback': function() {
+                        if (tokenInput) tokenInput.value = '';
+                        if (statusText) {
+                            statusText.innerHTML = '<i class="fa-solid fa-clock-rotate-left fa-spin text-amber-500"></i> <span>Verificatie verlopen, vernieuwen...</span>';
+                        }
+                        setTimeout(function() { window.resetForgotTurnstile(); }, 300);
+                    },
+                    'error-callback': function() {
+                        if (tokenInput) tokenInput.value = '';
+                        if (statusText) {
+                            statusText.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin text-amber-500"></i> <span>Verificatie opnieuw laden...</span>';
+                        }
+                        setTimeout(function() { window.resetForgotTurnstile(); }, 1200);
+                        return true;
+                    },
+                    'timeout-callback': function() {
+                        if (tokenInput) tokenInput.value = '';
+                        setTimeout(function() { window.resetForgotTurnstile(); }, 600);
+                    }
+                });
+
+                if (typeof widgetId !== 'undefined' && widgetId !== null) {
+                    window.tbsForgotTurnstileWidgetId = widgetId;
+                }
+            } catch (e) {
+                setTimeout(function() { window.tbsMountForgotTurnstile(true); }, 1200);
+            }
+        };
+
+        window.resetForgotTurnstile = function() {
+            const tokenInput = document.getElementById('turnstile-forgot-token');
+            const statusText = document.getElementById('turnstile-forgot-status-text');
+            if (tokenInput) tokenInput.value = '';
+            if (statusText) {
+                statusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-500"></i> <span>Verificatie vernieuwen...</span>';
+            }
+            window.tbsMountForgotTurnstile(true);
+        };
+
+        window.onForgotTurnstileLoaded = function() {
+            window.tbsMountForgotTurnstile(false);
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            window.tbsMountForgotTurnstile(false);
+        });
+        document.addEventListener('turbo:load', function() {
+            window.tbsMountForgotTurnstile(false);
+        });
+    </script>
 </body>
 </html>

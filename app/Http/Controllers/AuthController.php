@@ -571,9 +571,12 @@ class AuthController extends Controller
     /**
      * Show forgot password form.
      */
-    public function showForgotPassword(): View
+    public function showForgotPassword(Request $request): View
     {
-        return view('auth.forgot-password');
+        $turnstileSiteKey = trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA';
+        $turnstileForgotCdata = TurnstileService::generateCdata('auth_forgot_password', $request->ip() ?: 'guest');
+
+        return view('auth.forgot-password', compact('turnstileSiteKey', 'turnstileForgotCdata'));
     }
 
     /**
@@ -582,6 +585,24 @@ class AuthController extends Controller
     public function sendResetLinkEmail(Request $request): RedirectResponse
     {
         $request->validate(['email' => 'required|email']);
+
+        if ($request->filled('tbs_guard_hp')) {
+            return back()->withErrors([
+                'email' => '🛡️ Beveiligingscontrole mislukt: geautomatiseerde aanvraag gedetecteerd.',
+            ])->onlyInput('email');
+        }
+
+        $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
+        $request->attributes->set('turnstile_context', [
+            'action' => 'auth_forgot_password',
+            'cdata' => TurnstileService::generateCdata('auth_forgot_password', $request->ip() ?: 'guest'),
+        ]);
+
+        if (! app(TurnstileService::class)->verify(is_string($turnstileToken) ? $turnstileToken : null, $request->ip())) {
+            return back()->withErrors([
+                'email' => '🛡️ Voltooi eerst de Cloudflare Turnstile beveiligingscontrole om een wachtwoord-herstellink aan te vragen.',
+            ])->onlyInput('email');
+        }
 
         $status = Password::sendResetLink(
             $request->only('email')

@@ -139,19 +139,20 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Login) -->
-                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
+                        <div class="w-full space-y-1.5">
                             <div id="turnstile-login-widget"
                                  data-sitekey="{{ $turnstileSiteKey }}"
                                  data-action="auth_login"
                                  data-cdata="{{ $turnstileLoginCdata }}"
-                                 class="min-h-[65px] flex items-center"></div>
-                            <div id="turnstile-login-status" class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                                <span id="turnstile-login-status-text" class="flex items-center gap-1.5">
+                                 class="w-full min-h-[65px] rounded-xl overflow-hidden flex items-center justify-center [&>div]:!w-full [&_iframe]:!w-full [&_iframe]:!max-w-full"></div>
+                            <div id="turnstile-login-status" class="flex items-center justify-between px-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                <span id="turnstile-login-status-text" class="flex items-center gap-1.5 font-medium">
                                     <i class="fa-solid fa-shield-halved text-purple-500"></i>
                                     <span>Kliniek Zaalwacht beveiliging</span>
                                 </span>
-                                <button type="button" onclick="window.resetAuthTurnstile && window.resetAuthTurnstile('login')" class="text-purple-600 dark:text-purple-400 hover:underline font-bold flex items-center gap-1 cursor-pointer">
-                                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Ververs verificatie
+                                <button type="button" onclick="window.resetAuthTurnstile && window.resetAuthTurnstile('login')" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold inline-flex items-center gap-1 transition cursor-pointer">
+                                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                                    <span>Ververs verificatie</span>
                                 </button>
                             </div>
                         </div>
@@ -354,19 +355,20 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Register) -->
-                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 space-y-1.5">
+                        <div class="w-full space-y-1.5">
                             <div id="turnstile-register-widget"
                                  data-sitekey="{{ $turnstileSiteKey }}"
                                  data-action="auth_register"
                                  data-cdata="{{ $turnstileRegisterCdata }}"
-                                 class="min-h-[65px] flex items-center"></div>
-                            <div id="turnstile-register-status" class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                                <span id="turnstile-register-status-text" class="flex items-center gap-1.5">
+                                 class="w-full min-h-[65px] rounded-xl overflow-hidden flex items-center justify-center [&>div]:!w-full [&_iframe]:!w-full [&_iframe]:!max-w-full"></div>
+                            <div id="turnstile-register-status" class="flex items-center justify-between px-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                <span id="turnstile-register-status-text" class="flex items-center gap-1.5 font-medium">
                                     <i class="fa-solid fa-shield-halved text-purple-500"></i>
                                     <span>Kliniek Zaalwacht beveiliging</span>
                                 </span>
-                                <button type="button" onclick="window.resetAuthTurnstile && window.resetAuthTurnstile('register')" class="text-purple-600 dark:text-purple-400 hover:underline font-bold flex items-center gap-1 cursor-pointer">
-                                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Ververs verificatie
+                                <button type="button" onclick="window.resetAuthTurnstile && window.resetAuthTurnstile('register')" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 font-bold inline-flex items-center gap-1 transition cursor-pointer">
+                                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                                    <span>Ververs verificatie</span>
                                 </button>
                             </div>
                         </div>
@@ -573,6 +575,8 @@
                 sitekey: sitekey,
                 action: actionName,
                 cData: cdataVal,
+                size: 'flexible',
+                language: 'nl',
                 theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                 appearance: 'always',
                 retry: 'auto',
