@@ -267,6 +267,7 @@
                 window.tbsTurnstileToken = '';
                 window.tbsTurnstileVerified = false;
                 window.tbsTurnstileWidgetId = null;
+                window.tbsTurnstileMounting = false;
                 window.tbsTurnstileAutoRetries = 0;
                 window._tbsTurnstileWatchdog = null;
                 window._tbsTurnstileRetryTimer = null;
@@ -498,14 +499,20 @@
                         statusText.innerHTML = '<span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left fa-spin"></i> Verificatie verlopen — wordt automatisch vernieuwd...</span>';
                     }
                     setTimeout(function() {
-                        renderTurnstileWidget(false);
+                        if (window.tbsTurnstileWidgetId !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
+                            try {
+                                window.turnstile.reset(window.tbsTurnstileWidgetId);
+                                return;
+                            } catch (e) {}
+                        }
+                        renderTurnstileWidget(true);
                     }, 300);
                 }
 
                 function renderTurnstileWidget(forceRemount = false) {
                     const target = document.getElementById('turnstile-widget');
                     const skeleton = document.getElementById('turnstile-skeleton');
-                    if (!target) return;
+                    if (!target || window.tbsTurnstileMounting) return;
 
                     scheduleTurnstileWatchdog();
 
@@ -523,6 +530,8 @@
                         return;
                     }
 
+                    window.tbsTurnstileMounting = true;
+
                     try {
                         const hasIframe = Boolean(target.querySelector('iframe') || target.children.length > 0);
                         const sameMountedWidget = !forceRemount
@@ -531,7 +540,10 @@
                             && target.dataset.widgetId === String(window.tbsTurnstileWidgetId);
 
                         if (sameMountedWidget) {
-                            window.turnstile.reset(window.tbsTurnstileWidgetId);
+                            if (skeleton) {
+                                skeleton.style.display = 'none';
+                            }
+                            return;
                         } else {
                             if (window.tbsTurnstileWidgetId !== null && typeof window.turnstile.remove === 'function') {
                                 try {
@@ -571,6 +583,8 @@
                     } catch (err) {
                         console.warn('Turnstile render notice:', err);
                         scheduleTurnstileAutoRecovery('render_exception');
+                    } finally {
+                        window.tbsTurnstileMounting = false;
                     }
                 }
 
@@ -733,8 +747,8 @@
                                 if (!handleAttack($event, @js($opp->name))) return;
                                 if(globalCd > 0) { $event.preventDefault(); return false; }
                                 const token = window.tbsTurnstileToken 
-                                    || (document.querySelector('.cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('.cf-turnstile [name=cf-turnstile-response]').value : '')
-                                    || (window.turnstile ? window.turnstile.getResponse() : '');
+                                    || (document.querySelector('#turnstile-widget [name=cf-turnstile-response], .cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('#turnstile-widget [name=cf-turnstile-response], .cf-turnstile [name=cf-turnstile-response]').value : '')
+                                    || (window.turnstile ? window.turnstile.getResponse(window.tbsTurnstileWidgetId !== null ? window.tbsTurnstileWidgetId : undefined) : '');
                                 if (token) {
                                     $el.querySelector('input.turnstile-token-input').value = token;
                                 }
@@ -840,8 +854,8 @@
                                         if (!handleAttack($event, @js($opp->name))) return;
                                         if(globalCd > 0) { $event.preventDefault(); return false; }
                                         const token = window.tbsTurnstileToken 
-                                            || (document.querySelector('.cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('.cf-turnstile [name=cf-turnstile-response]').value : '')
-                                            || (window.turnstile ? window.turnstile.getResponse() : '');
+                                            || (document.querySelector('#turnstile-widget [name=cf-turnstile-response], .cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('#turnstile-widget [name=cf-turnstile-response], .cf-turnstile [name=cf-turnstile-response]').value : '')
+                                            || (window.turnstile ? window.turnstile.getResponse(window.tbsTurnstileWidgetId !== null ? window.tbsTurnstileWidgetId : undefined) : '');
                                         if (token) {
                                             $el.querySelector('input.turnstile-token-input').value = token;
                                         }

@@ -594,6 +594,7 @@
                 language: 'nl',
                 theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                 appearance: 'always',
+                'response-field': false,
                 retry: 'auto',
                 'retry-interval': 1500,
                 'refresh-expired': 'auto',
@@ -666,6 +667,19 @@
     window.onAuthTurnstileLoaded = function() {
         window.tbsInitAuthTurnstile();
     };
+
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (!form || form.tagName !== 'FORM') return;
+        const loginInput = form.querySelector('#turnstile-login-token');
+        if (loginInput && !loginInput.value && window.turnstile && typeof window.turnstile.getResponse === 'function' && window.tbsAuthTurnstileWidgets.login !== null) {
+            try { loginInput.value = window.turnstile.getResponse(window.tbsAuthTurnstileWidgets.login) || ''; } catch (err) {}
+        }
+        const registerInput = form.querySelector('#turnstile-register-token');
+        if (registerInput && !registerInput.value && window.turnstile && typeof window.turnstile.getResponse === 'function' && window.tbsAuthTurnstileWidgets.register !== null) {
+            try { registerInput.value = window.turnstile.getResponse(window.tbsAuthTurnstileWidgets.register) || ''; } catch (err) {}
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
         window.tbsInitAuthTurnstile();

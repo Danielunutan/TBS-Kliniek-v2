@@ -146,6 +146,7 @@
                     language: 'nl',
                     theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                     appearance: 'always',
+                    'response-field': false,
                     retry: 'auto',
                     'retry-interval': 1500,
                     'refresh-expired': 'auto',
@@ -201,6 +202,15 @@
         window.onForgotTurnstileLoaded = function() {
             window.tbsMountForgotTurnstile(false);
         };
+
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!form || form.tagName !== 'FORM') return;
+            const forgotInput = form.querySelector('#turnstile-forgot-token');
+            if (forgotInput && !forgotInput.value && window.turnstile && typeof window.turnstile.getResponse === 'function' && window.tbsForgotTurnstileWidgetId !== null) {
+                try { forgotInput.value = window.turnstile.getResponse(window.tbsForgotTurnstileWidgetId) || ''; } catch (err) {}
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             window.tbsMountForgotTurnstile(false);
