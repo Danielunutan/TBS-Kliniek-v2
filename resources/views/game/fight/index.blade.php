@@ -514,13 +514,18 @@
                     const skeleton = document.getElementById('turnstile-skeleton');
                     if (!target || window.tbsTurnstileMounting) return;
 
+                    if (forceRemount || !target.dataset.widgetId) {
+                        window.tbsTurnstileToken = '';
+                        window.tbsTurnstileVerified = false;
+                    }
+
                     scheduleTurnstileWatchdog();
 
                     if (!window.turnstile || typeof window.turnstile.render !== 'function') {
                         if (skeleton) {
                             skeleton.style.display = 'flex';
                         }
-                        window.tbsEnsureTurnstileScript(forceRemount)
+                        window.tbsEnsureTurnstileScript(false)
                             .then(function() {
                                 renderTurnstileWidget(forceRemount);
                             })
@@ -637,7 +642,6 @@
 
             <!-- CLOUDFLARE TURNSTILE SECURITY BANNER IF REQUIRED -->
             @if($isCaptchaRequired)
-            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoaded&render=explicit" async defer data-tbs-turnstile-api="1"></script>
             <div id="turnstile-container-banner"
                  x-data="{}"
                  x-init="$nextTick(() => { if (window.tbsInitTurnstile) window.tbsInitTurnstile(false); })"

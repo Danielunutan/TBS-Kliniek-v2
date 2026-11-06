@@ -451,7 +451,6 @@
 
 </div>
 
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onAuthTurnstileLoaded&render=explicit" async defer data-tbs-turnstile-api="1"></script>
 <script>
     window.tbsAuthTurnstileWidgets = window.tbsAuthTurnstileWidgets || { login: null, register: null };
     window.tbsAuthTurnstileMounting = window.tbsAuthTurnstileMounting || { login: false, register: false };
@@ -460,6 +459,12 @@
     window.tbsHasMountedTurnstileDom = function(container) {
         if (!container) return false;
         return Boolean(container.querySelector('iframe') || container.children.length > 0);
+    };
+
+    window.onAuthTurnstileLoaded = function() {
+        if (typeof window.tbsInitAuthTurnstile === 'function') {
+            window.tbsInitAuthTurnstile();
+        }
     };
 
     window.tbsEnsureAuthTurnstileScript = function(forceReload = false) {
@@ -563,7 +568,7 @@
         }
 
         if (!window.turnstile || typeof window.turnstile.render !== 'function') {
-            window.tbsEnsureAuthTurnstileScript(forceRemount)
+            window.tbsEnsureAuthTurnstileScript(false)
                 .then(function() {
                     window.tbsMountAuthWidget(mode, forceRemount);
                 })
@@ -681,9 +686,13 @@
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        window.tbsInitAuthTurnstile();
-    });
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(function() { window.tbsInitAuthTurnstile(); }, 20);
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            window.tbsInitAuthTurnstile();
+        });
+    }
     document.addEventListener('turbo:before-render', function() {
         if (window.tbsAuthTurnstileTabTimers) {
             clearTimeout(window.tbsAuthTurnstileTabTimers.login);

@@ -109,10 +109,61 @@
 
     </div>
 
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onForgotTurnstileLoaded&render=explicit" async defer data-tbs-turnstile-api="1"></script>
     <script>
         window.tbsForgotTurnstileWidgetId = null;
         window.tbsForgotTurnstileMounting = false;
+
+        window.onForgotTurnstileLoaded = function() {
+            if (typeof window.tbsMountForgotTurnstile === 'function') {
+                window.tbsMountForgotTurnstile(false);
+            }
+        };
+
+        window.tbsEnsureForgotTurnstileScript = function() {
+            if (window.turnstile && typeof window.turnstile.render === 'function') {
+                return Promise.resolve(window.turnstile);
+            }
+            if (window._tbsForgotTurnstilePromise) {
+                return window._tbsForgotTurnstilePromise;
+            }
+            window._tbsForgotTurnstilePromise = new Promise(function(resolve, reject) {
+                let settled = false;
+                const existing = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+                if (!existing) {
+                    const script = document.createElement('script');
+                    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onForgotTurnstileLoaded&render=explicit';
+                    script.async = true;
+                    script.defer = true;
+                    script.setAttribute('data-tbs-turnstile-api', '1');
+                    script.onerror = function() {
+                        if (!settled) {
+                            settled = true;
+                            window._tbsForgotTurnstilePromise = null;
+                            reject(new Error('Turnstile script load error'));
+                        }
+                    };
+                    document.head.appendChild(script);
+                }
+                const startedAt = Date.now();
+                const poll = setInterval(function() {
+                    if (window.turnstile && typeof window.turnstile.render === 'function') {
+                        clearInterval(poll);
+                        if (!settled) {
+                            settled = true;
+                            resolve(window.turnstile);
+                        }
+                    } else if (Date.now() - startedAt > 6000) {
+                        clearInterval(poll);
+                        if (!settled) {
+                            settled = true;
+                            window._tbsForgotTurnstilePromise = null;
+                            reject(new Error('Turnstile script timeout'));
+                        }
+                    }
+                }, 100);
+            });
+            return window._tbsForgotTurnstilePromise;
+        };
 
         window.tbsMountForgotTurnstile = function(forceRemount = false) {
             const container = document.getElementById('turnstile-forgot-widget');
@@ -120,6 +171,11 @@
             if (!container || window.tbsForgotTurnstileMounting) return;
 
             if (!window.turnstile || typeof window.turnstile.render !== 'function') {
+                window.tbsEnsureForgotTurnstileScript()
+                    .then(function() {
+                        window.tbsMountForgotTurnstile(forceRemount);
+                    })
+                    .catch(function() {});
                 return;
             }
 
@@ -212,9 +268,13 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            window.tbsMountForgotTurnstile(false);
-        });
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(function() { window.tbsMountForgotTurnstile(false); }, 20);
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                window.tbsMountForgotTurnstile(false);
+            });
+        }
         document.addEventListener('turbo:load', function() {
             window.tbsMountForgotTurnstile(false);
         });
