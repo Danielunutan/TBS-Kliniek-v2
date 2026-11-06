@@ -185,10 +185,20 @@
 
         window.resetForgotTurnstile = function() {
             const tokenInput = document.getElementById('turnstile-forgot-token');
-            const statusText = document.getElementById('turnstile-forgot-status-text');
             if (tokenInput) tokenInput.value = '';
-            if (statusText) {
-                statusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-500"></i> <span>Verificatie vernieuwen...</span>';
+
+            if (window.tbsForgotTurnstileWidgetId !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
+                try {
+                    window.turnstile.reset(window.tbsForgotTurnstileWidgetId);
+                    return;
+                } catch (e) {}
+            }
+
+            if (window.tbsForgotTurnstileWidgetId !== null && window.turnstile && typeof window.turnstile.remove === 'function') {
+                try {
+                    window.turnstile.remove(window.tbsForgotTurnstileWidgetId);
+                } catch (e) {}
+                window.tbsForgotTurnstileWidgetId = null;
             }
             window.tbsMountForgotTurnstile(true);
         };

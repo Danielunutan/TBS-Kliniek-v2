@@ -454,6 +454,7 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onAuthTurnstileLoaded&render=explicit" async defer data-tbs-turnstile-api="1"></script>
 <script>
     window.tbsAuthTurnstileWidgets = window.tbsAuthTurnstileWidgets || { login: null, register: null };
+    window.tbsAuthTurnstileMounting = window.tbsAuthTurnstileMounting || { login: false, register: false };
 
     window.tbsEnsureAuthTurnstileScript = function(forceReload = false) {
         if (!forceReload && window.turnstile && typeof window.turnstile.render === 'function') {
@@ -518,13 +519,15 @@
     };
 
     window.tbsMountAuthTab = function(mode) {
+        if (window.tbsAuthTurnstileWidgets[mode] !== null) {
+            return;
+        }
         window.tbsMountAuthWidget(mode, false);
         setTimeout(function() {
-            window.tbsMountAuthWidget(mode, false);
-        }, 60);
-        setTimeout(function() {
-            window.tbsMountAuthWidget(mode, false);
-        }, 250);
+            if (window.tbsAuthTurnstileWidgets[mode] === null) {
+                window.tbsMountAuthWidget(mode, false);
+            }
+        }, 100);
     };
 
     window.tbsMountAuthWidget = function(mode, forceRemount = false) {
@@ -532,9 +535,17 @@
         const tokenInput = document.getElementById('turnstile-' + mode + '-token');
         if (!container) return;
 
-        // Skip mounting if container is currently hidden (e.g. inside an inactive tab)
+        // Skip mounting if container is hidden (e.g. inside inactive tab)
         const isHidden = container.offsetParent === null && container.offsetWidth === 0;
         if (isHidden) {
+            return;
+        }
+
+        // Prevent concurrent or duplicate mounts
+        if (window.tbsAuthTurnstileMounting[mode]) {
+            return;
+        }
+        if (!forceRemount && window.tbsAuthTurnstileWidgets[mode] !== null) {
             return;
         }
 
@@ -547,14 +558,10 @@
             return;
         }
 
+        window.tbsAuthTurnstileMounting[mode] = true;
+
         try {
             const existingWidgetId = window.tbsAuthTurnstileWidgets[mode];
-            const hasIframe = Boolean(container.querySelector('iframe'));
-
-            if (!forceRemount && hasIframe && existingWidgetId !== null && container.dataset.widgetId === String(existingWidgetId)) {
-                return;
-            }
-
             if (existingWidgetId !== null && typeof window.turnstile.remove === 'function') {
                 try {
                     window.turnstile.remove(existingWidgetId);
@@ -562,7 +569,6 @@
                 window.tbsAuthTurnstileWidgets[mode] = null;
             }
 
-            container.innerHTML = '';
             const sitekey = container.dataset.sitekey || '{{ $turnstileSiteKey }}';
             const actionName = container.dataset.action || ('auth_' + mode);
             const cdataVal = container.dataset.cdata || '';
@@ -607,15 +613,30 @@
                 container.dataset.widgetId = String(widgetId);
             }
         } catch (err) {
-            setTimeout(function() {
-                window.tbsMountAuthWidget(mode, true);
-            }, 1000);
+            console.warn('Turnstile render notice:', err);
+        } finally {
+            window.tbsAuthTurnstileMounting[mode] = false;
         }
     };
 
     window.resetAuthTurnstile = function(mode) {
         const tokenInput = document.getElementById('turnstile-' + mode + '-token');
         if (tokenInput) tokenInput.value = '';
+
+        const widgetId = window.tbsAuthTurnstileWidgets[mode];
+        if (widgetId !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
+            try {
+                window.turnstile.reset(widgetId);
+                return;
+            } catch (e) {}
+        }
+
+        if (widgetId !== null && window.turnstile && typeof window.turnstile.remove === 'function') {
+            try {
+                window.turnstile.remove(widgetId);
+            } catch (e) {}
+            window.tbsAuthTurnstileWidgets[mode] = null;
+        }
         window.tbsMountAuthWidget(mode, true);
     };
 
