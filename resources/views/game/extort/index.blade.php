@@ -37,10 +37,15 @@
                     <i class="fa-solid fa-person-military-pointing"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200/80 dark:border-purple-800/70">
                             TBS Kliniek Illegaal
                         </span>
+                        @if(($levelMultiplier ?? 1.0) > 1.0)
+                        <span class="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/70">
+                            <i class="fa-solid fa-arrow-trend-up"></i> Level Bonus: +{{ round((($levelMultiplier ?? 1.0) - 1.0) * 100) }}% Buit &amp; XP
+                        </span>
+                        @endif
                     </div>
                     <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                         Afpersen &amp; Chantage
@@ -105,18 +110,26 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($targets as $target)
         @php
-            $otherBlocked = $character->isImprisoned() || $character->isComatose() || $character->energy < $target['energy'];
+            $isLockedByLevel = ($target['min_level'] ?? 1) > $character->level;
+            $otherBlocked = $isLockedByLevel || $character->isImprisoned() || $character->isComatose() || $character->energy < $target['energy'];
             $isDisabled = $otherBlocked || $extortCooldown > 0;
         @endphp
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 shadow-xs transition-all duration-200 p-5 sm:p-6 flex flex-col justify-between gap-4">
-            <div class="flex items-start gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 shadow-2xs">
-                    <i class="fa-solid {{ $target['icon'] }}"></i>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 shadow-xs transition-all duration-200 p-5 sm:p-6 flex flex-col justify-between gap-4 {{ $isLockedByLevel ? 'opacity-85' : '' }}">
+            <div class="flex items-start justify-between gap-3.5">
+                <div class="flex items-start gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 shadow-2xs">
+                        <i class="fa-solid {{ $target['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $target['name'] }}</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $target['desc'] }}</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $target['name'] }}</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $target['desc'] }}</p>
-                </div>
+                @if(($target['min_level'] ?? 1) > 1)
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full shrink-0 {{ $isLockedByLevel ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70' }}">
+                        <i class="fa-solid {{ $isLockedByLevel ? 'fa-lock' : 'fa-unlock' }} text-[9px] mr-0.5"></i> Level {{ $target['min_level'] }}+
+                    </span>
+                @endif
             </div>
             <div class="pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-4 flex-wrap">
                 <div class="space-y-1">
@@ -145,8 +158,13 @@
                             :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs'"
                             {{ $isDisabled ? 'disabled' : '' }}
                             class="px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-150 flex items-center gap-1.5">
-                        <i class="fa-solid fa-hand-back-fist text-[11px]"></i>
-                        <span>Afpersen</span>
+                        @if($isLockedByLevel)
+                            <i class="fa-solid fa-lock text-[11px]"></i>
+                            <span>Level {{ $target['min_level'] }}</span>
+                        @else
+                            <i class="fa-solid fa-hand-back-fist text-[11px]"></i>
+                            <span>Afpersen</span>
+                        @endif
                     </button>
                 </form>
             </div>

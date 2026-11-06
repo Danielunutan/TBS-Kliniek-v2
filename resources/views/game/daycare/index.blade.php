@@ -18,6 +18,11 @@
                         <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/70">
                             100% Veilig &bull; 0% Isoleercel Risico
                         </span>
+                        @if(($levelMultiplier ?? 1.0) > 1.0)
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
+                            <i class="fa-solid fa-arrow-trend-up"></i> Level Bonus: +{{ round((($levelMultiplier ?? 1.0) - 1.0) * 100) }}% Beloning
+                        </span>
+                        @endif
                     </div>
                     <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                         Dagbesteding & Werkplaats
@@ -95,16 +100,27 @@
     <!-- LIST OF JOBS -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         @foreach($jobs as $job)
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group">
+        @php
+            $isLockedByLevel = ($job['min_level'] ?? 1) > $character->level;
+            $isBlocked = $isLockedByLevel || $activeCooldown > 0 || $character->energy < $job['energy'] || $character->isImprisoned() || $character->isComatose();
+        @endphp
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 group {{ $isLockedByLevel ? 'opacity-85' : '' }}">
             
             <div class="space-y-3">
                 <div class="flex items-start justify-between gap-3">
                     <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0 border border-amber-200/80 dark:border-amber-800/70">
                         <i class="fa-solid {{ $job['icon'] }}"></i>
                     </div>
-                    <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 font-mono">
-                        {{ $job['energy'] }} Energie
-                    </span>
+                    <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                        @if(($job['min_level'] ?? 1) > 1)
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full {{ $isLockedByLevel ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70' }}">
+                                <i class="fa-solid {{ $isLockedByLevel ? 'fa-lock' : 'fa-unlock' }} text-[9px] mr-0.5"></i> Level {{ $job['min_level'] }}+
+                            </span>
+                        @endif
+                        <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 font-mono">
+                            {{ $job['energy'] }} Energie
+                        </span>
+                    </div>
                 </div>
 
                 <div>
@@ -137,10 +153,15 @@
                 @csrf
                 <input type="hidden" name="job_id" value="{{ $job['id'] }}">
                 <button type="submit" 
-                        {{ $activeCooldown > 0 || $character->energy < $job['energy'] || $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
-                        class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $activeCooldown > 0 || $character->energy < $job['energy'] || $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }}">
-                    <i class="fa-solid fa-play text-[10px]"></i>
-                    <span>Dienst Draaien (-{{ $job['energy'] }} EN)</span>
+                        {{ $isBlocked ? 'disabled' : '' }}
+                        class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $isBlocked ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }}">
+                    @if($isLockedByLevel)
+                        <i class="fa-solid fa-lock text-[10px]"></i>
+                        <span>Ontgrendelt op Level {{ $job['min_level'] }}</span>
+                    @else
+                        <i class="fa-solid fa-play text-[10px]"></i>
+                        <span>Dienst Draaien (-{{ $job['energy'] }} EN)</span>
+                    @endif
                 </button>
             </form>
 

@@ -295,6 +295,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/smokkel-droppings', [DroppingController::class, 'index'])->name('droppings.index');
     Route::post('/smokkel-droppings/tennisbal', [DroppingController::class, 'catchTennisball'])->name('droppings.tennisball');
     Route::post('/smokkel-droppings/drone', [DroppingController::class, 'orderDrone'])->name('droppings.drone');
+    Route::post('/smokkel-droppings/helikopter', [DroppingController::class, 'orderHelicopter'])->name('droppings.helicopter');
 
     // Functie 3: TBS FM (Radio & Shoutouts)
     Route::get('/tbs-fm', [RadioController::class, 'index'])->name('radio.index');

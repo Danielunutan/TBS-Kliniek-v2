@@ -18,6 +18,11 @@
                         <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-200/80 dark:border-slate-700">
                             Luchtplaats &bull; Dakdroppings
                         </span>
+                        @if(($levelMultiplier ?? 1.0) > 1.0)
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
+                            <i class="fa-solid fa-arrow-trend-up"></i> Level Bonus: +{{ round((($levelMultiplier ?? 1.0) - 1.0) * 100) }}% Buit &amp; XP
+                        </span>
+                        @endif
                     </div>
                     <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                         Tennisballen & Nachtelijke Drones
@@ -60,8 +65,8 @@
     </div>
     @endif
 
-    <!-- 2 Dropping Operations Cards (Clean TBS Kliniek Layout) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- 3 Dropping Operations Cards (Clean TBS Kliniek Layout) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         <!-- 1. TENNISBAL OVER HET HEK (Dagoperatie) -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
@@ -171,6 +176,68 @@
                                 @csrf
                                 <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->energy < 25 || $character->cash < 500) class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
                                     <i class="fa-solid fa-paper-plane"></i> Bestel Drone Dropping (€500)
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- 3. NACHTELIJKE STEALTH-HELIKOPTER DROPPING (Elite Tier) -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-helicopter"></i>
+                    </div>
+                    <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
+                        Nacht &bull; Kartel Operatie
+                    </span>
+                </div>
+
+                <div>
+                    <h2 class="text-base font-black text-slate-900 dark:text-white">Kartel Stealth-Helikopter Dropping</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        Schakel een zwaar militair kartel in. Onder dekking van radardoorbraak dropt een geruisloze zwarte helikopter een waterdichte plunjezak vol smokkelwaar en zwart geld op het dak van de inrichting.
+                    </p>
+                </div>
+
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-3.5 space-y-2 text-xs border border-slate-200/80 dark:border-slate-700/70">
+                    <div class="flex justify-between text-slate-600 dark:text-slate-300 font-medium">
+                        <span><i class="fa-solid fa-money-bill-wave text-rose-500 mr-1.5"></i> Kosten kartel:</span>
+                        <span class="font-bold text-slate-900 dark:text-white">€2.500 contant + 35 Energie</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600 dark:text-slate-300 font-medium">
+                        <span><i class="fa-solid fa-box-open text-purple-500 mr-1.5"></i> Elite buit:</span>
+                        <span class="font-bold text-purple-600 dark:text-purple-400">€6.000 - €16.000 + Contrabande</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600 dark:text-slate-300 font-medium">
+                        <span><i class="fa-solid fa-user-lock text-indigo-500 mr-1.5"></i> Vereiste:</span>
+                        <span class="font-bold text-indigo-600 dark:text-indigo-400">Minimaal Level 15</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800"
+                 x-data="{ cd: {{ (int) ($helicopterCooldown ?? 0) }} }"
+                 x-init="if (cd > 0) { const t = setInterval(() => { cd--; if (cd <= 0) clearInterval(t); }, 1000); }">
+                <template x-if="cd > 0">
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-clock"></i> Heli Tankt Bij (Nog <span x-text="Math.ceil(cd / 60)">{{ ceil(($helicopterCooldown ?? 0) / 60) }}</span> min)
+                    </button>
+                </template>
+                <template x-if="cd <= 0">
+                    <div>
+                        @if($character->level < 15)
+                            <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                                <i class="fa-solid fa-lock"></i> Vereist Level 15 (Jij bent Level {{ $character->level }})
+                            </button>
+                        @else
+                            <form action="{{ route('droppings.helicopter') }}" method="POST">
+                                @csrf
+                                <button type="submit" @disabled($character->isImprisoned() || $character->isComatose() || $character->energy < 35 || $character->cash < 2500) class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-helicopter"></i> Bestel Heli Dropping (€2.500)
                                 </button>
                             </form>
                         @endif

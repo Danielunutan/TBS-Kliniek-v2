@@ -36,8 +36,11 @@ class DroppingController extends Controller
         $character = $user->character;
         $this->energy->refresh($character);
 
+        $levelMultiplier = min(3.5, 1 + max(0, ($character->level - 1) * 0.04));
+
         $tennisCooldown = $this->cooldownService->getRemainingSeconds($character, 'dropping_tennisball');
         $droneCooldown = $this->cooldownService->getRemainingSeconds($character, 'dropping_drone');
+        $helicopterCooldown = $this->cooldownService->getRemainingSeconds($character, 'dropping_helicopter');
 
         $recentDroppings = SmuggleDropping::where('character_id', $character->id)
             ->latest()
@@ -51,9 +54,11 @@ class DroppingController extends Controller
             'character',
             'tennisCooldown',
             'droneCooldown',
+            'helicopterCooldown',
             'recentDroppings',
             'totalIntercepted',
-            'totalCashMade'
+            'totalCashMade',
+            'levelMultiplier'
         ));
     }
 
@@ -109,8 +114,9 @@ class DroppingController extends Controller
             }
 
             // Buit genereren
-            $cash = mt_rand(250, 1200);
-            $xp = mt_rand(20, 45);
+            $levelMultiplier = min(3.5, 1 + max(0, ($lockedCharacter->level - 1) * 0.04));
+            $cash = (int) round(mt_rand(250, 1200) * $levelMultiplier);
+            $xp = (int) round(mt_rand(20, 45) * $levelMultiplier);
             $lootItems = [];
 
             $this->economy->addCash($lockedCharacter, $cash);
@@ -159,7 +165,9 @@ class DroppingController extends Controller
                 'caught' => false,
             ]);
 
-            return back()->with('success', "RAAK! Je dook als een snoek naar de heg en griste de opengeknipte tennisbal mee naar binnen. Buit: {$lootStr} (+{$xp} XP)!");
+            $bonusTag = ($levelMultiplier > 1.0) ? ' (inclusief level bonus)' : '';
+
+            return back()->with('success', "RAAK! Je dook als een snoek naar de heg en griste de opengeknipte tennisbal mee naar binnen. Buit: {$lootStr} (+{$xp} XP{$bonusTag})!");
         });
     }
 
@@ -233,8 +241,9 @@ class DroppingController extends Controller
             }
 
             // Succesvolle high-tier drop
-            $cash = mt_rand(1800, 4800);
-            $xp = mt_rand(60, 110);
+            $levelMultiplier = min(3.5, 1 + max(0, ($lockedCharacter->level - 1) * 0.04));
+            $cash = (int) round(mt_rand(1800, 4800) * $levelMultiplier);
+            $xp = (int) round(mt_rand(60, 110) * $levelMultiplier);
             $lootItems = [];
 
             $this->economy->addCash($lockedCharacter, $cash);
@@ -286,7 +295,137 @@ class DroppingController extends Controller
                 'caught' => false,
             ]);
 
-            return back()->with('success', "🎯 PRECISIEDROPPING GESLAAGD! De zwarte drone loste geruisloos zijn waterdichte pakket recht door het luchtrooster van jouw afdeling. Buit: {$lootStr} (+{$xp} XP)!");
+            $bonusTag = ($levelMultiplier > 1.0) ? ' (inclusief level bonus)' : '';
+
+            return back()->with('success', "🎯 PRECISIEDROPPING GESLAAGD! De zwarte drone loste geruisloos zijn waterdichte pakket recht door het luchtrooster van jouw afdeling. Buit: {$lootStr} (+{$xp} XP{$bonusTag})!");
+        });
+    }
+
+    public function orderHelicopter(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        /** @var Character $character */
+        $character = $user->character;
+        $this->energy->refresh($character);
+
+        if ($character->level < 15) {
+            return back()->with('error', 'Nachtelijke helikopter-droppings vereisen minimaal Level 15 en connecties met het zware kartel!');
+        }
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Je zit in de isoleercel en kunt niet bij het dak komen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if ($this->cooldownService->isOnCooldown($lockedCharacter, 'dropping_helicopter')) {
+                $remaining = ceil($this->cooldownService->getRemainingSeconds($lockedCharacter, 'dropping_helicopter') / 60).' minuten';
+
+                return back()->with('error', "De helikopterpiloot moet zijn vliegroute aanpassen en bijtanken. Wacht nog {$remaining}.");
+            }
+
+            $heliCost = 2500;
+            if ($lockedCharacter->cash < $heliCost) {
+                return back()->with('error', 'Je hebt minimaal €'.number_format($heliCost, 0, ',', '.').' contant nodig voor de helikopterpiloot en radaraftasting!');
+            }
+
+            $energyCost = 35;
+            if ($lockedCharacter->energy < $energyCost) {
+                return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de zware nachtoperatie!");
+            }
+
+            if (! $this->economy->deductCash($lockedCharacter, $heliCost)) {
+                return back()->with('error', 'Je hebt minimaal €'.number_format($heliCost, 0, ',', '.').' contant nodig voor de piloot!');
+            }
+
+            if (! $this->energy->consume($lockedCharacter, $energyCost)) {
+                $this->economy->addCash($lockedCharacter, $heliCost);
+
+                return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de zware nachtoperatie!");
+            }
+
+            $this->cooldownService->setCooldown($lockedCharacter, 'dropping_helicopter');
+
+            // 15% kans dat radar/nachtkijkers de drop onderscheppen
+            $caught = mt_rand(1, 100) <= 15;
+            if ($caught) {
+                $this->level->addXp($lockedCharacter, 25);
+
+                SmuggleDropping::create([
+                    'character_id' => $lockedCharacter->id,
+                    'type' => 'helicopter',
+                    'loot_summary' => 'Onderschept door luchtverdedigingsradar en zoeklichten!',
+                    'cash_gained' => 0,
+                    'xp_gained' => 25,
+                    'caught' => true,
+                ]);
+
+                return back()->with('error', 'ALARM! Een mobiele radarwagen van de kliniek detecteerde de naderende helikopter. De piloot moest direct afbreken en dumpte de lading in het bos. Je bent je €2.500 kwijt!');
+            }
+
+            $levelMultiplier = min(3.5, 1 + max(0, ($lockedCharacter->level - 1) * 0.04));
+            $cash = (int) round(mt_rand(6000, 16000) * $levelMultiplier);
+            $xp = (int) round(mt_rand(200, 380) * $levelMultiplier);
+            $lootItems = [];
+
+            $this->economy->addCash($lockedCharacter, $cash);
+            $this->level->addXp($lockedCharacter, $xp);
+
+            // Grote smokkelbuit
+            $sigAmount = mt_rand(12, 25);
+            $sigItem = Item::where('slug', 'sigaretten')->first();
+            if ($sigItem) {
+                $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $sigItem->id], ['quantity' => 0]);
+                $ci->increment('quantity', $sigAmount);
+                $lootItems[] = "{$sigAmount}x Sigaretten";
+            }
+
+            $ritAmount = mt_rand(5, 10);
+            $ritItem = Item::where('slug', 'ritalin')->first();
+            if ($ritItem) {
+                $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $ritItem->id], ['quantity' => 0]);
+                $ci->increment('quantity', $ritAmount);
+                $lootItems[] = "{$ritAmount}x Ritalin";
+            }
+
+            // Kans op oxazepam & kluiscodes
+            if (mt_rand(1, 100) <= 50) {
+                $oxItem = Item::where('slug', 'strip-oxazepam')->first();
+                if ($oxItem) {
+                    $ci = CharacterItem::firstOrCreate(['character_id' => $lockedCharacter->id, 'item_id' => $oxItem->id], ['quantity' => 0]);
+                    $ci->increment('quantity', 2);
+                    $lootItems[] = '2x Strip Oxazepam';
+                }
+            }
+
+            if (mt_rand(1, 100) <= 35) {
+                $lockedCharacter->vault_tokens = ($lockedCharacter->vault_tokens ?? 0) + 2;
+                $lootItems[] = '+2 Kluiscodes 🔑';
+            }
+
+            $lockedCharacter->save();
+
+            $lootStr = '€'.number_format($cash, 0, ',', '.').($lootItems ? ', '.implode(', ', $lootItems) : '');
+
+            SmuggleDropping::create([
+                'character_id' => $lockedCharacter->id,
+                'type' => 'helicopter',
+                'loot_summary' => $lootStr,
+                'cash_gained' => $cash,
+                'xp_gained' => $xp,
+                'caught' => false,
+            ]);
+
+            $bonusTag = ($levelMultiplier > 1.0) ? ' (inclusief level bonus)' : '';
+
+            return back()->with('success', "🚁 STEALTH-HELIKOPTER DROPPING GESLAAGD! De zwarte heli vloog geruisloos over de bomen en gooide een zware militaire waterdichte plunjezak op het dak. Buit: {$lootStr} (+{$xp} XP{$bonusTag})!");
         });
     }
 }
