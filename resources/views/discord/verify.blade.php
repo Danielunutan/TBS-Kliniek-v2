@@ -19,7 +19,6 @@
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body class="min-h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased selection:bg-purple-600 selection:text-white flex flex-col justify-between">
@@ -198,17 +197,12 @@
 
                         <!-- Cloudflare Turnstile Box -->
                         <div class="flex justify-center items-center py-1">
-                            <div class="cf-turnstile min-h-[65px]" 
-                                 data-sitekey="{{ $turnstileSiteKey }}" 
+                            <div id="turnstile-discord-widget"
+                                 class="min-h-[65px]" 
+                                 data-sitekey="{{ $turnstileSiteKey ?? '' }}" 
                                  data-action="discord_shield_verify"
                                  data-cdata="{{ $turnstileCdata ?? '' }}"
-                                 data-language="nl"
-                                 data-callback="onTurnstileSuccess"
-                                 data-expired-callback="onTurnstileExpired"
-                                 data-error-callback="onTurnstileError"
-                                 data-retry="auto"
-                                 data-refresh-expired="auto"
-                                 data-theme="dark"></div>
+                                 data-language="nl"></div>
                         </div>
 
                         <!-- Error Message -->
@@ -654,32 +648,148 @@
     <!-- Client-side Fingerprinting & Verification Engine -->
     <script>
         let globalTurnstileToken = '';
-        (function() {
-            const cfEl = document.querySelector('.cf-turnstile');
-            if (cfEl) {
-                cfEl.setAttribute('data-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-            }
-        })();
+        window.tbsDiscordTurnstileWidgetId = null;
+        window.tbsDiscordTurnstileMounting = false;
 
         function onTurnstileSuccess(token) {
-            globalTurnstileToken = token;
+            globalTurnstileToken = token || '';
         }
 
         function onTurnstileExpired() {
             globalTurnstileToken = '';
-            if (window.turnstile && typeof window.turnstile.reset === 'function') {
-                try { window.turnstile.reset(); } catch (e) {}
+            if (window.tbsDiscordTurnstileWidgetId !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
+                try { window.turnstile.reset(window.tbsDiscordTurnstileWidgetId); return; } catch (e) {}
             }
+            window.tbsMountDiscordTurnstile(true);
         }
 
         function onTurnstileError() {
             globalTurnstileToken = '';
             setTimeout(() => {
-                if (window.turnstile && typeof window.turnstile.reset === 'function') {
-                    try { window.turnstile.reset(); } catch (e) {}
+                if (window.tbsDiscordTurnstileWidgetId !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
+                    try { window.turnstile.reset(window.tbsDiscordTurnstileWidgetId); return; } catch (e) {}
                 }
+                window.tbsMountDiscordTurnstile(true);
             }, 1500);
+            return true;
         }
+
+        window.onDiscordTurnstileLoaded = function() {
+            if (typeof window.tbsMountDiscordTurnstile === 'function') {
+                window.tbsMountDiscordTurnstile(false);
+            }
+        };
+
+        window.tbsEnsureDiscordTurnstileScript = function() {
+            if (window.turnstile && typeof window.turnstile.render === 'function') {
+                return Promise.resolve(window.turnstile);
+            }
+            if (window._tbsDiscordTurnstilePromise) {
+                return window._tbsDiscordTurnstilePromise;
+            }
+            window._tbsDiscordTurnstilePromise = new Promise(function(resolve, reject) {
+                let settled = false;
+                const existing = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+                if (!existing) {
+                    const script = document.createElement('script');
+                    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onDiscordTurnstileLoaded&render=explicit';
+                    script.async = true;
+                    script.defer = true;
+                    script.setAttribute('data-tbs-turnstile-api', '1');
+                    script.onerror = function() {
+                        if (!settled) {
+                            settled = true;
+                            window._tbsDiscordTurnstilePromise = null;
+                            reject(new Error('Turnstile script load error'));
+                        }
+                    };
+                    document.head.appendChild(script);
+                }
+                const startedAt = Date.now();
+                const poll = setInterval(function() {
+                    if (window.turnstile && typeof window.turnstile.render === 'function') {
+                        clearInterval(poll);
+                        if (!settled) {
+                            settled = true;
+                            resolve(window.turnstile);
+                        }
+                    } else if (Date.now() - startedAt > 6000) {
+                        clearInterval(poll);
+                        if (!settled) {
+                            settled = true;
+                            window._tbsDiscordTurnstilePromise = null;
+                            reject(new Error('Turnstile script timeout'));
+                        }
+                    }
+                }, 100);
+            });
+            return window._tbsDiscordTurnstilePromise;
+        };
+
+        window.tbsMountDiscordTurnstile = function(forceRemount = false) {
+            const container = document.getElementById('turnstile-discord-widget');
+            if (!container || window.tbsDiscordTurnstileMounting) return;
+
+            if (!window.turnstile || typeof window.turnstile.render !== 'function') {
+                window.tbsEnsureDiscordTurnstileScript()
+                    .then(function() {
+                        window.tbsMountDiscordTurnstile(forceRemount);
+                    })
+                    .catch(function() {});
+                return;
+            }
+
+            window.tbsDiscordTurnstileMounting = true;
+            try {
+                const hasMounted = Boolean(container.querySelector('iframe') || container.children.length > 0);
+                if (!forceRemount && hasMounted && window.tbsDiscordTurnstileWidgetId !== null) {
+                    return;
+                }
+
+                if (window.tbsDiscordTurnstileWidgetId !== null && typeof window.turnstile.remove === 'function') {
+                    try { window.turnstile.remove(window.tbsDiscordTurnstileWidgetId); } catch (e) {}
+                    window.tbsDiscordTurnstileWidgetId = null;
+                }
+
+                container.innerHTML = '';
+                const widgetId = window.turnstile.render(container, {
+                    sitekey: container.dataset.sitekey || '{{ $turnstileSiteKey ?? "" }}',
+                    action: container.dataset.action || 'discord_shield_verify',
+                    cData: container.dataset.cdata || '',
+                    language: 'nl',
+                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                    appearance: 'always',
+                    'response-field': false,
+                    retry: 'auto',
+                    'retry-interval': 1500,
+                    'refresh-expired': 'auto',
+                    'refresh-timeout': 'auto',
+                    callback: onTurnstileSuccess,
+                    'expired-callback': onTurnstileExpired,
+                    'error-callback': onTurnstileError,
+                    'timeout-callback': onTurnstileExpired
+                });
+
+                if (typeof widgetId !== 'undefined' && widgetId !== null) {
+                    window.tbsDiscordTurnstileWidgetId = widgetId;
+                }
+            } catch (e) {
+                setTimeout(function() { window.tbsMountDiscordTurnstile(true); }, 1200);
+            } finally {
+                window.tbsDiscordTurnstileMounting = false;
+            }
+        };
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(function() { window.tbsMountDiscordTurnstile(false); }, 20);
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                window.tbsMountDiscordTurnstile(false);
+            });
+        }
+        document.addEventListener('turbo:load', function() {
+            window.tbsMountDiscordTurnstile(false);
+        });
 
         function discordShieldApp() {
             return {
@@ -755,6 +865,9 @@
                 
                 async submitVerification() {
                     if (this.cooldown > 0) return;
+                    if (!globalTurnstileToken && window.turnstile && typeof window.turnstile.getResponse === 'function' && window.tbsDiscordTurnstileWidgetId !== null) {
+                        try { globalTurnstileToken = window.turnstile.getResponse(window.tbsDiscordTurnstileWidgetId) || ''; } catch (e) {}
+                    }
                     if (!globalTurnstileToken) {
                         this.errorMessage = 'Voltooi eerst de Cloudflare beveiligingscontrole hierboven.';
                         return;
@@ -801,8 +914,8 @@
                         } else {
                             this.errorMessage = data.message || 'Verificatie geweigerd.';
                             globalTurnstileToken = '';
-                            if (window.turnstile && typeof window.turnstile.reset === 'function') {
-                                try { window.turnstile.reset(); } catch (e) {}
+                            if (window.tbsDiscordTurnstileWidgetId !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
+                                try { window.turnstile.reset(window.tbsDiscordTurnstileWidgetId); } catch (e) {}
                             }
                             // Start 5 second cooldown to prevent accidental or automated spamming
                             this.cooldown = 5;
@@ -818,8 +931,8 @@
                     } catch (err) {
                         this.errorMessage = 'Er is een verbindingsfout opgetreden. Probeer het opnieuw.';
                         globalTurnstileToken = '';
-                        if (window.turnstile && typeof window.turnstile.reset === 'function') {
-                            try { window.turnstile.reset(); } catch (e) {}
+                        if (window.tbsDiscordTurnstileWidgetId !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
+                            try { window.turnstile.reset(window.tbsDiscordTurnstileWidgetId); } catch (e) {}
                         }
                     } finally {
                         this.isLoading = false;

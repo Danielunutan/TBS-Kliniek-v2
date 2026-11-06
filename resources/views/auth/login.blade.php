@@ -669,10 +669,6 @@
         }
     };
 
-    window.onAuthTurnstileLoaded = function() {
-        window.tbsInitAuthTurnstile();
-    };
-
     document.addEventListener('submit', function(e) {
         const form = e.target;
         if (!form || form.tagName !== 'FORM') return;

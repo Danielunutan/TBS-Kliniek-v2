@@ -255,10 +255,6 @@
             window.tbsMountForgotTurnstile(true);
         };
 
-        window.onForgotTurnstileLoaded = function() {
-            window.tbsMountForgotTurnstile(false);
-        };
-
         document.addEventListener('submit', function(e) {
             const form = e.target;
             if (!form || form.tagName !== 'FORM') return;

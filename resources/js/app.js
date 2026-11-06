@@ -49,6 +49,9 @@ document.addEventListener('turbo:load', () => {
     if (typeof window.tbsMountForgotTurnstile === 'function' && document.getElementById('turnstile-forgot-widget')) {
         window.tbsMountForgotTurnstile(false);
     }
+    if (typeof window.tbsMountDiscordTurnstile === 'function' && document.getElementById('turnstile-discord-widget')) {
+        window.tbsMountDiscordTurnstile(false);
+    }
 });
 
 // Initialize Alpine

@@ -272,6 +272,12 @@
                 window._tbsTurnstileWatchdog = null;
                 window._tbsTurnstileRetryTimer = null;
 
+                window.onTurnstileLoaded = function() {
+                    if (typeof renderTurnstileWidget === 'function') {
+                        renderTurnstileWidget(false);
+                    }
+                };
+
                 function clearTurnstileTimers() {
                     if (window._tbsTurnstileWatchdog) {
                         clearTimeout(window._tbsTurnstileWatchdog);
@@ -597,10 +603,6 @@
                     const target = document.getElementById('turnstile-widget');
                     if (!target) return;
                     renderTurnstileWidget(forceRemount);
-                };
-
-                window.onTurnstileLoaded = function() {
-                    renderTurnstileWidget(false);
                 };
 
                 window.reloadTurnstileWidget = function(manualClick = true) {
