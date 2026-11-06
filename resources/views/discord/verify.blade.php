@@ -19,56 +19,6 @@
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        .tbs-turnstile-shell {
-            position: relative !important;
-            width: 100% !important;
-            height: 59px !important;
-            border-radius: 0.75rem !important;
-            border: 1px solid #e2e8f0 !important;
-            background-color: #f8fafc !important;
-            overflow: hidden !important;
-            isolation: isolate !important;
-            box-sizing: border-box !important;
-            transition: border-color 0.15s ease !important;
-        }
-        html.dark .tbs-turnstile-shell {
-            border-color: #334155 !important;
-            background-color: #1e293b !important;
-        }
-        .tbs-turnstile-shell::after {
-            content: "" !important;
-            position: absolute !important;
-            inset: 0 !important;
-            border-radius: 0.75rem !important;
-            box-shadow: inset 0 0 0 2px #f8fafc !important;
-            pointer-events: none !important;
-            z-index: 10 !important;
-        }
-        html.dark .tbs-turnstile-shell::after {
-            box-shadow: inset 0 0 0 2px #23293b !important;
-        }
-        .tbs-turnstile-crop {
-            position: absolute !important;
-            top: -3px !important;
-            left: -3px !important;
-            right: -3px !important;
-            width: calc(100% + 6px) !important;
-            height: 65px !important;
-            display: block !important;
-            mix-blend-mode: multiply !important;
-        }
-        html.dark .tbs-turnstile-crop {
-            mix-blend-mode: lighten !important;
-        }
-        .tbs-turnstile-crop > div,
-        .tbs-turnstile-frame {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: 65px !important;
-            display: block !important;
-        }
-    </style>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
@@ -247,21 +197,18 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Box -->
-                        <div class="tbs-turnstile-shell">
-                            <div class="tbs-turnstile-crop">
-                                <div class="cf-turnstile tbs-turnstile-frame" 
-                                     data-sitekey="{{ $turnstileSiteKey }}" 
-                                     data-action="discord_shield_verify"
-                                     data-cdata="{{ $turnstileCdata ?? '' }}"
-                                     data-size="flexible"
-                                     data-language="nl"
-                                     data-callback="onTurnstileSuccess"
-                                     data-expired-callback="onTurnstileExpired"
-                                     data-error-callback="onTurnstileError"
-                                     data-retry="auto"
-                                     data-refresh-expired="auto"
-                                     data-theme="auto"></div>
-                            </div>
+                        <div class="flex justify-center items-center py-1">
+                            <div class="cf-turnstile min-h-[65px]" 
+                                 data-sitekey="{{ $turnstileSiteKey }}" 
+                                 data-action="discord_shield_verify"
+                                 data-cdata="{{ $turnstileCdata ?? '' }}"
+                                 data-language="nl"
+                                 data-callback="onTurnstileSuccess"
+                                 data-expired-callback="onTurnstileExpired"
+                                 data-error-callback="onTurnstileError"
+                                 data-retry="auto"
+                                 data-refresh-expired="auto"
+                                 data-theme="auto"></div>
                         </div>
 
                         <!-- Error Message -->

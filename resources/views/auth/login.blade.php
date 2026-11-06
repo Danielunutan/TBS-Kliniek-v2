@@ -17,7 +17,12 @@
     tab: @js($defaultTab), 
     regGender: @js($safeGender), 
     regAvatar: @js($safeAvatar) 
-}" x-init="$nextTick(() => { if (window.tbsInitAuthTurnstile) window.tbsInitAuthTurnstile(tab); })">
+}" x-init="
+    $watch('tab', (val) => {
+        if (window.tbsMountAuthTab) window.tbsMountAuthTab(val);
+    });
+    $nextTick(() => { if (window.tbsMountAuthTab) window.tbsMountAuthTab(tab); });
+">
 
     <!-- MAIN LOGIN / REGISTER CARD (EXPANSIVE CLEAN SHOWCASE) -->
     <div id="auth-form-card" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
@@ -80,12 +85,12 @@
 
                 <!-- MODERN PILL TAB SWITCHER (MATCHES SITE TABS) -->
                 <div class="bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl flex gap-1 border border-slate-200/80 dark:border-slate-700/70">
-                    <button type="button" @click="tab = 'login'; $nextTick(() => { if (window.tbsInitAuthTurnstile) window.tbsInitAuthTurnstile('login'); })"
+                    <button type="button" @click="tab = 'login'; if (window.tbsMountAuthTab) window.tbsMountAuthTab('login');"
                             :class="tab === 'login' ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
                             class="flex-1 py-2 text-xs rounded-lg transition text-center cursor-pointer">
                         Inloggen
                     </button>
-                    <button type="button" @click="tab = 'register'; $nextTick(() => { if (window.tbsInitAuthTurnstile) window.tbsInitAuthTurnstile('register'); })"
+                    <button type="button" @click="tab = 'register'; if (window.tbsMountAuthTab) window.tbsMountAuthTab('register');"
                             :class="tab === 'register' ? 'bg-white dark:bg-purple-600 text-slate-900 dark:text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold'"
                             class="flex-1 py-2 text-xs rounded-lg transition text-center cursor-pointer">
                         Registreren
@@ -139,14 +144,12 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Login) -->
-                        <div class="tbs-turnstile-shell">
-                            <div class="tbs-turnstile-crop">
-                                <div id="turnstile-login-widget"
-                                     data-sitekey="{{ $turnstileSiteKey }}"
-                                     data-action="auth_login"
-                                     data-cdata="{{ $turnstileLoginCdata }}"
-                                     class="tbs-turnstile-frame"></div>
-                            </div>
+                        <div class="flex justify-center items-center py-1">
+                            <div id="turnstile-login-widget"
+                                 data-sitekey="{{ $turnstileSiteKey }}"
+                                 data-action="auth_login"
+                                 data-cdata="{{ $turnstileLoginCdata }}"
+                                 class="min-h-[65px]"></div>
                         </div>
 
                         <!-- Submit Button -->
@@ -347,14 +350,12 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Register) -->
-                        <div class="tbs-turnstile-shell">
-                            <div class="tbs-turnstile-crop">
-                                <div id="turnstile-register-widget"
-                                     data-sitekey="{{ $turnstileSiteKey }}"
-                                     data-action="auth_register"
-                                     data-cdata="{{ $turnstileRegisterCdata }}"
-                                     class="tbs-turnstile-frame"></div>
-                            </div>
+                        <div class="flex justify-center items-center py-1">
+                            <div id="turnstile-register-widget"
+                                 data-sitekey="{{ $turnstileSiteKey }}"
+                                 data-action="auth_register"
+                                 data-cdata="{{ $turnstileRegisterCdata }}"
+                                 class="min-h-[65px]"></div>
                         </div>
 
                         <!-- 4. SUBMIT BUTTON -->
@@ -408,7 +409,7 @@
             <a href="{{ route('faq.index') }}" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition border border-slate-200/80 dark:border-slate-700 shadow-xs">
                 Uitleg in FAQ
             </a>
-            <button type="button" @click="tab = 'register'; $nextTick(() => { if (window.tbsInitAuthTurnstile) window.tbsInitAuthTurnstile('register'); }); document.getElementById('auth-form-card')?.scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+            <button type="button" @click="tab = 'register'; if (window.tbsMountAuthTab) window.tbsMountAuthTab('register'); document.getElementById('auth-form-card')?.scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer">
                 <span>Meld Je Bende Aan</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
@@ -516,14 +517,24 @@
         return window._tbsAuthTurnstilePromise;
     };
 
+    window.tbsMountAuthTab = function(mode) {
+        window.tbsMountAuthWidget(mode, false);
+        setTimeout(function() {
+            window.tbsMountAuthWidget(mode, false);
+        }, 60);
+        setTimeout(function() {
+            window.tbsMountAuthWidget(mode, false);
+        }, 250);
+    };
+
     window.tbsMountAuthWidget = function(mode, forceRemount = false) {
         const container = document.getElementById('turnstile-' + mode + '-widget');
         const tokenInput = document.getElementById('turnstile-' + mode + '-token');
-        const statusText = document.getElementById('turnstile-' + mode + '-status-text');
         if (!container) return;
 
-        // Do not mount while the tab is hidden (offsetWidth === 0), otherwise flexible size falls back to 300px
-        if (container.offsetWidth === 0) {
+        // Skip mounting if container is currently hidden (e.g. inside an inactive tab)
+        const isHidden = container.offsetParent === null && container.offsetWidth === 0;
+        if (isHidden) {
             return;
         }
 
@@ -532,19 +543,15 @@
                 .then(function() {
                     window.tbsMountAuthWidget(mode, forceRemount);
                 })
-                .catch(function() {
-                    if (statusText) {
-                        statusText.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i> <span>Beveiliging herladen... Klik op Ververs verificatie.</span>';
-                    }
-                });
+                .catch(function() {});
             return;
         }
 
         try {
             const existingWidgetId = window.tbsAuthTurnstileWidgets[mode];
-            const hasMounted = Boolean(container.querySelector('iframe') || container.childNodes.length > 0);
+            const hasIframe = Boolean(container.querySelector('iframe'));
 
-            if (!forceRemount && hasMounted && existingWidgetId !== null && container.dataset.widgetId === String(existingWidgetId)) {
+            if (!forceRemount && hasIframe && existingWidgetId !== null && container.dataset.widgetId === String(existingWidgetId)) {
                 return;
             }
 
@@ -564,7 +571,6 @@
                 sitekey: sitekey,
                 action: actionName,
                 cData: cdataVal,
-                size: 'flexible',
                 language: 'nl',
                 theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                 appearance: 'always',
@@ -574,24 +580,15 @@
                 'refresh-timeout': 'auto',
                 callback: function(token) {
                     if (tokenInput) tokenInput.value = token || '';
-                    if (statusText) {
-                        statusText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400 font-bold">Zaalwacht controle voltooid</span>';
-                    }
                 },
                 'expired-callback': function() {
                     if (tokenInput) tokenInput.value = '';
-                    if (statusText) {
-                        statusText.innerHTML = '<i class="fa-solid fa-clock-rotate-left fa-spin text-amber-500"></i> <span>Verificatie verlopen, vernieuwen...</span>';
-                    }
                     setTimeout(function() {
                         window.resetAuthTurnstile(mode);
                     }, 300);
                 },
                 'error-callback': function() {
                     if (tokenInput) tokenInput.value = '';
-                    if (statusText) {
-                        statusText.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin text-amber-500"></i> <span>Verificatie opnieuw laden...</span>';
-                    }
                     setTimeout(function() {
                         window.resetAuthTurnstile(mode);
                     }, 1200);
@@ -612,25 +609,23 @@
         } catch (err) {
             setTimeout(function() {
                 window.tbsMountAuthWidget(mode, true);
-            }, 1200);
+            }, 1000);
         }
     };
 
     window.resetAuthTurnstile = function(mode) {
         const tokenInput = document.getElementById('turnstile-' + mode + '-token');
-        const statusText = document.getElementById('turnstile-' + mode + '-status-text');
         if (tokenInput) tokenInput.value = '';
-        if (statusText) {
-            statusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-500"></i> <span>Verificatie vernieuwen...</span>';
-        }
         window.tbsMountAuthWidget(mode, true);
     };
 
     window.tbsInitAuthTurnstile = function(preferredMode) {
-        const modes = preferredMode ? [preferredMode] : ['login', 'register'];
-        modes.forEach(function(mode) {
-            window.tbsMountAuthWidget(mode, false);
-        });
+        if (preferredMode) {
+            window.tbsMountAuthTab(preferredMode);
+        } else {
+            const isRegisterVisible = Boolean(document.getElementById('turnstile-register-widget')?.offsetParent);
+            window.tbsMountAuthTab(isRegisterVisible ? 'register' : 'login');
+        }
     };
 
     window.onAuthTurnstileLoaded = function() {
@@ -642,6 +637,7 @@
     });
     document.addEventListener('turbo:load', function() {
         window.tbsInitAuthTurnstile();
+    });
     });
 </script>
 @endsection
