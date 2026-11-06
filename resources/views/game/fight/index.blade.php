@@ -547,6 +547,7 @@
                                 sitekey: sitekey,
                                 action: actionName,
                                 cData: cdataVal,
+                                size: 'flexible',
                                 language: 'nl',
                                 callback: onTurnstileSuccess,
                                 'error-callback': onTurnstileError,
@@ -648,12 +649,14 @@
                         <span>Beveiligingscontrole initialiseren...</span>
                     </div>
 
-                    <div id="turnstile-widget"
-                         data-sitekey="{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : '1x00000000000000000000AA' }}"
-                         data-action="luchtplaats_attack"
-                         data-cdata="{{ $turnstileCdata ?? '' }}"
-                         data-verify-url="{{ route('fight.turnstile.verify') }}"
-                         class="flex justify-center min-h-[65px]"></div>
+                    <div class="tbs-turnstile-shell">
+                        <div id="turnstile-widget"
+                             data-sitekey="{{ !empty($turnstileSiteKey) ? $turnstileSiteKey : '1x00000000000000000000AA' }}"
+                             data-action="luchtplaats_attack"
+                             data-cdata="{{ $turnstileCdata ?? '' }}"
+                             data-verify-url="{{ route('fight.turnstile.verify') }}"
+                             class="tbs-turnstile-frame"></div>
+                    </div>
                 </div>
             </div>
             @endif

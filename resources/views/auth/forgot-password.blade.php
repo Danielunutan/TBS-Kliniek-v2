@@ -85,11 +85,13 @@
                 </div>
 
                 <!-- Cloudflare Turnstile Security Verification (Forgot Password) -->
-                <div id="turnstile-forgot-widget"
-                     data-sitekey="{{ $turnstileSiteKey }}"
-                     data-action="auth_forgot_password"
-                     data-cdata="{{ $turnstileForgotCdata }}"
-                     class="flex justify-center min-h-[65px]"></div>
+                <div class="tbs-turnstile-shell">
+                    <div id="turnstile-forgot-widget"
+                         data-sitekey="{{ $turnstileSiteKey }}"
+                         data-action="auth_forgot_password"
+                         data-cdata="{{ $turnstileForgotCdata }}"
+                         class="tbs-turnstile-frame"></div>
+                </div>
 
                 <button type="submit"
                         class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
@@ -138,6 +140,7 @@
                     sitekey: container.dataset.sitekey || '{{ $turnstileSiteKey }}',
                     action: container.dataset.action || 'auth_forgot_password',
                     cData: container.dataset.cdata || '',
+                    size: 'flexible',
                     language: 'nl',
                     theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                     appearance: 'always',

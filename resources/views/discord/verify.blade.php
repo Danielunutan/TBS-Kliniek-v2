@@ -197,17 +197,20 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Box -->
-                        <div class="cf-turnstile flex justify-center min-h-[65px]" 
-                             data-sitekey="{{ $turnstileSiteKey }}" 
-                             data-action="discord_shield_verify"
-                             data-cdata="{{ $turnstileCdata ?? '' }}"
-                             data-language="nl"
-                             data-callback="onTurnstileSuccess"
-                             data-expired-callback="onTurnstileExpired"
-                             data-error-callback="onTurnstileError"
-                             data-retry="auto"
-                             data-refresh-expired="auto"
-                             data-theme="auto"></div>
+                        <div class="tbs-turnstile-shell">
+                            <div class="cf-turnstile tbs-turnstile-frame" 
+                                 data-sitekey="{{ $turnstileSiteKey }}" 
+                                 data-action="discord_shield_verify"
+                                 data-cdata="{{ $turnstileCdata ?? '' }}"
+                                 data-size="flexible"
+                                 data-language="nl"
+                                 data-callback="onTurnstileSuccess"
+                                 data-expired-callback="onTurnstileExpired"
+                                 data-error-callback="onTurnstileError"
+                                 data-retry="auto"
+                                 data-refresh-expired="auto"
+                                 data-theme="auto"></div>
+                        </div>
 
                         <!-- Error Message -->
                         <div x-show="errorMessage" x-cloak class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-800 dark:text-rose-300 text-xs font-bold flex items-start gap-3 shadow-xs">

@@ -139,11 +139,13 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Login) -->
-                        <div id="turnstile-login-widget"
-                             data-sitekey="{{ $turnstileSiteKey }}"
-                             data-action="auth_login"
-                             data-cdata="{{ $turnstileLoginCdata }}"
-                             class="flex justify-center min-h-[65px]"></div>
+                        <div class="tbs-turnstile-shell">
+                            <div id="turnstile-login-widget"
+                                 data-sitekey="{{ $turnstileSiteKey }}"
+                                 data-action="auth_login"
+                                 data-cdata="{{ $turnstileLoginCdata }}"
+                                 class="tbs-turnstile-frame"></div>
+                        </div>
 
                         <!-- Submit Button -->
                         <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
@@ -343,11 +345,13 @@
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Register) -->
-                        <div id="turnstile-register-widget"
-                             data-sitekey="{{ $turnstileSiteKey }}"
-                             data-action="auth_register"
-                             data-cdata="{{ $turnstileRegisterCdata }}"
-                             class="flex justify-center min-h-[65px]"></div>
+                        <div class="tbs-turnstile-shell">
+                            <div id="turnstile-register-widget"
+                                 data-sitekey="{{ $turnstileSiteKey }}"
+                                 data-action="auth_register"
+                                 data-cdata="{{ $turnstileRegisterCdata }}"
+                                 class="tbs-turnstile-frame"></div>
+                        </div>
 
                         <!-- 4. SUBMIT BUTTON -->
                         <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
@@ -551,6 +555,7 @@
                 sitekey: sitekey,
                 action: actionName,
                 cData: cdataVal,
+                size: 'flexible',
                 language: 'nl',
                 theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                 appearance: 'always',
