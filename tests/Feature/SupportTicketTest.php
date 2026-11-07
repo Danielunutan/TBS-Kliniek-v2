@@ -429,4 +429,80 @@ class SupportTicketTest extends TestCase
         $ticket->refresh();
         $this->assertCount(1, $ticket->messages);
     }
+
+    public function test_migration_auto_solves_and_closes_voluntary_isolation_ticket(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'email' => 'danielunutan@icloud.com',
+            'role' => 'admin',
+            'is_staff' => true,
+        ]);
+        $this->createCharacter($admin, ['name' => 'Daniel']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, ['name' => 'carootje']);
+
+        $ticket = SupportTicket::create([
+            'user_id' => $user->id,
+            'character_id' => $character->id,
+            'ticket_number' => 'TBS-5EF-456',
+            'subject' => 'Isolatie',
+            'category' => 'suggestie',
+            'priority' => 'laag',
+            'status' => 'open',
+        ]);
+
+        $migration = require database_path('migrations/2026_11_07_120000_auto_solve_support_ticket_tbs_5ef_456.php');
+        $migration->up();
+
+        $ticket->refresh();
+        $this->assertSame('gesloten', $ticket->status);
+        $this->assertCount(1, $ticket->messages);
+        $this->assertTrue($ticket->messages->first()->is_staff);
+        $this->assertStringContainsString('Beste carootje', $ticket->messages->first()->message);
+        $this->assertStringContainsString('Dynamische Afkoeltijd op Maat', $ticket->messages->first()->message);
+        $this->assertTrue($ticket->last_reply_by_staff);
+
+        // Test idempotency: calling up() again should not create duplicate reply
+        $migration->up();
+        $ticket->refresh();
+        $this->assertCount(1, $ticket->messages);
+    }
+
+    public function test_auto_reply_command_answers_voluntary_isolation_ticket(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'email' => 'danielunutan@icloud.com',
+            'role' => 'admin',
+            'is_staff' => true,
+        ]);
+        $this->createCharacter($admin, ['name' => 'Daniel']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, ['name' => 'carootje']);
+
+        $ticket = SupportTicket::create([
+            'user_id' => $user->id,
+            'character_id' => $character->id,
+            'ticket_number' => 'TBS-5EF-456',
+            'subject' => 'Isolatie',
+            'category' => 'suggestie',
+            'priority' => 'laag',
+            'status' => 'open',
+        ]);
+
+        $exitCode = $this->artisan('ticket:auto-reply', ['ticket_number' => 'TBS-5EF-456'])->run();
+        $this->assertSame(0, $exitCode);
+
+        $ticket->refresh();
+        $this->assertSame('beantwoord', $ticket->status);
+        $this->assertCount(1, $ticket->messages);
+        $this->assertTrue($ticket->messages->first()->is_staff);
+        $this->assertStringContainsString('Beste carootje', $ticket->messages->first()->message);
+        $this->assertStringContainsString('Dynamische Afkoeltijd op Maat', $ticket->messages->first()->message);
+    }
 }

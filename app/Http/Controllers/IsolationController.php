@@ -207,14 +207,15 @@ class IsolationController extends Controller
             return back()->with('info', 'Je cel zit momenteel niet op slot in vrijwillige isolatie.');
         }
 
-        $terminated = DB::transaction(function () use ($character): bool {
+        $terminatedData = DB::transaction(function () use ($character): ?array {
             /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
             if (! $locked || ! $locked->hasIsolationProtection()) {
-                return false;
+                return null;
             }
 
             $wasVoluntary = $locked->isInVoluntaryIsolation();
+            $remainingSeconds = $wasVoluntary ? $locked->getIsolationProtectionRemainingSeconds() : 0;
             $locked->protection_until = null;
             if (isset($locked->perks['medical_shield_until'])) {
                 $perks = $locked->perks ?? [];
@@ -223,29 +224,37 @@ class IsolationController extends Controller
             }
             $locked->save();
 
+            $cooldownSeconds = 0;
             if ($wasVoluntary) {
+                $cooldownSeconds = min(Character::ISOLATION_COOLDOWN_SECONDS, max(60, $remainingSeconds));
                 app(CooldownService::class)->setCooldown(
                     $locked,
                     'isolation_cooldown',
-                    Character::ISOLATION_COOLDOWN_SECONDS
+                    $cooldownSeconds
                 );
             }
 
-            return true;
+            return [
+                'wasVoluntary' => $wasVoluntary,
+                'cooldownSeconds' => $cooldownSeconds,
+            ];
         });
 
-        if (! $terminated) {
+        if (! $terminatedData) {
             return back()->with('info', 'Je cel zit momenteel niet op slot in vrijwillige isolatie.');
         }
+
+        $cooldownMinutes = (int) ceil(($terminatedData['cooldownSeconds'] ?? 0) / 60);
+        $timeNotice = $cooldownMinutes > 0 ? " ({$cooldownMinutes} min afkoeltijd voor hernieuwde isolatie)" : '';
 
         GameNotification::create([
             'character_id' => $character->id,
             'type' => 'protection',
             'icon' => 'fa-door-open',
             'title' => 'Isolatie Vroegtijdig Beëindigd',
-            'message' => 'Je hebt je vrijwillige isolatie handmatig beëindigd. Je celdeur is weer van het slot (2 uur afkoeltijd voor nieuwe isolatie).',
+            'message' => "Je hebt je vrijwillige isolatie handmatig beëindigd. Je celdeur is weer van het slot{$timeNotice}.",
         ]);
 
-        return back()->with('success', '🔓 Vrijwillige isolatie beëindigd! Je celdeur is ontgrendeld en je kunt weer misdaden, klussen en gevechten uitvoeren (2u afkoeltijd voor hernieuwde isolatie).');
+        return back()->with('success', "🔓 Vrijwillige isolatie beëindigd! Je celdeur is ontgrendeld en je kunt weer misdaden, klussen en gevechten uitvoeren{$timeNotice}.");
     }
 }

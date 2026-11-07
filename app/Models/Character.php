@@ -2189,6 +2189,7 @@ class Character extends Model
     public function breakProtection(): void
     {
         $wasVoluntaryIsolation = $this->isInVoluntaryIsolation();
+        $remainingSeconds = $wasVoluntaryIsolation ? $this->getIsolationProtectionRemainingSeconds() : 0;
         $dirty = false;
 
         if ($this->protection_until && now()->lt($this->protection_until)) {
@@ -2211,10 +2212,11 @@ class Character extends Model
         }
 
         if ($wasVoluntaryIsolation) {
+            $cooldownSeconds = min(self::ISOLATION_COOLDOWN_SECONDS, max(60, $remainingSeconds));
             app(CooldownService::class)->setCooldown(
                 $this,
                 'isolation_cooldown',
-                self::ISOLATION_COOLDOWN_SECONDS
+                $cooldownSeconds
             );
         }
     }

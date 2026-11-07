@@ -156,4 +156,46 @@ class MedicalShieldAndVoluntaryIsolationHotfixTest extends TestCase
             'action' => 'isolation_cooldown',
         ]);
     }
+
+    public function test_early_isolation_termination_sets_dynamic_cooldown_matching_remaining_time(): void
+    {
+        $char = $this->createCharacter([
+            'cash' => 500000,
+            'protection_until' => now()->addMinutes(6),
+        ]);
+        $this->assertTrue($char->isInVoluntaryIsolation());
+
+        $this->actingAs($char->user);
+        $resp = $this->post(route('isolation.terminate'));
+        $resp->assertSessionHas('success');
+        $this->assertStringContainsString('6 min afkoeltijd', session('success'));
+
+        $char->refresh();
+        $this->assertFalse($char->hasIsolationProtection());
+        $this->assertTrue($char->isOnCooldown('isolation_cooldown'));
+        // Cooldown should be around 360 seconds (6 minutes), definitely not 7200 seconds (2 hours)
+        $this->assertLessThanOrEqual(360, $char->cooldownRemaining('isolation_cooldown'));
+        $this->assertGreaterThanOrEqual(300, $char->cooldownRemaining('isolation_cooldown'));
+    }
+
+    public function test_early_isolation_termination_caps_cooldown_at_two_hours_for_long_remaining_time(): void
+    {
+        $char = $this->createCharacter([
+            'cash' => 500000,
+            'protection_until' => now()->addHours(11),
+        ]);
+        $this->assertTrue($char->isInVoluntaryIsolation());
+
+        $this->actingAs($char->user);
+        $resp = $this->post(route('isolation.terminate'));
+        $resp->assertSessionHas('success');
+        $this->assertStringContainsString('120 min afkoeltijd', session('success'));
+
+        $char->refresh();
+        $this->assertFalse($char->hasIsolationProtection());
+        $this->assertTrue($char->isOnCooldown('isolation_cooldown'));
+        // Cooldown capped at 2 hours (7200 seconds)
+        $this->assertLessThanOrEqual(7200, $char->cooldownRemaining('isolation_cooldown'));
+        $this->assertGreaterThan(7000, $char->cooldownRemaining('isolation_cooldown'));
+    }
 }

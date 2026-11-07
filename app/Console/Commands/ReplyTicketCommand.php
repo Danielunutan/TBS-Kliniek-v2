@@ -69,7 +69,21 @@ class ReplyTicketCommand extends Command
                 ."Mocht je in de tussentijd nog vragen hebben, laat het ons dan gerust weten.\n\n"
                 ."Met vriendelijke groet,\n"
                 .'Daniël • TBS Kliniek Leiding & Privacy';
-        } elseif ($ticketNumber === 'TBS-CJS-614' || str_contains(strtolower($ticket->subject), 'afkoelen') || str_contains(strtolower($ticket->character?->name ?? ''), 'carootje')) {
+        } elseif ($ticketNumber === 'TBS-5EF-456' || str_contains(strtolower($ticket->subject), 'isolatie') && str_contains(strtolower($ticket->character?->name ?? ''), 'carootje')) {
+            $replyMessage = "Beste carootje,\n\n"
+                ."Hartelijk dank voor je bericht en je uitstekende suggestie over de Vrijwillige Isolatie! 🛡️🚪\n\n"
+                ."Je had helemaal gelijk: als je bijvoorbeeld nog maar 6 minuten isolatie op de klok had staan en je cel vroegtijdig ontgrendelde, was het niet logisch dat je direct een vaste wachttijd van 2 uur kreeg. De afkoeltijd hoort nooit langer te zijn dan de resterende tijd die je nog in isolatie had!\n\n"
+                ."We hebben dit direct aangepast in het isolatiesysteem:\n\n"
+                ."1. **Dynamische Afkoeltijd op Maat**:\n"
+                ."   - Wanneer je je vrijwillige isolatie voortijdig beëindigt (of je celdeur verlaat voor een aanval), is je afkoeltijd vanaf nu exact gelijk aan de **resterende tijd** die je nog op je isolatieklok had staan (met een maximum van 2 uur).\n"
+                ."   - Als je cel dus nog 6 minuten dicht zat en je stapt eruit, hoef je nu ook nog maar **6 minuten** te wachten voordat je er weer in kunt!\n"
+                ."   - Had je nog 11 uur staan? Dan geldt het maximum van 2 uur wachttijd, zodat je nooit onevenredig lang buiten spel staat.\n\n"
+                ."2. **Duidelijke Meldingen & Tijdsaanduiding**:\n"
+                ."   - Zowel in je statusmelding als in de systeemnotificatie zie je nu direct precies hoeveel minuten afkoeltijd er van toepassing is.\n\n"
+                ."Nogmaals enorm bedankt voor het meedenken om het spel eerlijker en soepeler te maken!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-CJS-614' || str_contains(strtolower($ticket->subject), 'afkoelen')) {
             $replyMessage = "Beste carootje,\n\n"
                 ."Ontzettend bedankt voor je melding en scherpe observatie via dit ticket! ⏱️🔥\n\n"
                 ."Je had helemaal gelijk: voorheen bleven de cooldown timers op het scherm statisch stilstaan op de server-tijd waarop de pagina geladen was. Als je wachtte tot je weer een actie mocht uitvoeren, liep de timer in de browser niet realtime af en bleven de actieknoppen vergrendeld totdat je de pagina handmatig ververste. Dat speelde natuurlijk niet fijn als je even zat te wachten.\n\n"
