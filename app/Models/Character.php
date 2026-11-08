@@ -2256,6 +2256,16 @@ class Character extends Model
         return max(0, (int) ceil($diff));
     }
 
+    public const EXCLUDED_SYSTEM_NAMES = ['Kliniek Directie'];
+
+    /**
+     * Scope query to exclude system accounts from player rankings and combat.
+     */
+    public function scopeRankable($query)
+    {
+        return $query->whereNotIn('name', self::EXCLUDED_SYSTEM_NAMES);
+    }
+
     /**
      * Get cached top rankings by respect.
      *
@@ -2268,7 +2278,7 @@ class Character extends Model
             return $cached;
         }
 
-        $rankings = static::orderByDesc('respect')->take($limit)->get();
+        $rankings = static::whereNotIn('name', self::EXCLUDED_SYSTEM_NAMES)->orderByDesc('respect')->take($limit)->get();
         Cache::put('tbs_top_rankings_'.$limit, $rankings, 60);
 
         return $rankings;

@@ -41,6 +41,7 @@ class TheftController extends Controller
 
         // Other patients in the clinic with cash in their pockets
         $victims = Character::where('id', '!=', $character->id)
+            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
             ->where('is_in_prison', false)
             ->orderByDesc('cash')
             ->limit(8)

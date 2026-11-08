@@ -99,6 +99,7 @@ class HitmanController extends Controller
         }, $activeIntelOps);
 
         $targets = Character::where('id', '!=', $character->id)
+            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
             ->where('is_in_prison', false)
             ->orderByDesc('level')
             ->limit(20)

@@ -70,6 +70,7 @@ class FightController extends Controller
 
         $query = Character::with('gang')
             ->where('id', '!=', $character->id)
+            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
             ->where('is_in_prison', false);
 
         if ($sort === 'cash') {
@@ -603,8 +604,8 @@ class FightController extends Controller
 
         $defender = Character::findOrFail($validated['opponent_id']);
 
-        if ($defender->id === $attacker->id) {
-            return back()->with('error', 'Je kunt niet uit je eigen zakken stelen!');
+        if ($defender->id === $attacker->id || in_array($defender->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+            return back()->with('error', 'Dit doelwit kan niet worden aangevallen!');
         }
 
         // 4. Max 100 attacks/thefts against the same person per day

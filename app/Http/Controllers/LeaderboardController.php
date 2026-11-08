@@ -41,7 +41,9 @@ class LeaderboardController extends Controller
         }
 
         $leaderboard = $cached ?? (function () use ($type, $cacheKey) {
-            $query = Character::query()->with('gang');
+            $query = Character::query()
+                ->with('gang')
+                ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
 
             match ($type) {
                 'respect' => $query->orderByDesc('respect')->orderByDesc('level'),

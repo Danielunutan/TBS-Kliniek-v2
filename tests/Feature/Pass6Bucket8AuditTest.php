@@ -225,4 +225,54 @@ class Pass6Bucket8AuditTest extends TestCase
         $leaderboard = $this->get(route('leaderboard.index'));
         $leaderboard->assertOk();
     }
+
+    public function test_kliniek_directie_is_excluded_from_leaderboard_and_rankings(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'Kliniek Directie',
+            'level' => 99,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'cash' => 5000000,
+            'bank' => 5000000,
+            'respect' => 999999,
+            'is_onboarded' => true,
+        ]);
+
+        $normalUser = User::factory()->create();
+        $normalChar = Character::create([
+            'user_id' => $normalUser->id,
+            'name' => 'NormaleSpeler',
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'cash' => 1000,
+            'bank' => 1000,
+            'respect' => 50,
+            'is_onboarded' => true,
+        ]);
+
+        $this->actingAs($normalUser);
+
+        // Leaderboard test
+        $response = $this->get(route('leaderboard.index', ['type' => 'level']));
+        $response->assertOk();
+        $response->assertDontSee('Kliniek Directie');
+        $response->assertSee('NormaleSpeler');
+
+        // Character::getTopRankings test
+        $top = Character::getTopRankings(10);
+        $this->assertFalse($top->contains('name', 'Kliniek Directie'));
+
+        // Fight list test
+        $fightResponse = $this->get(route('fight.index'));
+        $fightResponse->assertOk();
+        $fightResponse->assertDontSee('Kliniek Directie');
+    }
 }

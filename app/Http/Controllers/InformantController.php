@@ -65,6 +65,7 @@ class InformantController extends Controller
         }, $activeIntelOps);
 
         $patients = Character::where('id', '!=', $character->id)
+            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
             ->orderByDesc('level')
             ->limit(50)
             ->get(['id', 'name', 'level']);

@@ -54,7 +54,7 @@ class AuthController extends Controller
                 return [
                     'totalPlayers' => Character::count(),
                     'totalCash' => (int) (Character::sum('cash') + Character::sum('bank')),
-                    'topCharacters' => Character::with('user')->orderByDesc('respect')->limit(4)->get(),
+                    'topCharacters' => Character::with('user')->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)->orderByDesc('respect')->limit(4)->get(),
                 ];
             });
             $totalPlayers = $stats['totalPlayers'];
