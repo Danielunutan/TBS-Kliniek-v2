@@ -475,7 +475,7 @@
                 <div x-show="activeSolver === 'gevangenis'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
                     <p>• <strong>IJzerzaagje:</strong> Haalt direct 30 min van je straf af.</p>
                     <p>• <strong>Luchtschacht:</strong> Probeer zelf te ontsnappen (20 energie).</p>
-                    <p>• <strong>Video / Sterren:</strong> Kijk een sponsorvideo (-3 min) of betaal 10 ⭐ in de Sterrenwinkel (of 25 ⭐ in de cel).</p>
+                    <p>• <strong>Sterren:</strong> Betaal 10 ⭐ in de Sterrenwinkel of 25 ⭐ direct in de cel om meteen vrij te komen.</p>
                     <a href="{{ route('prison') }}" @click.stop class="inline-block mt-1 px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Naar Isoleercel &raquo;</a>
                 </div>
             </div>

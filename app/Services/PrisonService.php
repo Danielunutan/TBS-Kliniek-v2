@@ -53,14 +53,14 @@ class PrisonService
             'type' => 'prison',
             'icon' => 'fa-lock',
             'title' => 'Ingesloten op de Isolatievleugel!',
-            'message' => "De interne interventieploeg heeft je voor {$timeLabel} in een zwaarbeveiligde cel geplaatst. Dossiernotitie: {$reason}. Verkort je straftijd via de stoomwasserij, koop de nachtcipier om of bekijk een sponsorvideo.",
+            'message' => "De interne interventieploeg heeft je voor {$timeLabel} in een zwaarbeveiligde cel geplaatst. Dossiernotitie: {$reason}. Verkort je straftijd via de stoomwasserij, koop de nachtcipier om of gebruik Sterren ⭐ om direct vrij te komen.",
         ]);
 
         GameMessage::create([
             'recipient_id' => $character->id,
             'sender_name' => 'Interne Interventie & Celblokbeheer',
             'subject' => '🚨 Arrestatierapport: Isoleercel Straf',
-            'content' => "Patiënt {$character->name},\n\nHet tactisch interventieteam heeft je zojuist ingerekend en overgeplaatst naar het gesloten celblok voor een duur van {$timeLabel}.\n\nGeregistreerde overtreding:\n\"{$reason}\"\n\nVanuit je cel kun je dienst draaien in de stoomwasserij, een nachtcipier omkopen om de klok terug te draaien, een ontsnappingspoging wagen of via een sponsoruitzending directe vrijlating afdwingen.",
+            'content' => "Patiënt {$character->name},\n\nHet tactisch interventieteam heeft je zojuist ingerekend en overgeplaatst naar het gesloten celblok voor een duur van {$timeLabel}.\n\nGeregistreerde overtreding:\n\"{$reason}\"\n\nVanuit je cel kun je jezelf direct vrijkopen met Sterren ⭐, dienst draaien in de stoomwasserij, de nachtcipier omkopen of een ontsnappingspoging wagen.",
             'type' => 'jail',
         ]);
     }
@@ -107,7 +107,7 @@ class PrisonService
             if ($locked->prison_escape_attempted) {
                 return [
                     'success' => false,
-                    'message' => 'Je hebt je ontsnappingspoging voor deze straftijd al verbruikt! Bekijk een advertentie om direct vrijgelaten te worden.',
+                    'message' => 'Je hebt je ontsnappingspoging voor deze straftijd al verbruikt! Gebruik de stoomwasserij, koop de cipier om of koop jezelf direct vrij met Sterren ⭐.',
                 ];
             }
 

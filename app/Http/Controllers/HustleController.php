@@ -272,7 +272,7 @@ class HustleController extends Controller
                 $this->cooldownService->clearCooldown($lockedCharacter, 'hustle');
                 $this->prison->jailSeconds($lockedCharacter, $jailSeconds, 'Gepakt tijdens hosselen.');
 
-                return redirect()->route('prison')->with('error', "🚨 Betrapt tijdens het hosselen! {$jailSeconds} sec in de isoleercel. Bekijk een korte ad om direct vrij te komen!");
+                return redirect()->route('prison')->with('error', "🚨 Betrapt tijdens het hosselen! {$jailSeconds} sec in de isoleercel. Koop jezelf direct vrij met Sterren ⭐ of waag een uitbraak!");
             }
 
             return back()->with('error', 'Hossel mislukt! Iemand waarschuwde de zaalwacht en je moest snel maken dat je wegkwam.');
