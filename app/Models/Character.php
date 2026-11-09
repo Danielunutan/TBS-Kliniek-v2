@@ -3293,11 +3293,11 @@ class Character extends Model
 
     public const ISOLATION_COOLDOWN_SECONDS = 7200;
 
-    public const LIQUIDATION_IC_COMA_MINUTES = 20;
+    public const LIQUIDATION_IC_COMA_MINUTES = 10;
 
-    public const MAX_DAILY_LIQUIDATIONS_PER_TARGET = 3;
+    public const MAX_DAILY_LIQUIDATIONS_PER_TARGET = 6;
 
-    public const MAX_DAILY_DEATHS_BEFORE_SHIELD = 5;
+    public const MAX_DAILY_DEATHS_BEFORE_SHIELD = 8;
 
     /**
      * Catalog of the 30 TBS Forensic & Syndicate Dossier Grades.
@@ -3307,36 +3307,36 @@ class Character extends Model
     public static function syndicateGradesCatalog(): array
     {
         return [
-            1 => ['grade' => 1, 'title' => 'Observatiepatiënt', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 3200, 'can_one_tap' => false, 'armor_pierce' => 0],
-            2 => ['grade' => 2, 'title' => 'Intake-Recruut', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 2900, 'can_one_tap' => false, 'armor_pierce' => 0],
-            3 => ['grade' => 3, 'title' => 'Gangpad-Loopjongen', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 2600, 'can_one_tap' => false, 'armor_pierce' => 0],
-            4 => ['grade' => 4, 'title' => 'Celblok-Verkenner', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 2300, 'can_one_tap' => false, 'armor_pierce' => 0],
-            5 => ['grade' => 5, 'title' => 'Paviljoen-Ronselaar', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 2000, 'can_one_tap' => false, 'armor_pierce' => 2],
-            6 => ['grade' => 6, 'title' => 'Celblok-Intimidator', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1750, 'can_one_tap' => false, 'armor_pierce' => 4],
-            7 => ['grade' => 7, 'title' => 'Kantine-Afperser', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1500, 'can_one_tap' => false, 'armor_pierce' => 5],
-            8 => ['grade' => 8, 'title' => 'Luchtplaats-Handhaver', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1300, 'can_one_tap' => false, 'armor_pierce' => 6],
-            9 => ['grade' => 9, 'title' => 'Afdelings-Breker', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1150, 'can_one_tap' => false, 'armor_pierce' => 8],
-            10 => ['grade' => 10, 'title' => 'Nachtdienst-Schrik', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1000, 'can_one_tap' => false, 'armor_pierce' => 10],
-            11 => ['grade' => 11, 'title' => 'Smokkel-Coördinator', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 880, 'can_one_tap' => false, 'armor_pierce' => 12],
-            12 => ['grade' => 12, 'title' => 'Kluis-Manipulator', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 760, 'can_one_tap' => false, 'armor_pierce' => 14],
-            13 => ['grade' => 13, 'title' => 'Paviljoen-Strateeg', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 650, 'can_one_tap' => false, 'armor_pierce' => 15],
-            14 => ['grade' => 14, 'title' => 'Binnenplaats-Veldheer', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 560, 'can_one_tap' => false, 'armor_pierce' => 16],
-            15 => ['grade' => 15, 'title' => 'Isolatie-Overlever', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 490, 'can_one_tap' => false, 'armor_pierce' => 18],
-            16 => ['grade' => 16, 'title' => 'Paviljoen-Commandant', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 420, 'can_one_tap' => false, 'armor_pierce' => 20],
-            17 => ['grade' => 17, 'title' => 'Schaduw-Operateur', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 360, 'can_one_tap' => false, 'armor_pierce' => 22],
-            18 => ['grade' => 18, 'title' => 'Stille Informant-Jager', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 310, 'can_one_tap' => false, 'armor_pierce' => 24],
-            19 => ['grade' => 19, 'title' => 'Forensisch Saboteur', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 270, 'can_one_tap' => false, 'armor_pierce' => 25],
-            20 => ['grade' => 20, 'title' => 'Dossier-Wisser', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 235, 'can_one_tap' => false, 'armor_pierce' => 26],
-            21 => ['grade' => 21, 'title' => 'Kliniek-Infiltrant', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 200, 'can_one_tap' => false, 'armor_pierce' => 28],
-            22 => ['grade' => 22, 'title' => 'Onderwereld-Aanklager', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 175, 'can_one_tap' => false, 'armor_pierce' => 30],
-            23 => ['grade' => 23, 'title' => 'Nachtvleugel-Specialist', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 150, 'can_one_tap' => false, 'armor_pierce' => 32],
-            24 => ['grade' => 24, 'title' => 'Kliniek-Examinator', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 130, 'can_one_tap' => false, 'armor_pierce' => 35],
-            25 => ['grade' => 25, 'title' => 'Forensisch Scherpschutter', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 110, 'can_one_tap' => true, 'armor_pierce' => 40],
-            26 => ['grade' => 26, 'title' => 'Tactisch Liquidateur', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 95, 'can_one_tap' => true, 'armor_pierce' => 45],
-            27 => ['grade' => 27, 'title' => 'Hoofd-Liquidateur', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 80, 'can_one_tap' => true, 'armor_pierce' => 50],
-            28 => ['grade' => 28, 'title' => 'Syndicaat-Chirurg', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 65, 'can_one_tap' => true, 'armor_pierce' => 55],
-            29 => ['grade' => 29, 'title' => 'Schaduw-Directeur', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 50, 'can_one_tap' => true, 'armor_pierce' => 60],
-            30 => ['grade' => 30, 'title' => 'Opper-Directeur (Code Zwart)', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 40, 'can_one_tap' => true, 'armor_pierce' => 65],
+            1 => ['grade' => 1, 'title' => 'Observatiepatiënt', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 450, 'can_one_tap' => false, 'armor_pierce' => 0],
+            2 => ['grade' => 2, 'title' => 'Intake-Recruut', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 420, 'can_one_tap' => false, 'armor_pierce' => 0],
+            3 => ['grade' => 3, 'title' => 'Gangpad-Loopjongen', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 390, 'can_one_tap' => false, 'armor_pierce' => 0],
+            4 => ['grade' => 4, 'title' => 'Celblok-Verkenner', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 360, 'can_one_tap' => false, 'armor_pierce' => 0],
+            5 => ['grade' => 5, 'title' => 'Paviljoen-Ronselaar', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 330, 'can_one_tap' => false, 'armor_pierce' => 2],
+            6 => ['grade' => 6, 'title' => 'Celblok-Intimidator', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 300, 'can_one_tap' => false, 'armor_pierce' => 4],
+            7 => ['grade' => 7, 'title' => 'Kantine-Afperser', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 275, 'can_one_tap' => false, 'armor_pierce' => 5],
+            8 => ['grade' => 8, 'title' => 'Luchtplaats-Handhaver', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 250, 'can_one_tap' => false, 'armor_pierce' => 6],
+            9 => ['grade' => 9, 'title' => 'Afdelings-Breker', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 230, 'can_one_tap' => false, 'armor_pierce' => 8],
+            10 => ['grade' => 10, 'title' => 'Nachtdienst-Schrik', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 210, 'can_one_tap' => false, 'armor_pierce' => 10],
+            11 => ['grade' => 11, 'title' => 'Smokkel-Coördinator', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 190, 'can_one_tap' => false, 'armor_pierce' => 12],
+            12 => ['grade' => 12, 'title' => 'Kluis-Manipulator', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 175, 'can_one_tap' => false, 'armor_pierce' => 14],
+            13 => ['grade' => 13, 'title' => 'Paviljoen-Strateeg', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 160, 'can_one_tap' => false, 'armor_pierce' => 15],
+            14 => ['grade' => 14, 'title' => 'Binnenplaats-Veldheer', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 145, 'can_one_tap' => false, 'armor_pierce' => 16],
+            15 => ['grade' => 15, 'title' => 'Isolatie-Overlever', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 130, 'can_one_tap' => false, 'armor_pierce' => 18],
+            16 => ['grade' => 16, 'title' => 'Paviljoen-Commandant', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 115, 'can_one_tap' => false, 'armor_pierce' => 20],
+            17 => ['grade' => 17, 'title' => 'Schaduw-Operateur', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 100, 'can_one_tap' => false, 'armor_pierce' => 22],
+            18 => ['grade' => 18, 'title' => 'Stille Informant-Jager', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 90, 'can_one_tap' => false, 'armor_pierce' => 24],
+            19 => ['grade' => 19, 'title' => 'Forensisch Saboteur', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 80, 'can_one_tap' => false, 'armor_pierce' => 25],
+            20 => ['grade' => 20, 'title' => 'Dossier-Wisser', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 70, 'can_one_tap' => false, 'armor_pierce' => 26],
+            21 => ['grade' => 21, 'title' => 'Kliniek-Infiltrant', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 60, 'can_one_tap' => false, 'armor_pierce' => 28],
+            22 => ['grade' => 22, 'title' => 'Onderwereld-Aanklager', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 50, 'can_one_tap' => false, 'armor_pierce' => 30],
+            23 => ['grade' => 23, 'title' => 'Nachtvleugel-Specialist', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 45, 'can_one_tap' => false, 'armor_pierce' => 32],
+            24 => ['grade' => 24, 'title' => 'Kliniek-Examinator', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 40, 'can_one_tap' => false, 'armor_pierce' => 35],
+            25 => ['grade' => 25, 'title' => 'Forensisch Scherpschutter', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 35, 'can_one_tap' => true, 'armor_pierce' => 40],
+            26 => ['grade' => 26, 'title' => 'Tactisch Liquidateur', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 30, 'can_one_tap' => true, 'armor_pierce' => 45],
+            27 => ['grade' => 27, 'title' => 'Hoofd-Liquidateur', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 25, 'can_one_tap' => true, 'armor_pierce' => 50],
+            28 => ['grade' => 28, 'title' => 'Syndicaat-Chirurg', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 20, 'can_one_tap' => true, 'armor_pierce' => 55],
+            29 => ['grade' => 29, 'title' => 'Schaduw-Directeur', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 15, 'can_one_tap' => true, 'armor_pierce' => 60],
+            30 => ['grade' => 30, 'title' => 'Opper-Directeur (Code Zwart)', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 10, 'can_one_tap' => true, 'armor_pierce' => 65],
         ];
     }
 

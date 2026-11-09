@@ -175,12 +175,12 @@ class ComprehensiveAuditBucket2Test extends TestCase
         $victimWithShield->refresh();
         $attacker->refresh();
 
-        // Unshielded loot: 45% of 100k (45k) + 7% of 200k (14k) = 59k
-        // Shielded loot: 50% of 45k (22,500) + 50% of 14k (7,000) = 29,500
+        // Unshielded loot: 45% of 100k cash (45k), bank is 100% safe
+        // Shielded loot: 50% of 45k cash = 22,500
         $loot = $attacker->cash - $initialAttackerCash;
-        $this->assertEquals(29500, $loot);
+        $this->assertEquals(22500, $loot);
         $this->assertEquals(77500, $victimWithShield->cash);
-        $this->assertEquals(193000, $victimWithShield->bank);
+        $this->assertEquals(200000, $victimWithShield->bank);
     }
 
     public function test_attacker_breaks_own_protection_when_initiating_aggression(): void

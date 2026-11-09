@@ -88,3 +88,4 @@ class EventHustleChallengeTest extends TestCase
         $response->assertSee('Kliniek Telecom', false);
     }
 }
+

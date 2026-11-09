@@ -135,7 +135,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Liquidatie &amp; Wapenarsenaal</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-                    Spoor doelwitten op met 15-minuten Schaduw-Inlichtingen, reis naar exact dezelfde kliniek-afdeling en beroof rivalen van <strong class="text-slate-800 dark:text-slate-200">45% contant geld + 7% bankgeld</strong>. Vanaf <strong class="text-slate-800 dark:text-slate-200">Dossier-Graad 25</strong> met minimaal <strong class="text-slate-800 dark:text-slate-200">30% Koudbloedigheid</strong> schiet je met een dodelijk <strong class="text-slate-800 dark:text-slate-200">1-Patroon Genadeschot</strong>.
+                    Spoor doelwitten op met 15-minuten Schaduw-Inlichtingen, reis naar exact dezelfde kliniek-afdeling en beroof rivalen van <strong class="text-slate-800 dark:text-slate-200">45% contant zakgeld (kluis en bank 100% veilig)</strong>. Vanaf <strong class="text-slate-800 dark:text-slate-200">Dossier-Graad 25</strong> met minimaal <strong class="text-slate-800 dark:text-slate-200">30% Koudbloedigheid</strong> schiet je met een dodelijk <strong class="text-slate-800 dark:text-slate-200">1-Patroon Genadeschot</strong>.
                 </p>
             </div>
 
@@ -427,7 +427,7 @@
                             <i class="fa-solid fa-gun text-rose-600 dark:text-rose-400"></i> Doelwit Viseren &amp; Vuren
                         </h2>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Buit bij voltreffer: <strong class="text-slate-800 dark:text-slate-200">45% Contant Geld + 7% Bankrekening</strong> + 60 Respect + 400 XP.
+                            Buit bij voltreffer: <strong class="text-slate-800 dark:text-slate-200">45% Contant Zakgeld (Bank &amp; Kluis 100% veilig)</strong> + 60 Respect + 400 XP.
                         </p>
                     </div>
                     <span class="px-3 py-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0 self-start sm:self-auto shadow-xs">

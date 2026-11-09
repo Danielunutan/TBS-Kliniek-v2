@@ -113,7 +113,7 @@ class HitmanController extends Controller
                 $dailyDeathsReached = $target->needsReviveSerum()
                     || $target->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD
                     || (int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET;
-                $isLevelRestricted = ! $hasBloodFeud && (($character->level - $target->level) > 15);
+                $isLevelRestricted = ! $hasBloodFeud && (abs($character->level - $target->level) > 15);
 
                 $intel = $intelMap->get($target->id);
                 $hasReadyIntel = $intel && ! empty($intel['is_ready']);
@@ -200,7 +200,7 @@ class HitmanController extends Controller
                 $dailyDeathsReached = $target->needsReviveSerum()
                     || $target->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD
                     || (int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET;
-                $isLevelRestricted = ! $hasBloodFeud && (($character->level - $target->level) > 15);
+                $isLevelRestricted = ! $hasBloodFeud && (abs($character->level - $target->level) > 15);
 
                 $intel = $intelMap->get($target->id);
                 $hasReadyIntel = $intel && ! empty($intel['is_ready']);
@@ -734,7 +734,7 @@ class HitmanController extends Controller
      * Direct Liquidation 2.0:
      * - Requires Same Clinic Wing (`current_location`)
      * - Enforces Dossier-Graad (1-30) & Koudbloedigheid (%) for 1-Bullet Genadeschot vs Salvo
-     * - Plunders 45% Cash + 7% Bank on lethal hit
+     * - Plunders 45% Cash on lethal hit (Bank & Kluis are 100% safe)
      * - Unlimited hunting with Stretcher Evacuation (20 HP + new random wing + 15m shield) on hits 1-9
      * - At 10th liquidation: target enters Code Blauw and requires the €1.500.000 Forensisch Reanimatie-Serum!
      */
@@ -838,8 +838,8 @@ class HitmanController extends Controller
         $bloodFeud = BloodFeud::hasClaimAgainst($attacker, $defender->id);
         $hasOpenBounty = class_exists(Bounty::class) && Bounty::where('target_character_id', $defender->id)->where('is_claimed', false)->exists();
 
-        if (! $bloodFeud && ! $hasOpenBounty && ($attacker->level - $defender->level > 15)) {
-            return back()->with('error', "{$defender->name} is te laag in level (maximaal 15 levels verschil, tenzij er Bloedwraak of een Kopgeld-premie openstaat).");
+        if (! $bloodFeud && ! $hasOpenBounty && abs($attacker->level - $defender->level) > 15) {
+            return back()->with('error', "Het levelverschil tussen jou en {$defender->name} is te groot (maximaal 15 levels verschil, tenzij er Bloedwraak of een Kopgeld-premie openstaat).");
         }
 
         // Take the target's action lock (the same lock his own requests use). Two shooters on one target then run one
@@ -907,11 +907,11 @@ class HitmanController extends Controller
                     if ($isOneTap) {
                         $attackerPower = 650 + ($gradeInfo['grade'] * 25) + ($lockedAttacker->getEffectiveStrength() * 2.5) + ($coldBloodedPct * 3.5);
                     } else {
-                        $attackerPower = ($bulletCount * 1.5) + ($lockedAttacker->getEffectiveStrength() * 2.0) + ($gradeInfo['grade'] * 12) + rand(15, 45);
+                        $attackerPower = ($bulletCount * 8.0) + ($lockedAttacker->getEffectiveStrength() * 2.5) + ($gradeInfo['grade'] * 20) + rand(20, 50);
 
                         // Bonus if player fires at or above their grade's recommended heavy barrage
                         if ($bulletCount >= $gradeInfo['min_bullets']) {
-                            $attackerPower *= 1.20; // +20% heavy barrage bonus!
+                            $attackerPower *= 1.25; // +25% heavy barrage bonus!
                         }
                     }
 
@@ -982,7 +982,7 @@ class HitmanController extends Controller
                         return back()->with('error', "💥 BACKFIRE OP {$defenderWing}! Het {$vestLabel} van {$lockedDefender->name} kaatste jouw kogels vol terug! Je bent gezakt naar 20 HP (Liquidatie-teller: {$attackerStreak}/10), per brancard geëvacueerd naar {$evacWing} en kunt direct eten om te healen!");
                     }
 
-                    // 2. LETHAL LIQUIDATION HIT (45% Cash + 7% Bank stolen!)
+                    // 2. LETHAL LIQUIDATION HIT (45% Cash stolen, bank 100% safe!)
                     if ($attackerPower >= $defenderDefense) {
                         // 25% chance a heavy vest absorbs a non-overwhelming hit and shatters
                         if ($hasVest && $attackerPower < ($defenderDefense * 1.35) && rand(1, 100) <= 25) {
@@ -1002,25 +1002,14 @@ class HitmanController extends Controller
                             return back()->with('info', "🛡️ PANTSEBREUK! Je schot op {$lockedDefender->name} heeft zijn {$vestInfo['name']} volledig aan flarden geschoten (-{$dmg} HP)! Het doelwit heeft nu géén pantser meer.");
                         }
 
-                        // Plunder 45% Cash + 7% Bank (halved by 50% when defender has active Cash Shield)
+                        // Plunder 45% Cash only - Bank & Kluis are 100% safe upon liquidation! (halved by 50% when defender has active Cash Shield)
                         $shieldMultiplier = $lockedDefender->hasCashProtection() ? 0.50 : 1.0;
                         $stolenCash = (int) floor(max(0, (int) $lockedDefender->cash) * 0.45 * $shieldMultiplier);
-                        $stolenBank = (int) floor(max(0, (int) $lockedDefender->bank) * 0.07 * $shieldMultiplier);
-                        $totalStolen = $stolenCash + $stolenBank;
+                        $stolenBank = 0;
+                        $totalStolen = $stolenCash;
 
                         if ($stolenCash > 0) {
                             $lockedDefender->cash = max(0, (int) $lockedDefender->cash - $stolenCash);
-                        }
-                        if ($stolenBank > 0) {
-                            $lockedDefender->bank = max(0, (int) $lockedDefender->bank - $stolenBank);
-                            BankTransaction::record(
-                                $lockedDefender,
-                                'withdrawal',
-                                'bank',
-                                $stolenBank,
-                                (int) $lockedDefender->bank,
-                                "Bank geplunderd bij liquidatie door {$lockedAttacker->name}"
-                            );
                         }
                         if ($totalStolen > 0) {
                             $lockedAttacker->cash = (int) $lockedAttacker->cash + $totalStolen;
@@ -1036,14 +1025,14 @@ class HitmanController extends Controller
                         $newWing = $this->evacuateToRandomWing($lockedDefender);
 
                         if ($defenderStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
-                            // Victims on hits 1-9 enter a 20-minute Intensive Care Coma with 30-minute post-coma medical shield (50 min total)
+                            // Victims on hits 1-9 enter a 10-minute Intensive Care Coma with 60-minute post-coma medical shield (70 min total)
                             $lockedDefender->health = 0;
                             $lockedDefender->coma_until = now()->addMinutes(Character::LIQUIDATION_IC_COMA_MINUTES);
-                            $lockedDefender->grantMedicalShield(Character::LIQUIDATION_IC_COMA_MINUTES + 30);
+                            $lockedDefender->grantMedicalShield(Character::LIQUIDATION_IC_COMA_MINUTES + 60);
                             $lockedDefender->save();
                         } else {
                             // 10th liquidation: Code Blauw (requires Forensisch Reanimatie-Serum)
-                            $lockedDefender->grantMedicalShield(30);
+                            $lockedDefender->grantMedicalShield(60);
                             $lockedDefender->save();
                         }
 
@@ -1107,13 +1096,13 @@ class HitmanController extends Controller
 
                         $shotTypeLabel = $isOneTap ? 'een 1-Patroon Genadeschot' : "een salvo van {$bulletCount} patronen".($bulletCount >= $gradeInfo['min_bullets'] ? ' (Zware Barrage)' : '');
                         $locationNotice = $isSameWing ? "op {$defenderWing} (+25% Sluipaanval-bonus)" : "op {$defenderWing} (Afstandssalvo vanaf {$attackerWing})";
-                        $lootBreakdown = '€'.number_format($stolenCash, 0, ',', '.').' contant (45%) + €'.number_format($stolenBank, 0, ',', '.').' bank (7%)';
+                        $lootBreakdown = '€'.number_format($stolenCash, 0, ',', '.').' contant (45%, kluis/bank 100% veilig)';
 
                         // Send 1 unified private message from Kliniek Directie to each involved party BEFORE GameNotification::create
                         // so GameNotification::booted() does not create a duplicate DM for the victim.
                         try {
                             $totalFmt = '€'.number_format($totalStolen, 0, ',', '.');
-                            $headline = "🎯 LIQUIDATIE OP {$defenderWing}: {$lockedAttacker->name} heeft {$lockedDefender->name} neergeschoten met {$shotTypeLabel} en {$totalFmt} (45% contant + 7% bank) buitgemaakt!";
+                            $headline = "🎯 LIQUIDATIE OP {$defenderWing}: {$lockedAttacker->name} heeft {$lockedDefender->name} neergeschoten met {$shotTypeLabel} en {$totalFmt} contant geld buitgemaakt (kluis/bank 100% veilig)!";
                             $feudSection = $bloodFeud
                                 ? "\n\n🩸 BLOEDWRAAK VOLTROKKEN: {$lockedAttacker->name} heeft {$lockedDefender->name} op {$defenderWing} geliquideerd en de bende-vete gewroken!"
                                 : '';
@@ -1127,7 +1116,7 @@ class HitmanController extends Controller
                                 'attacker_id' => $lockedAttacker->id,
                                 'defender_id' => $lockedDefender->id,
                                 'stolen_cash' => $stolenCash,
-                                'stolen_bank' => $stolenBank,
+                                'stolen_bank' => 0,
                                 'total_stolen' => $totalStolen,
                             ];
 
@@ -1141,7 +1130,7 @@ class HitmanController extends Controller
                             // 2. Defender (victim) report
                             $defenderMedical = $defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
                                 ? "\n\n🚨 Medische Status (10/10 — CODE BLAUW): Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!'
-                                : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met spoed per brancard naar de Intensive Care afgevoerd (".Character::LIQUIDATION_IC_COMA_MINUTES." min IC-Coma & 30 min Medisch Infuus-Schild) op {$newWing}!";
+                                : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met spoed per brancard naar de Intensive Care afgevoerd (".Character::LIQUIDATION_IC_COMA_MINUTES." min IC-Coma & 60 min Medisch Infuus-Schild) op {$newWing}!";
                             $botService->sendLiquidationNotice($lockedDefender, $headline.$feudSection.$bountySection.$defenderMedical, array_merge($commonMeta, ['role' => 'defender']));
 
                             // 3. Additional involved parties (original blood-feud victim and/or bounty placers)
@@ -1176,7 +1165,7 @@ class HitmanController extends Controller
                                 'type' => 'skull',
                                 'icon' => 'fa-skull',
                                 'title' => "🚨 GELIQUIDEERD OP {$defenderWing} ({$defenderStreak}/10)!",
-                                'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je ligt ".Character::LIQUIDATION_IC_COMA_MINUTES." min op de Intensive Care ({$newWing}) met 30 min Medisch Infuus-Schild!",
+                                'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je ligt ".Character::LIQUIDATION_IC_COMA_MINUTES." min op de Intensive Care ({$newWing}) met 60 min Medisch Infuus-Schild!",
                             ]);
                         }
 
