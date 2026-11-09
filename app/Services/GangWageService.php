@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\Gang;
+use App\Models\GangNpc;
 use App\Support\GangPropertyCatalog;
 use Illuminate\Support\Facades\DB;
 
@@ -148,7 +149,7 @@ class GangWageService
             $vehiclesIncome += (int) round($vBase * $condPct);
         }
 
-        // 4. Hired Gang NPCs
+        // 4. Hired Gang NPCs (max 5 active specialists per type)
         $npcs = $gang->relationLoaded('npcs')
             ? $gang->npcs
             : $gang->npcs()->get();
@@ -156,11 +157,18 @@ class GangWageService
         $npcsIncome = 0;
         $npcWageBonusPct = 0;
         $npcCatalog = GangPropertyCatalog::npcs();
+        $npcCounts = [];
 
         foreach ($npcs as $npc) {
             if ($npc->isExpired()) {
                 continue;
             }
+            $key = (string) $npc->npc_key;
+            $npcCounts[$key] = ($npcCounts[$key] ?? 0) + 1;
+            if ($npcCounts[$key] > GangNpc::MAX_ACTIVE_PER_TYPE) {
+                continue;
+            }
+
             $npcsIncome += 500; // Base contribution per specialist
             $nDef = $npcCatalog[$npc->npc_key] ?? null;
             if ($nDef && ($nDef['bonus_type'] ?? '') === 'wage_bonus') {
@@ -264,10 +272,17 @@ class GangWageService
         $npcsIncome = 0;
         $npcWageBonusPct = 0;
         $npcCatalog = GangPropertyCatalog::npcs();
+        $npcCounts = [];
         foreach ($npcs as $npc) {
             if ($npc->isExpired()) {
                 continue;
             }
+            $key = (string) $npc->npc_key;
+            $npcCounts[$key] = ($npcCounts[$key] ?? 0) + 1;
+            if ($npcCounts[$key] > GangNpc::MAX_ACTIVE_PER_TYPE) {
+                continue;
+            }
+
             $npcsIncome += 500;
             $nDef = $npcCatalog[$npc->npc_key] ?? null;
             if ($nDef && ($nDef['bonus_type'] ?? '') === 'wage_bonus') {

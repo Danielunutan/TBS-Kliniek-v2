@@ -16,6 +16,11 @@ class GangNpc extends Model
      */
     public const CONTRACT_DURATION_MINUTES = 30;
 
+    /**
+     * Maximum active hired instances of the same specialist NPC type per gang.
+     */
+    public const MAX_ACTIVE_PER_TYPE = 5;
+
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -115,5 +120,24 @@ class GangNpc extends Model
         }
 
         return $expired->count();
+    }
+
+    /**
+     * Purge all expired NPCs across all gangs in the entire system.
+     *
+     * @return int Number of expired NPCs cleaned up
+     */
+    public static function purgeAllExpired(): int
+    {
+        $expiredGangs = Gang::whereHas('allNpcs', function ($q) {
+            $q->whereNotNull('expires_at')->where('expires_at', '<=', now());
+        })->get();
+
+        $totalCleaned = 0;
+        foreach ($expiredGangs as $gang) {
+            $totalCleaned += self::purgeExpiredForGang($gang);
+        }
+
+        return $totalCleaned;
     }
 }

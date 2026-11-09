@@ -867,6 +867,18 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Ongeldig NPC bendelid geselecteerd.');
         }
 
+        // Limit to max 5 active hires of the same specialist NPC type per 30 minutes
+        $currentSameNpcCount = $gang->npcs()
+            ->where('npc_key', $npcKey)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->count();
+
+        if ($currentSameNpcCount >= GangNpc::MAX_ACTIVE_PER_TYPE) {
+            return back()->with('error', "Jullie bende heeft al het maximale aantal van ".GangNpc::MAX_ACTIVE_PER_TYPE." actieve specialisten van {$npcData['name']} in dienst voor dit 30-minuten contractblok!");
+        }
+
         if (($npcData['bonus_type'] ?? '') === 'defense' && $gang->npc_defense_bonus_percent >= Gang::MAX_NPC_DEFENSE_BONUS_PERCENT) {
             return back()->with('error', 'Jullie bende heeft het maximale Enforcer-verdedigingslimiet van +'.Gang::MAX_NPC_DEFENSE_BONUS_PERCENT.'% al bereikt! Huur een ander type specialist in.');
         }
@@ -900,6 +912,17 @@ class GangPropertyController extends Controller
             }
 
             // Re-check capacity and treasury under the gang lock so parallel hires cannot exceed either limit.
+            $lockedSameNpcCount = $lockedGang->npcs()
+                ->where('npc_key', $npcKey)
+                ->where(function ($q) {
+                    $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })
+                ->count();
+
+            if ($lockedSameNpcCount >= GangNpc::MAX_ACTIVE_PER_TYPE) {
+                return "Jullie bende heeft al het maximale aantal van ".GangNpc::MAX_ACTIVE_PER_TYPE." actieve specialisten van {$npcData['name']} in dienst voor dit 30-minuten contractblok!";
+            }
+
             if ($lockedGang->npcs()->count() >= $lockedGang->total_npc_capacity) {
                 return 'Geen vrije woonruimte meer! Koop eerst een Luxe Penthouse of Bende Villa om de NPC-capaciteit van de bende te verhogen.';
             }

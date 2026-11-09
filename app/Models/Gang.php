@@ -239,9 +239,19 @@ class Gang extends Model
 
     public function getNpcDefenseBonusPercentAttribute(): int
     {
-        $sum = $this->relationLoaded('npcs')
-            ? (int) $this->npcs->filter(fn ($n) => ! $n->isExpired())->where('bonus_type', 'defense')->sum('bonus_value')
-            : (int) $this->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
+        $defenseNpcs = $this->relationLoaded('npcs')
+            ? $this->npcs->filter(fn ($n) => ! $n->isExpired())->where('bonus_type', 'defense')
+            : $this->npcs()->where('bonus_type', 'defense')->get();
+
+        $sum = 0;
+        $counts = [];
+        foreach ($defenseNpcs as $npc) {
+            $key = (string) $npc->npc_key;
+            $counts[$key] = ($counts[$key] ?? 0) + 1;
+            if ($counts[$key] <= GangNpc::MAX_ACTIVE_PER_TYPE) {
+                $sum += (int) $npc->bonus_value;
+            }
+        }
 
         return max(0, min(self::MAX_NPC_DEFENSE_BONUS_PERCENT, $sum));
     }

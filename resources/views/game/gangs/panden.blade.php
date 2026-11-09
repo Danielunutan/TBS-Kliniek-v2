@@ -654,6 +654,7 @@
                 $npcKey = $npcDef['key'];
                 $hiredInstances = $hiredNpcs->where('npc_key', $npcKey);
                 $isHired = $hiredInstances->count() > 0;
+                $isSameNpcAtCap = $hiredInstances->count() >= \App\Models\GangNpc::MAX_ACTIVE_PER_TYPE;
                 $canAffordNpc = (int) $gang->treasury >= $npcDef['cost'];
                 $hasFreeSlot = $availableNpcSlots > 0;
                 $isEnforcerAtCap = ($npcDef['bonus_type'] ?? '') === 'defense'
@@ -693,8 +694,8 @@
 
                     @if($isHired)
                     <div class="text-xs font-bold text-slate-600 dark:text-slate-300 pt-1">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
-                            <i class="fa-solid fa-check text-emerald-500"></i> {{ $hiredInstances->count() }}x in dienst van bende
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg {{ $isSameNpcAtCap ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700' }}">
+                            <i class="fa-solid {{ $isSameNpcAtCap ? 'fa-lock text-amber-500' : 'fa-check text-emerald-500' }}"></i> {{ $hiredInstances->count() }} / {{ \App\Models\GangNpc::MAX_ACTIVE_PER_TYPE }} in dienst (Max 5x per 30 min)
                         </span>
                     </div>
                     @endif
@@ -706,16 +707,18 @@
                         <form method="POST" action="{{ route('gangs.panden.hire-npc', $npcKey) }}">
                             @csrf
                             <button type="submit"
-                                    @if(! $hasFreeSlot || ! $canAffordNpc || $isEnforcerAtCap || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                    @if(! $hasFreeSlot || ! $canAffordNpc || $isEnforcerAtCap || $isSameNpcAtCap || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
                                     data-confirm="Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor een 30-minuten shift voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?"
                                     data-confirm-title="NPC Specialist Inhuren (30 Minuten)"
                                     data-confirm-btn="Ja, Inhuren"
                                     data-confirm-type="success"
                                     data-confirm-icon="fa-user-plus"
-                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
+                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $isSameNpcAtCap && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i>
                                 @if($isEnforcerAtCap)
                                     <span>Max +{{ \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT }}% Enforcer Limiet</span>
+                                @elseif($isSameNpcAtCap)
+                                    <span>Max 5x per 30 Min Bereikt</span>
                                 @elseif(! $hasFreeSlot)
                                     <span>Geen Villa Ruimte</span>
                                 @elseif(! $canAffordNpc)
