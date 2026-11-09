@@ -373,7 +373,7 @@
                                     </span>
                                 @else
                                     <span>&bull;</span>
-                                    <a href="{{ route('informant.index') }}" class="inline-flex items-center gap-1 text-slate-400 hover:text-purple-600 dark:text-slate-500 dark:hover:text-purple-400 font-semibold text-xs transition cursor-pointer" title="Verblijfplaats is geheim. Schakel een informant of spion in om deze patiënt te traceren.">
+                                    <a href="{{ route('informants.index') }}" class="inline-flex items-center gap-1 text-slate-400 hover:text-purple-600 dark:text-slate-500 dark:hover:text-purple-400 font-semibold text-xs transition cursor-pointer" title="Verblijfplaats is geheim. Schakel een informant of spion in om deze patiënt te traceren.">
                                         <i class="fa-solid fa-user-secret text-[11px]"></i>
                                         <span>Locatie Geheim</span>
                                     </a>
