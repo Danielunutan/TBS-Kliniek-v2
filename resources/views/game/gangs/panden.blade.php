@@ -387,9 +387,18 @@
                                 Klaar om te claimen!
                             </span>
                         @elseif($owned->isProducing())
-                            <span class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-black text-[10px]">
-                                Bezig ({{ $owned->remaining_production_minutes }} min)
-                            </span>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-black text-[10px]">
+                                    Bezig ({{ $owned->remaining_production_minutes }} min)
+                                </span>
+                                @if($owned->assigned_npc_key === 'chemisch_specialist')
+                                    <span class="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-extrabold text-[9px]">🧪 Dr. Walter (-50% tijd)</span>
+                                @elseif($owned->assigned_npc_key === 'productie_manager')
+                                    <span class="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold text-[9px]">💰 Dimitri (+100% buit)</span>
+                                @elseif($owned->assigned_npc_key === 'enforcer_kapitein')
+                                    <span class="px-1.5 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-extrabold text-[9px]">🛡️ Boris (Verdediging)</span>
+                                @endif
+                            </div>
                         @else
                             <span class="text-slate-400 dark:text-slate-500 text-xs italic">Inactief</span>
                         @endif
@@ -406,13 +415,24 @@
                         </button>
                     </form>
                     @elseif(! $owned->isProducing() && $isOfficer)
-                    <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}">
+                    <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}" class="space-y-2">
                         @csrf
+                        <div class="space-y-1">
+                            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                Huur Specialist voor deze Cyclus (Optioneel):
+                            </label>
+                            <select name="batch_specialist" class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-xs">
+                                <option value="none">Standaard ploeg (Geen extra kosten)</option>
+                                <option value="chemisch_specialist">🧪 Dr. Walter V. &mdash; &euro;750.000 (-50% Productietijd)</option>
+                                <option value="productie_manager">💰 Dimitri De Opzichter &mdash; &euro;1.000.000 (+100% Cash)</option>
+                                <option value="enforcer_kapitein">🛡️ Boris De Sloper &mdash; &euro;500.000 (+Zware Verdediging)</option>
+                            </select>
+                        </div>
                         <button type="submit"
                                 @if($character->isImprisoned() || $character->isComatose()) disabled @endif
                                 class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i>
-                            <span>Start Productiecyclus ({{ $owned->production_duration_minutes }} min)</span>
+                            <span>Start Productiecyclus</span>
                         </button>
                     </form>
                     @endif

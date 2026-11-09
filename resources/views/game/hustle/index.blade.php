@@ -54,6 +54,23 @@
     </div>
     @endif
 
+    <!-- ACTIEVE MOTOR / SCOOTER BONUS -->
+    @if(!empty($motorBonus) && $motorBonus > 0 && !empty($activeVehicle))
+    <div class="rounded-2xl p-3.5 sm:p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0 shadow-xs">
+                <i class="fa-solid fa-motorcycle"></i>
+            </div>
+            <div>
+                <span class="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Actieve Scooter / Brommer Bonus</span>
+                <p class="text-xs">
+                    Met je <strong>{{ $activeVehicle->vehicle->name }}</strong> beweeg je razendsnel over het complex: <strong>+{{ $motorBonus }}% Slagingskans</strong> en <strong>+10% Extra Buit</strong> op alle hossels!
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Top Forensic Dossier Header -->
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">

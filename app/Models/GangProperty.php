@@ -99,6 +99,11 @@ class GangProperty extends Model
     public function getEffectiveDurationMinutesAttribute(): int
     {
         $baseMinutes = (int) ($this->production_duration_minutes ?? 60);
+
+        if ($this->assigned_npc_key === 'chemisch_specialist') {
+            return max(5, (int) round($baseMinutes * 0.5)); // Halved duration for hired master chemist!
+        }
+
         $assignedNpc = GangNpc::where('gang_id', $this->gang_id)
             ->where('assigned_property_id', $this->id)
             ->first();
@@ -128,8 +133,12 @@ class GangProperty extends Model
      */
     public function getEffectiveRewards(): array
     {
-        $baseCash = $this->production_reward_cash;
-        $baseRespect = $this->production_reward_respect;
+        $baseCash = (int) $this->production_reward_cash;
+        $baseRespect = (int) $this->production_reward_respect;
+
+        if ($this->assigned_npc_key === 'productie_manager') {
+            $baseCash = (int) round($baseCash * 2.0); // Doubled cash payout for hired production manager!
+        }
 
         // Check if gang has assigned an NPC to this property
         $assignedNpc = GangNpc::where('gang_id', $this->gang_id)

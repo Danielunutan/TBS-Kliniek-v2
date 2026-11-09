@@ -151,6 +151,10 @@ class TravelController extends Controller
         }
 
         $xpAward = 35;
+        $activeVehicle = $character->activeVehicle();
+        if ($activeVehicle && $activeVehicle->vehicle && $activeVehicle->vehicle->type === 'vliegtuig') {
+            return back()->with('success', "✈️ Privévlucht geland! Je bent met je {$activeVehicle->vehicle->name} direct overgevlogen naar {$locData['name']}! (+{$xpAward} XP)");
+        }
 
         return back()->with('success', 'Je hebt de bewakers omgekocht voor €'.number_format($cost, 0, ',', '.')." en bent succesvol verplaatst naar {$locData['name']}! (+{$xpAward} XP)");
     }
@@ -160,6 +164,11 @@ class TravelController extends Controller
      */
     protected function calculateTravelCost($character): int
     {
+        $activeVehicle = $character->activeVehicle();
+        if ($activeVehicle && $activeVehicle->vehicle && $activeVehicle->vehicle->type === 'vliegtuig') {
+            return 0; // Private aviation travels for free!
+        }
+
         $base = 2500 + ($character->level * 150);
 
         // VIP 50% discount on guard bribes

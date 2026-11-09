@@ -149,17 +149,20 @@ class HustleController extends Controller
         $this->energy->refresh($character);
 
         $statBonus = min(25, (int) floor(($character->getEffectiveCharisma() * 1.5 + $character->getEffectiveIntelligence() * 1.2) / 7));
+        $activeVehicle = $character->activeVehicle();
+        $motorBonus = ($activeVehicle && $activeVehicle->vehicle && $activeVehicle->vehicle->type === 'motor') ? 8 : 0;
 
         $hustles = [];
         foreach (self::HUSTLES as $id => $h) {
-            $effectiveRate = min(95, $h['rate'] + $statBonus);
+            $effectiveRate = min(98, $h['rate'] + $statBonus + $motorBonus);
             $hustles[$id] = array_merge($h, [
                 'effective_rate' => $effectiveRate,
                 'stat_bonus' => $statBonus,
+                'motor_bonus' => $motorBonus,
             ]);
         }
 
-        return view('game.hustle.index', compact('character', 'hustles', 'statBonus'));
+        return view('game.hustle.index', compact('character', 'hustles', 'statBonus', 'motorBonus', 'activeVehicle'));
     }
 
     public function attempt(Request $request): RedirectResponse
@@ -207,7 +210,9 @@ class HustleController extends Controller
 
             // Stat bonus: Charisma & Intelligence boost hustle success rate
             $statBonus = min(25, (int) floor(($lockedCharacter->getEffectiveCharisma() * 1.5 + $lockedCharacter->getEffectiveIntelligence() * 1.2) / 7));
-            $effectiveRate = min(95, $hustle['rate'] + $statBonus);
+            $activeVehicle = $lockedCharacter->activeVehicle();
+            $motorBonus = ($activeVehicle && $activeVehicle->vehicle && $activeVehicle->vehicle->type === 'motor') ? 8 : 0;
+            $effectiveRate = min(98, $hustle['rate'] + $statBonus + $motorBonus);
 
             $roll = rand(1, 100);
 
@@ -218,6 +223,10 @@ class HustleController extends Controller
 
                 if ($lockedCharacter->hasPerk('grotere_broekzakken')) {
                     $cash = (int) round($cash * 1.10);
+                }
+
+                if ($motorBonus > 0) {
+                    $cash = (int) round($cash * 1.10); // +10% fast scooter/motor delivery bonus!
                 }
 
                 // Zwart geld contant!

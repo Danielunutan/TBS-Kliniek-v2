@@ -163,7 +163,18 @@ class Heist extends Model
         }
 
         if ($this->required_vehicle_type && $this->required_vehicle_type !== 'any') {
-            if ($cv->vehicle->type !== $this->required_vehicle_type) {
+            $req = $this->required_vehicle_type;
+            $vType = $cv->vehicle->type;
+            $matches = match ($req) {
+                'helikopter' => in_array($vType, ['helikopter', 'vliegtuig'], true),
+                'auto' => in_array($vType, ['auto', 'motor'], true),
+                'motor' => in_array($vType, ['motor', 'auto'], true),
+                'boot' => in_array($vType, ['boot'], true),
+                'vliegtuig' => in_array($vType, ['vliegtuig', 'helikopter'], true),
+                default => ($vType === $req),
+            };
+
+            if (! $matches) {
                 return false;
             }
         }
@@ -190,8 +201,13 @@ class Heist extends Model
 
         $minSpeed = max(0, (int) $this->min_speed_required);
         $speedDiff = (int) $vehicle->effective_speed - $minSpeed;
+        $bonus = (int) round($speedDiff * 0.4);
 
-        return (int) round($speedDiff * 0.4);
+        if ($vehicle->vehicle && $vehicle->vehicle->type === 'vliegtuig') {
+            $bonus += 10; // High-altitude aviation speed bonus!
+        }
+
+        return $bonus;
     }
 
     /**
@@ -254,8 +270,14 @@ class Heist extends Model
     public function calculateArrestRisk(Character $character, ?CharacterVehicle $vehicle = null): int
     {
         $chance = $this->calculateSuccessChance($character, $vehicle);
+        $risk = max(8, min(85, 100 - $chance));
 
-        return max(8, min(85, 100 - $chance));
+        $vehicle = $vehicle ?? $this->getEffectiveVehicle($character);
+        if ($vehicle && $vehicle->vehicle && $vehicle->vehicle->type === 'motor') {
+            $risk = max(5, (int) round($risk * 0.80)); // 20% stealth evasion bonus through alleys/forests!
+        }
+
+        return $risk;
     }
 
     public function getawayVehicles(): HasManyThrough

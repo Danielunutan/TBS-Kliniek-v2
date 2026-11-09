@@ -123,3 +123,4 @@ HTML;
         NewsArticle::where('slug', 'grote-kliniek-balans-en-vechtsysteem-herziening')->delete();
     }
 };
+

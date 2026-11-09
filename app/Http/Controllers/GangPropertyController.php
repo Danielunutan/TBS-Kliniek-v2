@@ -463,8 +463,29 @@ class GangPropertyController extends Controller
             return back()->with('error', 'De vorige productiecyclus is voltooid! Claim eerst de opbrengst.');
         }
 
+        $specialists = [
+            'chemisch_specialist' => [
+                'name' => 'Dr. Walter V. (Meesterchemicus)',
+                'cost' => 750000,
+                'benefit' => '-50% productietijd',
+            ],
+            'productie_manager' => [
+                'name' => 'Dimitri "De Opzichter"',
+                'cost' => 1000000,
+                'benefit' => '+100% cash opbrengst',
+            ],
+            'enforcer_kapitein' => [
+                'name' => 'Boris "De Sloper"',
+                'cost' => 500000,
+                'benefit' => 'Zware lab-verdediging tegen invallen',
+            ],
+        ];
+
+        $specialistKey = $request->input('batch_specialist', 'none');
+        $hiredNotice = '';
+
         try {
-            $durationMinutes = DB::transaction(function () use ($character, $property, $gang): int {
+            $durationMinutes = DB::transaction(function () use ($character, $property, $gang, $specialists, $specialistKey, &$hiredNotice): int {
                 /** @var GangProperty|null $lockedProperty */
                 $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
                 /** @var Character|null $lockedChar */
@@ -490,6 +511,37 @@ class GangPropertyController extends Controller
                     throw new \RuntimeException('De vorige productiecyclus is voltooid! Claim eerst de opbrengst.');
                 }
 
+                if ($specialistKey !== 'none' && isset($specialists[$specialistKey])) {
+                    $spec = $specialists[$specialistKey];
+                    $cost = $spec['cost'];
+                    /** @var Gang $lockedGang */
+                    $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
+                    if ($lockedGang->treasury < $cost) {
+                        throw new \RuntimeException("Onvoldoende saldo in de bendekas! {$spec['name']} kost €".number_format($cost, 0, ',', '.')." voor deze cyclus (de kas bevat €".number_format($lockedGang->treasury, 0, ',', '.').').');
+                    }
+                    $lockedGang->treasury -= $cost;
+                    $lockedGang->save();
+                    $lockedProperty->assigned_npc_key = $specialistKey;
+                    $hiredNotice = " Inclusief specialist {$spec['name']} ({$spec['benefit']}, -€".number_format($cost, 0, ',', '.').' uit bendekas)!';
+
+                    AuditLogService::log(
+                        action: 'gang.hire_batch_npc',
+                        category: 'gang',
+                        description: "Specialist {$spec['name']} ingehuurd voor productiecyclus in {$lockedProperty->name} (€".number_format($cost, 0, ',', '.').' uit bendekas)',
+                        character: $lockedChar,
+                        user: $lockedChar->user,
+                        amount: $cost,
+                        details: [
+                            'gang_id' => $lockedGang->id,
+                            'property_id' => $lockedProperty->id,
+                            'specialist_key' => $specialistKey,
+                            'cost' => $cost,
+                        ]
+                    );
+                } else {
+                    $lockedProperty->assigned_npc_key = null;
+                }
+
                 $durationMinutes = $lockedProperty->effective_duration_minutes;
                 $completesAt = now()->addMinutes($durationMinutes);
 
@@ -497,6 +549,7 @@ class GangPropertyController extends Controller
                     'production_status' => 'producing',
                     'production_started_at' => now(),
                     'production_ends_at' => $completesAt,
+                    'assigned_npc_key' => $lockedProperty->assigned_npc_key,
                 ]);
 
                 return $durationMinutes;
@@ -505,7 +558,7 @@ class GangPropertyController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', "🏭 Productie gestart in '{$property->name}'! Over {$durationMinutes} minuten kan de opbrengst worden geclaimd.");
+        return back()->with('success', "🏭 Productie gestart in '{$property->name}'! Over {$durationMinutes} minuten kan de opbrengst worden geclaimd.{$hiredNotice}");
     }
 
     /**
@@ -941,6 +994,7 @@ class GangPropertyController extends Controller
             $defenderDefense = 60
                 + (int) round(($lockedProp->production_reward_cash / 20000))
                 + (int) round(($defenderGang->npc_defense_bonus_percent ?? 0) * 2.5)
+                + ($lockedProp->assigned_npc_key === 'enforcer_kapitein' ? 1200 : 0)
                 + rand(10, 40);
 
             if ($attackerPower >= $defenderDefense) {
