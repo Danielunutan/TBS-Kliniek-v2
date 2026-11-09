@@ -130,6 +130,9 @@ class DailyBattleController extends Controller
 
         $scores = DailyBattleScore::where('battle_date', $today)
             ->where($col, '>', 0)
+            ->whereHas('character', function ($q) {
+                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+            })
             ->orderByDesc($col)
             ->with('character')
             ->take(25)

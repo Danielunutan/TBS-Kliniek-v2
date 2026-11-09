@@ -22,6 +22,9 @@ class MurderStatsController extends Controller
             ->where(function ($q) {
                 $q->where('score_kills', '>', 0)->orWhere('score_slay', '>', 0);
             })
+            ->whereHas('character', function ($q) {
+                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+            })
             ->orderByDesc('score_kills')
             ->orderByDesc('score_slay')
             ->take(5)
@@ -30,6 +33,7 @@ class MurderStatsController extends Controller
         if ($todayScores->isEmpty()) {
             // Fallback to characters with most fights won
             $topPatientsToday = Character::with('gang')
+                ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
                 ->where('fights_won', '>', 0)
                 ->orderByDesc('fights_won')
                 ->take(5)
@@ -75,6 +79,9 @@ class MurderStatsController extends Controller
         // 3. 7 DAYS: Top Patients & Gangs
         $weekScores = DailyBattleScore::with('character.gang')
             ->where('battle_date', '>=', $sevenDaysAgo)
+            ->whereHas('character', function ($q) {
+                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+            })
             ->selectRaw('character_id, SUM(score_kills) as total_kills, SUM(score_slay) as total_slay')
             ->groupBy('character_id')
             ->orderByDesc('total_kills')

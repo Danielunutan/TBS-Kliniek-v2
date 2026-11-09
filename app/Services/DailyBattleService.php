@@ -558,6 +558,9 @@ class DailyBattleService
             $battleDate = Carbon::parse($battle->battle_date)->format('Y-m-d');
             $topScores = DailyBattleScore::whereDate('battle_date', $battleDate)
                 ->where($col, '>', 0)
+                ->whereHas('character', function ($q) {
+                    $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                })
                 ->orderByDesc($col)
                 ->orderBy('id')
                 ->take(3)
@@ -709,6 +712,9 @@ class DailyBattleService
 
             $scores = DailyBattleScore::whereDate('battle_date', $today)
                 ->where($col, '>', 0)
+                ->whereHas('character', function ($q) {
+                    $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                })
                 ->orderByDesc($col)
                 ->with('character')
                 ->get();

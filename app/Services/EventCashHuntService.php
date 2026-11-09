@@ -113,9 +113,10 @@ class EventCashHuntService
         $totalParticipants = $rows->count();
         $totalCashGenerated = (int) $rows->sum('total_earned');
 
-        // Load character details for all earners
+        // Load character details for all earners (excluding system accounts)
         $charIds = $rows->pluck('character_id')->all();
         $characters = Character::whereIn('id', $charIds)
+            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
             ->get(['id', 'name', 'level', 'avatar', 'avatar_custom', 'gender'])
             ->keyBy('id');
 
@@ -199,6 +200,9 @@ class EventCashHuntService
         $topEarner = EventCashEarning::select('character_id', DB::raw('SUM(amount) as total_earned'), DB::raw('MIN(created_at) as first_earned_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<', $end)
+            ->whereHas('character', function ($q) {
+                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+            })
             ->groupBy('character_id')
             ->orderByDesc('total_earned')
             ->orderBy('first_earned_at', 'asc')
