@@ -141,8 +141,12 @@ class GangPropertiesTest extends TestCase
     {
         [$user, $character, $gang] = $this->createGangWithOfficer(5000000);
 
-        // 1. Attempt to hire NPC before owning villa/penthouse -> must fail
-        $failHire = $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'productie_manager'));
+        // 1. Fill base capacity (2 slots) so hiring beyond base capacity requires penthouse/villa
+        $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'productie_manager'));
+        $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'chemisch_specialist'));
+
+        // Attempt to hire 3rd NPC before owning villa/penthouse -> must fail
+        $failHire = $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'beveiligings_expert'));
         $failHire->assertSessionHas('error');
 
         // 2. Buy Penthouse (gives 4 NPC slots)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\CheckMaintenanceMode;
 use App\Models\Character;
 use App\Models\DiscordShieldSetting;
 use App\Models\DiscordVerification;
@@ -359,10 +360,21 @@ class AuthController extends Controller
         }
 
         if (Auth::attempt($credentials, $request->boolean('remember', true))) {
-            $request->session()->regenerate();
-
             /** @var User|null $loggedUser */
             $loggedUser = Auth::user();
+
+            if (CheckMaintenanceMode::isEnabled() && (! $loggedUser || ! $loggedUser->isAdmin())) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'TBS Kliniek is momenteel in onderhoud. Alleen beheerders hebben tijdens onderhoud toegang.',
+                ])->onlyInput('email');
+            }
+
+            $request->session()->regenerate();
+
             if ($loggedUser) {
                 $loggedUser->forceFill(['last_login_ip' => $request->ip()])->saveQuietly();
             }

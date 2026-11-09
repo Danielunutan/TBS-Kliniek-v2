@@ -4725,7 +4725,7 @@
                                     <span>{{ $activeWar->defenderGang?->name }}</span>
                                 </h3>
                                 <p class="text-xs text-slate-600 dark:text-slate-300">
-                                    Verover kliniekzones en schakel rivalen uit. De winnaar na 24 uur pakt 10% van de vijandelijke kas, respect en 24 uur Kliniek Heerschappij (+20% uurloon)!
+                                    Verover kliniekzones en schakel rivalen uit. De winnaar na 24 uur pakt 10% van de vijandelijke kas, respect en 24 uur Kliniek Heerschappij (+25% uurloon)!
                                 </p>
                             </div>
 

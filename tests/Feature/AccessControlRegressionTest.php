@@ -281,6 +281,9 @@ class AccessControlRegressionTest extends TestCase
         $user = User::factory()->create();
         $lock = CheckMaintenanceMode::lockFilePath();
         $this->assertFileDoesNotExist($lock, 'An existing maintenance lock must not be overwritten by this test.');
+        if (! is_dir(dirname($lock))) {
+            mkdir(dirname($lock), 0755, true);
+        }
         file_put_contents($lock, '{}');
 
         try {

@@ -34,7 +34,7 @@ return new class extends Migration
             Willekeurig en doelloos patiënten neerleggen levert buiten een officiële oorlog of bloedwraak vanaf heden nul aanzien op. In plaats daarvan kunnen bendeleiders nu een officiële 24-uurs bendeoorlog uitroepen. Gedurende 24 uur vechten bendes om de strategische zones van de kliniek zoals de Luchtplaats, de Kantine en de Smokkellijn.
         </p>
         <p class="text-sm">
-            Elke zoneovername levert 15 oorlogspunten op, een succesvolle overval brengt 25 punten en het uitschakelen van een rivaliserend bendelid levert maar liefst 50 punten op. De winnende bende claimt na 24 uur tien procent van de vijandelijke bendekas, 100 respect en 24 uur lang Kliniek Heerschappij met 20 procent extra bende-uurloon.
+            Elke zoneovername levert 15 oorlogspunten op, een succesvolle overval brengt 25 punten en het uitschakelen van een rivaliserend bendelid levert maar liefst 50 punten op. De winnende bende claimt na 24 uur tien procent van de vijandelijke bendekas, 100 respect en 24 uur lang Kliniek Heerschappij met 25 procent extra bende-uurloon.
         </p>
     </div>
 

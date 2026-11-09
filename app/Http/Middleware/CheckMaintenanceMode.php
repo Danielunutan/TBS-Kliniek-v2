@@ -2,26 +2,83 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\GameSetting;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckMaintenanceMode
 {
     /**
      * Filepath for the maintenance state lock file.
+     * Uses an isolated test lock file when running under PHPUnit so live maintenance state is never wiped.
      */
     public static function lockFilePath(): string
     {
+        if (app()->runningUnitTests()) {
+            return storage_path('framework/testing/tbs_maintenance_test.json');
+        }
+
         return storage_path('framework/tbs_maintenance.json');
     }
 
     /**
-     * Check if maintenance mode is actively enabled.
+     * Check if maintenance mode is actively enabled via lock file or database setting.
      */
     public static function isEnabled(): bool
     {
-        return file_exists(self::lockFilePath());
+        if (file_exists(self::lockFilePath())) {
+            return true;
+        }
+
+        if (app()->runningUnitTests()) {
+            return false;
+        }
+
+        try {
+            if (Schema::hasTable('game_settings')) {
+                $dbState = GameSetting::get('maintenance_mode_enabled', false);
+
+                return filter_var($dbState, FILTER_VALIDATE_BOOLEAN);
+            }
+        } catch (\Throwable) {
+            // Fall back to lock file check when the database is unavailable.
+        }
+
+        return false;
+    }
+
+    /**
+     * Retrieve maintenance metadata from the lock file or database setting.
+     *
+     * @return array<string, mixed>
+     */
+    public static function getMetadata(): array
+    {
+        $lockFile = self::lockFilePath();
+        if (file_exists($lockFile)) {
+            $content = @file_get_contents($lockFile);
+            if ($content !== false) {
+                $decoded = json_decode($content, true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+        }
+
+        try {
+            if (Schema::hasTable('game_settings')) {
+                $meta = GameSetting::get('maintenance_mode_metadata', []);
+                if (is_array($meta)) {
+                    return $meta;
+                }
+            }
+        } catch (\Throwable) {
+            // Return empty metadata when the database is unavailable.
+        }
+
+        return [];
     }
 
     /**
@@ -30,7 +87,7 @@ class CheckMaintenanceMode
     public function handle(Request $request, Closure $next): Response
     {
         // Always pass through static assets, health check, webhooks, and vite dev server
-        if ($request->is('build/*', 'css/*', 'js/*', 'images/*', 'favicon.ico', 'up', '@vite/*', 'webhooks/*', 'api/webhooks/*', 'api/cpalead/*')) {
+        if ($request->is('build/*', 'css/*', 'js/*', 'images/*', 'assets/*', 'audio/*', 'favicon.ico', 'up', '@vite/*', 'webhooks/*', 'api/webhooks/*', 'api/cpalead/*')) {
             return $next($request);
         }
 
@@ -39,30 +96,25 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
-        // Guests need the login form to authenticate; other routes remain unavailable until
-        // the resulting session has been checked for an explicit administrator role.
         $user = $request->user();
-        if (! $user && $request->routeIs('login', 'login.post')) {
-            return $next($request);
-        }
 
+        // Allow administrators and owners full access during maintenance
         if ($user && $user->isAdmin()) {
             return $next($request);
         }
 
-        // Read metadata if available
-        $metadata = [];
-        $lockFile = self::lockFilePath();
-        if (file_exists($lockFile)) {
-            $content = @file_get_contents($lockFile);
-            if ($content !== false) {
-                $decoded = json_decode($content, true);
-                if (is_array($decoded)) {
-                    $metadata = $decoded;
-                }
-            }
+        // Allow anyone to log out
+        if ($request->routeIs('logout') || $request->is('logout')) {
+            return $next($request);
         }
 
+        // Allow guests to submit login credentials or open the staff login form (?beheer=1)
+        if (! $user && ($request->routeIs('login.post') || ($request->routeIs('login') && $request->boolean('beheer')))) {
+            return $next($request);
+        }
+
+        // Read metadata if available
+        $metadata = self::getMetadata();
         $targetTime = $metadata['target_time'] ?? '22:00';
 
         // For AJAX, API, or JSON requests, return a clean JSON 503 response

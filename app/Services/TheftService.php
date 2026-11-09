@@ -246,6 +246,7 @@ class TheftService
         if ($victim) {
             // Attacker breaks own protection when initiating theft
             $character->breakProtection();
+            $character->setCooldown('combat_isolation_cooldown', 1800);
             cache()->put($targetDailyKey, $targetDailyCount + 1, now()->endOfDay());
         }
 
@@ -353,9 +354,10 @@ class TheftService
                     return 0;
                 }
 
+                $baseStolen = min(25000000, $cashStolen);
                 $effectiveCashStolen = $lockedVictim->hasCashProtection()
-                    ? max(1, (int) floor($cashStolen * 0.50))
-                    : $cashStolen;
+                    ? max(1, (int) floor($baseStolen * 0.50))
+                    : $baseStolen;
 
                 $safeProtectionPct = $lockedVictim->getCellCashProtectionPct();
                 if ($safeProtectionPct > 0) {

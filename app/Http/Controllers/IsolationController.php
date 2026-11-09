@@ -91,6 +91,12 @@ class IsolationController extends Controller
             return back()->with('error', "⏳ Je hebt je cel onlangs voortijdig ontgrendeld! Je moet nog {$cdMins} minuten wachten voordat je weer vrijwillig in isolatie kunt gaan.");
         }
 
+        if ($character->isOnCooldown('combat_isolation_cooldown')) {
+            $cdMins = max(1, (int) ceil($character->cooldownRemaining('combat_isolation_cooldown') / 60));
+
+            return back()->with('error', "⚔️ Je bevindt je in Gevechtsstatus (Combat Status)! Na het uitvoeren van een aanval of liquidatie kun je nog {$cdMins} minuten geen vrijwillige isolatie kopen.");
+        }
+
         $validated = $request->validate([
             'hours' => ['required', 'integer', 'min:1', 'max:'.Character::MAX_ISOLATION_HOURS],
             'currency' => ['required', 'string', 'in:cash,stars'],

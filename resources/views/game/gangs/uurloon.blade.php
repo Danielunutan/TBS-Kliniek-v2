@@ -23,7 +23,7 @@
     vehiclesBase: {{ (int) ($breakdown['vehicles_income'] ?? 20000) }},
     npcsIncome: {{ (int) ($breakdown['npcs_income'] ?? 2000) }},
     npcBonusPct: {{ (int) ($breakdown['npc_bonus_pct'] ?? 10) }},
-    respect: {{ (int) ($gang?->respect ?? 500000) }},
+    respect: {{ (int) ($gang?->respect ?? 0) }},
     hasWarDominance: {{ (!empty($breakdown['war_dominance_pct']) && $breakdown['war_dominance_pct'] > 0) ? 'true' : 'false' }},
     charLevel: {{ max(1, (int) ($character?->level ?? 20)) }},
     charRole: '{{ $character?->gang_role ?? 'member' }}',

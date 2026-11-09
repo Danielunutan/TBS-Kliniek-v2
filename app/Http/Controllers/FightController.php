@@ -208,6 +208,7 @@ class FightController extends Controller
                     if ($lockedDefender->hasCashProtection() && empty($battle['cash_shield_applied']) && $stolenCash > 0) {
                         $stolenCash = max(1, (int) floor($stolenCash * 0.50));
                     }
+                    $stolenCash = min(25000000, $stolenCash);
                     if ($stolenCash > $defenderCash) {
                         $stolenCash = $defenderCash;
                     }
@@ -661,6 +662,7 @@ class FightController extends Controller
 
         // Attacker breaks own protection when initiating attack
         $attacker->breakProtection();
+        $attacker->setCooldown('combat_isolation_cooldown', 1800);
 
         if ($wasInIsolation) {
             GameNotification::create([
@@ -713,9 +715,9 @@ class FightController extends Controller
             cache()->put("fight_consecutive_attacks_{$attacker->id}", $consecutive, now()->addHours(2));
         }
 
-        // Combat calculation using effective strength & defense (including backpack equipment and cell upgrades)
+        // Combat calculation using effective strength & defense (including backpack equipment, vest, and cell upgrades)
         $attackerPower = $attacker->getEffectiveStrength() + rand(5, 15);
-        $defenderPower = $defender->getEffectiveDefense() + $defender->getCellDefenseBonus() + rand(5, 15);
+        $defenderPower = $defender->getTotalDefense() + rand(5, 15);
 
         if ($attackerPower >= $defenderPower) {
             $defenderCash = max(0, (int) $defender->cash);
@@ -724,7 +726,9 @@ class FightController extends Controller
 
             if ($defenderCash > 0) {
                 $stolenRatio = random_int(10, 25) / 100;
-                $stolenCash = max(15, (int) round($defenderCash * $stolenRatio));
+                $rawStolen = max(15, (int) round($defenderCash * $stolenRatio));
+                $baseStolen = min(25000000, $rawStolen);
+                $stolenCash = $baseStolen;
                 if ($hasCashShield) {
                     $stolenCash = max(1, (int) floor($stolenCash * 0.50));
                 }

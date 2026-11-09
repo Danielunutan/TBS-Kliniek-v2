@@ -136,7 +136,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Liquidatie &amp; Wapenarsenaal</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-                    Spoor doelwitten op met 15-minuten Schaduw-Inlichtingen, reis naar exact dezelfde kliniek-afdeling en beroof rivalen van <strong class="text-slate-800 dark:text-slate-200">45% contant zakgeld (kluis en bank 100% veilig)</strong>. Vanaf <strong class="text-slate-800 dark:text-slate-200">Dossier-Graad 25</strong> met minimaal <strong class="text-slate-800 dark:text-slate-200">30% Koudbloedigheid</strong> schiet je met een dodelijk <strong class="text-slate-800 dark:text-slate-200">1-Patroon Genadeschot</strong>.
+                    Spoor doelwitten op met 15-minuten Schaduw-Inlichtingen, reis naar exact dezelfde kliniek-afdeling en beroof rivalen van <strong class="text-slate-800 dark:text-slate-200">45% contant zakgeld (max. €25.000.000, kluis en bank 100% veilig)</strong>. Vanaf <strong class="text-slate-800 dark:text-slate-200">Dossier-Graad 25</strong> met minimaal <strong class="text-slate-800 dark:text-slate-200">30% Koudbloedigheid</strong> schiet je met een dodelijk <strong class="text-slate-800 dark:text-slate-200">1-Patroon Genadeschot</strong>.
                 </p>
             </div>
 
@@ -431,7 +431,7 @@
                             <i class="fa-solid fa-gun text-rose-600 dark:text-rose-400"></i> Doelwit Viseren &amp; Vuren
                         </h2>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Buit bij voltreffer: <strong class="text-slate-800 dark:text-slate-200">45% Contant Zakgeld (Bank &amp; Kluis 100% veilig)</strong> + 60 Respect + 400 XP.
+                            Buit bij voltreffer: <strong class="text-slate-800 dark:text-slate-200">45% Contant Zakgeld (max. €25.000.000, Bank &amp; Kluis 100% veilig)</strong> + 60 Respect + 400 XP.
                         </p>
                     </div>
                     <span class="px-3 py-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0 self-start sm:self-auto shadow-xs">
@@ -608,7 +608,7 @@
                                 <i class="fa-solid fa-lock text-slate-500 dark:text-slate-400"></i> 1-Patroon Genadeschot Vereiste
                             </span>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                                Vereist <strong class="text-slate-800 dark:text-slate-200">Dossier-Graad 25+</strong> (nu Graad {{ $gradeInfo['grade'] }}) én <strong class="text-slate-800 dark:text-slate-200">minimaal 30% Koudbloedigheid</strong> (nu {{ $coldBloodedPct }}%). Minimaal <strong>10 patronen</strong> per salvo; voor jouw graad is een salvo van <strong class="text-slate-800 dark:text-slate-200">{{ number_format($minBullets, 0, ',', '.') }} patronen</strong> aanbevolen (+20% Barrage Bonus).
+                                Vereist <strong class="text-slate-800 dark:text-slate-200">Dossier-Graad 25+</strong> (nu Graad {{ $gradeInfo['grade'] }}) én <strong class="text-slate-800 dark:text-slate-200">minimaal 30% Koudbloedigheid</strong> (nu {{ $coldBloodedPct }}%). Minimaal <strong>10 patronen</strong> per salvo; voor jouw graad is een salvo van <strong class="text-slate-800 dark:text-slate-200">{{ number_format($minBullets, 0, ',', '.') }} patronen</strong> aanbevolen (+25% Barrage Bonus).
                             </p>
                         </div>
                         <button type="button" @click="bulletAmount = {{ $minBullets }}"
@@ -796,7 +796,7 @@
 
             <div class="max-w-md space-y-1.5">
                 <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase">Kies of typ de naam van het doelwit</label>
-                <input type="text" x-model="selectedTargetName" placeholder="Typ exacte spelersnaam..."
+                <input type="text" x-model="selectedTargetName" @input="selectedTargetId = ''" placeholder="Typ exacte spelersnaam..."
                        class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
             </div>
 
@@ -1185,7 +1185,7 @@
 
         <div class="max-w-md space-y-1.5">
             <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase">Doelwit Naam</label>
-            <input type="text" x-model="selectedTargetName" placeholder="Typ spelersnaam..."
+            <input type="text" x-model="selectedTargetName" @input="selectedTargetId = ''" placeholder="Typ spelersnaam..."
                    class="w-full p-3 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl text-base sm:text-sm font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition shadow-2xs">
         </div>
 

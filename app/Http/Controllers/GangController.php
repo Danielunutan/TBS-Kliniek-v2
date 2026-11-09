@@ -2321,8 +2321,8 @@ class GangController extends Controller
             $baseTargetDefense = max(500, (int) ($targetGang->protection_points ?? 1000));
 
             // Factor in hired Enforcer NPCs defense bonus (capped at max 100% to ensure fair balance)
-            $rawNpcDefenseBonusPct = (int) $targetGang->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
-            $npcDefenseBonusPct = max(0, min(Gang::MAX_NPC_DEFENSE_BONUS_PERCENT, $rawNpcDefenseBonusPct));
+            GangNpc::purgeExpiredForGang($targetGang);
+            $npcDefenseBonusPct = max(0, min(Gang::MAX_NPC_DEFENSE_BONUS_PERCENT, (int) $targetGang->npc_defense_bonus_percent));
             $targetNpcDefenseBonus = (int) round($baseTargetDefense * ($npcDefenseBonusPct / 100));
             $targetDefense = max(500, $baseTargetDefense + $targetNpcDefenseBonus);
 

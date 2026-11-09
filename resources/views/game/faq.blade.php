@@ -393,7 +393,7 @@
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
                     <strong class="text-purple-600 dark:text-purple-400 block font-black">💎 Bende Co-Op Heists &amp; Wraakrecht</strong>
-                    <p>Pleeg Bende Heists met 50/50 buitverdeling, neem bende-wraak zonder level-limieten en win elke nacht Sterren in de 24 Uur Battle!</p>
+                    <p>Pleeg Bende Heists met 50/50 buitverdeling, neem bende-wraak (binnen max. 15 levels verschil) en win elke nacht Sterren in de 24 Uur Battle!</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">

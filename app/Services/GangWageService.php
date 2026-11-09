@@ -540,4 +540,12 @@ class GangWageService
 
         return $totalPaidOut;
     }
+
+    /**
+     * Alias for payAllMembers() for consistency with simulation and batch callers.
+     */
+    public function payoutAllGangs(): int
+    {
+        return $this->payAllMembers();
+    }
 }

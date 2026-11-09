@@ -26,11 +26,18 @@
     @endif
 
     @if(($combatCooldownSeconds ?? 0) > 0)
-    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4 text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-3 shadow-xs">
+    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4 text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-3 shadow-xs"
+         x-data="{ combatSeconds: {{ (int) $combatCooldownSeconds }} }"
+         x-init="setInterval(() => { if (combatSeconds > 0) combatSeconds--; }, 1000)"
+         x-show="combatSeconds > 0">
         <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
             <i class="fa-solid fa-hand-fist text-base"></i>
         </div>
-        <span>⚔️ Gevechtsstatus Actief: Je hebt onlangs een aanval of liquidatie uitgevoerd. Ter voorkoming van hit-and-run pestgedrag kun je nog {{ (int) ceil($combatCooldownSeconds / 60) }} minuten geen vrijwillige isolatie kopen!</span>
+        <div>
+            <span>⚔️ Gevechtsstatus Actief: Je hebt onlangs een aanval of liquidatie uitgevoerd. Ter voorkoming van hit-and-run pestgedrag kun je nog </span>
+            <span class="font-mono font-extrabold text-amber-900 dark:text-amber-100" x-text="Math.floor(combatSeconds / 60) + 'm ' + (combatSeconds % 60) + 's'">{{ (int) ceil($combatCooldownSeconds / 60) }} min</span>
+            <span> geen vrijwillige isolatie kopen!</span>
+        </div>
     </div>
     @endif
     
@@ -290,8 +297,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
             @foreach($packages as $pkg)
             @php
-                $canAffordCash = ($character->cash + $character->bank) >= $pkg['cost_cash'] && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum();
-                $canAffordStars = ($character->stars ?? 0) >= $pkg['cost_stars'] && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum();
+                $canAffordCash = ($character->cash + $character->bank) >= $pkg['cost_cash'] && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum() && ($combatCooldownSeconds ?? 0) <= 0 && ($cooldownSeconds ?? 0) <= 0;
+                $canAffordStars = ($character->stars ?? 0) >= $pkg['cost_stars'] && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum() && ($combatCooldownSeconds ?? 0) <= 0 && ($cooldownSeconds ?? 0) <= 0;
                 $newExpiry = ($isProtected && $character->protection_until ? $character->protection_until->copy() : now())->addHours($pkg['hours']);
             @endphp
             <div class="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 transition-all duration-200 shadow-xs group">
@@ -391,8 +398,8 @@
                     <input type="hidden" name="hours" :value="hours">
                     <input type="hidden" name="currency" value="cash">
                     <button type="submit" 
-                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
-                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
+                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($combatCooldownSeconds ?? 0) > 0 || ($cooldownSeconds ?? 0) > 0 ? 'disabled' : '' }}
+                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($combatCooldownSeconds ?? 0) > 0 || ($cooldownSeconds ?? 0) > 0 ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-money-bill-wave"></i>
                         <span>Betaal Geld</span>
                     </button>
@@ -403,8 +410,8 @@
                     <input type="hidden" name="hours" :value="hours">
                     <input type="hidden" name="currency" value="stars">
                     <button type="submit" 
-                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
-                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'btn-star-gold text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
+                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($combatCooldownSeconds ?? 0) > 0 || ($cooldownSeconds ?? 0) > 0 ? 'disabled' : '' }}
+                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($combatCooldownSeconds ?? 0) > 0 || ($cooldownSeconds ?? 0) > 0 ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'btn-star-gold text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-star"></i>
                         <span>Betaal Sterren</span>
                     </button>

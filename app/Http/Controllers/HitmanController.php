@@ -288,6 +288,10 @@ class HitmanController extends Controller
             return back()->with('error', 'Je hoeft geen schaduw-inlichtingen op jezelf uit te voeren!');
         }
 
+        if (abs($character->level - $target->level) > 15) {
+            return back()->with('error', "Het levelverschil tussen jou en {$target->name} is te groot (maximaal 15 levels verschil).");
+        }
+
         $catalog = Character::intelCatalog();
         $typeKey = $validated['intel_type'] ?? 'standard_15m';
         $intelCfg = $catalog[$typeKey] ?? $catalog['standard_15m'];
@@ -313,6 +317,10 @@ class HitmanController extends Controller
 
             if ($locked->isImprisoned() || $locked->isComatose() || $locked->needsReviveSerum()) {
                 return back()->with('error', 'Je kunt op dit moment geen schaduw-inlichtingen aanvragen.');
+            }
+
+            if (abs($locked->level - $lockedTarget->level) > 15) {
+                return back()->with('error', "Het levelverschil tussen jou en {$lockedTarget->name} is te groot (maximaal 15 levels verschil).");
             }
 
             if ($currency === 'stars') {
@@ -669,6 +677,7 @@ class HitmanController extends Controller
             }
             if ($retaliationRemainingSec > 0) {
                 $mins = max(1, (int) ceil($retaliationRemainingSec / 60));
+
                 return back()->with('error', "⏳ Bende Vergeldingsslot: Je hebt {$target->name} onlangs al geliquideerd via bloedwraak. Wacht nog {$mins} minuten voordat je deze speler weer mag aanvallen.");
             }
         }
@@ -712,6 +721,7 @@ class HitmanController extends Controller
                     return back()->with('error', "{$lockedTarget->name} heeft actieve bescherming en kan niet worden aangevallen.");
                 }
 
+                $bloodFeud = BloodFeud::hasClaimAgainst($lockedAttacker, $lockedTarget->id);
                 $canRetaliate = BloodFeud::canRetaliate($lockedAttacker, $lockedTarget);
                 $retaliationCooldownKey = "retaliation_cd_{$lockedAttacker->id}_{$lockedTarget->id}";
                 $retaliationRemainingSec = max(0, (int) (Cache::get($retaliationCooldownKey, 0) - now()->timestamp));
@@ -722,6 +732,7 @@ class HitmanController extends Controller
                     }
                     if ($retaliationRemainingSec > 0) {
                         $mins = max(1, (int) ceil($retaliationRemainingSec / 60));
+
                         return back()->with('error', "⏳ Bende Vergeldingsslot: Je hebt {$lockedTarget->name} onlangs al geliquideerd via bloedwraak. Wacht nog {$mins} minuten voordat je deze speler weer mag aanvallen.");
                     }
                 }
@@ -735,6 +746,7 @@ class HitmanController extends Controller
                 }
 
                 $lockedAttacker->breakProtection();
+                $lockedAttacker->setCooldown('combat_isolation_cooldown', 1800);
                 $this->deductCashOrBank($lockedAttacker, $contract['cost']);
 
                 $roll = rand(1, 100);
@@ -903,6 +915,7 @@ class HitmanController extends Controller
             }
             if ($retaliationRemainingSec > 0) {
                 $mins = max(1, (int) ceil($retaliationRemainingSec / 60));
+
                 return back()->with('error', "⏳ Bende Vergeldingsslot: Je hebt {$defender->name} onlangs al geliquideerd via bloedwraak. Om herhaaldelijk pestgedrag te voorkomen geldt een slot van 1 uur per doelwit (nog {$mins} min wachten).");
             }
         }
@@ -956,6 +969,7 @@ class HitmanController extends Controller
                         }
                         if ($retaliationRemainingSec > 0) {
                             $mins = max(1, (int) ceil($retaliationRemainingSec / 60));
+
                             return back()->with('error', "⏳ Bende Vergeldingsslot: Je hebt {$lockedDefender->name} onlangs al geliquideerd via bloedwraak. Wacht nog {$mins} minuten voordat je deze speler weer mag aanvallen.");
                         }
                     }
@@ -1023,7 +1037,8 @@ class HitmanController extends Controller
                         $attackerPower *= 1.25;
                     }
 
-                    $defenderDefense = ($lockedDefender->getEffectiveDefense() * 1.8) + rand(10, 30);
+                    $baseDefenderDef = $lockedDefender->getEffectiveDefense() + $lockedDefender->getCellDefenseBonus();
+                    $defenderDefense = ($baseDefenderDef * 1.8) + rand(10, 30);
                     $hasVest = $lockedDefender->hasVest();
                     $vestInfo = $lockedDefender->getActiveVestInfo();
 
@@ -1106,14 +1121,15 @@ class HitmanController extends Controller
                         }
 
                         // Plunder 45% Cash only - Bank & Kluis are 100% safe upon liquidation! (halved by 50% when defender has active Cash Shield)
+                        $rawLoot = (int) floor(max(0, (int) $lockedDefender->cash) * 0.45);
+                        $baseLoot = min(25000000, $rawLoot);
+
                         $shieldMultiplier = $lockedDefender->hasCashProtection() ? 0.50 : 1.0;
                         $safeProtectionPct = $lockedDefender->getCellCashProtectionPct();
                         if ($safeProtectionPct > 0) {
                             $shieldMultiplier *= (1.0 - ($safeProtectionPct / 100));
                         }
-                        $stolenCash = (int) floor(max(0, (int) $lockedDefender->cash) * 0.45 * $shieldMultiplier);
-                        // Hard loot cap to prevent game-breaking instant losses of hundreds of millions
-                        $stolenCash = min(25000000, $stolenCash);
+                        $stolenCash = (int) floor($baseLoot * $shieldMultiplier);
                         $stolenBank = 0;
                         $totalStolen = $stolenCash;
 

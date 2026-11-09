@@ -86,8 +86,9 @@ class BloodFeud extends Model
     }
 
     /**
-     * Check if an attacker has legitimate retaliation rights against a target,
-     * fully exempting them from any level-difference restrictions.
+     * Check if an attacker has legitimate retaliation rights against a target.
+     * Retaliation awards bonus cash, respect, and gang respect upon successful liquidation
+     * (subject to the hard 15-level difference limit).
      */
     public static function canRetaliate(Character $avenger, Character|int $target): bool
     {

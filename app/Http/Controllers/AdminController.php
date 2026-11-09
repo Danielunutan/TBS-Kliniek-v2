@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\CheckMaintenanceMode;
 use App\Models\BuyMeACoffeeOrder;
 use App\Models\Character;
 use App\Models\GameNotification;
@@ -40,6 +41,8 @@ class AdminController extends Controller
         $exceededStatsCount = $this->countExceededCharacters();
 
         $migrationStatus = $this->getMigrationStatusSummary();
+        $isMaintenanceEnabled = CheckMaintenanceMode::isEnabled();
+        $maintenanceMeta = CheckMaintenanceMode::getMetadata();
 
         $recentPlayers = Character::with(['user', 'gang'])
             ->latest()
@@ -55,6 +58,8 @@ class AdminController extends Controller
             'inmatesInPrison',
             'exceededStatsCount',
             'migrationStatus',
+            'isMaintenanceEnabled',
+            'maintenanceMeta',
             'recentPlayers'
         ));
     }
@@ -919,6 +924,50 @@ class AdminController extends Controller
         } catch (\Throwable $e) {
             return back()->with('error', 'Fout bij uitvoeren van herstelmigratie: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Toggle maintenance mode on or off from the admin dashboard.
+     */
+    public function toggleMaintenance(Request $request): RedirectResponse
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user || ! $user->isAdmin()) {
+            return back()->with('error', 'Alleen administrators kunnen de onderhoudsmodus in- of uitschakelen.');
+        }
+
+        $validated = $request->validate([
+            'action' => 'required|string|in:on,off',
+            'target_time' => 'nullable|string|regex:/^[0-2][0-9]:[0-5][0-9]$/',
+        ]);
+
+        $action = $validated['action'];
+        $targetTime = $validated['target_time'] ?? '22:00';
+
+        Artisan::call('tbs:maintenance', [
+            'action' => $action,
+            '--time' => $targetTime,
+        ]);
+
+        try {
+            AuditLogService::log(
+                action: 'admin_toggle_maintenance',
+                category: 'system',
+                description: 'Onderhoudsmodus '.($action === 'on' ? "INGESCHAKELD (tot {$targetTime})" : 'UITGESCHAKELD').' door '.$user->name,
+                character: $user->character,
+                user: $user,
+                details: ['action' => $action, 'target_time' => $targetTime]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log admin_toggle_maintenance audit record: '.$e->getMessage());
+        }
+
+        if ($action === 'on') {
+            return back()->with('success', "Onderhoudsmodus is nu ACTIEF! Spelers hebben geen toegang tot het spel (verwachte heropening: {$targetTime}). Beheerders behouden toegang.");
+        }
+
+        return back()->with('success', 'Onderhoudsmodus is UITGESCHAKELD! De kliniekdeuren zijn weer geopend voor alle spelers.');
     }
 
     /**

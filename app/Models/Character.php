@@ -487,6 +487,14 @@ class Character extends Model
     }
 
     /**
+     * Total effective defense combining base stats, cell door upgrades, and body vest.
+     */
+    public function getTotalDefense(): int
+    {
+        return $this->getEffectiveDefense() + $this->getCellDefenseBonus() + $this->getVestDefenseBonus();
+    }
+
+    /**
      * Energy regeneration interval reduction factor (0.0 to 0.40) from luxury bedding.
      */
     public function getCellEnergyIntervalReduction(): float
@@ -2390,7 +2398,7 @@ class Character extends Model
      */
     public function setCooldown(string $action, int $seconds): void
     {
-        app(\App\Services\CooldownService::class)->setCooldown($this, $action, $seconds);
+        app(CooldownService::class)->setCooldown($this, $action, $seconds);
     }
 
     /**

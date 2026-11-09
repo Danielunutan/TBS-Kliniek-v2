@@ -101,6 +101,67 @@
         </div>
     </div>
 
+    <!-- Onderhoudsmodus Beheer Card -->
+    @if(Auth::user()?->isAdmin())
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 text-slate-900 dark:text-white border {{ ($isMaintenanceEnabled ?? false) ? 'border-amber-300 dark:border-amber-700/80 bg-amber-50/30 dark:bg-amber-950/20' : 'border-slate-200/90 dark:border-slate-800' }} shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl {{ ($isMaintenanceEnabled ?? false) ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700' }} border flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                        Kliniek Onderhoudsmodus
+                    </h3>
+                    @if($isMaintenanceEnabled ?? false)
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                            Onderhoud Actief ({{ $maintenanceMeta['target_time'] ?? '22:00' }} uur)
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70">
+                            Kliniek Open voor Spelers
+                        </span>
+                    @endif
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+                    Sluit alle kliniekdeuren direct voor spelers en bezoekers met een 503 onderhoudsscherm. Alleen beheerders (Owner &amp; Admin) behouden volledige toegang tot het spel en het beheerpaneel.
+                </p>
+            </div>
+        </div>
+        <div class="shrink-0 flex flex-wrap items-center gap-2">
+            @if($isMaintenanceEnabled ?? false)
+                <form action="{{ route('admin.system.maintenance') }}" method="POST"
+                      data-confirm="Wil je de onderhoudsmodus uitschakelen en het spel weer openstellen voor alle spelers?"
+                      data-confirm-btn="Onderhoud Uitschakelen"
+                      data-confirm-type="warning"
+                      data-confirm-icon="fa-lock-open">
+                    @csrf
+                    <input type="hidden" name="action" value="off">
+                    <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-lock-open text-[11px]"></i>
+                        <span>Onderhoud Uitschakelen</span>
+                    </button>
+                </form>
+            @else
+                <form action="{{ route('admin.system.maintenance') }}" method="POST" class="flex items-center gap-2"
+                      data-confirm="Weet je zeker dat je TBS Kliniek direct in onderhoud wilt plaatsen? Spelers kunnen dan niet meer op het spel komen."
+                      data-confirm-btn="In Onderhoud Plaatsen"
+                      data-confirm-type="danger"
+                      data-confirm-icon="fa-lock">
+                    @csrf
+                    <input type="hidden" name="action" value="on">
+                    <input type="time" name="target_time" value="22:00" class="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white">
+                    <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-lock text-[11px]"></i>
+                        <span>In Onderhoud Plaatsen</span>
+                    </button>
+                </form>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <!-- Systeem & Spelbalans Herstelmigratie Card -->
     <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 text-slate-900 dark:text-white border {{ (($exceededStatsCount ?? 0) > 0 || ($migrationStatus['pending_count'] ?? 0) > 0) ? 'border-amber-300 dark:border-amber-700/80 bg-amber-50/30 dark:bg-amber-950/20' : 'border-emerald-200/90 dark:border-emerald-800/70' }} shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div class="flex items-start gap-4">

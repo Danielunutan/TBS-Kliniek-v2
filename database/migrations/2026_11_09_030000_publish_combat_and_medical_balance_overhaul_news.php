@@ -49,7 +49,7 @@ return new class extends Migration
             <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Eerlijke en Wederzijdse Levelgrenzen
         </h3>
         <p class="text-sm">
-            De regel van maximaal 15 levels verschil geldt vanaf nu strikt in beide richtingen. Het is niet langer mogelijk om van grote afstand spelers buiten bereik aan te vallen als diegene niet op gelijke wijze terug kan slaan. Alleen wanneer er een actieve Bloedwraak-vete heerst of een officieel Kopgeld is geplaatst, vervalt dit verschil en barst de jacht los.
+            De regel van maximaal 15 levels verschil geldt vanaf nu strikt in beide richtingen. Het is niet langer mogelijk om van grote afstand spelers buiten bereik aan te vallen als diegene niet op gelijke wijze terug kan slaan. Ter bescherming van alle spelers geldt de strikte limiet van maximaal 15 levels verschil op alle liquidaties.
         </p>
     </div>
 

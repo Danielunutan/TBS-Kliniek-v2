@@ -690,6 +690,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
         Route::post('/buymeacoffee/handmatig', [AdminController::class, 'createBuyMeACoffeeManual'])->name('buymeacoffee.manual');
         Route::post('/systeem/migreren', [AdminController::class, 'runMigrations'])->name('system.migrate');
         Route::post('/systeem/normaliseren', [AdminController::class, 'runNormalization'])->name('system.normalize');
+        Route::post('/systeem/onderhoud', [AdminController::class, 'toggleMaintenance'])->name('system.maintenance');
         Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets.index');
         Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
         Route::post('/tickets/{ticket}/reactie', [AdminTicketController::class, 'reply'])->name('tickets.reply');

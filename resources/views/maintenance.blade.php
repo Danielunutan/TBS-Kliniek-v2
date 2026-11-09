@@ -156,7 +156,7 @@
             &copy; {{ date('Y') }} TBS Kliniek (FPC De Balk). Alle rechten voorbehouden.
         </div>
         <div class="mt-1 text-[11px] text-slate-600">
-            <a href="{{ route('login') }}" class="hover:text-purple-400 transition underline underline-offset-4 opacity-50 hover:opacity-100">
+            <a href="{{ route('login', ['beheer' => 1]) }}" class="hover:text-purple-400 transition underline underline-offset-4 opacity-50 hover:opacity-100">
                 Beheerder Toegang
             </a>
         </div>

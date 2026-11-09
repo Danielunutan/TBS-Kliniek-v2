@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Http\Middleware\CheckMaintenanceMode;
 use App\Support\ArmWrestleOutcome;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
@@ -11,7 +12,7 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $lock = storage_path('framework/tbs_maintenance.json');
+        $lock = CheckMaintenanceMode::lockFilePath();
         if (file_exists($lock)) {
             @unlink($lock);
         }
@@ -20,7 +21,7 @@ abstract class TestCase extends BaseTestCase
     protected function tearDown(): void
     {
         Carbon::setTestNow();
-        $lock = storage_path('framework/tbs_maintenance.json');
+        $lock = CheckMaintenanceMode::lockFilePath();
         if (file_exists($lock)) {
             @unlink($lock);
         }

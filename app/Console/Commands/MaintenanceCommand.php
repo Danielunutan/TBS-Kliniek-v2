@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Http\Middleware\CheckMaintenanceMode;
+use App\Models\GameSetting;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Schema;
 
 class MaintenanceCommand extends Command
 {
@@ -33,19 +35,23 @@ class MaintenanceCommand extends Command
             if (file_exists($lockFile)) {
                 unlink($lockFile);
             }
+            try {
+                if (Schema::hasTable('game_settings')) {
+                    GameSetting::set('maintenance_mode_enabled', '0', 'Onderhoudsmodus status');
+                }
+            } catch (\Throwable) {
+                // Ignore database errors during CLI toggle.
+            }
             $this->info('TBS Kliniek onderhoudsmodus is UITGESCHAKELD. De deuren zijn weer open voor alle spelers!');
 
             return Command::SUCCESS;
         }
 
         if ($action === 'status') {
-            if (file_exists($lockFile)) {
+            if (CheckMaintenanceMode::isEnabled()) {
                 $this->warn('Onderhoudsmodus is momenteel ACTIEF (alleen beheerders hebben toegang).');
-                $content = @file_get_contents($lockFile);
-                $data = $content !== false ? json_decode($content, true) : null;
-                if (is_array($data)) {
-                    $this->line('Verwachte eindtijd: '.($data['target_time'] ?? '22:00'));
-                }
+                $data = CheckMaintenanceMode::getMetadata();
+                $this->line('Verwachte eindtijd: '.($data['target_time'] ?? '22:00'));
             } else {
                 $this->info('Onderhoudsmodus is momenteel UIT (Iedereen heeft toegang).');
             }
@@ -67,6 +73,16 @@ class MaintenanceCommand extends Command
         }
 
         file_put_contents($lockFile, json_encode($payload, JSON_PRETTY_PRINT), LOCK_EX);
+
+        try {
+            if (Schema::hasTable('game_settings')) {
+                GameSetting::set('maintenance_mode_enabled', '1', 'Onderhoudsmodus status');
+                GameSetting::set('maintenance_mode_metadata', $payload, 'Onderhoudsmodus metadata');
+            }
+        } catch (\Throwable) {
+            // Ignore database errors during CLI toggle.
+        }
+
         $this->info("TBS Kliniek is nu in ONDERHOUDSMODUS geplaatst! Verwachte heropening: {$targetTime}.");
         $this->line('Beheerders hebben na inloggen toegang.');
 

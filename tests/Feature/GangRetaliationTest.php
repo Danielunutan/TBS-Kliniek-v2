@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\BloodFeud;
 use App\Models\Character;
 use App\Models\Gang;
-use App\Models\GangWar;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

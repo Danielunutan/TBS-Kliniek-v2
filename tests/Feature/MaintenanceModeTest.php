@@ -14,6 +14,15 @@ class MaintenanceModeTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $lock = CheckMaintenanceMode::lockFilePath();
+        if (file_exists($lock)) {
+            unlink($lock);
+        }
+    }
+
     protected function tearDown(): void
     {
         $lock = CheckMaintenanceMode::lockFilePath();
@@ -78,7 +87,8 @@ class MaintenanceModeTest extends TestCase
         Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
 
         $this->get('/dashboard?bypass=daniel')->assertRedirect(route('login'));
-        $this->get('/?bypass=daniel')->assertOk()->assertCookieMissing('tbs_maintenance_bypass');
+        $this->get('/?bypass=daniel')->assertStatus(503)->assertCookieMissing('tbs_maintenance_bypass');
+        $this->get('/?beheer=1')->assertOk();
     }
 
     public function test_an_owner_can_log_in_during_maintenance(): void
@@ -105,6 +115,34 @@ class MaintenanceModeTest extends TestCase
         $this->get(route('dashboard'))->assertOk();
     }
 
+    public function test_an_admin_can_log_in_and_toggle_maintenance_from_admin_dashboard(): void
+    {
+        Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
+        $admin = User::factory()->create(['role' => 'admin', 'is_staff' => true, 'is_onboarded' => true]);
+        Character::create([
+            'user_id' => $admin->id,
+            'name' => 'BeheerderTest',
+            'is_onboarded' => true,
+        ]);
+
+        $this->actingAs($admin)->get(route('dashboard'))->assertOk();
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()->assertSee('Onderhoud Actief');
+
+        $this->actingAs($admin)->post(route('admin.system.maintenance'), [
+            'action' => 'off',
+        ])->assertRedirect();
+
+        $this->assertFalse(CheckMaintenanceMode::isEnabled());
+
+        $regularUser = User::factory()->create(['is_onboarded' => true]);
+        Character::create([
+            'user_id' => $regularUser->id,
+            'name' => 'SpelerNaOnderhoud',
+            'is_onboarded' => true,
+        ]);
+        $this->actingAs($regularUser)->get(route('dashboard'))->assertOk();
+    }
+
     public function test_a_regular_user_cannot_access_the_dashboard_after_logging_in_during_maintenance(): void
     {
         Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
@@ -114,12 +152,13 @@ class MaintenanceModeTest extends TestCase
         $turnstile->method('verify')->willReturn(true);
         $this->app->instance(TurnstileService::class, $turnstile);
 
-        $this->post(route('login.post'), [
+        $this->from('/?beheer=1')->post(route('login.post'), [
             'email' => $user->email,
             'password' => 'password',
             'cf-turnstile-response' => 'valid-turnstile-token',
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect('/?beheer=1')->assertSessionHasErrors('email');
 
-        $this->get(route('dashboard'))->assertStatus(503);
+        $this->assertGuest();
+        $this->actingAs($user)->get(route('dashboard'))->assertStatus(503);
     }
 }
