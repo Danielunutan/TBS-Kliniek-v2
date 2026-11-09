@@ -152,7 +152,6 @@ class GangRetaliationTest extends TestCase
 
         $dashRes = $this->actingAs($user)->get(route('dashboard'));
         $dashRes->assertOk();
-        $dashRes->assertDontSee('Radio Kliniek FM', false);
-        $dashRes->assertDontSee('MIXXR Radio Deck', false);
+        $dashRes->assertSee('MIXXR Radio', false);
     }
 }
