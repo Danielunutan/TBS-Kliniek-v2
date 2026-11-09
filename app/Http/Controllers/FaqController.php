@@ -20,16 +20,17 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Wat is het complete stappenplan van dag 1 (groentje) tot eindbaas van de TBS Kliniek?',
-                        'a' => "💡 IN HET KORT: Je begint onderaan als nieuwe patiënt en werkt jezelf in 6 simpele stappen op tot de rijkste en sterkste baas van de kliniek.\n\n📋 HET COMPLETE STAPPENPLAN (VAN BEGINNER TOT PRO):\n\n1. 🧭 STAP 1: Je Eerste 10 Minuten (Veilig Starten)\n• Ga naar de Ziekenboeg en laat Zuster Ingrid je gratis verzorgen (+45 HP per behandeling).\n• Draai 1x gratis aan het Rad van Fortuin voor gratis geld, energie of sterren.\n• Zet AL je contante geld direct op De Bank! Geld in je broekzak kan namelijk gestolen worden.\n• Voltooi de 5 Rookie Taken op je Dashboard voor in totaal €6.500 cash, 30 kogels, 145 XP en 1 dag gratis VIP!\n\n2. 🔨 STAP 2: Veilig Geld & Ervaring (XP) Verdienen (Level 1 t/m 3)\n• Werk bij Werkmeester Henk in de Dagbesteding. Dit is 100% veilig: je kunt hier NOOIT bij gepakt worden en belandt nooit in de isoleercel.\n• Doe je eerste opdrachten bij 'Missies' voor makkelijk startgeld.\n• Doe elke 2 uur het Behandelaarsgesprek (3 vragen bij Dr. Vink) voor €2.500 cash en 3 uur Begeleid Verlof buiten de kliniek.\n\n3. 💪 STAP 3: Sterker Worden in de Gym (Level 3 t/m 6)\n• Gebruik je energie in de Fitnessruimte om Kracht (harder slaan), Verdediging (minder schade krijgen), Conditie, Intelligentie, Charisma en Discipline te trainen.\n• Koop een goedkoop wapen en een vest in de Kliniek Winkel (deze werken direct automatisch na aankoop!).\n\n4. 🥷 STAP 4: Eerste Misdaden & Maskers Scoren (Level 6 t/m 8)\n• Doe snelle klusjes bij 'Hosselen' (van €400 tot €65.000) voor vlotte winst.\n• Koop of win een Bivakmuts (Masker) om te kunnen 'Zakkenrollen' en grote klussen te doen.\n• Onderschep smokkelkoffers op het perron en breek ze open.\n\n5. 🥊 STAP 5: Vechten op de Luchtplaats & Reizen (Level 8 t/m 12)\n• Val zwakkere spelers aan op de Luchtplaats (Respectlijst) om hun respect en 10% tot 25% van hun contante zakgeld te stelen.\n• Reis tussen de 8 afdelingen via 'Verplaatsen'. Elke reis geeft je meteen +35 XP!\n\n6. 👑 STAP 6: Pro Endgame - Bendes, Heists & Liquidaties (Level 12+)\n• Richt een eigen Bende op of sluit je aan bij een bestaande groep voor gratis automatisch Bende-Uurloon.\n• Koop snelle vluchtauto's in de Smokkel Garage en pleeg Grote Heists op banken en juweliers.\n• Verover de 5 Controlepunten op de locaties zelf voor geld per minuut, schiet met kogels bij Liquidatie 2.0 en win elke nacht gratis Sterren ⭐ en Kluiscodes in de 24 Uur Battle!\n\n🔥 PRO-TIP: Koppel op dag 1 meteen je Discord (+3 dagen gratis VIP & €2.500) en zet Push-meldingen aan (+€25.000 contant, +25 respect & +20 energie)!",
+                        'a' => "💡 IN HET KORT: Je begint onderaan als nieuwe patiënt en werkt jezelf in 6 simpele stappen op tot de rijkste en sterkste baas van de kliniek.\n\n📋 HET COMPLETE STAPPENPLAN (VAN BEGINNER TOT PRO):\n\n1. 🧭 STAP 1: Je Eerste 10 Minuten (Veilig Starten)\n• Ga naar de Ziekenboeg en laat Zuster Ingrid je gratis verzorgen (+45 HP per behandeling).\n• Draai 1x gratis aan het Rad van Fortuin voor gratis geld, energie of sterren.\n• Zet AL je contante geld direct op De Bank! Geld in je broekzak kan namelijk gestolen worden.\n• Voltooi de 5 Rookie Taken op je Dashboard voor in totaal €6.500 cash, 30 kogels, 145 XP en 1 dag gratis VIP!\n\n2. 🔨 STAP 2: Veilig Geld & Ervaring (XP) Verdienen (Level 1 t/m 3)\n• Werk bij Werkmeester Henk in de Dagbesteding. Dit is 100% veilig: je kunt hier NOOIT bij gepakt worden en belandt nooit in de isoleercel.\n• Doe je eerste opdrachten bij 'Missies' voor makkelijk startgeld.\n• Doe elke 2 uur het Behandelaarsgesprek (3 vragen bij Dr. Vink) voor €2.500 cash en 3 uur Begeleid Verlof buiten de kliniek.\n\n3. 💪 STAP 3: Sterker Worden in de Gym (Level 3 t/m 6)\n• Gebruik je energie in de Fitnessruimte om Kracht (harder slaan), Verdediging (minder schade krijgen), Conditie, Intelligentie, Charisma en Discipline te trainen.\n• Koop een goedkoop wapen en een vest in de Kliniek Winkel (deze werken direct automatisch na aankoop!).\n\n4. 🥷 STAP 4: Eerste Misdaden & Maskers Scoren (Level 6 t/m 8)\n• Doe snelle klusjes bij 'Hosselen' (van €400 tot €65.000) voor vlotte winst.\n• Koop of win een Bivakmuts (Masker) om te kunnen 'Zakkenrollen' en grote klussen te doen.\n• Onderschep smokkelkoffers op het perron en breek ze open.\n\n5. 🥊 STAP 5: Vechten op de Luchtplaats & Reizen (Level 8 t/m 12)\n• Val zwakkere spelers aan op de Luchtplaats (Respectlijst) om hun respect en 10% tot 25% van hun contante zakgeld te stelen.\n• Reis tussen de 8 afdelingen via 'Verplaatsen'. Elke reis geeft je meteen +35 XP!\n\n6. 👑 STAP 6: Pro Endgame - Bendes, Vastgoed Imperium, Garage Vloot & Heists (Level 12+)\n• Richt een eigen Bende op of sluit je aan bij een bestaande groep voor het vernieuwde Bende-Uurloon (kiosken tot 250, passieve opbrengsten per gestald type voertuig in het wagenpark, vaste pandbijdragen, respect- en heerschappijbonussen!).\n• Beheer het gezamenlijke wagenpark in de Bende Garage: revisies worden 100% vergoed uit de bendekas en leden kunnen wagens permanent doneren voor +50 Respect.\n• Schaf Bende Panden aan tot €1,5 miljard, voldoe aan de garage-vlooteisen en start lucratieve productiecycli.\n• Strijd mee in 24-uurs bendeoorlogen om kliniekzones voor 7 dagen +25% heerschappij-bonus en profiteer van Bende Wraakrecht zonder level-limieten.\n• Pleeg grootschalige Bende Co-Op Heists met 50/50 buitverdeling en win elke nacht Sterren ⭐ in de 24 Uur Battle!\n\n🔥 PRO-TIP: Koppel op dag 1 meteen je Discord (+3 dagen gratis VIP & €2.500) en zet Push-meldingen aan (+€25.000 contant, +25 respect & +20 energie)!",
                         'links' => [
                             ['text' => 'Naar Dashboard (Rookie Taken)', 'url' => route('dashboard')],
-                            ['text' => 'Naar De Bank', 'url' => route('bank.index')],
-                            ['text' => 'Naar Dagbesteding', 'url' => route('daycare.index')],
+                            ['text' => 'Naar Bendes', 'url' => route('gangs.index')],
+                            ['text' => 'Naar Bende Garage', 'url' => route('gangs.garage')],
+                            ['text' => 'Naar Bende Panden', 'url' => route('gangs.panden')],
                         ],
                     ],
                     [
                         'q' => 'Wat is het doel van TBS Kliniek?',
-                        'a' => "💡 IN HET KORT: Het doel is om van een arme nieuwe patiënt uit te groeien tot de machtigste en rijkste crimineel van de hele inrichting.\n\n📋 WAAR STRIJD JE VOOR?\n• 🥊 Nummer 1 op de Ranglijst: Verzamel het meeste Respect van alle spelers;\n• 👥 De Machtigste Bende: Bouw met vrienden een eigen gang, koop panden en verdien elk uur automatisch duizenden euro's bende-uurloon;\n• 🏆 De 24 Uur Battle Winnen: Eindig elke dag in de top 3 van de 7 dagelijkse categorieën en win gratis Gouden Sterren ⭐, Kluiscodes, XXL Koffers en Bivakmutsen;\n• ⛏️ De Grote Uitbraak: Graaf stiekem met een eetlepel een tunnel van 0% naar 100% onder je cel en ontsnap;\n• 🔐 De Kluis Kraken: Raad de code van de Centrale Medicijnkluis of wissel geheime kluiscodes in!\n\n🔥 PRO-TIP: Je bepaalt zelf je speelstijl: je kunt 100% vreedzaam rijk worden als handelaar en werker, of juist als gevreesde vechtersbaas en bendeleider heersen.",
+                        'a' => "💡 IN HET KORT: Het doel is om van een arme nieuwe patiënt uit te groeien tot de machtigste en rijkste crimineel van de hele inrichting.\n\n📋 WAAR STRIJD JE VOOR?\n• 🥊 Nummer 1 op de Ranglijst: Verzamel het meeste Respect van alle spelers;\n• 👥 De Machtigste Bende: Bouw met vrienden een eigen bende, koop syndicaatpanden tot €1,5 miljard, beheer een vloot in de Bende Garage en verdien elk uur passief bende-uurloon;\n• ⚔️ 24-Uurs Bendeoorlogen: Verover strategische kliniekzones (Kantine, Luchtplaats, Apotheek) voor 7 dagen lang +25% heerschappij-bonus over het hele bende-uurloon;\n• 🏆 De 24 Uur Battle Winnen: Eindig elke dag in de top 3 van de 7 dagelijkse categorieën en win gratis Gouden Sterren ⭐, Kluiscodes, XXL Koffers en Bivakmutsen;\n• ⛏️ De Grote Uitbraak: Graaf stiekem met een eetlepel een tunnel van 0% naar 100% onder je cel en ontsnap;\n• 🔐 De Kluis Kraken: Raad de code van de Centrale Medicijnkluis of wissel geheime kluiscodes in!\n\n🔥 PRO-TIP: Je bepaalt zelf je speelstijl: je kunt 100% vreedzaam rijk worden als handelaar en werker, of juist als gevreesde vechtersbaas en bendeleider heersen.",
                         'links' => [
                             ['text' => 'Ranglijst Bekijken', 'url' => route('leaderboard.index')],
                             ['text' => '24 Uur Battle', 'url' => route('battle.index')],
@@ -59,7 +60,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Wat is het verschil tussen Contant Geld en Bankgeld, en waarom moet ik contant geld ALTIJD direct storten?',
-                        'a' => "💡 IN HET KORT: Geld in je broekzak (contant) kan gestolen worden; geld op De Bank staat achter slot en grendel!\n\n📋 ZO ZIT HET:\n• 💵 Contant Geld op zak: Als iemand jou aanvalt op de Luchtplaats en wint, steelt diegene 10% tot 25% van jouw contante geld. Ook zakkenrollers kunnen uit je broekzak stelen.\n• 🏦 Geld op De Bank: Is 100% veilig voor Luchtplaats-aanvallen en zakkenrollers. Storten is altijd gratis en onbeperkt!\n• 🎁 Gratis Zakgeld: Zit je nog niet in een bende? Dan stort de kliniek elke 15 minuten automatisch €1.000 gratis zakgeld op je bankrekening (tot wel €25.000 per kwartier voor VIP supporters)!\n\n🔥 PRO-TIP: Alleen bij een zware kogel-aanval (Liquidatie 2.0) kan een schutter 7% van je bank stelen. Wil je zelfs dát 100% blokkeren? Activeer dan '24 Uur Cash Bescherming' in de VIP Shop!",
+                        'a' => "💡 IN HET KORT: Geld in je broekzak (contant) kan gestolen worden; geld op De Bank staat achter slot en grendel!\n\n📋 ZO ZIT HET:\n• 💵 Contant Geld op zak: Als iemand jou aanvalt op de Luchtplaats en wint, steelt diegene 10% tot 25% van jouw contante geld. Ook zakkenrollers kunnen uit je broekzak stelen.\n• 🏦 Geld op De Bank: Is 100% veilig voor Luchtplaats-aanvallen en zakkenrollers. Storten is altijd gratis en onbeperkt (tot maar liefst 1 Biljoen Euro dankzij onze 64-bit modernisering)!\n• 🎁 Gratis Zakgeld: Zit je nog niet in een bende? Dan stort de kliniek elke 15 minuten automatisch €1.000 gratis zakgeld op je bankrekening (tot wel €25.000 per kwartier voor VIP supporters)!\n\n🔥 PRO-TIP: Alleen bij een zware kogel-aanval (Liquidatie 2.0) kan een schutter 7% van je bank stelen. Wil je zelfs dát 100% blokkeren? Activeer dan '24 Uur Cash Bescherming' in de VIP Shop!",
                         'links' => [
                             ['text' => 'Direct naar De Bank', 'url' => route('bank.index')],
                         ],
@@ -137,7 +138,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Waarom is Dagbesteding & Werkplaats 100% veilig voor beginners?',
-                        'a' => "💡 IN HET KORT: Omdat werken in de werkplaats legaal is, heb je 0% kans op de isoleercel en verdien je altijd geld!\n\n📋 VOORDELEN VAN WERKMEESTER HENK:\n• 🟢 100% Veilig: Je kiest uit 5 klussen (van Wasgoed Vouwen op Level 1 tot Elektronica op Level 10, kost 3 tot 18 Energie).\n• 💵 Vast Loon: Je krijgt altijd direct €150 tot €5.000 contant geld uitbetaald.\n• 📈 Gratis Stat-Bonus & XP: Bij elke klus heb je 50% kans op +1 extra statpunt (Discipline, Conditie, Kracht of Intelligentie)!",
+                        'a' => "💡 IN HET KORT: Omdat werken in de werkplaats legaal is, heb je 0% kans op de isoleercel en verdien je altijd geld!\n\n📋 VOORDELEN VAN WERKMEESTER HENK:\n• 🟢 100% Veilig: Je kiest uit verschillende klussen (van Wasgoed Vouwen op Level 1 tot Elektronica en Endgame Tiers op hogere levels, kost 3 tot 18 Energie).\n• 💵 Vast Loon & Level-Scaling: Je krijgt altijd direct contant geld uitbetaald; hogere levels ontgrendelen geavanceerde klussen met fors hogere lonen, respect en XP!\n• 📈 Gratis Stat-Bonus & XP: Bij elke klus heb je 50% kans op +1 extra statpunt (Discipline, Conditie, Kracht of Intelligentie)!",
                         'links' => [
                             ['text' => 'Veilig Werken bij Henk', 'url' => route('daycare.index')],
                         ],
@@ -231,21 +232,28 @@ class FaqController extends Controller
                 ],
             ],
             'garage_heists' => [
-                'title' => '🏎️ Smokkel Garage, Voertuigen & Grote Heists',
+                'title' => '🏎️ Smokkel Garage, Bende Vloot & Grote Heists',
                 'icon' => 'fa-masks-theater',
                 'questions' => [
                     [
-                        'q' => 'Hoe werkt de Smokkel Garage en waarom moet ik mijn voertuig repareren?',
-                        'a' => "💡 IN HET KORT: In de garage koop je vluchtvoertuigen voor grote overvallen (Heists) en houd je hun conditie op 100%.\n\n📋 ZO WERKT HET:\n• Je begint klein met een Tomos (€1.200) of Zip Scooter (€2.500) en spaart door voor een Golf GTI, BMW M5, G63 AMG, Speedboot of Helikopter.\n• Tijdens een overval loopt je voertuig schade op. Daalt de conditie? Dan rijdt je auto langzamer en wordt je sneller gepakt!\n• Klik in de garage altijd even op 'Repareren' voordat je een nieuwe Heist start.",
+                        'q' => 'Hoe werkt de Roterende Smokkel Garage en wagenhandel?',
+                        'a' => "💡 IN HET KORT: In de garage koop je voertuigen voor overvallen en bende-producties. Elk half uur arriveert er een nieuwe lading van 8 wagens in wisselende staat!\n\n📋 DE ROULERENDE WAGENMARKT ('/garage'):\n• 🕒 Elk Half Uur Nieuwe Lading: Om het hele en halve uur arriveert een nieuwe selectie van 8 unieke voertuigen.\n• 🔧 Projectwagens & Koopjes: Voertuigen worden aangeboden met wisselende schadecondities. Een opknapper met lagere conditie kent een gigantische korting: repareer hem zelf voordelig in je werkplaats en verkoop hem door of doneer hem aan je bende!\n• 🚀 Getunede Motoren: Sommige wagens arriveren met fabrieks-tuning en extra topsnelheid. Dit snelheidsvoordeel blijft permanent behouden!\n• 🏎️ 28 Voertuigmodellen: Van Tomos en Zip Scooter tot Golf GTI, G63 AMG, Speedboten en Vluchthelikopters die je allemaal kunt inzetten.",
                         'links' => [
                             ['text' => 'Naar Smokkel Garage', 'url' => route('garage.index')],
                         ],
                     ],
                     [
-                        'q' => 'Hoe voer ik een Grote Heist uit en wat heb ik ervoor nodig?',
-                        'a' => "💡 IN HET KORT: Voor een Grote Heist heb je een snel voertuig, een masker (bivakmuts) en genoeg energie nodig.\n\n📋 DE GROTE OVERVALLEN ('/heists'):\n• Van het overvallen van een Juwelier en Medicijntransport tot het kraken van de Centrale Bank Goudkluis.\n• 🟢 Bij succes: Je wint tot wel honderdduizenden euro's, heel veel XP en geheime kluiscodes!\n• 🔴 Bij mislukking: Je belandt in de isoleercel en je vluchtwagen raakt beschadigd.\n\n🔥 PRO-TIP: Zit je in een bende? Doe dan ook mee aan gezamenlijke Bende-Heists om samen de bende-pot te spekken!",
+                        'q' => 'Hoe voer ik een Grote Heist of Bende Co-Op Heist uit?',
+                        'a' => "💡 IN HET KORT: Voor een Heist heb je een snel voertuig, een bivakmuts en energie nodig. Bij Bende Heists strijd je samen en split je de miljoenenbuit 50/50!\n\n📋 SOLO HEISTS VS BENDE HEISTS ('/heists'):\n• 🥷 Solo Overvallen: Breek in bij een Juwelier of Geldtransport voor directe cash, XP en kluiscodes.\n• 👥 Bende Co-Op Heists: Grootschalige syndicaatkraken (zoals Douane Depot en Fort Goudkluis Heist).\n• 💰 50/50 Buitverdeling: Bij een geslaagde Bende Heist ontvang jij 50% van de buit direct contant op zak. De overige 50% wordt automatisch gestort in de gezamenlijke bendekas!\n• 📈 Co-Op Bonus: Hoe meer actieve leden jouw bende telt, hoe hoger de gezamenlijke slagingskans.\n• 🏎️ Snelheidseis: Zware heists vereisen een vluchtwagen in de Bende Garage met voldoende topsnelheid (bijv. minimaal 95 km/u voor Fort Goudkluis)!",
                         'links' => [
                             ['text' => 'Naar Grote Heists', 'url' => route('heists.index')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Hoe werkt de Bende Garage, gratis revisies via de bendekas en wagens doneren (+50 Respect)?',
+                        'a' => "💡 IN HET KORT: In de Bende Garage bundelt de bende wagens voor heists en pandproducties. Schade wordt 100% vergoed uit de bendekas en leden kunnen wagens permanent doneren voor +50 Respect!\n\n📋 ALLE BENDE GARAGE REGELS ('/gangs/garage'):\n• 🛠️ Revisies 100% uit Bendekas: Voertuigen die in de Bende Garage staan worden uitsluitend en direct hersteld met geld uit de bendekas. Jouw privégeld en persoonlijke bankrekening worden nooit aangeraakt!\n• 🎁 Wagens Definitief Doneren (+50 Respect): Klik op 'Doneer Definitief aan Bende' om een wagen permanent over te dragen aan het wagenpark. De donateur krijgt direct +50 Respect (wat ook de rang van je bende versterkt!) en de wagen wordt onvervreemdbaar 'Bende Eigendom'.\n• 🚜 Slopen voor Bendekas: Dreigt de garage vol te raken? Leiders en co-leiders kunnen overtollige bende-eigendom wagens ontmantelen via de rode knop voor direct 25% van de aanschafwaarde terug in de bendekas!",
+                        'links' => [
+                            ['text' => 'Naar Bende Garage', 'url' => route('gangs.garage')],
                         ],
                     ],
                 ],
@@ -276,10 +284,17 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Hoe bescherm ik mezelf als ik steeds word aangevallen door sterkere spelers?',
-                        'a' => "💡 IN HET KORT: Zet je geld op de bank of sluit jezelf veilig op in de Vrijwillige Isolatie bunker.\n\n📋 3 MANIEREN OM VEILIG TE ZIJN:\n1. 🛡️ Vrijwillige Isolatie ('/vrijwillige-isolatie'): Kruip tijdelijk in de beveiligde bunker. Zolang je daar zit, kan NIEMAND op de Luchtplaats jou aanvallen!\n2. 🏦 Geld op De Bank: Als je €0 contant op zak hebt, kunnen aanvallers geen cent van je stelen.\n3. 🎯 Kopgeld Zetten ('/kopgeld'): Zet een premie op het hoofd van je pester, zodat sterke spelers hem voor jou verslaan!",
+                        'a' => "💡 IN HET KORT: Zet je geld op de bank, activeer het Medisch Schild of sluit jezelf veilig op in de Vrijwillige Isolatie bunker.\n\n📋 4 MANIEREN OM VEILIG TE ZIJN:\n1. 🛡️ Medisch Schild (Ziekenboeg Beveiliging): Als je net behandeld bent, beschermt een medisch schild jou tegen nieuwe aanvallen. Wil je zelf iemand aanvallen? Dan waarschuwt een pop-up met bevestiging je vooraf, zodat je je schild nooit per ongeluk verspeelt!\n2. 🛡️ Vrijwillige Isolatie ('/vrijwillige-isolatie'): Kruip tijdelijk in de beveiligde bunker. Zolang je daar zit, kan NIEMAND op de Luchtplaats jou aanvallen!\n3. 🏦 Geld op De Bank: Als je €0 contant op zak hebt, kunnen aanvallers geen cent van je stelen.\n4. 🎯 Kopgeld Zetten ('/kopgeld'): Zet een premie op het hoofd van je pester, zodat sterke spelers hem voor jou verslaan!",
                         'links' => [
                             ['text' => 'Vrijwillige Isolatie', 'url' => route('isolation.index')],
                             ['text' => 'Kopgeld Plaatsen', 'url' => route('bounties.index')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Wat is Bende Wraakrecht (Retaliation) na een aanval op een bendelid?',
+                        'a' => "💡 IN HET KORT: Wordt een lid van jouw bende aangevallen op de Luchtplaats? Dan krijgt jouw hele bende 24 uur lang officieel wraakrecht op die aanvaller!\n\n📋 HOE WERKT BENDE WRAAKRECHT?\n• 🩸 Geen Level-Limiet: Normaal kun je alleen spelers binnen jouw eigen levelbereik aanvallen. Bij Bende Wraakrecht vervallen deze beperkingen tijdelijk tegen die specifieke dader!\n• 👊 Samen Vergelding Nemen: De sterkste bazen van jouw bende kunnen de aanvaller direct mores leren en zijn respect en geld plunderen.",
+                        'links' => [
+                            ['text' => 'Naar de Luchtplaats', 'url' => route('fight.index')],
                         ],
                     ],
                     [
@@ -343,9 +358,16 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Hoe werken Storten, Opnemen, Zakgeld en Leningen bij De Bank?',
-                        'a' => "💡 IN HET KORT: Op De Bank bewaar je gratis en onbeperkt je geld, ontvang je elk kwartier gratis zakgeld en kun je geld lenen tegen 8,5% rente.\n\n📋 ALLE BANKFUNCTIES ('/bank'):\n• 📥 Geld Storten: 100% gratis en onbeperkt. Doe dit altijd meteen voordat je een misdaad doet!\n• 📤 Geld Opnemen: Kost 5% opnamebelasting (slechts 3% voor VIP). Deze belasting gaat 100% in de pot van de Afdelingsloterij!\n• 🎁 Gratis Zakgeld (Elke 15 min): Spelers zonder bende krijgen elke 15 minuten automatisch €1.000 op hun bank (VIP tot €25.000 per 15 min).\n• 💳 Geld Lenen (vanaf Level 1): Leen €10.000 tot €50.000 × jouw Level tegen slechts 8,5% rente (10% automatische aflossing uit je inkomsten).\n• 🔢 Bank Pincode: Stel een eigen 4-cijferige pincode in voor extra beveiliging van je kluis.",
+                        'a' => "💡 IN HET KORT: Op De Bank bewaar je gratis en onbeperkt je geld (tot 1 Biljoen Euro!), ontvang je elk kwartier gratis zakgeld en kun je geld lenen tegen 8,5% rente.\n\n📋 ALLE BANKFUNCTIES ('/bank'):\n• 📥 Geld Storten: 100% gratis en onbeperkt. Dankzij onze 64-bit modernisering kun je probleemloos honderden miljarden storten en overboeken zonder vast te lopen op oude 2-miljard limieten!\n• 📤 Geld Opnemen: Kost 5% opnamebelasting (slechts 3% voor VIP). Deze belasting gaat 100% in de pot van de Afdelingsloterij!\n• 🎁 Gratis Zakgeld (Elke 15 min): Spelers zonder bende krijgen elke 15 minuten automatisch €1.000 op hun bank (VIP tot €25.000 per 15 min).\n• 💳 Geld Lenen (vanaf Level 1): Leen €10.000 tot €50.000 × jouw Level tegen slechts 8,5% rente (10% automatische aflossing uit je inkomsten).\n• 🔢 Bank Pincode: Stel een eigen 4-cijferige pincode in voor extra beveiliging van je kluis.",
                         'links' => [
                             ['text' => 'Naar De Bank', 'url' => route('bank.index')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Wat zijn Cel Upgrades en hoe richt ik mijn eigen verblijf in?',
+                        'a' => "💡 IN HET KORT: In je eigen cel ('/cel') kun je luxe verbouwingen en upgrades installeren voor status, sneller energieherstel en bescherming!\n\n📋 VOORDELEN VAN CEL UPGRADES:\n• 🛏️ Luxe Inrichting: Upgrade je matras, celdeur, ventilatieroosters en trainingshoek.\n• ⚡ Passieve Voordelen: Snellere energieregeneratie en celverdediging tegen plotselinge invallen.\n• 🏛️ Status & Geldput: Een veilige plek om je verdiende vermogen te investeren in permanente comfort en prestige.",
+                        'links' => [
+                            ['text' => 'Mijn Cel & Upgrades', 'url' => route('cell.index')],
                         ],
                     ],
                     [
@@ -389,7 +411,7 @@ class FaqController extends Controller
                 ],
             ],
             'gangs' => [
-                'title' => '👥 Bendes, Uurloon & Controlepunten',
+                'title' => '👥 Bendes, Vastgoed, Uurloon & Bendeoorlogen',
                 'icon' => 'fa-users',
                 'questions' => [
                     [
@@ -400,8 +422,29 @@ class FaqController extends Controller
                         ],
                     ],
                     [
-                        'q' => 'Hoe werkt het Bende-Uurloon en hoe verdienen we elk uur automatisch geld?',
-                        'a' => "💡 IN HET KORT: Zodra je in een bende zit (geen level-eis; oprichten kost €25.000), verdien je elk uur automatisch salaris uit de kiosken en panden van jouw bende!\n\n📋 WAAR KOMT HET UURLOON VANDAAN ('/gangs')?\n• Elke bende geeft een basisloon (€150/u) + €100/u per Smokkelkiosk (€50.000 uit de bendekas).\n• Met geld uit de Bende-Kluis koopt de leider Bende-Vastgoed (zoals loodsen, villa's en forten die €1.000 tot €75.000+ per uur opleveren!).\n• De leider, co-leider en Kasbeheerder kunnen altijd met 0% belasting geld uit de bendekas opnemen, en je uurloon wordt tot 7 dagen (168 uur) voor je bewaard.",
+                        'q' => 'Hoe werkt het Bende-Uurloon en waar komt het geld vandaan?',
+                        'a' => "💡 IN HET KORT: Elk heel uur ontvang je als actief bendelid automatisch salaris op je bankrekening, gebaseerd op de bezittingen en vloot van jouw bende!\n\n📋 DE 5 INKOMSTENPIJLERS VAN HET UURLOON ('/gangs'):\n1. 🏪 Kantine Smokkelkiosken: Een stabiele basis tot maximaal 250 effectieve kiosken (€100/u per kiosk = maximaal €25.000/u als solide bodem).\n2. 🏎️ Actief Bende Wagenpark: Voertuigen in de Bende Garage genereren 24/7 passief loon (€1.500/u per motor, €4.000/u per auto, €12.500/u per boot en €25.000/u per helikopter of vliegtuig).\n3. 🏢 Bende Panden & Vastgoed: Elk gekocht pand levert een vaste uurloonbijdrage plus een percentagebonus (tot wel +40% per topfaciliteit).\n4. ⭐ Bende Respect Bonus: +1% bonus over de totale pot per 100.000 respect (tot maximaal +50%).\n5. 👑 Heerschappij Bonus (+25%): Wint jouw bende een 24-uurs bendeoorlog? Dan geniet de bende 7 dagen lang van een extra +25% heerschappij-bonus over de totale pot!\n\n📋 SALARISSCHAAL PER RANG:\n• Recruut: 50% van het basisbedrag;\n• Lid: 100% van het basisbedrag;\n• Veteraan: 110% van het basisbedrag;\n• Onderbaas: 125% van het basisbedrag;\n• Co-Leader: 140% van het basisbedrag;\n• Leider: 150% van het basisbedrag.\n\n🔥 PRO-TIP: Bekijk de live calculator op de bendepagina om precies te zien waar elke euro vandaan komt!",
+                        'links' => [
+                            ['text' => 'Naar Bendes', 'url' => route('gangs.index')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Hoe werken Bende Panden, de 10 nieuwe syndicaatfaciliteiten en productiecycli?',
+                        'a' => "💡 IN HET KORT: Bendes schaffen syndicaatpanden aan vanuit de bendekas om miljoenen aan cash, duizenden respect en flinke uurloonbonussen te produceren!\n\n📋 ALLES OVER BENDE PANDEN ('/gangs/panden'):\n• 🏢 10 Nieuwe Mega-Panden: Met prijzen van €15 miljoen tot maar liefst €1,5 miljard voor miljardairs-kartels (van Drone Smokkelbases en Tuner Hubs tot Diamantslijperijen en Kartel Citadels).\n• ⚙️ Productie Starten: Leiders starten productieopdrachten (met cycli van 2,5 tot 8 uur) die miljoenen cash en duizenden respect opleveren bij voltooiing.\n• 🚗 Garage-Vlooteisen: Veel panden vereisen specifieke voertuigen in de Bende Garage (bijv. minimaal 3 snelle wagens ≥80 km/u of meerdere helikopters). Zonder die vloot kan de productie niet starten!\n• 🕒 Roterende Showroom: Elk half uur toont de makelaar een wisselend aanbod verdeeld over 4 prijsklassen.",
+                        'links' => [
+                            ['text' => 'Naar Bende Panden', 'url' => route('gangs.panden')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Wat zijn Bende Specialist NPC\'s en hoe werken 30-minuten contracten?',
+                        'a' => "💡 IN HET KORT: Rekruteer chemici, witwassers en zwaarbewapende bewakers voor contracten van 30 minuten per productiecyclus!\n\n📋 VOORDELEN VAN SPECIALISTEN ('/gangs/panden'):\n• 🧪 Chemici: Verhogen de opbrengst en versnellen de productietijd van drugslabs en raffinaderijen.\n• 💼 Witwassers: Maximaliseren de contante uitbetaling bij geldtransporten en drukkerijen.\n• 🛡️ Huurlingen: Verhogen de bende-verdediging en beschermen je faciliteiten tegen invallen van rivalen.\n• ⏱️ Live Countdown: Een duidelijke timer toont exact wanneer het contract afloopt.",
+                        'links' => [
+                            ['text' => 'Bende Panden & Specialisten', 'url' => route('gangs.panden')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Hoe werken 24-Uurs Bendeoorlogen om Kliniek Zones, Heerschappij en Wraakrecht?',
+                        'a' => "💡 IN HET KORT: Strijd 24 uur met je hele bende om de macht over strategische zones (Kantine, Luchtplaats, etc.) voor een gigantische +25% bonus op het bende-uurloon!\n\n📋 ZO WERKEN ZONE-OORLOGEN:\n• ⚔️ 24 Uur Strijd: Val leden van de rivaliserende bende aan om gevechtspunten te verzamelen voor jouw organisatie.\n• 👑 Heerschappij Bonus: De winnende bende heerst over de zone en incasseert 7 dagen lang een extra +25% heerschappij-bonus over het totale bende-uurloon!\n• 🩸 Bende Wraakrecht (Retaliation): Valt een rivaal een lid van jouw bende aan? Dan krijgt jouw hele bende 24 uur lang wraakrecht waarbij normale level-limieten vervallen!",
                         'links' => [
                             ['text' => 'Naar Bendes', 'url' => route('gangs.index')],
                         ],
@@ -778,102 +821,114 @@ class FaqController extends Controller
                 ],
             ],
             [
-                'title' => '👥 Bendes, Automatisch Bende-Uurloon & Gang Wars',
-                'keywords' => ['gang', 'bende', 'bendes', 'uurloon', 'gangs', 'bendekas', 'smokkelkiosk', 'oorlog', 'bendeleider', 'oprichten', 'joinen', 'clan', 'syndicaat'],
-                'answer' => "💡 IN HET KORT: Sluit je aan bij een Bende of richt er zelf een op (€25.000, geen level-eis) en ontvang elk uur automatisch Bende-Uurloon!\n\n📋 WAAROM EEN BENDE JOINEN?\n• 💶 Automatisch Bende-Uurloon: Elke bende geeft €150/u basisloon + €100/u per Smokkelkiosk (€50.000 uit de bendekas) + inkomsten uit Bende-Vastgoed (tot €75.000+/uur!).\n• 🏦 Belastingvrije Bendekas: De leider, co-leider en Kasbeheerder nemen met 0% belasting geld op uit de bendekas.\n• 💬 Eigen Bende-Chat & Gang Wars: Overleg privé in deze chatbox en strijd samen!",
+                'title' => '👥 Bendes & Het Vernieuwde Bende-Uurloon',
+                'keywords' => ['gang', 'bende', 'bendes', 'uurloon', 'gangs', 'bendekas', 'smokkelkiosk', 'kiosk', 'kiosken', 'salaris', 'loonschaal', 'rang', 'vlootvergoeding', 'heerschappij'],
+                'answer' => "💡 IN HET KORT: Als lid van een bende ontvang je elk heel uur automatisch salaris op je bankrekening uit bezittingen en vloot!\n\n📋 DE 5 UURLOON-PIJLERS:\n1. 🏪 Kiosken: Stabiele basis tot max 250 kiosken (€100/u per kiosk = max €25.000/u).\n2. 🏎️ Bende Wagenpark: 24/7 passief loon per gestald voertuig (€1.500 motor, €4.000 auto, €12.500 boot, €25.000 helikopter/vliegtuig).\n3. 🏢 Panden & Vastgoed: Vaste uurloonbijdragen plus procentuele bonussen tot +40% per topfaciliteit.\n4. ⭐ Respect Bonus: +1% per 100.000 respect tot +50%.\n5. 👑 Heerschappij Bonus (+25%): 7 dagen lang +25% bonus na het winnen van een 24u bendeoorlog!\n\n💰 Salarisschaal per Rang: Recruut 50%, Lid 100%, Veteraan 110%, Onderbaas 125%, Co-Leader 140%, Leider 150%.",
                 'links' => [
                     ['text' => '👥 Naar Bendes', 'url' => route('gangs.index')],
                 ],
                 'suggestions' => [
-                    'Hoe werken de 5 Controlepunten?',
-                    'Wat is de Gang Overstap Bonus (€5 miljoen)?',
-                    'Hoe beveilig ik mijn contante geld op de bank?',
+                    'Hoe werkt de Bende Garage en wagens doneren?',
+                    'Hoe werken Bende Panden en productiecycli?',
+                    'Hoe werken 24-Uurs Bendeoorlogen en wraakrecht?',
                 ],
             ],
             [
-                'title' => '🚩 De 5 Controlepunten Veroveren (Geld per Minuut & Sterren)',
-                'keywords' => ['controlepunt', 'controlepunten', 'veroveren', 'territorium', 'gebied', 'minuut', 'bewaken', 'opeisen'],
-                'answer' => "💡 IN HET KORT: Verover de 5 Controlepunten direct op hun eigen locatiepagina om elke minuut geld te verdienen én gratis Gouden Sterren te pakken!\n\n📋 WAAR ZITTEN DE 5 CONTROLEPUNTEN?\n• Je vindt ze direct bovenaan op de pagina's van: 1. De Luchtplaats, 2. De Kantine (Winkel), 3. De Sportzaal (Gym), 4. Het Depot en 5. De Medicijnkluis.\n• 💸 Passief Inkomen: Zolang jij het punt vasthoudt, tikt er elke minuut geld voor je binnen.\n• ⭐ Bonus na 30 Minuten: Houd je een controlepunt 30 minuten achter elkaar vast? Dan krijg je +1 gratis Gouden Ster ⭐!",
+                'title' => '🏎️ Bende Garage, Gratis Revisies & Wagens Doneren (+50 Respect)',
+                'keywords' => ['bende garage', 'gestald', 'stallen', 'doneren', 'gedoneerd', 'bende-eigendom', 'slopen', 'reviseren', 'bendekas', 'wagenpark'],
+                'answer' => "💡 IN HET KORT: In de Bende Garage bundelt de gang wagens voor heists en producties. Revisies zijn 100% gratis uit de bendekas en wagens doneren geeft +50 Respect!\n\n📋 REGELS VAN DE BENDE GARAGE:\n• 🛠️ Revisies 100% uit Bendekas: Schade wordt uitsluitend betaald uit de bendekas. Jouw privégeld wordt nooit aangeraakt!\n• 🎁 Wagens Doneren (+50 Respect): Schenk een wagen aan de bende. De donateur krijgt direct +50 Respect en de wagen wordt permanent 'Bende Eigendom'.\n• 🚜 Slopen voor Bendekas: Leiders kunnen overtollige bende-eigendom wagens ontmantelen voor direct 25% van de aanschafwaarde terug in de kas.",
                 'links' => [
-                    ['text' => '🥊 Luchtplaats Controlepunt', 'url' => route('fight.index')],
-                    ['text' => '🔐 Medicijnkluis Controlepunt', 'url' => route('vault.index')],
-                    ['text' => '🏋️ Sportzaal Controlepunt', 'url' => route('training.index')],
+                    ['text' => '🏎️ Naar Bende Garage', 'url' => route('gangs.garage')],
                 ],
                 'suggestions' => [
-                    'Hoe werken Bendes en het Bende-Uurloon?',
-                    'Hoe train ik mijn Kracht en Verdediging?',
-                    'Wat is de Gang Overstap Bonus (€5 miljoen)?',
+                    'Hoe werkt het Bende-Uurloon?',
+                    'Hoe werken Bende Panden en productiecycli?',
+                    'Hoe werken Grote Bende Heists?',
                 ],
             ],
             [
-                'title' => '🚚 Gang Overstap Bonus (€5 Miljoen + 31 Dagen VIP)',
-                'keywords' => ['overstap', 'overstappen', 'miljoen', '5000000', 'vriendengroep', 'ander'],
-                'answer' => "💡 IN HET KORT: Kom je met je vriendengroep of bende overstappen vanuit een ander spel naar TBS Kliniek? Dan krijgen jullie de Gang Overstap Bonus!\n\n📋 WAT KRIJGEN JULLIE GRATIS?\n• 💰 €5.000.000 (€5 miljoen) startkapitaal in jullie Bende-kluis!\n• 👑 31 Dagen GRATIS VIP voor elk overstappend bendelid!\n• 🎫 Aanvragen: Maak even een Support Ticket aan met het onderwerp '🔥 Gang Overstap Bonus' en noem jullie bendenaam en leden.",
+                'title' => '🏭 Bende Panden, Productie & Garage-Vlooteisen',
+                'keywords' => ['panden', 'bende panden', 'vastgoed', 'productie', 'faciliteiten', 'citadel', 'vlooteisen', 'vlooteis', 'makelaar', 'showroom'],
+                'answer' => "💡 IN HET KORT: Schaf syndicaatpanden aan (€15M tot €1,5 Miljard) om miljoenen cash, duizenden respect en uurloonbonussen te produceren!\n\n📋 PANDEN & PRODUCTIE:\n• 🏢 10 Nieuwe Faciliteiten: Van Drone Smokkelbases tot Kartel Citadels van €1,5 miljard.\n• ⚙️ Productiecycli: Leiders starten opdrachten (2,5 tot 8 uur) die miljoenen zwart geld en duizenden respect opleveren.\n• 🚗 Garage-Vlooteisen: Geavanceerde panden vereisen operationele wagens in de Bende Garage (zoals 3 snelle wagens ≥80 km/u of meerdere helikopters) om te kunnen produceren!\n• 🕒 Roterende Showroom: Wisselt elk half uur over 4 eerlijke prijsklassen.",
                 'links' => [
-                    ['text' => '🎫 Overstap Bonus Aanvragen', 'url' => route('help.tickets.create')],
-                    ['text' => '👥 Bende Overzicht', 'url' => route('gangs.index')],
+                    ['text' => '🏭 Naar Bende Panden', 'url' => route('gangs.panden')],
                 ],
                 'suggestions' => [
-                    'Hoe werken Bendes en het Bende-Uurloon?',
-                    'Hoe verdien ik 100% gratis VIP?',
-                    'Wat zijn de spelregels van TBS Kliniek?',
+                    'Wat zijn Bende Specialist NPC\'s?',
+                    'Hoe werkt de Bende Garage en wagens doneren?',
+                    'Hoe werkt het Bende-Uurloon?',
                 ],
             ],
             [
-                'title' => '🗺️ Verplaatsen tussen de 8 Afdelingen (+35 XP per Reis)',
-                'keywords' => ['reizen', 'verplaatsen', 'paviljoen', 'locatie', 'locaties', 'afdeling', 'afdelingen', 'gebouwen', 'levelen', 'bezoekerscentrum', 'recreatiezaal'],
-                'answer' => "💡 IN HET KORT: Reis onder 'Economie > Verplaatsen' tussen de 8 klinieklocaties. Elke reis geeft je direct +35 XP!\n\n📋 WAAROM VERPLAATSEN?\n• 🏢 8 Locaties: Afdeling A t/m D, De Luchtplaats, De Werkplaats, Bezoekerscentrum en Recreatiezaal.\n• 🚀 Snel Levelen: +35 XP bij elke verplaatsing is de snelste manier om in level te stijgen.\n• 🎯 Liquidatie 2.0 Bonus: Reis je naar exact dezelfde afdeling als je doelwit? Dan krijg je +25% Sluipaanval-schadebonus!\n• 👑 VIP Voordeel: VIP-spelers krijgen altijd 50% korting op de reiskosten.",
+                'title' => '🧑‍🔬 Bende Specialist NPC\'s (30-Minuten Contracten)',
+                'keywords' => ['specialist', 'specialisten', 'npc', 'chemici', 'witwasser', 'huurling', 'contract', 'contracten', 'countdown'],
+                'answer' => "💡 IN HET KORT: Huur chemici, witwassers en zwaarbewapende bewakers in voor een contract van 30 minuten per productiecyclus!\n\n📋 SPECIALISTEN INZETTEN:\n• 🧪 Chemici: Verhogen de opbrengst en versnellen de productietijd van productielabs.\n• 💼 Witwassers: Maximaliseren de contante winst bij transporten en drukkerijen.\n• 🛡️ Huurlingen: Verhogen bende-verdediging en beschermen faciliteiten tegen invallen.\n• ⏱️ Live Countdown: Een realtime timer toont exact wanneer het contract afloopt.",
                 'links' => [
-                    ['text' => '🗺️ Verplaatsen (+35 XP)', 'url' => route('travel.index')],
+                    ['text' => '🧑‍🔬 Bende Specialisten', 'url' => route('gangs.panden')],
                 ],
                 'suggestions' => [
-                    'Hoe werkt Liquidatie 2.0 met kogels?',
-                    'Hoe verdien ik 100% gratis VIP?',
-                    'Hoe werken Bendes en het Bende-Uurloon?',
+                    'Hoe werken Bende Panden en productiecycli?',
+                    'Hoe werkt het Bende-Uurloon?',
                 ],
             ],
             [
-                'title' => '👑 100% Gratis VIP, Gouden Sterren & Sponsorkamer',
-                'keywords' => ['vip', 'ads', 'advertenties', 'sponsorkamer', 'punten', 'gouden', 'voordelen', 'sterren', 'donatie', 'video', 'discord', 'koppelen', 'koppel'],
-                'answer' => "💡 IN HET KORT: Je hoeft in TBS Kliniek nooit echt geld uit te geven: VIP en Gouden Sterren ⭐ zijn 100% gratis in het spel te verdienen!\n\n📋 4 MANIEREN VOOR GRATIS VIP & STERREN:\n1. 🎮 Discord Koppelen: Geeft direct €2.500 cash + 3 dagen gratis VIP!\n2. 🎯 Rookie Taken (Dashboard): Geeft direct 1 dag gratis VIP!\n3. 📺 Sponsorkamer: Kijk korte video's van 15s voor €2.500 cash, kogels of -3 min celstraf per video, én 24 uur gratis VIP per 250 video's.\n4. ⭐ Gouden Sterren: Verdien gratis sterren via het Rad van Fortuin, de 24 Uur Battle, Controlepunten (30 min) en de Uitbraaktunnel (100% = +25 ⭐)!\n\n🔥 VIP VOORDELEN: Sneller energieherstel (elke 3 min), 5 VIP Punten per speeluur, 1.000x per dag aanvallen, 3% i.p.v. 5% bankbelasting en 50% reiskorting!",
+                'title' => '⚔️ 24-Uurs Bendeoorlogen om Zones, Heerschappij (+25%) & Wraakrecht',
+                'keywords' => ['bendeoorlog', 'bendeoorlogen', 'zone', 'zones', 'heerschappij', 'kantine', 'luchtplaats', 'apotheek', 'wraakrecht', 'retaliation'],
+                'answer' => "💡 IN HET KORT: Strijd 24 uur met je bende om heerschappij over kliniekzones voor een gigantische +25% bonus op het bende-uurloon!\n\n📋 ZONE-OORLOGEN & WRAAKRECHT:\n• ⚔️ 24 Uur Gevechten: Val rivaliserende bendeleden aan om gevechtspunten te verzamelen.\n• 👑 Heerschappij Bonus: De winnende bende heerst over de zone en incasseert 7 dagen lang een extra +25% bonus over het totale bende-uurloon!\n• 🩸 Bende Wraakrecht: Wordt een bendelid aangevallen? Dan mag de hele bende 24 uur lang wraak nemen zonder normale level-limieten!",
                 'links' => [
-                    ['text' => '🎮 Koppel Discord (+3d VIP)', 'url' => route('discord.verify')],
-                    ['text' => '📺 Naar Sponsorkamer', 'url' => route('sponsor.index')],
-                    ['text' => '👑 VIP & Sterren Shop', 'url' => route('vip.index')],
+                    ['text' => '⚔️ Bende Oorlogen', 'url' => route('gangs.index')],
                 ],
                 'suggestions' => [
-                    'Hoe pak ik €35.000 gratis startgeld?',
-                    'Wat is de Gang Overstap Bonus (€5 miljoen)?',
-                    'Hoe graaf ik de Uitbraaktunnel voor +25 Sterren?',
+                    'Hoe werkt het Bende-Uurloon?',
+                    'Hoe werkt de Bende Garage en wagens doneren?',
                 ],
             ],
             [
-                'title' => '🎰 Casino, Afdelingsloterij (50% Korting!) & Minigames',
-                'keywords' => ['casino', 'gokhal', 'gokken', 'roulette', 'nummerspel', 'slots', 'fruitautomaat', 'loterij', 'afdelingsloterij', 'jackpot', 'memory', 'detective', 'minigames'],
-                'answer' => "💡 IN HET KORT: Waag een gokje in het Casino, speel minigames of pak de 14-daagse Afdelingsloterij jackpot!\n\n📋 ALLE SPELLEN & GEHEIME TIPS:\n• 🎟️ Afdelingsloterij: Een lot kost €10.000 cash (of 15 ⭐). GEHEIME TIP: In de laatste 15 minuten vóór de trekking zijn loten 50% GOEDKOPER (€5.000 cash of 8 ⭐)!\n• 🎰 Casino: Speel Roulette, Slots, Hoger/Lager, Steen-Papier-Schaar en het Nummerspel.\n• 🧠 Minigames: Speel Geheugentraining (Memory), True Crime Detective of Vier-op-een-rij!",
+                'title' => '💎 Grote Bende Co-Op Heists (50/50 Buit & Snelheidseisen)',
+                'keywords' => ['bende heist', 'bende heists', 'coop', 'co-op', 'fort goudkluis', 'goudkluis', 'douane', 'depot', '50/50', 'buitverdeling', 'snelheidseis'],
+                'answer' => "💡 IN HET KORT: Pleeg grootschalige syndicaatkraken met je bende waarbij de miljoenenbuit 50/50 wordt verdeeld!\n\n📋 REGELS VAN BENDE HEISTS ('/heists'):\n• 💰 50/50 Verdeling: 50% van de buit belandt direct contant in jouw zak, 50% gaat direct in de gezamenlijke bendekas + duizenden respectpunten!\n• 📈 Co-Op Bonus: Hoe meer actieve leden jouw bende heeft, hoe hoger de gezamenlijke slagingskans.\n• 🏎️ Snelheidseis: Zware heists (zoals Fort Goudkluis) vereisen een wagen in de Bende Garage met voldoende topsnelheid (bijv. minimaal 95 km/u).",
                 'links' => [
-                    ['text' => '🎰 Naar Casino', 'url' => route('casino.index')],
-                    ['text' => '🎟️ Afdelingsloterij', 'url' => route('lottery.index')],
-                    ['text' => '🧠 Memory Spelen', 'url' => route('memory.index')],
+                    ['text' => '💎 Naar Grote Heists', 'url' => route('heists.index')],
                 ],
                 'suggestions' => [
-                    'Hoe beveilig ik mijn contante geld op de bank?',
-                    'Hoe kraak ik de Centrale Medicijnkluis?',
-                    'Hoe werkt Koffers Onderscheppen en een XXL Koffer?',
+                    'Hoe werkt de Bende Garage en wagens doneren?',
+                    'Hoe werkt de Smokkel Garage en wagenhandel?',
                 ],
             ],
             [
-                'title' => '🏎️ Smokkel Garage, Vluchtauto\'s Repareren & Grote Heists',
-                'keywords' => ['garage', 'voertuig', 'voertuigen', 'auto', 'autos', 'vluchtauto', 'vluchtwagen', 'scooter', 'heist', 'heists', 'overval', 'overvallen', 'repareren'],
-                'answer' => "💡 IN HET KORT: Voor Grote Heists (overvallen op juweliers en banken) heb je een Vluchtvoertuig in je Garage én een Bivakmuts 🎭 nodig!\n\n📋 ZO VOER JE EEN SUCCESVOLLE HEIST UIT:\n1. 🏎️ Koop een vluchtvoertuig in de Smokkel Garage (van Tomos €1.200 tot Helikopter).\n2. 🔧 Conditie 100%: Klik altijd op 'Repareren' na een rit zodat je auto op volle snelheid blijft.\n3. 🥷 Zorg dat je een Bivakmuts op voorraad hebt en start je Grote Heist (of Bende-Heist) voor gigantische buit!",
+                'title' => '🏎️ Roterende Smokkel Garage (Wisselende Condities & Opknappers)',
+                'keywords' => ['garage', 'voertuig', 'voertuigen', 'auto', 'autos', 'vluchtauto', 'vluchtwagen', 'scooter', 'opknapper', 'tuning', 'getuned', 'conditie', 'repareren'],
+                'answer' => "💡 IN HET KORT: Elk half uur arriveert een nieuwe lading van 8 unieke voertuigen met wisselende condities en zeldzame motortuning!\n\n📋 DE ROULERENDE WAGENMARKT ('/garage'):\n• 🕒 Elk Half Uur Nieuw: Om het hele en halve uur arriveert een nieuwe vracht van 8 unieke wagens.\n• 🔧 Projectwagens: Schadebolides met lage conditie koop je spotgoedkoop in om ze met winst op te knappen.\n• 🚀 Fabriekstuning: Zeldzame wagens hebben opgevoerde motoren met blijvende extra topsnelheid.\n• 🏎️ 28 Modellen: Van Tomos en sedans tot speedboten en helikopters voor solo en bende heists!",
                 'links' => [
                     ['text' => '🏎️ Smokkel Garage', 'url' => route('garage.index')],
-                    ['text' => '🎭 Grote Heists', 'url' => route('heists.index')],
                 ],
                 'suggestions' => [
-                    'Hoe werkt Hosselen en Zakkenrollen?',
+                    'Hoe werken Grote Bende Heists?',
+                    'Hoe werkt de Bende Garage en wagens doneren?',
+                ],
+            ],
+            [
+                'title' => '🛏️ Cel Upgrades & Persoonlijk Verblijf',
+                'keywords' => ['cel', 'cell', 'upgrades', 'celupgrades', 'matras', 'verblijf', 'deur', 'verdediging', 'inrichten', 'geldput'],
+                'answer' => "💡 IN HET KORT: Richt je eigen gevangeniscel ('/cel') in met luxe verbouwingen voor meer status, sneller energieherstel en bescherming!\n\n📋 VOORDELEN:\n• 🛏️ Luxe Inrichting: Verbeter je matras, celdeur, ventilatieroosters en trainingshoek.\n• ⚡ Passieve Voordelen: Snellere energieregeneratie en celverdediging tegen plotselinge invallen.\n• 🏛️ Prestige: Een veilige plek om je vermogen te investeren in permanente comfort en status.",
+                'links' => [
+                    ['text' => '🛏️ Mijn Cel & Upgrades', 'url' => route('cell.index')],
+                ],
+                'suggestions' => [
                     'Hoe beveilig ik mijn contante geld op de bank?',
-                    'Hoe train ik mijn Kracht en Verdediging?',
+                    'Hoe werkt het Bende-Uurloon?',
+                ],
+            ],
+            [
+                'title' => '🏦 Banktransacties tot 1 Biljoen Euro (64-Bit Modernisering)',
+                'keywords' => ['biljoen', 'miljard', '2 miljard', 'limiet', 'banklimiet', 'overboeken', 'storten', 'precisie', '64-bit'],
+                'answer' => "💡 IN HET KORT: De database van De Bank is gemoderniseerd naar 64-bit getallen. Geen 2-miljard limieten meer!\n\n📋 BANKCAPACITEIT:\n• 🏦 Tot 1 Biljoen Euro: Stortingen, opnames en overboekingen ondersteunen bedragen tot maar liefst €1.000.000.000.000 zonder dat bedragen overstromen of vastlopen.\n• 🔒 100% Veilig: Bankgeld is veilig voor zakkenrollers en de Luchtplaats.",
+                'links' => [
+                    ['text' => '🏦 Naar De Bank', 'url' => route('bank.index')],
+                ],
+                'suggestions' => [
+                    'Hoe beveilig ik mijn contante geld op de bank?',
+                    'Hoe werkt het Bende-Uurloon?',
                 ],
             ],
             [

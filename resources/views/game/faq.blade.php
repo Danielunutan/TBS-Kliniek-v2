@@ -378,28 +378,28 @@
             <div class="flex items-center gap-3">
                 <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm shrink-0">6</span>
                 <div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Pro Endgame: Bendes, Grote Heists, Controlepunten &amp; Liquidatie (Level 12+)</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Bouw een miljoenenimperium en heers over de kliniek.</p>
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Pro Endgame: Bendes, Vastgoed Imperium, Bende Garage &amp; Co-Op Heists (Level 12+)</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Bouw een miljoenenimperium, start productiecycli en heers over de kliniek.</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-700 dark:text-slate-300">
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">👥 Bendes &amp; Controlepunten</strong>
-                    <p>Sluit je aan bij een Bende voor automatisch Bende-Uurloon en verover de 5 Controlepunten op de locaties voor geld per minuut + Sterren ⭐!</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">👥 Bendes &amp; Nieuw Uurloon</strong>
+                    <p>Incaseer elk uur loon uit kiosken, je wagenpark en panden. Strijd in 24u bendeoorlogen om kliniekzones voor +25% heerschappij-bonus!</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🏎️ Garage &amp; Grote Heists</strong>
-                    <p>Koop een snelle vluchtwagen en pleeg gewapende overvallen op juweliers, casino's en de Centrale Bank.</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🏎️ Bende Garage &amp; Panden</strong>
+                    <p>Repareer vlootwagens gratis via de bendekas, doneer wagens voor +50 Respect en start productiecycli in panden tot €1,5 miljard met garage-vlooteisen!</p>
                 </div>
                 <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
-                    <strong class="text-purple-600 dark:text-purple-400 block font-black">🎯 Liquidatie 2.0 &amp; 24u Battle</strong>
-                    <p>Schiet met kogels op rivalen (+25% Sluipaanval op dezelfde afdeling), draag een Backfire-vest en win elke nacht Sterren in de 24 Uur Battle!</p>
+                    <strong class="text-purple-600 dark:text-purple-400 block font-black">💎 Bende Co-Op Heists &amp; Wraakrecht</strong>
+                    <p>Pleeg Bende Heists met 50/50 buitverdeling, neem bende-wraak zonder level-limieten en win elke nacht Sterren in de 24 Uur Battle!</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
                 <a href="{{ route('gangs.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Bendes</a>
-                <a href="{{ route('fight.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Luchtplaats (Controlepunt)</a>
-                <a href="{{ route('garage.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Garage</a>
+                <a href="{{ route('gangs.garage') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Bende Garage</a>
+                <a href="{{ route('gangs.panden') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Bende Panden</a>
                 <a href="{{ route('heists.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] transition">Grote Heists</a>
                 <a href="{{ route('battle.index') }}" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-[11px] transition">24 Uur Battle</a>
             </div>
@@ -537,7 +537,7 @@
                 <div x-show="activeSolver === 'doel'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
                     <p>• <strong>Respectlijst:</strong> Word de #1 van de hele kliniek.</p>
                     <p>• <strong>24-Uurs Battle:</strong> Win elke nacht gratis Sterren ⭐.</p>
-                    <p>• <strong>Bendes:</strong> Richt een gang op en incasseer uurloon.</p>
+                    <p>• <strong>Bendes &amp; Vastgoed:</strong> Richt een gang op, bouw een vloot en incasseer bende-uurloon.</p>
                     <a href="{{ route('leaderboard.index') }}" @click.stop class="inline-block mt-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-[10px] transition cursor-pointer">Ranglijst Bekijken &raquo;</a>
                 </div>
             </div>
