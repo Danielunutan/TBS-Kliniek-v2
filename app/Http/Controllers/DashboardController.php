@@ -45,7 +45,6 @@ class DashboardController extends Controller
     public const WIDGET_PRICES = [
         'weather' => 15,
         'nunl' => 15,
-        'radio' => 20,
         'tunnel' => 20,
         'treatment' => 20,
         'packages' => 20,

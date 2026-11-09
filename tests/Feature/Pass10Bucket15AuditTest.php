@@ -143,7 +143,7 @@ class Pass10Bucket15AuditTest extends TestCase
 
         // radio_player
         $radioView = view('partials.radio_player')->render();
-        $this->assertStringContainsString('MIXXR Radio', $radioView);
+        $this->assertStringContainsString('localStorage.removeItem', $radioView);
 
         // rookie_quests_widget
         $rookieData = [

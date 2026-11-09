@@ -110,3 +110,4 @@ class CellController extends Controller
         });
     }
 }
+

@@ -84,4 +84,77 @@ class BloodFeud extends Model
             ->latest()
             ->first();
     }
+
+    /**
+     * Check if an attacker has legitimate retaliation rights against a target,
+     * fully exempting them from any level-difference restrictions.
+     */
+    public static function canRetaliate(Character $avenger, Character|int $target): bool
+    {
+        $targetId = $target instanceof Character ? $target->id : (int) $target;
+        $targetModel = $target instanceof Character ? $target : Character::find($targetId);
+
+        if (! $targetModel || (int) $avenger->id === (int) $targetId) {
+            return false;
+        }
+
+        // 1. Direct active blood feud claim
+        if (self::hasClaimAgainst($avenger, $targetId) !== null) {
+            return true;
+        }
+
+        // 2. Target has killed ANY member of avenger's gang (or avenger) in the last 7 days
+        $hasKilledGangMemberRecently = self::where('attacker_id', $targetId)
+            ->where(function (Builder $query) use ($avenger) {
+                $query->where('victim_id', $avenger->id);
+                if ($avenger->gang_id) {
+                    $query->orWhere('victim_gang_id', $avenger->gang_id);
+                }
+            })
+            ->where('created_at', '>=', now()->subDays(7))
+            ->exists();
+
+        if ($hasKilledGangMemberRecently) {
+            return true;
+        }
+
+        // 3. Active 24-Hour Bendeoorlog between their gangs
+        if ($avenger->gang_id && $targetModel->gang_id) {
+            if (class_exists(GangWar::class) && GangWar::areGangsAtWar((int) $avenger->gang_id, (int) $targetModel->gang_id)) {
+                return true;
+            }
+        }
+
+        // 4. Target commanded a GangAttack on avenger's gang within the last 7 days
+        if ($avenger->gang_id) {
+            $hasAttackedGang = GangAttack::where('target_gang_id', $avenger->gang_id)
+                ->where('character_id', $targetId)
+                ->where('created_at', '>=', now()->subDays(7))
+                ->exists();
+
+            if ($hasAttackedGang) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get active feuds and recent grudges for display in the Hitman Bloedwraak banner.
+     */
+    public static function getActiveFeudsForCharacter(Character $character)
+    {
+        return self::where(function (Builder $query) use ($character) {
+            $query->where('victim_id', $character->id);
+            if ($character->gang_id) {
+                $query->orWhere('victim_gang_id', $character->gang_id);
+            }
+        })
+            ->where('created_at', '>=', now()->subDays(7))
+            ->with(['attacker', 'victim'])
+            ->latest()
+            ->take(10)
+            ->get();
+    }
 }

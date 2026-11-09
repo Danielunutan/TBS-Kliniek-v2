@@ -171,7 +171,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Waarom zit ik in de Isoleercel en wat kan ik nog doen?',
-                        'a' => "💡 IN HET KORT: Als een misdaad mislukt, sluit de bewaker je tijdelijk op in de isoleercel.\n\n📋 WAT KUN JE WEL EN NIET DOEN?\n• ❌ Niet mogelijk: Misdaden plegen, vechten, reizen of geld storten bij de Geldmaat (stort je geld dus altijd vóór een misdaad!).\n• ✅ Wel mogelijk: Chatten, naar de radio luisteren én jezelf op 6 manieren sneller bevrijden!",
+                        'a' => "💡 IN HET KORT: Als een misdaad mislukt, sluit de bewaker je tijdelijk op in de isoleercel.\n\n📋 WAT KUN JE WEL EN NIET DOEN?\n• ❌ Niet mogelijk: Misdaden plegen, vechten, reizen of geld storten bij de Geldmaat (stort je geld dus altijd vóór een misdaad!).\n• ✅ Wel mogelijk: Chatten met medepatiënten én jezelf op 6 manieren sneller bevrijden!",
                         'links' => [
                             ['text' => 'Naar Isoleercel', 'url' => route('prison')],
                         ],
@@ -469,14 +469,13 @@ class FaqController extends Controller
                 ],
             ],
             'sociaal' => [
-                'title' => '📻 Radio, Krant, Chat, Cinema & Vrienden',
+                'title' => '📰 Krant, Chat, Cinema & Vrienden',
                 'icon' => 'fa-compass',
                 'questions' => [
                     [
-                        'q' => 'Hoe werken TBS FM Radio, De Krant, de Tijdlijn en de Cinema?',
-                        'a' => "💡 IN HET KORT: Luister muziek tijdens het spelen, lees wie er vandaag is gearresteerd en kijk samen video's in de bioscoop!\n\n📋 GEZELLIGHEID IN DE KLINIEK:\n• 📻 TBS FM Radio ('/tbs-fm'): Luister live muziek en stuur een bericht (shoutout) naar alle spelers.\n• 📰 Het Afdelingsblad ('/afdelingsblad'): De dagelijkse krant met alle grote overvallen en loterijwinnaars.\n• 📱 De Tijdlijn ('/tijdlijn'): Deel berichten en like updates van medepatiënten.\n• 🍿 Cinema ('/cinema'): Kijk samen YouTube-video's in de virtuele filmzaal en chat live mee.",
+                        'q' => 'Hoe werken De Krant, de Tijdlijn en de Cinema?',
+                        'a' => "💡 IN HET KORT: Lees wie er vandaag is gearresteerd en kijk samen video's in de bioscoop!\n\n📋 GEZELLIGHEID IN DE KLINIEK:\n• 📰 Het Afdelingsblad ('/afdelingsblad'): De dagelijkse krant met alle grote overvallen en loterijwinnaars.\n• 📱 De Tijdlijn ('/tijdlijn'): Deel berichten en like updates van medepatiënten.\n• 🍿 Cinema ('/cinema'): Kijk samen YouTube-video's in de virtuele filmzaal en chat live mee.",
                         'links' => [
-                            ['text' => 'TBS FM Radio', 'url' => route('radio.index')],
                             ['text' => 'De Krant', 'url' => route('newspaper.index')],
                             ['text' => 'Tijdlijn', 'url' => route('timeline.index')],
                             ['text' => 'Cinema', 'url' => route('cinema.index')],
@@ -966,12 +965,11 @@ class FaqController extends Controller
                 ],
             ],
             [
-                'title' => '🤝 Vrienden, BFF (Best Friend), Radio, Krant & Cinema',
-                'keywords' => ['vrienden', 'vriend', 'bff', 'friend', 'radio', 'cinema', 'bioscoop', 'muziek', 'krant', 'afdelingsblad', 'tijdlijn', 'hartjes'],
-                'answer' => "💡 IN HET KORT: Samen sta je veel sterker in de kliniek! Voeg vrienden toe en kies één BFF (Best Friend Forever).\n\n📋 SOCIAAL & GEZELLIGHEID:\n• 💛 BFF & Vrienden ('/vrienden'): Vrienden en je BFF kunnen jouw isoleerceldeur veel sneller van buitenaf openbreken!\n• 📻 TBS FM Radio & Cinema: Luister live muziek, stuur shoutouts of kijk samen YouTube-video's in de Cinema.\n• 📰 Afdelingsblad & Tijdlijn: Lees het laatste klinieknieuws en deel updates met medepatiënten.",
+                'title' => '🤝 Vrienden, BFF (Best Friend), Krant & Cinema',
+                'keywords' => ['vrienden', 'vriend', 'bff', 'friend', 'cinema', 'bioscoop', 'krant', 'afdelingsblad', 'tijdlijn', 'hartjes'],
+                'answer' => "💡 IN HET KORT: Samen sta je veel sterker in de kliniek! Voeg vrienden toe en kies één BFF (Best Friend Forever).\n\n📋 SOCIAAL & GEZELLIGHEID:\n• 💛 BFF & Vrienden ('/vrienden'): Vrienden en je BFF kunnen jouw isoleerceldeur veel sneller van buitenaf openbreken!\n• 🍿 Cinema: Kijk samen YouTube-video's in de virtuele filmzaal en chat live mee.\n• 📰 Afdelingsblad & Tijdlijn: Lees het laatste klinieknieuws en deel updates met medepatiënten.",
                 'links' => [
                     ['text' => '🤝 Vrienden & BFF', 'url' => route('friends.index')],
-                    ['text' => '📻 TBS FM Radio', 'url' => route('radio.index')],
                     ['text' => '🍿 Cinema', 'url' => route('cinema.index')],
                 ],
                 'suggestions' => [

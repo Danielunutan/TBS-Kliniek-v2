@@ -90,7 +90,7 @@ class SerializeCharacterActionsTest extends TestCase
         $lock = Cache::lock('character_action_'.$user->id, SerializeCharacterActions::LOCK_TTL_SECONDS);
         $this->assertTrue($lock->get());
 
-        $this->actingAs($user)->get(route('radio.index'))->assertOk();
+        $this->actingAs($user)->get(route('dashboard'))->assertOk();
 
         $lock->release();
     }

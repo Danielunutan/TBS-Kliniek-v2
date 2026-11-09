@@ -83,3 +83,4 @@ class CellUpgradesTest extends TestCase
         $this->assertEquals(10000, $character->cash);
     }
 }
+

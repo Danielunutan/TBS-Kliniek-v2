@@ -343,18 +343,14 @@ class ComprehensiveAuditBucket3Test extends TestCase
         $attacker->refresh();
         $defender->refresh();
 
-        // 45% cash = 45000, 7% bank = 14000, bounty = 50000
-        $this->assertGreaterThan(10000, (int) $attacker->cash);
+        // 45% cash = 45000 plundered, bank is safe (200000), bounty = 50000
+        $this->assertSame(105000, (int) $attacker->cash);
         $this->assertSame(55000, (int) $defender->cash);
-        $this->assertSame(186000, (int) $defender->bank);
+        $this->assertSame(200000, (int) $defender->bank);
 
         $bounty = Bounty::where('target_character_id', $defender->id)->first();
         $this->assertTrue((bool) $bounty->is_claimed);
         $this->assertSame($attacker->id, (int) $bounty->claimed_by_character_id);
-
-        $bankTx = BankTransaction::where('character_id', $defender->id)->first();
-        $this->assertNotNull($bankTx);
-        $this->assertSame(14000, (int) $bankTx->amount);
     }
 
     // ==========================================

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BloodFeud;
 use App\Models\Bounty;
 use App\Models\Character;
 use App\Models\GameMessage;
@@ -245,6 +246,18 @@ class FightController extends Controller
                     $activeWar = GangWar::areGangsAtWar((int) $lockedAttacker->gang_id, (int) $lockedDefender->gang_id);
                     if ($activeWar) {
                         $activeWar->addScore((int) $lockedAttacker->gang_id, 20);
+                    }
+
+                    // If attacker attacked a member of another gang, victim's gang gets immediate retaliation rights
+                    if ($lockedDefender->gang_id !== $lockedAttacker->gang_id) {
+                        BloodFeud::firstOrCreate([
+                            'attacker_id' => $lockedAttacker->id,
+                            'victim_id' => $lockedDefender->id,
+                            'victim_gang_id' => $lockedDefender->gang_id,
+                            'is_avenged' => false,
+                        ], [
+                            'expires_at' => now()->addDays(7),
+                        ]);
                     }
                 }
 

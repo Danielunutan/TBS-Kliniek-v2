@@ -208,8 +208,7 @@ class Pass6Bucket8AuditTest extends TestCase
         $prison->assertOk();
 
         $radio = $this->get(route('radio.index'));
-        $radio->assertOk();
-        $radio->assertSee('Niet Beschikbaar (Isoleercel / Code Blauw)', false);
+        $radio->assertRedirect(route('dashboard'));
 
         $profile = $this->get(route('profile', $victim->name));
         $profile->assertOk();

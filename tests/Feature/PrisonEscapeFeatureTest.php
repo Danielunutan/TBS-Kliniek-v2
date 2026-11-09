@@ -94,7 +94,7 @@ class PrisonEscapeFeatureTest extends TestCase
         $response = $this->actingAs($character->user)->post(route('prison.escape'));
 
         $response->assertRedirect(route('prison'));
-        $response->assertSessionHas('error', 'Je hebt je ontsnappingspoging voor deze straftijd al verbruikt! Bekijk een advertentie om direct vrijgelaten te worden.');
+        $response->assertSessionHas('error', 'Je hebt je ontsnappingspoging voor deze straftijd al verbruikt! Gebruik de stoomwasserij, koop de cipier om of koop jezelf direct vrij met Sterren ⭐.');
         $this->assertEquals(50, $character->fresh()->energy);
     }
 

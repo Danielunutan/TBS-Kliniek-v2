@@ -54,7 +54,8 @@ class GangWagePayoutTest extends TestCase
         ]);
 
         $character->gang_id = $gang->id;
-        $character->gang_role = 'leader';
+        $character->gang_role = 'member';
+        $character->level = 1;
         $character->cash = 1000;
         $character->bank = 5000;
         // Last paid 3 hours ago
@@ -90,6 +91,8 @@ class GangWagePayoutTest extends TestCase
         ]);
 
         $character->gang_id = $gang->id;
+        $character->gang_role = 'member';
+        $character->level = 1;
         $character->cash = 500;
         $character->bank = 10000;
         $character->last_gang_wage_at = Carbon::now()->subHours(2);
@@ -123,6 +126,8 @@ class GangWagePayoutTest extends TestCase
         Carbon::setTestNow(Carbon::create(2026, 1, 15, 12, 30, 0));
 
         $character->gang_id = $gang->id;
+        $character->gang_role = 'member';
+        $character->level = 1;
         $character->cash = 2000;
         $character->bank = 3000;
         $character->last_gang_wage_at = Carbon::now()->subMinutes(130); // 2 hours
@@ -248,6 +253,8 @@ class GangWagePayoutTest extends TestCase
         ]);
 
         $character->gang_id = $gang->id;
+        $character->gang_role = 'member';
+        $character->level = 1;
         $character->cash = 1000;
         $character->last_gang_wage_at = Carbon::parse('2026-10-28 13:00:00');
         $character->save();

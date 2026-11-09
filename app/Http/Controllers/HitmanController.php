@@ -51,16 +51,7 @@ class HitmanController extends Controller
 
         $this->energy->refresh($character);
 
-        $bloodFeuds = BloodFeud::active()
-            ->with(['attacker', 'victim'])
-            ->where(function ($query) use ($character) {
-                $query->where('victim_id', $character->id);
-                if ($character->gang_id) {
-                    $query->orWhere('victim_gang_id', $character->gang_id);
-                }
-            })
-            ->latest()
-            ->get();
+        $bloodFeuds = BloodFeud::getActiveFeudsForCharacter($character);
 
         $activeIntelOps = $character->getActiveIntelOps();
         $intelMap = collect($activeIntelOps)->keyBy('target_id');
@@ -106,7 +97,7 @@ class HitmanController extends Controller
             ->limit(20)
             ->get()
             ->map(function (Character $target) use ($character, $intelMap, $attackerWing) {
-                $hasBloodFeud = BloodFeud::hasClaimAgainst($character, $target->id) !== null;
+                $hasBloodFeud = BloodFeud::canRetaliate($character, $target);
                 $onCooldown = false;
                 $cooldownSec = 0;
                 $streakDeaths = $target->getLiquidationStreakDeaths();
@@ -194,7 +185,7 @@ class HitmanController extends Controller
             ->limit(20)
             ->get()
             ->map(function (Character $target) use ($character, $intelMap, $attackerWing) {
-                $hasBloodFeud = BloodFeud::hasClaimAgainst($character, $target->id) !== null;
+                $hasBloodFeud = BloodFeud::canRetaliate($character, $target);
                 $onCooldown = false;
                 $cooldownSec = 0;
                 $pairKillKey = "daily_liquidations_{$character->id}_{$target->id}_".now()->toDateString();
@@ -641,9 +632,10 @@ class HitmanController extends Controller
         }
 
         $bloodFeud = BloodFeud::hasClaimAgainst($character, $target->id);
+        $canRetaliate = BloodFeud::canRetaliate($character, $target);
 
-        if (! $bloodFeud && ($character->level - $target->level > 15)) {
-            return back()->with('error', "{$target->name} is te laag in level (maximaal 15 levels verschil). Zoek een tegenstander van jouw niveau!");
+        if (! $canRetaliate && (abs($character->level - $target->level) > 15)) {
+            return back()->with('error', "{$target->name} is buiten je levelbereik (maximaal 15 levels verschil, tenzij deze speler jouw bendeleden heeft aangevallen of er een bendeoorlog woedt).");
         }
 
         if (($character->cash + $character->bank) < $contract['cost']) {
@@ -685,8 +677,9 @@ class HitmanController extends Controller
                     return back()->with('error', "{$lockedTarget->name} heeft actieve bescherming en kan niet worden aangevallen.");
                 }
 
-                if (! $bloodFeud && ($lockedAttacker->level - $lockedTarget->level > 15)) {
-                    return back()->with('error', "{$lockedTarget->name} is te laag in level (maximaal 15 levels verschil). Zoek een tegenstander van jouw niveau!");
+                $canRetaliate = BloodFeud::canRetaliate($lockedAttacker, $lockedTarget);
+                if (! $canRetaliate && (abs($lockedAttacker->level - $lockedTarget->level) > 15)) {
+                    return back()->with('error', "{$lockedTarget->name} is buiten je levelbereik (maximaal 15 levels verschil, tenzij deze speler jouw bendeleden heeft aangevallen of er een bendeoorlog woedt).");
                 }
 
                 if (($lockedAttacker->cash + $lockedAttacker->bank) < $contract['cost']) {
@@ -837,10 +830,11 @@ class HitmanController extends Controller
         }
 
         $bloodFeud = BloodFeud::hasClaimAgainst($attacker, $defender->id);
+        $canRetaliate = BloodFeud::canRetaliate($attacker, $defender);
         $hasOpenBounty = class_exists(Bounty::class) && Bounty::where('target_character_id', $defender->id)->where('is_claimed', false)->exists();
 
-        if (! $bloodFeud && ! $hasOpenBounty && abs($attacker->level - $defender->level) > 15) {
-            return back()->with('error', "Het levelverschil tussen jou en {$defender->name} is te groot (maximaal 15 levels verschil, tenzij er Bloedwraak of een Kopgeld-premie openstaat).");
+        if (! $canRetaliate && ! $hasOpenBounty && abs($attacker->level - $defender->level) > 15) {
+            return back()->with('error', "Het levelverschil tussen jou en {$defender->name} is te groot (maximaal 15 levels verschil, tenzij deze speler jouw bendeleden heeft aangevallen, er een bendeoorlog woedt of er een premie openstaat).");
         }
 
         if ($attacker->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
@@ -1113,7 +1107,7 @@ class HitmanController extends Controller
                                 'attacker_id' => $lockedAttacker->id,
                                 'victim_id' => $lockedDefender->id,
                                 'victim_gang_id' => $lockedDefender->gang_id,
-                                'expires_at' => now()->addHours(24),
+                                'expires_at' => now()->addDays(7),
                             ]);
                         }
 
