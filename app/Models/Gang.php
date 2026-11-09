@@ -175,7 +175,9 @@ class Gang extends Model
 
     public function storedVehicles(): HasMany
     {
-        return $this->hasMany(CharacterVehicle::class)->where('in_gang_garage', true);
+        return $this->hasMany(CharacterVehicle::class)
+            ->where('in_gang_garage', true)
+            ->orderByRepairPriority();
     }
 
     public function items(): HasMany

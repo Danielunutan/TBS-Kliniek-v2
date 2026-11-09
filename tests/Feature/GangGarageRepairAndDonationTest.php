@@ -153,4 +153,41 @@ class GangGarageRepairAndDonationTest extends TestCase
         $retrieveResponse->assertSessionHas('error');
         $this->assertTrue($charVehicle->fresh()->in_gang_garage);
     }
+
+    public function test_vehicles_needing_repair_are_ordered_at_the_top_of_the_fleet(): void
+    {
+        $user = User::factory()->create();
+        $char = Character::factory()->create(['user_id' => $user->id]);
+
+        $v1 = $this->createVehicle('Wagen Intact', 50000);
+        $v2 = $this->createVehicle('Wagen Kapot', 60000);
+        $v3 = $this->createVehicle('Wagen Licht Beschadigd', 70000);
+
+        // Created in order: intact first, damaged later
+        $cv1 = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $v1->id,
+            'current_condition' => 100,
+            'in_gang_garage' => false,
+        ]);
+        $cv2 = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $v2->id,
+            'current_condition' => 20,
+            'in_gang_garage' => false,
+        ]);
+        $cv3 = CharacterVehicle::create([
+            'character_id' => $char->id,
+            'vehicle_id' => $v3->id,
+            'current_condition' => 75,
+            'in_gang_garage' => false,
+        ]);
+
+        $ordered = CharacterVehicle::where('character_id', $char->id)->orderByRepairPriority()->get();
+
+        // cv2 (condition 20) should be first, cv3 (condition 75) second, cv1 (condition 100) last
+        $this->assertEquals($cv2->id, $ordered[0]->id);
+        $this->assertEquals($cv3->id, $ordered[1]->id);
+        $this->assertEquals($cv1->id, $ordered[2]->id);
+    }
 }

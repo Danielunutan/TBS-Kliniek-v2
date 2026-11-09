@@ -181,4 +181,17 @@ class CharacterVehicle extends Model
 
         return 1.0;
     }
+
+    /**
+     * Scope query to place vehicles needing repair (< 100% condition) at the top of the list,
+     * sorted from most damaged to least damaged, followed by active vehicles, and then by ID.
+     */
+    public function scopeOrderByRepairPriority($query)
+    {
+        return $query
+            ->orderByRaw('CASE WHEN current_condition < 100 THEN 0 ELSE 1 END')
+            ->orderBy('current_condition', 'asc')
+            ->orderByDesc('is_active')
+            ->orderByDesc('id');
+    }
 }

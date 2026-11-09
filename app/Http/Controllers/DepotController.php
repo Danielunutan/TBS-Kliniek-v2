@@ -37,7 +37,7 @@ class DepotController extends Controller
         // 1. Persoonlijke Garage (Voertuigen)
         $ownedVehicles = CharacterVehicle::where('character_id', $character->id)
             ->with('vehicle')
-            ->orderByDesc('is_active')
+            ->orderByRepairPriority()
             ->get();
 
         $activeVehicle = $ownedVehicles->firstWhere('is_active', true) ?? $ownedVehicles->first();

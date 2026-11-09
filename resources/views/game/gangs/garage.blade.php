@@ -199,20 +199,27 @@
                         $veh = $charVehicle->vehicle; 
                         $isOwner = $charVehicle->character_id === $character->id;
                     @endphp
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 flex flex-col justify-between">
+                    <div class="bg-white dark:bg-slate-900 border {{ $charVehicle->current_condition < 100 ? 'border-rose-300 dark:border-rose-800/80 bg-rose-50/10' : 'border-slate-200/90 dark:border-slate-800' }} rounded-2xl p-5 shadow-xs hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-200 flex flex-col justify-between">
                         <div>
                             <!-- Header / Badge -->
                             <div class="flex items-center justify-between gap-2 mb-3">
-                                @if($charVehicle->is_gang_owned)
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/70 flex items-center gap-1">
-                                        <i class="fa-solid fa-shield-halved"></i> Bende Eigendom
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
-                                        {{ $veh?->type ?? 'Voertuig' }} (Gestald)
-                                    </span>
-                                @endif
-                                <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    @if($charVehicle->current_condition < 100)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 flex items-center gap-1">
+                                            <i class="fa-solid fa-wrench text-[9px]"></i> Toe aan Revisie
+                                        </span>
+                                    @endif
+                                    @if($charVehicle->is_gang_owned)
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/70 flex items-center gap-1">
+                                            <i class="fa-solid fa-shield-halved"></i> Bende Eigendom
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
+                                            {{ $veh?->type ?? 'Voertuig' }} (Gestald)
+                                        </span>
+                                    @endif
+                                </div>
+                                <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0">
                                     <i class="fa-solid fa-gauge-high text-purple-500"></i> {{ $charVehicle->effective_speed }}% snelheid
                                 </span>
                             </div>

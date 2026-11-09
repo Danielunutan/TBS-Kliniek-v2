@@ -468,13 +468,18 @@
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($ownedVehicles as $ov)
-                <div class="bg-white dark:bg-slate-900 border {{ $ov->is_active ? 'border-emerald-400 dark:border-emerald-500 ring-2 ring-emerald-400/20' : 'border-slate-200/90 dark:border-slate-800' }} rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4">
+                <div class="bg-white dark:bg-slate-900 border {{ $ov->is_active ? 'border-emerald-400 dark:border-emerald-500 ring-2 ring-emerald-400/20' : ($ov->current_condition < 100 ? 'border-rose-300 dark:border-rose-800/80 bg-rose-50/10' : 'border-slate-200/90 dark:border-slate-800') }} rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4">
                     <div class="space-y-3">
                         <div class="flex items-start justify-between gap-2">
-                            <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl shrink-0">
+                            <div class="w-12 h-12 rounded-xl {{ $ov->current_condition < 100 ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400' : 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300' }} flex items-center justify-center text-xl shrink-0">
                                 <i class="fa-solid {{ $ov->vehicle?->icon ?? 'fa-car' }}"></i>
                             </div>
-                            <div>
+                            <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                                @if($ov->current_condition < 100)
+                                    <span class="px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                        <i class="fa-solid fa-wrench text-[9px]"></i> Toe aan Revisie
+                                    </span>
+                                @endif
                                 @if($ov->is_active)
                                     <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[10px] font-black uppercase tracking-wider">
                                         Actief Vluchtvoertuig

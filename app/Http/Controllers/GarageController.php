@@ -148,11 +148,15 @@ class GarageController extends Controller
         $ownedVehicles = CharacterVehicle::where('character_id', $character->id)
             ->where('in_gang_garage', false)
             ->with('vehicle')
-            ->orderByDesc('is_active')
+            ->orderByRepairPriority()
             ->get();
 
         $gangStoredVehicles = $character->gang_id
-            ? CharacterVehicle::where('character_id', $character->id)->where('in_gang_garage', true)->with('vehicle')->get()
+            ? CharacterVehicle::where('character_id', $character->id)
+                ->where('in_gang_garage', true)
+                ->with('vehicle')
+                ->orderByRepairPriority()
+                ->get()
             : collect();
 
         $activeVehicle = $ownedVehicles->firstWhere('is_active', true) ?? $ownedVehicles->first();

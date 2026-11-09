@@ -117,7 +117,11 @@ class GangPropertyController extends Controller
         $gang->storedVehicles->each->setRelation('gang', $gang);
 
         $totalVehicleSlots = $gang->total_vehicle_slots;
-        $storedVehicles = $gang->storedVehicles;
+        $storedVehicles = $gang->storedVehicles->sortBy([
+            fn ($a, $b) => ($a->current_condition < 100 ? 0 : 1) <=> ($b->current_condition < 100 ? 0 : 1),
+            fn ($a, $b) => $a->current_condition <=> $b->current_condition,
+            fn ($a, $b) => $b->id <=> $a->id,
+        ])->values();
         $storedCount = $storedVehicles->count();
         $freeSlots = max(0, $totalVehicleSlots - $storedCount);
 
@@ -126,6 +130,7 @@ class GangPropertyController extends Controller
             ->where('in_gang_garage', false)
             ->where('is_for_sale', false)
             ->with('vehicle')
+            ->orderByRepairPriority()
             ->get();
 
         // Garage/storage properties that provide vehicle slots
