@@ -168,6 +168,10 @@ MARKDOWN;
 
         $this->info("Nieuw allesomvattend update-artikel succesvol geplaatst! ID: {$article->id}, Slug: {$article->slug}");
 
+        // Zorg ook dat het Hossel Challenge artikel gesynchroniseerd en gepubliceerd is
+        \App\Services\EventHustleChallengeService::syncChallengeArticle();
+        $this->info("Hossel Challenge artikel gesynchroniseerd.");
+
         return self::SUCCESS;
     }
 }

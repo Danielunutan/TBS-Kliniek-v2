@@ -15,11 +15,11 @@ class EventHustleChallengeService
 {
     public const TIMEZONE = 'Europe/Amsterdam';
 
-    public const EVENT_START = '2026-11-09 00:00:00';
+    public const EVENT_START = '2026-11-09 17:00:00';
 
-    public const EVENT_END = '2026-11-12 23:59:59';
+    public const EVENT_END = '2026-11-13 23:59:59';
 
-    public const WINNER_PUBLISH_AT = '2026-11-13 00:00:00';
+    public const WINNER_PUBLISH_AT = '2026-11-14 00:00:00';
 
     public const PRIZE_STARS = 750;
 
@@ -305,7 +305,7 @@ class EventHustleChallengeService
         $title = 'SPOED EVENT De Grote Hossel Challenge - Win 750 Sterren + €150 Miljoen!';
 
         $content = "Beste patiënten en bewoners van de TBS Kliniek,\n\n"
-            .'Vanaf nu organiseren wij een gigantische nieuwe challenge die loopt tot en met donderdag 23.59 uur. '
+            .'Vanaf nu organiseren wij opnieuw de grote Hossel Challenge die loopt van nu tot en met vrijdag 13 november 23.59 uur! '
             ."De speler die aan het einde van de race de allermeeste succesvolle hosselbeurten heeft neergezet op de zwaarste klussen, wint de ultieme hoofdprijs van maar liefst **750 Gouden Sterren ⭐ én €150.000.000 contant** op de bank!\n\n"
             ."[hustle_challenge_leaderboard]\n\n"
             ."### De Officiële Spelregels\n\n"
@@ -328,7 +328,7 @@ class EventHustleChallengeService
             ."- **€150.000.000 contant bankgeld 💰** gestort op je rekening\n"
             ."- Eeuwige roem en een vermelding in het officiële Afdelingsblad\n\n"
             ."#### Speelduur en Afsluiting\n"
-            ."Het event start direct en eindigt exact op **donderdag 12 november om 23.59 uur**. De live ranglijst hierboven update automatisch elke 15 seconden zodat je precies ziet wie er aan kop gaat.\n\n"
+            ."Het event start direct en eindigt exact op **vrijdag 13 november om 23.59 uur**. De live ranglijst hierboven update automatisch elke 15 seconden zodat je precies ziet wie er aan kop gaat.\n\n"
             ."Veel succes allemaal en moge de slimste hosselaar winnen!\n\n"
             ."Daniel\nTBS Kliniek Leiding";
 
