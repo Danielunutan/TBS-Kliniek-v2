@@ -45,7 +45,7 @@ class LeaderboardController extends Controller
         $leaderboard = $cached ?? (function () use ($type, $cacheKey) {
             $query = Character::query()
                 ->with('gang')
-                ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+                ->playable()
                 ->whereHas('user', fn ($q) => $q->where('is_banned', false));
 
             match ($type) {

@@ -150,7 +150,7 @@ class SeasonResetCommand extends Command
             $filteredUpdates = array_intersect_key($updateData, array_flip($columnsInDb));
 
             if (! $isDryRun) {
-                Character::query()->update($filteredUpdates);
+                Character::query()->playable()->update($filteredUpdates);
             }
             $this->info("   -> {$characterCount} karakters succesvol gereset.");
 

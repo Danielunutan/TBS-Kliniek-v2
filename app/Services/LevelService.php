@@ -32,6 +32,23 @@ class LevelService
      */
     public function addXp(Character $character, int $xpGain, bool $applyCatchUp = true): array
     {
+        if ($character->isGameExempt()) {
+            if ($character->level !== 0 || $character->xp !== 0 || $character->total_xp !== 0) {
+                $character->level = 0;
+                $character->xp = 0;
+                $character->total_xp = 0;
+                $character->save();
+            }
+
+            return [
+                'leveled_up' => false,
+                'old_level' => 0,
+                'new_level' => 0,
+                'cash_reward' => 0,
+                'xp_added' => 0,
+            ];
+        }
+
         $xpGain = max(0, $xpGain);
         $comfortBonus = $character->getCellComfortBonusPct();
         if ($comfortBonus > 0 && $xpGain > 0) {

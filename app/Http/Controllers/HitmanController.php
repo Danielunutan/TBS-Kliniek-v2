@@ -94,7 +94,7 @@ class HitmanController extends Controller
         }, $activeIntelOps);
 
         $targets = Character::where('id', '!=', $character->id)
-            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+            ->playable()
             ->where('is_in_prison', false)
             ->orderByDesc('level')
             ->limit(20)
@@ -197,7 +197,7 @@ class HitmanController extends Controller
 
         $escapedQ = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], strtolower($q));
         $targets = Character::where('id', '!=', $character->id)
-            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+            ->playable()
             ->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", ['%'.$escapedQ.'%'])
             ->orderBy('name')
             ->limit(20)
@@ -286,9 +286,13 @@ class HitmanController extends Controller
             'currency' => ['nullable', 'string', 'in:cash,stars'],
         ]);
 
-        $target = Character::findOrFail($validated['target_id']);
+        $target = Character::with('user')->findOrFail($validated['target_id']);
         if ($target->id === $character->id) {
             return back()->with('error', 'Je hoeft geen schaduw-inlichtingen op jezelf uit te voeren!');
+        }
+
+        if ($target->isGameExempt() || $character->isGameExempt()) {
+            return back()->with('error', 'Dit doelwit kan niet worden gevolgd of aangevallen!');
         }
 
         $canRetaliate = BloodFeud::canRetaliate($character, $target);
@@ -649,9 +653,9 @@ class HitmanController extends Controller
         ];
 
         $contract = $config[$validated['contract_id']];
-        $target = Character::findOrFail($validated['target_id']);
+        $target = Character::with('user')->findOrFail($validated['target_id']);
 
-        if (in_array($target->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+        if ($target->isGameExempt() || $character->isGameExempt()) {
             return back()->with('error', 'Dit doelwit kan niet worden aangevallen!');
         }
 
@@ -838,13 +842,13 @@ class HitmanController extends Controller
             'bullets' => ['required', 'integer', 'min:1', 'max:10000'],
         ]);
 
-        $defender = Character::findOrFail($validated['target_id']);
+        $defender = Character::with('user')->findOrFail($validated['target_id']);
 
         if ($defender->id === $attacker->id) {
             return back()->with('error', 'Je kunt niet op jezelf schieten!');
         }
 
-        if (in_array($defender->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+        if ($defender->isGameExempt() || $attacker->isGameExempt()) {
             return back()->with('error', 'Dit doelwit kan niet worden aangevallen!');
         }
 

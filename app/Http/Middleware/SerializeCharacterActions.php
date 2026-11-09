@@ -39,6 +39,11 @@ class SerializeCharacterActions
             return $next($request);
         }
 
+        $routeName = $request->route()?->getName();
+        if (($user->isOwner() || ($user->character && $user->character->isGameExempt())) && Character::isRouteBlockedForOwner($routeName)) {
+            return $this->ownerGameplayBlockedResponse($request);
+        }
+
         $lock = Cache::lock('character_action_'.$user->id, self::LOCK_TTL_SECONDS);
 
         $configuredWait = config('game.action_lock_wait_seconds');
@@ -65,6 +70,9 @@ class SerializeCharacterActions
 
             $character = $user->character;
             $routeName = $request->route()?->getName();
+            if ($character && $character->isActionBlockedForOwner($routeName)) {
+                return $this->ownerGameplayBlockedResponse($request);
+            }
             if ($character && $character->isActionBlockedByIsolation($routeName)) {
                 return $this->isolationBlockedResponse($request, $character);
             }
@@ -79,6 +87,23 @@ class SerializeCharacterActions
                 ]);
             }
         }
+    }
+
+    /**
+     * Build the response when a game-exempt owner attempts a gameplay action.
+     */
+    protected function ownerGameplayBlockedResponse(Request $request): Response
+    {
+        $message = 'Eigenaren nemen niet deel aan het spel.';
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+            ], 403);
+        }
+
+        return back()->with('error', $message);
     }
 
     /**

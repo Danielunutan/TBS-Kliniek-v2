@@ -266,7 +266,11 @@
             <div class="flex-1 w-full text-center md:text-left">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
                     <div>
-                        @php $isDarkCard = ($activeTheme['key'] ?? 'default') !== 'default'; @endphp
+                        @php
+                            $isDarkCard = ($activeTheme['key'] ?? 'default') !== 'default';
+                            $isExemptProfile = $profileCharacter->isGameExempt();
+                            $isExemptViewer = Auth::user()->character->isGameExempt();
+                        @endphp
                         <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
                             <h1 class="text-2xl font-black tracking-tight flex items-center gap-1.5">
                                 <span class="px-1 -mx-1 {{ $profileCharacter->getNameCssClasses($isDarkCard ? 'text-white' : 'text-slate-900 dark:text-white') }}"
@@ -277,9 +281,11 @@
                                     <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm animate-pulse" title="VIP Glitter Shimmer"></i>
                                 @endif
                             </h1>
+                            @if(! $isExemptProfile)
                             <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
                                 Level {{ $profileCharacter->level }}
                             </span>
+                            @endif
 
                             @if($profileCharacter->user && $profileCharacter->user->isStaff())
                                 @php $staffBadge = $profileCharacter->user->role_badge; @endphp
@@ -339,23 +345,32 @@
                             @endif
                         </div>
                         <p class="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider flex items-center flex-wrap justify-center md:justify-start gap-1.5">
-                            <span>Patiënt</span>
-                            <span>&bull;</span>
-                            <span>TBS Kliniek</span>
-                            <span>&bull;</span>
-                            @if($profileCharacter->gang)
-                                <a href="{{ route('gangs.show', $profileCharacter->gang->id) }}" class="text-purple-600 dark:text-purple-400 hover:underline font-bold flex items-center gap-1" title="Bekijk bende {{ $profileCharacter->gang->name }}">
-                                    <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                                    <span>{{ $profileCharacter->gang->name }} [{{ $profileCharacter->gang->tag }}]</span>
-                                </a>
+                            @if($isExemptProfile)
+                                <span class="text-amber-600 dark:text-amber-400 font-extrabold inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-crown text-[10px]"></i>
+                                    <span>Kliniek Eigenaar</span>
+                                </span>
+                                <span>&bull;</span>
+                                <span>TBS Kliniek Directie</span>
                             @else
-                                <span>Geen Bende</span>
+                                <span>Patiënt</span>
+                                <span>&bull;</span>
+                                <span>TBS Kliniek</span>
+                                <span>&bull;</span>
+                                @if($profileCharacter->gang)
+                                    <a href="{{ route('gangs.show', $profileCharacter->gang->id) }}" class="text-purple-600 dark:text-purple-400 hover:underline font-bold flex items-center gap-1" title="Bekijk bende {{ $profileCharacter->gang->name }}">
+                                        <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                                        <span>{{ $profileCharacter->gang->name }} [{{ $profileCharacter->gang->tag }}]</span>
+                                    </a>
+                                @else
+                                    <span>Geen Bende</span>
+                                @endif
+                                <span>&bull;</span>
+                                <span class="inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold lowercase first-letter:uppercase">
+                                    <i class="fa-solid fa-map-location-dot text-[11px]"></i>
+                                    {{ $profileCharacter->current_location ?? 'Paviljoen 1 (Gesloten)' }}
+                                </span>
                             @endif
-                            <span>&bull;</span>
-                            <span class="inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold lowercase first-letter:uppercase">
-                                <i class="fa-solid fa-map-location-dot text-[11px]"></i>
-                                {{ $profileCharacter->current_location ?? 'Paviljoen 1 (Gesloten)' }}
-                            </span>
                         </p>
 
                         @php
@@ -439,6 +454,7 @@
                             <span>Privé Chat</span>
                         </button>
 
+                        @if(! $isExemptProfile && ! $isExemptViewer)
                         <!-- Give Respect (+1 Sigaret) Button -->
                         @if(! $hasGivenRespectToday)
                         <form action="{{ route('profile.respect', $profileCharacter->name) }}" method="POST">
@@ -546,6 +562,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
 
                         <!-- Report Profile Button -->
                         <button type="button" 
@@ -561,11 +578,14 @@
 
                 <!-- XP Bar -->
                 @php
+                    $isDarkCard = ($activeTheme['key'] ?? 'default') !== 'default';
+                @endphp
+                @if(! $isExemptProfile)
+                @php
                     $lvlService = app(\App\Services\LevelService::class);
                     $profileLvl = (int) ($profileCharacter->level ?? 1);
                     $reqXp = $lvlService->getXpRequiredForNextLevel($profileLvl);
                     $pctXp = min(100, max(0, round((($profileCharacter->xp ?? 0) / max(1, $reqXp)) * 100)));
-                    $isDarkCard = ($activeTheme['key'] ?? 'default') !== 'default';
                 @endphp
                 <div class="flex flex-col gap-1.5 mb-4 md:w-3/4">
                     <div class="flex justify-between items-center text-xs">
@@ -576,6 +596,7 @@
                         <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500 shadow-sm" style="width: {{ $pctXp }}%"></div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Status quote -->
                 <div class="{{ $isDarkCard ? 'bg-white/10 border-white/15 text-white/90' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200' }} border rounded-xl px-4 py-2 inline-flex items-center text-left text-xs font-medium backdrop-blur-xs shadow-2xs">
@@ -587,6 +608,23 @@
         </div>
 
         <!-- Stats Bar (Sleek Glassmorphic Badges) -->
+        @if($isExemptProfile)
+        <div class="border-t {{ $isDarkCard ? 'border-white/10 bg-black/30' : 'border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-black/30' }} backdrop-blur-md px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-500 dark:text-amber-400 flex items-center justify-center text-base shrink-0 shadow-xs">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div class="text-left">
+                    <span class="text-[10px] font-black tracking-widest uppercase text-amber-600 dark:text-amber-400 block leading-tight">
+                        Kliniek Directie &amp; Eigenaar
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold {{ $isDarkCard ? 'text-white/90' : 'text-slate-700 dark:text-slate-200' }}">
+                        Dit account beheert TBS Kliniek en neemt niet deel aan het spel, ranglijsten of gevechten.
+                    </span>
+                </div>
+            </div>
+        </div>
+        @else
         <div class="grid grid-cols-2 lg:grid-cols-4 border-t {{ $isDarkCard ? 'border-white/10 bg-black/30' : 'border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-black/30' }} backdrop-blur-md">
             
             <!-- 1: Respect -->
@@ -650,18 +688,21 @@
             </div>
 
         </div>
+        @endif
 
         <!-- Navigation Tabs with Dynamic Accent Color -->
         <div class="flex {{ $isDarkCard ? 'border-t border-white/10 bg-black/20' : 'border-t border-slate-200/80 dark:border-white/10 bg-slate-50/40 dark:bg-black/20' }} px-6 gap-6 overflow-x-auto">
             <button @click="setActiveTab('overzicht')" :class="activeTab === 'overzicht' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-id-card"></i> Dossier Overzicht
             </button>
+            @if(! $isExemptProfile)
             <button @click="setActiveTab('psychiatrisch')" :class="activeTab === 'psychiatrisch' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-clipboard-user text-rose-500"></i> Psychiatrisch Rapport
             </button>
             <button @click="setActiveTab('medailles')" :class="activeTab === 'medailles' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-medal text-amber-500"></i> Medailles & Prestaties
             </button>
+            @endif
             <button @click="setActiveTab('vrienden')" :class="activeTab === 'vrienden' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-user-group text-purple-500"></i> Vriendenlijst ({{ $friendsCount }})
             </button>
@@ -688,7 +729,7 @@
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
                                 <i class="fa-solid fa-check text-[9px]"></i> Gekoppeld
                             </span>
-                        @else
+                        @elseif(! $isExemptProfile)
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
                                 + €2.500 & 3 Dagen VIP
                             </span>
@@ -697,6 +738,8 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         @if(Auth::user()->discord_id)
                             Je account is verbonden met Discord ID: <code class="font-mono text-purple-700 bg-purple-50 dark:bg-purple-950/60 dark:text-purple-300 px-1 py-0.5 rounded">{{ Auth::user()->discord_id }}</code>. Jouw spelersrol en VIP-status worden automatisch gesynchroniseerd.
+                        @elseif($isExemptProfile)
+                            Koppel je Discord om je Eigenaar-rol in de Discord server automatisch te synchroniseren.
                         @else
                             Koppel je Discord en ontvang direct <strong>€2.500 zakgeld</strong>, <strong>3 dagen gratis VIP</strong> én de <strong>TBS-Kliniek.nl</strong> rol in de Discord server!
                         @endif
@@ -723,7 +766,46 @@
         </div>
         @endif
 
-        <!-- Attributen & Stats -->
+        <!-- Attributen & Stats (of Directie Status voor Eigenaren) -->
+        @if($isExemptProfile)
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-crown"></i>
+                        <span>Eigenaar &amp; Kliniekbeheer</span>
+                    </h3>
+                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70">
+                        Buiten Competitie
+                    </span>
+                </div>
+
+                <div class="space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+                    <div class="p-3.5 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200/80 dark:border-amber-800/60 leading-relaxed">
+                        <strong>{{ $profileCharacter->name }}</strong> is eigenaar en ontwikkelaar van TBS Kliniek. Eigenaren houden toezicht op de inrichting en spelen zelf niet mee om de competitie eerlijk te houden.
+                    </div>
+                    <div class="flex justify-between items-center p-2.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
+                        <span class="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2.5">
+                            <i class="fa-solid fa-trophy text-slate-400 w-4"></i> Ranglijsten &amp; Events
+                        </span>
+                        <span class="font-extrabold text-slate-500 dark:text-slate-400">Uitgesloten</span>
+                    </div>
+                    <div class="flex justify-between items-center p-2.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
+                        <span class="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2.5">
+                            <i class="fa-solid fa-shield-halved text-slate-400 w-4"></i> Gevechten &amp; Overvallen
+                        </span>
+                        <span class="font-extrabold text-slate-500 dark:text-slate-400">Niet aanvalbaar</span>
+                    </div>
+                    <div class="flex justify-between items-center p-2.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
+                        <span class="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2.5">
+                            <i class="fa-solid fa-comments text-emerald-500 w-4"></i> Berichten &amp; Gastenboek
+                        </span>
+                        <span class="font-extrabold text-emerald-600 dark:text-emerald-400">Bereikbaar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @else
         @php
             $statCatalog = \App\Models\Character::statDescriptionsCatalog();
         @endphp
@@ -787,12 +869,13 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Persoonlijke Bio -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Patiëntendossier & Biografie</h3>
+                    <h3 class="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">{{ $isExemptProfile ? 'Directiedossier & Biografie' : 'Patiëntendossier & Biografie' }}</h3>
                     @if(Auth::user()->character->id === $profileCharacter->id)
                     <button @click="bioModalOpen = true" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
                         <i class="fa-solid fa-pen"></i> Bewerken

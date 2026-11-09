@@ -28,21 +28,26 @@ class MembersController extends Controller
         $initialFilter = $request->query('filter', 'all');
         $initialSearch = (string) $request->query('search', '');
 
-        $allCharacters = Character::with('gang')
+        $allCharacters = Character::with(['gang', 'user'])
+            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
             ->orderByDesc('last_active_at')
             ->take(500)
             ->get();
 
-        $totalCount = Character::count();
-        $onlineCount = Character::where('last_active_at', '>=', now()->subMinutes(5))->count();
-        $gangCount = Character::whereNotNull('gang_id')->count();
-        $soloCount = Character::whereNull('gang_id')->count();
-        $prisonCount = Character::where('prison_until', '>', now())->count();
+        $totalCount = Character::whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)->count();
+        $onlineCount = Character::whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+            ->where('last_active_at', '>=', now()->subMinutes(5))
+            ->count();
+        $gangCount = Character::playable()->whereNotNull('gang_id')->count();
+        $soloCount = Character::playable()->whereNull('gang_id')->count();
+        $prisonCount = Character::playable()->where('prison_until', '>', now())->count();
         $vipCount = $allCharacters->filter(fn (Character $c): bool => $c->isVip())->count();
 
         $membersData = $allCharacters->map(function (Character $c) use ($character) {
             $isOnline = $c->isOnline();
             $isInPrison = $c->isImprisoned();
+            $isOwner = $c->isOwner();
+            $isGameExempt = $c->isGameExempt();
 
             return [
                 'id' => $c->id,
@@ -51,7 +56,9 @@ class MembersController extends Controller
                 'level' => (int) $c->level,
                 'respect' => (float) $c->respect,
                 'respect_formatted' => number_format($c->respect, 0, ',', '.'),
-                'title' => $c->title ?? 'Patiënt',
+                'title' => $isOwner ? 'Eigenaar' : ($c->title ?? 'Patiënt'),
+                'is_owner' => $isOwner,
+                'is_game_exempt' => $isGameExempt,
                 'is_vip' => $c->isVip(),
                 'is_self' => $c->id === $character->id,
                 'is_online' => $isOnline,
@@ -63,7 +70,9 @@ class MembersController extends Controller
                 'gang_name' => $c->gang?->name,
                 'gang_tag' => $c->gang?->tag,
                 'gang_role' => $c->gang_role,
-                'role_label' => $c->gang_role === 'leader' ? 'Bendeleider' : ($c->gang_role === 'co_leader' ? 'Co-Leider' : ($c->gang_id ? 'Bendelid' : 'Geen bende')),
+                'role_label' => $isOwner
+                    ? 'Eigenaar'
+                    : ($c->gang_role === 'leader' ? 'Bendeleider' : ($c->gang_role === 'co_leader' ? 'Co-Leider' : ($c->gang_id ? 'Bendelid' : 'Geen bende'))),
                 'gang_url' => $c->gang_id ? route('gangs.show', $c->gang_id) : route('gangs.index'),
                 'last_active_human' => $c->last_active_at ? $c->last_active_at->diffForHumans() : 'Nooit actief',
                 'last_active_timestamp' => $c->last_active_at ? $c->last_active_at->timestamp : 0,

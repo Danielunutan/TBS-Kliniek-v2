@@ -139,7 +139,7 @@ class ResetGangsAndEconomyCommand extends Command
 
             if (! $isDryRun) {
                 Character::query()
-                    ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+                    ->playable()
                     ->where(function ($q) {
                         $q->where('cash', '>', 250)
                             ->orWhere('bank', '>', 1000)
@@ -166,7 +166,7 @@ class ResetGangsAndEconomyCommand extends Command
 
                 // Sync alle actieve karakters hun last_gang_wage_at naar nu zodat er geen spookloon ontstaat
                 Character::query()
-                    ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+                    ->playable()
                     ->update([
                         'last_gang_wage_at' => $now,
                     ]);

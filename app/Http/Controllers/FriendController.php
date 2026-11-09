@@ -334,6 +334,9 @@ class FriendController extends Controller
         }
 
         $target = $friend->friend;
+        if ($target->isGameExempt() || $character->isGameExempt()) {
+            return back()->with('error', 'Eigenaren doen niet mee aan het spel en ontvangen geen respectpunten.');
+        }
         $respectBonus = $friend->is_bff ? 2 : 1;
 
         $errorMsg = DB::transaction(function () use ($friend, $target, $respectBonus, $character): ?string {

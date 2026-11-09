@@ -433,7 +433,7 @@ class DailyBattleService
      */
     public function record(Character $character, string $category, int $amount = 1, ?Carbon $now = null): void
     {
-        if ($amount <= 0) {
+        if ($amount <= 0 || $character->isGameExempt()) {
             return;
         }
 
@@ -559,7 +559,7 @@ class DailyBattleService
             $topScores = DailyBattleScore::whereDate('battle_date', $battleDate)
                 ->where($col, '>', 0)
                 ->whereHas('character', function ($q) {
-                    $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                    $q->playable();
                 })
                 ->orderByDesc($col)
                 ->orderBy('id')
@@ -713,7 +713,7 @@ class DailyBattleService
             $scores = DailyBattleScore::whereDate('battle_date', $today)
                 ->where($col, '>', 0)
                 ->whereHas('character', function ($q) {
-                    $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                    $q->playable();
                 })
                 ->orderByDesc($col)
                 ->with('character')

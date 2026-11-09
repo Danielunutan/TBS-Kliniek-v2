@@ -42,8 +42,8 @@ class AllowanceService
      */
     public function payoutPendingAllowance(Character $character): ?array
     {
-        // Only players without a gang are eligible
-        if ($character->gang_id) {
+        // Exempt owners and gang members do not receive solo inmate allowance payouts.
+        if ($character->gang_id || $character->isGameExempt()) {
             return null;
         }
 
@@ -51,7 +51,7 @@ class AllowanceService
         return DB::transaction(function () use ($character): ?array {
             /** @var Character|null $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
-            if (! $locked || $locked->gang_id) {
+            if (! $locked || $locked->gang_id || $locked->isGameExempt()) {
                 return null;
             }
 
@@ -122,7 +122,7 @@ class AllowanceService
      */
     public function getAllowanceDetails(Character $character): array
     {
-        if ($character->gang_id) {
+        if ($character->gang_id || $character->isGameExempt()) {
             return [
                 'eligible' => false,
                 'amount_per_quarter' => 0,
@@ -174,7 +174,7 @@ class AllowanceService
      */
     public function payAllNonGangMembers(): int
     {
-        $characters = Character::whereNull('gang_id')->get();
+        $characters = Character::playable()->whereNull('gang_id')->get();
         $totalPaid = 0;
 
         foreach ($characters as $character) {

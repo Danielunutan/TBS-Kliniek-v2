@@ -62,14 +62,12 @@ class EventHustleChallengeService
             return;
         }
 
-        if ($character instanceof Character && in_array($character->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+        $charModel = $character instanceof Character ? $character : Character::with('user')->find((int) $character);
+        if (! $charModel || $charModel->isGameExempt()) {
             return;
         }
 
-        $characterId = $character instanceof Character ? $character->id : (int) $character;
-        if (! $characterId) {
-            return;
-        }
+        $characterId = $charModel->id;
 
         try {
             EventHustleEntry::create([
@@ -139,7 +137,7 @@ class EventHustleChallengeService
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->whereHas('character', function ($q) {
-                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                $q->playable();
             })
             ->groupBy('character_id')
             ->orderByDesc('total_hustles')
@@ -151,7 +149,7 @@ class EventHustleChallengeService
 
         $charIds = $rows->pluck('character_id')->all();
         $characters = Character::whereIn('id', $charIds)
-            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+            ->playable()
             ->get(['id', 'name', 'level', 'avatar', 'avatar_custom', 'gender'])
             ->keyBy('id');
 
@@ -188,8 +186,8 @@ class EventHustleChallengeService
         }
 
         if ($myCharacterId && ! $myRankData) {
-            $myChar = Character::find($myCharacterId);
-            if ($myChar && ! in_array($myChar->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+            $myChar = Character::with('user')->find($myCharacterId);
+            if ($myChar && ! $myChar->isGameExempt()) {
                 $myRankData = [
                     'rank' => null,
                     'character_id' => $myChar->id,
@@ -231,7 +229,7 @@ class EventHustleChallengeService
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->whereHas('character', function ($q) {
-                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                $q->playable();
             })
             ->groupBy('character_id')
             ->orderByDesc('total_hustles')

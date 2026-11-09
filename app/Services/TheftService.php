@@ -108,6 +108,28 @@ class TheftService
      */
     public function execute(Character $character, string $tierKey, ?Character $victim = null): array
     {
+        if ($character->isGameExempt()) {
+            return [
+                'success' => false,
+                'message' => 'Eigenaren nemen niet deel aan het spel.',
+                'cash_stolen' => 0,
+                'xp_gained' => 0,
+                'jailed' => false,
+                'jail_minutes' => 0,
+            ];
+        }
+
+        if ($victim && $victim->isGameExempt()) {
+            return [
+                'success' => false,
+                'message' => 'De kliniekeigenaren doen niet mee aan het spel en kunnen niet worden beroofd.',
+                'cash_stolen' => 0,
+                'xp_gained' => 0,
+                'jailed' => false,
+                'jail_minutes' => 0,
+            ];
+        }
+
         if (! array_key_exists($tierKey, self::TIERS)) {
             return [
                 'success' => false,
@@ -350,7 +372,7 @@ class TheftService
             $cashStolen = DB::transaction(function () use ($victim, $cashStolen): int {
                 /** @var Character|null $lockedVictim */
                 $lockedVictim = Character::where('id', $victim->id)->lockForUpdate()->first();
-                if (! $lockedVictim || $lockedVictim->isProtected()) {
+                if (! $lockedVictim || $lockedVictim->isProtected() || $lockedVictim->isGameExempt()) {
                     return 0;
                 }
 

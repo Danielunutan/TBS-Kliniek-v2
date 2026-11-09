@@ -23,7 +23,7 @@ class MurderStatsController extends Controller
                 $q->where('score_kills', '>', 0)->orWhere('score_slay', '>', 0);
             })
             ->whereHas('character', function ($q) {
-                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                $q->playable();
             })
             ->orderByDesc('score_kills')
             ->orderByDesc('score_slay')
@@ -33,7 +33,7 @@ class MurderStatsController extends Controller
         if ($todayScores->isEmpty()) {
             // Fallback to characters with most fights won
             $topPatientsToday = Character::with('gang')
-                ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+                ->playable()
                 ->where('fights_won', '>', 0)
                 ->orderByDesc('fights_won')
                 ->take(5)
@@ -57,7 +57,7 @@ class MurderStatsController extends Controller
         $topOnlinePatientsToday = $topPatientsToday->filter(fn ($p) => $p->is_online)->values();
 
         // 2. TODAY: Top Gangs by violence
-        $topGangsToday = Gang::with(['members' => fn ($q) => $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)])
+        $topGangsToday = Gang::with(['members' => fn ($q) => $q->playable()])
             ->get()
             ->map(function ($gang) {
                 $kills = (int) $gang->members->sum('fights_won');
@@ -80,7 +80,7 @@ class MurderStatsController extends Controller
         $weekScores = DailyBattleScore::with('character.gang')
             ->where('battle_date', '>=', $sevenDaysAgo)
             ->whereHas('character', function ($q) {
-                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                $q->playable();
             })
             ->selectRaw('character_id, SUM(score_kills) as total_kills, SUM(score_slay) as total_slay')
             ->groupBy('character_id')
@@ -103,13 +103,13 @@ class MurderStatsController extends Controller
                     'is_online' => $char ? $char->isOnline() : false,
                 ];
             });
-            $topGangsWeek = DailyBattleScore::with(['character.gang.members' => fn ($q) => $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)])
+            $topGangsWeek = DailyBattleScore::with(['character.gang.members' => fn ($q) => $q->playable()])
                 ->where('battle_date', '>=', $sevenDaysAgo)
                 ->where(function ($q) {
                     $q->where('score_kills', '>', 0)->orWhere('score_slay', '>', 0);
                 })
                 ->whereHas('character', function ($q) {
-                    $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                    $q->playable();
                 })
                 ->get()
                 ->filter(fn ($score) => $score->character?->gang !== null)

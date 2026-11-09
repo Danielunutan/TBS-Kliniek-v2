@@ -19,6 +19,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Class Character
@@ -55,6 +56,7 @@ use Illuminate\Support\Facades\Hash;
  * @property int $prison_sentences
  * @property int $prison_escapes
  * @property bool $is_in_prison
+ * @property bool $is_game_exempt
  * @property Carbon|null $prison_until
  * @property string|null $prison_reason
  * @property int|null $gang_id
@@ -114,6 +116,7 @@ class Character extends Model
         'cash_protection_until' => 'datetime',
         'last_active_at' => 'datetime',
         'is_in_prison' => 'boolean',
+        'is_game_exempt' => 'boolean',
         'level' => 'integer',
         'xp' => 'integer',
         'total_xp' => 'integer',
@@ -1412,6 +1415,16 @@ class Character extends Model
                 return false;
             }
 
+            if ($locked->isGameExempt()) {
+                $locked->discord_reward_claimed_at = now();
+                $locked->save();
+
+                $this->fill($locked->getAttributes());
+                $this->syncOriginal();
+
+                return true;
+            }
+
             $hasPermanentVip = $locked->isLifetimeVip();
             $locked->cash += 2500;
             $locked->is_vip = true;
@@ -2359,12 +2372,47 @@ class Character extends Model
 
     public const EXCLUDED_SYSTEM_NAMES = ['Kliniek Directie'];
 
+    private static bool $verifiedGameExemptColumn = false;
+
     /**
-     * Scope query to exclude system accounts from player rankings and combat.
+     * Check once per process whether the characters table has the is_game_exempt column.
+     */
+    private static function hasGameExemptColumn(string $table): bool
+    {
+        if (self::$verifiedGameExemptColumn) {
+            return true;
+        }
+
+        if (Schema::hasColumn($table, 'is_game_exempt')) {
+            self::$verifiedGameExemptColumn = true;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Scope query to active gameplay participants, excluding system accounts and game-exempt owners.
+     */
+    public function scopePlayable($query)
+    {
+        $table = $query->getModel()->getTable();
+
+        if (self::hasGameExemptColumn($table)) {
+            $query->where("{$table}.is_game_exempt", false);
+        }
+
+        return $query->whereNotIn("{$table}.name", self::EXCLUDED_SYSTEM_NAMES)
+            ->whereDoesntHave('user', fn ($uq) => $uq->where('role', 'owner'));
+    }
+
+    /**
+     * Scope query to exclude system and exempt owner accounts from player rankings and combat.
      */
     public function scopeRankable($query)
     {
-        return $query->whereNotIn('name', self::EXCLUDED_SYSTEM_NAMES);
+        return $this->scopePlayable($query);
     }
 
     /**
@@ -2379,7 +2427,7 @@ class Character extends Model
             return $cached;
         }
 
-        $rankings = static::whereNotIn('name', self::EXCLUDED_SYSTEM_NAMES)->orderByDesc('respect')->take($limit)->get();
+        $rankings = static::playable()->orderByDesc('respect')->take($limit)->get();
         Cache::put('tbs_top_rankings_'.$limit, $rankings, 60);
 
         return $rankings;
@@ -2495,6 +2543,84 @@ class Character extends Model
     }
 
     /**
+     * Check whether this character is exempt from gameplay progression, rankings, and PvP.
+     */
+    public function isGameExempt(): bool
+    {
+        return (bool) ($this->is_game_exempt ?? false)
+            || in_array((string) $this->name, self::EXCLUDED_SYSTEM_NAMES, true)
+            || $this->isOwner();
+    }
+
+    /**
+     * Determine whether a mutating route is blocked for game-exempt owner accounts.
+     * Uses an allowlist of administrative, account, and social routes so unnamed gameplay routes fail closed.
+     */
+    public static function isRouteBlockedForOwner(?string $routeName): bool
+    {
+        if ($routeName === null || $routeName === '') {
+            return true;
+        }
+
+        $allowedPrefixes = [
+            'admin.',
+            'onboarding.',
+            'verification.',
+            'help.tickets.',
+            'notifications.',
+            'chat.',
+            'report.',
+            'messages.',
+            'timeline.',
+            'radio.',
+            'cinema.',
+            'guestbook.',
+            'settings.',
+            'push.',
+            'news.',
+            'warning.',
+            'discord.',
+        ];
+
+        foreach ($allowedPrefixes as $prefix) {
+            if (str_starts_with($routeName, $prefix)) {
+                return false;
+            }
+        }
+
+        $allowedExactRoutes = [
+            'logout',
+            'rookie.tour.complete',
+            'halloween.equip-border',
+            'vip.styling',
+            'profile.update',
+            'profile.avatar',
+            'profile.title',
+            'profile.customize',
+            'friends.add',
+            'friends.toggle-bff',
+            'friends.accept',
+            'friends.reject',
+            'friends.remove',
+            'friends.mass-message',
+        ];
+
+        return ! in_array($routeName, $allowedExactRoutes, true);
+    }
+
+    /**
+     * Check whether this character must be blocked from executing the given mutating route.
+     */
+    public function isActionBlockedForOwner(?string $routeName): bool
+    {
+        if (! $this->isGameExempt()) {
+            return false;
+        }
+
+        return self::isRouteBlockedForOwner($routeName);
+    }
+
+    /**
      * Check if character user is admin.
      */
     public function isAdmin(): bool
@@ -2563,6 +2689,10 @@ class Character extends Model
      */
     public function addRespect(float|int $amount): void
     {
+        if ($this->isGameExempt()) {
+            return;
+        }
+
         if ($amount <= 0 || is_nan((float) $amount) || is_infinite((float) $amount)) {
             return;
         }

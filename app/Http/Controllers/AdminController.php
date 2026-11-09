@@ -262,6 +262,18 @@ class AdminController extends Controller
                             $targetUser->is_staff = in_array($newRole, ['owner', 'admin', 'moderator'], true);
                             $targetUser->save();
 
+                            if ($newRole === 'owner') {
+                                $character->is_game_exempt = true;
+                                if (empty($character->title) || $character->title === 'Modelpatiënt') {
+                                    $character->title = 'Eigenaar';
+                                }
+                            } elseif ($oldRole === 'owner') {
+                                $character->is_game_exempt = false;
+                                if ($character->level < 1) {
+                                    $character->level = 1;
+                                }
+                            }
+
                             if ($oldRole !== $newRole) {
                                 try {
                                     GameNotification::create([

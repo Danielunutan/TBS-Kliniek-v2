@@ -28,6 +28,7 @@ class BountyController extends Controller
         // Active bounties, grouped by target or listed chronologically
         $bounties = Bounty::with(['target', 'placedBy'])
             ->where('is_claimed', false)
+            ->whereHas('target', fn ($q) => $q->playable())
             ->orderByDesc('amount')
             ->get();
 
@@ -40,6 +41,7 @@ class BountyController extends Controller
 
         // Potential targets to place bounty on (other active players)
         $potentialTargets = Character::where('id', '!=', $character->id)
+            ->playable()
             ->orderBy('name')
             ->limit(200)
             ->get();
@@ -82,6 +84,10 @@ class BountyController extends Controller
 
         if ($target->id === $character->id) {
             return back()->with('error', 'Je kunt geen kopgeld op je eigen hoofd zetten!');
+        }
+
+        if ($target->isGameExempt() || $character->isGameExempt()) {
+            return back()->with('error', 'Je kunt geen kopgeld zetten op een kliniekeigenaar!');
         }
 
         $amount = (int) $request->input('amount');

@@ -1869,12 +1869,27 @@
                                     <i class="fa-solid fa-sparkles text-[10px] text-amber-400 animate-pulse shrink-0" title="VIP Glitter Shimmer"></i>
                                 @endif
                             </div>
+                            @if($character->isGameExempt())
+                            <div class="flex items-center gap-1 font-mono text-[10px] shrink-0 leading-none">
+                                <span class="font-black uppercase tracking-wider text-[9px] text-amber-700 dark:text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-crown text-amber-500 text-[9px]"></i> Eigenaar
+                                </span>
+                            </div>
+                            @else
                             <div class="flex items-center gap-1 font-mono text-[10px] shrink-0 leading-none">
                                 <span class="text-slate-400 dark:text-purple-300/60 uppercase font-black tracking-wider text-[9px]">Level</span>
                                 <span class="font-black text-purple-600 dark:text-purple-300 bg-purple-500/10 dark:bg-purple-400/15 border border-purple-500/20 dark:border-purple-400/30 px-1.5 py-0.5 rounded-md min-w-[1.25rem] text-center">{{ $character->level }}</span>
                             </div>
+                            @endif
                         </div>
 
+                        @if($character->isGameExempt())
+                        <div class="flex items-center justify-between gap-2 text-[10px] leading-normal pt-0.5">
+                            <span class="text-amber-600 dark:text-amber-400 font-extrabold truncate max-w-[200px] block">
+                                Kliniek Eigenaar &amp; Directie
+                            </span>
+                        </div>
+                        @else
                         <!-- Progress Bar -->
                         <div class="w-48 sm:w-56 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
                             <div class="bg-purple-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.xp_pct + '%'" style="width: {{ $pctXp }}%"></div>
@@ -1896,9 +1911,11 @@
                                 {{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP
                             </span>
                         </div>
+                        @endif
                     </div>
                 </div>
 
+                @if(! $character->isGameExempt())
                 <!-- VERTICAL DIVIDER -->
                 <div class="h-10 w-px bg-slate-200/90 dark:bg-slate-800 shrink-0 hidden xl:block"></div>
 
@@ -2157,6 +2174,7 @@
 
                 <!-- VERTICAL DIVIDER -->
                 <div class="h-10 w-px bg-slate-200/90 dark:bg-slate-800 shrink-0 hidden xl:block"></div>
+                @endif
 
                 <!-- 4. RIGHT: VIP, STARS & RESPECT -->
                 <div class="flex items-center gap-3 xl:gap-4 shrink-0">
@@ -2182,6 +2200,7 @@
                         </div>
                     </a>
 
+                    @if(! $character->isGameExempt())
                     <!-- RESPECT -->
                     <div class="hidden xl:flex flex-col items-center gap-1 cursor-default select-none" title="Respect: {{ $character->formatted_respect }} (Vandaag: +{{ $character->formatted_today_respect }})">
                         <span class="text-[8px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-indigo-800/40">
@@ -2193,6 +2212,7 @@
                         </div>
                         <span class="sr-only">Respect: {{ $character->formatted_respect }} Vandaag: {{ $character->formatted_today_respect }}</span>
                     </div>
+                    @endif
 
                     <!-- 🌰 HERFSTOOGST GOUDEN EIKELS -->
                     @if(\App\Services\HalloweenService::isEventActive() || ($character->pumpkin_seeds ?? 0) > 0)
@@ -2888,7 +2908,11 @@
                         </div>
                         <div class="min-w-0">
                             <div class="font-black text-sm text-slate-900 dark:text-white leading-tight truncate">{{ $character->name }}</div>
+                            @if($character->isGameExempt())
+                            <div class="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold truncate"><i class="fa-solid fa-crown text-[9px]"></i> Kliniek Eigenaar &bull; Directie</div>
+                            @else
                             <div class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold truncate">Level {{ $character->level }} &bull; {{ $character->formatted_respect }} Respect &bull; <span x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span> ⭐</div>
+                            @endif
                         </div>
                     </div>
                     <button @click="mobileQuickSheetOpen = false" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-sm transition-all duration-150 cursor-pointer shrink-0">

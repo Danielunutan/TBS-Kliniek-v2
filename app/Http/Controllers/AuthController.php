@@ -53,9 +53,9 @@ class AuthController extends Controller
         try {
             $stats = Cache::remember('tbs_login_page_stats', 300, function () {
                 return [
-                    'totalPlayers' => Character::count(),
-                    'totalCash' => (int) (Character::sum('cash') + Character::sum('bank')),
-                    'topCharacters' => Character::with('user')->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)->orderByDesc('respect')->limit(4)->get(),
+                    'totalPlayers' => Character::playable()->count(),
+                    'totalCash' => (int) (Character::playable()->sum('cash') + Character::playable()->sum('bank')),
+                    'topCharacters' => Character::with('user')->playable()->orderByDesc('respect')->limit(4)->get(),
                 ];
             });
             $totalPlayers = $stats['totalPlayers'];

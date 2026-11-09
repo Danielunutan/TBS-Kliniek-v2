@@ -57,10 +57,12 @@ class EventDrugsProductionService
             return;
         }
 
-        $characterId = $character instanceof Character ? $character->id : (int) $character;
-        if (! $characterId) {
+        $charModel = $character instanceof Character ? $character : Character::with('user')->find((int) $character);
+        if (! $charModel || $charModel->isGameExempt()) {
             return;
         }
+
+        $characterId = $charModel->id;
 
         try {
             EventDrugProduction::create([
@@ -117,7 +119,7 @@ class EventDrugsProductionService
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->whereHas('character', function ($q) {
-                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                $q->playable();
             })
             ->groupBy('character_id')
             ->orderByDesc('total_produced')
@@ -129,7 +131,7 @@ class EventDrugsProductionService
 
         $charIds = $rows->pluck('character_id')->all();
         $characters = Character::whereIn('id', $charIds)
-            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+            ->playable()
             ->get(['id', 'name', 'level', 'avatar', 'avatar_custom', 'gender'])
             ->keyBy('id');
 
@@ -167,8 +169,8 @@ class EventDrugsProductionService
 
         // If player has not produced anything yet
         if ($myCharacterId && ! $myRankData) {
-            $myChar = Character::find($myCharacterId);
-            if ($myChar) {
+            $myChar = Character::with('user')->find($myCharacterId);
+            if ($myChar && ! $myChar->isGameExempt()) {
                 $myRankData = [
                     'rank' => $totalParticipants + 1,
                     'character_id' => $myChar->id,
@@ -215,7 +217,7 @@ class EventDrugsProductionService
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
             ->whereHas('character', function ($q) {
-                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                $q->playable();
             })
             ->groupBy('character_id')
             ->orderByDesc('total_produced')

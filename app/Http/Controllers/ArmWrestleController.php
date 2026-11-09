@@ -122,16 +122,25 @@ class ArmWrestleController extends Controller
             abort(404, 'Karakter niet gevonden.');
         }
 
-        $stat = CharacterArmWrestleStat::firstOrCreate(
-            ['character_id' => $character->id],
-            [
+        $stat = $character->isGameExempt()
+            ? new CharacterArmWrestleStat([
+                'character_id' => $character->id,
                 'wins' => 0,
                 'losses' => 0,
                 'current_streak' => 0,
                 'best_streak' => 0,
                 'total_profit' => 0,
-            ]
-        );
+            ])
+            : CharacterArmWrestleStat::firstOrCreate(
+                ['character_id' => $character->id],
+                [
+                    'wins' => 0,
+                    'losses' => 0,
+                    'current_streak' => 0,
+                    'best_streak' => 0,
+                    'total_profit' => 0,
+                ]
+            );
 
         $npcs = self::getNpcOpponents();
 
@@ -140,6 +149,7 @@ class ArmWrestleController extends Controller
             ->where('type', 'pvp')
             ->where('status', 'open')
             ->where('challenger_id', '!=', $character->id)
+            ->whereHas('challenger', fn ($q) => $q->playable())
             ->latest()
             ->take(8)
             ->get();
@@ -160,6 +170,7 @@ class ArmWrestleController extends Controller
         // Top 5 Arena Champions
         $topChampions = CharacterArmWrestleStat::with('character')
             ->where('wins', '>', 0)
+            ->whereHas('character', fn ($q) => $q->playable())
             ->orderByDesc('wins')
             ->orderByDesc('best_streak')
             ->take(5)
@@ -572,6 +583,10 @@ class ArmWrestleController extends Controller
 
             if ($match->challenger_id === $opponent->id) {
                 return back()->with('error', 'Je kunt je eigen uitdaging niet accepteren!');
+            }
+
+            if ($match->challenger?->isGameExempt() || $opponent->isGameExempt()) {
+                return back()->with('error', 'Eigenaren nemen niet deel aan het spel.');
             }
 
             $bet = (int) $match->bet_amount;

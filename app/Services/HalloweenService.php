@@ -513,7 +513,7 @@ class HalloweenService
      */
     public static function record(Character $character, string $category, int $count = 1): void
     {
-        if ($count <= 0 || ! self::isEventActive()) {
+        if ($count <= 0 || ! self::isEventActive() || $character->isGameExempt()) {
             return;
         }
 

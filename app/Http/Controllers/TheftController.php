@@ -41,7 +41,7 @@ class TheftController extends Controller
 
         // Other patients in the clinic with cash in their pockets
         $victims = Character::where('id', '!=', $character->id)
-            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+            ->playable()
             ->where('is_in_prison', false)
             ->orderByDesc('cash')
             ->limit(8)
@@ -110,11 +110,11 @@ class TheftController extends Controller
 
         $victim = null;
         if (! empty($validated['victim_id'])) {
-            $victim = Character::find($validated['victim_id']);
+            $victim = Character::with('user')->find($validated['victim_id']);
             if ($victim && $victim->id === $character->id) {
                 return back()->with('error', 'Je kunt je eigen zakken niet leegrollen!');
             }
-            if ($victim && in_array($victim->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+            if ($victim && $victim->isGameExempt()) {
                 return back()->with('error', 'Dit doelwit kan niet worden bestolen!');
             }
         }

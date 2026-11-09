@@ -72,7 +72,7 @@ class FightController extends Controller
 
         $query = Character::with('gang')
             ->where('id', '!=', $character->id)
-            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+            ->playable()
             ->where('is_in_prison', false);
 
         if ($sort === 'cash') {
@@ -184,8 +184,8 @@ class FightController extends Controller
             return null;
         }
 
-        $defender = Character::find($battle['defender_id']);
-        if (! $defender) {
+        $defender = Character::with('user')->find($battle['defender_id']);
+        if (! $defender || $defender->isGameExempt() || $attacker->isGameExempt()) {
             session()->forget(['pending_arena_battle', 'arena_battle']);
 
             return null;
@@ -634,9 +634,9 @@ class FightController extends Controller
             'cf-turnstile-response' => 'nullable|string',
         ]);
 
-        $defender = Character::findOrFail($validated['opponent_id']);
+        $defender = Character::with('user')->findOrFail($validated['opponent_id']);
 
-        if ($defender->id === $attacker->id || in_array($defender->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+        if ($defender->id === $attacker->id || $defender->isGameExempt() || $attacker->isGameExempt()) {
             return back()->with('error', 'Dit doelwit kan niet worden aangevallen!');
         }
 

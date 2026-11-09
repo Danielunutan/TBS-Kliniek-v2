@@ -23,7 +23,7 @@
                  if (this.filter === 'online' && !m.is_online) return false;
                  if (this.filter === 'offline' && m.is_online) return false;
                  if (this.filter === 'gang' && !m.gang_id) return false;
-                 if (this.filter === 'solo' && m.gang_id) return false;
+                 if (this.filter === 'solo' && (m.gang_id || m.is_game_exempt)) return false;
                  if (this.filter === 'vip' && !m.is_vip) return false;
                  if (this.filter === 'prison' && !m.is_in_prison) return false;
                  return true;
@@ -49,7 +49,7 @@
              return this.members.filter(m => m.gang_id).length;
          },
          get currentSoloCount() {
-             return this.members.filter(m => !m.gang_id).length;
+             return this.members.filter(m => !m.gang_id && !m.is_game_exempt).length;
          },
          get currentPrisonCount() {
              return this.members.filter(m => m.is_in_prison).length;
@@ -331,31 +331,47 @@
                         </div>
                     </div>
 
-                    <!-- Bende Badge on Top Right -->
+                    <!-- Bende / Eigenaar Badge on Top Right -->
                     <div class="shrink-0 text-right">
-                        <template x-if="m.gang_id">
+                        <template x-if="m.is_game_exempt">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl">
+                                <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i>
+                                <span>Eigenaar</span>
+                            </span>
+                        </template>
+                        <template x-if="!m.is_game_exempt && m.gang_id">
                             <a :href="m.gang_url" class="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-1 rounded-xl border border-purple-200/80 dark:border-purple-800/70 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition" :title="m.gang_name + ' (' + m.role_label + ')'">
                                 <i class="fa-solid fa-shield-halved text-[10px]"></i>
                                 <span class="font-mono font-extrabold" x-text="'[' + m.gang_tag + ']'"></span>
                             </a>
                         </template>
-                        <template x-if="!m.gang_id">
+                        <template x-if="!m.is_game_exempt && !m.gang_id">
                             <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-2 py-1 rounded-lg">Geen bende</span>
                         </template>
                     </div>
                 </div>
 
-                <!-- Mid Card: Level & Respect Stats Pill Grid -->
-                <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100 dark:border-slate-800/80">
-                    <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2.5 text-center">
-                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 block uppercase tracking-wider">Level</span>
-                        <span class="text-sm font-black text-slate-800 dark:text-slate-200 font-mono" x-text="m.level"></span>
+                <!-- Mid Card: Level & Respect Stats Pill Grid (or Owner Status Banner) -->
+                <template x-if="m.is_game_exempt">
+                    <div class="pt-1 border-t border-slate-100 dark:border-slate-800/80">
+                        <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 rounded-xl p-2.5 text-center text-[11px] font-extrabold text-amber-800 dark:text-amber-300 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-crown text-amber-500"></i>
+                            <span>Kliniek Eigenaar &bull; Buiten Spelcompetitie</span>
+                        </div>
                     </div>
-                    <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2.5 text-center">
-                        <span class="text-[10px] font-bold text-purple-600 dark:text-purple-400 block uppercase tracking-wider">Respect</span>
-                        <span class="text-sm font-black text-purple-700 dark:text-purple-300 font-mono" x-text="m.respect_formatted"></span>
+                </template>
+                <template x-if="!m.is_game_exempt">
+                    <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100 dark:border-slate-800/80">
+                        <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2.5 text-center">
+                            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 block uppercase tracking-wider">Level</span>
+                            <span class="text-sm font-black text-slate-800 dark:text-slate-200 font-mono" x-text="m.level"></span>
+                        </div>
+                        <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-2.5 text-center">
+                            <span class="text-[10px] font-bold text-purple-600 dark:text-purple-400 block uppercase tracking-wider">Respect</span>
+                            <span class="text-sm font-black text-purple-700 dark:text-purple-300 font-mono" x-text="m.respect_formatted"></span>
+                        </div>
                     </div>
-                </div>
+                </template>
 
                 <!-- Bottom Actions Bar -->
                 <div class="flex items-center gap-2 pt-1">
@@ -372,7 +388,7 @@
                         <span class="hidden sm:inline">Bericht</span>
                     </a>
 
-                    <template x-if="!m.is_self">
+                    <template x-if="!m.is_self && !m.is_game_exempt">
                         <a :href="'{{ route('fight.index') }}'"
                            title="Zoek op in de luchtplaats"
                            class="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/70 font-bold text-xs transition flex items-center justify-center shadow-2xs active:scale-95 cursor-pointer">
@@ -450,22 +466,28 @@
 
                             <!-- Gang -->
                             <td class="py-3.5 px-4">
-                                <template x-if="m.gang_id">
+                                <template x-if="m.is_game_exempt">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/70">
+                                        <i class="fa-solid fa-crown text-amber-500 text-[9px]"></i>
+                                        <span>Eigenaar</span>
+                                    </span>
+                                </template>
+                                <template x-if="!m.is_game_exempt && m.gang_id">
                                     <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
                                         <span class="px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-mono text-[10px]" x-text="'[' + m.gang_tag + ']'"></span>
                                         <span class="truncate max-w-[120px]" x-text="m.gang_name"></span>
                                     </span>
                                 </template>
-                                <template x-if="!m.gang_id">
+                                <template x-if="!m.is_game_exempt && !m.gang_id">
                                     <span class="text-slate-400 dark:text-slate-500 text-xs italic">Geen</span>
                                 </template>
                             </td>
 
                             <!-- Level -->
-                            <td class="py-3.5 px-4 text-right font-bold text-slate-700 dark:text-slate-300 font-mono" x-text="m.level"></td>
+                            <td class="py-3.5 px-4 text-right font-bold text-slate-700 dark:text-slate-300 font-mono" x-text="m.is_game_exempt ? '—' : m.level"></td>
 
                             <!-- Respect -->
-                            <td class="py-3.5 px-4 text-right font-extrabold text-purple-700 dark:text-purple-300 font-mono" x-text="m.respect_formatted"></td>
+                            <td class="py-3.5 px-4 text-right font-extrabold text-purple-700 dark:text-purple-300 font-mono" x-text="m.is_game_exempt ? '—' : m.respect_formatted"></td>
 
                             <!-- Actions -->
                             <td class="py-3.5 px-4 text-right">

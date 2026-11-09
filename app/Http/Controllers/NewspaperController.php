@@ -30,7 +30,8 @@ class NewspaperController extends Controller
             ->get();
 
         // 2. Currently Imprisoned Inmates in Isolation
-        $imprisonedInmates = Character::where('is_in_prison', true)
+        $imprisonedInmates = Character::playable()
+            ->where('is_in_prison', true)
             ->whereNotNull('prison_until')
             ->where('prison_until', '>', now())
             ->orderByDesc('prison_until')
@@ -38,7 +39,8 @@ class NewspaperController extends Controller
             ->get();
 
         // 3. Most feared fighter on the courtyard
-        $topFighter = Character::orderByDesc('fights_won')
+        $topFighter = Character::playable()
+            ->orderByDesc('fights_won')
             ->where('fights_won', '>', 0)
             ->first();
 
@@ -48,11 +50,14 @@ class NewspaperController extends Controller
             ->first();
 
         // 5. Patient of the day (Random active inmate spotlight)
-        $spotlightQuery = Character::where('level', '>=', 2);
+        $spotlightQuery = Character::playable()->where('level', '>=', 2);
         if ($character) {
             $spotlightQuery->where('id', '!=', $character->id);
         }
-        $spotlightPatient = $spotlightQuery->inRandomOrder()->first() ?? $character ?? Character::first();
+        $spotlightPatient = $spotlightQuery->inRandomOrder()->first()
+            ?? Character::playable()->first()
+            ?? $character
+            ?? Character::first();
 
         // 6. Current lottery jackpot info
         $lotteryRound = LotteryRound::current();

@@ -343,10 +343,14 @@ class ProfileController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        $targetCharacter = Character::where('name', $name)->firstOrFail();
+        $targetCharacter = Character::with('user')->where('name', $name)->firstOrFail();
 
         if ($targetCharacter->id === $myCharacter->id) {
             return back()->with('error', 'Je kunt jezelf geen respect aanbieden!');
+        }
+
+        if ($targetCharacter->isGameExempt() || $myCharacter->isGameExempt()) {
+            return back()->with('error', 'Eigenaren doen niet mee aan het spel en ontvangen geen respectpunten.');
         }
 
         $errorMsg = DB::transaction(function () use ($myCharacter, $targetCharacter): ?string {

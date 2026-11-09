@@ -167,6 +167,7 @@ class PrisonController extends Controller
 
         // Real prisoners currently locked up with active time
         $realPrisoners = Character::where('is_in_prison', true)
+            ->playable()
             ->whereNotNull('prison_until')
             ->where('prison_until', '>', now())
             ->where('id', '!=', $character->id)
@@ -223,6 +224,7 @@ class PrisonController extends Controller
 
         // Top real breakers leaderboard
         $topBreakers = Character::where('prison_escapes', '>', 0)
+            ->playable()
             ->orderByDesc('prison_escapes')
             ->take(5)
             ->get();
@@ -642,7 +644,7 @@ class PrisonController extends Controller
                 return ['status' => 'rescuer_comatose'];
             }
 
-            if (! $lockedTarget || ! $lockedTarget->isImprisoned()) {
+            if (! $lockedTarget || ! $lockedTarget->isImprisoned() || $lockedTarget->isGameExempt()) {
                 return ['status' => 'target_free'];
             }
 
