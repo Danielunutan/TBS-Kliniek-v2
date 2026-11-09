@@ -241,7 +241,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Hoe werkt de Roterende Smokkel Garage en wagenhandel?',
-                        'a' => "💡 IN HET KORT: In de garage koop je voertuigen voor overvallen en bende-producties. Elk half uur arriveert er een nieuwe lading van 8 wagens in wisselende staat!\n\n📋 DE ROULERENDE WAGENMARKT ('/garage'):\n• 🕒 Elk Half Uur Nieuwe Lading: Om het hele en halve uur arriveert een nieuwe selectie van 8 unieke voertuigen.\n• 🔧 Projectwagens & Koopjes: Voertuigen worden aangeboden met wisselende schadecondities. Een opknapper met lagere conditie kent een gigantische korting: repareer hem zelf voordelig in je werkplaats en verkoop hem door of doneer hem aan je bende!\n• 🚀 Getunede Motoren: Sommige wagens arriveren met fabrieks-tuning en extra topsnelheid. Dit snelheidsvoordeel blijft permanent behouden!\n• 🏎️ 28 Voertuigmodellen: Van Tomos en Zip Scooter tot Golf GTI, G63 AMG, Speedboten en Vluchthelikopters die je allemaal kunt inzetten.",
+                        'a' => "💡 IN HET KORT: In de garage koop je voertuigen voor overvallen en bende-producties. Elk half uur arriveert er een nieuwe lading van 8 wagens in wisselende staat!\n\n📋 DE ROULERENDE WAGENMARKT ('/garage'):\n• 🕒 Elk Half Uur Nieuwe Lading: Om het hele en halve uur arriveert een nieuwe selectie van 8 unieke voertuigen.\n• 🔧 Projectwagens & Koopjes: Voertuigen worden aangeboden met wisselende schadecondities. Een opknapper met lagere conditie kent een gigantische korting: repareer hem zelf voordelig in je werkplaats en verkoop hem door of doneer hem aan je bende!\n• 🤝 Inruilen bij Dealer (Handel): Heb je een auto opgeknapt? Klik op 'Inruilen bij Dealer' om hem direct te verkopen voor gegarandeerd bankgeld én +40 Handels-XP!\n• 🚀 Getunede Motoren: Sommige wagens arriveren met fabrieks-tuning en extra topsnelheid. Dit snelheidsvoordeel blijft permanent behouden!\n• 🏎️ 28 Voertuigmodellen: Van Tomos en Zip Scooter tot Golf GTI, G63 AMG, Speedboten en Vluchthelikopters die je allemaal kunt inzetten.",
                         'links' => [
                             ['text' => 'Naar Smokkel Garage', 'url' => route('garage.index')],
                         ],
@@ -493,6 +493,20 @@ class FaqController extends Controller
                         'a' => "💡 IN HET KORT: Elke dag strijden alle spelers in 7 categorieën; wie om 00:00 uur in de top 3 staat, wint gratis Gouden Sterren ⭐, Kluiscodes 🔐, XXL Smokkelkoffers en Bivakmutsen!\n\n📋 DE 7 CATEGORIEËN ('/24-uur-battle'):\n1. 🥊 Afdelingsslachting (Meeste Gevechten gewonnen);\n2. 🚬 Kliniek Hosselaars (Meeste Hossels geslaagd);\n3. 👊 Afpersings-Syndicaat (Meeste Afpersingen geslaagd);\n4. ⛓️ Uitbraak-Experts (Meeste Gevangenen bevrijd);\n5. 💊 Pillen-Productie (Meeste Contrabande geproduceerd);\n6. 💵 Contrabande-Afzet (Meeste Contrabande verhandeld);\n7. 🎯 Genadeloze Liquidaties (Meeste Doelwitten geliquideerd).\n\n🔥 PRO-TIP: Elke categorie keert dagelijks 10 Sterren ⭐, 10 Kluiscodes 🔐, 10 XXL Koffers en 10 Bivakmutsen uit aan de Top 3 (verdeling 5 / 3 / 2)!",
                         'links' => [
                             ['text' => '24 Uur Battle Stand', 'url' => route('battle.index')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Wat houdt de Seizoen 2 Sprint (30 Dagen) in en wie wint er?',
+                        'a' => "💡 IN HET KORT: Seizoen 2 duurt exact 30 dagen (1 maand). Iedereen begint zij aan zij vanaf Level 1 met gelijke kansen. Aan het einde van de maand worden de officiële TBS Kampioenen en de machtigste bende gekroond met exclusieve prijzen, geld en unieke badges op hun profiel!\n\n📋 ZO WERKT DE SPRINT:\n• ⏱️ Looptijd: Exact 30 dagen vanaf de seizoensstart (zie de live afteller op je Dashboard);\n• ⚖️ Eerlijk Speelveld: Geen oneindige energy refill treinen meer, anti-pestslot van maximaal 3 liquidaties per doelwit per dag, en een vergeldingsslot van 1x per uur buiten levelbereik;\n• 🛡️ Wat bleef behouden: Al je Gouden Sterren, VIP Punten, actieve VIP-dagen, pompoenpitten en je bende zijn veilig bewaard;\n• 🏆 Wie wint: De absolute nummer 1 van de Ranglijst en de bende met de meeste invloed en respect worden vereeuwigd in de Hall of Fame!",
+                        'links' => [
+                            ['text' => 'Bekijk Ranglijst', 'url' => route('leaderboard.index')],
+                        ],
+                    ],
+                    [
+                        'q' => 'Wat is De Grote Hossel Challenge (tot en met vrijdag) en wat win ik?',
+                        'a' => "💡 IN HET KORT: Van nu tot en met vrijdag 13 november om 23.59 uur loopt De Grote Hossel Challenge. De speler met de meeste geslaagde hossels op de 3 topklussen wint 750 Gouden Sterren ⭐ en €150.000.000 contant bankgeld!\n\n📋 DE 3 KWALIFICERENDE KLUSSEN:\n1. 🎲 Recreatie Bookie (16 Energie)\n2. 🚬 Shag Kartel (20 Energie)\n3. 📱 Kliniek Telecom (24 Energie)\n\nBekijk de live ranglijst op de nieuwspagina om te zien wie er aan kop gaat!",
+                        'links' => [
+                            ['text' => 'Naar Hosselen', 'url' => route('hustle.index')],
                         ],
                     ],
                 ],

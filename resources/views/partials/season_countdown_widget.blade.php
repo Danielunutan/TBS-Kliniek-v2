@@ -1,6 +1,6 @@
 <div x-data="{
-    // Exact 3 months from launch (27 Jan 2027 22:00:00 CET)
-    target: new Date('2027-01-27T22:00:00+01:00').getTime(),
+    // Exact 30 days season sprint from reset (09 Dec 2026 22:00:00 CET)
+    target: new Date('2026-12-09T22:00:00+01:00').getTime(),
     days: 0,
     hours: 0,
     minutes: 0,
@@ -30,17 +30,17 @@ class="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-white dark:bg-slate-90
             <div class="flex flex-wrap items-center gap-2">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70">
                     <i class="fa-solid fa-trophy text-amber-500 text-[10px]"></i>
-                    SEIZOEN 1 AFTELLER
+                    SEIZOEN 2 SPRINT
                 </span>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
-                    Duur: Precies 3 Maanden
+                    Duur: Exact 1 Maand (30 Dagen)
                 </span>
             </div>
             <h2 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Strijd om de Seizoen 1 Kampioenstitel</span>
+                <span>Strijd om de Seizoen 2 Kampioenstitel</span>
             </h2>
             <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Iedereen start gelijk op Level 1 met €250 cash. Over 3 maanden sluit de seizoenscompetitie en worden de officiële TBS Kampioenen gekroond met exclusieve prijzen en badges!
+                Iedereen start gelijk op Level 1 met €250 cash. Over exact 30 dagen sluit deze razendsnelle seizoenssprint en worden de officiële TBS Kampioenen gekroond met exclusieve seizoensprijzen en unieke badges!
             </p>
         </div>
 
@@ -49,7 +49,7 @@ class="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-white dark:bg-slate-90
             
             <!-- Days -->
             <div class="flex flex-col items-center justify-center flex-1 min-w-0 sm:flex-none sm:w-18 py-2.5 px-1 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs text-center">
-                <span class="font-mono text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400" x-text="days">90</span>
+                <span class="font-mono text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400" x-text="days">30</span>
                 <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dagen</span>
             </div>
 
@@ -91,7 +91,7 @@ class="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-white dark:bg-slate-90
                 <i class="fa-solid fa-check text-amber-500"></i> Behoud van Sterren &amp; VIP Punten
             </span>
             <span class="flex items-center gap-1.5">
-                <i class="fa-solid fa-check text-amber-500"></i> Bende Controleposten Neutraal
+                <i class="fa-solid fa-check text-amber-500"></i> Donatie-Coulance Hersteld
             </span>
         </div>
         <div class="flex items-center gap-2">

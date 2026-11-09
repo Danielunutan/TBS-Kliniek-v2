@@ -49,13 +49,13 @@ style="display: none; z-index: 9999;">
         <div class="relative text-center space-y-2">
             <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70">
                 <i class="fa-solid fa-fire text-amber-500"></i>
-                <span>Seizoen 1 Officieel Geopend</span>
+                <span>Seizoen 2 Sprint Officieel Geopend</span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
                 Welkom in het Nieuwe Seizoen!
             </h2>
             <p class="text-xs sm:text-sm max-w-md mx-auto leading-relaxed text-slate-600 dark:text-slate-300">
-                De deuren van de TBS Kliniek zijn heropend. Iedereen begint weer gelijk. Gebruik deze 3 officiële kluiscodes voor een vliegende start in Seizoen 1!
+                De deuren van de TBS Kliniek zijn heropend voor een spannende sprint van 30 dagen. Iedereen begint weer gelijk. Gebruik deze officiële kluiscodes voor een vliegende start!
             </p>
         </div>
 
