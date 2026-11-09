@@ -13,29 +13,24 @@ class ResetCellUpgradesCommand extends Command
 
     public function handle(): int
     {
-        $this->info('Controleren van cel upgrades in de database...');
+        $this->info('Controleren van cel upgrades en audit logs in de database...');
 
-        $characters = Character::all()->filter(function (Character $c) {
-            $upgrades = $c->cell_upgrades;
-            return ! empty($upgrades) && is_array($upgrades);
-        });
+        $charIds = [42, 52, 86, 113];
+        $logs = \App\Models\AuditLog::where('action', 'cell.upgrade')
+            ->whereIn('character_id', $charIds)
+            ->orderBy('created_at', 'asc')
+            ->get();
 
-        $this->info("Aantal karakters met actieve cel upgrades: " . $characters->count());
-
-        foreach ($characters as $char) {
-            $upgradesJson = json_encode($char->cell_upgrades);
-            $this->line("   -> [#{$char->id}] {$char->name}: {$upgradesJson}");
+        $this->info("Aantal cell.upgrade audit logs gevonden voor deze karakters: " . $logs->count());
+        foreach ($logs as $log) {
+            $this->line("   [{$log->created_at}] Karakter #{$log->character_id} ({$log->character?->name}): {$log->description}");
         }
 
-        if ($this->option('dry-run')) {
-            $this->warn('DRY RUN: Geen wijzigingen opgeslagen.');
-            return self::SUCCESS;
+        // Check season reset time from character or user or audit log
+        $resetLog = \App\Models\AuditLog::where('action', 'like', '%reset%')->first();
+        if ($resetLog) {
+            $this->info("Reset log gevonden op: {$resetLog->created_at} | {$resetLog->action}");
         }
-
-        // Reset via Eloquent and direct DB update to be 100% thorough
-        $affected = DB::table('characters')->update(['cell_upgrades' => null]);
-
-        $this->info("Succesvol alle cel upgrades gereset ({$affected} rijen bijgewerkt).");
 
         return self::SUCCESS;
     }
