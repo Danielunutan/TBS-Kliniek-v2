@@ -964,6 +964,50 @@ class GangPropertyCatalog
     }
 
     /**
+     * Get batch specialists available during production runs.
+     * Costs scale proportionally with the property's base cash reward,
+     * ensuring specialists are ALWAYS affordable and profitable for every tier of property.
+     *
+     * @param int $baseRewardCash
+     * @return array<string, array{key: string, name: string, cost: int, benefit: string, icon: string}>
+     */
+    public static function getBatchSpecialists(int $baseRewardCash = 0): array
+    {
+        // 35% of base reward (min €15.000) for +100% Cash payout (net +65% extra cash profit)
+        $managerCost = max(15000, (int) round($baseRewardCash * 0.35));
+
+        // 25% of base reward (min €10.000) for -50% Productietijd (halves cycle duration)
+        $chemistCost = max(10000, (int) round($baseRewardCash * 0.25));
+
+        // 15% of base reward (min €7.500) for heavy lab defense
+        $enforcerCost = max(7500, (int) round($baseRewardCash * 0.15));
+
+        return [
+            'chemisch_specialist' => [
+                'key' => 'chemisch_specialist',
+                'name' => 'Dr. Walter V. (Meesterchemicus)',
+                'cost' => $chemistCost,
+                'benefit' => '-50% productietijd',
+                'icon' => '🧪',
+            ],
+            'productie_manager' => [
+                'key' => 'productie_manager',
+                'name' => 'Dimitri "De Opzichter"',
+                'cost' => $managerCost,
+                'benefit' => '+100% cash opbrengst',
+                'icon' => '💰',
+            ],
+            'enforcer_kapitein' => [
+                'key' => 'enforcer_kapitein',
+                'name' => 'Boris "De Sloper"',
+                'cost' => $enforcerCost,
+                'benefit' => 'Zware lab-verdediging tegen invallen',
+                'icon' => '🛡️',
+            ],
+        ];
+    }
+
+    /**
      * Complete 100+ rich NPC recruits catalog.
      *
      * @return array<string, array<string, mixed>>

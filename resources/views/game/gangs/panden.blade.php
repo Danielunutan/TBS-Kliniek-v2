@@ -467,15 +467,18 @@
 
                     <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}" class="space-y-2">
                         @csrf
+                        @php
+                            $batchSpecialists = \App\Support\GangPropertyCatalog::getBatchSpecialists((int) ($owned->production_reward_cash ?? 0));
+                        @endphp
                         <div class="space-y-1">
                             <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Huur Specialist voor deze Cyclus (Optioneel):
                             </label>
                             <select name="batch_specialist" class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-xs">
                                 <option value="none">Standaard ploeg (Geen extra kosten)</option>
-                                <option value="chemisch_specialist">🧪 Dr. Walter V. &mdash; &euro;750.000 (-50% Productietijd)</option>
-                                <option value="productie_manager">💰 Dimitri De Opzichter &mdash; &euro;1.000.000 (+100% Cash)</option>
-                                <option value="enforcer_kapitein">🛡️ Boris De Sloper &mdash; &euro;500.000 (+Zware Verdediging)</option>
+                                <option value="chemisch_specialist">🧪 Dr. Walter V. &mdash; &euro;{{ number_format($batchSpecialists['chemisch_specialist']['cost'], 0, ',', '.') }} (-50% Productietijd)</option>
+                                <option value="productie_manager">💰 Dimitri De Opzichter &mdash; &euro;{{ number_format($batchSpecialists['productie_manager']['cost'], 0, ',', '.') }} (+100% Cash)</option>
+                                <option value="enforcer_kapitein">🛡️ Boris De Sloper &mdash; &euro;{{ number_format($batchSpecialists['enforcer_kapitein']['cost'], 0, ',', '.') }} (+Zware Verdediging)</option>
                             </select>
                         </div>
                         <button type="submit"

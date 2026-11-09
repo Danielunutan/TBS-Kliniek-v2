@@ -148,7 +148,7 @@ class VehiclesAndSpecialistsTest extends TestCase
 
         $this->actingAs($user);
 
-        // Start with Dr. Walter V. (chemisch_specialist, costs €750.000, halves time to 30 min)
+        // Start with Dr. Walter V. (chemisch_specialist, 25% van €200.000 = €50.000, halves time to 30 min)
         $response = $this->post(route('gangs.panden.start-production', $property), [
             'batch_specialist' => 'chemisch_specialist',
         ]);
@@ -158,8 +158,8 @@ class VehiclesAndSpecialistsTest extends TestCase
         $gang->refresh();
         $property->refresh();
 
-        // €750.000 deducted from treasury!
-        $this->assertEquals(4250000, $gang->treasury);
+        // €50.000 deducted from treasury!
+        $this->assertEquals(4950000, $gang->treasury);
         $this->assertEquals('producing', $property->production_status);
         $this->assertEquals('chemisch_specialist', $property->assigned_npc_key);
         // Duration is halved from 60 to 30 min

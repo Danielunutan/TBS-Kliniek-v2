@@ -639,23 +639,7 @@ class GangPropertyController extends Controller
             return back()->with('error', $fleetCheck['reason']);
         }
 
-        $specialists = [
-            'chemisch_specialist' => [
-                'name' => 'Dr. Walter V. (Meesterchemicus)',
-                'cost' => 750000,
-                'benefit' => '-50% productietijd',
-            ],
-            'productie_manager' => [
-                'name' => 'Dimitri "De Opzichter"',
-                'cost' => 1000000,
-                'benefit' => '+100% cash opbrengst',
-            ],
-            'enforcer_kapitein' => [
-                'name' => 'Boris "De Sloper"',
-                'cost' => 500000,
-                'benefit' => 'Zware lab-verdediging tegen invallen',
-            ],
-        ];
+        $specialists = GangPropertyCatalog::getBatchSpecialists((int) $property->production_reward_cash);
 
         $specialistKey = $request->input('batch_specialist', 'none');
         $hiredNotice = '';
