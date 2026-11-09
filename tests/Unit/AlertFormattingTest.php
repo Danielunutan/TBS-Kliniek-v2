@@ -18,3 +18,4 @@ class AlertFormattingTest extends TestCase
         $this->assertStringContainsString('Smokkelkiosken Limiet', $html);
     }
 }
+

@@ -2137,141 +2137,436 @@
                     <div class="space-y-4">
                         
                         <!-- Item 1: Smokkelkiosken (Kantine Kiosk) -->
-                        <div x-data="{ qty: {{ $possibleBlingShops }} }" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2.5 flex-wrap">
-                                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <i class="fa-solid fa-store text-purple-600 dark:text-purple-400"></i>
-                                        <span>Smokkelkiosken (Kantine Kiosk)</span>
-                                    </h3>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-[11px] font-mono">
-                                        <i class="fa-solid fa-store text-[10px]"></i>
-                                        <span>In bezit: {{ number_format($myGang?->bling_shops ?? 0, 0, ',', '.') }} / 1.000 kiosken</span>
-                                    </span>
-                                </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Verhoogt het bende-basisloon met een vaste <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+€50 per uur per kiosk</strong> (maximaal 1.000 kiosken = +€50.000/u). Prijs: <strong class="text-slate-900 dark:text-white">€50.000</strong>
-                                    <span class="text-slate-400 mx-1">&bull;</span>
-                                    Uit Gangpot: <strong class="text-purple-700 dark:text-purple-400 font-extrabold">{{ number_format($possibleBlingShops, 0, ',', '.') }}x</strong>
-                                    @if(!empty($wageBreakdown['kiosks_income']))
+                        <div x-data="{
+                            qty: {{ $possibleBlingShops > 0 ? 1 : 0 }},
+                            unitPrice: 50000,
+                            bonusPerUnit: 50,
+                            maxPossible: {{ $possibleBlingShops }},
+                            maxTreasury: {{ $gangTreasury }},
+                            get totalCost() { return (Math.max(0, parseInt(this.qty) || 0)) * this.unitPrice; },
+                            get totalWageBonus() { return (Math.max(0, parseInt(this.qty) || 0)) * this.bonusPerUnit; },
+                            get remainingTreasury() { return Math.max(0, this.maxTreasury - this.totalCost); },
+                            addQty(amount) {
+                                let q = Math.max(0, parseInt(this.qty) || 0) + amount;
+                                this.qty = Math.min(q, this.maxPossible);
+                            },
+                            formatEuro(val) {
+                                return '€' + (Number(val) || 0).toLocaleString('nl-NL');
+                            },
+                            formatNumber(val) {
+                                return (Number(val) || 0).toLocaleString('nl-NL');
+                            }
+                        }" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl p-5 space-y-4 shadow-2xs">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2.5 flex-wrap">
+                                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                            <i class="fa-solid fa-store text-purple-600 dark:text-purple-400"></i>
+                                            <span>Smokkelkiosken (Kantine Kiosk)</span>
+                                        </h3>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-[11px] font-mono">
+                                            <i class="fa-solid fa-store text-[10px]"></i>
+                                            <span>In bezit: {{ number_format($myGang?->bling_shops ?? 0, 0, ',', '.') }} / 1.000 kiosken</span>
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Verhoogt het bende-basisloon met een vaste <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+€50 per uur per kiosk</strong> (maximaal 1.000 kiosken = +€50.000/u). Prijs: <strong class="text-slate-900 dark:text-white">€50.000</strong>
                                         <span class="text-slate-400 mx-1">&bull;</span>
-                                        Huidige Kiosk-opbrengst: <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+€{{ number_format($wageBreakdown['kiosks_income'], 0, ',', '.') }}/u</strong>
-                                    @endif
-                                </p>
+                                        Uit Gangpot: <strong class="text-purple-700 dark:text-purple-400 font-extrabold">{{ number_format($possibleBlingShops, 0, ',', '.') }}x</strong>
+                                        @if(!empty($wageBreakdown['kiosks_income']))
+                                            <span class="text-slate-400 mx-1">&bull;</span>
+                                            Huidige Kiosk-opbrengst: <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+€{{ number_format($wageBreakdown['kiosks_income'], 0, ',', '.') }}/u</strong>
+                                        @endif
+                                    </p>
+                                </div>
                             </div>
-                            <form action="{{ route('gangs.shop-buy') }}" method="POST" class="flex items-center gap-2">
+
+                            <form action="{{ route('gangs.shop-buy') }}" method="POST" class="space-y-3">
                                 @csrf
                                 <input type="hidden" name="item_type" value="bling_shops">
-                                <input type="number" 
-                                       name="quantity" 
-                                       x-model.number="qty"
-                                       min="{{ $possibleBlingShops > 0 ? 1 : 0 }}" 
-                                       max="{{ max(1, $possibleBlingShops) }}" 
-                                       value="{{ $possibleBlingShops }}" 
-                                       class="w-20 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none focus:border-purple-500">
-                                @if($possibleBlingShops > 0)
-                                <button type="button" 
-                                        @click="qty = {{ $possibleBlingShops }}"
-                                        class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-black text-[10px] uppercase transition cursor-pointer active:scale-95">
-                                    Max
-                                </button>
-                                @endif
-                                <button type="submit" 
-                                        @if($possibleBlingShops <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                        :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || qty > ' . max(0, $possibleBlingShops) }}"
-                                        class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95">
-                                    Koop
-                                </button>
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                    <div class="relative flex-1">
+                                        <input type="number" 
+                                               name="quantity" 
+                                               x-model.number="qty"
+                                               min="{{ $possibleBlingShops > 0 ? 1 : 0 }}" 
+                                               max="{{ max(1, $possibleBlingShops) }}" 
+                                               class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-black text-slate-900 dark:text-white font-mono focus:outline-none focus:border-purple-500">
+                                    </div>
+                                    <button type="submit" 
+                                            @if($possibleBlingShops <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                            :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || totalCost > maxTreasury || qty > maxPossible' }}"
+                                            class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95 shrink-0 flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-cart-shopping text-xs"></i>
+                                        <span>Koop Kiosken</span>
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-1.5 flex-wrap pt-1">
+                                    <span class="text-[10px] font-black uppercase text-slate-400 mr-1">Snel Kiezen:</span>
+                                    <button type="button" @click="qty = 1" class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">1x</button>
+                                    <button type="button" @click="addQty(5)" class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">+5</button>
+                                    <button type="button" @click="addQty(10)" class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">+10</button>
+                                    <button type="button" @click="addQty(50)" class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">+50</button>
+                                    <button type="button" @click="addQty(100)" class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">+100</button>
+                                    <button type="button" @click="qty = maxPossible" class="px-2.5 py-1 rounded-lg bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/80 text-purple-800 dark:text-purple-200 font-black text-[10px] uppercase transition cursor-pointer active:scale-95">Alles (Max: {{ number_format($possibleBlingShops, 0, ',', '.') }})</button>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-purple-50/70 dark:bg-slate-900/80 border border-purple-200/70 dark:border-purple-900/50 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                    <div class="flex items-center gap-3 flex-wrap">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Aankoop:</span>
+                                            <span class="font-mono font-black text-slate-900 dark:text-white" x-text="formatNumber(qty) + 'x Kiosken'"></span>
+                                        </div>
+                                        <div class="border-l border-slate-300 dark:border-slate-700 pl-3">
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Kosten:</span>
+                                            <span class="font-mono font-black text-purple-700 dark:text-purple-300" x-text="formatEuro(totalCost)"></span>
+                                        </div>
+                                        <div class="border-l border-slate-300 dark:border-slate-700 pl-3">
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Extra Uurloon:</span>
+                                            <span class="font-mono font-black text-emerald-600 dark:text-emerald-400" x-text="'+' + formatEuro(totalWageBonus) + '/uur'"></span>
+                                        </div>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                            Resterend kassaldo: <strong class="font-mono text-slate-900 dark:text-white" x-text="formatEuro(remainingTreasury)"></strong>
+                                        </div>
+                                    </div>
+                                </div>
                             </form>
                         </div>
 
                         <!-- Item 2: Bescherming -->
-                        <div x-data="{ qty: {{ $possibleProtection }} }" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2.5 flex-wrap">
-                                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <i class="fa-solid fa-shield text-indigo-600 dark:text-indigo-400"></i>
-                                        <span>Bescherming</span>
-                                    </h3>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-extrabold text-[11px] font-mono">
-                                        <i class="fa-solid fa-shield text-[10px]"></i>
-                                        <span>In bezit: {{ number_format($myGang?->protection_points ?? 1000, 0, ',', '.') }} punten</span>
-                                    </span>
+                        <div x-data="{
+                            mode: 'budget',
+                            qty: {{ $possibleProtection > 0 ? 1 : 0 }},
+                            budgetCash: {{ $possibleProtection > 0 ? 15000 : 0 }},
+                            unitPrice: 15000,
+                            bonusPerUnit: 5000,
+                            maxTreasury: {{ $gangTreasury }},
+                            get maxQty() { return Math.floor(this.maxTreasury / this.unitPrice); },
+                            get totalCost() { return (Math.max(0, parseInt(this.qty) || 0)) * this.unitPrice; },
+                            get totalBonus() { return (Math.max(0, parseInt(this.qty) || 0)) * this.bonusPerUnit; },
+                            get changeKept() {
+                                if (this.mode !== 'budget') return 0;
+                                let entered = Math.max(0, parseFloat(this.budgetCash) || 0);
+                                return Math.max(0, Math.min(entered, this.maxTreasury) - this.totalCost);
+                            },
+                            get remainingTreasury() { return Math.max(0, this.maxTreasury - this.totalCost); },
+                            setBudget(amount) {
+                                let capped = Math.min(amount, this.maxTreasury);
+                                this.budgetCash = capped;
+                                this.qty = Math.floor(capped / this.unitPrice);
+                            },
+                            addBudget(amount) {
+                                let current = Math.max(0, parseFloat(this.budgetCash) || 0);
+                                this.setBudget(current + amount);
+                            },
+                            setPercent(pct) {
+                                let budget = Math.floor(this.maxTreasury * (pct / 100));
+                                this.setBudget(budget);
+                            },
+                            onBudgetChange() {
+                                let val = Math.max(0, parseFloat(this.budgetCash) || 0);
+                                let capped = Math.min(val, this.maxTreasury);
+                                this.qty = Math.floor(capped / this.unitPrice);
+                            },
+                            onQtyChange() {
+                                let q = Math.max(0, parseInt(this.qty) || 0);
+                                q = Math.min(q, this.maxQty);
+                                this.qty = q;
+                                this.budgetCash = q * this.unitPrice;
+                            },
+                            formatEuro(val) {
+                                return '€' + (Number(val) || 0).toLocaleString('nl-NL');
+                            },
+                            formatNumber(val) {
+                                return (Number(val) || 0).toLocaleString('nl-NL');
+                            }
+                        }" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl p-5 space-y-4 shadow-2xs">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2.5 flex-wrap">
+                                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                            <i class="fa-solid fa-shield text-indigo-600 dark:text-indigo-400"></i>
+                                            <span>Bescherming</span>
+                                        </h3>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-extrabold text-[11px] font-mono">
+                                            <i class="fa-solid fa-shield text-[10px]"></i>
+                                            <span>In bezit: {{ number_format($myGang?->protection_points ?? 1000, 0, ',', '.') }} punten</span>
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Prijs per stuk: <strong class="text-slate-900 dark:text-white">€15.000</strong> <span class="text-emerald-600 dark:text-emerald-400 font-bold">(+5.000 bescherming)</span>
+                                        <span class="text-slate-400 mx-1">&bull;</span>
+                                        Uit Gangpot: <strong class="text-indigo-700 dark:text-indigo-400 font-extrabold">{{ number_format($possibleProtection, 0, ',', '.') }}x</strong>
+                                    </p>
                                 </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Prijs per stuk: <strong class="text-slate-900 dark:text-white">€15.000</strong> <span class="text-emerald-600 dark:text-emerald-400 font-bold">(+5.000 bescherming)</span>
-                                    <span class="text-slate-400 mx-1">&bull;</span>
-                                    Uit Gangpot: <strong class="text-indigo-700 dark:text-indigo-400 font-extrabold">{{ number_format($possibleProtection, 0, ',', '.') }}x</strong>
-                                </p>
+                                <div class="flex items-center gap-1.5 bg-slate-200/80 dark:bg-slate-700/80 p-1 rounded-xl shrink-0 self-start sm:self-auto">
+                                    <button type="button" @click="mode = 'budget'" :class="mode === 'budget' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'" class="px-3 py-1.5 rounded-lg font-extrabold text-[11px] transition cursor-pointer flex items-center gap-1.5">
+                                        <i class="fa-solid fa-calculator text-[10px]"></i>
+                                        <span>Euro-Budget (€)</span>
+                                    </button>
+                                    <button type="button" @click="mode = 'qty'" :class="mode === 'qty' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'" class="px-3 py-1.5 rounded-lg font-extrabold text-[11px] transition cursor-pointer flex items-center gap-1.5">
+                                        <i class="fa-solid fa-cubes text-[10px]"></i>
+                                        <span>Aantal Stuks</span>
+                                    </button>
+                                </div>
                             </div>
-                            <form action="{{ route('gangs.shop-buy') }}" method="POST" class="flex items-center gap-2">
+
+                            <form action="{{ route('gangs.shop-buy') }}" method="POST" class="space-y-3">
                                 @csrf
                                 <input type="hidden" name="item_type" value="protection">
-                                <input type="number" 
-                                       name="quantity" 
-                                       x-model.number="qty"
-                                       min="{{ $possibleProtection > 0 ? 1 : 0 }}" 
-                                       max="{{ max(1, $possibleProtection) }}" 
-                                       value="{{ $possibleProtection }}" 
-                                       class="w-20 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none focus:border-purple-500">
-                                @if($possibleProtection > 0)
-                                <button type="button" 
-                                        @click="qty = {{ $possibleProtection }}"
-                                        class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-black text-[10px] uppercase transition cursor-pointer active:scale-95">
-                                    Max
-                                </button>
-                                @endif
-                                <button type="submit" 
-                                        @if($possibleProtection <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                        :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || qty > ' . max(0, $possibleProtection) }}"
-                                        class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95">
-                                    Koop
-                                </button>
+                                <input type="hidden" name="quantity" :value="qty">
+
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                    <template x-if="mode === 'budget'">
+                                        <div class="flex-1 flex items-center gap-2">
+                                            <div class="relative flex-1">
+                                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-black text-xs">€</span>
+                                                <input type="number" 
+                                                       x-model.number="budgetCash" 
+                                                       @input="onBudgetChange()"
+                                                       min="0"
+                                                       :max="maxTreasury"
+                                                       placeholder="Bedrag in euro's (bijv. 100000000)"
+                                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2.5 text-xs font-black text-slate-900 dark:text-white font-mono focus:outline-none focus:border-indigo-500">
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template x-if="mode === 'qty'">
+                                        <div class="flex-1 flex items-center gap-2">
+                                            <div class="relative flex-1">
+                                                <input type="number" 
+                                                       x-model.number="qty" 
+                                                       @input="onQtyChange()"
+                                                       min="1"
+                                                       :max="maxQty"
+                                                       placeholder="Aantal stuks"
+                                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-black text-slate-900 dark:text-white font-mono focus:outline-none focus:border-indigo-500">
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <button type="submit" 
+                                            @if($possibleProtection <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                            :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || totalCost > maxTreasury' }}"
+                                            class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95 shrink-0 flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-cart-shopping text-xs"></i>
+                                        <span>Koop Bescherming</span>
+                                    </button>
+                                </div>
+
+                                <!-- Quick Presets & Dyscalculie Hulpmiddelen -->
+                                <div class="flex items-center gap-1.5 flex-wrap pt-1">
+                                    <span class="text-[10px] font-black uppercase text-slate-400 mr-1">Snel Budget:</span>
+                                    <button type="button" @click="setBudget(1000000)" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€1M</button>
+                                    <button type="button" @click="setBudget(10000000)" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€10M</button>
+                                    <button type="button" @click="setBudget(50000000)" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€50M</button>
+                                    <button type="button" @click="setBudget(100000000)" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€100M</button>
+                                    <button type="button" @click="setBudget(1000000000)" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€1 Miljard</button>
+                                    <span class="text-slate-300 dark:text-slate-700 mx-1">|</span>
+                                    <button type="button" @click="setPercent(25)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-extrabold text-[10px] transition cursor-pointer active:scale-95">25% Kas</button>
+                                    <button type="button" @click="setPercent(50)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-extrabold text-[10px] transition cursor-pointer active:scale-95">50% Kas</button>
+                                    <button type="button" @click="setPercent(100)" class="px-2.5 py-1 rounded-lg bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/80 text-indigo-800 dark:text-indigo-200 font-black text-[10px] uppercase transition cursor-pointer active:scale-95">Alles (Max)</button>
+                                </div>
+
+                                <!-- Live Berekening & Wisselgeld Terugkoppeling -->
+                                <div class="p-3.5 rounded-xl bg-indigo-50/70 dark:bg-slate-900/80 border border-indigo-200/70 dark:border-indigo-900/50 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                    <div class="flex items-center gap-3 flex-wrap">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Aankoop:</span>
+                                            <span class="font-mono font-black text-slate-900 dark:text-white" x-text="formatNumber(qty) + 'x Bescherming'"></span>
+                                        </div>
+                                        <div class="border-l border-slate-300 dark:border-slate-700 pl-3">
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Werkelijke Kosten:</span>
+                                            <span class="font-mono font-black text-indigo-700 dark:text-indigo-300" x-text="formatEuro(totalCost)"></span>
+                                        </div>
+                                        <div class="border-l border-slate-300 dark:border-slate-700 pl-3">
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Opbrengst:</span>
+                                            <span class="font-mono font-black text-emerald-600 dark:text-emerald-400" x-text="'+' + formatNumber(totalBonus) + ' punten'"></span>
+                                        </div>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <template x-if="changeKept > 0">
+                                            <div class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center sm:justify-end gap-1">
+                                                <i class="fa-solid fa-circle-check text-[10px]"></i>
+                                                <span x-text="formatEuro(changeKept) + ' wisselgeld blijft veilig in de kas'"></span>
+                                            </div>
+                                        </template>
+                                        <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                            Resterend kassaldo: <strong class="font-mono text-slate-900 dark:text-white" x-text="formatEuro(remainingTreasury)"></strong>
+                                        </div>
+                                    </div>
+                                </div>
                             </form>
                         </div>
 
                         <!-- Item 3: Power -->
-                        <div x-data="{ qty: {{ $possiblePower }} }" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2.5 flex-wrap">
-                                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <i class="fa-solid fa-bolt text-amber-500"></i>
-                                        <span>Power</span>
-                                    </h3>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-extrabold text-[11px] font-mono">
-                                        <i class="fa-solid fa-bolt text-[10px]"></i>
-                                        <span>In bezit: {{ number_format($myGang?->attack_power ?? 500, 0, ',', '.') }} power</span>
-                                    </span>
+                        <div x-data="{
+                            mode: 'budget',
+                            qty: {{ $possiblePower > 0 ? 1 : 0 }},
+                            budgetCash: {{ $possiblePower > 0 ? 15000 : 0 }},
+                            unitPrice: 15000,
+                            bonusPerUnit: 5000,
+                            maxTreasury: {{ $gangTreasury }},
+                            get maxQty() { return Math.floor(this.maxTreasury / this.unitPrice); },
+                            get totalCost() { return (Math.max(0, parseInt(this.qty) || 0)) * this.unitPrice; },
+                            get totalBonus() { return (Math.max(0, parseInt(this.qty) || 0)) * this.bonusPerUnit; },
+                            get changeKept() {
+                                if (this.mode !== 'budget') return 0;
+                                let entered = Math.max(0, parseFloat(this.budgetCash) || 0);
+                                return Math.max(0, Math.min(entered, this.maxTreasury) - this.totalCost);
+                            },
+                            get remainingTreasury() { return Math.max(0, this.maxTreasury - this.totalCost); },
+                            setBudget(amount) {
+                                let capped = Math.min(amount, this.maxTreasury);
+                                this.budgetCash = capped;
+                                this.qty = Math.floor(capped / this.unitPrice);
+                            },
+                            addBudget(amount) {
+                                let current = Math.max(0, parseFloat(this.budgetCash) || 0);
+                                this.setBudget(current + amount);
+                            },
+                            setPercent(pct) {
+                                let budget = Math.floor(this.maxTreasury * (pct / 100));
+                                this.setBudget(budget);
+                            },
+                            onBudgetChange() {
+                                let val = Math.max(0, parseFloat(this.budgetCash) || 0);
+                                let capped = Math.min(val, this.maxTreasury);
+                                this.qty = Math.floor(capped / this.unitPrice);
+                            },
+                            onQtyChange() {
+                                let q = Math.max(0, parseInt(this.qty) || 0);
+                                q = Math.min(q, this.maxQty);
+                                this.qty = q;
+                                this.budgetCash = q * this.unitPrice;
+                            },
+                            formatEuro(val) {
+                                return '€' + (Number(val) || 0).toLocaleString('nl-NL');
+                            },
+                            formatNumber(val) {
+                                return (Number(val) || 0).toLocaleString('nl-NL');
+                            }
+                        }" class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl p-5 space-y-4 shadow-2xs">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2.5 flex-wrap">
+                                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                            <i class="fa-solid fa-bolt text-amber-500"></i>
+                                            <span>Power</span>
+                                        </h3>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-extrabold text-[11px] font-mono">
+                                            <i class="fa-solid fa-bolt text-[10px]"></i>
+                                            <span>In bezit: {{ number_format($myGang?->attack_power ?? 500, 0, ',', '.') }} power</span>
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Prijs per stuk: <strong class="text-slate-900 dark:text-white">€15.000</strong> <span class="text-emerald-600 dark:text-emerald-400 font-bold">(+5.000 power)</span>
+                                        <span class="text-slate-400 mx-1">&bull;</span>
+                                        Uit Gangpot: <strong class="text-amber-700 dark:text-amber-400 font-extrabold">{{ number_format($possiblePower, 0, ',', '.') }}x</strong>
+                                    </p>
                                 </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Prijs per stuk: <strong class="text-slate-900 dark:text-white">€15.000</strong> <span class="text-emerald-600 dark:text-emerald-400 font-bold">(+5.000 power)</span>
-                                    <span class="text-slate-400 mx-1">&bull;</span>
-                                    Uit Gangpot: <strong class="text-amber-700 dark:text-amber-400 font-extrabold">{{ number_format($possiblePower, 0, ',', '.') }}x</strong>
-                                </p>
+                                <div class="flex items-center gap-1.5 bg-slate-200/80 dark:bg-slate-700/80 p-1 rounded-xl shrink-0 self-start sm:self-auto">
+                                    <button type="button" @click="mode = 'budget'" :class="mode === 'budget' ? 'bg-amber-500 text-slate-950 font-black shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'" class="px-3 py-1.5 rounded-lg font-extrabold text-[11px] transition cursor-pointer flex items-center gap-1.5">
+                                        <i class="fa-solid fa-calculator text-[10px]"></i>
+                                        <span>Euro-Budget (€)</span>
+                                    </button>
+                                    <button type="button" @click="mode = 'qty'" :class="mode === 'qty' ? 'bg-amber-500 text-slate-950 font-black shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'" class="px-3 py-1.5 rounded-lg font-extrabold text-[11px] transition cursor-pointer flex items-center gap-1.5">
+                                        <i class="fa-solid fa-cubes text-[10px]"></i>
+                                        <span>Aantal Stuks</span>
+                                    </button>
+                                </div>
                             </div>
-                            <form action="{{ route('gangs.shop-buy') }}" method="POST" class="flex items-center gap-2">
+
+                            <form action="{{ route('gangs.shop-buy') }}" method="POST" class="space-y-3">
                                 @csrf
                                 <input type="hidden" name="item_type" value="power">
-                                <input type="number" 
-                                       name="quantity" 
-                                       x-model.number="qty"
-                                       min="{{ $possiblePower > 0 ? 1 : 0 }}" 
-                                       max="{{ max(1, $possiblePower) }}" 
-                                       value="{{ $possiblePower }}" 
-                                       class="w-20 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none focus:border-purple-500">
-                                @if($possiblePower > 0)
-                                <button type="button" 
-                                        @click="qty = {{ $possiblePower }}"
-                                        class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-black text-[10px] uppercase transition cursor-pointer active:scale-95">
-                                    Max
-                                </button>
-                                @endif
-                                <button type="submit" 
-                                        @if($possiblePower <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                        :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || qty > ' . max(0, $possiblePower) }}"
-                                        class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase cursor-pointer transition shadow-xs active:scale-95">
-                                    Koop
-                                </button>
+                                <input type="hidden" name="quantity" :value="qty">
+
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                    <template x-if="mode === 'budget'">
+                                        <div class="flex-1 flex items-center gap-2">
+                                            <div class="relative flex-1">
+                                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-black text-xs">€</span>
+                                                <input type="number" 
+                                                       x-model.number="budgetCash" 
+                                                       @input="onBudgetChange()"
+                                                       min="0"
+                                                       :max="maxTreasury"
+                                                       placeholder="Bedrag in euro's (bijv. 100000000)"
+                                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2.5 text-xs font-black text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500">
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template x-if="mode === 'qty'">
+                                        <div class="flex-1 flex items-center gap-2">
+                                            <div class="relative flex-1">
+                                                <input type="number" 
+                                                       x-model.number="qty" 
+                                                       @input="onQtyChange()"
+                                                       min="1"
+                                                       :max="maxQty"
+                                                       placeholder="Aantal stuks"
+                                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-black text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500">
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <button type="submit" 
+                                            @if($possiblePower <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                            :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'qty < 1 || totalCost > maxTreasury' }}"
+                                            class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-xs uppercase cursor-pointer transition shadow-xs active:scale-95 shrink-0 flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-cart-shopping text-xs"></i>
+                                        <span>Koop Power</span>
+                                    </button>
+                                </div>
+
+                                <!-- Quick Presets & Dyscalculie Hulpmiddelen -->
+                                <div class="flex items-center gap-1.5 flex-wrap pt-1">
+                                    <span class="text-[10px] font-black uppercase text-slate-400 mr-1">Snel Budget:</span>
+                                    <button type="button" @click="setBudget(1000000)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€1M</button>
+                                    <button type="button" @click="setBudget(10000000)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€10M</button>
+                                    <button type="button" @click="setBudget(50000000)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€50M</button>
+                                    <button type="button" @click="setBudget(100000000)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€100M</button>
+                                    <button type="button" @click="setBudget(1000000000)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 font-extrabold text-[10px] transition cursor-pointer active:scale-95">€1 Miljard</button>
+                                    <span class="text-slate-300 dark:text-slate-700 mx-1">|</span>
+                                    <button type="button" @click="setPercent(25)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-extrabold text-[10px] transition cursor-pointer active:scale-95">25% Kas</button>
+                                    <button type="button" @click="setPercent(50)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-extrabold text-[10px] transition cursor-pointer active:scale-95">50% Kas</button>
+                                    <button type="button" @click="setPercent(100)" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 font-black text-[10px] uppercase transition cursor-pointer active:scale-95">Alles (Max)</button>
+                                </div>
+
+                                <!-- Live Berekening & Wisselgeld Terugkoppeling -->
+                                <div class="p-3.5 rounded-xl bg-amber-50/70 dark:bg-slate-900/80 border border-amber-200/70 dark:border-amber-900/50 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                    <div class="flex items-center gap-3 flex-wrap">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Aankoop:</span>
+                                            <span class="font-mono font-black text-slate-900 dark:text-white" x-text="formatNumber(qty) + 'x Power'"></span>
+                                        </div>
+                                        <div class="border-l border-slate-300 dark:border-slate-700 pl-3">
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Werkelijke Kosten:</span>
+                                            <span class="font-mono font-black text-amber-700 dark:text-amber-400" x-text="formatEuro(totalCost)"></span>
+                                        </div>
+                                        <div class="border-l border-slate-300 dark:border-slate-700 pl-3">
+                                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Opbrengst:</span>
+                                            <span class="font-mono font-black text-emerald-600 dark:text-emerald-400" x-text="'+' + formatNumber(totalBonus) + ' power'"></span>
+                                        </div>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <template x-if="changeKept > 0">
+                                            <div class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center sm:justify-end gap-1">
+                                                <i class="fa-solid fa-circle-check text-[10px]"></i>
+                                                <span x-text="formatEuro(changeKept) + ' wisselgeld blijft veilig in de kas'"></span>
+                                            </div>
+                                        </template>
+                                        <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                            Resterend kassaldo: <strong class="font-mono text-slate-900 dark:text-white" x-text="formatEuro(remainingTreasury)"></strong>
+                                        </div>
+                                    </div>
+                                </div>
                             </form>
                         </div>
 

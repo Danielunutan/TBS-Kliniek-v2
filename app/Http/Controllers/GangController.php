@@ -1637,16 +1637,17 @@ class GangController extends Controller
 
         $validated = $request->validate([
             'item_type' => ['required', 'string', 'in:bling_shops,protection,power,max_members,gang_chat'],
-            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:1000000000'],
+            'budget_cash' => ['nullable', 'numeric', 'min:0'],
         ], [
             'quantity.min' => 'Kies minimaal 1 om aan te schaffen.',
-            'quantity.max' => 'Je kunt maximaal 1.000.000 per keer aanschaffen.',
+            'quantity.max' => 'Je kunt maximaal 1.000.000.000 per keer aanschaffen.',
         ]);
 
         $itemType = $validated['item_type'];
-        $qty = (int) $validated['quantity'];
+        $qty = (int) ($validated['quantity'] ?? 0);
 
-        return DB::transaction(function () use ($gang, $character, $itemType, $qty): RedirectResponse {
+        return DB::transaction(function () use ($gang, $character, $itemType, $qty, $request): RedirectResponse {
             /** @var Gang $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             /** @var Character $lockedCharacter */
@@ -1656,6 +1657,25 @@ class GangController extends Controller
                 return back()
                     ->with('active_gang_tab', 'winkel')
                     ->with('error', 'Je bent momenteel niet in staat om aankopen te doen.');
+            }
+
+            // Automatic calculation if budget_cash was provided
+            if ($request->filled('budget_cash') && $qty < 1) {
+                $unitPrice = match ($itemType) {
+                    'bling_shops' => 50000,
+                    'protection', 'power' => 15000,
+                    default => 0,
+                };
+                if ($unitPrice > 0) {
+                    $budgetCash = min((float) $request->input('budget_cash'), (float) $lockedGang->treasury);
+                    $qty = (int) floor($budgetCash / $unitPrice);
+                }
+            }
+
+            if ($qty < 1) {
+                return back()
+                    ->with('active_gang_tab', 'winkel')
+                    ->with('error', 'Kies minimaal 1 stuk om aan te schaffen.');
             }
 
             // Upgrades paid from the treasury spend shared gang money, so only officers may buy them.
