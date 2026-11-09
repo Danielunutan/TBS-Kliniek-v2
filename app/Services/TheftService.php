@@ -201,30 +201,16 @@ class TheftService
                 ];
             }
 
-            // Daily PvP attack limit: 100 per day (1000 for VIP)
-            $dailyKey = 'pvp_thefts_today_'.$character->id.'_'.now()->toDateString();
-            $dailyCount = cache()->get($dailyKey, 0);
-            $dailyLimit = $character->isVip() ? 1000 : 100;
+            // Daily PvP robbery limit per target person: 100 per day (1000 for VIP)
+            $today = now()->toDateString();
+            $targetDailyKey = "pvp_thefts_{$character->id}_{$victim->id}_{$today}";
+            $targetDailyCount = (int) cache()->get($targetDailyKey, 0);
+            $targetDailyLimit = $character->isVip() ? 1000 : 100;
 
-            if ($dailyCount >= $dailyLimit) {
+            if ($targetDailyCount >= $targetDailyLimit) {
                 return [
                     'success' => false,
-                    'message' => "Je hebt vandaag het maximale aantal aanvallen ({$dailyLimit}) bereikt. Kom morgen terug!",
-                    'cash_stolen' => 0,
-                    'xp_gained' => 0,
-                    'jailed' => false,
-                    'jail_minutes' => 0,
-                ];
-            }
-
-            // Anti-script rate limit: 3 steal attempts per target before cooling down
-            $attemptKey = "theft_attempts_{$character->id}_{$victim->id}";
-            $attempts = session($attemptKey, 0);
-
-            if ($attempts >= 3) {
-                return [
-                    'success' => false,
-                    'message' => "Je hebt {$victim->name} al 3 keer achter elkaar geprobeerd te bestelen! De beveiliging let nu op. Wacht even.",
+                    'message' => "Je hebt {$victim->name} vandaag al {$targetDailyLimit} keer gerold (maximaal {$targetDailyLimit}x per dag per persoon). Zoek een ander doelwit!",
                     'cash_stolen' => 0,
                     'xp_gained' => 0,
                     'jailed' => false,
@@ -260,8 +246,7 @@ class TheftService
         if ($victim) {
             // Attacker breaks own protection when initiating theft
             $character->breakProtection();
-            cache()->put($dailyKey, $dailyCount + 1, now()->endOfDay());
-            session([$attemptKey => $attempts + 1]);
+            cache()->put($targetDailyKey, $targetDailyCount + 1, now()->endOfDay());
         }
 
         // Calculate chance based on effective intelligence + stamina bonus (including gear)

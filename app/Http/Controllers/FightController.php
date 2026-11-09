@@ -631,11 +631,12 @@ class FightController extends Controller
             return back()->with('error', 'Dit doelwit kan niet worden aangevallen!');
         }
 
-        // 4. Max 100 attacks/thefts against the same person per day
+        // 4. Max attacks/thefts against the same person per day (100 for normal, 1000 for VIP)
+        $targetLimit = $attacker->isVip() ? 1000 : 100;
         $targetKey = "daily_attacks_{$attacker->id}_{$defender->id}_{$today}";
         $targetAttacks = (int) cache()->get($targetKey, 0);
-        if ($targetAttacks >= 100) {
-            return back()->with('error', "⛔ Je hebt {$defender->name} vandaag al 100 keer geprobeerd te bestelen! Zoek een ander doelwit.");
+        if ($targetAttacks >= $targetLimit) {
+            return back()->with('error', "⛔ Je hebt {$defender->name} vandaag al {$targetLimit} keer geprobeerd te bestelen! Zoek een ander doelwit.");
         }
 
         if ($defender->isImprisoned()) {

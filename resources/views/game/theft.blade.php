@@ -131,7 +131,7 @@
                     <span>Medepatiënten Zakkenrollen (PvP)</span>
                 </h2>
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Rol contanten van andere patiënten. Slachtoffers krijgen direct een alarm!
+                    Rol contanten van andere patiënten. Slachtoffers krijgen direct een alarm! Maximaal {{ $character->isVip() ? '1.000' : '100' }}x per dag per persoon{{ $character->isVip() ? ' (VIP voordeel)' : '' }}.
                 </p>
             </div>
             <span class="text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 px-2.5 py-1 rounded-xl shrink-0 inline-flex items-center gap-1">
