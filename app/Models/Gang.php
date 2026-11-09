@@ -142,6 +142,13 @@ class Gang extends Model
 
     public function npcs(): HasMany
     {
+        return $this->hasMany(GangNpc::class)->where(function ($q) {
+            $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+        });
+    }
+
+    public function allNpcs(): HasMany
+    {
         return $this->hasMany(GangNpc::class);
     }
 
@@ -203,7 +210,7 @@ class Gang extends Model
     public function getNpcDefenseBonusPercentAttribute(): int
     {
         $sum = $this->relationLoaded('npcs')
-            ? (int) $this->npcs->where('bonus_type', 'defense')->sum('bonus_value')
+            ? (int) $this->npcs->filter(fn ($n) => ! $n->isExpired())->where('bonus_type', 'defense')->sum('bonus_value')
             : (int) $this->npcs()->where('bonus_type', 'defense')->sum('bonus_value');
 
         return max(0, min(self::MAX_NPC_DEFENSE_BONUS_PERCENT, $sum));

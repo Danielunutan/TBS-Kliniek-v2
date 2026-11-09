@@ -44,6 +44,7 @@ class GangPropertyController extends Controller
 
         /** @var Gang $gang */
         $gang = $character->gang;
+        GangNpc::purgeExpiredForGang($gang);
         $gang->load(['properties', 'npcs.assignedProperty', 'leader', 'storedVehicles']);
 
         $catalog = GangPropertyCatalog::all();
@@ -616,11 +617,19 @@ class GangPropertyController extends Controller
                 $lockedChar->save();
             }
 
+            $hadAssignedNpc = $lockedProperty->assigned_npc_key;
             $lockedProperty->update([
                 'production_status' => 'idle',
                 'production_started_at' => null,
                 'production_ends_at' => null,
+                'assigned_npc_key' => null,
             ]);
+
+            if ($hadAssignedNpc) {
+                GangNpc::where('gang_id', $lockedGang->id)
+                    ->where('assigned_property_id', $lockedProperty->id)
+                    ->delete();
+            }
 
             AuditLogService::log(
                 action: 'gang.claim_production',
@@ -755,6 +764,7 @@ class GangPropertyController extends Controller
                 'bonus_type' => $npcData['bonus_type'],
                 'bonus_value' => $effectiveBonusValue,
                 'hired_at' => now(),
+                'expires_at' => now()->addMinutes(GangNpc::CONTRACT_DURATION_MINUTES),
             ]);
 
             return null;

@@ -100,6 +100,9 @@ class GangWageService
         $npcCatalog = GangPropertyCatalog::npcs();
 
         foreach ($npcs as $npc) {
+            if ($npc->isExpired()) {
+                continue;
+            }
             $npcsIncome += 500; // Base contribution per specialist
             $nDef = $npcCatalog[$npc->npc_key] ?? null;
             if ($nDef && ($nDef['bonus_type'] ?? '') === 'wage_bonus') {

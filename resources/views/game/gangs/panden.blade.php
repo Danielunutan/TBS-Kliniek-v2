@@ -494,7 +494,7 @@
                     <span>NPC Bendeleden &amp; Specialisten (Rotatie Showroom)</span>
                 </h2>
                 <p class="text-xs text-slate-500 dark:text-slate-400 max-w-2xl">
-                    Huur ervaren criminelen, chauffeurs, tuners, chemici en witwassers in (zoals Dimitri "De Opzichter") om jullie bende permanente bonussen te geven!
+                    Huur ervaren criminelen, enforcers en witwassers in voor een tijdelijk 30-minuten shiftcontract om jullie bende maximale verdediging en extra bende-uurloon te geven! Na 30 minuten verloopt hun contract en roteert er direct een verse lichting specialisten.
                 </p>
             </div>
             <div class="flex items-center gap-3 flex-wrap">
@@ -521,6 +521,74 @@
                 <p class="text-amber-800 dark:text-amber-300">
                     Om NPC bendeleden aan te nemen moet je bende eerst een <strong>Luxe Sky-Penthouse</strong>, <strong>Havenjachthuis</strong>, <strong>Grachtenpand</strong> of <strong>Bende Villa</strong> bezitten.
                 </p>
+            </div>
+        </div>
+        @endif
+
+        <!-- ACTIEVE INGEHUURDE SPECIALISTEN (30-MIN CONTRACTEN) -->
+        @if($hiredNpcs->count() > 0)
+        <div class="bg-white dark:bg-slate-900 border border-indigo-200/90 dark:border-indigo-900/60 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                        Actieve Specialisten in Dienst ({{ $hiredNpcs->count() }})
+                    </h3>
+                </div>
+                <span class="text-[11px] font-bold text-slate-400">
+                    Contractduur: 30 minuten per specialist
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" x-data="{
+                timers: @js($hiredNpcs->mapWithKeys(fn($n) => [$n->id => $n->secondsRemaining()])),
+                init() {
+                    setInterval(() => {
+                        for (let id in this.timers) {
+                            if (this.timers[id] > 0) {
+                                this.timers[id]--;
+                                if (this.timers[id] === 0) {
+                                    if (window.tbsToast) {
+                                        window.tbsToast('⚠️ Een 30-minuten NPC contract is verlopen! Huur direct een nieuwe specialist in.', 'warning');
+                                    }
+                                }
+                            }
+                        }
+                    }, 1000);
+                },
+                formatSec(s) {
+                    if (s <= 0) return 'Contract Verlopen';
+                    let m = Math.floor(s / 60);
+                    let sec = s % 60;
+                    return m + 'm ' + (sec < 10 ? '0' : '') + sec + 's';
+                }
+            }">
+                @foreach($hiredNpcs as $npc)
+                @php
+                    $nDef = $npcCatalog[$npc->npc_key] ?? null;
+                    $nIcon = $nDef['icon'] ?? 'fa-user-shield';
+                @endphp
+                <div class="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-4 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                            <i class="fa-solid {{ $nIcon }}"></i>
+                        </div>
+                        <div class="truncate">
+                            <h4 class="text-xs font-black text-slate-900 dark:text-white truncate">{{ $npc->name }}</h4>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ $npc->role_title }}</span>
+                            <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">
+                                +{{ $npc->bonus_value }}% {{ $npc->bonus_type === 'defense' ? 'Verdediging' : ($npc->bonus_type === 'wage_bonus' ? 'Uurloon' : 'Productie') }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800"
+                              :class="timers[{{ $npc->id }}] <= 180 ? 'text-rose-600 bg-rose-50 border-rose-200 animate-pulse' : ''"
+                              x-text="formatSec(timers[{{ $npc->id }}] || 0)"></span>
+                        <span class="block text-[9px] text-slate-400 mt-0.5">30m Contract</span>
+                    </div>
+                </div>
+                @endforeach
             </div>
         </div>
         @endif
@@ -586,9 +654,9 @@
                             @csrf
                             <button type="submit"
                                     @if(! $hasFreeSlot || ! $canAffordNpc || $isEnforcerAtCap || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
-                                    data-confirm="Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?"
-                                    data-confirm-title="NPC Specialist Aannemen"
-                                    data-confirm-btn="Ja, Aannemen"
+                                    data-confirm="Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor een 30-minuten shift voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?"
+                                    data-confirm-title="NPC Specialist Inhuren (30 Minuten)"
+                                    data-confirm-btn="Ja, Inhuren"
                                     data-confirm-type="success"
                                     data-confirm-icon="fa-user-plus"
                                     class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
@@ -600,7 +668,7 @@
                                 @elseif(! $canAffordNpc)
                                     <span>Te weinig in kas</span>
                                 @else
-                                    <span>Aannemen (€ {{ number_format($npcDef['cost'], 0, ',', '.') }})</span>
+                                    <span>Huur 30 Min (€ {{ number_format($npcDef['cost'], 0, ',', '.') }})</span>
                                 @endif
                             </button>
                         </form>
