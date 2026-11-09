@@ -105,7 +105,7 @@ class HitmanController extends Controller
                 $dailyDeathsReached = $target->needsReviveSerum()
                     || $target->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD
                     || (int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET;
-                $isLevelRestricted = ! $hasBloodFeud && (abs($character->level - $target->level) > 15);
+                $isLevelRestricted = abs($character->level - $target->level) > 15;
 
                 $intel = $intelMap->get($target->id);
                 $hasReadyIntel = $intel && ! empty($intel['is_ready']);
@@ -193,7 +193,7 @@ class HitmanController extends Controller
                 $dailyDeathsReached = $target->needsReviveSerum()
                     || $target->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD
                     || (int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET;
-                $isLevelRestricted = ! $hasBloodFeud && (abs($character->level - $target->level) > 15);
+                $isLevelRestricted = abs($character->level - $target->level) > 15;
 
                 $intel = $intelMap->get($target->id);
                 $hasReadyIntel = $intel && ! empty($intel['is_ready']);
@@ -638,10 +638,9 @@ class HitmanController extends Controller
         }
 
         $bloodFeud = BloodFeud::hasClaimAgainst($character, $target->id);
-        $canRetaliate = BloodFeud::canRetaliate($character, $target);
 
-        if (! $canRetaliate && (abs($character->level - $target->level) > 15)) {
-            return back()->with('error', "{$target->name} is buiten je levelbereik (maximaal 15 levels verschil, tenzij deze speler jouw bendeleden heeft aangevallen of er een bendeoorlog woedt).");
+        if (abs($character->level - $target->level) > 15) {
+            return back()->with('error', "{$target->name} is buiten je levelbereik (maximaal 15 levels verschil).");
         }
 
         if (($character->cash + $character->bank) < $contract['cost']) {
@@ -683,9 +682,8 @@ class HitmanController extends Controller
                     return back()->with('error', "{$lockedTarget->name} heeft actieve bescherming en kan niet worden aangevallen.");
                 }
 
-                $canRetaliate = BloodFeud::canRetaliate($lockedAttacker, $lockedTarget);
-                if (! $canRetaliate && (abs($lockedAttacker->level - $lockedTarget->level) > 15)) {
-                    return back()->with('error', "{$lockedTarget->name} is buiten je levelbereik (maximaal 15 levels verschil, tenzij deze speler jouw bendeleden heeft aangevallen of er een bendeoorlog woedt).");
+                if (abs($lockedAttacker->level - $lockedTarget->level) > 15) {
+                    return back()->with('error', "{$lockedTarget->name} is buiten je levelbereik (maximaal 15 levels verschil).");
                 }
 
                 if (($lockedAttacker->cash + $lockedAttacker->bank) < $contract['cost']) {
@@ -841,11 +839,9 @@ class HitmanController extends Controller
         }
 
         $bloodFeud = BloodFeud::hasClaimAgainst($attacker, $defender->id);
-        $canRetaliate = BloodFeud::canRetaliate($attacker, $defender);
-        $hasOpenBounty = class_exists(Bounty::class) && Bounty::where('target_character_id', $defender->id)->where('is_claimed', false)->exists();
 
-        if (! $canRetaliate && ! $hasOpenBounty && abs($attacker->level - $defender->level) > 15) {
-            return back()->with('error', "Het levelverschil tussen jou en {$defender->name} is te groot (maximaal 15 levels verschil, tenzij deze speler jouw bendeleden heeft aangevallen, er een bendeoorlog woedt of er een premie openstaat).");
+        if (abs($attacker->level - $defender->level) > 15) {
+            return back()->with('error', "Het levelverschil tussen jou en {$defender->name} is te groot (maximaal 15 levels verschil). Ter bescherming van alle spelers geldt een strikte limiet van maximaal 15 levels verschil.");
         }
 
         if ($attacker->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
@@ -887,6 +883,10 @@ class HitmanController extends Controller
                         return back()->with('error', "{$lockedDefender->name} is zojuist al geraakt of beschermd en kan nu niet worden beschoten.");
                     }
 
+                    if (abs($lockedAttacker->level - $lockedDefender->level) > 15) {
+                        return back()->with('error', "Het levelverschil tussen jou en {$lockedDefender->name} is te groot (maximaal 15 levels verschil).");
+                    }
+
                     $pairKillKey = "daily_liquidations_{$lockedAttacker->id}_{$lockedDefender->id}_".now()->toDateString();
                     $pairKillsToday = (int) Cache::get($pairKillKey, 0);
                     if ($pairKillsToday >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET) {
@@ -906,6 +906,8 @@ class HitmanController extends Controller
                     }
 
                     $lockedAttacker->breakProtection();
+                    // Combat Status: 30 minutes cooldown preventing voluntary isolation (anti-hit-and-run)
+                    $lockedAttacker->setCooldown('combat_isolation_cooldown', 1800);
 
                     // Deduct bullets & Koudbloedigheid focus
                     $lockedAttacker->bullets -= $bulletCount;
@@ -1022,6 +1024,8 @@ class HitmanController extends Controller
                             $shieldMultiplier *= (1.0 - ($safeProtectionPct / 100));
                         }
                         $stolenCash = (int) floor(max(0, (int) $lockedDefender->cash) * 0.45 * $shieldMultiplier);
+                        // Hard loot cap to prevent game-breaking instant losses of hundreds of millions
+                        $stolenCash = min(25000000, $stolenCash);
                         $stolenBank = 0;
                         $totalStolen = $stolenCash;
 
@@ -1032,6 +1036,9 @@ class HitmanController extends Controller
                             $lockedAttacker->cash = (int) $lockedAttacker->cash + $totalStolen;
                             EventCashHuntService::record($lockedAttacker, $totalStolen, 'hitman_loot');
                         }
+
+                        // Combat Status: 30 minutes cooldown preventing voluntary isolation (anti-hit-and-run)
+                        $lockedAttacker->setCooldown('combat_isolation_cooldown', 1800);
 
                         $lockedDefender->deaths_count = ($lockedDefender->deaths_count ?? 0) + 1;
                         $lockedDefender->incrementDailyDeaths();

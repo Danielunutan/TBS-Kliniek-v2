@@ -352,7 +352,7 @@
                 </span>
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Actieve Bloedwraak &amp; Bendevetes (7 Dagen)</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Geen levelgrens tegen daders die jou of je bendeleden hebben aangevallen + extra €25.000 &amp; +50 Respect wraakpremie!</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Vergeldingsrecht tegen daders die jou of je bendeleden hebben aangevallen (binnen max. 15 levels verschil) + extra €25.000 &amp; +50 Respect wraakpremie!</p>
                 </div>
             </div>
         </div>

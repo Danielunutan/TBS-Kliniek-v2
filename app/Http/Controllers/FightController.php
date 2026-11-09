@@ -239,6 +239,8 @@ class FightController extends Controller
                         $lockedAttacker->strength = ($lockedAttacker->strength ?? 10) + 1;
                     }
                 }
+                // Combat Status: 30 minutes cooldown preventing voluntary isolation (anti-hit-and-run)
+                $lockedAttacker->setCooldown('combat_isolation_cooldown', 1800);
                 $lockedAttacker->save();
 
                 // Award points if involved in an active 24h Bendeoorlog
@@ -333,6 +335,8 @@ class FightController extends Controller
                 $lockedDefender->fights_won += 1;
                 $damage = (int) ($battle['damage'] ?? 10);
                 $lockedAttacker->health = max(0, $lockedAttacker->health - $damage);
+                // Combat Status: 30 minutes cooldown preventing voluntary isolation (anti-hit-and-run)
+                $lockedAttacker->setCooldown('combat_isolation_cooldown', 1800);
                 $lockedAttacker->save();
 
                 $maxDefense = $lockedDefender->getMaxStatForLevel();

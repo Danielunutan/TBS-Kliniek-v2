@@ -2386,6 +2386,14 @@ class Character extends Model
     }
 
     /**
+     * Set cooldown duration for a character action.
+     */
+    public function setCooldown(string $action, int $seconds): void
+    {
+        app(\App\Services\CooldownService::class)->setCooldown($this, $action, $seconds);
+    }
+
+    /**
      * Get support tickets created by character.
      */
     public function supportTickets(): HasMany

@@ -51,6 +51,7 @@ class IsolationController extends Controller
         $vestSeconds = $character->getVestRemainingSeconds();
         $isImprisoned = $character->isImprisoned();
         $isComatose = $character->isComatose() || $character->needsReviveSerum();
+        $combatCooldownSeconds = $character->cooldownRemaining('combat_isolation_cooldown');
 
         return view('game.isolation.index', compact(
             'character',
@@ -67,7 +68,8 @@ class IsolationController extends Controller
             'hasVest',
             'vestSeconds',
             'isImprisoned',
-            'isComatose'
+            'isComatose',
+            'combatCooldownSeconds'
         ));
     }
 
@@ -120,6 +122,12 @@ class IsolationController extends Controller
                 $cdMins = max(1, (int) ceil($locked->cooldownRemaining('isolation_cooldown') / 60));
 
                 return "⏳ Je hebt je cel onlangs voortijdig ontgrendeld! Je moet nog {$cdMins} minuten wachten voordat je weer vrijwillig in isolatie kunt gaan.";
+            }
+
+            if ($locked->isOnCooldown('combat_isolation_cooldown')) {
+                $cdMins = max(1, (int) ceil($locked->cooldownRemaining('combat_isolation_cooldown') / 60));
+
+                return "⚔️ Je bevindt je in Gevechtsstatus (Combat Status)! Na het uitvoeren van een aanval of liquidatie kun je nog {$cdMins} minuten geen vrijwillige isolatie kopen.";
             }
 
             $baseTime = ($locked->protection_until && Carbon::now()->lt($locked->protection_until))

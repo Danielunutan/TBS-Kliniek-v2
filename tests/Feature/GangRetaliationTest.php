@@ -14,7 +14,7 @@ class GangRetaliationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_gang_leader_can_retaliate_against_enemy_who_attacked_gang_member_despite_level_difference(): void
+    public function test_gang_leader_cannot_retaliate_against_enemy_outside_15_level_limit(): void
     {
         $myGang = Gang::create([
             'name' => 'Syndicate A',
@@ -57,9 +57,7 @@ class GangRetaliationTest extends TestCase
         ]);
 
         // Level difference between leader (60) and enemy (12) is 48 (> 15).
-        // Before retaliation rights, leader is blocked from shooting enemy:
-        $this->assertFalse(BloodFeud::canRetaliate($leader, $enemy));
-
+        // Hard 15-level cap strictly blocks attacks outside 15 levels:
         $resBlocked = $this->actingAs($leaderUser)->post(route('hitman.shoot'), [
             'target_id' => $enemy->id,
             'bullets' => 10,
@@ -67,7 +65,7 @@ class GangRetaliationTest extends TestCase
         $resBlocked->assertSessionHas('error');
         $this->assertStringContainsString('levelverschil', session('error'));
 
-        // Now enemy attacks or liquidates our gang member (LowMember)
+        // Enemy attacks or liquidates our gang member (LowMember)
         BloodFeud::create([
             'attacker_id' => $enemy->id,
             'victim_id' => $victim->id,
@@ -76,69 +74,47 @@ class GangRetaliationTest extends TestCase
             'is_avenged' => false,
         ]);
 
-        // Retaliation right is immediately active for ANY member/leader of Syndicate A!
-        $this->assertTrue(BloodFeud::canRetaliate($leader, $enemy));
-
-        // Leader can now shoot enemy despite 48-level difference!
-        $resAllowed = $this->actingAs($leaderUser)->post(route('hitman.shoot'), [
+        // Hard 15-level cap still strictly protects against griefing outside 15 levels!
+        $resStillBlocked = $this->actingAs($leaderUser)->post(route('hitman.shoot'), [
             'target_id' => $enemy->id,
             'bullets' => 20,
         ]);
-        $resAllowed->assertSessionHas('success');
+        $resStillBlocked->assertSessionHas('error');
+        $this->assertStringContainsString('levelverschil', session('error'));
     }
 
-    public function test_gang_members_bypass_level_limits_during_active_gang_war(): void
+    public function test_combat_isolation_cooldown_blocks_buying_isolation_after_attack(): void
     {
-        $gangA = Gang::create([
-            'name' => 'Warriors A',
-            'tag' => 'WARA',
-            'specialty' => 'violence',
-            'treasury' => 100000,
-        ]);
-
-        $gangB = Gang::create([
-            'name' => 'Warriors B',
-            'tag' => 'WARB',
-            'specialty' => 'violence',
-            'treasury' => 100000,
-        ]);
-
-        $war = GangWar::create([
-            'challenger_gang_id' => $gangA->id,
-            'defender_gang_id' => $gangB->id,
-            'status' => 'active',
-            'started_at' => now(),
-            'ends_at' => now()->addHours(24),
-            'zone' => 'Luchtplaats',
-        ]);
-        $this->assertNotNull($war);
-
-        $memberAUser = User::factory()->create();
-        $memberA = Character::factory()->create([
-            'user_id' => $memberAUser->id,
-            'gang_id' => $gangA->id,
-            'level' => 50,
-            'bullets' => 100,
+        $attackerUser = User::factory()->create();
+        $attacker = Character::factory()->create([
+            'user_id' => $attackerUser->id,
+            'cash' => 500000,
+            'level' => 20,
+            'bullets' => 50,
             'energy' => 100,
             'current_location' => 'Paviljoen 1 (Gesloten)',
         ]);
 
-        $memberB = Character::factory()->create([
-            'gang_id' => $gangB->id,
-            'level' => 10,
-            'defense' => 10,
-            'health' => 100,
+        $defender = Character::factory()->create([
+            'level' => 20,
             'current_location' => 'Paviljoen 1 (Gesloten)',
         ]);
 
-        // Level difference is 40, but active 24h war grants full combat rights!
-        $this->assertTrue(BloodFeud::canRetaliate($memberA, $memberB));
-
-        $res = $this->actingAs($memberAUser)->post(route('hitman.shoot'), [
-            'target_id' => $memberB->id,
-            'bullets' => 15,
+        $res = $this->actingAs($attackerUser)->post(route('hitman.shoot'), [
+            'target_id' => $defender->id,
+            'bullets' => 10,
         ]);
-        $res->assertSessionHas('success');
+
+        $attacker->refresh();
+        $this->assertTrue($attacker->isOnCooldown('combat_isolation_cooldown'));
+
+        // Attacker attempts to buy voluntary isolation to hide behind shield
+        $resIso = $this->actingAs($attackerUser)->post(route('isolation.activate'), [
+            'hours' => 1,
+            'currency' => 'cash',
+        ]);
+        $resIso->assertSessionHas('error');
+        $this->assertStringContainsString('Gevechtsstatus', session('error'));
     }
 
     public function test_radio_feature_removed_and_redirects(): void

@@ -24,6 +24,15 @@
         <span>Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een Forensisch Reanimatie-Serum toe om weer op te staan.</span>
     </div>
     @endif
+
+    @if(($combatCooldownSeconds ?? 0) > 0)
+    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4 text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-3 shadow-xs">
+        <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-hand-fist text-base"></i>
+        </div>
+        <span>⚔️ Gevechtsstatus Actief: Je hebt onlangs een aanval of liquidatie uitgevoerd. Ter voorkoming van hit-and-run pestgedrag kun je nog {{ (int) ceil($combatCooldownSeconds / 60) }} minuten geen vrijwillige isolatie kopen!</span>
+    </div>
+    @endif
     
     <!-- Title Card (Clean & Modern) -->
     <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">

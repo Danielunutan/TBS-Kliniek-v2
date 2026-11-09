@@ -2412,6 +2412,9 @@ class GangController extends Controller
                     'summary' => $summary,
                 ]);
 
+                // Combat Status: 30 minutes cooldown preventing voluntary isolation (anti-hit-and-run)
+                $character->setCooldown('combat_isolation_cooldown', 1800);
+
                 $activeWar = GangWar::areGangsAtWar((int) $myGang->id, (int) $targetGang->id);
                 if ($activeWar) {
                     $activeWar->addScore((int) $myGang->id, 25);
@@ -2513,6 +2516,9 @@ class GangController extends Controller
                 'respect_gain' => 0.00,
                 'summary' => $summary,
             ]);
+
+            // Combat Status: 30 minutes cooldown preventing voluntary isolation (anti-hit-and-run)
+            $character->setCooldown('combat_isolation_cooldown', 1800);
 
             AuditLogService::log(
                 action: 'gang.attack_defeat',

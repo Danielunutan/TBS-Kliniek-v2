@@ -153,7 +153,9 @@ Op het [Heist Planningsbord](/heists) staan nu officiële Bende Heists klaar (zo
 Het bendegeweld heeft een geheel nieuw strategisch niveau gekregen:
 - **24-Uurs Zone Gevechten:** Bendes kunnen de strijd aangaan om belangrijke kliniekzones (de Kantine, Luchtplaats, Apotheek en meer). De oorlog duurt 24 uur; de bende met de meeste gevechtspunten wint de zone.
 - **Heerschappij Beloning:** De heersende bende incasseert 7 dagen lang een gigantische +25% bonus op het bende-uurloon!
-- **Bende Wraakrecht (Retaliation):** Valt iemand een lid van jouw bende aan? Dan krijgt jouw hele bende officieel wraakrecht op die aanvaller. Hierbij worden alle normale level-beperkingen tijdelijk omzeild, zodat je samen met je zwaarste bendeleden vergelding kunt nemen!
+- **Harde 15-Levels Verschil Limiet (Geen Uitzonderingen):** Om de balans voor alle spelers te bewaken en oneerlijk pestgedrag definitief te stoppen, geldt er vanaf nu een strikte, harde limiet van maximaal 15 levels verschil op alle liquidaties. Ook bij bloedwraak of bendeoorlog kan een speler nóóit meer iemand liquideren die meer dan 15 levels hoger of lager is.
+- **Anti-Hit-and-Run Gevechtsstatus (30 Minuten):** Wie een aanval of liquidatie uitvoert, raakt 30 minuten lang in actieve Gevechtsstatus (Combat Status). Gedurende deze 30 minuten kun je géén vrijwillige isolatie kopen om weg te kruipen achter een schild. Slachtoffers behouden zo altijd een eerlijke kans op vergelding!
+- **Buit-Plafond bij Liquidaties (Max €25.000.000):** Om te voorkomen dat spelers met veel los zakgeld in één klap honderden miljoenen verliezen, geldt er per direct een hard maximum buit-plafond van €25.000.000 per liquidatie. Kluis en bank blijven daarnaast altijd 100% beschermd!
 
 ---
 
