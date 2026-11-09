@@ -194,6 +194,21 @@ class AnalyzePlayerActivityCommand extends Command
         $this->info("Laatste geregistreerde actie: " . Carbon::createFromTimestamp($sortedTimestamps->last())->toDateTimeString());
         $this->info("==================================================");
 
+        // Breakdown of top actions in audit logs
+        $topActions = DB::table('audit_logs')
+            ->where('character_id', $character->id)
+            ->select('action', DB::raw('count(*) as total'))
+            ->groupBy('action')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
+
+        $this->newLine();
+        $this->info("TOP 10 UITGEVOERDE ACTIES VAN {$character->name}:");
+        foreach ($topActions as $a) {
+            $this->line("   - {$a->action}: {$a->total}x");
+        }
+
         return self::SUCCESS;
     }
 }
