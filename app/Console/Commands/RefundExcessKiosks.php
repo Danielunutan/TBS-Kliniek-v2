@@ -68,3 +68,4 @@ class RefundExcessKiosks extends Command
         return Command::SUCCESS;
     }
 }
+

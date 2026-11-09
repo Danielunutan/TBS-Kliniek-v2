@@ -580,6 +580,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/gangs/aanvallen', [GangController::class, 'attack'])->middleware('throttle:30,1')->name('gangs.attack');
     Route::post('/gangs/oorlog/starten', [GangController::class, 'declareWar'])->middleware('throttle:10,1')->name('gangs.declare-war');
     Route::post('/gangs/oorlog/{war}/settle', [GangController::class, 'settleWar'])->middleware('throttle:10,1')->name('gangs.settle-war');
+    Route::get('/gangs/uurloon', [GangController::class, 'uurloon'])->name('gangs.uurloon');
     Route::post('/gangs/claim-uurloon', [GangController::class, 'claimWage'])->middleware('throttle:30,1')->name('gangs.claim-wage');
 
     // Bende Panden, Productie & NPC Rekruten

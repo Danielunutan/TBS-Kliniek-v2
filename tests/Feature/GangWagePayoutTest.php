@@ -285,4 +285,15 @@ class GangWagePayoutTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    public function test_uurloon_page_renders_successfully(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $this->actingAs($user);
+
+        $response = $this->get(route('gangs.uurloon'));
+        $response->assertStatus(200);
+        $response->assertSee('Bende Uurloon & Live Calculator');
+        $response->assertSee('Interactieve Calculator');
+    }
 }

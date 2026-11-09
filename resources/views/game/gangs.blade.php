@@ -309,6 +309,17 @@
                     </span>
                 </a>
 
+                <!-- Uurloon & Live Calculator -->
+                <a href="{{ route('gangs.uurloon') }}" 
+                   class="h-8 px-3 rounded-lg text-xs font-bold shrink-0 inline-flex items-center gap-1.5 bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 shadow-2xs transition-all duration-150 group"
+                   title="Bende Uurloon en Live Calculator">
+                    <i class="fa-solid fa-calculator text-emerald-500 group-hover:scale-110 transition-transform text-xs"></i>
+                    <span>Uurloon & Calculator</span>
+                    <span class="inline-flex items-center justify-center px-1.5 h-4 min-w-[18px] rounded-full text-[10px] font-mono font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                        €
+                    </span>
+                </a>
+
                 <!-- 6. Bende Heists -->
                 <a href="{{ route('heists.index', ['tab' => 'gang']) }}" 
                    class="h-8 px-3 rounded-lg text-xs font-bold shrink-0 inline-flex items-center gap-1.5 bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50/70 dark:hover:bg-rose-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-rose-300 dark:hover:border-rose-700 shadow-2xs transition-all duration-150 group"

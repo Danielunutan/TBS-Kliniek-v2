@@ -2578,6 +2578,33 @@ class GangController extends Controller
     }
 
     /**
+     * Dedicated Bende Uurloon overview and live interactive calculator page.
+     */
+    public function uurloon(): View
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+        $gang = $character?->gang;
+
+        $wageDetails = $character ? $this->wageService->getWageDetails($character) : null;
+        $properties = $gang ? $gang->properties()->get() : collect();
+        $storedVehicles = $gang ? $gang->storedVehicles()->with('vehicle')->get() : collect();
+        $npcs = $gang ? $gang->npcs()->get() : collect();
+
+        return view('game.gangs.uurloon', [
+            'character' => $character,
+            'gang' => $gang,
+            'wageDetails' => $wageDetails,
+            'breakdown' => $wageDetails['breakdown'] ?? [],
+            'properties' => $properties,
+            'storedVehicles' => $storedVehicles,
+            'npcs' => $npcs,
+            'propertyCatalog' => \App\Support\GangPropertyCatalog::all(),
+        ]);
+    }
+
+    /**
      * Manually claim any accrued gang wages.
      */
     public function claimWage(): RedirectResponse
