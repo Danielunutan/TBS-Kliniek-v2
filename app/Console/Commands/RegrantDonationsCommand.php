@@ -13,8 +13,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-#[Signature('tbs:regrant-donations {--dry-run : Simulate without modifying character data}')]
-#[Description('Keert uit coulance alle gekochte donatievoordelen (Sterren, Maskers, Kogels, XXL Koffers en VIP) opnieuw uit aan donateurs voor Seizoen 2')]
+#[Signature('tbs:regrant-donations {--dry-run : Simulate without modifying character data} {--revert-vip-dates : Only restore natural provider renewal dates for VIP subscriptions without re-adding assets}')]
+#[Description('Keert uit coulance alle gekochte donatievoordelen (Sterren, Maskers, Kogels, XXL Koffers) opnieuw uit aan donateurs voor Seizoen 2')]
 class RegrantDonationsCommand extends Command
 {
     /**
@@ -22,6 +22,27 @@ class RegrantDonationsCommand extends Command
      */
     public function handle(): int
     {
+        if ($this->option('revert-vip-dates')) {
+            $this->info('Herstellen van natuurlijke VIP-vervaldata via externe provider...');
+            $updates = [
+                66 => '2026-12-29 22:56:36',
+                70 => '2026-12-27 23:28:52',
+                113 => '2026-12-10 21:52:11',
+            ];
+            foreach ($updates as $charId => $date) {
+                $c = Character::find($charId);
+                if ($c) {
+                    $c->vip_expires_at = Carbon::parse($date);
+                    $c->is_vip = true;
+                    $c->save();
+                    $this->info("   -> {$c->name} (ID {$c->id}) VIP hersteld naar provider datum: {$date}");
+                }
+            }
+            $this->info('VIP vervaldatums succesvol gesynchroniseerd met provider renewal.');
+
+            return self::SUCCESS;
+        }
+
         $isDryRun = (bool) $this->option('dry-run');
 
         $this->info('====================================================');
@@ -140,23 +161,21 @@ class RegrantDonationsCommand extends Command
                     $character->bullets = $newBullets;
                     $character->xxl_cases = $newCases;
 
-                    // VIP Status
-                    $character->is_vip = true;
-                    if ($isLifetime) {
+                    // VIP Status blijft behouden via externe provider (maandelijkse incasso loopt door)
+                    // We verlengen vip_expires_at niet handmatig
+                    if ($character->id === 66) {
+                        $character->vip_expires_at = Carbon::parse('2026-12-29 22:56:36');
+                    } elseif ($character->id === 70) {
+                        $character->vip_expires_at = Carbon::parse('2026-12-27 23:28:52');
+                    } elseif ($character->id === 113) {
+                        $character->vip_expires_at = Carbon::parse('2026-12-10 21:52:11');
+                    } elseif ($isLifetime) {
                         $character->vip_expires_at = Carbon::now()->addYears(99);
                         $perks = $character->perks ?? [];
                         $perks['supporter_tier'] = 4;
                         $perks['has_custom_name_color'] = true;
                         $perks['has_sparkle_effect'] = true;
                         $perks['hourly_cash_bonus'] = 50000;
-                        $perks['is_donator'] = true;
-                        $character->perks = $perks;
-                    } elseif ($totalVipDays > 0) {
-                        $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
-                            ? $character->vip_expires_at
-                            : Carbon::now();
-                        $character->vip_expires_at = $currentExpiry->copy()->addDays($totalVipDays);
-                        $perks = $character->perks ?? [];
                         $perks['is_donator'] = true;
                         $character->perks = $perks;
                     }
