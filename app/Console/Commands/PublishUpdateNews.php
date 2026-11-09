@@ -158,6 +158,7 @@ Het bendegeweld heeft een geheel nieuw strategisch niveau gekregen:
 - **24-Uurs Zone Gevechten:** Bendes kunnen de strijd aangaan om belangrijke kliniekzones (de Kantine, Luchtplaats, Apotheek en meer). De oorlog duurt 24 uur; de bende met de meeste gevechtspunten wint de zone.
 - **Heerschappij Beloning:** De heersende bende incasseert 7 dagen lang een gigantische +25% bonus op het bende-uurloon!
 - **Harde 15-Levels Verschil Limiet & Vergeldingsslot (Dennis-Model):** Om de balans voor alle spelers te bewaken geldt er een strikte limiet van maximaal 15 levels verschil op alle liquidaties. Bij een geldige Bloedwraak of actieve Bendeoorlog mag een bendeleider of lid wél vergelding nemen op een dader buiten het levelbereik, maar met een hard slot van maximaal 1 liquidatie per uur op dat specifieke doelwit. Zo blijft vergelding altijd mogelijk zonder dat spelers repetitief platgegooid kunnen worden!
+- **Dagelijkse Liquidatielimiet (Max 5 per dag):** Om van schieten weer een bijzondere, tactische keuze te maken in plaats van een repetitieve klikgrind, kan een speler per dag maximaal 5 willekeurige liquidaties uitvoeren. Bij officiële Bendeoorlogen en openstaande Bloedwraak mag er wél onbeperkt vergelding worden genomen! Daarnaast is het anti-pestslot per doelwit aangescherpt naar maximaal 3 liquidaties per dag.
 - **Anti-Hit-and-Run Gevechtsstatus (30 Minuten):** Wie een aanval of liquidatie uitvoert, raakt 30 minuten lang in actieve Gevechtsstatus (Combat Status). Gedurende deze 30 minuten kun je géén vrijwillige isolatie kopen om weg te kruipen achter een schild. Slachtoffers behouden zo altijd een eerlijke kans op vergelding!
 - **Buit-Plafond bij Liquidaties (Max €25.000.000):** Om te voorkomen dat spelers met veel los zakgeld in één klap honderden miljoenen verliezen, geldt er per direct een hard maximum buit-plafond van €25.000.000 per liquidatie. Kluis en bank blijven daarnaast altijd 100% beschermd!
 
@@ -171,12 +172,13 @@ Patiënten kunnen nu hun eigen gevangeniscel grondig verbouwen en upgraden:
 
 ---
 
-## 🏎️ 8. De Roterende Smokkel Garage (Wagenhandel & Opknappers)
+## 🏎️ 8. De Roterende Smokkel Garage & Wagenhandel (Inruilen bij Dealer)
 
 In de centrale [Smokkel Garage](/garage) arriveert elk half uur (om het hele en halve uur) een nieuwe levering van 8 wagens:
-- **Schadebolides & Opknappers:** Voertuigen worden aangeboden met wisselende condities. Een beschadigd voertuig koop je voor een bodemprijs, repareer je voordelig in je werkplaats en zet je met dikke winst door of doneer je aan je bende.
+- **Schadebolides & Wagenhandel (Flipper):** Voertuigen worden aangeboden met wisselende condities. Een beschadigd voertuig koop je voor een bodemprijs, repareer je voordelig in je werkplaats en ruil je via de knop "Inruilen bij Dealer" direct in voor keiharde contanten op je bankrekening én +40 Handels-XP!
 - **Fabriekstuning:** Sommige wagens zijn uitgerust met getunede motoren voor extra topsnelheid die blijvend behouden blijft.
 - **Alle Voertuigklassen:** Het wagenpark telt nu 28 unieke voertuigen, waaronder snelle scooters, quads, kogelwerende sedans, smokkelboten en vluchthelikopters die allemaal ingezet kunnen worden bij heists en reizen!
+- **Nieuwe Ranglijsten voor Rustige Groeiers:** Op de [Ranglijst](/ranglijst) staan nu 4 gloednieuwe categorieën: Modelpatiënten (meeste noeste werkuren in de Dagbesteding), Discipline Meesters, Missie & Heist Bazen en Meester Hackers! Zo krijgen bouwers en handelaren dezelfde erkenning en prestige als vechtersbazen.
 
 ---
 

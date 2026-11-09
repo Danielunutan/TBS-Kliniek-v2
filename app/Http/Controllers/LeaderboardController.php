@@ -28,11 +28,12 @@ class LeaderboardController extends Controller
         $this->energyService->refresh($character);
 
         $type = $request->query('type', 'level');
-        if (! in_array($type, ['level', 'respect', 'wealth', 'crimes'], true)) {
+        $validTypes = ['level', 'respect', 'wealth', 'crimes', 'dagbesteding', 'discipline', 'hacks', 'missions'];
+        if (! in_array($type, $validTypes, true)) {
             $type = 'level';
         }
 
-        $cacheKey = "tbs_leaderboard_{$type}_v3";
+        $cacheKey = "tbs_leaderboard_{$type}_v4";
         $cached = Cache::get($cacheKey);
         if ($cached instanceof \__PHP_Incomplete_Class || ! ($cached instanceof Collection)) {
             Cache::forget($cacheKey);
@@ -49,6 +50,10 @@ class LeaderboardController extends Controller
                 'respect' => $query->orderByDesc('respect')->orderByDesc('level'),
                 'wealth' => $query->selectRaw('*, (cash + bank) as total_wealth')->orderByDesc('total_wealth'),
                 'crimes' => $query->orderByDesc('thefts_succeeded')->orderByDesc('respect'),
+                'dagbesteding' => $query->orderByDesc('dagbesteding_shifts_completed')->orderByDesc('discipline'),
+                'discipline' => $query->orderByDesc('discipline')->orderByDesc('level'),
+                'hacks' => $query->orderByDesc('hacks_completed_total')->orderByDesc('intelligence'),
+                'missions' => $query->orderByDesc('missions_completed')->orderByDesc('level'),
                 default => $query->orderByDesc('level')->orderByDesc('xp'),
             };
 

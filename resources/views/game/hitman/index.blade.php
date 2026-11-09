@@ -150,6 +150,9 @@
                 <span class="px-3.5 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-gun text-rose-600 dark:text-rose-400"></i> {{ number_format($character->bullets ?? 0, 0, ',', '.') }} Patronen
                 </span>
+                <span class="px-3.5 py-2 rounded-xl {{ $dailyOutgoingHits >= $maxDailyOutgoingHits ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 text-slate-800 dark:text-slate-200' }} border text-xs font-extrabold flex items-center gap-1.5 shadow-xs" title="Vandaag uitgevoerde liquidaties op willekeurige spelers (onbeperkt bij Bendeoorlog en Bloedwraak)">
+                    <i class="fa-solid fa-bullseye text-rose-600 dark:text-rose-400"></i> Daglimiet: {{ $dailyOutgoingHits }}/{{ $maxDailyOutgoingHits }}
+                </span>
             </div>
         </div>
     </div>

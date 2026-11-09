@@ -834,9 +834,25 @@ class GangPropertyController extends Controller
             EventDrugsProductionService::record($character, $drugUnits, $property->property_key);
         }
 
+        $jackpotNotice = '';
+        if (rand(1, 100) <= 35) {
+            $jackpotRoll = rand(1, 3);
+            if ($jackpotRoll === 1) {
+                $character->increment('stars', 5);
+                $jackpotNotice = ' 🌟 Persoonlijke Productie-Jackpot: Je ontving direct +5 Gouden Sterren!';
+            } elseif ($jackpotRoll === 2) {
+                $character->increment('xxl_cases', 1);
+                $jackpotNotice = ' 💼 Persoonlijke Productie-Jackpot: Je vond een zeldzame XXL Smokkelkoffer!';
+            } else {
+                $character->increment('respect', 100);
+                $jackpotNotice = ' 🏆 Persoonlijke Productie-Jackpot: +100 Persoonlijk Respect toegekend!';
+            }
+            $character->save();
+        }
+
         $formattedCash = number_format($cash, 0, ',', '.');
 
-        return back()->with('success', "💰 Buit veiliggesteld! Er is €{$formattedCash} in de bendekas gestort en +{$respect} Respect toegekend aan {$gang->name}!");
+        return back()->with('success', "💰 Buit veiliggesteld! Er is €{$formattedCash} in de bendekas gestort en +{$respect} Respect toegekend aan {$gang->name}!{$jackpotNotice}");
     }
 
     /**

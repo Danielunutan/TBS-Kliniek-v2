@@ -148,6 +148,11 @@ class HitmanController extends Controller
         $locations = TravelController::LOCATIONS;
         $travelCost = $this->calculateTravelCost($character);
 
+        $todayStr = now()->toDateString();
+        $dailyOutgoingHitsKey = "daily_outgoing_liquidations_{$character->id}_{$todayStr}";
+        $dailyOutgoingHits = (int) Cache::get($dailyOutgoingHitsKey, 0);
+        $maxDailyOutgoingHits = Character::MAX_DAILY_OUTGOING_LIQUIDATIONS;
+
         return view('game.hitman.index', compact(
             'character',
             'targets',
@@ -160,7 +165,9 @@ class HitmanController extends Controller
             'intelCatalog',
             'enrichedIntelOps',
             'locations',
-            'travelCost'
+            'travelCost',
+            'dailyOutgoingHits',
+            'maxDailyOutgoingHits'
         ));
     }
 
@@ -846,6 +853,16 @@ class HitmanController extends Controller
             return back()->with('error', "🏥 Medisch Noodprotocol: {$defender->name} is vandaag al ".Character::MAX_DAILY_DEATHS_BEFORE_SHIELD.' keer geliquideerd en staat de rest van de dag onder verscherpte IC-bewaking!');
         }
 
+        $bloodFeud = BloodFeud::hasClaimAgainst($attacker, $defender->id);
+        $isWar = ($attacker->gang_id && $defender->gang_id) ? (bool) GangWar::areGangsAtWar($attacker->gang_id, $defender->gang_id) : false;
+        $isWarOrBloodFeud = $bloodFeud || $isWar;
+
+        $totalDailyHitsKey = "daily_outgoing_liquidations_{$attacker->id}_{$todayStr}";
+        $dailyOutgoingHits = (int) Cache::get($totalDailyHitsKey, 0);
+        if (! $isWarOrBloodFeud && $dailyOutgoingHits >= Character::MAX_DAILY_OUTGOING_LIQUIDATIONS) {
+            return back()->with('error', '🎯 Dagelijkse liquidatielimiet bereikt! Je hebt vandaag al '.Character::MAX_DAILY_OUTGOING_LIQUIDATIONS.' liquidaties uitgevoerd op willekeurige spelers. Om het spel voor iedereen leuk en afwisselend te houden kun je vandaag niet meer willekeurig schieten (tenzij bij Bendeoorlog of Bloedwraak). Richt je nu op panden, heists, wagens of dagbesteding!');
+        }
+
         // Clinic Wing / Location status
         $attackerWing = $attacker->current_location ?? 'Paviljoen 1 (Gesloten)';
         $defenderWing = $defender->current_location ?? 'Paviljoen 1 (Gesloten)';
@@ -951,6 +968,16 @@ class HitmanController extends Controller
 
                     if ($lockedDefender->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD) {
                         return back()->with('error', "🏥 Medisch Noodprotocol: {$lockedDefender->name} is vandaag al ".Character::MAX_DAILY_DEATHS_BEFORE_SHIELD.' keer geliquideerd en staat de rest van de dag onder verscherpte IC-bewaking!');
+                    }
+
+                    $todayStr = now()->toDateString();
+                    $totalDailyHitsKey = "daily_outgoing_liquidations_{$lockedAttacker->id}_{$todayStr}";
+                    $dailyOutgoingHits = (int) Cache::get($totalDailyHitsKey, 0);
+                    $isWar = ($lockedAttacker->gang_id && $lockedDefender->gang_id) ? (bool) GangWar::areGangsAtWar($lockedAttacker->gang_id, $lockedDefender->gang_id) : false;
+                    $isWarOrBloodFeud = $bloodFeud || $isWar;
+
+                    if (! $isWarOrBloodFeud && $dailyOutgoingHits >= Character::MAX_DAILY_OUTGOING_LIQUIDATIONS) {
+                        return back()->with('error', '🎯 Dagelijkse liquidatielimiet bereikt: Je hebt vandaag al '.Character::MAX_DAILY_OUTGOING_LIQUIDATIONS.' liquidaties uitgevoerd op willekeurige spelers! Om het spel voor iedereen leuk en afwisselend te houden kun je vandaag niet meer willekeurig schieten (tenzij bij Bendeoorlog of Bloedwraak). Richt je nu op panden, heists, wagens of dagbesteding!');
                     }
 
                     if (($lockedAttacker->bullets ?? 0) < $bulletCount) {
@@ -1104,6 +1131,9 @@ class HitmanController extends Controller
                         $lockedDefender->deaths_count = ($lockedDefender->deaths_count ?? 0) + 1;
                         $lockedDefender->incrementDailyDeaths();
                         Cache::put($pairKillKey, $pairKillsToday + 1, now()->endOfDay());
+                        if (! $isWarOrBloodFeud) {
+                            Cache::put($totalDailyHitsKey, $dailyOutgoingHits + 1, now()->endOfDay());
+                        }
 
                         // Increment 0/10 liquidation streak counter
                         $defenderStreak = $lockedDefender->incrementLiquidationStreakDeaths();

@@ -54,6 +54,50 @@
                     <i class="fa-solid fa-check text-[10px]"></i>
                 @endif
             </a>
+
+            <a href="{{ route('leaderboard.index', ['type' => 'dagbesteding']) }}" 
+                class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition {{ ($type ?? 'level') === 'dagbesteding' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <span class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-hammer {{ ($type ?? 'level') === 'dagbesteding' ? 'text-white' : 'text-amber-600' }}"></i>
+                    <span>Modelpatiënten (Werk)</span>
+                </span>
+                @if(($type ?? 'level') === 'dagbesteding')
+                    <i class="fa-solid fa-check text-[10px]"></i>
+                @endif
+            </a>
+
+            <a href="{{ route('leaderboard.index', ['type' => 'discipline']) }}" 
+                class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition {{ ($type ?? 'level') === 'discipline' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <span class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-dumbbell {{ ($type ?? 'level') === 'discipline' ? 'text-white' : 'text-blue-500' }}"></i>
+                    <span>Discipline Meesters</span>
+                </span>
+                @if(($type ?? 'level') === 'discipline')
+                    <i class="fa-solid fa-check text-[10px]"></i>
+                @endif
+            </a>
+
+            <a href="{{ route('leaderboard.index', ['type' => 'missions']) }}" 
+                class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition {{ ($type ?? 'level') === 'missions' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <span class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-scroll {{ ($type ?? 'level') === 'missions' ? 'text-white' : 'text-indigo-500' }}"></i>
+                    <span>Missie & Heist Bazen</span>
+                </span>
+                @if(($type ?? 'level') === 'missions')
+                    <i class="fa-solid fa-check text-[10px]"></i>
+                @endif
+            </a>
+
+            <a href="{{ route('leaderboard.index', ['type' => 'hacks']) }}" 
+                class="w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition {{ ($type ?? 'level') === 'hacks' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <span class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-laptop-code {{ ($type ?? 'level') === 'hacks' ? 'text-white' : 'text-cyan-500' }}"></i>
+                    <span>Meester Hackers</span>
+                </span>
+                @if(($type ?? 'level') === 'hacks')
+                    <i class="fa-solid fa-check text-[10px]"></i>
+                @endif
+            </a>
         </div>
 
         <!-- Filter & Search Card -->
@@ -222,7 +266,24 @@
                                             <span class="text-emerald-600 dark:text-emerald-400">€{{ number_format($player->total_wealth ?? ($player->cash + $player->bank), 0, ',', '.') }}</span>
                                             @break
                                         @case('crimes')
-                                            <span class="text-rose-600 dark:text-rose-400">{{ number_format($player->thefts_succeeded ?? 0, 0, ',', '.') }}</span>
+                                            <span class="text-rose-600 dark:text-rose-400 font-black">{{ number_format($player->thefts_succeeded ?? 0, 0, ',', '.') }}</span>
+                                            <span class="text-[10px] text-slate-400 block font-normal">Diefstallen</span>
+                                            @break
+                                        @case('dagbesteding')
+                                            <span class="text-amber-600 dark:text-amber-400 font-black">{{ number_format($player->dagbesteding_shifts_completed ?? 0, 0, ',', '.') }}</span>
+                                            <span class="text-[10px] text-slate-400 block font-normal">Diensten gewerkt</span>
+                                            @break
+                                        @case('discipline')
+                                            <span class="text-blue-600 dark:text-blue-400 font-black">{{ number_format($player->discipline ?? 0, 0, ',', '.') }}</span>
+                                            <span class="text-[10px] text-slate-400 block font-normal">Discipline</span>
+                                            @break
+                                        @case('missions')
+                                            <span class="text-indigo-600 dark:text-indigo-400 font-black">{{ number_format($player->missions_completed ?? 0, 0, ',', '.') }}</span>
+                                            <span class="text-[10px] text-slate-400 block font-normal">Missies voltooid</span>
+                                            @break
+                                        @case('hacks')
+                                            <span class="text-cyan-600 dark:text-cyan-400 font-black">{{ number_format($player->hacks_completed_total ?? 0, 0, ',', '.') }}</span>
+                                            <span class="text-[10px] text-slate-400 block font-normal">Hacks gekraakt</span>
                                             @break
                                         @default
                                             <span>Lvl {{ $player->level }}</span>

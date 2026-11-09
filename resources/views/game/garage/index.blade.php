@@ -522,7 +522,7 @@
                     </div>
 
                     <!-- Reparatie Optie -->
-                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                         @if($ov->current_condition < 100)
                             <form action="{{ route('garage.repair', $ov->id) }}" method="POST">
                                 @csrf
@@ -538,6 +538,20 @@
                                 <i class="fa-solid fa-circle-check"></i> In Topconditie (100%)
                             </div>
                         @endif
+
+                        @php
+                            $ovBase = (int) (($ov->vehicle->price_cash ?? 0) > 0 ? $ov->vehicle->price_cash : (($ov->vehicle->price_stars ?? 1) * 2000));
+                            $ovFactor = max(0.1, ($ov->current_condition / 100));
+                            $ovSellVal = max(500, (int) round($ovBase * 0.65 * $ovFactor));
+                        @endphp
+                        <form action="{{ route('garage.sell', $ov->id) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je {{ $ov->vehicle->name }} wilt inruilen voor €{{ number_format($ovSellVal, 0, ',', '.') }} op je bank?');">
+                            @csrf
+                            <button type="submit" 
+                                    class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-bold text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-sack-dollar text-amber-500"></i>
+                                <span>Inruilen bij Dealer (€{{ number_format($ovSellVal, 0, ',', '.') }})</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 @endforeach

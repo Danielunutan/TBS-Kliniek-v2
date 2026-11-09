@@ -464,4 +464,74 @@ class GarageController extends Controller
             return back()->with('success', "🔧 Garage revisie voltooid! {$characterVehicle->vehicle->name} is weer 100% gerepareerd voor €".number_format($cost, 0, ',', '.').'!');
         });
     }
+
+    /**
+     * Sell an owned vehicle back to the garage dealer.
+     * Rewards cash safely into bank, plus XP for active car trading.
+     */
+    public function sell(CharacterVehicle $characterVehicle): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if ($characterVehicle->character_id !== $character->id) {
+            return back()->with('error', 'Dit voertuig is niet van jou.');
+        }
+
+        if ($characterVehicle->in_gang_garage) {
+            return back()->with('error', 'Dit voertuig staat gestald in de Bende Garage en kan niet direct verkocht worden. Haal het eerst op.');
+        }
+
+        return DB::transaction(function () use ($character, $characterVehicle): RedirectResponse {
+            /** @var CharacterVehicle|null $lockedVehicle */
+            $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
+            if (! $lockedVehicle || $lockedVehicle->character_id !== $character->id || $lockedVehicle->in_gang_garage) {
+                return back()->with('error', 'Voertuig kon niet worden verwerkt.');
+            }
+
+            /** @var Character|null $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedChar) {
+                return back()->with('error', 'Karakter kon niet worden gevonden.');
+            }
+
+            $vehicleName = $lockedVehicle->vehicle->name ?? 'Voertuig';
+            $basePrice = (int) (($lockedVehicle->vehicle->price_cash ?? 0) > 0
+                ? $lockedVehicle->vehicle->price_cash
+                : (($lockedVehicle->vehicle->price_stars ?? 1) * 2000));
+
+            // Resell value: 65% of base price scaled by current condition
+            $conditionFactor = max(0.1, ($lockedVehicle->current_condition / 100));
+            $resellValue = max(500, (int) round($basePrice * 0.65 * $conditionFactor));
+
+            // Add directly and safely to character's bank
+            $lockedChar->bank = (int) $lockedChar->bank + $resellValue;
+            $lockedChar->save();
+
+            BankTransaction::record(
+                $lockedChar,
+                'deposit',
+                'bank',
+                $resellValue,
+                (int) $lockedChar->bank,
+                "Voertuig Inruil: {$vehicleName}"
+            );
+
+            app(\App\Services\LevelService::class)->addXp($lockedChar, 40);
+
+            AuditLogService::log(
+                action: 'garage.sell_vehicle',
+                category: 'economy',
+                description: "Voertuig '{$vehicleName}' verkocht aan dealer voor €".number_format($resellValue, 0, ',', '.').' veilig op bank',
+                character: $lockedChar,
+                user: $lockedChar->user,
+                amount: $resellValue
+            );
+
+            $lockedVehicle->delete();
+
+            return back()->with('success', "🤝 Deal gesloten! Je hebt '{$vehicleName}' succesvol verkocht voor €".number_format($resellValue, 0, ',', '.').' (veilig bijgeschreven op je bank) +40 XP!');
+        });
+    }
 }

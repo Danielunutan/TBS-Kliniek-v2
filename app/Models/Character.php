@@ -3412,9 +3412,11 @@ class Character extends Model
 
     public const LIQUIDATION_IC_COMA_MINUTES = 10;
 
-    public const MAX_DAILY_LIQUIDATIONS_PER_TARGET = 6;
+    public const MAX_DAILY_LIQUIDATIONS_PER_TARGET = 3;
 
-    public const MAX_DAILY_DEATHS_BEFORE_SHIELD = 8;
+    public const MAX_DAILY_OUTGOING_LIQUIDATIONS = 5;
+
+    public const MAX_DAILY_DEATHS_BEFORE_SHIELD = 6;
 
     /**
      * Catalog of the 30 TBS Forensic & Syndicate Dossier Grades.

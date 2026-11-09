@@ -522,6 +522,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/garage/kopen/{vehicle}', [GarageController::class, 'buy'])->name('garage.buy');
     Route::post('/garage/actief/{characterVehicle}', [GarageController::class, 'setActive'])->name('garage.set-active');
     Route::post('/garage/repareren/{characterVehicle}', [GarageController::class, 'repair'])->name('garage.repair');
+    Route::post('/garage/verkopen/{characterVehicle}', [GarageController::class, 'sell'])->name('garage.sell');
 
     // Prison / Isoleercel
     Route::get('/gevangenis', [PrisonController::class, 'index'])->name('prison');
