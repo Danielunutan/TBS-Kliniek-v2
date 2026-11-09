@@ -14,7 +14,7 @@ class GangRetaliationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_gang_leader_cannot_retaliate_against_enemy_outside_15_level_limit(): void
+    public function test_gang_leader_can_retaliate_once_per_hour_outside_15_levels(): void
     {
         $myGang = Gang::create([
             'name' => 'Syndicate A',
@@ -57,7 +57,7 @@ class GangRetaliationTest extends TestCase
         ]);
 
         // Level difference between leader (60) and enemy (12) is 48 (> 15).
-        // Hard 15-level cap strictly blocks attacks outside 15 levels:
+        // Before retaliation rights, leader is blocked from shooting enemy:
         $resBlocked = $this->actingAs($leaderUser)->post(route('hitman.shoot'), [
             'target_id' => $enemy->id,
             'bullets' => 10,
@@ -65,7 +65,7 @@ class GangRetaliationTest extends TestCase
         $resBlocked->assertSessionHas('error');
         $this->assertStringContainsString('levelverschil', session('error'));
 
-        // Enemy attacks or liquidates our gang member (LowMember)
+        // Enemy attacks or liquidates our gang member (LowMember) -> creates Bloedwraak!
         BloodFeud::create([
             'attacker_id' => $enemy->id,
             'victim_id' => $victim->id,
@@ -74,13 +74,26 @@ class GangRetaliationTest extends TestCase
             'is_avenged' => false,
         ]);
 
-        // Hard 15-level cap still strictly protects against griefing outside 15 levels!
-        $resStillBlocked = $this->actingAs($leaderUser)->post(route('hitman.shoot'), [
+        // First retaliation hit is allowed!
+        $resAllowed = $this->actingAs($leaderUser)->post(route('hitman.shoot'), [
             'target_id' => $enemy->id,
             'bullets' => 20,
         ]);
-        $resStillBlocked->assertSessionHas('error');
-        $this->assertStringContainsString('levelverschil', session('error'));
+        $resAllowed->assertSessionHas('success');
+
+        // Reset defender coma status for test purposes
+        $enemy->refresh();
+        $enemy->coma_until = null;
+        $enemy->protection_until = null;
+        $enemy->save();
+
+        // Second hit within 1 hour is BLOCKED by Dennis 1-hour retaliation slot!
+        $resSecond = $this->actingAs($leaderUser)->post(route('hitman.shoot'), [
+            'target_id' => $enemy->id,
+            'bullets' => 20,
+        ]);
+        $resSecond->assertSessionHas('error');
+        $this->assertStringContainsString('Vergeldingsslot', session('error'));
     }
 
     public function test_combat_isolation_cooldown_blocks_buying_isolation_after_attack(): void

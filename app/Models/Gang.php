@@ -219,11 +219,12 @@ class Gang extends Model
 
     public function getTotalNpcCapacityAttribute(): int
     {
-        if ($this->relationLoaded('properties')) {
-            return (int) $this->properties->sum('npc_capacity');
-        }
+        $propertyCap = $this->relationLoaded('properties')
+            ? (int) $this->properties->sum('npc_capacity')
+            : (int) $this->properties()->sum('npc_capacity');
 
-        return (int) $this->properties()->sum('npc_capacity');
+        // Elke bende beschikt over een basiscapaciteit van minimaal 2 NPC-slots zodat ook kleine bendes specialisten kunnen rekruteren
+        return max(2, $propertyCap);
     }
 
     public function getTotalRespectAttribute(): int

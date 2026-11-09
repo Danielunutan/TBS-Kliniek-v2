@@ -47,7 +47,7 @@ class HeistController extends Controller
         $myGang = $character?->gang;
         if ($myGang) {
             $myGang->load(['properties', 'storedVehicles.vehicle']);
-            $myGang->loadCount('members');
+            $myGang->loadCount(['members', 'npcs']);
         }
 
         $activeVehicle = $character
@@ -118,10 +118,12 @@ class HeistController extends Controller
             $gang = $character->gang;
             $gang->load(['properties', 'storedVehicles.vehicle']);
             $memberCount = $gang->members()->count();
+            $npcCount = $gang->npcs()->count();
+            $totalCrewCount = $memberCount + $npcCount;
 
-            // 1. Quota check (Leden Quota)
-            if ($memberCount < $heist->min_gang_members) {
-                return back()->with('error', "Onvoldoende bendeleden! Voor de {$heist->name} moet jouw bende minimaal {$heist->min_gang_members} actieve leden tellen (jouw bende heeft momenteel {$memberCount} leden).");
+            // 1. Quota check (Leden Quota + Inhuur NPC Specialisten)
+            if ($totalCrewCount < $heist->min_gang_members) {
+                return back()->with('error', "Onvoldoende crew! Voor de {$heist->name} moet jouw bende minimaal {$heist->min_gang_members} bendeleden of ingehuurde NPC-specialisten tellen (jouw bende heeft momenteel {$memberCount} spelers en {$npcCount} actieve NPC-handlangers, totaal {$totalCrewCount}/{$heist->min_gang_members}). Huur zo nodig extra specialisten in via Bende Panden & NPC!");
             }
 
             // 2. Panden requirement check (Benodigde Gang Panden)

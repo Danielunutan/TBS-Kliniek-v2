@@ -436,8 +436,10 @@
                 @php
                     $gang = $myGang ?? $character->gang;
                     $gangMemberCount = $gang ? ($gang->members_count ?? $gang->members()->count()) : 0;
+                    $gangNpcCount = $gang ? ($gang->npcs_count ?? $gang->npcs()->count()) : 0;
+                    $totalCrewCount = $gangMemberCount + $gangNpcCount;
                     $hasGang = !empty($gang);
-                    $hasGangMembers = $gangMemberCount >= ($heist->min_gang_members ?? 1);
+                    $hasGangMembers = $totalCrewCount >= ($heist->min_gang_members ?? 1);
                     $hasLevel = $character->level >= ($heist->min_level ?? 1);
                     $gangMaskCount = (int) ($gang->masks ?? 0);
                     $hasGangMasks = $gangMaskCount >= ($heist->required_mask_count ?? 1);
@@ -543,12 +545,12 @@
                         <!-- Checklist Requirements (Compact 2-col Grid) -->
                         <div class="grid grid-cols-2 gap-1.5 text-[11px] pt-2 border-t border-slate-100 dark:border-slate-800">
                             <!-- 1. Gang Leden Quota -->
-                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasGangMembers ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}">
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasGangMembers ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70' }}" title="Spelers ({{ $gangMemberCount }}) + Actieve NPC Specialisten ({{ $gangNpcCount }})">
                                 <span class="flex items-center gap-1 font-bold truncate">
                                     <i class="fa-solid {{ $hasGangMembers ? 'fa-users text-emerald-600' : 'fa-users text-rose-500' }}"></i>
-                                    <span>Leden</span>
+                                    <span>Crew (Leden+NPC)</span>
                                 </span>
-                                <span class="font-mono font-black text-[10px]">{{ $gangMemberCount }}/{{ $heist->min_gang_members }}</span>
+                                <span class="font-mono font-black text-[10px]">{{ $totalCrewCount }}/{{ $heist->min_gang_members }}</span>
                             </div>
 
                             <!-- 2. Depot Maskers -->
@@ -626,9 +628,10 @@
                                 <span>Sluit je eerst aan bij een Bende</span>
                             </a>
                         @elseif(! $hasGangMembers)
-                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs cursor-not-allowed text-center">
-                                Onvoldoende Leden Quota ({{ $gangMemberCount }}/{{ $heist->min_gang_members }})
-                            </button>
+                            <a href="{{ route('gangs.panden') }}" class="w-full py-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 font-bold text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>Onvoldoende Bemanning ({{ $totalCrewCount }}/{{ $heist->min_gang_members }}) &bull; Huur NPCs</span>
+                            </a>
                         @elseif(! $hasProperty)
                             <a href="{{ route('gangs.panden') }}" 
                                class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">

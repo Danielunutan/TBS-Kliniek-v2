@@ -93,6 +93,7 @@ Voorheen liepen uurloonbedragen uit de hand door oneindige kioskaankopen. Vanaf 
 - **Bende Panden & Vastgoed:** Elk aangeschaft pand levert een forse vaste uurloonbijdrage op plús een permanente percentagebonus (tot wel +40% per topfaciliteit).
 - **Bende Respect Bonus:** Hoe hoger het totale respect van jouw bende, hoe hoger de procentuele bonus over de totale pot (+1% per 100.000 respect tot maximaal +50%).
 - **Heerschappij Bonus (+25%):** Wint jouw bende een officiële 24-uurs bendeoorlog? Dan geniet de hele bende 7 dagen lang van een extra +25% bonus bovenop het hele uurloon!
+- **100% Veilig op de Bankrekening:** Bende-uurlonen worden vanaf nu **volledig veilig direct op je privobankrekening bijgeschreven** in plaats van contant op zak. Hierdoor loop je nooit meer het risico om offline met tientallen miljoenen aan onbeschermd contant geld verrast te worden!
 
 ### Eerlijke Salarisschaal per Rang
 De bende-loonpot wordt automatisch verdeeld over de leden naar gelang hun rang en inzet:
@@ -142,6 +143,8 @@ Bendes kunnen nu gespecialiseerde hulpkrachten inhuren om hun producties en veil
 ## 💎 5. Bende Co-Op Heists (Grote Overvallen)
 
 Op het [Heist Planningsbord](/heists) staan nu officiële Bende Heists klaar (zoals de Douane Depot Kraak en het Meesterwerk: Fort Goudkluis Heist):
+- **Flexibele Bemanning met NPC Handlangers:** Ook kleine bendes en duo\'s kunnen nu meedoen aan de zwaarste Heists! Ingehuurde actieve NPC specialisten uit jullie bende tellen volwaardig mee voor het vereiste aantal bemanningsleden. Elke bende beschikt bovendien standaard al over minimaal 2 NPC-slots.
+- **Strikte Level-Drempel & Anti-Powerleveling:** Om misbruik te voorkomen geldt per Heist nog steeds de persoonlijke minimale level-eis (zoals level 13 of 16 voor top-heists). Bovendien zorgt de ingebouwde levelbeveiliging ervoor dat niemand meer dan 2 levels per actie kan stijgen.
 - **Eerlijke 50/50 Buitverdeling:** Bij een geslaagde overval ontvang jij 50% van de buit direct contant op zak. De overige 50% belandt automatisch in de gezamenlijke bendekas!
 - **Bende Respect:** Elke kraak levert duizenden extra respectpunten op voor de gang.
 - **Co-Op Bonus:** Hoe meer actieve leden jouw bende heeft, hoe hoger de gezamenlijke slagingskans.
@@ -154,7 +157,7 @@ Op het [Heist Planningsbord](/heists) staan nu officiële Bende Heists klaar (zo
 Het bendegeweld heeft een geheel nieuw strategisch niveau gekregen:
 - **24-Uurs Zone Gevechten:** Bendes kunnen de strijd aangaan om belangrijke kliniekzones (de Kantine, Luchtplaats, Apotheek en meer). De oorlog duurt 24 uur; de bende met de meeste gevechtspunten wint de zone.
 - **Heerschappij Beloning:** De heersende bende incasseert 7 dagen lang een gigantische +25% bonus op het bende-uurloon!
-- **Harde 15-Levels Verschil Limiet (Geen Uitzonderingen):** Om de balans voor alle spelers te bewaken en oneerlijk pestgedrag definitief te stoppen, geldt er vanaf nu een strikte, harde limiet van maximaal 15 levels verschil op alle liquidaties. Ook bij bloedwraak of bendeoorlog kan een speler nóóit meer iemand liquideren die meer dan 15 levels hoger of lager is.
+- **Harde 15-Levels Verschil Limiet & Vergeldingsslot (Dennis-Model):** Om de balans voor alle spelers te bewaken geldt er een strikte limiet van maximaal 15 levels verschil op alle liquidaties. Bij een geldige Bloedwraak of actieve Bendeoorlog mag een bendeleider of lid wél vergelding nemen op een dader buiten het levelbereik, maar met een hard slot van maximaal 1 liquidatie per uur op dat specifieke doelwit. Zo blijft vergelding altijd mogelijk zonder dat spelers repetitief platgegooid kunnen worden!
 - **Anti-Hit-and-Run Gevechtsstatus (30 Minuten):** Wie een aanval of liquidatie uitvoert, raakt 30 minuten lang in actieve Gevechtsstatus (Combat Status). Gedurende deze 30 minuten kun je géén vrijwillige isolatie kopen om weg te kruipen achter een schild. Slachtoffers behouden zo altijd een eerlijke kans op vergelding!
 - **Buit-Plafond bij Liquidaties (Max €25.000.000):** Om te voorkomen dat spelers met veel los zakgeld in één klap honderden miljoenen verliezen, geldt er per direct een hard maximum buit-plafond van €25.000.000 per liquidatie. Kluis en bank blijven daarnaast altijd 100% beschermd!
 

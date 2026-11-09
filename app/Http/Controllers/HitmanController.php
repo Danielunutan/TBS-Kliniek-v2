@@ -98,6 +98,12 @@ class HitmanController extends Controller
             ->get()
             ->map(function (Character $target) use ($character, $intelMap, $attackerWing) {
                 $hasBloodFeud = BloodFeud::canRetaliate($character, $target);
+                $retaliationCooldownKey = "retaliation_cd_{$character->id}_{$target->id}";
+                $retaliationRemainingSec = max(0, (int) (Cache::get($retaliationCooldownKey, 0) - now()->timestamp));
+                $isOnRetaliationCooldown = $retaliationRemainingSec > 0;
+                $isLevelDiff = abs($character->level - $target->level) > 15;
+                $isLevelRestricted = $isLevelDiff && (! $hasBloodFeud || $isOnRetaliationCooldown);
+
                 $onCooldown = false;
                 $cooldownSec = 0;
                 $streakDeaths = $target->getLiquidationStreakDeaths();
@@ -105,7 +111,6 @@ class HitmanController extends Controller
                 $dailyDeathsReached = $target->needsReviveSerum()
                     || $target->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD
                     || (int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET;
-                $isLevelRestricted = abs($character->level - $target->level) > 15;
 
                 $intel = $intelMap->get($target->id);
                 $hasReadyIntel = $intel && ! empty($intel['is_ready']);
@@ -113,6 +118,8 @@ class HitmanController extends Controller
                 $sameWing = ($attackerWing === $targetWing);
 
                 $target->has_blood_feud = $hasBloodFeud;
+                $target->retaliation_cooldown_seconds = $retaliationRemainingSec;
+                $target->is_on_retaliation_cooldown = $isOnRetaliationCooldown;
                 $target->on_cooldown = $onCooldown;
                 $target->cooldown_seconds = $cooldownSec;
                 $target->daily_deaths_reached = $dailyDeathsReached;
@@ -187,13 +194,18 @@ class HitmanController extends Controller
             ->get()
             ->map(function (Character $target) use ($character, $intelMap, $attackerWing) {
                 $hasBloodFeud = BloodFeud::canRetaliate($character, $target);
+                $retaliationCooldownKey = "retaliation_cd_{$character->id}_{$target->id}";
+                $retaliationRemainingSec = max(0, (int) (Cache::get($retaliationCooldownKey, 0) - now()->timestamp));
+                $isOnRetaliationCooldown = $retaliationRemainingSec > 0;
+                $isLevelDiff = abs($character->level - $target->level) > 15;
+                $isLevelRestricted = $isLevelDiff && (! $hasBloodFeud || $isOnRetaliationCooldown);
+
                 $onCooldown = false;
                 $cooldownSec = 0;
                 $pairKillKey = "daily_liquidations_{$character->id}_{$target->id}_".now()->toDateString();
                 $dailyDeathsReached = $target->needsReviveSerum()
                     || $target->getDailyDeathsCount() >= Character::MAX_DAILY_DEATHS_BEFORE_SHIELD
                     || (int) Cache::get($pairKillKey, 0) >= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET;
-                $isLevelRestricted = abs($character->level - $target->level) > 15;
 
                 $intel = $intelMap->get($target->id);
                 $hasReadyIntel = $intel && ! empty($intel['is_ready']);
@@ -213,6 +225,8 @@ class HitmanController extends Controller
                     'inComa' => $target->needsReviveSerum(),
                     'isProtected' => $target->hasIsolationProtection(),
                     'hasBloodFeud' => $hasBloodFeud,
+                    'retaliationCooldownSeconds' => $retaliationRemainingSec,
+                    'isOnRetaliationCooldown' => $isOnRetaliationCooldown,
                     'onCooldown' => $onCooldown,
                     'cooldownSeconds' => $cooldownSec,
                     'dailyDeathsReached' => $dailyDeathsReached,
@@ -638,9 +652,18 @@ class HitmanController extends Controller
         }
 
         $bloodFeud = BloodFeud::hasClaimAgainst($character, $target->id);
+        $canRetaliate = BloodFeud::canRetaliate($character, $target);
+        $retaliationCooldownKey = "retaliation_cd_{$character->id}_{$target->id}";
+        $retaliationRemainingSec = max(0, (int) (Cache::get($retaliationCooldownKey, 0) - now()->timestamp));
 
         if (abs($character->level - $target->level) > 15) {
-            return back()->with('error', "{$target->name} is buiten je levelbereik (maximaal 15 levels verschil).");
+            if (! $canRetaliate) {
+                return back()->with('error', "{$target->name} is buiten je levelbereik (maximaal 15 levels verschil).");
+            }
+            if ($retaliationRemainingSec > 0) {
+                $mins = max(1, (int) ceil($retaliationRemainingSec / 60));
+                return back()->with('error', "⏳ Bende Vergeldingsslot: Je hebt {$target->name} onlangs al geliquideerd via bloedwraak. Wacht nog {$mins} minuten voordat je deze speler weer mag aanvallen.");
+            }
         }
 
         if (($character->cash + $character->bank) < $contract['cost']) {
@@ -682,8 +705,18 @@ class HitmanController extends Controller
                     return back()->with('error', "{$lockedTarget->name} heeft actieve bescherming en kan niet worden aangevallen.");
                 }
 
+                $canRetaliate = BloodFeud::canRetaliate($lockedAttacker, $lockedTarget);
+                $retaliationCooldownKey = "retaliation_cd_{$lockedAttacker->id}_{$lockedTarget->id}";
+                $retaliationRemainingSec = max(0, (int) (Cache::get($retaliationCooldownKey, 0) - now()->timestamp));
+
                 if (abs($lockedAttacker->level - $lockedTarget->level) > 15) {
-                    return back()->with('error', "{$lockedTarget->name} is buiten je levelbereik (maximaal 15 levels verschil).");
+                    if (! $canRetaliate) {
+                        return back()->with('error', "{$lockedTarget->name} is buiten je levelbereik (maximaal 15 levels verschil).");
+                    }
+                    if ($retaliationRemainingSec > 0) {
+                        $mins = max(1, (int) ceil($retaliationRemainingSec / 60));
+                        return back()->with('error', "⏳ Bende Vergeldingsslot: Je hebt {$lockedTarget->name} onlangs al geliquideerd via bloedwraak. Wacht nog {$mins} minuten voordat je deze speler weer mag aanvallen.");
+                    }
                 }
 
                 if (($lockedAttacker->cash + $lockedAttacker->bank) < $contract['cost']) {
@@ -701,6 +734,10 @@ class HitmanController extends Controller
                 if ($roll <= $contract['rate']) {
                     $lockedTarget->health = max(5, $lockedTarget->health - $contract['damage']);
                     $lockedTarget->save();
+
+                    if ($bloodFeud || abs($lockedAttacker->level - $lockedTarget->level) > 15) {
+                        Cache::put("retaliation_cd_{$lockedAttacker->id}_{$lockedTarget->id}", now()->addHour()->timestamp, now()->addHour());
+                    }
 
                     $this->level->addXp($lockedAttacker, $contract['xp']);
                     $lockedAttacker->addRespect(5);
@@ -839,9 +876,18 @@ class HitmanController extends Controller
         }
 
         $bloodFeud = BloodFeud::hasClaimAgainst($attacker, $defender->id);
+        $canRetaliate = BloodFeud::canRetaliate($attacker, $defender);
+        $retaliationCooldownKey = "retaliation_cd_{$attacker->id}_{$defender->id}";
+        $retaliationRemainingSec = max(0, (int) (Cache::get($retaliationCooldownKey, 0) - now()->timestamp));
 
         if (abs($attacker->level - $defender->level) > 15) {
-            return back()->with('error', "Het levelverschil tussen jou en {$defender->name} is te groot (maximaal 15 levels verschil). Ter bescherming van alle spelers geldt een strikte limiet van maximaal 15 levels verschil.");
+            if (! $canRetaliate) {
+                return back()->with('error', "Het levelverschil tussen jou en {$defender->name} is te groot (maximaal 15 levels verschil, tenzij er sprake is van een geldige bloedwraak of bendeoorlog).");
+            }
+            if ($retaliationRemainingSec > 0) {
+                $mins = max(1, (int) ceil($retaliationRemainingSec / 60));
+                return back()->with('error', "⏳ Bende Vergeldingsslot: Je hebt {$defender->name} onlangs al geliquideerd via bloedwraak. Om herhaaldelijk pestgedrag te voorkomen geldt een slot van 1 uur per doelwit (nog {$mins} min wachten).");
+            }
         }
 
         if ($attacker->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
@@ -856,8 +902,8 @@ class HitmanController extends Controller
         $targetLock = Cache::lock('character_action_'.$defender->user_id, SerializeCharacterActions::LOCK_TTL_SECONDS);
 
         try {
-            return $targetLock->block(3, function () use ($attacker, $defender, $bulletCount, $gradeInfo, $coldBloodedPct, $isOneTap): RedirectResponse {
-                return DB::transaction(function () use ($attacker, $defender, $bulletCount, $gradeInfo, $coldBloodedPct, $isOneTap): RedirectResponse {
+            return $targetLock->block(3, function () use ($attacker, $defender, $bulletCount, $gradeInfo, $coldBloodedPct, $isOneTap, $bloodFeud): RedirectResponse {
+                return DB::transaction(function () use ($attacker, $defender, $bulletCount, $gradeInfo, $coldBloodedPct, $isOneTap, $bloodFeud): RedirectResponse {
                     $firstId = min($attacker->id, $defender->id);
                     $secondId = max($attacker->id, $defender->id);
                     $lockedPair = Character::whereIn('id', [$firstId, $secondId])
@@ -883,8 +929,18 @@ class HitmanController extends Controller
                         return back()->with('error', "{$lockedDefender->name} is zojuist al geraakt of beschermd en kan nu niet worden beschoten.");
                     }
 
+                    $canRetaliate = BloodFeud::canRetaliate($lockedAttacker, $lockedDefender);
+                    $retaliationCooldownKey = "retaliation_cd_{$lockedAttacker->id}_{$lockedDefender->id}";
+                    $retaliationRemainingSec = max(0, (int) (Cache::get($retaliationCooldownKey, 0) - now()->timestamp));
+
                     if (abs($lockedAttacker->level - $lockedDefender->level) > 15) {
-                        return back()->with('error', "Het levelverschil tussen jou en {$lockedDefender->name} is te groot (maximaal 15 levels verschil).");
+                        if (! $canRetaliate) {
+                            return back()->with('error', "Het levelverschil tussen jou en {$lockedDefender->name} is te groot (maximaal 15 levels verschil).");
+                        }
+                        if ($retaliationRemainingSec > 0) {
+                            $mins = max(1, (int) ceil($retaliationRemainingSec / 60));
+                            return back()->with('error', "⏳ Bende Vergeldingsslot: Je hebt {$lockedDefender->name} onlangs al geliquideerd via bloedwraak. Wacht nog {$mins} minuten voordat je deze speler weer mag aanvallen.");
+                        }
                     }
 
                     $pairKillKey = "daily_liquidations_{$lockedAttacker->id}_{$lockedDefender->id}_".now()->toDateString();
@@ -908,6 +964,11 @@ class HitmanController extends Controller
                     $lockedAttacker->breakProtection();
                     // Combat Status: 30 minutes cooldown preventing voluntary isolation (anti-hit-and-run)
                     $lockedAttacker->setCooldown('combat_isolation_cooldown', 1800);
+
+                    // Retaliation slot (Dennis-regeling): 1 uur afkoeltijd per doelwit buiten 15 levels
+                    if ($bloodFeud || abs($lockedAttacker->level - $lockedDefender->level) > 15) {
+                        Cache::put("retaliation_cd_{$lockedAttacker->id}_{$lockedDefender->id}", now()->addHour()->timestamp, now()->addHour());
+                    }
 
                     // Deduct bullets & Koudbloedigheid focus
                     $lockedAttacker->bullets -= $bulletCount;

@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Character;
 use App\Models\CharacterVehicle;
 use App\Models\Gang;
+use App\Models\GangNpc;
 use App\Models\Heist;
+use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\GangWageService;
 use App\Support\GangPropertyCatalog;
@@ -155,5 +157,46 @@ class AdvancedPropertiesAndFleetWagesTest extends TestCase
         $this->assertEquals(4, $vluchtplanHeist->min_gang_members);
         $this->assertEquals('helikopter', $vluchtplanHeist->required_vehicle_type);
         $this->assertContains('vluchtplan_complex', $vluchtplanHeist->required_property_keys);
+    }
+
+    public function test_gang_heist_counts_active_npc_specialists_towards_crew_quota(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'level' => 15,
+            'energy' => 100,
+            'max_energy' => 100,
+        ]);
+
+        $gang = Gang::create([
+            'name' => 'Solo Crew',
+            'tag' => 'SOLO',
+            'specialty' => 'Kantine Controle',
+            'leader_character_id' => $character->id,
+            'masks' => 50,
+        ]);
+        $character->update(['gang_id' => $gang->id, 'gang_role' => 'leader']);
+
+        // Gang only has 1 human member
+        $this->assertEquals(1, $gang->members()->count());
+
+        // Hire 3 active NPCs
+        for ($i = 0; $i < 3; $i++) {
+            GangNpc::create([
+                'gang_id' => $gang->id,
+                'npc_key' => 'soldier_'.$i,
+                'name' => 'Handlanger '.$i,
+                'role_title' => 'Specialist',
+                'bonus_type' => 'defense',
+                'bonus_value' => 5,
+                'hired_at' => now(),
+                'expires_at' => now()->addMinutes(30),
+            ]);
+        }
+
+        // Total crew count (members + npcs) is 1 + 3 = 4
+        $totalCrew = $gang->members()->count() + $gang->npcs()->count();
+        $this->assertEquals(4, $totalCrew);
     }
 }
