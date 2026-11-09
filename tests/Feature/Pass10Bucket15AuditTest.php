@@ -180,7 +180,7 @@ class Pass10Bucket15AuditTest extends TestCase
 
         // season_countdown_widget
         $countdownView = view('partials.season_countdown_widget')->render();
-        $this->assertStringContainsString('SEIZOEN 1 AFTELLER', $countdownView);
+        $this->assertStringContainsString('SEIZOEN 2 SPRINT', $countdownView);
 
         // season_welcome_modal
         $seasonWelcomeView = view('partials.season_welcome_modal')->render();

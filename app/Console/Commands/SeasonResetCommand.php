@@ -108,6 +108,7 @@ class SeasonResetCommand extends Command
                 'prison_until' => null,
                 'prison_reason' => null,
                 'protection_until' => $protectionUntil,
+                'last_gang_wage_at' => $now,
 
                 // Spullen & Mijlpalen (VIP status, VIP-punten, Sterren en Pompoenpitten blijven 100% behouden)
                 'bullets' => 50,
@@ -192,23 +193,33 @@ class SeasonResetCommand extends Command
                 }
             }
 
-            // 3. Reset Gangs to 0
-            $this->info('3. Alle bendes resetten naar 0 (kas, respect, maskers)...');
+            // 3. Reset Gangs to 0 (behouden uitsluitend has_gang_chat, naam, tag en leden)
+            $this->info('3. Alle bendes resetten naar 0 (kas, respect, maskers, attack power, protection)...');
             if (Schema::hasTable('gangs')) {
                 $gangUpdate = [
                     'treasury' => 0,
+                    'protected_treasury' => 0,
                     'respect' => 0,
                     'masks' => 0,
+                    'gang_stars' => 0,
+                    'bling_shops' => 0,
+                    'protection_points' => 1000,
+                    'attack_power' => 500,
+                    'leave_fee_multiplier' => 0,
+                    'min_respect' => 0,
                     'shield_until' => null,
                     'vip_boost_until' => null,
+                    'war_dominance_until' => null,
                     'last_attack_at' => null,
+                    'personal_shopper' => null,
+                    'money_magnet' => null,
                 ];
                 $gangColumns = Schema::getColumnListing('gangs');
                 $filteredGangUpdates = array_intersect_key($gangUpdate, array_flip($gangColumns));
                 if (! $isDryRun) {
                     DB::table('gangs')->update($filteredGangUpdates);
                 }
-                $this->info('   -> Alle bendes gereset naar 0.');
+                $this->info('   -> Alle bendes gereset naar 0 (gekochte bende chat blijft behouden).');
             }
 
             // 4. Reset Control Points (bendes kunnen ze opnieuw veroveren)
