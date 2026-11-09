@@ -80,7 +80,8 @@ class DashboardWidgetAndWeatherTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Kliniek Weerstation');
-        $response->assertSee('Algemeen Buitenwereld Nieuws');
+        $response->assertSee('MIXXR.nl Entertainment Nieuws');
+        $response->assertSee('MIXXR Radio Deck');
         $response->assertSee('Geheime Ontsnappingstunnel');
         $response->assertSee('Dossier Dr. H. van Beek');
         $response->assertSee('Koffers');
@@ -142,6 +143,19 @@ class DashboardWidgetAndWeatherTest extends TestCase
         $this->assertTrue($character->isWidgetUnlocked('tunnel'));
         $this->assertTrue($character->isWidgetUnlocked('treatment'));
         $this->assertTrue($character->isWidgetUnlocked('packages'));
+
+        // nunl and mixxr_news are bidirectional aliases
+        $character->unlocked_widgets = ['nunl'];
+        $this->assertTrue($character->isWidgetUnlocked('nunl'));
+        $this->assertTrue($character->isWidgetUnlocked('mixxr_news'));
+
+        $character->unlocked_widgets = ['mixxr_news'];
+        $this->assertTrue($character->isWidgetUnlocked('nunl'));
+        $this->assertTrue($character->isWidgetUnlocked('mixxr_news'));
+
+        // Radio widget unlock
+        $character->unlocked_widgets = ['radio'];
+        $this->assertTrue($character->isWidgetUnlocked('radio'));
     }
 
     public function test_weather_location_persists_to_character_database(): void

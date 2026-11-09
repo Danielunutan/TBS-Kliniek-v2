@@ -22,6 +22,7 @@ use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\EventVaultCrackingService;
 use App\Services\LevelService;
+use App\Services\MixxrNewsService;
 use App\Services\NuNlNewsService;
 use App\Services\ReferralService;
 use App\Services\RookieService;
@@ -45,6 +46,8 @@ class DashboardController extends Controller
     public const WIDGET_PRICES = [
         'weather' => 15,
         'nunl' => 15,
+        'mixxr_news' => 15,
+        'radio' => 20,
         'tunnel' => 20,
         'treatment' => 20,
         'packages' => 20,
@@ -56,6 +59,7 @@ class DashboardController extends Controller
         protected AllowanceService $allowanceService,
         protected ReferralService $referralService,
         protected NuNlNewsService $nuNlNewsService,
+        protected MixxrNewsService $mixxrNewsService,
         protected WeatherService $weatherService,
         protected EconomyService $economyService,
         protected CooldownService $cooldownService,
@@ -224,7 +228,8 @@ class DashboardController extends Controller
         $secondsRemainingInLoginBonus = Character::secondsRemainingInLoginBonus();
         $nextStreakDay = $character->getNextStreakDay();
 
-        $nuNlNews = $this->nuNlNewsService->getLatestNews(5);
+        $mixxrNews = $this->mixxrNewsService->getLatestNews(6);
+        $nuNlNews = $mixxrNews;
 
         // Load custom GPS weather if user previously detected location (persisted in DB or session)
         $userLat = $character->weather_lat ?? session('user_weather_lat');
@@ -299,6 +304,7 @@ class DashboardController extends Controller
             'secondsUntilLoginBonus',
             'secondsRemainingInLoginBonus',
             'nextStreakDay',
+            'mixxrNews',
             'nuNlNews',
             'clinicWeather',
             'tunnel',

@@ -226,6 +226,8 @@ class Character extends Model
             'tunnel' => 'peuken_market',
             'treatment' => 'security',
             'packages' => 'roulette',
+            'mixxr_news' => 'nunl',
+            'nunl' => 'mixxr_news',
         ];
 
         if (isset($aliases[$widgetKey]) && in_array($aliases[$widgetKey], $unlocked, true)) {
