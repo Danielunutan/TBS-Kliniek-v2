@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Character;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -50,7 +51,7 @@ class SeasonResetCommand extends Command
         $this->line("Aantal karakters in database: {$characterCount}");
 
         if (! $this->option('force') && ! $isDryRun) {
-            if (! $this->confirm('Weet je 100% zeker dat je Seizoen 1 wilt starten en alle statistieken wilt resetten?')) {
+            if (! $this->confirm('Weet je 100% zeker dat je Seizoen 2 wilt starten en alle statistieken wilt resetten?')) {
                 $this->warn('Reset geannuleerd.');
 
                 return 0;
@@ -86,6 +87,7 @@ class SeasonResetCommand extends Command
                 // RPG Stats
                 'respect' => 10,
                 'today_respect' => 0,
+                'today_respect_date' => null,
                 'strength' => 10,
                 'defense' => 10,
                 'stamina' => 10,
@@ -101,16 +103,38 @@ class SeasonResetCommand extends Command
                 'missions_completed' => 0,
                 'prison_sentences' => 0,
                 'prison_escapes' => 0,
+                'breakout_attempts' => 0,
+                'prison_escape_attempted' => false,
                 'daily_attacks_count' => 0,
+                'daily_attacks_date' => null,
+                'kills_count' => 0,
+                'deaths_count' => 0,
+                'daily_deaths_count' => 0,
+                'daily_deaths_date' => null,
 
-                // Vrijlating & Bescherming
+                // Vrijlating, Locatie & Bescherming
                 'is_in_prison' => false,
                 'prison_until' => null,
                 'prison_reason' => null,
                 'protection_until' => $protectionUntil,
-                'last_gang_wage_at' => $now,
+                'cash_protection_until' => null,
+                'coma_until' => null,
+                'current_location' => 'kliniek',
+                'leave_until' => null,
+                'sedated_until' => null,
 
-                // Spullen & Mijlpalen (VIP status, VIP-punten, Sterren en Pompoenpitten blijven 100% behouden)
+                // Behandeling, Dagbesteding & Hacking
+                'treatment_score' => 50,
+                'treatment_history' => null,
+                'dagbesteding_shifts_completed' => 0,
+                'dagbesteding_earned_total' => 0,
+                'palmed_pills_count' => 0,
+                'hacks_completed_total' => 0,
+                'last_hack_at' => null,
+                'last_gang_wage_at' => $now,
+                'last_allowance_at' => null,
+
+                // Spullen, Cel & Mijlpalen (VIP status, VIP-punten, Sterren en Pompoenpitten blijven 100% behouden)
                 'bullets' => 50,
                 'masks' => 0,
                 'vault_tokens' => 5,
@@ -118,6 +142,7 @@ class SeasonResetCommand extends Command
                 'unopened_bags' => 0,
                 'vest_until' => null,
                 'perks' => null,
+                'cell_upgrades' => null,
             ];
 
             // Only update columns that actually exist in the table
@@ -140,6 +165,7 @@ class SeasonResetCommand extends Command
                 'character_true_crime_states',
                 'character_memory_stats',
                 'character_connect_four_stats',
+                'character_arm_wrestle_stats',
                 'fights',
                 'attacks',
                 'loans',
@@ -148,7 +174,7 @@ class SeasonResetCommand extends Command
                 'evening_vault_drops',
                 'koffer_logs',
                 'marketplace_listings',
-                'arm_wrestling_matches',
+                'arm_wrestle_matches',
                 'bounties',
                 'blood_feuds',
                 'gang_wars',
@@ -157,7 +183,21 @@ class SeasonResetCommand extends Command
                 'gang_npcs',
                 'gang_attacks',
                 'gang_donations',
+                'gang_requests',
+                'gang_alliances',
                 'control_point_logs',
+                'escape_tunnels',
+                'theft_records',
+                'training_logs',
+                'smuggle_droppings',
+                'hacking_logs',
+                'profile_respects',
+                'profile_visits',
+                'event_cash_earnings',
+                'event_drug_productions',
+                'event_vault_crackings',
+                'daily_battle_scores',
+                'lottery_tickets',
                 // Chat, berichten en meldingen uit het verleden voor een 100% schone start
                 'chat_messages',
                 'cinema_messages',
@@ -173,24 +213,29 @@ class SeasonResetCommand extends Command
             ];
 
             $this->info('2. Seizoenstabellen en voortgang leegmaken...');
-            foreach ($tablesToTruncate as $table) {
-                if (Schema::hasTable($table)) {
-                    if (! $isDryRun) {
-                        if ($table === 'character_items' && Schema::hasTable('items')) {
-                            $preserveItemIds = DB::table('items')
-                                ->where('slug', 'like', 'halloween_%')
-                                ->orWhere('slug', 'like', 'autumn_%')
-                                ->orWhere('category', 'special')
-                                ->pluck('id');
-                            DB::table('character_items')
-                                ->whereNotIn('item_id', $preserveItemIds)
-                                ->delete();
-                        } else {
-                            DB::table($table)->delete();
+            Schema::disableForeignKeyConstraints();
+            try {
+                foreach ($tablesToTruncate as $table) {
+                    if (Schema::hasTable($table)) {
+                        if (! $isDryRun) {
+                            if ($table === 'character_items' && Schema::hasTable('items')) {
+                                $preserveItemIds = DB::table('items')
+                                    ->where('slug', 'like', 'halloween_%')
+                                    ->orWhere('slug', 'like', 'autumn_%')
+                                    ->orWhere('category', 'special')
+                                    ->pluck('id');
+                                DB::table('character_items')
+                                    ->whereNotIn('item_id', $preserveItemIds)
+                                    ->delete();
+                            } else {
+                                DB::table($table)->delete();
+                            }
                         }
+                        $this->line("   -> Tabel [{$table}] geleegd (exclusieve event-verzamelobjecten behouden).");
                     }
-                    $this->line("   -> Tabel [{$table}] geleegd (exclusieve event-verzamelobjecten behouden).");
                 }
+            } finally {
+                Schema::enableForeignKeyConstraints();
             }
 
             // 3. Reset Gangs to 0 (behouden uitsluitend has_gang_chat, naam, tag en leden)
@@ -251,7 +296,9 @@ class SeasonResetCommand extends Command
                                 ->orWhere('title', 'like', '%uitslag%')
                                 ->orWhere('title', 'like', '%loterij%')
                                 ->orWhere('title', 'like', '%kampioen%')
-                                ->orWhere('content', 'like', '%winnaar%');
+                                ->orWhere('content', 'like', '%winnaar%')
+                                ->orWhere('slug', 'frisse-start-seizoen-2-sprint-30-dagen')
+                                ->orWhere('is_pinned', true);
                         })
                         ->pluck('id');
 
@@ -271,8 +318,9 @@ class SeasonResetCommand extends Command
                 $this->warn('DRY RUN VOLTOOID: Wijzigingen zijn teruggedraaid.');
             } else {
                 DB::commit();
+                Cache::flush();
                 $this->info('=========================================');
-                $this->info('SEIZOEN 1 RESET MET SUCCES VOLTOOID!');
+                $this->info('SEIZOEN 2 RESET MET SUCCES VOLTOOID!');
                 $this->info('Alle spelers starten gelijk met behoud van Sterren, VIP Punten & Bendes.');
                 $this->info('=========================================');
             }

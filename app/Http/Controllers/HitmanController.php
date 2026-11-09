@@ -61,6 +61,8 @@ class HitmanController extends Controller
         $intelTargetIds = collect($activeIntelOps)->pluck('target_id')->unique()->all();
         $intelTargetsById = Character::whereIn('id', $intelTargetIds)->get()->keyBy('id');
 
+        $activeIntelOps = array_values(array_filter($activeIntelOps, fn (array $op) => $intelTargetsById->has($op['target_id'])));
+
         $enrichedIntelOps = array_map(function (array $op) use ($intelTargetsById, $attackerWing): array {
             /** @var Character|null $targetModel */
             $targetModel = $intelTargetsById->get($op['target_id']);
@@ -76,6 +78,7 @@ class HitmanController extends Controller
                 $op['is_wing_locked'] = $targetModel->isWingLocked();
                 $op['streak_deaths'] = $targetModel->getLiquidationStreakDeaths();
             } else {
+                $op['is_ready'] = false;
                 $op['revealed_location'] = null;
                 $op['same_wing'] = false;
                 $op['has_vest'] = false;
@@ -288,7 +291,8 @@ class HitmanController extends Controller
             return back()->with('error', 'Je hoeft geen schaduw-inlichtingen op jezelf uit te voeren!');
         }
 
-        if (abs($character->level - $target->level) > 15) {
+        $canRetaliate = BloodFeud::canRetaliate($character, $target);
+        if (abs($character->level - $target->level) > 15 && ! $canRetaliate) {
             return back()->with('error', "Het levelverschil tussen jou en {$target->name} is te groot (maximaal 15 levels verschil).");
         }
 
@@ -319,7 +323,8 @@ class HitmanController extends Controller
                 return back()->with('error', 'Je kunt op dit moment geen schaduw-inlichtingen aanvragen.');
             }
 
-            if (abs($locked->level - $lockedTarget->level) > 15) {
+            $canRetaliate = BloodFeud::canRetaliate($locked, $lockedTarget);
+            if (abs($locked->level - $lockedTarget->level) > 15 && ! $canRetaliate) {
                 return back()->with('error', "Het levelverschil tussen jou en {$lockedTarget->name} is te groot (maximaal 15 levels verschil).");
             }
 
@@ -1235,8 +1240,6 @@ class HitmanController extends Controller
                                 'expires_at' => now()->addDays(7),
                             ]);
                         }
-
-                        Cache::put($pairKillKey, $pairKillsToday + 1, now()->endOfDay());
 
                         $lockedAttacker->addRespect($baseRespect);
                         $this->level->addXp($lockedAttacker, 400);

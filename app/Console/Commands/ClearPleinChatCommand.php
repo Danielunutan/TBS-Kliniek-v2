@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\ChatMessage;
+use App\Models\Gang;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -38,6 +39,13 @@ class ClearPleinChatCommand extends Command
         Cache::forget('all_character_names_list');
 
         // Gang channels
+        if (Schema::hasTable('gangs')) {
+            $gangIds = Gang::pluck('id');
+            foreach ($gangIds as $gangId) {
+                Cache::forget("chat_last_id_gang_{$gangId}");
+                Cache::forget("chat_deleted_ids_gang_{$gangId}");
+            }
+        }
         for ($i = 1; $i <= 100; $i++) {
             Cache::forget("chat_last_id_gang_{$i}");
             Cache::forget("chat_deleted_ids_gang_{$i}");

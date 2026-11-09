@@ -150,15 +150,17 @@ class TrainingService
 
                 $character->refresh();
 
+                $actualXpGain = (int) ($levelResult['xp_added'] ?? $xpReward);
+
                 $levelUpSuffix = $levelResult['leveled_up']
                     ? " 🎉 Je bent gestegen naar Level {$locked->level} (nieuw plafond: {$locked->getMaxStatForLevel()})!"
                     : '';
 
                 return [
                     'success' => true,
-                    'message' => "Top workout (Level Focus)! Samen met {$trainer} getraind voor +{$xpReward} XP!{$levelUpSuffix}",
+                    'message' => "Top workout (Level Focus)! Samen met {$trainer} getraind voor +{$actualXpGain} XP!{$levelUpSuffix}",
                     'stat_gain' => 0,
-                    'xp_gain' => $xpReward,
+                    'xp_gain' => $actualXpGain,
                     'leveled_up' => $levelResult['leveled_up'],
                     'new_value' => (int) $locked->{$stat},
                 ];
@@ -184,11 +186,13 @@ class TrainingService
 
             $character->refresh();
 
+            $actualXpGain = (int) ($levelResult['xp_added'] ?? $xpReward);
+
             return [
                 'success' => true,
-                'message' => "Top workout! Samen met {$trainer} getraind. Je {$statName} is gestegen naar {$locked->{$stat}}/{$locked->getMaxStatForLevel()}! (+{$xpReward} XP)",
+                'message' => "Top workout! Samen met {$trainer} getraind. Je {$statName} is gestegen naar {$locked->{$stat}}/{$locked->getMaxStatForLevel()}! (+{$actualXpGain} XP)",
                 'stat_gain' => $gain,
-                'xp_gain' => $xpReward,
+                'xp_gain' => $actualXpGain,
                 'leveled_up' => $levelResult['leveled_up'],
                 'new_value' => (int) $locked->{$stat},
             ];

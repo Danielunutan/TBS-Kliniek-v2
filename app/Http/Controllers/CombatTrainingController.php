@@ -123,15 +123,17 @@ class CombatTrainingController extends Controller
             $coldText = $newFocus < 100 ? " én +4% Koudbloedigheid (nu {$newFocus}%)" : '';
             $updatedMaxStat = $locked->getMaxStatForLevel();
 
+            $actualXpEarned = (int) ($levelResult['xp_added'] ?? $xpEarned);
+
             if ($mode === 'level') {
                 $levelUpNotice = $levelResult['leveled_up']
                     ? " 🎉 Je bent gestegen naar Level {$locked->level} (nieuw stat-plafond: {$updatedMaxStat})!"
                     : '';
 
-                return back()->with('success', "Training voltooid (Focus op Level)! +{$xpEarned} XP verdiend{$coldText}! -€".number_format($session['cost'], 0, ',', '.').".{$levelUpNotice}");
+                return back()->with('success', "Training voltooid (Focus op Level)! +{$actualXpEarned} XP verdiend{$coldText}! -€".number_format($session['cost'], 0, ',', '.').".{$levelUpNotice}");
             }
 
-            return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$gain} ({$locked->{$statKey}}/{$updatedMaxStat}){$coldText}! -€".number_format($session['cost'], 0, ',', '.').", +{$xpEarned} XP.");
+            return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$gain} ({$locked->{$statKey}}/{$updatedMaxStat}){$coldText}! -€".number_format($session['cost'], 0, ',', '.').", +{$actualXpEarned} XP.");
         });
     }
 }

@@ -575,6 +575,10 @@ class FightController extends Controller
             return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct met een Epinefrine-Ampul of Sterren ⭐.");
         }
 
+        if ($attacker->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         // 1. 3-second cooldown check (with anti-bot cooldown hammering detection)
         if ($this->cooldownService->isOnCooldown($attacker, 'fight_attack')) {
             $remaining = $this->cooldownService->getRemainingSeconds($attacker, 'fight_attack');
@@ -650,6 +654,10 @@ class FightController extends Controller
 
         if ($defender->isComatose()) {
             return back()->with('error', "{$defender->name} ligt in Intensive Care Coma en kan niet worden bestolen.");
+        }
+
+        if ($defender->needsReviveSerum()) {
+            return back()->with('error', "{$defender->name} verkeert in Code Blauw (Hartstilstand) en kan niet worden bestolen.");
         }
 
         if ($defender->isProtected()) {

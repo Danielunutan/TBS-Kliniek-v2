@@ -98,12 +98,24 @@ class GangNpc extends Model
         }
 
         $leaderId = $gang->leader_character_id;
+        $purgedCount = 0;
 
         foreach ($expired as $npc) {
             if ($npc->assigned_property_id) {
-                GangProperty::where('id', $npc->assigned_property_id)
+                /** @var GangProperty|null $assignedProp */
+                $assignedProp = GangProperty::where('id', $npc->assigned_property_id)
                     ->where('gang_id', $gang->id)
-                    ->update(['assigned_npc_key' => null]);
+                    ->first();
+
+                // Do not purge an NPC assigned to a property with an active or ready-to-claim production batch.
+                // The NPC stays assigned until claimProduction() completes and deletes it.
+                if ($assignedProp && $assignedProp->production_ends_at !== null) {
+                    continue;
+                }
+
+                if ($assignedProp) {
+                    $assignedProp->update(['assigned_npc_key' => null]);
+                }
             }
 
             if ($leaderId && class_exists(GameNotification::class)) {
@@ -117,9 +129,10 @@ class GangNpc extends Model
             }
 
             $npc->delete();
+            $purgedCount++;
         }
 
-        return $expired->count();
+        return $purgedCount;
     }
 
     /**

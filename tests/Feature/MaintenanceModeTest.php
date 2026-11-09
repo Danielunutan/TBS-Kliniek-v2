@@ -120,7 +120,7 @@ class MaintenanceModeTest extends TestCase
     {
         Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
 
-        $this->get('/dashboard?bypass=daniel')->assertRedirect(route('login'));
+        $this->get('/dashboard?bypass=daniel')->assertStatus(503);
         $this->get('/?bypass=daniel')->assertStatus(503)->assertCookieMissing('tbs_maintenance_bypass');
         $this->get('/?beheer=1')->assertOk();
     }
@@ -200,5 +200,34 @@ class MaintenanceModeTest extends TestCase
 
         $this->assertGuest();
         $this->actingAs($user)->get(route('dashboard'))->assertStatus(503);
+    }
+
+    public function test_logged_in_regular_player_visiting_beheer_login_is_logged_out_and_receives_staff_login_form(): void
+    {
+        Artisan::call('tbs:maintenance', ['action' => 'on']);
+        $user = User::factory()->create(['role' => 'user']);
+        Character::create([
+            'user_id' => $user->id,
+            'name' => 'SpelerInloggenBeheer',
+            'is_onboarded' => true,
+        ]);
+
+        $res = $this->actingAs($user)->get('/?beheer=1');
+
+        $res->assertOk();
+        $res->assertSee('Uitsluitend Beheerders');
+        $res->assertSee('Beheerder Toegang');
+        $res->assertDontSee('Doorgaan met Discord');
+        $this->assertGuest();
+    }
+
+    public function test_unauthenticated_request_to_dashboard_during_maintenance_receives_503(): void
+    {
+        Artisan::call('tbs:maintenance', ['action' => 'on']);
+
+        $res = $this->get(route('dashboard'));
+
+        $res->assertStatus(503);
+        $res->assertSee('De Kliniekdeuren Zijn Even Gesloten!');
     }
 }

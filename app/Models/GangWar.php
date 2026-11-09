@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -140,10 +141,25 @@ class GangWar extends Model
                     $winner->leader->addRespect($respectReward);
                 }
 
+                // Transfer any ControlPoint zones owned by the loser gang to the winner gang
+                if (class_exists(ControlPoint::class) && Schema::hasTable('control_points')) {
+                    $winnerLeaderId = $winner->leader_character_id ?? $winner->leader?->id;
+                    ControlPoint::where('current_gang_id', $loser->id)->update([
+                        'current_gang_id' => $winner->id,
+                        'current_character_id' => $winnerLeaderId,
+                        'captured_at' => now(),
+                    ]);
+                }
+
                 $lockedWar->summary = "🏆 Overwinning voor {$winner->name}! Score: {$lockedWar->challenger_score} vs {$lockedWar->defender_score}. Buit: €".number_format($cashStolen + ($lockedWar->war_pot ?: 0), 0, ',', '.')." en +{$respectReward} Respect!";
             } else {
                 // Onbeslist
-                $lockedWar->summary = "Gelijkspel! Beide bendes hebben de strijd gestaakt met gelijke score ({$lockedWar->challenger_score} - {$lockedWar->defender_score}).";
+                if ($challenger && (int) ($lockedWar->war_pot ?? 0) > 0) {
+                    $challenger->treasury = ($challenger->treasury ?? 0) + (int) $lockedWar->war_pot;
+                    $challenger->save();
+                }
+                $potFormatted = number_format((int) ($lockedWar->war_pot ?? 0), 0, ',', '.');
+                $lockedWar->summary = "Gelijkspel! Beide bendes hebben de strijd gestaakt met gelijke score ({$lockedWar->challenger_score} - {$lockedWar->defender_score}). De inleg van €{$potFormatted} is teruggestort in de uitdagerskas.";
             }
 
             $lockedWar->status = 'finished';
@@ -154,17 +170,45 @@ class GangWar extends Model
     }
 
     /**
+     * Settle any active wars whose ends_at has passed.
+     *
+     * @return Collection<int, self>
+     */
+    public static function settleExpiredWars(): Collection
+    {
+        $expiredWars = self::where('status', 'active')
+            ->where('ends_at', '<=', now())
+            ->get();
+
+        foreach ($expiredWars as $war) {
+            $war->settle();
+        }
+
+        return $expiredWars;
+    }
+
+    /**
      * Find active war involving the given gang.
      */
     public static function findActiveForGang(int $gangId): ?self
     {
-        return self::where(function ($q) use ($gangId) {
+        $settled = self::settleExpiredWars();
+
+        $active = self::where(function ($q) use ($gangId) {
             $q->where('challenger_gang_id', $gangId)
                 ->orWhere('defender_gang_id', $gangId);
         })
             ->where('status', 'active')
             ->latest('id')
             ->first();
+
+        if ($active) {
+            return $active;
+        }
+
+        return $settled->first(function ($w) use ($gangId) {
+            return (int) $w->challenger_gang_id === $gangId || (int) $w->defender_gang_id === $gangId;
+        });
     }
 
     /**

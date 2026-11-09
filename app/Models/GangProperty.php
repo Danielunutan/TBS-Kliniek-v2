@@ -156,7 +156,17 @@ class GangProperty extends Model
             ->first();
 
         $hasAssignedNpcYield = false;
-        if ($assignedNpc && $assignedNpc->isActive() && $assignedNpc->bonus_type === 'production_yield') {
+        $isNpcValid = $assignedNpc && (
+            $assignedNpc->isActive() || (
+                $this->production_ends_at !== null && (
+                    $assignedNpc->expires_at === null ||
+                    ! $this->production_started_at ||
+                    $assignedNpc->expires_at->gt($this->production_started_at)
+                )
+            )
+        );
+
+        if ($isNpcValid && $assignedNpc->bonus_type === 'production_yield') {
             $bonusFactor = 1 + ($assignedNpc->bonus_value / 100);
             $baseCash = (int) round($baseCash * $bonusFactor);
             $hasAssignedNpcYield = true;

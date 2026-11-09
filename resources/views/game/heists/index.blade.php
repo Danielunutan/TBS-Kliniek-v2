@@ -320,10 +320,21 @@
                                 <select name="character_vehicle_id" class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-2 focus:ring-2 focus:ring-purple-500">
                                     @foreach($personalVehicles as $pv)
                                         @php
+                                            $pvQualifies = $heist->vehicleQualifies($pv);
                                             $pvDestroyed = $pv->current_condition <= 0;
+                                            $disReason = '';
+                                            if ($pvDestroyed) {
+                                                $disReason = ' [TOTAL LOSS]';
+                                            } elseif (! $heist->matchesVehicleType($pv)) {
+                                                $disReason = ' [Onjuist type: ' . ($pv->vehicle?->type ?? 'onbekend') . ']';
+                                            } elseif ($pv->effective_speed < $heist->min_speed_required) {
+                                                $disReason = ' [Te traag: ' . $pv->effective_speed . '/' . $heist->min_speed_required . ' km/u]';
+                                            } elseif ($pv->current_condition < $heist->min_condition_required) {
+                                                $disReason = ' [Slechte staat: ' . $pv->current_condition . '/' . $heist->min_condition_required . '%]';
+                                            }
                                         @endphp
-                                        <option value="{{ $pv->id }}" {{ ($effectiveVehicle && $effectiveVehicle->id === $pv->id) ? 'selected' : '' }} {{ $pvDestroyed ? 'disabled' : '' }}>
-                                            {{ $pv->vehicle?->name ?? 'Voertuig' }} ({{ $pv->effective_speed }} km/u, {{ $pv->current_condition }}% Conditie){{ $pvDestroyed ? ' [TOTAL LOSS]' : ($pv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
+                                        <option value="{{ $pv->id }}" {{ ($effectiveVehicle && $effectiveVehicle->id === $pv->id) ? 'selected' : '' }} {{ ! $pvQualifies ? 'disabled' : '' }}>
+                                            {{ $pv->vehicle?->name ?? 'Voertuig' }} ({{ $pv->effective_speed }} km/u, {{ $pv->current_condition }}% Conditie){{ $disReason ?: ($pv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -695,10 +706,21 @@
                                     <select name="character_vehicle_id" class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-2 focus:ring-2 focus:ring-purple-500">
                                         @foreach($gangVehicles as $gv)
                                             @php
+                                                $gvQualifies = $heist->vehicleQualifies($gv);
                                                 $gvDestroyed = $gv->current_condition <= 0;
+                                                $disReason = '';
+                                                if ($gvDestroyed) {
+                                                    $disReason = ' [TOTAL LOSS]';
+                                                } elseif (! $heist->matchesVehicleType($gv)) {
+                                                    $disReason = ' [Onjuist type: ' . ($gv->vehicle?->type ?? 'onbekend') . ']';
+                                                } elseif ($gv->effective_speed < $heist->min_speed_required) {
+                                                    $disReason = ' [Te traag: ' . $gv->effective_speed . '/' . $heist->min_speed_required . ' km/u]';
+                                                } elseif ($gv->current_condition < $heist->min_condition_required) {
+                                                    $disReason = ' [Slechte staat: ' . $gv->current_condition . '/' . $heist->min_condition_required . '%]';
+                                                }
                                             @endphp
-                                            <option value="{{ $gv->id }}" {{ ($effectiveVehicle && $effectiveVehicle->id === $gv->id) ? 'selected' : '' }} {{ $gvDestroyed ? 'disabled' : '' }}>
-                                                {{ $gv->vehicle?->name ?? 'Voertuig' }} ({{ $gv->effective_speed }} km/u, {{ $gv->current_condition }}% Conditie){{ $gvDestroyed ? ' [TOTAL LOSS]' : ($gv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
+                                            <option value="{{ $gv->id }}" {{ ($effectiveVehicle && $effectiveVehicle->id === $gv->id) ? 'selected' : '' }} {{ ! $gvQualifies ? 'disabled' : '' }}>
+                                                {{ $gv->vehicle?->name ?? 'Voertuig' }} ({{ $gv->effective_speed }} km/u, {{ $gv->current_condition }}% Conditie){{ $disReason ?: ($gv->isReinforced() ? ' [🛡️ Gepantserd]' : '') }}
                                             </option>
                                         @endforeach
                                     </select>

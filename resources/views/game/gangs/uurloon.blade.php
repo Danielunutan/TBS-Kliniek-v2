@@ -146,7 +146,7 @@
                 <span>Bende Uurloon & Live Calculator</span>
             </h1>
             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
-                Ieder heel uur automatisch salaris op je bankrekening. Bekijk hieronder de exacte realtime berekening van jouw bende of simuleer wat jouw bende-salaris wordt bij uitbreiding!
+                Ieder heel uur automatisch salaris contant op zak. Bekijk hieronder de exacte realtime berekening van jouw bende of simuleer wat jouw bende-salaris wordt bij uitbreiding!
             </p>
         </div>
 
@@ -264,7 +264,7 @@
     </div>
 
     <!-- TAB 1: INTERACTIVE CALCULATOR (WAT-ALS SIMULATOR) -->
-    <div x-show="activeTab === 'calculator'" class="space-y-6">
+    <div x-show="activeTab === 'calculator'" x-cloak class="space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             <!-- Controls Column (7 cols) -->
@@ -434,9 +434,14 @@
                         +€<span x-text="formatNumber(personalWage)"></span><span class="text-sm text-slate-300 font-bold">/uur</span>
                     </div>
 
-                    <p class="text-xs text-purple-200/80 mb-6 leading-relaxed">
-                        Dit salaris wordt elk heel uur automatisch bijgeschreven op je bankrekening zolang je actief deelneemt in de bende.
+                    <p class="text-xs text-purple-200/80 mb-3 leading-relaxed">
+                        Dit salaris wordt elk heel uur automatisch bijgeschreven contant op zak zolang je actief deelneemt in de bende.
                     </p>
+
+                    <div class="p-3 rounded-xl bg-purple-900/40 border border-purple-800/60 text-[11px] text-purple-200/90 mb-4 leading-relaxed">
+                        <strong class="text-amber-300"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Activiteitscorrectie:</strong>
+                        Leden die inactief zijn ontvangen minder loon (&gt;24u inactief: 75%, &gt;72u inactief: 50%, &gt;7 dagen inactief: 35%). Blijf actief inloggen voor het volledige 100% salaris!
+                    </div>
 
                     <!-- Period Breakdowns -->
                     <div class="space-y-3 pt-4 border-t border-purple-800/60 text-xs">
@@ -497,7 +502,7 @@
 
     @if($inGang)
     <!-- TAB 2: LIVE SPECIFICATION (MY GANG BREAKDOWN) -->
-    <div x-show="activeTab === 'breakdown'" class="space-y-6">
+    <div x-show="activeTab === 'breakdown'" x-cloak class="space-y-6">
         
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-6">
             

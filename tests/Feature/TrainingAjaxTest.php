@@ -143,7 +143,7 @@ class TrainingAjaxTest extends TestCase
 
         $character->refresh();
         $this->assertEquals(51, $character->strength);
-        $this->assertEquals(40, $character->xp);
+        $this->assertEquals(48, $character->xp);
         $this->assertEquals(90, $character->energy);
         $this->assertEquals(5000 - 150, $character->cash);
     }
@@ -180,7 +180,7 @@ class TrainingAjaxTest extends TestCase
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
             'level' => 1,
-            'xp' => 270, // 350 XP total needed for level 2, so +80 XP levels up to level 2!
+            'xp' => 320, // 400 XP total needed for level 2, so 320 + 96 XP levels up to level 2!
             'cash' => 5000,
             'energy' => 100,
             'strength' => 150, // Max cap for level 1
@@ -252,13 +252,13 @@ class TrainingAjaxTest extends TestCase
             'mode' => 'level',
             'stat' => 'strength',
             'stat_gain' => 0,
-            'xp_gain' => 50,
+            'xp_gain' => 60,
             'new_value' => 150,
         ]);
 
         $character->refresh();
         $this->assertEquals(150, $character->strength);
-        $this->assertEquals(60, $character->xp);
+        $this->assertEquals(70, $character->xp);
     }
 
     public function test_arm_wrestle_npc_win_is_never_overturned_into_loss(): void

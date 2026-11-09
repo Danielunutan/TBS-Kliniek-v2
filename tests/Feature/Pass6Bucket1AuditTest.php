@@ -112,7 +112,8 @@ class Pass6Bucket1AuditTest extends TestCase
         $this->assertSame(35, $character->energy);
         $this->assertTrue(app(CooldownService::class)->isOnCooldown($character, 'dropping_tennisball'));
         $dropping = SmuggleDropping::where('character_id', $character->id)->latest('id')->firstOrFail();
-        $this->assertSame($dropping->xp_gained, $character->xp);
+        // Level 5 character receives +20% catch-up bonus on dropping activity XP
+        $this->assertSame((int) round($dropping->xp_gained * 1.2), $character->xp);
     }
 
     public function test_arm_wrestling_finish_npc_consumes_energy_and_awards_respect_via_add_respect(): void

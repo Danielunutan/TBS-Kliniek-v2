@@ -11,8 +11,16 @@
     npcCd: {{ $rotatingNpcs['seconds_left'] ?? 1800 }},
     init() {
         setInterval(() => {
-            if (this.propCd > 0) this.propCd--;
-            if (this.npcCd > 0) this.npcCd--;
+            if (this.propCd > 0) {
+                this.propCd--;
+            } else {
+                window.location.reload();
+            }
+            if (this.npcCd > 0) {
+                this.npcCd--;
+            } else {
+                window.location.reload();
+            }
         }, 1000);
     },
     formatTime(sec) {
@@ -239,13 +247,13 @@
                                 <input type="hidden" name="token" value="{{ $offer['token'] }}">
                                 <input type="hidden" name="dynamic_price" value="{{ $dynPrice }}">
                                 <button type="submit" 
-                                        @if(!$canAffordRot || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        @if(!$canAffordRot || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
                                         data-confirm="Koop {{ $p['name'] }} voor €{{ number_format($dynPrice, 0, ',', '.') }} uit de bendekas?"
                                         data-confirm-title="Bendepand Kopen"
                                         data-confirm-btn="Ja, Pand Kopen"
                                         data-confirm-type="success"
                                         data-confirm-icon="fa-building-circle-check"
-                                        class="px-3 py-1.5 rounded-xl {{ ($canAffordRot && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-[11px] font-black transition-all duration-150">
+                                        class="px-3 py-1.5 rounded-xl {{ ($canAffordRot && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-[11px] font-black transition-all duration-150">
                                     Kopen
                                 </button>
                             </form>
@@ -424,8 +432,8 @@
                     <form method="POST" action="{{ route('gangs.panden.claim-production', $owned) }}">
                         @csrf
                         <button type="submit"
-                                @if($character->isImprisoned() || $character->isComatose()) disabled @endif
-                                class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-sack-dollar"></i>
                             <span>Claim Opbrengst (+€{{ number_format($owned->effective_reward_cash, 0, ',', '.') }})</span>
                         </button>
@@ -482,8 +490,8 @@
                             </select>
                         </div>
                         <button type="submit"
-                                @if(!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                class="w-full py-2.5 rounded-xl {{ (!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                @if(!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                class="w-full py-2.5 rounded-xl {{ (!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i>
                             <span>{{ $fleetCheck['qualified'] ? 'Start Productiecyclus' : 'Vloot Vereist in Bende Garage' }}</span>
                         </button>
@@ -504,13 +512,13 @@
                     <form method="POST" action="{{ route('gangs.panden.buy', $key) }}">
                         @csrf
                         <button type="submit"
-                                @if(! $canAfford || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                @if(! $canAfford || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
                                 data-confirm="Weet je zeker dat je {{ $prop['name'] }} wilt kopen voor €{{ number_format($prop['price'], 0, ',', '.') }} uit de bendekas?"
                                 data-confirm-title="Bendepand Kopen"
                                 data-confirm-btn="Ja, Pand Kopen"
                                 data-confirm-type="success"
                                 data-confirm-icon="fa-building-circle-check"
-                                class="w-full py-3 px-4 rounded-xl {{ ($canAfford && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
+                                class="w-full py-3 px-4 rounded-xl {{ ($canAfford && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-building-circle-check"></i>
                             @if($canAfford)
                                 <span>Kopen voor € {{ number_format($prop['price'], 0, ',', '.') }}</span>

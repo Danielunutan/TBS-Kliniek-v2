@@ -57,7 +57,7 @@ class MurderStatsController extends Controller
         $topOnlinePatientsToday = $topPatientsToday->filter(fn ($p) => $p->is_online)->values();
 
         // 2. TODAY: Top Gangs by violence
-        $topGangsToday = Gang::with('members')
+        $topGangsToday = Gang::with(['members' => fn ($q) => $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)])
             ->get()
             ->map(function ($gang) {
                 $kills = (int) $gang->members->sum('fights_won');
@@ -103,10 +103,13 @@ class MurderStatsController extends Controller
                     'is_online' => $char ? $char->isOnline() : false,
                 ];
             });
-            $topGangsWeek = DailyBattleScore::with('character.gang.members')
+            $topGangsWeek = DailyBattleScore::with(['character.gang.members' => fn ($q) => $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)])
                 ->where('battle_date', '>=', $sevenDaysAgo)
                 ->where(function ($q) {
                     $q->where('score_kills', '>', 0)->orWhere('score_slay', '>', 0);
+                })
+                ->whereHas('character', function ($q) {
+                    $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
                 })
                 ->get()
                 ->filter(fn ($score) => $score->character?->gang !== null)

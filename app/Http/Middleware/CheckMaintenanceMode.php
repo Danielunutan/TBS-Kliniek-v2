@@ -113,8 +113,16 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
-        // Allow guests to submit login credentials or open the staff login form (?beheer=1)
-        if (! $user && ($request->routeIs('login.post') || ($request->routeIs('login') && $request->boolean('beheer')))) {
+        // Allow staff login form (?beheer=1) or login credential submission
+        if ($request->routeIs('login.post') || ($request->routeIs('login') && $request->boolean('beheer'))) {
+            if ($user && ! $user->isAdmin()) {
+                Auth::guard('web')->logout();
+                if ($request->isMethod('GET') && $request->hasSession()) {
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                }
+            }
+
             return $next($request);
         }
 

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Character;
 use App\Models\NewsArticle;
 use App\Models\User;
+use App\Services\EventHustleChallengeService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -132,6 +133,7 @@ Om te zorgen dat de strijd eerlijk, competitief en bloedstollend spannend blijft
 
 ### 4. Bende Panden, Garage & Specialist NPC's
 - **Smokkelkiosken (Stabiele Basis, max 1.000):** Kiosken leveren een vaste bijdrage van €50 per kiosk per uur (max €50.000 per uur).
+- **Specialistenlimiet (Max 5 per Type):** Om oneindige NPC-stapeling te voorkomen, geldt een limiet van maximaal 5 actieve contracten per specialist-type tegelijk.
 - **Actief Bende Wagenpark:** Voertuigen in de Bende Garage rijden logistieke diensten (€1.500/u per motor, €4.000/u per auto, €12.500/u per boot, €25.000/u per helikopter/vliegtuig). Schade aan deze voertuigen wordt 100% betaald uit de gezamenlijke bendekas.
 - **Syndicaat Panden (tot €1,5 miljard):** Start lucratieve productieorders met doorlooptijden van 2,5 tot 8 uur.
 - **Bende Heists met NPC Handlangers:** Kleine en middelgrote bendes kunnen ingehuurde NPC specialisten meenemen naar grote overvallen. Zij tellen volwaardig mee voor de minimale bemanningseis van de Heist! 50% van de buit gaat direct contant naar jou, 50% naar de bendekas.
@@ -169,8 +171,8 @@ MARKDOWN;
         $this->info("Nieuw allesomvattend update-artikel succesvol geplaatst! ID: {$article->id}, Slug: {$article->slug}");
 
         // Zorg ook dat het Hossel Challenge artikel gesynchroniseerd en gepubliceerd is
-        \App\Services\EventHustleChallengeService::syncChallengeArticle();
-        $this->info("Hossel Challenge artikel gesynchroniseerd.");
+        EventHustleChallengeService::syncChallengeArticle();
+        $this->info('Hossel Challenge artikel gesynchroniseerd.');
 
         return self::SUCCESS;
     }

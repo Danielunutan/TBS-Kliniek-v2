@@ -1675,6 +1675,17 @@ class GangController extends Controller
                 if ($unitPrice > 0) {
                     $budgetCash = min((float) $request->input('budget_cash'), (float) $lockedGang->treasury);
                     $qty = (int) floor($budgetCash / $unitPrice);
+
+                    if ($itemType === 'bling_shops') {
+                        $currentKiosks = (int) ($lockedGang->bling_shops ?? 0);
+                        $maxKiosks = GangWageService::MAX_CONTRIBUTING_KIOSKS;
+                        if ($currentKiosks >= $maxKiosks) {
+                            return back()
+                                ->with('active_gang_tab', 'winkel')
+                                ->with('error', "Jullie bende heeft de maximale limiet van {$maxKiosks} Smokkelkiosken al bereikt!");
+                        }
+                        $qty = min($qty, max(0, $maxKiosks - $currentKiosks));
+                    }
                 }
             }
 
@@ -2715,14 +2726,30 @@ class GangController extends Controller
         }
 
         return DB::transaction(function () use ($myGang, $targetGang, $character, $entryStake) {
-            $lockedMyGang = Gang::where('id', $myGang->id)->lockForUpdate()->first();
-            $lockedTarget = Gang::where('id', $targetGang->id)->lockForUpdate()->first();
+            $lockedGangs = Gang::whereIn('id', [$myGang->id, $targetGang->id])
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            /** @var Gang|null $lockedMyGang */
+            $lockedMyGang = $lockedGangs->get($myGang->id);
+            /** @var Gang|null $lockedTarget */
+            $lockedTarget = $lockedGangs->get($targetGang->id);
 
             if (! $lockedMyGang || (int) $lockedMyGang->treasury < $entryStake) {
                 return back()->with('error', 'Er is minimaal €'.number_format($entryStake, 0, ',', '.').' in de bende kluis nodig als oorlogsinzet!');
             }
 
-            if (! $lockedTarget || GangWar::findActiveForGang($lockedTarget->id)) {
+            if (! $lockedTarget) {
+                return back()->with('error', 'Ongeldig doelwit voor de bendeoorlog geselecteerd.');
+            }
+
+            if (GangWar::findActiveForGang($lockedMyGang->id)) {
+                return back()->with('error', 'Jullie bende bevindt zich momenteel al in een actieve 24-uurs bendeoorlog!');
+            }
+
+            if (GangWar::findActiveForGang($lockedTarget->id)) {
                 return back()->with('error', "Bende '{$targetGang->name}' bevindt zich al in oorlog met een andere rivaliserende groepering!");
             }
 

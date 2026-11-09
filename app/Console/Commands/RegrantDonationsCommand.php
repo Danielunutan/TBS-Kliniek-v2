@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AuditLog;
 use App\Models\BuyMeACoffeeOrder;
 use App\Models\Character;
 use App\Models\GameNotification;
@@ -12,8 +13,9 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
-#[Signature('tbs:regrant-donations {--dry-run : Simulate without modifying character data} {--revert-vip-dates : Only restore natural provider renewal dates for VIP subscriptions without re-adding assets}')]
+#[Signature('tbs:regrant-donations {--dry-run : Simulate without modifying character data} {--force-regrant : Force regrant even if orders were already regranted} {--revert-vip-dates : Only restore natural provider renewal dates for VIP subscriptions without re-adding assets}')]
 #[Description('Keert uit coulance alle gekochte donatievoordelen (Sterren, Maskers, Kogels, XXL Koffers) opnieuw uit aan donateurs voor Seizoen 2')]
 class RegrantDonationsCommand extends Command
 {
@@ -22,6 +24,8 @@ class RegrantDonationsCommand extends Command
      */
     public function handle(): int
     {
+        $isDryRun = (bool) $this->option('dry-run');
+
         if ($this->option('revert-vip-dates')) {
             $this->info('Herstellen van natuurlijke VIP-vervaldata via externe provider...');
             $updates = [
@@ -32,9 +36,11 @@ class RegrantDonationsCommand extends Command
             foreach ($updates as $charId => $date) {
                 $c = Character::find($charId);
                 if ($c) {
-                    $c->vip_expires_at = Carbon::parse($date);
-                    $c->is_vip = true;
-                    $c->save();
+                    if (! $isDryRun) {
+                        $c->vip_expires_at = Carbon::parse($date);
+                        $c->is_vip = true;
+                        $c->save();
+                    }
                     $this->info("   -> {$c->name} (ID {$c->id}) VIP hersteld naar provider datum: {$date}");
                 }
             }
@@ -43,7 +49,7 @@ class RegrantDonationsCommand extends Command
             return self::SUCCESS;
         }
 
-        $isDryRun = (bool) $this->option('dry-run');
+        $forceRegrant = (bool) $this->option('force-regrant');
 
         $this->info('====================================================');
         $this->info('TBS KLINIEK - COULANCE HER-UITKERING DONATIES');
@@ -55,7 +61,7 @@ class RegrantDonationsCommand extends Command
 
         $orders = BuyMeACoffeeOrder::with('character')
             ->whereNotNull('character_id')
-            ->where('status', '!=', 'cancelled')
+            ->whereNotIn('status', ['cancelled', 'refunded', 'failed'])
             ->orderBy('id')
             ->get();
 
@@ -74,10 +80,46 @@ class RegrantDonationsCommand extends Command
         try {
             foreach ($grouped as $characterId => $charOrders) {
                 /** @var Character|null $character */
-                $character = Character::find($characterId);
+                $character = Character::where('id', $characterId)->lockForUpdate()->first();
                 if (! $character) {
                     $this->warn("Karakter ID {$characterId} niet gevonden, sla over.");
+
                     continue;
+                }
+
+                // Idempotency: skip characters whose orders were already regranted unless --force-regrant is set
+                if (! $forceRegrant && Schema::hasTable('audit_logs')) {
+                    $existingLogs = AuditLog::where('character_id', $character->id)
+                        ->where('action', 'buymeacoffee_coulance_regrant')
+                        ->get();
+
+                    if ($existingLogs->isNotEmpty()) {
+                        $allLoggedOrderIds = [];
+                        $hasLegacyLogWithoutOrderIds = false;
+                        foreach ($existingLogs as $log) {
+                            $logOrderIds = $log->details['order_ids'] ?? null;
+                            if (is_array($logOrderIds)) {
+                                $allLoggedOrderIds = array_merge($allLoggedOrderIds, $logOrderIds);
+                            } else {
+                                $hasLegacyLogWithoutOrderIds = true;
+                            }
+                        }
+
+                        if ($hasLegacyLogWithoutOrderIds) {
+                            $this->warn("Karakter {$character->name} (ID: {$character->id}) heeft al een coulance her-uitkering ontvangen. Gebruik --force-regrant om opnieuw uit te keren.");
+
+                            continue;
+                        }
+
+                        $pendingOrders = $charOrders->reject(fn ($o) => in_array($o->id, $allLoggedOrderIds));
+                        if ($pendingOrders->isEmpty()) {
+                            $this->line("Karakter {$character->name} (ID: {$character->id}): alle orders reeds her-uitgekeerd (overgeslagen).");
+
+                            continue;
+                        }
+
+                        $charOrders = $pendingOrders;
+                    }
                 }
 
                 $totalStars = 0;
@@ -86,6 +128,7 @@ class RegrantDonationsCommand extends Command
                 $totalCases = 0;
                 $totalVipDays = 0;
                 $isLifetime = false;
+                $maxTier = 0;
                 $totalAmount = 0.0;
                 $orderCount = $charOrders->count();
 
@@ -113,23 +156,27 @@ class RegrantDonationsCommand extends Command
                             $totalMasks += 1;
                             $totalBullets += 50;
                         }
+
                         continue;
                     }
 
                     // B. Memberships
                     if (str_contains($tierLower, 'lifetime')) {
                         $isLifetime = true;
+                        $maxTier = max($maxTier, 4);
                         $totalStars += 1500;
                         $totalMasks += 30;
                         $totalCases += 10;
                         $totalBullets += 1000;
                     } elseif (str_contains($tierLower, 'baas')) {
+                        $maxTier = max($maxTier, 3);
                         $totalStars += 600;
                         $totalMasks += 12;
                         $totalCases += 3;
                         $totalBullets += 500;
                         $totalVipDays += 31;
                     } elseif (str_contains($tierLower, 'elite') || str_contains($tierLower, 'gangster')) {
+                        $maxTier = max($maxTier, 2);
                         $totalStars += 250;
                         $totalMasks += 5;
                         $totalCases += 1;
@@ -137,6 +184,7 @@ class RegrantDonationsCommand extends Command
                         $totalVipDays += 31;
                     } else {
                         // TBS V.I.P. Lid
+                        $maxTier = max($maxTier, 1);
                         $totalStars += 100;
                         $totalMasks += 2;
                         $totalBullets += 100;
@@ -161,24 +209,46 @@ class RegrantDonationsCommand extends Command
                     $character->bullets = $newBullets;
                     $character->xxl_cases = $newCases;
 
-                    // VIP Status blijft behouden via externe provider (maandelijkse incasso loopt door)
-                    // We verlengen vip_expires_at niet handmatig
-                    if ($character->id === 66) {
+                    // Donator perks for all donors
+                    $perks = $character->perks ?? [];
+                    $perks['is_donator'] = true;
+
+                    // VIP Status is only granted for lifetime VIP or external provider subscribers
+                    if ($isLifetime || in_array((int) $character->id, [66, 70, 113], true)) {
+                        $character->is_vip = true;
+                    }
+
+                    // VIP Expiry dates: natural provider renewal dates or lifetime
+                    if ((int) $character->id === 66) {
                         $character->vip_expires_at = Carbon::parse('2026-12-29 22:56:36');
-                    } elseif ($character->id === 70) {
+                    } elseif ((int) $character->id === 70) {
                         $character->vip_expires_at = Carbon::parse('2026-12-27 23:28:52');
-                    } elseif ($character->id === 113) {
+                    } elseif ((int) $character->id === 113) {
                         $character->vip_expires_at = Carbon::parse('2026-12-10 21:52:11');
                     } elseif ($isLifetime) {
                         $character->vip_expires_at = Carbon::now()->addYears(99);
-                        $perks = $character->perks ?? [];
+                    }
+                    // Note: monthly VIP memberships are not extended manually as billing is handled by external provider
+
+                    // Supporter tier perks
+                    if ($isLifetime) {
                         $perks['supporter_tier'] = 4;
                         $perks['has_custom_name_color'] = true;
                         $perks['has_sparkle_effect'] = true;
                         $perks['hourly_cash_bonus'] = 50000;
-                        $perks['is_donator'] = true;
-                        $character->perks = $perks;
+                    } elseif ($maxTier > 0) {
+                        $resolvedTier = max((int) ($perks['supporter_tier'] ?? 0), $maxTier);
+                        $resolvedTier = max(1, $resolvedTier);
+                        $perks['supporter_tier'] = $resolvedTier;
+                        $perks['hourly_cash_bonus'] = match ($resolvedTier) {
+                            3 => 20000,
+                            2 => 7500,
+                            default => 2500,
+                        };
+                        $perks['has_custom_name_color'] = ($resolvedTier >= 2);
+                        $perks['has_sparkle_effect'] = ($resolvedTier >= 3);
                     }
+                    $character->perks = $perks;
 
                     $character->save();
 
@@ -189,11 +259,11 @@ class RegrantDonationsCommand extends Command
                             'type' => 'bmac_coulance',
                             'icon' => 'fa-gift',
                             'title' => '🌟 Seizoen 2 Sprint: Coulance Donatievoordelen Uitgekeerd!',
-                            'message' => "Uit coulance voor de Seizoensreset zijn al jouw gekochte donatievoordelen opnieuw aan je account toegevoegd! Je hebt ontvangen: +{$totalStars} Sterren ⭐, +{$totalMasks} Maskers 🎭, +{$totalBullets} Kogels 🔫" . ($totalCases > 0 ? " en +{$totalCases} XXL Koffers 🧰" : "") . ". Heel veel succes en strijdlust in Seizoen 2!",
+                            'message' => "Uit coulance voor de Seizoensreset zijn al jouw gekochte donatievoordelen opnieuw aan je account toegevoegd! Je hebt ontvangen: +{$totalStars} Sterren ⭐, +{$totalMasks} Maskers 🎭, +{$totalBullets} Kogels 🔫".($totalCases > 0 ? " en +{$totalCases} XXL Koffers 🧰" : '').'. Heel veel succes en strijdlust in Seizoen 2!',
                             'is_read' => false,
                         ]);
                     } catch (\Throwable $e) {
-                        Log::warning("Notification failed for character {$character->id}: " . $e->getMessage());
+                        Log::warning("Notification failed for character {$character->id}: ".$e->getMessage());
                     }
 
                     // Audit Log
@@ -207,6 +277,7 @@ class RegrantDonationsCommand extends Command
                             amount: (int) $totalAmount,
                             details: [
                                 'order_count' => $orderCount,
+                                'order_ids' => $charOrders->pluck('id')->all(),
                                 'stars_added' => $totalStars,
                                 'masks_added' => $totalMasks,
                                 'bullets_added' => $totalBullets,
@@ -214,7 +285,7 @@ class RegrantDonationsCommand extends Command
                             ]
                         );
                     } catch (\Throwable $e) {
-                        Log::warning("AuditLog failed for character {$character->id}: " . $e->getMessage());
+                        Log::warning("AuditLog failed for character {$character->id}: ".$e->getMessage());
                     }
                 }
 
@@ -222,7 +293,7 @@ class RegrantDonationsCommand extends Command
                     'id' => $character->id,
                     'name' => $character->name,
                     'orders' => $orderCount,
-                    'donated' => '€' . number_format($totalAmount, 2, ',', '.'),
+                    'donated' => '€'.number_format($totalAmount, 2, ',', '.'),
                     'stars' => "+{$totalStars} ({$oldStars} -> {$newStars})",
                     'masks' => "+{$totalMasks} ({$oldMasks} -> {$newMasks})",
                     'bullets' => "+{$totalBullets} ({$oldBullets} -> {$newBullets})",
@@ -249,7 +320,7 @@ class RegrantDonationsCommand extends Command
             return self::SUCCESS;
         } catch (\Throwable $e) {
             DB::rollBack();
-            $this->error('Fout tijdens coulance her-uitkering: ' . $e->getMessage());
+            $this->error('Fout tijdens coulance her-uitkering: '.$e->getMessage());
 
             return self::FAILURE;
         }

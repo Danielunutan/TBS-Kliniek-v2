@@ -302,6 +302,47 @@ class GangPropertyController extends Controller
                 return "De persoonlijke garage zit vol ({$ownerChar->getGarageUsed()}/{$ownerChar->getGarageCapacity()} plekken bezet)! Verkoop eerst een wagen of stal een andere wagen in de Bende Garage voordat je dit voertuig terughaalt.";
             }
 
+            // Check if removing this vehicle drops the gang below active production fleet requirements
+            $activeProductions = GangProperty::where('gang_id', $gang->id)
+                ->whereNotNull('production_ends_at')
+                ->get();
+
+            if ($activeProductions->isNotEmpty()) {
+                $remainingVehicles = $gang->storedVehicles()
+                    ->where('id', '!=', $lockedVehicle->id)
+                    ->with('vehicle')
+                    ->get();
+
+                foreach ($activeProductions as $activeProp) {
+                    $catalogProp = GangPropertyCatalog::get($activeProp->property_key);
+                    $reqConfig = $catalogProp['vehicle_requirements'] ?? null;
+                    if (! empty($reqConfig['rules'])) {
+                        foreach ($reqConfig['rules'] as $rule) {
+                            $allowedTypes = $rule['types'] ?? [];
+                            $minCount = (int) ($rule['min_count'] ?? 1);
+                            $minSpeed = (int) ($rule['min_speed'] ?? 0);
+                            $minCondition = (int) ($rule['min_condition'] ?? 1);
+                            $label = $rule['label'] ?? 'Vereist voertuig';
+
+                            $matchingCount = $remainingVehicles->filter(function ($cv) use ($allowedTypes, $minSpeed, $minCondition) {
+                                if (! $cv || ! $cv->vehicle || $cv->current_condition < $minCondition) {
+                                    return false;
+                                }
+                                if ($cv->effective_speed < $minSpeed) {
+                                    return false;
+                                }
+
+                                return empty($allowedTypes) || in_array($cv->vehicle->type, $allowedTypes, true);
+                            })->count();
+
+                            if ($matchingCount < $minCount) {
+                                return "Dit voertuig is vereist voor een actieve productiecyclus in '{$activeProp->name}' ({$label}) en kan niet worden opgehaald!";
+                            }
+                        }
+                    }
+                }
+            }
+
             $lockedVehicle->update([
                 'in_gang_garage' => false,
                 'gang_id' => null,
@@ -810,9 +851,39 @@ class GangPropertyController extends Controller
                 ]
             );
 
+            $jackpotNotice = '';
+            if (rand(1, 100) <= 35) {
+                $jackpotRoll = rand(1, 3);
+                if ($jackpotRoll === 1) {
+                    $lockedChar->increment('stars', 5);
+                    $jackpotNotice = ' 🌟 Persoonlijke Productie-Jackpot: Je ontving direct +5 Gouden Sterren!';
+                } elseif ($jackpotRoll === 2) {
+                    $lockedChar->increment('xxl_cases', 1);
+                    $jackpotNotice = ' 💼 Persoonlijke Productie-Jackpot: Je vond een zeldzame XXL Smokkelkoffer!';
+                } else {
+                    $lockedChar->increment('respect', 100);
+                    $jackpotNotice = ' 🏆 Persoonlijke Productie-Jackpot: +100 Persoonlijk Respect toegekend!';
+                }
+
+                AuditLogService::log(
+                    action: 'gang.production_jackpot',
+                    category: 'gang',
+                    description: "Productie-jackpot gewonnen bij {$lockedProperty->name}: {$jackpotNotice}",
+                    character: $lockedChar,
+                    user: $lockedChar->user,
+                    amount: 0,
+                    details: [
+                        'gang_id' => $lockedGang->id,
+                        'property_id' => $lockedProperty->id,
+                        'roll' => $jackpotRoll,
+                    ]
+                );
+            }
+
             return [
                 'cash' => $cash,
                 'respect' => $respect,
+                'jackpot_notice' => $jackpotNotice,
             ];
         });
 
@@ -822,6 +893,7 @@ class GangPropertyController extends Controller
 
         $cash = $claimedData['cash'];
         $respect = $claimedData['respect'];
+        $jackpotNotice = $claimedData['jackpot_notice'] ?? '';
 
         $drugUnits = match ($property->property_key) {
             'wietkwekerij' => 50,
@@ -832,22 +904,6 @@ class GangPropertyController extends Controller
         };
         if ($drugUnits > 0) {
             EventDrugsProductionService::record($character, $drugUnits, $property->property_key);
-        }
-
-        $jackpotNotice = '';
-        if (rand(1, 100) <= 35) {
-            $jackpotRoll = rand(1, 3);
-            if ($jackpotRoll === 1) {
-                $character->increment('stars', 5);
-                $jackpotNotice = ' 🌟 Persoonlijke Productie-Jackpot: Je ontving direct +5 Gouden Sterren!';
-            } elseif ($jackpotRoll === 2) {
-                $character->increment('xxl_cases', 1);
-                $jackpotNotice = ' 💼 Persoonlijke Productie-Jackpot: Je vond een zeldzame XXL Smokkelkoffer!';
-            } else {
-                $character->increment('respect', 100);
-                $jackpotNotice = ' 🏆 Persoonlijke Productie-Jackpot: +100 Persoonlijk Respect toegekend!';
-            }
-            $character->save();
         }
 
         $formattedCash = number_format($cash, 0, ',', '.');

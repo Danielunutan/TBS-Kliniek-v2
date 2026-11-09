@@ -165,6 +165,10 @@
                                 @case('respect') Meeste Respect @break
                                 @case('wealth') Rijkste Patiënten @break
                                 @case('crimes') Grootste Criminelen @break
+                                @case('dagbesteding') Dagbesteding Toppers @break
+                                @case('discipline') Hoogste Discipline @break
+                                @case('missions') Meeste Missies @break
+                                @case('hacks') Meester Hackers @break
                                 @default Level & Ervaring
                             @endswitch
                         </span>
@@ -174,6 +178,10 @@
                             @case('respect') De patiënten met het meeste aanzien en respect binnen de inrichting. @break
                             @case('wealth') De rijkste patiënten gesorteerd op contant geld en bankrekening. @break
                             @case('crimes') De meest succesvolle criminelen gesorteerd op geslaagde diefstallen. @break
+                            @case('dagbesteding') De meest actieve werkers in de dagbesteding en re-integratie. @break
+                            @case('discipline') De meest gedisciplineerde patiënten van de TBS kliniek. @break
+                            @case('missions') De patiënten met de meeste succesvol voltooide missies. @break
+                            @case('hacks') De slimste patiënten met de meeste gekraakte hack challenges. @break
                             @default De meest ervaren patiënten van de TBS kliniek op basis van level en XP.
                         @endswitch
                     </p>
@@ -195,6 +203,10 @@
                                     @case('respect') Respect @break
                                     @case('wealth') Vermogen @break
                                     @case('crimes') Geslaagde Diefstallen @break
+                                    @case('dagbesteding') Diensten @break
+                                    @case('discipline') Discipline @break
+                                    @case('missions') Missies @break
+                                    @case('hacks') Hacks @break
                                     @default Level & XP
                                 @endswitch
                             </th>

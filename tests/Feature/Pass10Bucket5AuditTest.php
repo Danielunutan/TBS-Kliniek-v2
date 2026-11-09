@@ -149,10 +149,10 @@ class Pass10Bucket5AuditTest extends TestCase
 
         $this->assertTrue($result['success']);
         $this->assertSame(0, $result['stat_gain']);
-        $this->assertSame(50, $result['xp_gain']);
+        $this->assertSame(60, $result['xp_gain']);
 
         $this->character->refresh();
-        $this->assertSame($initialXp + 50, (int) $this->character->xp);
+        $this->assertSame($initialXp + 60, (int) $this->character->xp);
     }
 
     public function test_vpn_detection_service_bypasses_private_and_reserved_ips(): void

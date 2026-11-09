@@ -36,7 +36,16 @@ return new class extends Migration
 
         if (Schema::hasTable('sessions') && Schema::hasTable('users')) {
             $adminIds = DB::table('users')
-                ->whereIn('role', ['owner', 'admin'])
+                ->where(function ($query): void {
+                    $query->whereIn('role', ['owner', 'admin'])
+                        ->orWhere(function ($q): void {
+                            $q->where('is_staff', true)
+                                ->where(function ($sq): void {
+                                    $sq->whereNull('role')
+                                        ->orWhere('role', '!=', 'moderator');
+                                });
+                        });
+                })
                 ->pluck('id')
                 ->all();
 

@@ -1181,14 +1181,30 @@ function tbsDashboardCustomizer() {
                         radioPlaying: !!(window.tbsRadio && window.tbsRadio.isPlaying),
                         radioLoading: !!(window.tbsRadio && window.tbsRadio.isLoading),
                         nowPlaying: (window.tbsRadio && window.tbsRadio.nowPlaying) ? window.tbsRadio.nowPlaying : { title: 'Live Audio Stream', artist: 'MIXXR Radio Non-Stop', cover: 'https://mixxr.nl/album-art.png' },
+                        autoDjList: (window.tbsRadio && Array.isArray(window.tbsRadio.autoDjList)) ? window.tbsRadio.autoDjList : [],
+                        autoDjLoading: !!(window.tbsRadio && window.tbsRadio.autoDjLoading),
+                        init() {
+                            if (window.tbsRadio) {
+                                this.radioPlaying = window.tbsRadio.isPlaying;
+                                this.radioLoading = window.tbsRadio.isLoading;
+                                if (window.tbsRadio.nowPlaying) this.nowPlaying = window.tbsRadio.nowPlaying;
+                                if (Array.isArray(window.tbsRadio.autoDjList) && window.tbsRadio.autoDjList.length > 0) {
+                                    this.autoDjList = window.tbsRadio.autoDjList;
+                                } else if (typeof window.tbsRadio.loadAutoDj === 'function') {
+                                    window.tbsRadio.loadAutoDj();
+                                }
+                            }
+                        },
                         syncRadioState(detail) {
                             if (!detail) return;
                             if (detail.isPlaying !== undefined) this.radioPlaying = detail.isPlaying;
                             if (detail.isLoading !== undefined) this.radioLoading = detail.isLoading;
                             if (detail.nowPlaying) this.nowPlaying = detail.nowPlaying;
+                            if (detail.autoDjList !== undefined) this.autoDjList = detail.autoDjList;
+                            if (detail.autoDjLoading !== undefined) this.autoDjLoading = detail.autoDjLoading;
                         },
                         getTracks() {
-                            const list = window.tbsRadio ? window.tbsRadio.autoDjList : [];
+                            const list = this.autoDjList.length > 0 ? this.autoDjList : ((window.tbsRadio && Array.isArray(window.tbsRadio.autoDjList)) ? window.tbsRadio.autoDjList : []);
                             if (!this.searchQuery || this.searchQuery.trim() === '') return list;
                             const q = this.searchQuery.toLowerCase().trim();
                             return list.filter(t => 
@@ -1264,7 +1280,7 @@ function tbsDashboardCustomizer() {
                                     <span x-text="(radioPlaying || radioLoading) ? 'Radio Uitzetten' : 'Luister Live'"></span>
                                 </button>
                                 <button type="button" 
-                                        @click="autoDjOpen = !autoDjOpen; if (autoDjOpen && window.tbsRadio) { window.tbsRadio.loadAutoDj(); }" 
+                                        @click="autoDjOpen = !autoDjOpen; if (autoDjOpen && autoDjList.length === 0 && window.tbsRadio) { window.tbsRadio.loadAutoDj(); }" 
                                         class="px-3 py-2 rounded-xl bg-white dark:bg-purple-950/70 hover:bg-purple-50 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-200 font-bold text-xs uppercase tracking-wider border border-purple-200 dark:border-purple-800 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs shrink-0">
                                     <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-xs"></i>
                                     <span x-text="autoDjOpen ? 'Sluit AutoDJ' : 'AutoDJ Verzoekje'"></span>
@@ -1320,7 +1336,7 @@ function tbsDashboardCustomizer() {
 
                             <!-- Track Resultaten Grid -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto custom-scrollbar pr-1">
-                                <template x-if="!window.tbsRadio || (window.tbsRadio.autoDjList.length === 0 && window.tbsRadio.autoDjLoading)">
+                                <template x-if="autoDjLoading || (autoDjList.length === 0 && (!window.tbsRadio || window.tbsRadio.autoDjLoading))">
                                     <div class="col-span-full p-8 text-center text-xs text-slate-400 dark:text-purple-300/60 flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-spinner fa-spin text-purple-500 text-base"></i>
                                         <span>AutoDJ bibliotheek synchroniseren...</span>
@@ -1356,7 +1372,7 @@ function tbsDashboardCustomizer() {
                                     </div>
                                 </template>
 
-                                <template x-if="window.tbsRadio && window.tbsRadio.autoDjList.length > 0 && getTracks().length === 0">
+                                <template x-if="autoDjList.length > 0 && getTracks().length === 0">
                                     <div class="col-span-full p-8 text-center text-xs text-slate-400 dark:text-purple-300/60">
                                         Geen nummers gevonden voor '<span class="font-bold text-slate-600 dark:text-purple-200" x-text="searchQuery"></span>'. Probeer een andere artiest of titel.
                                     </div>

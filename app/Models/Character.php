@@ -1749,7 +1749,7 @@ class Character extends Model
         $this->save();
 
         if ($overflowPoints > 0) {
-            app(LevelService::class)->addXp($this, $overflowPoints * 45);
+            app(LevelService::class)->addXp($this, $overflowPoints * 45, applyCatchUp: false);
             $newMaxStat = $this->getMaxStatForLevel();
 
             foreach ($stats as $stat) {

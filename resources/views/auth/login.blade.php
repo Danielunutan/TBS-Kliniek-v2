@@ -155,7 +155,9 @@
                                 <input type="checkbox" name="remember" checked class="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-purple-600 focus:ring-purple-500">
                                 <span>Sessie onthouden</span>
                             </label>
+                            @if(!$isStaffMaintenanceLogin)
                             <a href="{{ route('password.request') }}" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold transition">Wachtwoord kwijt?</a>
+                            @endif
                         </div>
 
                         <!-- Cloudflare Turnstile Security Verification (Login) -->

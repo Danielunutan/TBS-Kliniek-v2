@@ -294,19 +294,22 @@ function getGlobalRadioAudio() {
 }
 
 // Synchronize state on Turbo page navigation
-document.addEventListener('turbo:load', () => {
-    const audio = window.tbsRadioAudio;
-    if (audio && audio.src && !audio.paused) {
-        window.dispatchEvent(new CustomEvent('tbs-radio-state-changed', {
-            detail: {
-                isPlaying: true,
-                isLoading: false,
-                volume: audio.volume,
-                isMuted: audio.muted
-            }
-        }));
-    }
-});
+if (!window._tbsRadioTurboListenerAttached) {
+    window._tbsRadioTurboListenerAttached = true;
+    document.addEventListener('turbo:load', () => {
+        const audio = window.tbsRadioAudio;
+        if (audio && audio.src && !audio.paused) {
+            window.dispatchEvent(new CustomEvent('tbs-radio-state-changed', {
+                detail: {
+                    isPlaying: true,
+                    isLoading: false,
+                    volume: audio.volume,
+                    isMuted: audio.muted
+                }
+            }));
+        }
+    });
+}
 
 function tbsRadioPlayer() {
     return {
@@ -363,7 +366,9 @@ function tbsRadioPlayer() {
                 window.tbsRadio = this;
                 this.fetchNowPlaying();
                 this.startMetadataPolling();
-                this.loadAutoDj();
+                if (this.autoDjList.length === 0 && this.isExpanded) {
+                    this.loadAutoDj();
+                }
                 return;
             }
 
@@ -394,7 +399,9 @@ function tbsRadioPlayer() {
             window.tbsRadio = this;
             this.fetchNowPlaying();
             this.startMetadataPolling();
-            this.loadAutoDj();
+            if (this.autoDjList.length === 0 && this.isExpanded) {
+                this.loadAutoDj();
+            }
         },
 
         fetchNowPlaying() {
@@ -414,8 +421,11 @@ function tbsRadioPlayer() {
         },
 
         startMetadataPolling() {
-            if (this.metadataTimer) clearInterval(this.metadataTimer);
-            this.metadataTimer = setInterval(() => {
+            if (window._tbsRadioMetadataTimer) {
+                clearInterval(window._tbsRadioMetadataTimer);
+                window._tbsRadioMetadataTimer = null;
+            }
+            window._tbsRadioMetadataTimer = setInterval(() => {
                 this.fetchNowPlaying();
             }, 8000);
         },
@@ -441,16 +451,18 @@ function tbsRadioPlayer() {
         loadAutoDj() {
             if (this.autoDjList.length > 0) return;
             this.autoDjLoading = true;
+            this.broadcastState();
             fetch('https://mixxr.nl/api/station/requests')
                 .then(r => r.json())
                 .then(data => {
-                    this.autoDjLoading = false;
                     if (data.success && Array.isArray(data.items)) {
                         this.autoDjList = data.items;
                     }
                 })
-                .catch(() => {
+                .catch(() => {})
+                .finally(() => {
                     this.autoDjLoading = false;
+                    this.broadcastState();
                 });
         },
 
@@ -522,7 +534,9 @@ function tbsRadioPlayer() {
                     currentStationId: 'mixxr',
                     volume: this.volume,
                     isMuted: this.isMuted,
-                    nowPlaying: this.nowPlaying
+                    nowPlaying: this.nowPlaying,
+                    autoDjList: this.autoDjList,
+                    autoDjLoading: this.autoDjLoading
                 }
             }));
         },
@@ -533,6 +547,8 @@ function tbsRadioPlayer() {
             if (detail.volume !== undefined) this.volume = detail.volume;
             if (detail.isMuted !== undefined) this.isMuted = detail.isMuted;
             if (detail.nowPlaying !== undefined) this.nowPlaying = detail.nowPlaying;
+            if (detail.autoDjList !== undefined) this.autoDjList = detail.autoDjList;
+            if (detail.autoDjLoading !== undefined) this.autoDjLoading = detail.autoDjLoading;
         },
 
         toggleExpand() {

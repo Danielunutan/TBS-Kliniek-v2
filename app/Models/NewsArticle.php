@@ -151,6 +151,65 @@ class NewsArticle extends Model
     }
 
     /**
+     * Render GitHub-style markdown alerts (> [!IMPORTANT], > [!NOTE], etc.) into styled HTML.
+     */
+    public static function parseMarkdownAlerts(string $text): string
+    {
+        return (string) preg_replace_callback(
+            '/(?:^(?:>|&gt;)[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\r?\n)((?:^(?:>|&gt;)[ \t]*.*$\r?\n?)+)/mi',
+            function ($matches) {
+                $type = strtoupper($matches[1]);
+                $body = preg_replace('/^(?:>|&gt;)[ \t]?/m', '', $matches[2]);
+                $body = trim((string) $body);
+
+                [$borderClass, $bgClass, $titleClass, $icon, $defaultTitle] = match ($type) {
+                    'TIP' => ['border-emerald-500', 'bg-emerald-500/10 dark:bg-emerald-950/40', 'text-emerald-700 dark:text-emerald-300', 'fa-lightbulb', 'Handige Tip'],
+                    'WARNING' => ['border-amber-500', 'bg-amber-500/10 dark:bg-amber-950/40', 'text-amber-700 dark:text-amber-300', 'fa-triangle-exclamation', 'Waarschuwing'],
+                    'CAUTION' => ['border-rose-500', 'bg-rose-500/10 dark:bg-rose-950/40', 'text-rose-700 dark:text-rose-300', 'fa-circle-exclamation', 'Let Op'],
+                    'NOTE' => ['border-blue-500', 'bg-blue-500/10 dark:bg-blue-950/40', 'text-blue-700 dark:text-blue-300', 'fa-circle-info', 'Opmerking'],
+                    default => ['border-purple-500', 'bg-purple-500/10 dark:bg-purple-950/40', 'text-purple-700 dark:text-purple-300', 'fa-circle-exclamation', 'Belangrijk'],
+                };
+
+                // Format body inline formatting
+                $body = (string) preg_replace('/(\*\*|\[b\])(.*?)(\*\*|\[\/b\])/is', '<strong class="font-extrabold text-slate-900 dark:text-white">$2</strong>', $body);
+                $body = (string) preg_replace('/(\*|\[i\])(.*?)(\*|\[\/i\])/is', '<em class="italic text-slate-700 dark:text-slate-300">$2</em>', $body);
+
+                // Group list items into <ul> directly inside alert body
+                if (preg_match('/^[ \t]*[\-\*]\s+/m', $body)) {
+                    $body = (string) preg_replace('/^[ \t]*[\-\*]\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 dark:text-slate-300 font-medium leading-relaxed">$1</li>', $body);
+                    $body = (string) preg_replace_callback('~((?:<li[^>]*>.*?</li>\s*)+)~s', function ($m) {
+                        $cleanItems = preg_replace('~</li>\s+<li~', '</li><li', trim($m[1]));
+
+                        return '<ul class="my-2 space-y-1">'.$cleanItems.'</ul>';
+                    }, $body);
+                }
+
+                // Split by <ul>...</ul> to apply nl2br only to non-list text
+                $parts = preg_split('~(<ul\b[^>]*>.*?</ul>)~s', $body, -1, PREG_SPLIT_DELIM_CAPTURE);
+                $formattedParts = [];
+                foreach ((array) $parts as $part) {
+                    if (str_starts_with(trim($part), '<ul')) {
+                        $formattedParts[] = trim($part);
+                    } else {
+                        $trimmed = trim($part);
+                        if ($trimmed !== '') {
+                            $formattedParts[] = nl2br($trimmed);
+                        }
+                    }
+                }
+                $formattedBody = implode("\n", $formattedParts);
+
+                return "\n\n<div class=\"my-4 p-4 rounded-2xl {$bgClass} border-l-4 {$borderClass} shadow-xs\">\n"
+                    ."<div class=\"flex items-center gap-2 mb-2 font-black text-xs uppercase tracking-wider {$titleClass}\"><i class=\"fa-solid {$icon}\"></i> {$defaultTitle}</div>\n"
+                    ."<div class=\"text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed space-y-2\">\n"
+                    .$formattedBody."\n"
+                    ."</div>\n</div>\n\n";
+            },
+            $text
+        );
+    }
+
+    /**
      * Convert markdown and custom BBCode tags to safe, styled HTML.
      */
     public function getFormattedContentAttribute(): string
@@ -159,6 +218,10 @@ class NewsArticle extends Model
 
         // If content is already formatted HTML, allow safe formatting tags without double-escaping
         if (preg_match('/<(?:p|div|h[1-6]|strong|em|ul|ol|li|br|blockquote|code|table|span|hr)\b/i', $raw)) {
+            if (preg_match('/(?:^|\n)(?:>|&gt;)[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i', $raw)) {
+                $raw = self::parseMarkdownAlerts($raw);
+            }
+
             return self::sanitizeHtml($raw);
         }
 

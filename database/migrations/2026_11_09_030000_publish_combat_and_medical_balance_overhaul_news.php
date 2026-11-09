@@ -64,10 +64,10 @@ return new class extends Migration
 
     <div class="rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 p-5 space-y-3">
         <h3 class="text-lg font-bold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-            <i class="fa-solid fa-shield-halved text-blue-600"></i> Verruiming Dagelijkse Liquidaties
+            <i class="fa-solid fa-shield-halved text-blue-600"></i> Tactische Dagelijkse Liquidaties
         </h3>
         <p class="text-sm">
-            Om ervoor te zorgen dat rivaliserende bendes lekker kunnen blijven doorspelen en elkaar uitdagen, is de dagelijkse liquidatielimiet per doelwit verhoogd van 3 naar 6 keer per dag. Zo valt het spel niet direct stil en blijft er volop actie op de afdelingen.
+            Om ervoor te zorgen dat liquidaties tactisch blijven en pesten wordt voorkomen, geldt een daglimiet van maximaal 5 willekeurige liquidaties per dag (onbeperkt bij officiële Bendeoorlog &amp; Bloedwraak) en een anti-pestslot van maximaal 3 liquidaties per doelwit per dag.
         </p>
     </div>
 

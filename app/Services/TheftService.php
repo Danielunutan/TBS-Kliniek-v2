@@ -119,10 +119,10 @@ class TheftService
             ];
         }
 
-        if ($character->isComatose()) {
+        if ($character->isComatose() || $character->needsReviveSerum()) {
             return [
                 'success' => false,
-                'message' => 'Je verkeert in Code Blauw (Hartstilstand) en kunt geen diefstallen plegen!',
+                'message' => 'Je verkeert in coma of Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
                 'cash_stolen' => 0,
                 'xp_gained' => 0,
                 'jailed' => false,
@@ -166,10 +166,10 @@ class TheftService
                 ];
             }
 
-            if ($victim->isComatose()) {
+            if ($victim->isComatose() || $victim->needsReviveSerum()) {
                 return [
                     'success' => false,
-                    'message' => "{$victim->name} verkeert in Code Blauw (Hartstilstand) op de intensive care en kan niet worden bestolen.",
+                    'message' => "{$victim->name} verkeert in Intensive Care Coma of Code Blauw (Hartstilstand) en kan niet worden bestolen.",
                     'cash_stolen' => 0,
                     'xp_gained' => 0,
                     'jailed' => false,

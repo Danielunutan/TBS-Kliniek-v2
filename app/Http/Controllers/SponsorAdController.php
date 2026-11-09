@@ -667,7 +667,7 @@ class SponsorAdController extends Controller
                             $dailyData['xp_progress'] = 3;
                             $dailyData['xp_claimed'] = true;
                             $lockedCharacter->ad_daily_data = $dailyData;
-                            $this->levelService->addXp($lockedCharacter, 50);
+                            $this->levelService->addXp($lockedCharacter, 50, applyCatchUp: false);
                             $rewardDetails = '⚡ [3/3 Ads] GEFELICITEERD: +50 XP ontvangen! Je dagelijkse XP beloning is geclaimd.';
                         } else {
                             $rewardCompleted = false;

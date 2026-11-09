@@ -33,10 +33,11 @@ class LeaderboardController extends Controller
             $type = 'level';
         }
 
-        $cacheKey = "tbs_leaderboard_{$type}_v4";
+        $cacheKey = "tbs_leaderboard_{$type}_v5";
         $cached = Cache::get($cacheKey);
         if ($cached instanceof \__PHP_Incomplete_Class || ! ($cached instanceof Collection)) {
             Cache::forget($cacheKey);
+            Cache::forget("tbs_leaderboard_{$type}_v4");
             Cache::forget("tbs_leaderboard_{$type}");
             $cached = null;
         }
@@ -44,7 +45,8 @@ class LeaderboardController extends Controller
         $leaderboard = $cached ?? (function () use ($type, $cacheKey) {
             $query = Character::query()
                 ->with('gang')
-                ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+                ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
+                ->whereHas('user', fn ($q) => $q->where('is_banned', false));
 
             match ($type) {
                 'respect' => $query->orderByDesc('respect')->orderByDesc('level'),

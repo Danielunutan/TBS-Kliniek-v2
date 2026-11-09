@@ -476,8 +476,20 @@ class GarageController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen voertuigen verkopen!');
+        }
+
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($characterVehicle->character_id !== $character->id) {
             return back()->with('error', 'Dit voertuig is niet van jou.');
+        }
+
+        if ($characterVehicle->is_gang_owned) {
+            return back()->with('error', 'Dit voertuig is bende-eigendom en kan niet via de dealer verkocht worden.');
         }
 
         if ($characterVehicle->in_gang_garage) {
@@ -485,16 +497,16 @@ class GarageController extends Controller
         }
 
         return DB::transaction(function () use ($character, $characterVehicle): RedirectResponse {
-            /** @var CharacterVehicle|null $lockedVehicle */
-            $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
-            if (! $lockedVehicle || $lockedVehicle->character_id !== $character->id || $lockedVehicle->in_gang_garage) {
-                return back()->with('error', 'Voertuig kon niet worden verwerkt.');
-            }
-
             /** @var Character|null $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
-            if (! $lockedChar) {
-                return back()->with('error', 'Karakter kon niet worden gevonden.');
+            if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return back()->with('error', 'Je bent momenteel niet in staat om voertuigen te verkopen.');
+            }
+
+            /** @var CharacterVehicle|null $lockedVehicle */
+            $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
+            if (! $lockedVehicle || $lockedVehicle->character_id !== $character->id || $lockedVehicle->in_gang_garage || $lockedVehicle->is_gang_owned) {
+                return back()->with('error', 'Voertuig kon niet worden verwerkt.');
             }
 
             $vehicleName = $lockedVehicle->vehicle->name ?? 'Voertuig';

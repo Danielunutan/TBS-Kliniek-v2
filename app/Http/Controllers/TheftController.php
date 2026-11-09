@@ -76,24 +76,35 @@ class TheftController extends Controller
             'tier' => ['required', 'string', 'in:'.implode(',', array_keys(TheftService::TIERS))],
             'victim_id' => ['nullable', 'integer', 'exists:characters,id'],
             'confirm_break_isolation' => ['nullable', 'boolean'],
+            'confirm_break_shield' => ['nullable', 'boolean'],
         ]);
 
-        if ($character->isInVoluntaryIsolation()) {
-            if (! $request->boolean('confirm_break_isolation')) {
+        if ($character->hasIsolationProtection()) {
+            $isMedical = $character->hasMedicalShield();
+            if (! $request->boolean('confirm_break_isolation') && ! $request->boolean('confirm_break_shield')) {
                 $remaining = $character->protection_until ? $character->protection_until->diffForHumans(null, true) : 'onbekend';
+                $shieldLabel = $isMedical ? 'Medisch Infuus-Schild' : 'Vrijwillige Isolatie';
 
-                return back()
-                    ->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om deze diefstal uit te voeren.")
-                    ->with('error_url', route('isolation.index'));
+                $redirect = back()
+                    ->with('error', "⚠️ Je hebt momenteel een actief {$shieldLabel} (nog {$remaining})! Bevestig dat je je bescherming wilt beëindigen om deze diefstal uit te voeren.");
+
+                if (! $isMedical) {
+                    $redirect->with('error_url', route('isolation.index'));
+                }
+
+                return $redirect;
             }
 
+            $shieldLabel = $isMedical ? 'Medisch Infuus-Schild' : 'Vrijwillige Isolatie';
             $character->breakProtection();
             GameNotification::create([
                 'character_id' => $character->id,
                 'type' => 'warning',
                 'icon' => 'fa-door-open',
-                'title' => 'Isolatie Vroegtijdig Beëindigd',
-                'message' => 'Je hebt je cel verlaten om een beroving uit te voeren. Je isolatiebescherming is beëindigd.',
+                'title' => $isMedical ? 'Bescherming Vroegtijdig Beëindigd' : 'Isolatie Vroegtijdig Beëindigd',
+                'message' => $isMedical
+                    ? "Je hebt je cel verlaten om een beroving uit te voeren. Je {$shieldLabel} is beëindigd."
+                    : 'Je hebt je cel verlaten om een beroving uit te voeren. Je isolatiebescherming is beëindigd.',
             ]);
         }
 

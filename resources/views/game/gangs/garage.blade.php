@@ -110,7 +110,7 @@
                 </span>
             </div>
             <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">€{{ number_format($gang->treasury, 0, ',', '.') }}</span>
+                <span class="text-lg sm:text-xl md:text-2xl font-black text-amber-600 dark:text-amber-400 font-mono truncate">€{{ number_format($gang->treasury, 0, ',', '.') }}</span>
             </div>
             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
                 Beschikbaar voor nieuwe panden & upgrades.
@@ -185,7 +185,7 @@
                                     </span>
                                 @else
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
-                                        {{ $veh->type ?? 'Voertuig' }} (Gestald)
+                                        {{ $veh?->type ?? 'Voertuig' }} (Gestald)
                                     </span>
                                 @endif
                                 <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
@@ -196,11 +196,11 @@
                             <!-- Vehicle Icon & Name -->
                             <div class="flex items-center gap-3.5 mb-3">
                                 <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 border border-slate-200/80 dark:border-slate-700">
-                                    <i class="fa-solid {{ $veh->icon ?? 'fa-car' }}"></i>
+                                    <i class="fa-solid {{ $veh?->icon ?? 'fa-car' }}"></i>
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <h4 class="font-black text-slate-900 dark:text-white text-sm truncate">{{ $veh?->name ?? 'Voertuig' }}</h4>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $veh->brand ?? 'Onderwereld Fleet' }}</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $veh?->brand ?? 'Onderwereld Fleet' }}</p>
                                 </div>
                             </div>
 
@@ -261,7 +261,7 @@
                                 <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" 
-                                            {{ $character->isImprisoned() || $character->isComatose() || ! $canAffordRepair ? 'disabled' : '' }}
+                                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ! $canAffordRepair ? 'disabled' : '' }}
                                             class="w-full py-2 rounded-xl {{ $canAffordRepair ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 cursor-pointer text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} disabled:opacity-50 disabled:cursor-not-allowed font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-wrench text-[11px]"></i>
                                         <span>{{ $canAffordRepair ? 'Reviseren via Bendekas (€' . number_format($charVehicle->repair_cost, 0, ',', '.') . ')' : 'Te weinig in bendekas (€' . number_format($charVehicle->repair_cost, 0, ',', '.') . ')' }}</span>
@@ -279,7 +279,7 @@
                                             data-confirm-btn="Ja, Permanent Doneren"
                                             data-confirm-type="warning"
                                             data-confirm-icon="fa-gift"
-                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
                                             class="w-full py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300/70 dark:border-amber-700/60 font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-gift text-[11px]"></i>
                                         <span>Doneer Definitief aan Bende (+50 Respect)</span>
@@ -292,7 +292,7 @@
                                 <form action="{{ route('gangs.garage.retrieve-vehicle', $charVehicle) }}" method="POST">
                                     @csrf
                                     <button type="submit" 
-                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
                                             class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-key text-[11px]"></i>
                                         <span>Terughalen naar Eigen Garage</span>
@@ -309,7 +309,7 @@
                                             data-confirm-btn="Ja, Slopen"
                                             data-confirm-type="danger"
                                             data-confirm-icon="fa-trash-can"
-                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                            {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() ? 'disabled' : '' }}
                                             class="w-full py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300/70 dark:border-rose-800/60 font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-trash-can text-[11px]"></i>
                                         <span>Slopen voor Bendekas (+€{{ number_format($scrapVal, 0, ',', '.') }})</span>
@@ -358,7 +358,7 @@
                         <div>
                             <div class="flex items-center justify-between gap-2 mb-2">
                                 <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
-                                    {{ $v->type ?? 'Auto' }}
+                                    {{ $v?->type ?? 'Auto' }}
                                 </span>
                                 <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
                                     {{ $myVehicle->effective_speed }}% snelheid
@@ -367,7 +367,7 @@
 
                             <div class="flex items-center gap-3 mb-3">
                                 <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 border border-purple-200/80 dark:border-purple-800/70">
-                                    <i class="fa-solid {{ $v->icon ?? 'fa-car' }}"></i>
+                                    <i class="fa-solid {{ $v?->icon ?? 'fa-car' }}"></i>
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <h4 class="font-extrabold text-slate-900 dark:text-white text-sm truncate">{{ $v?->name ?? 'Voertuig' }}</h4>
@@ -380,10 +380,10 @@
                             <form action="{{ route('gangs.garage.store-vehicle', $myVehicle) }}" method="POST">
                                 @csrf
                                 <button type="submit" 
-                                        @if($freeSlots <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                        class="w-full py-2 rounded-xl {{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                        @if($freeSlots <= 0 || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                        class="w-full py-2 rounded-xl {{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-warehouse text-xs"></i>
-                                    <span>{{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'Stallen in Bende Garage' : ($freeSlots <= 0 ? 'Bende Garage Vol' : 'Niet Beschikbaar') }}</span>
+                                    <span>{{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'Stallen in Bende Garage' : ($freeSlots <= 0 ? 'Bende Garage Vol' : 'Niet Beschikbaar') }}</span>
                                 </button>
                             </form>
 
@@ -395,8 +395,8 @@
                                         data-confirm-btn="Ja, Definitief Doneren"
                                         data-confirm-type="warning"
                                         data-confirm-icon="fa-gift"
-                                        @if($freeSlots <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                        class="w-full py-2 rounded-xl {{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300/70 dark:border-amber-700/60 cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                        @if($freeSlots <= 0 || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                        class="w-full py-2 rounded-xl {{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300/70 dark:border-amber-700/60 cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-gift text-xs"></i>
                                     <span>Doneer Direct als Bende-Eigendom (+50 Respect)</span>
                                 </button>

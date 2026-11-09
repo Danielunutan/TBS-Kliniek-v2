@@ -141,9 +141,9 @@ class CharacterStatsProgressionTest extends TestCase
 
         $character->refresh();
 
-        // 7 overflow points * 45 XP = 315 XP -> 340 + 315 = 655 XP -> Level 2 (350 XP subtracted -> 305 XP left)
+        // 7 overflow points * 45 XP = 315 XP -> 340 + 315 = 655 XP -> Level 2 (400 XP subtracted -> 255 XP left)
         $this->assertEquals(2, $character->level);
-        $this->assertEquals(305, $character->xp);
+        $this->assertEquals(255, $character->xp);
         $this->assertGreaterThanOrEqual($character->xp, $character->total_xp);
 
         // Exceeded stats were clamped to 150 (not double-counted as both stat + XP), and defense raised to minimum 10

@@ -145,15 +145,30 @@ class ChatController extends Controller
             }
         }
 
+        $channelMaxId = (int) ChatMessage::where('channel', $channel)->max('id');
+
         if ($afterId > 0) {
             $cachedLastId = Cache::get("chat_last_id_{$channel}");
+            $cachedDeleted = Cache::get("chat_deleted_ids_{$channel}", []);
+
+            // If cachedLastId is higher than DB max and not a recently deleted message, clear poisoned cache
+            if ($cachedLastId !== null && (int) $cachedLastId > $channelMaxId && ! in_array((int) $cachedLastId, (array) $cachedDeleted, true)) {
+                Cache::forget("chat_last_id_{$channel}");
+                $cachedLastId = null;
+            }
+
             if ($cachedLastId !== null && $afterId >= (int) $cachedLastId) {
                 return response()->json([
                     'success' => true,
                     'messages' => [],
-                    'deleted_ids' => array_values(Cache::get("chat_deleted_ids_{$channel}", [])),
+                    'deleted_ids' => array_values((array) $cachedDeleted),
                     'last_id' => (int) $cachedLastId,
                 ]);
+            }
+
+            // If afterId exceeds database max (e.g. after chat clear/truncate), reset to 0 to fetch current messages
+            if ($afterId > $channelMaxId) {
+                $afterId = 0;
             }
         }
 
@@ -175,7 +190,7 @@ class ChatController extends Controller
 
         if ($messages->isNotEmpty()) {
             Cache::put("chat_last_id_{$channel}", (int) $messages->max('id'), now()->addHours(24));
-        } elseif ($afterId > 0) {
+        } elseif ($afterId > 0 && $afterId <= $channelMaxId) {
             Cache::put("chat_last_id_{$channel}", $afterId, now()->addHours(24));
         }
 
@@ -275,7 +290,7 @@ class ChatController extends Controller
             'success' => true,
             'messages' => $formatted,
             'deleted_ids' => $deletedIds,
-            'last_id' => $messages->last()?->id ?? $afterId,
+            'last_id' => $messages->last()?->id ?? ($afterId > 0 && $afterId <= $channelMaxId ? $afterId : $channelMaxId),
         ]);
     }
 

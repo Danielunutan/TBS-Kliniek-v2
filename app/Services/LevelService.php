@@ -28,9 +28,9 @@ class LevelService
     /**
      * Add XP to a character and handle potential level-up(s).
      *
-     * @return array{leveled_up: bool, old_level: int, new_level: int, cash_reward: int}
+     * @return array{leveled_up: bool, old_level: int, new_level: int, cash_reward: int, xp_added: int}
      */
-    public function addXp(Character $character, int $xpGain): array
+    public function addXp(Character $character, int $xpGain, bool $applyCatchUp = true): array
     {
         $xpGain = max(0, $xpGain);
         $comfortBonus = $character->getCellComfortBonusPct();
@@ -39,7 +39,7 @@ class LevelService
         }
 
         // Natural catch-up bonus: early/mid levels (under level 20) earn +20% bonus XP to stay competitive
-        if ($character->level < 20 && $xpGain > 0) {
+        if ($applyCatchUp && $character->level < 20 && $xpGain > 0) {
             $xpGain = (int) round($xpGain * 1.20);
         }
 
@@ -77,19 +77,13 @@ class LevelService
             }
         }
 
-        // Safeguard: if character XP is still higher than next level requirement after max iterations, cap XP to prevent infinite loops
-        $nextRequired = $this->getXpRequiredForNextLevel($character->level);
-        if ($character->xp >= $nextRequired) {
-            $character->xp = $nextRequired - 1;
-        }
-
         $character->save();
 
         if ($leveledUp) {
             app(ChatBotService::class)->sendLevelUp($character, $character->level, [
                 '€'.number_format($totalCashReward, 0, ',', '.').' Contant Bonus',
                 '+5 Respect',
-                'Volledige Energie & HP Refill',
+                '+25 Energie & +30 Gezondheid',
             ]);
 
             GameNotification::create([
@@ -97,7 +91,7 @@ class LevelService
                 'type' => 'level_up',
                 'icon' => 'fa-trophy',
                 'title' => "Gefeliciteerd! Level {$character->level} bereikt!",
-                'message' => "Je bent gestegen naar Level {$character->level}! Je energie en gezondheid zijn volledig hersteld en je hebt €".number_format($totalCashReward, 0, ',', '.').' bonus ontvangen.',
+                'message' => "Je bent gestegen naar Level {$character->level}! Je hebt +25 energie en +30 gezondheid hersteld en je hebt €".number_format($totalCashReward, 0, ',', '.').' bonus ontvangen.',
             ]);
 
             GameMessage::create([
@@ -114,6 +108,7 @@ class LevelService
             'old_level' => $oldLevel,
             'new_level' => $character->level,
             'cash_reward' => $totalCashReward,
+            'xp_added' => $xpGain,
         ];
     }
 }

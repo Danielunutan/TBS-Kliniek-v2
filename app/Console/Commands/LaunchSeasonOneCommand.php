@@ -118,6 +118,8 @@ class LaunchSeasonOneCommand extends Command
                 'protection_points' => 1000,
                 'attack_power' => 500,
                 'treasury' => 0,
+                'protected_treasury' => 0,
+                'war_dominance_until' => null,
                 'respect' => 0,
                 'masks' => 0,
                 'gang_stars' => 0,

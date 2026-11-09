@@ -338,8 +338,8 @@ class EventHustleChallengeService
             'title' => $title,
             'slug' => self::EVENT_SLUG,
             'content' => $content,
-            'category' => 'algemeen',
             'is_pinned' => true,
+            'is_published' => true,
             'comments_enabled' => true,
             'published_at' => now(),
         ]);

@@ -70,7 +70,7 @@ class GameFeatureTest extends TestCase
         $initialLevel = $character->level;
         $reqXp = $levelService->getXpRequiredForNextLevel($initialLevel);
 
-        $result = $levelService->addXp($character, $reqXp + 50);
+        $result = $levelService->addXp($character, $reqXp + 50, applyCatchUp: false);
 
         $this->assertTrue($result['leveled_up']);
         $this->assertEquals($initialLevel + 1, $character->level);

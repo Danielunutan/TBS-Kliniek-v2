@@ -274,6 +274,22 @@
     @if($character)
     <script>
         (function() {
+            if (!window._tbsMaintDomListenersBound) {
+                window._tbsMaintDomListenersBound = true;
+                document.addEventListener('turbo:before-fetch-response', function(event) {
+                    const fetchResponse = event.detail?.fetchResponse;
+                    const status = fetchResponse?.statusCode || fetchResponse?.response?.status;
+                    if (status === 503 && !window._tbsMaintenanceReloading) {
+                        const isBeheer = window.location.search.includes('beheer=1');
+                        if (!isBeheer && window.location.pathname !== '/login') {
+                            event.preventDefault();
+                            window._tbsMaintenanceReloading = true;
+                            window.location.replace('/');
+                        }
+                    }
+                });
+            }
+
             if (window._tbsMaintenanceFetchInterceptorInstalled) return;
             window._tbsMaintenanceFetchInterceptorInstalled = true;
             const origFetch = window.fetch;
@@ -284,8 +300,11 @@
                     if (res && res.status === 503 && !window._tbsMaintenanceReloading) {
                         const resUrl = res.url ? new URL(res.url, window.location.origin) : null;
                         if (!resUrl || resUrl.origin === window.location.origin) {
-                            window._tbsMaintenanceReloading = true;
-                            window.location.replace('{{ route('login') }}');
+                            const isBeheer = window.location.search.includes('beheer=1');
+                            if (!isBeheer && window.location.pathname !== '/login') {
+                                window._tbsMaintenanceReloading = true;
+                                window.location.replace('{{ route('login') }}');
+                            }
                         }
                     }
                 } catch (e) {}
@@ -3697,7 +3716,10 @@
                 }
             }, 300);
 
-            document.addEventListener('turbo:load', adoptBmcElements);
+            if (!window._tbsBmacTurboBound) {
+                window._tbsBmacTurboBound = true;
+                document.addEventListener('turbo:load', adoptBmcElements);
+            }
         })();
     </script>
 

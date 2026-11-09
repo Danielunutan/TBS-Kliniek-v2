@@ -292,7 +292,7 @@ class CpaleadPostbackController extends Controller
                         $dailyData['xp_claimed'] = true;
                         $dailyData['xp_progress'] = 3;
                         $lockedCharacter->ad_daily_data = $dailyData;
-                        $this->levelService->addXp($lockedCharacter, 50);
+                        $this->levelService->addXp($lockedCharacter, 50, applyCatchUp: false);
                         $rewardGranted = '+50 XP Boost ⚡';
                     }
                     break;

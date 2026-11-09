@@ -217,7 +217,7 @@
                         </span>
                         <span class="font-black font-mono text-purple-700 dark:text-purple-300">
                             {{ $h['effective_rate'] }}%
-                            <span class="text-[9px] text-slate-400 font-normal">({{ $h['rate'] }}% + {{ $statBonus ?? 0 }}%)</span>
+                            <span class="text-[9px] text-slate-400 font-normal">({{ $h['rate'] }}% + {{ $statBonus ?? 0 }}%{{ !empty($motorBonus) && $motorBonus > 0 ? " + {$motorBonus}%" : '' }})</span>
                         </span>
                     </div>
                     <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
