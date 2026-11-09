@@ -544,7 +544,7 @@ class FightController extends Controller
         if ($attacker->isComatose()) {
             $mins = ceil($attacker->getComaRemainingSeconds() / 60);
 
-            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via een sponsor advertentie.");
+            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct met een Epinefrine-Ampul of Sterren ⭐.");
         }
 
         // 1. 3-second cooldown check (with anti-bot cooldown hammering detection)

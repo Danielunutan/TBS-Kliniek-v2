@@ -96,7 +96,7 @@ class LockerController extends Controller
                 $remaining = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'locker');
                 $mins = ceil($remaining / 60);
 
-                return back()->with('error', "⏳ Kluisjes cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
+                return back()->with('error', "⏳ Kluisjes cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct met Sterren ⭐.");
             }
 
             if (! $this->energy->consume($lockedCharacter, $locker['energy'])) {

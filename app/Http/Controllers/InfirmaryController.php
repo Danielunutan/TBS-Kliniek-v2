@@ -137,7 +137,7 @@ class InfirmaryController extends Controller
                 $seconds = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'infirmary_palm');
                 $mins = ceil($seconds / 60);
 
-                return back()->with('error', "⏳ Zuster Ingrid houdt je scherp in de gaten! Wacht nog {$seconds}s (~{$mins} min) voor een nieuwe poging of reset direct via een sponsor advertentie.");
+                return back()->with('error', "⏳ Zuster Ingrid houdt je scherp in de gaten! Wacht nog {$seconds}s (~{$mins} min) voor een nieuwe poging of reset direct met Sterren ⭐.");
             }
 
             $energyCost = 10;

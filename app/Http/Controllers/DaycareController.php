@@ -197,7 +197,7 @@ class DaycareController extends Controller
             if ($this->cooldownService->isOnCooldown($lockedCharacter, 'dagbesteding')) {
                 $seconds = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'dagbesteding');
 
-                return back()->with('error', "⏳ Werkpauze actief! De zaalwacht stuurt je even terug naar de koffietafel. Wacht nog {$seconds}s of reset direct via een sponsor advertentie.");
+                return back()->with('error', "⏳ Werkpauze actief! De zaalwacht stuurt je even terug naar de koffietafel. Wacht nog {$seconds}s of reset direct met Sterren ⭐.");
             }
 
             if (! $this->energyService->consume($lockedCharacter, $cfg['energy'])) {

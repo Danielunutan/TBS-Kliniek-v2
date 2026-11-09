@@ -96,7 +96,7 @@ class ExtortController extends Controller
                 $remaining = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'extort');
                 $mins = ceil($remaining / 60);
 
-                return back()->with('error', "⏳ Afpersen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
+                return back()->with('error', "⏳ Afpersen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct met Sterren ⭐.");
             }
 
             if (! $this->energy->consume($lockedCharacter, $target['energy'])) {

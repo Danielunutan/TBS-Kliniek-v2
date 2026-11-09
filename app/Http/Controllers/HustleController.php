@@ -174,7 +174,7 @@ class HustleController extends Controller
         if ($character->isComatose()) {
             $mins = ceil($character->getComaRemainingSeconds() / 60);
 
-            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via een sponsor advertentie.");
+            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct met een Epinefrine-Ampul of Sterren ⭐.");
         }
 
         $validated = $request->validate([
@@ -194,7 +194,7 @@ class HustleController extends Controller
                 $remaining = $this->cooldownService->getRemainingSeconds($lockedCharacter, 'hustle');
                 $mins = ceil($remaining / 60);
 
-                return back()->with('error', "⏳ Hossel cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
+                return back()->with('error', "⏳ Hossel cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct met Sterren ⭐.");
             }
 
             if (! $this->energy->consume($lockedCharacter, $hustle['cost'])) {

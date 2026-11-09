@@ -328,7 +328,7 @@ class TreatmentController extends Controller
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'treatment_session');
             $mins = ceil($remaining / 60);
 
-            return back()->with('error', "⏳ Je hebt vandaag al gesproken met je behandelaar! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
+            return back()->with('error', "⏳ Je hebt vandaag al gesproken met je behandelaar! Wacht nog {$remaining}s (~{$mins} min) of reset direct met Sterren ⭐.");
         }
 
         $validated = $request->validate([
@@ -374,7 +374,7 @@ class TreatmentController extends Controller
                 $remaining = $this->cooldownService->getRemainingSeconds($locked, 'treatment_session');
                 $mins = ceil($remaining / 60);
 
-                return back()->with('error', "⏳ Je hebt vandaag al gesproken met je behandelaar! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
+                return back()->with('error', "⏳ Je hebt vandaag al gesproken met je behandelaar! Wacht nog {$remaining}s (~{$mins} min) of reset direct met Sterren ⭐.");
             }
 
             // Base score adjustment (clamped between 0 and 100)
