@@ -15,21 +15,48 @@ class ResetCellUpgradesCommand extends Command
     {
         $this->info('Controleren van cel upgrades en audit logs in de database...');
 
-        $charIds = [42, 52, 86, 113];
-        $logs = \App\Models\AuditLog::where('action', 'cell.upgrade')
-            ->whereIn('character_id', $charIds)
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $resetCutoff = '2026-11-09 17:00:00';
+        $this->info("Seizoen 2 reset peildatum: {$resetCutoff}");
 
-        $this->info("Aantal cell.upgrade audit logs gevonden voor deze karakters: " . $logs->count());
-        foreach ($logs as $log) {
-            $this->line("   [{$log->created_at}] Karakter #{$log->character_id} ({$log->character?->name}): {$log->description}");
+        $characters = Character::all()->filter(function (Character $c) {
+            $upgrades = $c->cell_upgrades;
+            return ! empty($upgrades) && is_array($upgrades);
+        });
+
+        $this->info("Aantal karakters met actieve cel upgrades: " . $characters->count());
+
+        $resetCount = 0;
+        $keptCount = 0;
+
+        foreach ($characters as $char) {
+            // Check if this character performed any cell upgrades AFTER the season reset
+            $postResetUpgradeLogs = \App\Models\AuditLog::where('action', 'cell.upgrade')
+                ->where('character_id', $char->id)
+                ->where('created_at', '>=', $resetCutoff)
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $upgradesJson = json_encode($char->cell_upgrades);
+
+            if ($postResetUpgradeLogs->isNotEmpty()) {
+                $keptCount++;
+                $this->info("   [BEHOUDEN] [#{$char->id}] {$char->name}: {$upgradesJson} (Upgrade aangeschaft na reset op {$postResetUpgradeLogs->last()->created_at})");
+            } else {
+                $resetCount++;
+                $this->warn("   [RESETTEN] [#{$char->id}] {$char->name}: {$upgradesJson} (Oude upgrades van voor de reset)");
+
+                if (! $this->option('dry-run')) {
+                    $char->cell_upgrades = null;
+                    $char->save();
+                }
+            }
         }
 
-        // Check season reset time from character or user or audit log
-        $resetLog = \App\Models\AuditLog::where('action', 'like', '%reset%')->first();
-        if ($resetLog) {
-            $this->info("Reset log gevonden op: {$resetLog->created_at} | {$resetLog->action}");
+        $this->newLine();
+        if ($this->option('dry-run')) {
+            $this->warn("DRY RUN: {$resetCount} karakters zouden worden gereset, {$keptCount} behouden.");
+        } else {
+            $this->info("KLAAR: {$resetCount} karakters gereset naar 0 cel upgrades, {$keptCount} karakters met upgrades van na de reset behouden!");
         }
 
         return self::SUCCESS;
