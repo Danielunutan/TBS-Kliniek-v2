@@ -65,7 +65,7 @@ class MembersController extends Controller
                 'online_label' => $c->online_status_label,
                 'is_in_prison' => $isInPrison,
                 'prison_label' => $isInPrison ? 'In Isoleercel' : null,
-                'current_location' => $c->current_location ?? 'Paviljoen 1',
+                'current_location' => $c->id === $character->id ? ($c->current_location ?? 'Paviljoen 1') : null,
                 'gang_id' => $c->gang_id,
                 'gang_name' => $c->gang?->name,
                 'gang_tag' => $c->gang?->tag,

@@ -365,11 +365,19 @@
                                 @else
                                     <span>Geen Bende</span>
                                 @endif
-                                <span>&bull;</span>
-                                <span class="inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold lowercase first-letter:uppercase">
-                                    <i class="fa-solid fa-map-location-dot text-[11px]"></i>
-                                    {{ $profileCharacter->current_location ?? 'Paviljoen 1 (Gesloten)' }}
-                                </span>
+                                @if(Auth::check() && Auth::user()->character && Auth::user()->character->id === $profileCharacter->id)
+                                    <span>&bull;</span>
+                                    <span class="inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold lowercase first-letter:uppercase" title="Jouw huidige locatie">
+                                        <i class="fa-solid fa-map-location-dot text-[11px]"></i>
+                                        {{ $profileCharacter->current_location ?? 'Paviljoen 1 (Gesloten)' }}
+                                    </span>
+                                @else
+                                    <span>&bull;</span>
+                                    <a href="{{ route('informant.index') }}" class="inline-flex items-center gap-1 text-slate-400 hover:text-purple-600 dark:text-slate-500 dark:hover:text-purple-400 font-semibold text-xs transition cursor-pointer" title="Verblijfplaats is geheim. Schakel een informant of spion in om deze patiënt te traceren.">
+                                        <i class="fa-solid fa-user-secret text-[11px]"></i>
+                                        <span>Locatie Geheim</span>
+                                    </a>
+                                @endif
                             @endif
                         </p>
 
