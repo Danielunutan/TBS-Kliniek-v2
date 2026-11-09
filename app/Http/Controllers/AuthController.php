@@ -618,7 +618,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Send password reset link email.
+     * Send password reset 6-digit code email.
      */
     public function sendResetLinkEmail(Request $request): RedirectResponse
     {
@@ -642,50 +642,118 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim($request->input('email')))])->first();
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with(['status' => 'Er is een veilige wachtwoord herstellink verzonden naar je e-mailadres!'])
-            : back()->withErrors(['email' => 'Geen account gevonden met dit e-mailadres.']);
+        if (! $user) {
+            return back()->withErrors(['email' => 'Geen account gevonden met dit e-mailadres.'])->onlyInput('email');
+        }
+
+        try {
+            $user->sendPasswordResetCodeNotification();
+        } catch (\Throwable $e) {
+            Log::error("Fout bij verzenden wachtwoord herstelcode naar {$user->email}: " . $e->getMessage());
+
+            return back()->withErrors(['email' => 'Het verzenden van de herstelcode is mislukt. Probeer het over enkele ogenblikken opnieuw.'])->onlyInput('email');
+        }
+
+        return redirect()->route('password.reset', ['email' => $user->email])
+            ->with('status', 'We hebben een 6-cijferige herstelcode naar je e-mailadres gestuurd! Vul de code en je nieuwe wachtwoord hieronder in.');
     }
 
     /**
-     * Show reset password form with token.
+     * Show reset password form with code or token.
      */
-    public function showResetPassword(Request $request, string $token): View
+    public function showResetPassword(Request $request, ?string $token = null): View
     {
-        return view('auth.reset-password', ['token' => $token, 'email' => $request->email]);
+        $code = $request->query('code') ?? ($token && strlen($token) <= 10 && ctype_digit($token) ? $token : null);
+        $token = $token ?? $request->query('token') ?? $code;
+        $email = $request->query('email') ?? old('email', '');
+
+        return view('auth.reset-password', [
+            'token' => $token,
+            'code' => $code,
+            'email' => $email,
+        ]);
     }
 
     /**
-     * Reset user password.
+     * Reset user password via 6-digit code (or fallback token).
      */
     public function resetPassword(Request $request): RedirectResponse
     {
         $request->validate([
-            'token' => 'required',
             'email' => 'required|email',
             'password' => 'required|confirmed|min:8',
         ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, string $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                ])->setRememberToken(Str::random(60));
+        $code = trim((string) ($request->input('code') ?: $request->input('token')));
+        $email = strtolower(trim((string) $request->input('email')));
 
-                $user->save();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
-                event(new PasswordReset($user));
+        if (! $user) {
+            return back()->withErrors(['email' => 'Geen account gevonden met dit e-mailadres.'])->withInput();
+        }
+
+        // 1. Verify 6-digit code
+        $codeMatches = false;
+        if (! empty($user->password_reset_code) && $user->password_reset_code === $code) {
+            if ($user->password_reset_code_expires_at && $user->password_reset_code_expires_at->isFuture()) {
+                $codeMatches = true;
+            } else {
+                return back()->withErrors(['code' => 'De 6-cijferige herstelcode is verlopen (geldig voor 30 minuten). Vraag een nieuwe code aan.'])->withInput();
             }
-        );
+        }
 
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('success', 'Wachtwoord succesvol opnieuw ingesteld! Je kunt nu inloggen.')
-            : back()->withErrors(['email' => 'Het wachtwoord kon niet worden hersteld. De link is mogelijk verlopen.']);
+        if ($codeMatches) {
+            $user->forceFill([
+                'password' => Hash::make($request->input('password')),
+                'password_reset_code' => null,
+                'password_reset_code_expires_at' => null,
+            ])->setRememberToken(Str::random(60));
+
+            $user->save();
+
+            event(new PasswordReset($user));
+
+            try {
+                AuditLogService::log(
+                    action: 'auth_password_reset_code',
+                    category: 'auth',
+                    description: "Wachtwoord succesvol hersteld via 6-cijferige e-mailcode voor {$user->email}",
+                    user: $user,
+                    character: $user->character
+                );
+            } catch (\Throwable $e) {
+                // Ignore audit log error
+            }
+
+            return redirect()->route('login')->with('success', 'Wachtwoord succesvol opnieuw ingesteld! Je kunt nu direct inloggen.');
+        }
+
+        // 2. Fallback to Laravel token broker in case an old broker token was submitted
+        if ($request->filled('token') && strlen($request->input('token')) > 10) {
+            $status = Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function ($user, string $password) {
+                    $user->forceFill([
+                        'password' => Hash::make($password),
+                        'password_reset_code' => null,
+                        'password_reset_code_expires_at' => null,
+                    ])->setRememberToken(Str::random(60));
+
+                    $user->save();
+
+                    event(new PasswordReset($user));
+                }
+            );
+
+            if ($status === Password::PASSWORD_RESET) {
+                return redirect()->route('login')->with('success', 'Wachtwoord succesvol opnieuw ingesteld! Je kunt nu direct inloggen.');
+            }
+        }
+
+        return back()->withErrors(['code' => 'Ongeldige herstelcode. Vul de 6-cijferige code uit je e-mail in.'])->withInput();
     }
 
     /**

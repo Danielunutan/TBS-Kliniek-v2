@@ -36,7 +36,7 @@
             </a>
             <h1 class="text-xl font-extrabold text-slate-900 dark:text-white mt-4">Wachtwoord Vergeten?</h1>
             <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                Geen paniek. Vul het e-mailadres van je account in en we sturen je direct een veilige link om je wachtwoord opnieuw in te stellen.
+                Geen paniek. Vul het e-mailadres van je account in en we sturen je direct een veilige 6-cijferige herstelcode om je wachtwoord te resetten.
             </p>
         </div>
 
@@ -96,13 +96,16 @@
                 <button type="submit"
                         class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                     <i class="fa-solid fa-paper-plane text-xs"></i>
-                    <span>Verstuur Reset Link</span>
+                    <span>Verstuur 6-Cijferige Herstelcode</span>
                 </button>
             </form>
 
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center">
-                <a href="{{ route('login') }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition inline-flex items-center gap-1.5">
-                    <i class="fa-solid fa-arrow-left text-[10px]"></i> Terug naar Inloggen
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold">
+                <a href="{{ route('login') }}" class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i> Inloggen
+                </a>
+                <a href="{{ route('password.reset') }}" class="text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1">
+                    <i class="fa-solid fa-key text-[10px]"></i> Al een code?
                 </a>
             </div>
         </div>

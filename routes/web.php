@@ -107,7 +107,7 @@ Route::middleware('guest')->group(function (): void {
     // Wachtwoord Vergeten (E-mail)
     Route::get('/wachtwoord-vergeten', [AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/wachtwoord-vergeten', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:3,1')->name('password.email');
-    Route::get('/wachtwoord-reset/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::get('/wachtwoord-reset/{token?}', [AuthController::class, 'showResetPassword'])->name('password.reset');
     Route::post('/wachtwoord-reset', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
 });
 

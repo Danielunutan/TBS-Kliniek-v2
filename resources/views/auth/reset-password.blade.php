@@ -42,6 +42,13 @@
 
         <!-- Card Container -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-5">
+            @if(session('status'))
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                    <span>{{ session('status') }}</span>
+                </div>
+            @endif
+
             @if(isset($errors) && $errors->any())
                 <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-xs font-bold space-y-1">
                     @foreach($errors->all() as $err)
@@ -66,8 +73,25 @@
                             <i class="fa-solid fa-envelope text-xs"></i>
                         </span>
                         <input type="email" name="email" value="{{ old('email', $email ?? request('email', '')) }}" required
+                               placeholder="jouw@email.nl"
                                class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                     </div>
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block mb-1.5 flex items-center justify-between">
+                        <span>6-Cijferige Herstelcode</span>
+                        <a href="{{ route('password.request') }}" class="text-[10px] text-purple-600 dark:text-purple-400 hover:underline normal-case font-bold">Code opnieuw sturen</a>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                            <i class="fa-solid fa-shield-halved text-xs"></i>
+                        </span>
+                        <input type="text" name="code" value="{{ old('code', $code ?? request('code', '')) }}" required maxlength="10"
+                               placeholder="bijv. 839201"
+                               class="w-full pl-9 pr-3.5 py-2.5 text-base sm:text-lg font-black tracking-widest font-mono bg-purple-50/60 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-200 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                    </div>
+                    <span class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">Kijk in je mailbox voor de 6-cijferige code.</span>
                 </div>
 
                 <div>
