@@ -15,28 +15,13 @@ class InspectCharactersCommand extends Command
 {
     public function handle(): int
     {
-        $this->info("BOSSIE TRANSACTIES / LOGS VANDAAG:");
+        $this->info("ALLE TRANSACTIES VANDAAG TUSSEN 17:00 EN 17:36:");
         $logs = DB::table('audit_logs')
-            ->where('character_id', 66)
-            ->where('created_at', '>=', '2026-11-09 16:00:00')
+            ->where('created_at', '>=', '2026-11-09 17:00:00')
+            ->orderBy('id', 'asc')
             ->get();
         foreach ($logs as $l) {
-            $this->line("[{$l->created_at}] {$l->action} - {$l->description}");
-        }
-
-        $this->info("\nCHECK CODES GECLAIMD DOOR BOSSIE VANDAAG:");
-        if (\Illuminate\Support\Facades\Schema::hasTable('vault_codes')) {
-            $codes = DB::table('vault_codes')->where('used_by_character_id', 66)->get();
-            foreach ($codes as $c) {
-                $this->line("Code: {$c->code} - {$c->reward_type} {$c->reward_amount} op {$c->used_at}");
-            }
-        }
-
-        $this->info("\nCHECK KOFFER LOGS VANDAAG:");
-        $koffers = DB::table('koffer_logs')->where('character_id', 66)->get();
-        $this->line("Koffers geopend door Bossie: " . $koffers->count());
-        foreach ($koffers as $k) {
-            $this->line("Koffer: {$k->tier} - cash €{$k->cash_reward} op {$k->created_at}");
+            $this->line("[{$l->created_at}] [Char {$l->character_id}] {$l->action} - {$l->description}");
         }
 
         return self::SUCCESS;
