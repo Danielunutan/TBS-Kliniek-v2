@@ -536,22 +536,22 @@
                         <div class="min-w-0">
                             <span x-show="selectedTargetSameWing" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold border border-emerald-200/80 dark:border-emerald-800/70">
                                 <i class="fa-solid fa-check-circle shrink-0"></i>
-                                <span>In dezelfde ruimte ({{ $currentWing }}) — +25% Sluipaanval-bonus actief!</span>
+                                <span>In dezelfde ruimte ({{ $currentWing }}) — Klaar voor liquidatie!</span>
                             </span>
                             <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-extrabold border border-amber-200/80 dark:border-amber-800/70">
                                 <i class="fa-solid fa-location-dot shrink-0"></i>
-                                <span>Op <span x-text="selectedTargetRevealedWing"></span> — Afstandsschot mogelijk (Reis voor +25% bonus)</span>
+                                <span>Op <span x-text="selectedTargetRevealedWing"></span> — Reis naar deze afdeling om te kunnen toeslaan</span>
                             </span>
-                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-xs font-extrabold border border-indigo-200/80 dark:border-indigo-800/70">
-                                <i class="fa-solid fa-crosshairs shrink-0"></i>
-                                <span>Schot op afstand mogelijk — Start Schaduwing voor locatie &amp; bonus!</span>
+                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 text-xs font-extrabold border border-rose-200/80 dark:border-rose-800/70">
+                                <i class="fa-solid fa-eye-slash shrink-0"></i>
+                                <span>Niet op jouw afdeling — Verblijfplaats onbekend (Achterhaal via spion of informant)</span>
                             </span>
                         </div>
                     </div>
 
                     <!-- Helper action if not in same wing -->
                     <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Wil je de <strong>+25% Sluipaanval-bonus</strong>? Reis direct naar dezelfde vleugel:</span>
+                        <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Je moet in <strong>dezelfde ruimte</strong> zijn om te kunnen schieten. Reis direct:</span>
                         <form action="{{ route('hitman.quick_travel') }}" method="POST" class="shrink-0">
                             @csrf
                             <input type="hidden" name="destination" :value="selectedTargetRevealedWing">
@@ -565,19 +565,25 @@
                     </div>
 
                     <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Je kunt direct op afstand vuren, of schaduwen om zijn afdeling te vinden (+25% bonus):</span>
-                        <form action="{{ route('hitman.intel') }}" method="POST" class="shrink-0">
-                            @csrf
-                            <input type="hidden" name="target_id" :value="selectedTargetId" value="{{ $initialTarget?->id ?? '' }}">
-                            <input type="hidden" name="intel_type" value="standard_15m">
-                            <input type="hidden" name="currency" value="cash">
-                            <button type="submit" 
-                                    {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->cash + $character->bank) < 350000 ? 'disabled' : '' }}
-                                    class="w-full sm:w-auto py-2 px-3.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->cash + $character->bank) < 350000) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
-                                <i class="fa-solid fa-video"></i>
-                                <span>Start 15m Schaduwing (€350.000)</span>
-                            </button>
-                        </form>
+                        <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Doelwit bevindt zich op een andere afdeling. Spoor hem eerst op:</span>
+                        <div class="flex items-center gap-2">
+                            <form action="{{ route('hitman.intel') }}" method="POST" class="shrink-0">
+                                @csrf
+                                <input type="hidden" name="target_id" :value="selectedTargetId" value="{{ $initialTarget?->id ?? '' }}">
+                                <input type="hidden" name="intel_type" value="standard_15m">
+                                <input type="hidden" name="currency" value="cash">
+                                <button type="submit" 
+                                        {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->cash + $character->bank) < 350000 ? 'disabled' : '' }}
+                                        class="w-full sm:w-auto py-2 px-3.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ($character->cash + $character->bank) < 350000) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} text-xs font-black transition-all duration-150 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
+                                    <i class="fa-solid fa-video"></i>
+                                    <span>Start 15m Schaduwing (€350.000)</span>
+                                </button>
+                            </form>
+                            <a href="{{ route('informants.index') }}" class="w-full sm:w-auto py-2 px-3.5 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap shadow-xs">
+                                <i class="fa-solid fa-user-secret"></i>
+                                <span>Informanten</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -631,11 +637,15 @@
 
                         <div class="sm:col-span-7">
                             <button type="submit"
-                                    {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->energy < 20 || ($character->bullets ?? 0) < 1 ? 'disabled' : '' }}
-                                    class="w-full py-3.5 px-5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->energy < 20 || ($character->bullets ?? 0) < 1) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white cursor-pointer active:scale-[0.99]' }} font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                    :disabled="!selectedTargetSameWing || {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->energy < 20 || ($character->bullets ?? 0) < 1) ? 'true' : 'false' }}"
+                                    :class="(!selectedTargetSameWing || {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || $character->energy < 20 || ($character->bullets ?? 0) < 1) ? 'true' : 'false' }}) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white cursor-pointer active:scale-[0.99]'"
+                                    class="w-full py-3.5 px-5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-crosshairs"></i>
-                                <span x-text="bulletAmount === 1 ? 'Voer 1-Patroon Genadeschot Uit' : 'Vuur Salvo (' + bulletAmount + ' Patronen)'">
+                                <span x-show="selectedTargetSameWing" x-text="bulletAmount === 1 ? 'Voer 1-Patroon Genadeschot Uit' : 'Vuur Salvo (' + bulletAmount + ' Patronen)'">
                                     Vuur Salvo ({{ $canOneTap ? 1 : $minBullets }} Patronen)
+                                </span>
+                                <span x-show="!selectedTargetSameWing">
+                                    Niet in Zelfde Afdeling (Reis Eerst)
                                 </span>
                             </button>
                         </div>

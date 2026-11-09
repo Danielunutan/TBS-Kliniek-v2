@@ -884,10 +884,14 @@ class HitmanController extends Controller
             return back()->with('error', '🎯 Dagelijkse liquidatielimiet bereikt! Je hebt vandaag al '.Character::MAX_DAILY_OUTGOING_LIQUIDATIONS.' liquidaties uitgevoerd op willekeurige spelers. Om het spel voor iedereen leuk en afwisselend te houden kun je vandaag niet meer willekeurig schieten (tenzij bij Bendeoorlog of Bloedwraak). Richt je nu op panden, heists, wagens of dagbesteding!');
         }
 
-        // Clinic Wing / Location status
+        // Clinic Wing / Location status - Enforce same wing
         $attackerWing = $attacker->current_location ?? 'Paviljoen 1 (Gesloten)';
         $defenderWing = $defender->current_location ?? 'Paviljoen 1 (Gesloten)';
         $isSameWing = ($attackerWing === $defenderWing);
+
+        if (! $isSameWing) {
+            return back()->with('error', "📍 Je bevindt je niet in dezelfde ruimte als {$defender->name}! Doelwitten kunnen alleen worden geliquideerd als je op exact dezelfde afdeling bent. Reis via de Plattegrond naar dezelfde afdeling om toe te slaan.");
+        }
 
         // Validate Dossier Grade & Koudbloedigheid bullet requirements
         $bulletCount = (int) $validated['bullets'];
@@ -1028,6 +1032,10 @@ class HitmanController extends Controller
                     $attackerWing = $lockedAttacker->current_location ?? 'Paviljoen 1 (Gesloten)';
                     $defenderWing = $lockedDefender->current_location ?? 'Paviljoen 1 (Gesloten)';
                     $isSameWing = ($attackerWing === $defenderWing);
+
+                    if (! $isSameWing) {
+                        return back()->with('error', "📍 {$lockedDefender->name} is zojuist verplaatst of gevlucht naar een andere afdeling! Je bevindt je niet meer in dezelfde ruimte.");
+                    }
 
                     // Calculate Attack Power vs Defender Armor
                     if ($isOneTap) {
@@ -1250,7 +1258,7 @@ class HitmanController extends Controller
                         $lockedAttacker->save();
 
                         $shotTypeLabel = $isOneTap ? 'een 1-Patroon Genadeschot' : "een salvo van {$bulletCount} patronen".($bulletCount >= $gradeInfo['min_bullets'] ? ' (Zware Barrage)' : '');
-                        $locationNotice = $isSameWing ? "op {$defenderWing} (+25% Sluipaanval-bonus)" : "op {$defenderWing} (Afstandssalvo vanaf {$attackerWing})";
+                        $locationNotice = "op {$defenderWing} (Direct Zicht Sluipaanval)";
                         $lootBreakdown = '€'.number_format($stolenCash, 0, ',', '.').' contant (45%, kluis/bank 100% veilig)';
 
                         // Send 1 unified private message from Kliniek Directie to each involved party BEFORE GameNotification::create
