@@ -184,7 +184,7 @@ class Pass10Bucket15AuditTest extends TestCase
 
         // season_welcome_modal
         $seasonWelcomeView = view('partials.season_welcome_modal')->render();
-        $this->assertStringContainsString('Seizoen 1 Officieel Geopend', $seasonWelcomeView);
+        $this->assertStringContainsString('Seizoen 2 Sprint Officieel Geopend', $seasonWelcomeView);
         $this->assertStringContainsString('SEIZOEN1', $seasonWelcomeView);
 
         // sponsor_and_cookie_modals
