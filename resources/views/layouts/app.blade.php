@@ -2159,6 +2159,8 @@
                 <!-- 5. FAR RIGHT: Search, Radio, Theme Switch & Profile Icon -->
                 <div class="flex items-center gap-2 xl:gap-2.5 shrink-0">
                     @include('partials.notification_bell')
+                    <!-- TBS RADIO TOPBAR WIDGET -->
+                    @include('partials.radio_player', ['isMobile' => false])
 
                     <!-- Sleek Animated Dark/Light Switch Slider -->
                     <button type="button" onclick="window.tbsToggleTheme()" 

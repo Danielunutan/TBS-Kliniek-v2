@@ -156,8 +156,7 @@ class DailyRewardsAndBountiesTest extends TestCase
 
         $response = $this->actingAs($character->user)->get(route('dashboard'));
         $response->assertStatus(200);
-        $response->assertDontSee('Radio Uitzetten', false);
-        $response->assertDontSee('Radio Kliniek FM', false);
+        $response->assertSee('stopRadio()', false);
         $response->assertDontSee('resumeOnGesture', false);
     }
 
