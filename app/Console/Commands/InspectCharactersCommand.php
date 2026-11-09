@@ -2,9 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\AuditLog;
 use App\Models\Character;
-use App\Models\Gang;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -16,24 +14,15 @@ class InspectCharactersCommand extends Command
 {
     public function handle(): int
     {
-        $this->info("BOSSIE AUDIT LOGS TODAY:");
-        $logs = DB::table('audit_logs')
-            ->where('character_id', 66)
-            ->where('created_at', '>=', '2026-11-09 00:00:00')
-            ->orderBy('id', 'asc')
-            ->get();
-        foreach ($logs as $l) {
-            $this->line("[{$l->created_at}] {$l->action}: {$l->details}");
-        }
+        $this->info("BOSSIE DATA:");
+        $bossie = Character::find(66);
+        $this->line(json_encode($bossie?->toArray(), JSON_PRETTY_PRINT));
 
-        $this->info("\nDENNIS AUDIT LOGS TODAY:");
-        $dlogs = DB::table('audit_logs')
-            ->where('character_id', 86)
-            ->where('created_at', '>=', '2026-11-09 17:00:00')
-            ->orderBy('id', 'asc')
-            ->get();
-        foreach ($dlogs as $l) {
-            $this->line("[{$l->created_at}] {$l->action}: {$l->details}");
+        $this->info("CHECK ALL TRANSACTIONS OF BOSSIE IN ANY TABLE:");
+        $tables = ['bank_transactions', 'fights', 'attacks', 'character_missions', 'character_heists'];
+        foreach ($tables as $t) {
+            $count = DB::table($t)->where('character_id', 66)->count();
+            $this->line("Table {$t}: {$count} records");
         }
 
         return self::SUCCESS;
