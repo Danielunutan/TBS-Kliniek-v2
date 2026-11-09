@@ -285,7 +285,7 @@
                         <a href="{{ route('garage.index') }}" 
                            class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-wrench"></i>
-                            <span>{{ $effectiveVehicle && $effectiveVehicle->vehicle ? $effectiveVehicle->vehicle->name : 'Wagen' }} Repareren in Garage</span>
+                            <span>{{ ucfirst($heist->required_vehicle_type !== 'any' ? $heist->required_vehicle_type : ($effectiveVehicle && $effectiveVehicle->vehicle ? $effectiveVehicle->vehicle->name : 'Wagen')) }} Toe aan Revisie in Garage</span>
                         </a>
                     @elseif(! $hasMasks)
                         <a href="{{ route('shop.index', ['tab' => 'items']) }}" 
@@ -671,7 +671,7 @@
                             <a href="{{ route('gangs.garage') }}" 
                                class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-wrench"></i>
-                                <span>Wagen Reviseren in Bende Garage</span>
+                                <span>{{ ucfirst($heist->required_vehicle_type !== 'any' ? $heist->required_vehicle_type : ($effectiveVehicle && $effectiveVehicle->vehicle ? $effectiveVehicle->vehicle->name : 'Wagen')) }} Toe aan Revisie in Bende Garage</span>
                             </a>
                         @elseif(! $hasGangMasks)
                             <a href="{{ route('gangs.index', ['tab' => 'doneren']) }}" 

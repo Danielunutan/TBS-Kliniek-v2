@@ -108,6 +108,12 @@ class Heist extends Model
                 })->first();
             }
 
+            // If no vehicle fully qualifies, first look for any vehicle matching the required type (even if damaged or low speed)
+            $matchingType = $gangVehicles->filter(fn ($gv) => $this->matchesVehicleType($gv));
+            if ($matchingType->isNotEmpty()) {
+                return $matchingType->sortByDesc('current_condition')->first();
+            }
+
             return $gangVehicles->where('current_condition', '>', 0)->first() ?? $gangVehicles->first();
         }
 
@@ -138,6 +144,12 @@ class Heist extends Model
 
                 return ($b->is_active ? 1 : 0) <=> ($a->is_active ? 1 : 0);
             })->first();
+        }
+
+        // If no vehicle fully qualifies, first look for any vehicle matching the required type (even if damaged or low speed)
+        $matchingType = $personalVehicles->filter(fn ($pv) => $this->matchesVehicleType($pv));
+        if ($matchingType->isNotEmpty()) {
+            return $matchingType->sortByDesc('current_condition')->first();
         }
 
         return $personalVehicles->where('current_condition', '>', 0)->firstWhere('is_active', true)

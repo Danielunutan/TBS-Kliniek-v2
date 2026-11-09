@@ -110,3 +110,4 @@ class SendSeasonTwoNewsletterCommand extends Command
         return self::SUCCESS;
     }
 }
+

@@ -50,3 +50,4 @@ class NewsletterSettingsTest extends TestCase
         $mailable->assertSeeInHtml('Uitschakelen via Account');
     }
 }
+
