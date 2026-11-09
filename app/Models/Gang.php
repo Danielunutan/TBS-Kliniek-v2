@@ -27,6 +27,8 @@ class Gang extends Model
 
     public const MAX_NPC_DEFENSE_BONUS_PERCENT = 100;
 
+    public const MAX_NPC_VEHICLE_TUNING_PERCENT = 75;
+
     /**
      * @var list<string>
      */
@@ -201,11 +203,11 @@ class Gang extends Model
 
     public function getTotalStorageCapacityAttribute(): int
     {
-        if ($this->relationLoaded('properties')) {
-            return (int) $this->properties->sum('storage_capacity');
-        }
+        $propertyStorage = $this->relationLoaded('properties')
+            ? (int) $this->properties->sum('storage_capacity')
+            : (int) $this->properties()->sum('storage_capacity');
 
-        return (int) $this->properties()->sum('storage_capacity');
+        return max(0, $propertyStorage + $this->npc_storage_boost);
     }
 
     public function getTotalVehicleSlotsAttribute(): int
@@ -257,11 +259,65 @@ class Gang extends Model
             $key = (string) $npc->npc_key;
             $counts[$key] = ($counts[$key] ?? 0) + 1;
             if ($counts[$key] <= GangNpc::MAX_ACTIVE_PER_TYPE) {
-                $sum += (int) $npc->bonus_value;
+                $sum += max(0, (int) $npc->bonus_value);
             }
         }
 
         return max(0, min(self::MAX_NPC_DEFENSE_BONUS_PERCENT, $sum));
+    }
+
+    /**
+     * Sum extra gang depot storage slots from active storage_boost NPCs.
+     */
+    public function getNpcStorageBoostAttribute(): int
+    {
+        $storageNpcs = $this->relationLoaded('npcs')
+            ? $this->npcs->filter(fn ($n) => ! $n->isExpired())->where('bonus_type', 'storage_boost')
+            : $this->npcs()->where('bonus_type', 'storage_boost')->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })->get();
+
+        $sum = 0;
+        $counts = [];
+        foreach ($storageNpcs as $npc) {
+            if ($npc->isExpired()) {
+                continue;
+            }
+            $key = (string) $npc->npc_key;
+            $counts[$key] = ($counts[$key] ?? 0) + 1;
+            if ($counts[$key] <= GangNpc::MAX_ACTIVE_PER_TYPE) {
+                $sum += max(0, (int) $npc->bonus_value);
+            }
+        }
+
+        return max(0, $sum);
+    }
+
+    /**
+     * Sum gang garage repair discount percentage from active vehicle_tuning NPCs.
+     */
+    public function getNpcVehicleTuningPercentAttribute(): int
+    {
+        $tuningNpcs = $this->relationLoaded('npcs')
+            ? $this->npcs->filter(fn ($n) => ! $n->isExpired())->where('bonus_type', 'vehicle_tuning')
+            : $this->npcs()->where('bonus_type', 'vehicle_tuning')->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })->get();
+
+        $sum = 0;
+        $counts = [];
+        foreach ($tuningNpcs as $npc) {
+            if ($npc->isExpired()) {
+                continue;
+            }
+            $key = (string) $npc->npc_key;
+            $counts[$key] = ($counts[$key] ?? 0) + 1;
+            if ($counts[$key] <= GangNpc::MAX_ACTIVE_PER_TYPE) {
+                $sum += max(0, (int) $npc->bonus_value);
+            }
+        }
+
+        return max(0, min(self::MAX_NPC_VEHICLE_TUNING_PERCENT, $sum));
     }
 
     public function getTotalDefenseAttribute(): int

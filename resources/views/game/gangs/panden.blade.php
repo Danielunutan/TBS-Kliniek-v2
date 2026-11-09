@@ -415,7 +415,11 @@
                                 <span class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-black text-[10px]">
                                     Bezig ({{ $owned->remaining_production_minutes }} min)
                                 </span>
-                                @if($owned->assigned_npc_key === 'chemisch_specialist')
+                                @if($owned->assignedNpc)
+                                    <span class="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[9px]">
+                                        👤 {{ $owned->assignedNpc->name }} ({{ $owned->assignedNpc->bonus_type === 'production_speed' ? '-' . $owned->assignedNpc->bonus_value . '% tijd' : '+' . $owned->assignedNpc->bonus_value . '% buit' }})
+                                    </span>
+                                @elseif($owned->assigned_npc_key === 'chemisch_specialist')
                                     <span class="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-extrabold text-[9px]">🧪 Dr. Walter (-50% tijd)</span>
                                 @elseif($owned->assigned_npc_key === 'productie_manager')
                                     <span class="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold text-[9px]">💰 Dimitri (+100% buit)</span>
@@ -424,7 +428,14 @@
                                 @endif
                             </div>
                         @else
-                            <span class="text-slate-400 dark:text-slate-500 text-xs italic">Inactief</span>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="text-slate-400 dark:text-slate-500 text-xs italic">Inactief</span>
+                                @if($owned->assignedNpc && $owned->assignedNpc->isActive())
+                                    <span class="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[9px]">
+                                        👤 {{ $owned->assignedNpc->name }} ({{ $owned->assignedNpc->bonus_type === 'production_speed' ? '-' . $owned->assignedNpc->bonus_value . '% tijd' : '+' . $owned->assignedNpc->bonus_value . '% buit' }})
+                                    </span>
+                                @endif
+                            </div>
                         @endif
                     </div>
 
@@ -441,6 +452,18 @@
                     @elseif(! $owned->isProducing() && $isOfficer)
                     @php
                         $fleetCheck = \App\Support\GangPropertyCatalog::checkFleetRequirements($gang, $prop['key']);
+                        $stationedNpc = ($owned->assignedNpc && $owned->assignedNpc->isActive()) ? $owned->assignedNpc : null;
+                        $assignableProductionNpcs = $hiredNpcs->filter(function ($n) use ($owned) {
+                            if (! $n->isActive() || ! in_array($n->bonus_type, ['production_speed', 'production_yield'], true)) {
+                                return false;
+                            }
+                            if (! $n->assigned_property_id || (int) $n->assigned_property_id === (int) $owned->id) {
+                                return true;
+                            }
+                            $otherProp = $n->assignedProperty;
+
+                            return ! $otherProp || ! in_array($otherProp->production_status, ['producing', 'ready'], true);
+                        });
                     @endphp
 
                     @if(!empty($prop['vehicle_requirements']))
@@ -471,6 +494,32 @@
                         </div>
                         @endif
                     </div>
+                    @endif
+
+                    @if($assignableProductionNpcs->isNotEmpty() || $stationedNpc)
+                    <form method="POST" action="{{ route('gangs.panden.assign-npc', $owned) }}" class="p-2.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-800/60 space-y-1.5">
+                        @csrf
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                            Stationeer Showroom Specialist (Gratis vanuit Dienst):
+                        </label>
+                        <div class="flex items-center gap-1.5">
+                            <select name="npc_id"
+                                    @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                    class="flex-1 min-w-0 text-xs font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-2xs">
+                                <option value="">— Geen showroom specialist gestationeerd —</option>
+                                @foreach($assignableProductionNpcs as $pNpc)
+                                    <option value="{{ $pNpc->id }}" @selected($stationedNpc && (int) $stationedNpc->id === (int) $pNpc->id)>
+                                        {{ $pNpc->name }} ({{ $pNpc->bonus_type === 'production_speed' ? '-' . $pNpc->bonus_value . '% Productietijd' : '+' . $pNpc->bonus_value . '% Cash opbrengst' }}){{ ($pNpc->assigned_property_id && (int) $pNpc->assigned_property_id !== (int) $owned->id && $pNpc->assignedProperty) ? ' — nu bij ' . $pNpc->assignedProperty->name : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="submit"
+                                    @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                    class="px-3 py-2 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer active:scale-95' }} font-black text-[11px] uppercase tracking-wider transition-all shrink-0 shadow-2xs">
+                                Toewijzen
+                            </button>
+                        </div>
+                    </form>
                     @endif
 
                     <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}" class="space-y-2">
@@ -628,6 +677,15 @@
                 @php
                     $nDef = $npcCatalog[$npc->npc_key] ?? null;
                     $nIcon = $nDef['icon'] ?? 'fa-user-shield';
+                    $npcBenefitText = match ($npc->bonus_type) {
+                        'defense' => '+' . $npc->bonus_value . '% Verdediging',
+                        'wage_bonus' => '+' . $npc->bonus_value . '% Uurloon',
+                        'production_yield' => '+' . $npc->bonus_value . '% Cash opbrengst',
+                        'production_speed' => '-' . $npc->bonus_value . '% Productietijd',
+                        'vehicle_tuning' => '-' . $npc->bonus_value . '% Reparatiekosten',
+                        'storage_boost' => '+' . $npc->bonus_value . ' Opslagcapaciteit',
+                        default => '+' . $npc->bonus_value . '% Bonus',
+                    };
                 @endphp
                 <div class="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-4 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 min-w-0">
@@ -638,8 +696,13 @@
                             <h4 class="text-xs font-black text-slate-900 dark:text-white truncate">{{ $npc->name }}</h4>
                             <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ $npc->role_title }}</span>
                             <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">
-                                +{{ $npc->bonus_value }}% {{ $npc->bonus_type === 'defense' ? 'Verdediging' : ($npc->bonus_type === 'wage_bonus' ? 'Uurloon' : 'Productie') }}
+                                {{ $npcBenefitText }}
                             </span>
+                            @if($npc->assignedProperty)
+                            <span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 block truncate">
+                                <i class="fa-solid fa-industry text-[9px]"></i> {{ $npc->assignedProperty->name }}
+                            </span>
+                            @endif
                         </div>
                     </div>
                     <div class="text-right shrink-0">
@@ -667,6 +730,8 @@
                 $hasFreeSlot = $availableNpcSlots > 0;
                 $isEnforcerAtCap = ($npcDef['bonus_type'] ?? '') === 'defense'
                     && $gang->npc_defense_bonus_percent >= \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT;
+                $isTuningAtCap = ($npcDef['bonus_type'] ?? '') === 'vehicle_tuning'
+                    && $gang->npc_vehicle_tuning_percent >= \App\Models\Gang::MAX_NPC_VEHICLE_TUNING_PERCENT;
             @endphp
             <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 relative overflow-hidden transition-all duration-200 hover:border-purple-300 dark:hover:border-purple-700/80">
                 <div class="space-y-4">
@@ -715,13 +780,13 @@
                         <form method="POST" action="{{ route('gangs.panden.hire-npc', $npcKey) }}">
                             @csrf
                             <button type="submit"
-                                    @if(! $hasFreeSlot || ! $canAffordNpc || $isEnforcerAtCap || $isSameNpcAtCap || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                    @if(! $hasFreeSlot || ! $canAffordNpc || $isEnforcerAtCap || $isTuningAtCap || $isSameNpcAtCap || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
                                     data-confirm="Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor een 30-minuten shift voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?"
                                     data-confirm-title="NPC Specialist Inhuren (30 Minuten)"
                                     data-confirm-btn="Ja, Inhuren"
                                     data-confirm-type="success"
                                     data-confirm-icon="fa-user-plus"
-                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $isSameNpcAtCap && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
+                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $isTuningAtCap && ! $isSameNpcAtCap && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i>
                                 @if($character->isImprisoned())
                                     <span>In Isoleercel</span>
@@ -729,6 +794,8 @@
                                     <span>Code Blauw</span>
                                 @elseif($isEnforcerAtCap)
                                     <span>Max +{{ \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT }}% Enforcer Limiet</span>
+                                @elseif($isTuningAtCap)
+                                    <span>Max -{{ \App\Models\Gang::MAX_NPC_VEHICLE_TUNING_PERCENT }}% Monteur Limiet</span>
                                 @elseif($isSameNpcAtCap)
                                     <span>Max 5x per 30 Min Bereikt</span>
                                 @elseif(! $hasFreeSlot)

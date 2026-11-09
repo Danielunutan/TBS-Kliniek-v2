@@ -84,9 +84,21 @@ class CharacterVehicle extends Model
         $costPerPct = max(50, (int) round($vehiclePrice * 0.001));
         $baseCost = $missing * $costPerPct;
 
-        // Chop-Shop Garage provides 20% discount on gang vehicle fleet repairs
-        if ($this->in_gang_garage && $this->gang_id && $this->gang?->hasProperty('chop_shop_garage')) {
-            return (int) round($baseCost * 0.80);
+        if ($this->in_gang_garage && $this->gang_id && $this->gang) {
+            $discountedCost = $baseCost;
+
+            // Chop-Shop Garage reduces fleet repair costs by 20%.
+            if ($this->gang->hasProperty('chop_shop_garage')) {
+                $discountedCost = (int) round($discountedCost * 0.80);
+            }
+
+            // Active mechanic specialists reduce fleet repair costs up to 75%.
+            $tuningPercent = $this->gang->npc_vehicle_tuning_percent;
+            if ($tuningPercent > 0) {
+                $discountedCost = (int) round($discountedCost * (1 - ($tuningPercent / 100)));
+            }
+
+            return max(1, $discountedCost);
         }
 
         return $baseCost;

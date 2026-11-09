@@ -114,18 +114,23 @@ class GangProperty extends Model
     {
         $baseMinutes = (int) ($this->production_duration_minutes ?? 60);
 
-        if ($this->assigned_npc_key === 'chemisch_specialist') {
-            return max(5, (int) round($baseMinutes * 0.5)); // Halved duration for hired master chemist!
-        }
-
         $assignedNpc = GangNpc::where('gang_id', $this->gang_id)
             ->where('assigned_property_id', $this->id)
             ->first();
 
-        if ($assignedNpc && $assignedNpc->isActive() && $assignedNpc->bonus_type === 'production_speed') {
-            $speedFactor = 1 - min(0.75, $assignedNpc->bonus_value / 100);
+        if ($assignedNpc) {
+            if ($assignedNpc->isActive() && $assignedNpc->bonus_type === 'production_speed') {
+                $speedFactor = 1 - min(0.75, max(0, (int) $assignedNpc->bonus_value) / 100);
 
-            return max(5, (int) round($baseMinutes * $speedFactor));
+                return max(5, (int) round($baseMinutes * $speedFactor));
+            }
+
+            return $baseMinutes;
+        }
+
+        // Apply -50% duration for a batch master chemist when no showroom NPC is stationed.
+        if ($this->assigned_npc_key === 'chemisch_specialist') {
+            return max(5, (int) round($baseMinutes * 0.5));
         }
 
         return $baseMinutes;
@@ -155,7 +160,6 @@ class GangProperty extends Model
             ->where('assigned_property_id', $this->id)
             ->first();
 
-        $hasAssignedNpcYield = false;
         $isNpcValid = $assignedNpc && (
             $assignedNpc->isActive() || (
                 $this->production_ends_at !== null && (
@@ -167,16 +171,13 @@ class GangProperty extends Model
         );
 
         if ($isNpcValid && $assignedNpc->bonus_type === 'production_yield') {
-            $bonusFactor = 1 + ($assignedNpc->bonus_value / 100);
+            $bonusFactor = 1 + (max(0, (int) $assignedNpc->bonus_value) / 100);
             $baseCash = (int) round($baseCash * $bonusFactor);
-            $hasAssignedNpcYield = true;
         }
 
-        // Batch production manager doubles cash payout (+100%) when hired for a cycle
-        if ($this->assigned_npc_key === 'productie_manager') {
-            if (! $hasAssignedNpcYield) {
-                $baseCash = (int) round($baseCash * 2.0);
-            }
+        // Double cash payout (+100%) for a batch production manager when no showroom NPC is stationed.
+        if (! $assignedNpc && $this->assigned_npc_key === 'productie_manager') {
+            $baseCash = (int) round($baseCash * 2.0);
         }
 
         return [

@@ -52,6 +52,7 @@ class GangController extends Controller
         $myGang = $character->gang;
 
         if ($myGang) {
+            GangNpc::purgeExpiredForGang($myGang);
             $myGang->load([
                 'members',
                 'requests.character',
@@ -60,6 +61,7 @@ class GangController extends Controller
                 'personalShopper',
                 'moneyMagnet',
                 'properties',
+                'npcs',
                 'storedVehicles.vehicle',
                 'items.item',
             ]);
@@ -1929,7 +1931,8 @@ class GangController extends Controller
 
             $quantity = min($requestedQty, $currentMasks);
 
-            // Check gang depot storage capacity (provided by gang properties)
+            // Check gang depot storage capacity (provided by gang properties and active storage NPCs).
+            GangNpc::purgeExpiredForGang($lockedGang);
             $storageCap = $lockedGang->total_storage_capacity;
             $storageUsed = $lockedGang->getStorageUsed();
             if ($storageUsed + $quantity > $storageCap) {
@@ -2020,7 +2023,8 @@ class GangController extends Controller
 
             $quantity = min($requestedQty, $charItem->quantity);
 
-            // Check gang depot storage capacity
+            // Check gang depot storage capacity (provided by gang properties and active storage NPCs).
+            GangNpc::purgeExpiredForGang($lockedGang);
             $storageCap = $lockedGang->total_storage_capacity;
             $storageUsed = $lockedGang->getStorageUsed();
             if ($storageUsed + $quantity > $storageCap) {

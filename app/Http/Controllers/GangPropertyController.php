@@ -45,7 +45,7 @@ class GangPropertyController extends Controller
         /** @var Gang $gang */
         $gang = $character->gang;
         GangNpc::purgeExpiredForGang($gang);
-        $gang->load(['properties', 'npcs.assignedProperty', 'leader', 'storedVehicles']);
+        $gang->load(['properties.assignedNpc', 'npcs.assignedProperty', 'leader', 'storedVehicles']);
 
         $catalog = GangPropertyCatalog::all();
         $npcCatalog = GangPropertyCatalog::npcs();
@@ -112,7 +112,9 @@ class GangPropertyController extends Controller
         }
 
         $gang = $character->gang;
-        $gang->load(['properties', 'storedVehicles.vehicle', 'storedVehicles.character', 'storedVehicles.storedBy']);
+        GangNpc::purgeExpiredForGang($gang);
+        $gang->load(['properties', 'npcs', 'storedVehicles.vehicle', 'storedVehicles.character', 'storedVehicles.storedBy']);
+        $gang->storedVehicles->each->setRelation('gang', $gang);
 
         $totalVehicleSlots = $gang->total_vehicle_slots;
         $storedVehicles = $gang->storedVehicles;
@@ -717,16 +719,24 @@ class GangPropertyController extends Controller
                     throw new \RuntimeException($fleetCheck['reason']);
                 }
 
+                /** @var Gang $lockedGang */
+                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
+                GangNpc::purgeExpiredForGang($lockedGang);
+
                 if ($specialistKey !== 'none' && isset($specialists[$specialistKey])) {
                     $spec = $specialists[$specialistKey];
                     $cost = $spec['cost'];
-                    /** @var Gang $lockedGang */
-                    $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
                     if ($lockedGang->treasury < $cost) {
                         throw new \RuntimeException("Onvoldoende saldo in de bendekas! {$spec['name']} kost €".number_format($cost, 0, ',', '.').' voor deze cyclus (de kas bevat €'.number_format($lockedGang->treasury, 0, ',', '.').').');
                     }
                     $lockedGang->treasury -= $cost;
                     $lockedGang->save();
+
+                    // Return any stationed showroom NPC to the gang pool when a paid batch specialist runs.
+                    GangNpc::where('gang_id', $lockedGang->id)
+                        ->where('assigned_property_id', $lockedProperty->id)
+                        ->update(['assigned_property_id' => null]);
+
                     $lockedProperty->assigned_npc_key = $specialistKey;
                     $hiredNotice = " Inclusief specialist {$spec['name']} ({$spec['benefit']}, -€".number_format($cost, 0, ',', '.').' uit bendekas)!';
 
@@ -745,8 +755,9 @@ class GangPropertyController extends Controller
                         ]
                     );
                 } else {
-                    $assignedGangNpc = GangNpc::where('gang_id', $gang->id)
+                    $assignedGangNpc = GangNpc::where('gang_id', $lockedGang->id)
                         ->where('assigned_property_id', $lockedProperty->id)
+                        ->active()
                         ->first();
                     $lockedProperty->assigned_npc_key = $assignedGangNpc?->npc_key;
                 }
@@ -957,6 +968,10 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Jullie bende heeft het maximale Enforcer-verdedigingslimiet van +'.Gang::MAX_NPC_DEFENSE_BONUS_PERCENT.'% al bereikt! Huur een ander type specialist in.');
         }
 
+        if (($npcData['bonus_type'] ?? '') === 'vehicle_tuning' && $gang->npc_vehicle_tuning_percent >= Gang::MAX_NPC_VEHICLE_TUNING_PERCENT) {
+            return back()->with('error', 'Jullie bende heeft het maximale Monteur-kortingslimiet van -'.Gang::MAX_NPC_VEHICLE_TUNING_PERCENT.'% in de Bende Garage al bereikt! Huur een ander type specialist in.');
+        }
+
         // Check capacity
         $totalCap = $gang->total_npc_capacity;
         $currentCount = $gang->npcs()->count();
@@ -990,6 +1005,11 @@ class GangPropertyController extends Controller
                 return 'Jullie bende heeft het maximale Enforcer-verdedigingslimiet van +'.Gang::MAX_NPC_DEFENSE_BONUS_PERCENT.'% al bereikt! Huur een ander type specialist in.';
             }
 
+            $currentTuningBonus = $lockedGang->npc_vehicle_tuning_percent;
+            if (($npcData['bonus_type'] ?? '') === 'vehicle_tuning' && $currentTuningBonus >= Gang::MAX_NPC_VEHICLE_TUNING_PERCENT) {
+                return 'Jullie bende heeft het maximale Monteur-kortingslimiet van -'.Gang::MAX_NPC_VEHICLE_TUNING_PERCENT.'% in de Bende Garage al bereikt! Huur een ander type specialist in.';
+            }
+
             // Re-check capacity and treasury under the gang lock so parallel hires cannot exceed either limit.
             $lockedSameNpcCount = $lockedGang->npcs()
                 ->where('npc_key', $npcKey)
@@ -1017,6 +1037,12 @@ class GangPropertyController extends Controller
                     return 'Jullie bende heeft het maximale Enforcer-verdedigingslimiet van +'.Gang::MAX_NPC_DEFENSE_BONUS_PERCENT.'% al bereikt! Huur een ander type specialist in.';
                 }
                 $effectiveBonusValue = min($effectiveBonusValue, $remainingBonus);
+            } elseif (($npcData['bonus_type'] ?? '') === 'vehicle_tuning') {
+                $remainingTuning = max(0, Gang::MAX_NPC_VEHICLE_TUNING_PERCENT - $currentTuningBonus);
+                if ($remainingTuning <= 0) {
+                    return 'Jullie bende heeft het maximale Monteur-kortingslimiet van -'.Gang::MAX_NPC_VEHICLE_TUNING_PERCENT.'% in de Bende Garage al bereikt! Huur een ander type specialist in.';
+                }
+                $effectiveBonusValue = min($effectiveBonusValue, $remainingTuning);
             }
 
             $lockedGang->treasury -= $cost;
@@ -1080,14 +1106,22 @@ class GangPropertyController extends Controller
                     throw new \RuntimeException('Je bent momenteel niet in staat om NPC bendeleden te beheren.');
                 }
 
+                /** @var Gang $lockedGang */
+                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
+                GangNpc::purgeExpiredForGang($lockedGang);
+
                 /** @var GangProperty|null $lockedProperty */
                 $lockedProperty = GangProperty::where('id', $property->id)
-                    ->where('gang_id', $gang->id)
+                    ->where('gang_id', $lockedGang->id)
                     ->lockForUpdate()
                     ->first();
 
                 if (! $lockedProperty) {
                     throw new \RuntimeException('Ongeldig bendepand.');
+                }
+
+                if ($lockedProperty->type !== 'production') {
+                    throw new \RuntimeException('Alleen productiepanden kunnen een productiespecialist gestationeerd krijgen.');
                 }
 
                 if (in_array($lockedProperty->production_status, ['producing', 'ready'], true)) {
@@ -1097,18 +1131,22 @@ class GangPropertyController extends Controller
                 if ($npcId) {
                     /** @var GangNpc|null $npc */
                     $npc = GangNpc::where('id', $npcId)
-                        ->where('gang_id', $gang->id)
+                        ->where('gang_id', $lockedGang->id)
                         ->lockForUpdate()
                         ->first();
 
-                    if (! $npc) {
-                        throw new \RuntimeException('Ongeldig NPC bendelid.');
+                    if (! $npc || ! $npc->isActive()) {
+                        throw new \RuntimeException('Ongeldig of verlopen NPC bendelid.');
+                    }
+
+                    if (! in_array($npc->bonus_type, ['production_speed', 'production_yield'], true)) {
+                        throw new \RuntimeException('Alleen productie-specialisten (snelheid of cash-opbrengst) kunnen aan een productiepand worden gekoppeld. Andere specialisten werken al automatisch voor de hele bende!');
                     }
 
                     if ($npc->assigned_property_id && (int) $npc->assigned_property_id !== (int) $lockedProperty->id) {
                         /** @var GangProperty|null $prevProperty */
                         $prevProperty = GangProperty::where('id', $npc->assigned_property_id)
-                            ->where('gang_id', $gang->id)
+                            ->where('gang_id', $lockedGang->id)
                             ->lockForUpdate()
                             ->first();
 
@@ -1121,14 +1159,8 @@ class GangPropertyController extends Controller
                         }
                     }
 
-                    // Clear any other property in this gang that still references this NPC key
-                    GangProperty::where('gang_id', $gang->id)
-                        ->where('id', '!=', $lockedProperty->id)
-                        ->where('assigned_npc_key', $npc->npc_key)
-                        ->update(['assigned_npc_key' => null]);
-
-                    // Unassign any previous NPC from the target property
-                    GangNpc::where('gang_id', $gang->id)
+                    // Unassign any previous NPC from the target property.
+                    GangNpc::where('gang_id', $lockedGang->id)
                         ->where('assigned_property_id', $lockedProperty->id)
                         ->where('id', '!=', $npc->id)
                         ->update(['assigned_property_id' => null]);
@@ -1139,8 +1171,8 @@ class GangPropertyController extends Controller
                     return "✅ {$npc->name} is succesvol gestationeerd in '{$lockedProperty->name}'!";
                 }
 
-                // Unassign
-                GangNpc::where('gang_id', $gang->id)
+                // Unassign any NPC stationed on the target property.
+                GangNpc::where('gang_id', $lockedGang->id)
                     ->where('assigned_property_id', $lockedProperty->id)
                     ->update(['assigned_property_id' => null]);
                 $lockedProperty->update(['assigned_npc_key' => null]);

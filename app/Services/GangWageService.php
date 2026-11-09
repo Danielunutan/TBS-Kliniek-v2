@@ -168,8 +168,10 @@ class GangWageService
 
             $npcsIncome += 500; // Base contribution per specialist
             $nDef = $npcCatalog[$npc->npc_key] ?? null;
-            if ($nDef && ($nDef['bonus_type'] ?? '') === 'wage_bonus') {
-                $npcWageBonusPct += (int) ($nDef['bonus_value'] ?? 0);
+            $bonusType = $npc->bonus_type ?: ($nDef['bonus_type'] ?? '');
+            if ($bonusType === 'wage_bonus') {
+                $bonusVal = $npc->bonus_value ?? ($nDef['bonus_value'] ?? 0);
+                $npcWageBonusPct += max(0, (int) $bonusVal);
             }
         }
 
@@ -284,8 +286,10 @@ class GangWageService
             $contributingNpcsCount++;
             $npcsIncome += 500;
             $nDef = $npcCatalog[$npc->npc_key] ?? null;
-            if ($nDef && ($nDef['bonus_type'] ?? '') === 'wage_bonus') {
-                $npcWageBonusPct += (int) ($nDef['bonus_value'] ?? 0);
+            $bonusType = $npc->bonus_type ?: ($nDef['bonus_type'] ?? '');
+            if ($bonusType === 'wage_bonus') {
+                $bonusVal = $npc->bonus_value ?? ($nDef['bonus_value'] ?? 0);
+                $npcWageBonusPct += max(0, (int) $bonusVal);
             }
         }
 

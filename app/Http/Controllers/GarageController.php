@@ -6,6 +6,7 @@ use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\CharacterVehicle;
 use App\Models\Gang;
+use App\Models\GangNpc;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\AuditLogService;
@@ -379,8 +380,10 @@ class GarageController extends Controller
             return DB::transaction(function () use ($character, $characterVehicle, $gang) {
                 /** @var Gang $lockedGang */
                 $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
+                GangNpc::purgeExpiredForGang($lockedGang);
                 /** @var CharacterVehicle $lockedVehicle */
                 $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->firstOrFail();
+                $lockedVehicle->setRelation('gang', $lockedGang);
 
                 if ($lockedVehicle->current_condition >= 100) {
                     return back()->with('info', "De {$lockedVehicle->vehicle->name} is al in topconditie (100%)!");
