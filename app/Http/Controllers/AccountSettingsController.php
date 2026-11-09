@@ -102,6 +102,27 @@ class AccountSettingsController extends Controller
     }
 
     /**
+     * Update newsletter & seasonal email notification preferences.
+     */
+    public function updateNewsletter(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $subscribed = $request->boolean('newsletter_subscribed');
+        $user->newsletter_subscribed = $subscribed;
+        $user->save();
+
+        $message = $subscribed
+            ? 'Je voorkeur is opgeslagen: je ontvangt belangrijke seizoens- en spelupdates per e-mail.'
+            : 'Je voorkeur is opgeslagen: seizoens- en nieuwsbrief e-mails zijn uitgeschakeld voor jouw account.';
+
+        return back()->with('success', $message);
+    }
+
+    /**
      * Update character username and display name.
      */
     public function updateUsername(Request $request): RedirectResponse

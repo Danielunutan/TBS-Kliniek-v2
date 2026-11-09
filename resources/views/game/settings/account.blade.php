@@ -204,6 +204,41 @@
             </p>
         </div>
 
+        <!-- 5. E-MAIL & SEIZOENSNIEUWSBRIEF -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-envelope-open-text text-purple-600 dark:text-purple-400"></i>
+                    <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">E-mail &amp; Seizoensnieuwsbrief</h3>
+                </div>
+                <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full {{ ($user->newsletter_subscribed ?? true) ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700' }}">
+                    {{ ($user->newsletter_subscribed ?? true) ? 'Ingeschakeld' : 'Uitgeschakeld' }}
+                </span>
+            </div>
+
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Ontvang offici&euml;le aankondigingen over nieuwe seizoenen, grote updates en exclusieve kluiscodes op je e-mailadres (<strong>{{ $user->email }}</strong>). Conform onze voorwaarden staat deze optie standaard ingeschakeld, maar je kunt je hier op elk gewenst moment voor afmelden.
+            </p>
+
+            <form action="{{ route('settings.newsletter.update') }}" method="POST" class="pt-1">
+                @csrf
+                <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70 mb-4">
+                    <div class="space-y-0.5 pr-4">
+                        <span class="text-xs font-bold text-slate-900 dark:text-white block">Seizoensnieuwsbrieven ontvangen</span>
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Belangrijke spelherstarts en speciale beloningen</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input type="checkbox" name="newsletter_subscribed" value="1" {{ ($user->newsletter_subscribed ?? true) ? 'checked' : '' }} class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-purple-600"></div>
+                    </label>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Voorkeur Opslaan
+                </button>
+            </form>
+        </div>
+
         <!-- 5. ACTIEVE SESSIES & AFSTAND -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4 md:col-span-2">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">

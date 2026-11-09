@@ -64,7 +64,7 @@
             </h2>
             <p>Wij verzamelen uitsluitend gegevens die strikt noodzakelijk zijn voor het functioneren van het spel en de beveiliging van jouw account</p>
             <ul class="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-400">
-                <li><strong>Accountgegevens</strong> Gebruikersnaam, e-mailadres en een cryptografisch gehasht wachtwoord (via moderne algoritmes, wij kunnen jouw wachtwoord nooit in platte tekst zien).</li>
+                <li><strong>Accountgegevens</strong> Gebruikersnaam, e-mailadres, nieuwsbriefvoorkeur (standaard ingeschakeld voor seizoensupdates, te allen tijde uitschakelbaar in accountinstellingen) en een cryptografisch gehasht wachtwoord (via moderne algoritmes, wij kunnen jouw wachtwoord nooit in platte tekst zien).</li>
                 <li><strong>Spelstatistieken</strong> Virtuele karakternaam, level, spelvoortgang, inventaris, in-game berichten en tijdsstempels van acties.</li>
                 <li><strong>Technische & Loggegevens</strong> IP-adres, browser user-agent, tijdstip van inloggen en sessie-identificatoren (gebruikt voor accountbeveiliging en botpreventie).</li>
                 <li><strong>Cookie-voorkeuren</strong> De status van jouw toestemming voor het plaatsen van functionele en advertentiecookies.</li>

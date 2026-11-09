@@ -108,6 +108,9 @@
             <p>
                 3.6. De gebruiker is te allen tijde zelf verantwoordelijk voor de geheimhouding van de inloggegevens. Het delen van accounts met derden of accountoverdracht is niet toegestaan.
             </p>
+            <p>
+                3.7. <strong>E-mailcommunicatie &amp; Seizoensnieuwsbrieven</strong> Bij registratie stemt de speler ermee in dat belangrijke berichten omtrent seizoensherstarts, spelbeveiliging en grote systeemupdates per e-mail kunnen worden toegezonden. Deze seizoensnieuwsbrieven staan standaard ingeschakeld zodat actieve spelers tijdig op de hoogte zijn van competitie-aftrappen en gelijke resets. Spelers kunnen zich te allen tijde met één klik uitschrijven voor seizoens- en nieuwsbriefberichten via hun persoonlijke <a href="{{ route('settings.account') }}" class="text-purple-600 dark:text-purple-400 font-bold underline">Account &amp; Beveiliging instellingen</a>.
+            </p>
         </section>
 
         <!-- Artikel 4 -->

@@ -619,6 +619,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     // Account & Beveiliging (2FA, Wachtwoord, Username, Remote Sessions)
     Route::get('/instellingen/account', [AccountSettingsController::class, 'index'])->name('settings.account');
     Route::post('/instellingen/wachtwoord', [AccountSettingsController::class, 'updatePassword'])->middleware('throttle:10,1')->name('settings.password.update');
+    Route::post('/instellingen/nieuwsbrief', [AccountSettingsController::class, 'updateNewsletter'])->middleware('throttle:10,1')->name('settings.newsletter.update');
     Route::post('/instellingen/gebruikersnaam', [AccountSettingsController::class, 'updateUsername'])->middleware('throttle:10,1')->name('settings.username.update');
     Route::post('/instellingen/avatar', [AccountSettingsController::class, 'updateAvatar'])->middleware('throttle:10,1')->name('settings.avatar.update');
     Route::post('/instellingen/2fa', [AccountSettingsController::class, 'toggleTwoFactor'])->middleware('throttle:10,1')->name('settings.2fa.toggle');

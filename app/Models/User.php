@@ -16,7 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Mail;
 
-#[Fillable(['name', 'email', 'email_verified_at', 'email_verification_code', 'email_verification_code_expires_at', 'registration_ip', 'last_login_ip', 'password', 'google_id', 'discord_id', 'birthdate', 'is_onboarded', 'is_staff', 'role', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_user_id', 'two_factor_enabled', 'two_factor_secret'])]
+#[Fillable(['name', 'email', 'newsletter_subscribed', 'email_verified_at', 'email_verification_code', 'email_verification_code_expires_at', 'registration_ip', 'last_login_ip', 'password', 'google_id', 'discord_id', 'birthdate', 'is_onboarded', 'is_staff', 'role', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_user_id', 'two_factor_enabled', 'two_factor_secret'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'email_verification_code', 'email_verification_code_expires_at', 'registration_ip', 'last_login_ip', 'google_id', 'discord_id'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -301,6 +301,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'email_verification_code_expires_at' => 'datetime',
+            'newsletter_subscribed' => 'boolean',
             'password' => 'hashed',
             'is_staff' => 'boolean',
             'two_factor_enabled' => 'boolean',
