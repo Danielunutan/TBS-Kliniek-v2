@@ -93,15 +93,19 @@ class ResetGangsAndEconomyCommand extends Command
 
             // 3. Controleposten resetten naar neutraal
             if (Schema::hasTable('control_points')) {
-                ControlPoint::query()->update([
+                $cpCols = Schema::getColumnListing('control_points');
+                $cpUpdates = [
                     'current_character_id' => null,
                     'current_gang_id' => null,
-                    'gang_id' => null,
                     'control_level' => 0,
                     'captured_at' => null,
                     'last_contested_at' => null,
                     'total_captures' => 0,
-                ]);
+                ];
+                $filteredCpUpdates = array_intersect_key($cpUpdates, array_flip($cpCols));
+                if (! empty($filteredCpUpdates)) {
+                    ControlPoint::query()->update($filteredCpUpdates);
+                }
                 $this->info('3. Controleposten gereset naar neutraal.');
             }
 
