@@ -1058,4 +1058,92 @@ class HeistVehicleSelectionAndWearTest extends TestCase
         $response->assertSee('Bende Heists');
         $response->assertSee('Chop-Shop: -25% Slijtage');
     }
+
+    public function test_gang_heist_air_vehicles_qualify_and_enable_launch(): void
+    {
+        $leader = User::factory()->create();
+        $char = Character::create([
+            'user_id' => $leader->id,
+            'name' => 'AirCommander',
+            'level' => 20,
+            'energy' => 100,
+            'max_energy' => 100,
+            'is_onboarded' => true,
+        ]);
+
+        $gang = Gang::create([
+            'name' => 'Sky Pirates',
+            'tag' => 'SKY',
+            'specialty' => 'violence',
+            'masks' => 50,
+            'leader_character_id' => $char->id,
+        ]);
+        $char->gang_id = $gang->id;
+        $char->gang_role = 'leader';
+        $char->save();
+
+        // 10 members quota
+        for ($i = 0; $i < 9; $i++) {
+            $u = User::factory()->create();
+            Character::create([
+                'user_id' => $u->id,
+                'name' => 'Crew'.$i,
+                'level' => 18,
+                'energy' => 100,
+                'gang_id' => $gang->id,
+                'is_onboarded' => true,
+            ]);
+        }
+
+        // Add bunker property
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'ondergrondse_bunker',
+            'name' => 'Versterkte Ondergrondse Bunker',
+            'type' => 'bunker',
+            'purchase_price' => 500000,
+        ]);
+
+        $heli = Vehicle::create([
+            'name' => 'Zwarte Robinson R44 Vluchthelikopter',
+            'slug' => 'robinson-r44-air',
+            'type' => 'helikopter',
+            'price_cash' => 500000,
+            'speed_pct' => 100,
+            'reliability_pct' => 100,
+            'min_level' => 15,
+        ]);
+
+        CharacterVehicle::create([
+            'character_id' => $char->id,
+            'gang_id' => $gang->id,
+            'vehicle_id' => $heli->id,
+            'in_gang_garage' => true,
+            'current_condition' => 100,
+            'tuned_speed' => 100,
+        ]);
+
+        $heist = Heist::create([
+            'name' => 'Centrale Reservereden Fort Goudkluis Heist',
+            'slug' => 'fort-goudkluis-test',
+            'description' => 'Air heist',
+            'min_level' => 18,
+            'min_gang_members' => 10,
+            'required_mask_count' => 15,
+            'energy_cost' => 30,
+            'is_gang_heist' => true,
+            'required_vehicle_type' => 'helikopter',
+            'min_speed_required' => 95,
+            'min_condition_required' => 80,
+            'required_property_name' => 'Versterkte Ondergrondse Bunker of Gang Villa HQ',
+        ]);
+
+        $this->assertTrue($heist->matchesVehicleType($char->gang->storedVehicles->first()));
+        $this->assertTrue($heist->vehicleQualifies($char->gang->storedVehicles->first()));
+
+        $response = $this->actingAs($leader)->get(route('heists.index', ['tab' => 'gang']));
+        $response->assertOk();
+        $response->assertDontSee('Wagen Vereist ≥95 km/u');
+        $response->assertSee('Lanceer Bende Heist Operatie');
+    }
 }

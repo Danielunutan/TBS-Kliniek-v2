@@ -142,7 +142,7 @@
                 $hasLevel = $character->level >= $heist->min_level;
                 $hasMasks = ($character->masks ?? 0) >= $heist->required_mask_count;
                 $hasVehicle = !empty($effectiveVehicle);
-                $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle?->type === $heist->required_vehicle_type);
+                $hasType = $effectiveVehicle && $heist->matchesVehicleType($effectiveVehicle);
                 $hasSpeed = $effectiveVehicle && ($effectiveVehicle->effective_speed >= $heist->min_speed_required);
                 $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= $heist->min_condition_required);
                 $canLaunch = $hasLevel && $hasMasks && $hasVehicle && $hasType && $hasSpeed && $hasCondition && ($character->energy >= $heist->energy_cost);
@@ -269,7 +269,13 @@
                             <i class="fa-solid fa-warehouse"></i>
                             <span>Koop Vluchtwagen in Garage</span>
                         </a>
-                    @elseif(! $hasType || ! $hasSpeed)
+                    @elseif(! $hasType)
+                        <a href="{{ route('garage.index') }}" 
+                           class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-car"></i>
+                            <span>{{ ucfirst($heist->required_vehicle_type) }} Vereist</span>
+                        </a>
+                    @elseif(! $hasSpeed)
                         <a href="{{ route('garage.index') }}" 
                            class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-gauge-high"></i>
@@ -439,7 +445,7 @@
 
                     $effectiveVehicle = $heist->getEffectiveVehicle($character);
                     $hasVehicle = !empty($effectiveVehicle);
-                    $hasType = $effectiveVehicle && (!$heist->required_vehicle_type || $heist->required_vehicle_type === 'any' || $effectiveVehicle->vehicle?->type === $heist->required_vehicle_type);
+                    $hasType = $effectiveVehicle && $heist->matchesVehicleType($effectiveVehicle);
                     $hasSpeed = $effectiveVehicle && ($effectiveVehicle->effective_speed >= ($heist->min_speed_required ?? 0));
                     $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= ($heist->min_condition_required ?? 0));
                     $isGangGarageVehicle = $effectiveVehicle && $effectiveVehicle->in_gang_garage;
@@ -635,8 +641,14 @@
                                 <i class="fa-solid fa-warehouse"></i>
                                 <span>Koppel Wagen in Bende Garage</span>
                             </a>
-                        @elseif(! $hasType || ! $hasSpeed)
-                            <a href="{{ route('garage.index') }}" 
+                        @elseif(! $hasType)
+                            <a href="{{ route('gangs.garage') }}" 
+                               class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-plane"></i>
+                                <span>{{ ucfirst($heist->required_vehicle_type) }} Vereist in Bende Garage</span>
+                            </a>
+                        @elseif(! $hasSpeed)
+                            <a href="{{ route('gangs.garage') }}" 
                                class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-gauge-high"></i>
                                 <span>Wagen Vereist &ge;{{ $heist->min_speed_required }} km/u</span>

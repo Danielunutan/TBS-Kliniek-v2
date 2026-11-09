@@ -153,10 +153,10 @@ class HeistController extends Controller
                 if ($selected->current_condition <= 0) {
                     return back()->with('error', "De {$selectedName} is total loss (100% schade) en kan niet worden gebruikt als vluchtwagen!");
                 }
-                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $selected->vehicle?->type !== $heist->required_vehicle_type) {
+                if (! $heist->matchesVehicleType($selected)) {
                     $selectedType = $selected->vehicle?->type ?? 'onbekend';
 
-                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist. Jouw wagen is een {$selectedType}.");
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist. Jouw voertuig is een {$selectedType}.");
                 }
                 if ($selected->effective_speed < $heist->min_speed_required) {
                     return back()->with('error', "De snelheid van de {$selectedName} is te laag ({$selected->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u.");
@@ -172,14 +172,7 @@ class HeistController extends Controller
                 }
 
                 $qualifyingVehicles = $gangVehicles->filter(function ($cv) use ($heist) {
-                    if ($cv->current_condition <= 0) {
-                        return false;
-                    }
-                    if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $cv->vehicle?->type !== $heist->required_vehicle_type) {
-                        return false;
-                    }
-
-                    return $cv->effective_speed >= $heist->min_speed_required && $cv->current_condition >= $heist->min_condition_required;
+                    return $heist->vehicleQualifies($cv);
                 });
 
                 if ($qualifyingVehicles->isEmpty()) {
@@ -238,10 +231,10 @@ class HeistController extends Controller
                 if ($selected->current_condition <= 0) {
                     return back()->with('error', "De {$selectedName} is total loss (100% schade) en kan niet worden gebruikt als vluchtwagen! Laat het eerst repareren in de Garage.");
                 }
-                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $selected->vehicle?->type !== $heist->required_vehicle_type) {
+                if (! $heist->matchesVehicleType($selected)) {
                     $selectedType = $selected->vehicle?->type ?? 'onbekend';
 
-                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$selectedType}.");
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw voertuig is een {$selectedType}.");
                 }
                 if ($selected->effective_speed < $heist->min_speed_required) {
                     return back()->with('error', "De topsnelheid van je {$selectedName} is te laag ({$selected->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
@@ -262,10 +255,10 @@ class HeistController extends Controller
                     return back()->with('error', 'Je hebt een rijdend vluchtvoertuig nodig! Je geselecteerde wagen is total loss (100% schade).');
                 }
 
-                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $charVehicle->vehicle?->type !== $heist->required_vehicle_type) {
+                if (! $heist->matchesVehicleType($charVehicle)) {
                     $vehicleType = $charVehicle->vehicle?->type ?? 'onbekend';
 
-                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$vehicleType}.");
+                    return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw voertuig is een {$vehicleType}.");
                 }
 
                 if ($charVehicle->effective_speed < $heist->min_speed_required) {

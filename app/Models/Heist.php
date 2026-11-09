@@ -94,6 +94,12 @@ class Heist extends Model
 
             if ($qualifying->isNotEmpty()) {
                 return $qualifying->sort(function ($a, $b) {
+                    $aExact = ($a->vehicle?->type === $this->required_vehicle_type) ? 1 : 0;
+                    $bExact = ($b->vehicle?->type === $this->required_vehicle_type) ? 1 : 0;
+                    if ($aExact !== $bExact) {
+                        return $bExact <=> $aExact;
+                    }
+
                     if ($a->effective_speed !== $b->effective_speed) {
                         return $b->effective_speed <=> $a->effective_speed;
                     }
@@ -149,6 +155,32 @@ class Heist extends Model
     }
 
     /**
+     * Check if a vehicle matches the required vehicle type category (e.g. helikopters / vliegtuigen for air heists).
+     */
+    public function matchesVehicleType(?CharacterVehicle $cv): bool
+    {
+        if (! $cv || ! $cv->vehicle) {
+            return false;
+        }
+
+        if (! $this->required_vehicle_type || $this->required_vehicle_type === 'any') {
+            return true;
+        }
+
+        $vType = $cv->vehicle->type;
+        $req = $this->required_vehicle_type;
+
+        return match ($req) {
+            'helikopter' => in_array($vType, ['helikopter', 'vliegtuig'], true),
+            'vliegtuig' => in_array($vType, ['vliegtuig', 'helikopter'], true),
+            'auto' => in_array($vType, ['auto', 'motor'], true),
+            'motor' => in_array($vType, ['motor', 'auto'], true),
+            'boot' => in_array($vType, ['boot'], true),
+            default => ($vType === $req),
+        };
+    }
+
+    /**
      * Check if a vehicle meets the minimum speed, condition and type requirements for this heist.
      */
     public function vehicleQualifies(?CharacterVehicle $cv): bool
@@ -162,21 +194,8 @@ class Heist extends Model
             return false;
         }
 
-        if ($this->required_vehicle_type && $this->required_vehicle_type !== 'any') {
-            $req = $this->required_vehicle_type;
-            $vType = $cv->vehicle->type;
-            $matches = match ($req) {
-                'helikopter' => in_array($vType, ['helikopter', 'vliegtuig'], true),
-                'auto' => in_array($vType, ['auto', 'motor'], true),
-                'motor' => in_array($vType, ['motor', 'auto'], true),
-                'boot' => in_array($vType, ['boot'], true),
-                'vliegtuig' => in_array($vType, ['vliegtuig', 'helikopter'], true),
-                default => ($vType === $req),
-            };
-
-            if (! $matches) {
-                return false;
-            }
+        if (! $this->matchesVehicleType($cv)) {
+            return false;
         }
 
         if ($cv->effective_speed < $this->min_speed_required) {
