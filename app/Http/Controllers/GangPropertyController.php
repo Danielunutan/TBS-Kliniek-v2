@@ -499,7 +499,11 @@ class GangPropertyController extends Controller
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
             $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->firstOrFail();
 
-            $scrapValue = (int) round(($lockedVehicle->vehicle?->price_cash ?? 20000) * 0.25);
+            $vehicle = $lockedVehicle->vehicle;
+            $basePrice = (int) ($vehicle?->price_cash ?? 0) > 0
+                ? (int) $vehicle->price_cash
+                : (((int) ($vehicle?->price_stars ?? 0) * 2000) ?: 20000);
+            $scrapValue = (int) round($basePrice * 0.25);
             $lockedGang->treasury += $scrapValue;
             $lockedGang->save();
 
@@ -587,7 +591,11 @@ class GangPropertyController extends Controller
                 return 'Je bent momenteel niet in staat om bendepanden aan te schaffen.';
             }
 
+            /** @var Gang|null $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            if (! $lockedGang || ! $lockedGang->isOfficer($lockedChar)) {
+                return 'Alleen de bendeleider of beheerders kunnen panden aanschaffen voor de bende.';
+            }
 
             // Re-check under the gang lock so parallel requests cannot overspend the treasury or buy the same property twice.
             if ($lockedGang->properties()->where('property_key', $propertyKey)->exists()) {
@@ -689,17 +697,22 @@ class GangPropertyController extends Controller
 
         try {
             $durationMinutes = DB::transaction(function () use ($character, $property, $gang, $specialists, $specialistKey, &$hiredNotice): int {
-                /** @var GangProperty|null $lockedProperty */
-                $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
                 /** @var Character|null $lockedChar */
                 $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
-
-                if (! $lockedProperty || ! $lockedChar || (int) $lockedProperty->gang_id !== (int) $gang->id) {
-                    throw new \RuntimeException('Ongeldig bende-pand.');
+                if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                    throw new \RuntimeException('Je bent momenteel niet in staat om productieprocessen te beheren.');
                 }
 
-                if ($lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
-                    throw new \RuntimeException('Je bent momenteel niet in staat om productieprocessen te beheren.');
+                /** @var Gang|null $lockedGang */
+                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+                if (! $lockedGang || ! $lockedGang->isOfficer($lockedChar)) {
+                    throw new \RuntimeException('Alleen bendebeheerders kunnen productieprocessen starten.');
+                }
+
+                /** @var GangProperty|null $lockedProperty */
+                $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
+                if (! $lockedProperty || (int) $lockedProperty->gang_id !== (int) $lockedGang->id) {
+                    throw new \RuntimeException('Ongeldig bende-pand.');
                 }
 
                 if ($lockedProperty->type !== 'production') {
@@ -714,13 +727,11 @@ class GangPropertyController extends Controller
                     throw new \RuntimeException('De vorige productiecyclus is voltooid! Claim eerst de opbrengst.');
                 }
 
-                $fleetCheck = GangPropertyCatalog::checkFleetRequirements($gang, $lockedProperty->property_key);
+                $fleetCheck = GangPropertyCatalog::checkFleetRequirements($lockedGang, $lockedProperty->property_key);
                 if (! $fleetCheck['qualified']) {
                     throw new \RuntimeException($fleetCheck['reason']);
                 }
 
-                /** @var Gang $lockedGang */
-                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
                 GangNpc::purgeExpiredForGang($lockedGang);
 
                 if ($specialistKey !== 'none' && isset($specialists[$specialistKey])) {
@@ -733,12 +744,16 @@ class GangPropertyController extends Controller
                     $lockedGang->save();
 
                     // Return any stationed showroom NPC to the gang pool when a paid batch specialist runs.
-                    GangNpc::where('gang_id', $lockedGang->id)
+                    $unassignedCount = GangNpc::where('gang_id', $lockedGang->id)
                         ->where('assigned_property_id', $lockedProperty->id)
                         ->update(['assigned_property_id' => null]);
 
                     $lockedProperty->assigned_npc_key = $specialistKey;
                     $hiredNotice = " Inclusief specialist {$spec['name']} ({$spec['benefit']}, -€".number_format($cost, 0, ',', '.').' uit bendekas)!';
+
+                    if ($unassignedCount > 0) {
+                        $hiredNotice .= ' De gestationeerde showroom specialist is teruggekeerd naar de bende pool.';
+                    }
 
                     AuditLogService::log(
                         action: 'gang.hire_batch_npc',
@@ -762,6 +777,8 @@ class GangPropertyController extends Controller
                     $lockedProperty->assigned_npc_key = $assignedGangNpc?->npc_key;
                 }
 
+                $lockedProperty->production_status = 'producing';
+                $lockedProperty->unsetRelation('assignedNpc');
                 $durationMinutes = $lockedProperty->effective_duration_minutes;
                 $completesAt = now()->addMinutes($durationMinutes);
 
@@ -815,16 +832,27 @@ class GangPropertyController extends Controller
                 return null;
             }
 
-            // Lock the property first so parallel claims cannot pay the same cycle twice.
-            $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
-            if (! $lockedProperty || ! $lockedProperty->isProductionReady()) {
+            /** @var Gang|null $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            if (! $lockedGang || ! $lockedGang->isOfficer($lockedChar)) {
                 return null;
             }
+
+            /** @var GangProperty|null $lockedProperty */
+            $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
+            if (! $lockedProperty || (int) $lockedProperty->gang_id !== (int) $lockedGang->id || ! $lockedProperty->isProductionReady()) {
+                return null;
+            }
+
+            /** @var GangNpc|null $assignedNpc */
+            $assignedNpc = GangNpc::where('gang_id', $lockedGang->id)
+                ->where('assigned_property_id', $lockedProperty->id)
+                ->lockForUpdate()
+                ->first();
 
             $cash = $lockedProperty->effective_reward_cash;
             $respect = $lockedProperty->effective_reward_respect;
 
-            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             $lockedGang->treasury += $cash;
             if (Schema::hasColumn('gangs', 'respect')) {
                 $lockedGang->respect = ($lockedGang->respect ?? 0) + $respect;
@@ -836,16 +864,32 @@ class GangPropertyController extends Controller
                 $lockedChar->save();
             }
 
+            $retainedNpcKey = null;
+            if ($assignedNpc) {
+                if ($assignedNpc->isExpired()) {
+                    $leaderId = $lockedGang->leader_character_id;
+                    $assignedNpc->delete();
+                    if ($leaderId && class_exists(GameNotification::class)) {
+                        GameNotification::create([
+                            'character_id' => $leaderId,
+                            'type' => 'gang_npc_expired',
+                            'icon' => 'fa-user-clock',
+                            'title' => "⚠️ NPC Contract Verlopen: {$assignedNpc->name}!",
+                            'message' => "Het 30-minuten contract van {$assignedNpc->name} ({$assignedNpc->role_title}) is verlopen. Deze specialist heeft de bende verlaten. Huur direct een nieuwe specialist in via Panden & NPC!",
+                        ]);
+                    }
+                    $retainedNpcKey = null;
+                } else {
+                    $retainedNpcKey = $assignedNpc->npc_key;
+                }
+            }
+
             $lockedProperty->update([
                 'production_status' => 'idle',
                 'production_started_at' => null,
                 'production_ends_at' => null,
-                'assigned_npc_key' => null,
+                'assigned_npc_key' => $retainedNpcKey,
             ]);
-
-            GangNpc::where('gang_id', $lockedGang->id)
-                ->where('assigned_property_id', $lockedProperty->id)
-                ->delete();
 
             AuditLogService::log(
                 action: 'gang.claim_production',
@@ -993,9 +1037,10 @@ class GangPropertyController extends Controller
                 return 'Je bent momenteel niet in staat om NPC bendeleden aan te nemen.';
             }
 
+            /** @var Gang|null $lockedGang */
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
-            if (! $lockedGang) {
-                return 'Bende niet gevonden.';
+            if (! $lockedGang || ! $lockedGang->isOfficer($lockedChar)) {
+                return 'Alleen bendebeheerders kunnen specialistische NPC bendeleden aannemen.';
             }
 
             GangNpc::purgeExpiredForGang($lockedGang);
@@ -1059,6 +1104,9 @@ class GangPropertyController extends Controller
                 'expires_at' => now()->addMinutes(GangNpc::CONTRACT_DURATION_MINUTES),
             ]);
 
+            $lockedGang->unsetRelation('npcs');
+            $gang->unsetRelation('npcs');
+
             return null;
         });
 
@@ -1106,15 +1154,33 @@ class GangPropertyController extends Controller
                     throw new \RuntimeException('Je bent momenteel niet in staat om NPC bendeleden te beheren.');
                 }
 
-                /** @var Gang $lockedGang */
-                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
+                /** @var Gang|null $lockedGang */
+                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+                if (! $lockedGang || ! $lockedGang->isOfficer($lockedChar)) {
+                    throw new \RuntimeException('Alleen bendebeheerders kunnen NPC bendeleden toewijzen.');
+                }
+
                 GangNpc::purgeExpiredForGang($lockedGang);
 
-                /** @var GangProperty|null $lockedProperty */
-                $lockedProperty = GangProperty::where('id', $property->id)
+                $candidatePrevPropId = null;
+                if ($npcId) {
+                    $candidatePrevPropId = GangNpc::where('id', $npcId)
+                        ->where('gang_id', $lockedGang->id)
+                        ->value('assigned_property_id');
+                }
+
+                $propertyIds = array_values(array_unique(array_filter([(int) $property->id, (int) $candidatePrevPropId])));
+                sort($propertyIds);
+
+                $lockedProperties = GangProperty::whereIn('id', $propertyIds)
                     ->where('gang_id', $lockedGang->id)
+                    ->orderBy('id')
                     ->lockForUpdate()
-                    ->first();
+                    ->get()
+                    ->keyBy('id');
+
+                /** @var GangProperty|null $lockedProperty */
+                $lockedProperty = $lockedProperties->get((int) $property->id);
 
                 if (! $lockedProperty) {
                     throw new \RuntimeException('Ongeldig bendepand.');
@@ -1145,10 +1211,13 @@ class GangPropertyController extends Controller
 
                     if ($npc->assigned_property_id && (int) $npc->assigned_property_id !== (int) $lockedProperty->id) {
                         /** @var GangProperty|null $prevProperty */
-                        $prevProperty = GangProperty::where('id', $npc->assigned_property_id)
-                            ->where('gang_id', $lockedGang->id)
-                            ->lockForUpdate()
-                            ->first();
+                        $prevProperty = $lockedProperties->get((int) $npc->assigned_property_id);
+                        if (! $prevProperty) {
+                            $prevProperty = GangProperty::where('id', $npc->assigned_property_id)
+                                ->where('gang_id', $lockedGang->id)
+                                ->lockForUpdate()
+                                ->first();
+                        }
 
                         if ($prevProperty && in_array($prevProperty->production_status, ['producing', 'ready'], true)) {
                             throw new \RuntimeException("{$npc->name} draait momenteel nog een actieve productiebatch in '{$prevProperty->name}'!");
@@ -1232,33 +1301,43 @@ class GangPropertyController extends Controller
         }
 
         return DB::transaction(function () use ($user, $character, $property, $raidShieldKey): RedirectResponse {
-            /** @var GangProperty|null $lockedProp */
-            $lockedProp = GangProperty::with('gang')->where('id', $property->id)->lockForUpdate()->first();
             /** @var Character|null $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            if (! $lockedProp || ! $lockedChar || ! $lockedProp->gang) {
-                return back()->with('error', 'Doelwit-laboratorium kon niet worden gevonden.');
-            }
-
-            if ($lockedChar->isImprisoned()) {
-                return back()->with('error', 'Vanuit de isoleercel kun je geen vijandelijke bende-labs overvallen!');
-            }
-
-            if ($lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
-                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return back()->with('error', 'Je bent momenteel niet in staat om ripdeals uit te voeren.');
             }
 
             if (! $lockedChar->gang_id) {
                 return back()->with('error', 'Je moet lid zijn van een bende om een Bende Ripdeal uit te voeren.');
             }
 
-            if ((int) $lockedProp->gang_id === (int) $lockedChar->gang_id) {
+            if ((int) $property->gang_id === (int) $lockedChar->gang_id) {
                 return back()->with('error', 'Je kunt niet je eigen bende-laboratorium beroven!');
             }
 
-            $attackerGang = $lockedChar->gang;
-            $defenderGang = $lockedProp->gang;
+            $attackerGangId = (int) $lockedChar->gang_id;
+            $defenderGangId = (int) $property->gang_id;
+
+            $gangIds = [$attackerGangId, $defenderGangId];
+            sort($gangIds);
+
+            $lockedGangs = Gang::whereIn('id', $gangIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            /** @var Gang|null $attackerGang */
+            $attackerGang = $lockedGangs->get($attackerGangId);
+            /** @var Gang|null $defenderGang */
+            $defenderGang = $lockedGangs->get($defenderGangId);
+
+            if (! $attackerGang || ! $defenderGang) {
+                return back()->with('error', 'Bende niet gevonden.');
+            }
+
+            /** @var GangProperty|null $lockedProp */
+            $lockedProp = GangProperty::where('id', $property->id)->where('gang_id', $defenderGang->id)->lockForUpdate()->first();
+
+            if (! $lockedProp) {
+                return back()->with('error', 'Doelwit-laboratorium kon niet worden gevonden.');
+            }
 
             // Block ripdeals against allied gangs
             $isAlly = GangAlliance::where(function ($q) use ($attackerGang, $defenderGang) {

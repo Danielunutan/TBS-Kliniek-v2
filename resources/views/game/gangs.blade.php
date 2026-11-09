@@ -1055,7 +1055,7 @@
                                         <i class="fa-solid fa-shield text-indigo-500"></i> Basis Verdediging
                                     </span>
                                     <span class="font-bold text-slate-900 dark:text-white font-mono">
-                                        {{ number_format($myGang->protection_points ?? 1000, 0, ',', '.') }}
+                                        {{ number_format(max(500, (int) ($myGang->protection_points ?? 1000)), 0, ',', '.') }}
                                     </span>
                                 </div>
 
@@ -1177,6 +1177,24 @@
                                     </span>
                                 </div>
 
+                                @if(($wageBreakdown['npcs_income'] ?? 0) > 0)
+                                <!-- NPC Bende Specialisten -->
+                                <div class="pt-2 flex items-center justify-between">
+                                    <div>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-user-ninja text-emerald-500 text-[11px]"></i>
+                                            NPC Specialisten
+                                        </span>
+                                        <span class="text-[10px] text-slate-400 block">
+                                            {{ $wageBreakdown['npcs_count'] ?? 0 }} actieve specialisten in dienst
+                                        </span>
+                                    </div>
+                                    <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                        +€{{ number_format($wageBreakdown['npcs_income'] ?? 0, 0, ',', '.') }}/u
+                                    </span>
+                                </div>
+                                @endif
+
                                 <!-- Bonussen & Multipliers -->
                                 <div class="pt-2 flex items-center justify-between">
                                     <div>
@@ -1185,7 +1203,7 @@
                                             Bende Multipliers
                                         </span>
                                         <span class="text-[10px] text-slate-400 block">
-                                            Respect (+{{ $wageBreakdown['respect_bonus_pct'] ?? 0 }}%), Luxe Vastgoed (+{{ $wageBreakdown['luxury_bonus_pct'] ?? 0 }}%)
+                                            Respect (+{{ $wageBreakdown['respect_bonus_pct'] ?? 0 }}%), Luxe Vastgoed (+{{ $wageBreakdown['luxury_bonus_pct'] ?? 0 }}%){{ ($wageBreakdown['npc_bonus_pct'] ?? 0) > 0 ? ', Witwasser (+' . ($wageBreakdown['npc_bonus_pct'] ?? 0) . '%)' : '' }}
                                         </span>
                                     </div>
                                     <span class="font-mono font-bold text-purple-600 dark:text-purple-400">
@@ -3055,6 +3073,13 @@
                         </form>
                     </div>
 
+                    @php
+                        $storageUsed = (int) ($myGang?->getStorageUsed() ?? 0);
+                        $storageCap = (int) ($myGang?->total_storage_capacity ?? 0);
+                        $isDepotFull = ($storageCap === 0) || ($storageUsed >= $storageCap);
+                        $isOverCapacity = $storageCap > 0 ? ($storageUsed > $storageCap) : ($storageUsed > 0);
+                    @endphp
+
                     <!-- Maskers Doneren Box -->
                     <div class="bg-gradient-to-br from-slate-50 to-purple-50/30 dark:from-slate-800/50 dark:to-purple-950/20 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4" x-data="{ maskDonationQty: {{ min(5, (int)($character->masks ?? 0)) }} }">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -3080,17 +3105,24 @@
                                        x-model.number="maskDonationQty"
                                        min="1" 
                                        max="{{ (int)($character->masks ?? 0) }}" 
+                                       @if($character->isImprisoned() || $character->isComatose() || $isDepotFull) disabled @endif
                                        required
-                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-mono shadow-2xs">
+                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-mono shadow-2xs">
                             </div>
                             <button type="submit" 
-                                    @if($character->isImprisoned() || $character->isComatose()) disabled @endif
-                                    :disabled="{{ ($character->isImprisoned() || $character->isComatose()) ? 'true' : 'maskDonationQty < 1 || maskDonationQty > ' . (int) ($character->masks ?? 0) }}"
-                                    class="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs shrink-0 flex items-center justify-center gap-2">
+                                    @if($character->isImprisoned() || $character->isComatose() || $isDepotFull) disabled @endif
+                                    :disabled="{{ ($character->isImprisoned() || $character->isComatose() || $isDepotFull) ? 'true' : 'maskDonationQty < 1 || maskDonationQty > ' . (int) ($character->masks ?? 0) }}"
+                                    class="py-2.5 px-6 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $isDepotFull) ? 'bg-slate-400 dark:bg-slate-700 cursor-not-allowed text-white/80' : 'bg-purple-600 hover:bg-purple-700 active:scale-95 cursor-pointer text-white' }} disabled:opacity-40 disabled:cursor-not-allowed font-black text-xs uppercase tracking-wider transition shadow-xs shrink-0 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-masks-theater"></i>
                                 <span>Doneer Maskers aan Bende Depot</span>
                             </button>
                         </form>
+                        @if($isDepotFull)
+                            <p class="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5 pt-1">
+                                <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+                                <span>Bende depot zit vol ({{ $storageUsed }}/{{ $storageCap }} plekken bezet). Doneren is tijdelijk geblokkeerd.</span>
+                            </p>
+                        @endif
                     </div>
 
                     <!-- Spullen & Heist Gear Doneren Box -->
@@ -3107,24 +3139,30 @@
                         <form action="{{ route('gangs.donate-item') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                             @csrf
                             <div class="sm:col-span-7">
-                                <select name="character_item_id" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500">
+                                <select name="character_item_id" @if($character->isImprisoned() || $character->isComatose() || $isDepotFull) disabled @endif class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500">
                                     @foreach($myInventoryItems as $ci)
                                     <option value="{{ $ci->id }}">{{ $ci->item?->name ?? 'Voorwerp' }} (Je bezit: {{ $ci->quantity }}x)</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="sm:col-span-2">
-                                <input type="number" name="quantity" value="1" min="1" max="100" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none focus:border-indigo-500" placeholder="Aantal" required>
+                                <input type="number" name="quantity" value="1" min="1" max="100" @if($character->isImprisoned() || $character->isComatose() || $isDepotFull) disabled @endif class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none focus:border-indigo-500" placeholder="Aantal" required>
                             </div>
                             <div class="sm:col-span-3">
                                 <button type="submit" 
-                                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
-                                        class="w-full py-2.5 px-4 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-1.5">
+                                        @if($character->isImprisoned() || $character->isComatose() || $isDepotFull) disabled @endif
+                                        class="w-full py-2.5 px-4 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $isDepotFull) ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-share-from-square"></i>
                                     <span>Doneer Item</span>
                                 </button>
                             </div>
                         </form>
+                        @if($isDepotFull)
+                            <p class="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5 pt-1">
+                                <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+                                <span>Bende depot zit vol ({{ $storageUsed }}/{{ $storageCap }} plekken bezet). Doneren is tijdelijk geblokkeerd.</span>
+                            </p>
+                        @endif
                         @else
                         <p class="text-xs text-slate-400 py-1">Je hebt momenteel geen overige spullen of smokkelwaar in je opbergplaats om te doneren.</p>
                         @endif
@@ -3139,6 +3177,12 @@
             <!-- TAB: BENDE DEPOT (OPSLAG, VOORRAAD, GARAGE & PANDEN) -->
             <div x-show="activeGangTab === 'depot'" class="space-y-6">
                 @if($myGang)
+                @php
+                    $depotStorageUsed = (int) $myGang->getStorageUsed();
+                    $depotStorageCap = (int) $myGang->total_storage_capacity;
+                    $depotStoragePct = $depotStorageCap > 0 ? min(100, (int) round(($depotStorageUsed / $depotStorageCap) * 100)) : ($depotStorageUsed > 0 ? 100 : 0);
+                    $depotIsOverCapacity = $depotStorageCap > 0 ? ($depotStorageUsed > $depotStorageCap) : ($depotStorageUsed > 0);
+                @endphp
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
                     
                     <!-- Depot Header & Capaciteit Progress Bar -->
@@ -3161,9 +3205,9 @@
 
                         <!-- Highlights Stats -->
                         <div class="flex items-center gap-2 flex-wrap shrink-0">
-                            <div class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
-                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Opslag Capaciteit</span>
-                                <span class="font-black text-amber-600 dark:text-amber-400 font-mono">{{ $myGang->getStorageUsed() }} / {{ $myGang->total_storage_capacity }} plekken</span>
+                            <div class="px-3.5 py-2 rounded-xl {{ $depotIsOverCapacity ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800' : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700' }} border text-xs text-slate-700 dark:text-slate-300">
+                                <span class="text-[10px] {{ $depotIsOverCapacity ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400' }} uppercase tracking-wider block font-bold">Opslag Capaciteit</span>
+                                <span class="font-black {{ $depotIsOverCapacity ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400' }} font-mono">{{ $depotStorageUsed }} / {{ $depotStorageCap }} plekken</span>
                             </div>
                             <div class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-xs text-purple-700 dark:text-purple-300">
                                 <span class="text-[10px] text-purple-400 uppercase tracking-wider block font-bold">Wagenpark Fleet</span>
@@ -3172,30 +3216,60 @@
                         </div>
                     </div>
 
-                    <!-- Capaciteit Alert als het vol zit -->
-                    @if($myGang->getStorageUsed() >= $myGang->total_storage_capacity && $myGang->total_storage_capacity > 0)
-                    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg shrink-0"></i>
+                    <!-- Depot Capaciteit Voortgangsbalk -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between text-xs font-bold">
+                            <span class="text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-boxes-stacked text-[11px] {{ $depotIsOverCapacity ? 'text-rose-500' : ($depotStorageUsed >= $depotStorageCap ? 'text-amber-500' : 'text-slate-400') }}"></i>
+                                <span>Depot Bezetting</span>
+                            </span>
+                            <span class="font-mono {{ $depotIsOverCapacity ? 'text-rose-600 dark:text-rose-400 font-black' : ($depotStorageUsed >= $depotStorageCap ? 'text-amber-600 dark:text-amber-400 font-black' : 'text-slate-700 dark:text-slate-300 font-bold') }}">
+                                {{ $depotStorageUsed }} / {{ $depotStorageCap }} plekken ({{ $depotStoragePct }}%{{ $depotIsOverCapacity ? ' - Overcapaciteit!' : '' }})
+                            </span>
+                        </div>
+                        <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden shadow-inner">
+                            <div class="h-full rounded-full transition-all duration-500 {{ $depotIsOverCapacity ? 'bg-rose-500' : ($depotStorageUsed >= $depotStorageCap ? 'bg-amber-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500') }}" 
+                                 style="width: {{ $depotStoragePct }}%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Capaciteit Alert als het vol zit of overcapaciteit heeft -->
+                    @if($depotIsOverCapacity)
+                    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-start sm:items-center gap-3">
+                            <i class="fa-solid fa-circle-exclamation text-rose-600 text-lg shrink-0 mt-0.5 sm:mt-0"></i>
                             <div>
-                                <strong>Bende Depot Zit Vol ({{ $myGang->getStorageUsed() }}/{{ $myGang->total_storage_capacity }})!</strong>
-                                Bendeleden kunnen pas weer nieuwe maskers of spullen doneren zodra beheerders overtollige voorraad verkopen voor de Bende Kas of nieuwe opslagpanden aankopen.
+                                <strong class="block text-sm font-black text-rose-950 dark:text-rose-100 mb-0.5">Depot Overcapaciteit ({{ $depotStorageUsed }}/{{ $depotStorageCap }} plekken)!</strong>
+                                <span>Een 30-minuten opslag NPC is verlopen waardoor de capaciteit is gedaald. Je bestaande spullen blijven veilig bewaard, maar donaties zijn geblokkeerd tot er ruimte is vrijgemaakt of nieuwe panden zijn gekocht.</span>
                             </div>
                         </div>
-                        <a href="{{ route('gangs.panden') }}" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shrink-0 transition">
+                        <a href="{{ route('gangs.panden') }}" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shrink-0 transition text-center shadow-xs">
                             Panden Kopen
                         </a>
                     </div>
-                    @elseif($myGang->total_storage_capacity == 0)
-                    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-warehouse text-rose-600 text-lg shrink-0"></i>
+                    @elseif($depotStorageCap > 0 && $depotStorageUsed >= $depotStorageCap)
+                    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-start sm:items-center gap-3">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg shrink-0 mt-0.5 sm:mt-0"></i>
                             <div>
-                                <strong>Jullie bende bezit nog geen opslagpanden!</strong>
-                                Schaf een Bende Pand (zoals een Loods of Safehouse) aan via Bende Panden om opslagruimte en garageplekken vrij te spelen.
+                                <strong class="block text-sm font-black text-amber-950 dark:text-amber-100 mb-0.5">Bende Depot Zit Vol ({{ $depotStorageUsed }}/{{ $depotStorageCap }})!</strong>
+                                <span>Bendeleden kunnen pas weer nieuwe maskers of spullen doneren zodra beheerders overtollige voorraad verkopen voor de Bende Kas of nieuwe opslagpanden aankopen.</span>
                             </div>
                         </div>
-                        <a href="{{ route('gangs.panden') }}" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shrink-0 transition">
+                        <a href="{{ route('gangs.panden') }}" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shrink-0 transition text-center shadow-xs">
+                            Panden Kopen
+                        </a>
+                    </div>
+                    @elseif($depotStorageCap === 0 && $depotStorageUsed === 0)
+                    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-start sm:items-center gap-3">
+                            <i class="fa-solid fa-warehouse text-rose-600 text-lg shrink-0 mt-0.5 sm:mt-0"></i>
+                            <div>
+                                <strong class="block text-sm font-black text-rose-950 dark:text-rose-100 mb-0.5">Jullie bende bezit nog geen opslagpanden!</strong>
+                                <span>Schaf een Bende Pand (zoals een Loods of Safehouse) aan via Bende Panden om opslagruimte en garageplekken vrij te spelen.</span>
+                            </div>
+                        </div>
+                        <a href="{{ route('gangs.panden') }}" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shrink-0 transition text-center shadow-xs">
                             Naar Bende Panden
                         </a>
                     </div>

@@ -6,19 +6,16 @@
 <div class="space-y-6" x-data="{
     activeCategory: 'all',
     searchQuery: '',
-    selectedProperty: null,
     propCd: {{ $rotatingProperties['seconds_left'] ?? 1800 }},
     npcCd: {{ $rotatingNpcs['seconds_left'] ?? 1800 }},
+    reloading: false,
     init() {
-        setInterval(() => {
-            if (this.propCd > 0) {
-                this.propCd--;
-            } else {
-                window.location.reload();
-            }
-            if (this.npcCd > 0) {
-                this.npcCd--;
-            } else {
+        const timer = setInterval(() => {
+            if (this.propCd > 0) this.propCd--;
+            if (this.npcCd > 0) this.npcCd--;
+            if ((this.propCd <= 0 || this.npcCd <= 0) && !this.reloading) {
+                this.reloading = true;
+                clearInterval(timer);
                 window.location.reload();
             }
         }, 1000);
@@ -137,6 +134,8 @@
             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                 @if($availableNpcSlots > 0)
                     <span class="text-emerald-600 dark:text-emerald-400 font-bold">{{ $availableNpcSlots }} vrije kamer(s) in villa</span>
+                @elseif($totalNpcCap > 0)
+                    <span class="text-amber-600 dark:text-amber-400 font-bold">Alle villa kamers bezet</span>
                 @else
                     Koop een villa voor kamers
                 @endif
@@ -502,10 +501,10 @@
                         <label class="block text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
                             Stationeer Showroom Specialist (Gratis vanuit Dienst):
                         </label>
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <select name="npc_id"
                                     @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
-                                    class="flex-1 min-w-0 text-xs font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-2xs">
+                                    class="w-full sm:flex-1 min-w-0 text-xs font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed">
                                 <option value="">— Geen showroom specialist gestationeerd —</option>
                                 @foreach($assignableProductionNpcs as $pNpc)
                                     <option value="{{ $pNpc->id }}" @selected($stationedNpc && (int) $stationedNpc->id === (int) $pNpc->id)>
@@ -515,7 +514,7 @@
                             </select>
                             <button type="submit"
                                     @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
-                                    class="px-3 py-2 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer active:scale-95' }} font-black text-[11px] uppercase tracking-wider transition-all shrink-0 shadow-2xs">
+                                    class="w-full sm:w-auto px-4 py-2 rounded-xl {{ ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-slate-700 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer active:scale-95' }} font-black text-[11px] uppercase tracking-wider transition-all shrink-0 shadow-2xs flex items-center justify-center">
                                 Toewijzen
                             </button>
                         </div>
@@ -531,12 +530,17 @@
                             <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Huur Specialist voor deze Cyclus (Optioneel):
                             </label>
-                            <select name="batch_specialist" class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-xs">
+                            <select name="batch_specialist" 
+                                    @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ! $fleetCheck['qualified']) disabled @endif
+                                    class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-xs disabled:opacity-60 disabled:cursor-not-allowed">
                                 <option value="none">Standaard ploeg (Geen extra kosten)</option>
                                 <option value="chemisch_specialist">🧪 Dr. Walter V. &mdash; &euro;{{ number_format($batchSpecialists['chemisch_specialist']['cost'], 0, ',', '.') }} (-50% Productietijd)</option>
                                 <option value="productie_manager">💰 Dimitri De Opzichter &mdash; &euro;{{ number_format($batchSpecialists['productie_manager']['cost'], 0, ',', '.') }} (+100% Cash)</option>
                                 <option value="enforcer_kapitein">🛡️ Boris De Sloper &mdash; &euro;{{ number_format($batchSpecialists['enforcer_kapitein']['cost'], 0, ',', '.') }} (+Zware Verdediging)</option>
                             </select>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+                                Let op: Een betaalde cyclus-specialist vervangt en ontkoppelt een eventueel gestationeerde showroom specialist.
+                            </p>
                         </div>
                         <button type="submit"
                                 @if(!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
@@ -616,6 +620,15 @@
                 <span class="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-xs font-black text-emerald-700 dark:text-emerald-300">
                     Enforcer Verdediging: +{{ $gang->npc_defense_bonus_percent }}% / +{{ \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT }}%
                 </span>
+                <span class="px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-800/70 text-xs font-black text-blue-700 dark:text-blue-300">
+                    Monteur Korting: -{{ $gang->npc_vehicle_tuning_percent }}% / -{{ \App\Models\Gang::MAX_NPC_VEHICLE_TUNING_PERCENT }}%
+                </span>
+                @if($gang->npc_storage_boost > 0)
+                <span class="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-xs font-black text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-boxes-packing"></i>
+                    <span>+{{ $gang->npc_storage_boost }} NPC Opslag</span>
+                </span>
+                @endif
                 <span class="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/70 text-xs font-black text-indigo-700 dark:text-indigo-300">
                     Capaciteit: {{ $hiredNpcs->count() }} / {{ $totalNpcCap }}
                 </span>
@@ -676,7 +689,8 @@
                 @foreach($hiredNpcs as $npc)
                 @php
                     $nDef = $npcCatalog[$npc->npc_key] ?? null;
-                    $nIcon = $nDef['icon'] ?? 'fa-user-shield';
+                    $rawIcon = $nDef['icon'] ?? 'fa-user-shield';
+                    $nIcon = $rawIcon === 'fa-stopwatch-fast' ? 'fa-stopwatch' : $rawIcon;
                     $npcBenefitText = match ($npc->bonus_type) {
                         'defense' => '+' . $npc->bonus_value . '% Verdediging',
                         'wage_bonus' => '+' . $npc->bonus_value . '% Uurloon',
@@ -695,7 +709,7 @@
                         <div class="truncate">
                             <h4 class="text-xs font-black text-slate-900 dark:text-white truncate">{{ $npc->name }}</h4>
                             <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ $npc->role_title }}</span>
-                            <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">
+                            <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block truncate">
                                 {{ $npcBenefitText }}
                             </span>
                             @if($npc->assignedProperty)
@@ -706,9 +720,9 @@
                         </div>
                     </div>
                     <div class="text-right shrink-0">
-                        <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800"
-                              :class="timers[{{ $npc->id }}] <= 180 ? 'text-rose-600 bg-rose-50 border-rose-200 animate-pulse' : ''"
-                              x-text="formatSec(timers[{{ $npc->id }}] || 0)"></span>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg border transition-all"
+                              :class="timers[{{ $npc->id }}] <= 180 ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800 animate-pulse' : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800'"
+                              x-text="formatSec(timers[{{ $npc->id }}] || 0)">{{ gmdate('i\m s\s', $npc->secondsRemaining()) }}</span>
                         <span class="block text-[9px] text-slate-400 mt-0.5">30m Contract</span>
                     </div>
                 </div>
@@ -736,8 +750,12 @@
             <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 relative overflow-hidden transition-all duration-200 hover:border-purple-300 dark:hover:border-purple-700/80">
                 <div class="space-y-4">
                     <div class="flex items-start justify-between gap-3">
+                        @php
+                            $cardRawIcon = $npcDef['icon'] ?? 'fa-user-shield';
+                            $cardIcon = $cardRawIcon === 'fa-stopwatch-fast' ? 'fa-stopwatch' : $cardRawIcon;
+                        @endphp
                         <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/70 flex items-center justify-center text-xl shrink-0 shadow-2xs">
-                            <i class="fa-solid {{ $npcDef['icon'] }}"></i>
+                            <i class="fa-solid {{ $cardIcon }}"></i>
                         </div>
                         <div class="text-right">
                             <span class="text-base font-black font-mono text-emerald-600 dark:text-emerald-400 block">
@@ -761,14 +779,14 @@
 
                     <!-- Benefit pill -->
                     <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 rounded-xl p-2.5 flex items-center gap-2 text-xs font-black text-emerald-700 dark:text-emerald-300">
-                        <i class="fa-solid fa-sparkles text-emerald-500"></i>
+                        <i class="fa-solid fa-wand-magic-sparkles text-emerald-500"></i>
                         <span class="truncate">{{ $npcDef['benefit_label'] }}</span>
                     </div>
 
                     @if($isHired)
                     <div class="text-xs font-bold text-slate-600 dark:text-slate-300 pt-1">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg {{ $isSameNpcAtCap ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700' }}">
-                            <i class="fa-solid {{ $isSameNpcAtCap ? 'fa-lock text-amber-500' : 'fa-check text-emerald-500' }}"></i> {{ $hiredInstances->count() }} / {{ \App\Models\GangNpc::MAX_ACTIVE_PER_TYPE }} in dienst (Max 5x per 30 min)
+                            <i class="fa-solid {{ $isSameNpcAtCap ? 'fa-lock text-amber-500' : 'fa-check text-emerald-500' }}"></i> {{ $hiredInstances->count() }} / {{ \App\Models\GangNpc::MAX_ACTIVE_PER_TYPE }} in dienst (Max {{ \App\Models\GangNpc::MAX_ACTIVE_PER_TYPE }}x per 30 min)
                         </span>
                     </div>
                     @endif
@@ -797,7 +815,7 @@
                                 @elseif($isTuningAtCap)
                                     <span>Max -{{ \App\Models\Gang::MAX_NPC_VEHICLE_TUNING_PERCENT }}% Monteur Limiet</span>
                                 @elseif($isSameNpcAtCap)
-                                    <span>Max 5x per 30 Min Bereikt</span>
+                                    <span>Max {{ \App\Models\GangNpc::MAX_ACTIVE_PER_TYPE }}x per 30 Min Bereikt</span>
                                 @elseif(! $hasFreeSlot)
                                     <span>Geen Villa Ruimte</span>
                                 @elseif(! $canAffordNpc)

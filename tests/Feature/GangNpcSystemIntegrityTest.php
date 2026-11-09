@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\CharacterVehicle;
+use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\GangNpc;
 use App\Models\GangProperty;
@@ -353,5 +354,319 @@ class GangNpcSystemIntegrityTest extends TestCase
 
         $breakdown = app(GangWageService::class)->getWageBreakdown($gang->fresh(), $character);
         $this->assertEquals(15, $breakdown['npc_bonus_pct']);
+    }
+
+    /**
+     * Verify that active specialists survive production claims and expired specialists notify the leader.
+     */
+    public function test_active_showroom_npc_survives_claim_while_expired_npc_is_deleted_and_notified(): void
+    {
+        Carbon::setTestNow(now());
+        [$user, $character, $gang] = $this->createGangWithLeader(treasury: 10000000, npcCapacity: 10);
+
+        $lab = GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'chemisch_lab',
+            'name' => 'Geheim Chemisch Smokkel-Lab',
+            'type' => 'production',
+            'purchase_price' => 1750000,
+            'production_duration_minutes' => 20,
+            'production_reward_cash' => 200000,
+            'production_reward_respect' => 75,
+            'production_status' => 'idle',
+        ]);
+
+        // Create an active specialist with 30 minutes on the contract.
+        $yieldNpc = GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'yield_specialist_25',
+            'name' => 'Dimitri Jr.',
+            'role_title' => 'Productie & Oogst Manager',
+            'bonus_type' => 'production_yield',
+            'bonus_value' => 25,
+            'hired_at' => now(),
+            'expires_at' => now()->addMinutes(30),
+        ]);
+
+        // Station the specialist on the production property.
+        $this->actingAs($user)->post(route('gangs.panden.assign-npc', $lab), [
+            'npc_id' => $yieldNpc->id,
+        ])->assertSessionHas('success');
+
+        // Start production with a 20-minute cycle.
+        $this->actingAs($user)->post(route('gangs.panden.start-production', $lab), [
+            'batch_specialist' => 'none',
+        ])->assertSessionHas('success');
+
+        // Fast-forward 20 minutes to complete the production cycle.
+        Carbon::setTestNow(now()->addMinutes(20));
+        $this->assertTrue($lab->fresh()->isProductionReady());
+
+        // Claim production rewards while 10 minutes remain on the specialist contract.
+        $this->actingAs($user)->post(route('gangs.panden.claim-production', $lab))
+            ->assertSessionHas('success');
+
+        // The active specialist remains stationed on the property.
+        $this->assertDatabaseHas('gang_npcs', ['id' => $yieldNpc->id]);
+        $this->assertEquals('yield_specialist_25', $lab->fresh()->assigned_npc_key);
+        $this->assertEquals($lab->id, $yieldNpc->fresh()->assigned_property_id);
+        $this->assertDatabaseMissing('game_notifications', [
+            'character_id' => $character->id,
+            'type' => 'gang_npc_expired',
+        ]);
+
+        // Start a second production cycle.
+        $this->actingAs($user)->post(route('gangs.panden.start-production', $lab), [
+            'batch_specialist' => 'none',
+        ])->assertSessionHas('success');
+
+        // Fast-forward 25 minutes so the specialist contract expires.
+        Carbon::setTestNow(now()->addMinutes(25));
+        $this->assertTrue($lab->fresh()->isProductionReady());
+        $this->assertTrue($yieldNpc->fresh()->isExpired());
+
+        // Claim production rewards after contract expiration.
+        $this->actingAs($user)->post(route('gangs.panden.claim-production', $lab))
+            ->assertSessionHas('success');
+
+        // The system removes the expired specialist from the database.
+        $this->assertDatabaseMissing('gang_npcs', ['id' => $yieldNpc->id]);
+        $this->assertNull($lab->fresh()->assigned_npc_key);
+
+        // The system dispatches an expiration notification to the gang leader.
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $character->id,
+            'type' => 'gang_npc_expired',
+        ]);
+
+        Carbon::setTestNow();
+    }
+
+    /**
+     * Verify that orphaned specialist keys on idle properties return base duration and base cash.
+     */
+    public function test_orphaned_assigned_npc_key_on_idle_property_returns_base_duration_and_base_cash(): void
+    {
+        [$user, $character, $gang] = $this->createGangWithLeader();
+
+        // Create an idle laboratory without an assigned specialist model.
+        $lab = GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'chemisch_lab',
+            'name' => 'Geheim Chemisch Smokkel-Lab',
+            'type' => 'production',
+            'purchase_price' => 1750000,
+            'production_duration_minutes' => 100,
+            'production_reward_cash' => 200000,
+            'production_reward_respect' => 75,
+            'production_status' => 'idle',
+            'production_ends_at' => null,
+            'assigned_npc_key' => 'chemisch_specialist',
+        ]);
+
+        // The duration attribute must return the base time.
+        $this->assertEquals(100, $lab->effective_duration_minutes);
+
+        // Set an orphaned production manager key on the idle property.
+        $lab->update(['assigned_npc_key' => 'productie_manager']);
+
+        // The rewards method must return the base cash amount.
+        $this->assertEquals(200000, $lab->effective_reward_cash);
+        $this->assertEquals(200000, $lab->getEffectiveRewards()['cash']);
+    }
+
+    /**
+     * Verify that expired specialist cleanup unsets cached gang relations and sends one notification.
+     */
+    public function test_purge_expired_unsets_preloaded_relations_and_sends_only_one_notification(): void
+    {
+        Carbon::setTestNow(now());
+        [$user, $character, $gang] = $this->createGangWithLeader();
+
+        // Create one expired specialist and one active specialist.
+        $expiredNpc = GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'expired_enforcer',
+            'name' => 'Boris "De Slager"',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 20,
+            'hired_at' => now()->subMinutes(35),
+            'expires_at' => now()->subMinutes(5),
+        ]);
+
+        $activeNpc = GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'active_enforcer',
+            'name' => 'Igor "De Muur"',
+            'role_title' => 'Enforcer',
+            'bonus_type' => 'defense',
+            'bonus_value' => 20,
+            'hired_at' => now(),
+            'expires_at' => now()->addMinutes(20),
+        ]);
+
+        // Preload relations on the gang model.
+        $gang->load(['npcs', 'properties']);
+
+        // Verify that the gang model holds loaded relations.
+        $this->assertTrue($gang->relationLoaded('npcs'));
+        $this->assertTrue($gang->relationLoaded('properties'));
+
+        // Purge expired specialists for the gang.
+        $purgedCount = GangNpc::purgeExpiredForGang($gang);
+        $this->assertEquals(1, $purgedCount);
+
+        // Confirm that the purge unsets the cached relations.
+        $this->assertFalse($gang->relationLoaded('npcs'));
+        $this->assertFalse($gang->relationLoaded('properties'));
+
+        // Confirm that the system creates exactly one notification for the leader.
+        $notificationCount = GameNotification::where('character_id', $character->id)
+            ->where('type', 'gang_npc_expired')
+            ->count();
+        $this->assertEquals(1, $notificationCount);
+
+        // Run the purge a second time.
+        $secondPurge = GangNpc::purgeExpiredForGang($gang);
+        $this->assertEquals(0, $secondPurge);
+
+        // Confirm that no duplicate notification is created.
+        $secondCount = GameNotification::where('character_id', $character->id)
+            ->where('type', 'gang_npc_expired')
+            ->count();
+        $this->assertEquals(1, $secondCount);
+
+        Carbon::setTestNow();
+    }
+
+    /**
+     * Verify that star vehicle disposal credits 25 percent of the star conversion value.
+     */
+    public function test_star_vehicle_scrap_credits_twenty_five_percent_of_star_conversion_value(): void
+    {
+        [$user, $character, $gang] = $this->createGangWithLeader(treasury: 1000000, npcCapacity: 4);
+
+        // Create a vehicle with zero cash price and 50 stars price.
+        $starVehicle = Vehicle::create([
+            'name' => 'Exotic Star Cruiser',
+            'slug' => 'exotic-star-cruiser-'.Str::random(5),
+            'type' => 'auto',
+            'speed' => 95,
+            'price' => 0,
+            'price_cash' => 0,
+            'price_stars' => 50,
+            'description' => 'Exclusive star fleet vehicle',
+        ]);
+
+        // Place the vehicle in the gang garage as a gang-owned vehicle.
+        $gangVehicle = CharacterVehicle::create([
+            'character_id' => $character->id,
+            'gang_id' => $gang->id,
+            'vehicle_id' => $starVehicle->id,
+            'in_gang_garage' => true,
+            'is_gang_owned' => true,
+            'current_condition' => 100,
+        ]);
+
+        // Convert 50 stars to cash at 2000 per star to get 100,000.
+        // Calculate the scrap value at 25 percent to get 25,000.
+        $response = $this->actingAs($user)->post(route('gangs.garage.scrap-vehicle', $gangVehicle->id));
+        $response->assertSessionHas('success');
+
+        // Verify that the gang treasury increases by 25,000.
+        $this->assertEquals(1025000, $gang->fresh()->treasury);
+
+        // Verify that the vehicle is deleted from the garage.
+        $this->assertDatabaseMissing('character_vehicles', ['id' => $gangVehicle->id]);
+    }
+
+    /**
+     * Verify that the panden, garage, and gang index views render icons and overcapacity alerts.
+     */
+    public function test_rendering_of_panden_garage_and_gangs_views_with_icons_and_overcapacity(): void
+    {
+        Carbon::setTestNow(now());
+        [$user, $character, $gang] = $this->createGangWithLeader(treasury: 5000000, npcCapacity: 10);
+
+        // Create properties, an active specialist, and a vehicle.
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'kleine_loods',
+            'name' => 'Kleine Opslagloods & Garage',
+            'type' => 'storage',
+            'purchase_price' => 150000,
+            'storage_capacity' => 50,
+            'vehicle_slots' => 2,
+        ]);
+
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'chemisch_lab',
+            'name' => 'Geheim Chemisch Smokkel-Lab',
+            'type' => 'production',
+            'purchase_price' => 1750000,
+            'production_duration_minutes' => 60,
+            'production_reward_cash' => 200000,
+            'production_reward_respect' => 75,
+            'production_status' => 'idle',
+        ]);
+
+        GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'chemisch_specialist',
+            'name' => 'Dr. Walter V.',
+            'role_title' => 'Synthese & Druk Meester',
+            'bonus_type' => 'production_speed',
+            'bonus_value' => 30,
+            'hired_at' => now(),
+            'expires_at' => now()->addMinutes(30),
+        ]);
+
+        $vehicle = Vehicle::create([
+            'name' => 'Fleet Patrol Car',
+            'slug' => 'fleet-patrol-car-'.Str::random(5),
+            'type' => 'auto',
+            'speed' => 80,
+            'price' => 100000,
+            'price_cash' => 100000,
+            'description' => 'Fleet patrol',
+        ]);
+
+        CharacterVehicle::create([
+            'character_id' => $character->id,
+            'gang_id' => $gang->id,
+            'vehicle_id' => $vehicle->id,
+            'in_gang_garage' => true,
+            'current_condition' => 80,
+        ]);
+
+        // Render the panden view.
+        $pandenResponse = $this->actingAs($user)->get(route('gangs.panden'));
+        $pandenResponse->assertOk();
+
+        // Verify that Free FontAwesome icons render on the page.
+        $pandenResponse->assertSee('fa-wand-magic-sparkles', false);
+        $pandenResponse->assertSee('fa-stopwatch', false);
+
+        // Render the gang garage view.
+        $garageResponse = $this->actingAs($user)->get(route('gangs.garage'));
+        $garageResponse->assertOk();
+        $garageResponse->assertSee('Fleet Patrol Car');
+
+        // Fill depot storage beyond maximum capacity (120 masks stored against 100 capacity).
+        $gang->update(['masks' => 120]);
+        $gang->refresh();
+        $user->refresh();
+
+        // Render the gang index view.
+        $indexResponse = $this->actingAs($user->fresh())->get(route('gangs.index'));
+        $indexResponse->assertOk();
+
+        // Verify that the overcapacity alert renders on the depot panel.
+        $indexResponse->assertSee('Depot Overcapaciteit', false);
+        $indexResponse->assertSee('120 / 100 plekken', false);
+
+        Carbon::setTestNow();
     }
 }

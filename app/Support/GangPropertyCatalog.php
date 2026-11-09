@@ -915,44 +915,46 @@ class GangPropertyCatalog
 
             mt_srand($slot * 42421);
 
-            // Group into 4 distinct price/tier brackets to guarantee rich choice
-            $tier1 = $all->filter(fn ($p) => $p['price'] <= 1500000)->shuffle();
-            $tier2 = $all->filter(fn ($p) => $p['price'] > 1500000 && $p['price'] <= 15000000)->shuffle();
-            $tier3 = $all->filter(fn ($p) => $p['price'] > 15000000 && $p['price'] <= 150000000)->shuffle();
-            $tier4 = $all->filter(fn ($p) => $p['price'] > 150000000)->shuffle();
+            try {
+                // Group into 4 distinct price/tier brackets to guarantee rich choice
+                $tier1 = $all->filter(fn ($p) => $p['price'] <= 1500000)->shuffle();
+                $tier2 = $all->filter(fn ($p) => $p['price'] > 1500000 && $p['price'] <= 15000000)->shuffle();
+                $tier3 = $all->filter(fn ($p) => $p['price'] > 15000000 && $p['price'] <= 150000000)->shuffle();
+                $tier4 = $all->filter(fn ($p) => $p['price'] > 150000000)->shuffle();
 
-            $selected = collect();
-            $selected = $selected->merge($tier1->take(2));
-            $selected = $selected->merge($tier2->take(2));
-            $selected = $selected->merge($tier3->take(2));
-            $selected = $selected->merge($tier4->take(2));
+                $selected = collect();
+                $selected = $selected->merge($tier1->take(2));
+                $selected = $selected->merge($tier2->take(2));
+                $selected = $selected->merge($tier3->take(2));
+                $selected = $selected->merge($tier4->take(2));
 
-            if ($selected->count() < 8) {
-                $remaining = $all->whereNotIn('key', $selected->pluck('key'))->shuffle();
-                $selected = $selected->merge($remaining->take(8 - $selected->count()));
+                if ($selected->count() < 8) {
+                    $remaining = $all->whereNotIn('key', $selected->pluck('key'))->shuffle();
+                    $selected = $selected->merge($remaining->take(8 - $selected->count()));
+                }
+
+                $items = [];
+                foreach ($selected->values() as $index => $prop) {
+                    // Dynamic half-hour special discount / perk: between -15% and +5%
+                    $variance = mt_rand(-15, 5);
+                    $discountFactor = 1.0 + ($variance * 0.01);
+                    $discountedPrice = max(50000, (int) (round(($prop['price'] * $discountFactor) / 2500) * 2500));
+
+                    $token = substr(hash_hmac('sha256', "{$slot}_{$prop['key']}_{$discountedPrice}", (string) (config('app.key') ?: 'tbs-gang-prop-secret')), 0, 16);
+
+                    $items[] = [
+                        'index' => $index,
+                        'token' => $token,
+                        'property' => $prop,
+                        'discount_pct' => -$variance,
+                        'dynamic_price' => $discountedPrice,
+                    ];
+                }
+
+                return $items;
+            } finally {
+                mt_srand();
             }
-
-            $items = [];
-            foreach ($selected->values() as $index => $prop) {
-                // Dynamic half-hour special discount / perk: between -15% and +5%
-                $variance = mt_rand(-15, 5);
-                $discountFactor = 1.0 + ($variance * 0.01);
-                $discountedPrice = max(50000, (int) (round(($prop['price'] * $discountFactor) / 2500) * 2500));
-
-                $token = substr(hash_hmac('sha256', "{$slot}_{$prop['key']}_{$discountedPrice}", (string) (config('app.key') ?: 'tbs-gang-prop-secret')), 0, 16);
-
-                $items[] = [
-                    'index' => $index,
-                    'token' => $token,
-                    'property' => $prop,
-                    'discount_pct' => -$variance,
-                    'dynamic_price' => $discountedPrice,
-                ];
-            }
-
-            mt_srand();
-
-            return $items;
         });
 
         return [
@@ -1085,7 +1087,7 @@ class GangPropertyCatalog
             [
                 'type' => 'production_speed',
                 'role' => 'Proces & Versneller Meester',
-                'icon' => 'fa-stopwatch-fast',
+                'icon' => 'fa-stopwatch',
                 'label' => '-{val}% Productietijd per cyclus',
                 'desc' => 'Optimaliseert cycli zodat je bende veel sneller buit kan claimen.',
                 'min' => 15, 'max' => 40, 'cost_base' => 220000,
@@ -1186,24 +1188,26 @@ class GangPropertyCatalog
 
             mt_srand($slot * 51517);
 
-            // Shuffled selection of 6 varied NPCs for this half hour
-            $shuffled = $all->shuffle();
-            $selected = $shuffled->take(6);
+            try {
+                // Shuffled selection of 6 varied NPCs for this half hour
+                $shuffled = $all->shuffle();
+                $selected = $shuffled->take(6);
 
-            $items = [];
-            foreach ($selected->values() as $index => $npc) {
-                $token = substr(hash_hmac('sha256', "{$slot}_{$npc['key']}_{$npc['cost']}", (string) (config('app.key') ?: 'tbs-gang-npc-secret')), 0, 16);
+                $items = [];
+                foreach ($selected->values() as $index => $npc) {
+                    $token = substr(hash_hmac('sha256', "{$slot}_{$npc['key']}_{$npc['cost']}", (string) (config('app.key') ?: 'tbs-gang-npc-secret')), 0, 16);
 
-                $items[] = [
-                    'index' => $index,
-                    'token' => $token,
-                    'npc' => $npc,
-                ];
+                    $items[] = [
+                        'index' => $index,
+                        'token' => $token,
+                        'npc' => $npc,
+                    ];
+                }
+
+                return $items;
+            } finally {
+                mt_srand();
             }
-
-            mt_srand();
-
-            return $items;
         });
 
         return [

@@ -118,18 +118,30 @@ class GangNpc extends Model
                 }
             }
 
-            if ($leaderId && class_exists(GameNotification::class)) {
-                GameNotification::create([
-                    'character_id' => $leaderId,
-                    'type' => 'gang_npc_expired',
-                    'icon' => 'fa-user-clock',
-                    'title' => "⚠️ NPC Contract Verlopen: {$npc->name}!",
-                    'message' => "Het 30-minuten contract van {$npc->name} ({$npc->role_title}) is verlopen. Deze specialist heeft de bende verlaten. Huur direct een nieuwe specialist in via Panden & NPC!",
-                ]);
-            }
+            $deleted = self::where('id', $npc->id)
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '<=', now())
+                ->delete();
 
-            $npc->delete();
-            $purgedCount++;
+            if ($deleted > 0) {
+                $purgedCount++;
+
+                if ($leaderId && class_exists(GameNotification::class)) {
+                    GameNotification::create([
+                        'character_id' => $leaderId,
+                        'type' => 'gang_npc_expired',
+                        'icon' => 'fa-user-clock',
+                        'title' => "⚠️ NPC Contract Verlopen: {$npc->name}!",
+                        'message' => "Het 30-minuten contract van {$npc->name} ({$npc->role_title}) is verlopen. Deze specialist heeft de bende verlaten. Huur direct een nieuwe specialist in via Panden & NPC!",
+                    ]);
+                }
+            }
+        }
+
+        if ($purgedCount > 0) {
+            $gang->unsetRelation('npcs');
+            $gang->unsetRelation('allNpcs');
+            $gang->unsetRelation('properties');
         }
 
         return $purgedCount;

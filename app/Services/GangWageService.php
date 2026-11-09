@@ -310,6 +310,19 @@ class GangWageService
             default => 0,
         };
 
+        $activityMultiplier = 1.0;
+        if ($character && $character->last_active_at) {
+            $hoursInactive = (int) $character->last_active_at->diffInHours(now());
+            if ($hoursInactive > 168) {
+                $activityMultiplier = 0.35;
+            } elseif ($hoursInactive > 72) {
+                $activityMultiplier = 0.50;
+            } elseif ($hoursInactive > 24) {
+                $activityMultiplier = 0.75;
+            }
+        }
+        $activityPenaltyPct = (int) round((1.0 - $activityMultiplier) * 100);
+
         return [
             'base_wage' => self::BASE_HOURLY_WAGE,
             'kiosks_count' => $kiosksCount,
@@ -346,6 +359,8 @@ class GangWageService
                 'officer' => 'Officier (+10%)',
                 default => 'Bendelid (Basis)',
             },
+            'activity_multiplier' => $activityMultiplier,
+            'activity_penalty_pct' => $activityPenaltyPct,
         ];
     }
 

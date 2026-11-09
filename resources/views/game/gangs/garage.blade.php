@@ -148,6 +148,30 @@
         </div>
     @endif
 
+    @php
+        $hasChopShop = $gang->hasProperty('chop_shop_garage') || ($gang->relationLoaded('properties') ? $gang->properties->contains('property_key', 'chop_shop_garage') : $gang->properties()->where('property_key', 'chop_shop_garage')->exists());
+        $tuningPct = (int) ($gang->npc_vehicle_tuning_percent ?? 0);
+    @endphp
+
+    @if($hasChopShop || $tuningPct > 0)
+        <div class="flex items-center gap-2 flex-wrap text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 shadow-2xs">
+            <span class="text-slate-600 dark:text-slate-300 font-extrabold flex items-center gap-1.5 text-xs">
+                <i class="fa-solid fa-screwdriver-wrench text-blue-500"></i>
+                Actieve Vloot Reparatievoordelen:
+            </span>
+            @if($hasChopShop)
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-black text-[11px] flex items-center gap-1">
+                    <i class="fa-solid fa-wrench"></i> Chop-Shop Garage (-20%)
+                </span>
+            @endif
+            @if($tuningPct > 0)
+                <span class="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/70 font-black text-[11px] flex items-center gap-1">
+                    <i class="fa-solid fa-gauge-high"></i> Monteur Tuning (-{{ $tuningPct }}%)
+                </span>
+            @endif
+        </div>
+    @endif
+
     <!-- SECTION 1: Gestalde Bendevoertuigen (Het Bende Wagenpark) -->
     <div class="space-y-4">
         <div class="flex items-center justify-between">
@@ -257,6 +281,11 @@
                             @if(($isOwner || $isOfficer) && $charVehicle->current_condition < 100)
                                 @php
                                     $canAffordRepair = (int) ($gang->treasury ?? 0) >= (int) $charVehicle->repair_cost;
+                                    $missingPct = 100 - max(0, min(100, (int) $charVehicle->current_condition));
+                                    $vehCashPrice = max(0, (int) ($veh?->price_cash ?? 10000));
+                                    $costPerPct = max(50, (int) round($vehCashPrice * 0.001));
+                                    $baseRepairCost = $missingPct * $costPerPct;
+                                    $hasRepairDiscount = $baseRepairCost > (int) $charVehicle->repair_cost;
                                 @endphp
                                 <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST">
                                     @csrf
@@ -264,7 +293,13 @@
                                             {{ $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ! $canAffordRepair ? 'disabled' : '' }}
                                             class="w-full py-2 rounded-xl {{ $canAffordRepair ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 cursor-pointer text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} disabled:opacity-50 disabled:cursor-not-allowed font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-wrench text-[11px]"></i>
-                                        <span>{{ $canAffordRepair ? 'Reviseren via Bendekas (€' . number_format($charVehicle->repair_cost, 0, ',', '.') . ')' : 'Te weinig in bendekas (€' . number_format($charVehicle->repair_cost, 0, ',', '.') . ')' }}</span>
+                                        <span>
+                                            {{ $canAffordRepair ? 'Reviseren via Bendekas' : 'Te weinig in bendekas' }}
+                                            @if($hasRepairDiscount)
+                                                <span class="line-through text-slate-300 dark:text-slate-500 text-[10px] font-normal mr-0.5">€{{ number_format($baseRepairCost, 0, ',', '.') }}</span>
+                                            @endif
+                                            (€{{ number_format($charVehicle->repair_cost, 0, ',', '.') }})
+                                        </span>
                                     </button>
                                 </form>
                             @endif
@@ -300,7 +335,10 @@
                                 </form>
                             @elseif($charVehicle->is_gang_owned && $isOfficer)
                                 <!-- Slopen voor schroot in bendekas (alleen voor bendebeheerders) -->
-                                @php $scrapVal = (int) round(($veh?->price_cash ?? 20000) * 0.25); @endphp
+                                @php 
+                                    $baseScrapPrice = (int) ($veh?->price_cash ?? 0) > 0 ? (int) $veh->price_cash : (((int) ($veh?->price_stars ?? 0) * 2000) ?: 20000);
+                                    $scrapVal = (int) round($baseScrapPrice * 0.25);
+                                @endphp
                                 <form action="{{ route('gangs.garage.scrap-vehicle', $charVehicle) }}" method="POST">
                                     @csrf
                                     <button type="submit" 

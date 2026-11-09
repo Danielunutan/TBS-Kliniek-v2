@@ -114,22 +114,32 @@ class GangProperty extends Model
     {
         $baseMinutes = (int) ($this->production_duration_minutes ?? 60);
 
-        $assignedNpc = GangNpc::where('gang_id', $this->gang_id)
-            ->where('assigned_property_id', $this->id)
-            ->first();
+        /** @var GangNpc|null $assignedNpc */
+        $assignedNpc = $this->relationLoaded('assignedNpc')
+            ? $this->assignedNpc
+            : $this->assignedNpc()->first();
 
-        if ($assignedNpc) {
-            if ($assignedNpc->isActive() && $assignedNpc->bonus_type === 'production_speed') {
-                $speedFactor = 1 - min(0.75, max(0, (int) $assignedNpc->bonus_value) / 100);
+        $isNpcValid = $assignedNpc
+            && ((int) $assignedNpc->gang_id === (int) $this->gang_id)
+            && (
+                $assignedNpc->isActive() || (
+                    $this->production_ends_at !== null && (
+                        $assignedNpc->expires_at === null ||
+                        ! $this->production_started_at ||
+                        $assignedNpc->expires_at->gt($this->production_started_at)
+                    )
+                )
+            );
 
-                return max(5, (int) round($baseMinutes * $speedFactor));
-            }
+        if ($isNpcValid && $assignedNpc->bonus_type === 'production_speed') {
+            $speedFactor = 1 - min(0.75, max(0, (int) $assignedNpc->bonus_value) / 100);
 
-            return $baseMinutes;
+            return max(5, (int) round($baseMinutes * $speedFactor));
         }
 
-        // Apply -50% duration for a batch master chemist when no showroom NPC is stationed.
-        if ($this->assigned_npc_key === 'chemisch_specialist') {
+        // Apply -50% duration for a batch master chemist when no showroom NPC is stationed and property is active.
+        $isNotIdle = $this->production_status !== 'idle' || $this->production_ends_at !== null;
+        if (! $assignedNpc && $isNotIdle && $this->assigned_npc_key === 'chemisch_specialist') {
             return max(5, (int) round($baseMinutes * 0.5));
         }
 
@@ -155,28 +165,31 @@ class GangProperty extends Model
         $baseCash = (int) $this->production_reward_cash;
         $baseRespect = (int) $this->production_reward_respect;
 
-        // Check if gang has assigned an NPC to this property
-        $assignedNpc = GangNpc::where('gang_id', $this->gang_id)
-            ->where('assigned_property_id', $this->id)
-            ->first();
+        /** @var GangNpc|null $assignedNpc */
+        $assignedNpc = $this->relationLoaded('assignedNpc')
+            ? $this->assignedNpc
+            : $this->assignedNpc()->first();
 
-        $isNpcValid = $assignedNpc && (
-            $assignedNpc->isActive() || (
-                $this->production_ends_at !== null && (
-                    $assignedNpc->expires_at === null ||
-                    ! $this->production_started_at ||
-                    $assignedNpc->expires_at->gt($this->production_started_at)
+        $isNpcValid = $assignedNpc
+            && ((int) $assignedNpc->gang_id === (int) $this->gang_id)
+            && (
+                $assignedNpc->isActive() || (
+                    $this->production_ends_at !== null && (
+                        $assignedNpc->expires_at === null ||
+                        ! $this->production_started_at ||
+                        $assignedNpc->expires_at->gt($this->production_started_at)
+                    )
                 )
-            )
-        );
+            );
 
         if ($isNpcValid && $assignedNpc->bonus_type === 'production_yield') {
             $bonusFactor = 1 + (max(0, (int) $assignedNpc->bonus_value) / 100);
             $baseCash = (int) round($baseCash * $bonusFactor);
         }
 
-        // Double cash payout (+100%) for a batch production manager when no showroom NPC is stationed.
-        if (! $assignedNpc && $this->assigned_npc_key === 'productie_manager') {
+        // Double cash payout (+100%) for a batch production manager when no showroom NPC is stationed and property is active.
+        $isNotIdle = $this->production_status !== 'idle' || $this->production_ends_at !== null;
+        if (! $assignedNpc && $isNotIdle && $this->assigned_npc_key === 'productie_manager') {
             $baseCash = (int) round($baseCash * 2.0);
         }
 

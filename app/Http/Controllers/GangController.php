@@ -65,6 +65,7 @@ class GangController extends Controller
                 'storedVehicles.vehicle',
                 'items.item',
             ]);
+            $myGang->storedVehicles->each->setRelation('gang', $myGang);
         }
 
         $myInventoryItems = $myGang ? CharacterItem::where('character_id', $character->id)->where('quantity', '>', 0)->with('item')->get() : collect();

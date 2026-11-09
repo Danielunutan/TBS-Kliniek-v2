@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\GangNpc;
 use App\Services\GangWageService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -16,6 +17,8 @@ class PayGangWagesCommand extends Command
      */
     public function handle(GangWageService $wageService): int
     {
+        GangNpc::purgeAllExpired();
+
         $this->info('Controleren en uitbetalen van bende-uurlonen...');
 
         $totalPaid = $wageService->payAllMembers();
