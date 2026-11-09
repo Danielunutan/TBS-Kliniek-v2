@@ -22,6 +22,20 @@ class DebugNpcsCommand extends Command
         }
 
         $this->info('Total GangNpc: ' . GangNpc::count());
+        $wrd = \App\Models\Character::where('name', 'WRDMarco')->first();
+        if ($wrd && $wrd->gang) {
+            $g = $wrd->gang;
+            GangNpc::purgeExpiredForGang($g);
+            $g->load(['properties', 'npcs.assignedProperty', 'leader', 'storedVehicles']);
+            $hiredNpcs = $g->npcs;
+            $totalNpcCap = $g->total_npc_capacity;
+            $availableNpcSlots = max(0, $totalNpcCap - $hiredNpcs->count());
+            $this->info("WRDMarco Gang #{$g->id} [{$g->name}]:");
+            $this->info("  hiredNpcs->count(): {$hiredNpcs->count()}");
+            $this->info("  totalNpcCap: {$totalNpcCap}");
+            $this->info("  availableNpcSlots: {$availableNpcSlots}");
+            $this->info("  npc_defense_bonus_percent: {$g->npc_defense_bonus_percent}%");
+        }
         foreach (Gang::all() as $g) {
             $this->info("Gang #{$g->id} [{$g->tag}] {$g->name}:");
             $this->line("  total_npc_capacity: {$g->total_npc_capacity}");
