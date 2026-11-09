@@ -697,10 +697,11 @@ class ComprehensiveAuditBucket4Test extends TestCase
         $ajaxRes->assertStatus(503)
             ->assertJsonPath('maintenance', true);
 
-        // Regular browser request receives HTML view
+        // Regular browser request receives HTML view without a reopening time
         $htmlRes = $this->actingAs($user)->get('/dashboard');
         $htmlRes->assertStatus(503)
-            ->assertSee('23:45');
+            ->assertSee('Tijdelijk in onderhoud voor een volledige en eerlijke reset!')
+            ->assertDontSee('23:45');
 
         // Webhooks pass through
         $webhookRes = $this->post('/api/webhooks/buymeacoffee');

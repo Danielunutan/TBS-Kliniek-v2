@@ -47,7 +47,7 @@ class MaintenanceModeTest extends TestCase
 
     public function test_regular_users_receive_503_when_maintenance_is_on(): void
     {
-        Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
+        Artisan::call('tbs:maintenance', ['action' => 'on']);
 
         $user = User::factory()->create(['name' => 'NormaleSpeler', 'is_onboarded' => true]);
         Character::create([
@@ -59,7 +59,8 @@ class MaintenanceModeTest extends TestCase
         $res = $this->actingAs($user)->get(route('dashboard'));
         $res->assertStatus(503);
         $res->assertSee('De Kliniekdeuren Zijn Even Gesloten!');
-        $res->assertSee('22:00');
+        $res->assertSee('Tijdelijk in onderhoud voor een volledige en eerlijke reset!');
+        $res->assertDontSee('22:00');
     }
 
     public function test_daniel_can_bypass_maintenance_mode(): void
@@ -145,8 +146,14 @@ class MaintenanceModeTest extends TestCase
 
     public function test_a_regular_user_cannot_access_the_dashboard_after_logging_in_during_maintenance(): void
     {
-        Artisan::call('tbs:maintenance', ['action' => 'on', '--time' => '22:00']);
+        Artisan::call('tbs:maintenance', ['action' => 'on']);
         $user = User::factory()->create();
+
+        $this->get('/?beheer=1')
+            ->assertOk()
+            ->assertSee('Uitsluitend Beheerders')
+            ->assertSee('Beheerder Toegang')
+            ->assertDontSee('Doorgaan met Discord');
 
         $turnstile = $this->createStub(TurnstileService::class);
         $turnstile->method('verify')->willReturn(true);
@@ -156,7 +163,7 @@ class MaintenanceModeTest extends TestCase
             'email' => $user->email,
             'password' => 'password',
             'cf-turnstile-response' => 'valid-turnstile-token',
-        ])->assertRedirect('/?beheer=1')->assertSessionHasErrors('email');
+        ])->assertRedirect(route('login', ['beheer' => 1]))->assertSessionHasErrors('email');
 
         $this->assertGuest();
         $this->actingAs($user)->get(route('dashboard'))->assertStatus(503);

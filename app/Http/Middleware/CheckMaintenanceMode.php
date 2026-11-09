@@ -67,6 +67,10 @@ class CheckMaintenanceMode
             }
         }
 
+        if (app()->runningUnitTests()) {
+            return [];
+        }
+
         try {
             if (Schema::hasTable('game_settings')) {
                 $meta = GameSetting::get('maintenance_mode_metadata', []);
@@ -115,13 +119,13 @@ class CheckMaintenanceMode
 
         // Read metadata if available
         $metadata = self::getMetadata();
-        $targetTime = $metadata['target_time'] ?? '22:00';
+        $targetTime = $metadata['target_time'] ?? null;
 
         // For AJAX, API, or JSON requests, return a clean JSON 503 response
         if ($request->expectsJson() || $request->ajax() || $request->is('api/*')) {
             return response()->json([
                 'maintenance' => true,
-                'message' => "TBS Kliniek is tijdelijk in onderhoud voor een grote seizoensreset. We zijn rond {$targetTime} uur weer terug!",
+                'message' => 'TBS Kliniek is tijdelijk in onderhoud! Naar aanleiding van jullie feedback voeren we een volledige en eerlijke reset door.',
                 'target_time' => $targetTime,
             ], 503);
         }

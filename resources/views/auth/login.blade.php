@@ -9,6 +9,10 @@
     $safeGender = in_array(old('gender'), ['male', 'female'], true) ? old('gender') : 'male';
     $safeAvatar = preg_match('~^assets/characters/avatar_(fe)?male_[1-6]\.jpg$~', (string) old('avatar')) ? old('avatar') : 'assets/characters/avatar_male_1.jpg';
     $defaultTab = (request()->routeIs('register') || request('tab') === 'register' || $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || $errors->has('turnstile') || old('username') || request()->has('ref') || session()->has('referral_name')) ? 'register' : 'login';
+    $isStaffMaintenanceLogin = \App\Http\Middleware\CheckMaintenanceMode::isEnabled() || request()->boolean('beheer');
+    if ($isStaffMaintenanceLogin) {
+        $defaultTab = 'login';
+    }
     $turnstileSiteKey = !empty($turnstileSiteKey) ? $turnstileSiteKey : (trim((string) config('services.turnstile.site_key')) ?: '1x00000000000000000000AA');
     $turnstileLoginCdata = $turnstileLoginCdata ?? \App\Services\TurnstileService::generateCdata('auth_login', 'guest');
     $turnstileRegisterCdata = $turnstileRegisterCdata ?? \App\Services\TurnstileService::generateCdata('auth_register', 'guest');
@@ -61,10 +65,20 @@
                     <div class="lg:hidden flex justify-center mb-3">
                         <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-14 h-14 object-contain drop-shadow-md">
                     </div>
-                    <h2 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Welkom bij de Kliniek</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Meld je aan voor je dossier of start direct.</p>
+                    @if($isStaffMaintenanceLogin)
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider mb-2">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span>Uitsluitend Beheerders</span>
+                        </div>
+                        <h2 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Beheerder Toegang</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Het spel is momenteel in onderhoud. Alleen beheerders kunnen inloggen.</p>
+                    @else
+                        <h2 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Welkom bij de Kliniek</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Meld je aan voor je dossier of start direct.</p>
+                    @endif
                 </div>
 
+                @if(!$isStaffMaintenanceLogin)
                 <!-- SOCIAL AUTH (DISCORD 1-KLIK) -->
                 <div>
                     <a href="{{ route('login.discord') }}" data-turbo="false" data-turbo-prefetch="false" class="w-full flex items-center justify-center gap-2.5 bg-[#5865F2] hover:bg-[#4752c4] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow-2xs transition active:scale-[0.99]">
@@ -96,6 +110,7 @@
                         Registreren
                     </button>
                 </div>
+                @endif
 
                 <!-- LOGIN TAB (NO UGLY LABELS - MODERN CLEAN INPUTS) -->
                 <div x-show="tab === 'login'" class="space-y-4">

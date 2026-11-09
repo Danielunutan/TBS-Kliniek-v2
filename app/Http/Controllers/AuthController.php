@@ -86,6 +86,12 @@ class AuthController extends Controller
      */
     public function discordLogin(Request $request): Response|RedirectResponse
     {
+        if (CheckMaintenanceMode::isEnabled()) {
+            return redirect()->route('login', ['beheer' => 1])->withErrors([
+                'email' => 'TBS Kliniek is momenteel in onderhoud. Alleen beheerders hebben tijdens onderhoud toegang.',
+            ]);
+        }
+
         // Never log in or mutate state on background prefetch requests
         if ($request->header('Purpose') === 'prefetch' || $request->header('Sec-Purpose') === 'prefetch' || $request->header('X-Sec-Purpose') === 'prefetch') {
             return response()->noContent();
@@ -157,6 +163,12 @@ class AuthController extends Controller
      */
     public function discordCallback(Request $request): Response|RedirectResponse
     {
+        if (CheckMaintenanceMode::isEnabled()) {
+            return redirect()->route('login', ['beheer' => 1])->withErrors([
+                'email' => 'TBS Kliniek is momenteel in onderhoud. Alleen beheerders hebben tijdens onderhoud toegang.',
+            ]);
+        }
+
         $clientId = DiscordShieldSetting::get('client_id') ?: config('services.discord.client_id');
         $clientSecret = DiscordShieldSetting::get('client_secret') ?: config('services.discord.client_secret');
         $code = $request->query('code');
@@ -347,6 +359,15 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
+        if (CheckMaintenanceMode::isEnabled()) {
+            $candidateUser = User::where('email', $credentials['email'])->first();
+            if (! $candidateUser || ! $candidateUser->isAdmin()) {
+                return redirect()->route('login', ['beheer' => 1])->withErrors([
+                    'email' => 'TBS Kliniek is momenteel in onderhoud. Alleen beheerders hebben tijdens onderhoud toegang.',
+                ])->onlyInput('email');
+            }
+        }
+
         $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
         $request->attributes->set('turnstile_context', [
             'action' => 'auth_login',
@@ -368,7 +389,7 @@ class AuthController extends Controller
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return back()->withErrors([
+                return redirect()->route('login', ['beheer' => 1])->withErrors([
                     'email' => 'TBS Kliniek is momenteel in onderhoud. Alleen beheerders hebben tijdens onderhoud toegang.',
                 ])->onlyInput('email');
             }
@@ -392,6 +413,12 @@ class AuthController extends Controller
      */
     public function register(Request $request): RedirectResponse
     {
+        if (CheckMaintenanceMode::isEnabled()) {
+            return redirect()->route('login', ['beheer' => 1])->withErrors([
+                'email' => 'TBS Kliniek is momenteel in onderhoud. Nieuwe registraties zijn tijdelijk gesloten.',
+            ]);
+        }
+
         $clientIp = $request->ip();
 
         // 1. VPN / Proxy Blocker

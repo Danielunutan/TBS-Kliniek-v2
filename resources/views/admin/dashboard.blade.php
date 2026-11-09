@@ -116,7 +116,7 @@
                     @if($isMaintenanceEnabled ?? false)
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
-                            Onderhoud Actief ({{ $maintenanceMeta['target_time'] ?? '22:00' }} uur)
+                            Onderhoud Actief
                         </span>
                     @else
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70">
@@ -151,7 +151,6 @@
                       data-confirm-icon="fa-lock">
                     @csrf
                     <input type="hidden" name="action" value="on">
-                    <input type="time" name="target_time" value="22:00" class="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white">
                     <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-lock text-[11px]"></i>
                         <span>In Onderhoud Plaatsen</span>

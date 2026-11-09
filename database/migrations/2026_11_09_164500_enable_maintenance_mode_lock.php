@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
         $payload = [
             'enabled' => true,
-            'reason' => 'Grote seizoensreset en update',
-            'target_time' => '22:00',
+            'reason' => 'Volledige en eerlijke reset naar aanleiding van spelersfeedback',
+            'target_time' => null,
             'activated_at' => now()->toIso8601String(),
         ];
 

@@ -163,13 +163,11 @@ class Pass10Bucket14AuditTest extends TestCase
 
     public function test_maintenance_view_renders_cleanly(): void
     {
-        $view = view('maintenance', [
-            'targetTime' => '23:00',
-        ])->render();
+        $view = view('maintenance')->render();
 
         $this->assertStringContainsString('De Kliniekdeuren Zijn Even Gesloten!', $view);
-        $this->assertStringContainsString('Rond 23:00 Uur Vanavond', $view);
-        $this->assertStringContainsString('updateMaintenanceCountdown', $view);
+        $this->assertStringContainsString('Tijdelijk in onderhoud voor een volledige en eerlijke reset!', $view);
+        $this->assertStringNotContainsString('Uur Vanavond', $view);
     }
 
     public function test_battlepass_unclaimed_modal_respects_coma_and_prison(): void

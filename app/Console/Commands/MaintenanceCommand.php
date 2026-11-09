@@ -14,7 +14,7 @@ class MaintenanceCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'tbs:maintenance {action=on : Action to perform: on, off, status} {--time=22:00 : Expected return time}';
+    protected $signature = 'tbs:maintenance {action=on : Action to perform: on, off, status} {--time= : Optional expected return time}';
 
     /**
      * The console command description.
@@ -51,7 +51,9 @@ class MaintenanceCommand extends Command
             if (CheckMaintenanceMode::isEnabled()) {
                 $this->warn('Onderhoudsmodus is momenteel ACTIEF (alleen beheerders hebben toegang).');
                 $data = CheckMaintenanceMode::getMetadata();
-                $this->line('Verwachte eindtijd: '.($data['target_time'] ?? '22:00'));
+                if (! empty($data['target_time'])) {
+                    $this->line('Verwachte eindtijd: '.$data['target_time']);
+                }
             } else {
                 $this->info('Onderhoudsmodus is momenteel UIT (Iedereen heeft toegang).');
             }
@@ -60,10 +62,10 @@ class MaintenanceCommand extends Command
         }
 
         // Action is ON
-        $targetTime = (string) $this->option('time') ?: '22:00';
+        $targetTime = $this->option('time') ? (string) $this->option('time') : null;
         $payload = [
             'enabled' => true,
-            'reason' => 'Grote seizoensreset en update',
+            'reason' => 'Volledige en eerlijke reset naar aanleiding van spelersfeedback',
             'target_time' => $targetTime,
             'activated_at' => now()->toIso8601String(),
         ];
@@ -83,7 +85,7 @@ class MaintenanceCommand extends Command
             // Ignore database errors during CLI toggle.
         }
 
-        $this->info("TBS Kliniek is nu in ONDERHOUDSMODUS geplaatst! Verwachte heropening: {$targetTime}.");
+        $this->info('TBS Kliniek is nu in ONDERHOUDSMODUS geplaatst!');
         $this->line('Beheerders hebben na inloggen toegang.');
 
         return Command::SUCCESS;

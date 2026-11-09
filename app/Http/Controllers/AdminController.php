@@ -943,18 +943,19 @@ class AdminController extends Controller
         ]);
 
         $action = $validated['action'];
-        $targetTime = $validated['target_time'] ?? '22:00';
+        $targetTime = $validated['target_time'] ?? null;
 
-        Artisan::call('tbs:maintenance', [
-            'action' => $action,
-            '--time' => $targetTime,
-        ]);
+        $params = ['action' => $action];
+        if ($targetTime !== null) {
+            $params['--time'] = $targetTime;
+        }
+        Artisan::call('tbs:maintenance', $params);
 
         try {
             AuditLogService::log(
                 action: 'admin_toggle_maintenance',
                 category: 'system',
-                description: 'Onderhoudsmodus '.($action === 'on' ? "INGESCHAKELD (tot {$targetTime})" : 'UITGESCHAKELD').' door '.$user->name,
+                description: 'Onderhoudsmodus '.($action === 'on' ? 'INGESCHAKELD' : 'UITGESCHAKELD').' door '.$user->name,
                 character: $user->character,
                 user: $user,
                 details: ['action' => $action, 'target_time' => $targetTime]
@@ -964,7 +965,7 @@ class AdminController extends Controller
         }
 
         if ($action === 'on') {
-            return back()->with('success', "Onderhoudsmodus is nu ACTIEF! Spelers hebben geen toegang tot het spel (verwachte heropening: {$targetTime}). Beheerders behouden toegang.");
+            return back()->with('success', 'Onderhoudsmodus is nu ACTIEF! Spelers hebben geen toegang tot het spel. Beheerders behouden toegang.');
         }
 
         return back()->with('success', 'Onderhoudsmodus is UITGESCHAKELD! De kliniekdeuren zijn weer geopend voor alle spelers.');

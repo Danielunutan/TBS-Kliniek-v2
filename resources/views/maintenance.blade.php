@@ -80,32 +80,20 @@
                 </p>
             </div>
 
-            <!-- Expected Return Time Card & Live Countdown -->
-            <div class="bg-purple-950/40 border border-purple-500/30 rounded-xl p-5 sm:p-6 space-y-4 shadow-inner">
+            <!-- Community Feedback & Reset Notice Card -->
+            <div class="bg-purple-950/40 border border-purple-500/30 rounded-xl p-5 sm:p-6 space-y-3 shadow-inner">
                 <div class="flex items-center justify-center gap-2 text-xs font-black text-purple-300 uppercase tracking-widest">
-                    <i class="fa-solid fa-clock text-amber-400"></i>
-                    <span>Verwachte Heropening</span>
+                    <i class="fa-solid fa-heart text-amber-400"></i>
+                    <span>Wij Luisteren Naar Jullie Feedback!</span>
                 </div>
                 
-                <div class="text-3xl sm:text-4xl font-black text-amber-400 font-heading tracking-tight">
-                    Rond {{ $targetTime ?? '22:00' }} Uur Vanavond
+                <div class="text-xl sm:text-2xl font-black text-amber-400 font-heading tracking-tight leading-snug">
+                    Tijdelijk in onderhoud voor een volledige en eerlijke reset! 🔄
                 </div>
 
-                <!-- Live Ticking Countdown to 22:00 -->
-                <div id="countdown-box" class="grid grid-cols-3 gap-3 max-w-sm mx-auto pt-2">
-                    <div class="bg-black/40 border border-purple-500/20 rounded-xl p-3">
-                        <div id="count-hours" class="text-xl sm:text-2xl font-black text-white font-mono">01</div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Uur</div>
-                    </div>
-                    <div class="bg-black/40 border border-purple-500/20 rounded-xl p-3">
-                        <div id="count-minutes" class="text-xl sm:text-2xl font-black text-white font-mono">30</div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Minuten</div>
-                    </div>
-                    <div class="bg-black/40 border border-purple-500/20 rounded-xl p-3">
-                        <div id="count-seconds" class="text-xl sm:text-2xl font-black text-purple-400 font-mono">00</div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Seconden</div>
-                    </div>
-                </div>
+                <p class="text-xs sm:text-sm text-purple-100/90 max-w-lg mx-auto leading-relaxed">
+                    Naar aanleiding van jullie scherpe feedback uit de community gooien we het roer om. We voeren een complete reset en vernieuwing door, zodat straks iedereen weer met gelijke kansen, een eerlijke economie en een schone lei kan knallen!
+                </p>
             </div>
 
             <!-- Progress Steps Tracker -->
@@ -118,15 +106,15 @@
                 <div class="space-y-2.5 pt-1 text-xs">
                     <div class="flex items-center gap-3 text-emerald-400 font-bold">
                         <i class="fa-solid fa-circle-check text-sm"></i>
-                        <span class="text-slate-200">Spelersdata &amp; veilige back-up veiliggesteld</span>
+                        <span class="text-slate-200">Spelersfeedback verzameld &amp; nieuwe balans ontworpen</span>
                     </div>
                     <div class="flex items-center gap-3 text-amber-400 font-bold">
                         <i class="fa-solid fa-spinner fa-spin text-sm"></i>
-                        <span class="text-slate-200">Nieuwe spelbalans en reset klaargezet</span>
+                        <span class="text-slate-200">Volledige reset &amp; schone start voor iedereen klaarzetten</span>
                     </div>
                     <div class="flex items-center gap-3 text-slate-500 font-semibold">
                         <i class="fa-regular fa-circle text-sm"></i>
-                        <span>Kliniekpoorten openen voor alle patiënten (om 22.00 uur)</span>
+                        <span>Kliniekpoorten feestelijk heropenen voor alle patiënten</span>
                     </div>
                 </div>
             </div>
@@ -161,45 +149,6 @@
             </a>
         </div>
     </footer>
-
-    <!-- Countdown Javascript -->
-    <script>
-        function updateMaintenanceCountdown() {
-            const elHours = document.getElementById('count-hours');
-            const elMinutes = document.getElementById('count-minutes');
-            const elSeconds = document.getElementById('count-seconds');
-            if (!elHours || !elMinutes || !elSeconds) return;
-
-            const now = new Date();
-            const target = new Date();
-            target.setHours(22, 0, 0, 0);
-            if (target <= now) {
-                target.setDate(target.getDate() + 1);
-            }
-
-            let diffMs = target.getTime() - now.getTime();
-            if (diffMs <= 0) {
-                // Past 22:00, show 00:00:00 or auto-reload check
-                elHours.innerText = '00';
-                elMinutes.innerText = '00';
-                elSeconds.innerText = '00';
-                return;
-            }
-
-            const hours = Math.floor(diffMs / (1000 * 60 * 60));
-            diffMs %= (1000 * 60 * 60);
-            const minutes = Math.floor(diffMs / (1000 * 60));
-            diffMs %= (1000 * 60);
-            const seconds = Math.floor(diffMs / 1000);
-
-            elHours.innerText = String(hours).padStart(2, '0');
-            elMinutes.innerText = String(minutes).padStart(2, '0');
-            elSeconds.innerText = String(seconds).padStart(2, '0');
-        }
-
-        updateMaintenanceCountdown();
-        setInterval(updateMaintenanceCountdown, 1000);
-    </script>
 
 </body>
 </html>
