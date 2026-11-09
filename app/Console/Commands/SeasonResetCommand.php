@@ -157,6 +157,18 @@ class SeasonResetCommand extends Command
                 'gang_attacks',
                 'gang_donations',
                 'control_point_logs',
+                // Chat, berichten en meldingen uit het verleden voor een 100% schone start
+                'chat_messages',
+                'cinema_messages',
+                'direct_messages',
+                'game_messages',
+                'game_notifications',
+                'radio_shoutouts',
+                'radio_shoutout_likes',
+                'guestbook_entries',
+                'timeline_posts',
+                'timeline_comments',
+                'timeline_likes',
             ];
 
             $this->info('2. Seizoenstabellen en voortgang leegmaken...');
