@@ -2324,15 +2324,19 @@ class GangController extends Controller
             $targetOfficers = $targetGang->members()->whereIn('gang_role', ['leader', 'co_leader'])->get();
 
             if ($attackRoll > $defenseRoll) {
-                $lootPercent = $targetGang->treasury > 0 ? mt_rand(8, 16) : 0;
-                $stolenCash = $targetGang->treasury > 0
-                    ? (int) round($targetGang->treasury * ($lootPercent / 100))
+                $protectedTreasury = max(0, (int) ($targetGang->protected_treasury ?? 0));
+                $lootableTreasury = max(0, (int) $targetGang->treasury - $protectedTreasury);
+
+                $lootPercent = $lootableTreasury > 0 ? mt_rand(8, 16) : 0;
+                $stolenCash = $lootableTreasury > 0
+                    ? (int) round($lootableTreasury * ($lootPercent / 100))
                     : 0;
                 $damagePercent = mt_rand(10, 20);
                 $baseDefenseDamage = max(250, (int) round($baseTargetDefense * ($damagePercent / 100)));
                 $respectGain = round(mt_rand(25, 60) / 10, 2);
 
                 $targetGang->treasury = max(0, $targetGang->treasury - $stolenCash);
+                $targetGang->protected_treasury = min((int) ($targetGang->protected_treasury ?? 0), (int) $targetGang->treasury);
                 $targetGang->protection_points = max(250, $targetGang->protection_points - $baseDefenseDamage);
                 $targetGang->shield_until = now()->addMinutes(15);
                 $targetGang->save();
@@ -2363,7 +2367,11 @@ class GangController extends Controller
                 $formattedDefenseDamage = number_format($defenseDamage, 0, ',', '.');
                 $formattedRemainingDefense = number_format($newTotalDefense, 0, ',', '.');
 
-                $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming{$npcBreakdownText}). Buit: €{$formattedStolenCash} ({$lootPercent}% kas) geplunderd, verdediging van tegenstander -{$formattedDefenseDamage} punten (-{$damagePercent}%, nieuw: {$formattedRemainingDefense}), +{$respectGain} respect!";
+                $protectedNote = $protectedTreasury > 0
+                    ? " (restitutietegoed van €".number_format($protectedTreasury, 0, ',', '.')." is kluis-beschermd tegen overvallen)"
+                    : '';
+
+                $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming{$npcBreakdownText}). Buit: €{$formattedStolenCash} ({$lootPercent}% plunderbare kas{$protectedNote}) geplunderd, verdediging van tegenstander -{$formattedDefenseDamage} punten (-{$damagePercent}%, nieuw: {$formattedRemainingDefense}), +{$respectGain} respect!";
 
                 GangAttack::create([
                     'attacker_gang_id' => $myGang->id,

@@ -42,6 +42,7 @@ class Gang extends Model
      */
     protected $casts = [
         'treasury' => 'integer',
+        'protected_treasury' => 'integer',
         'is_open' => 'boolean',
         'last_attack_at' => 'datetime',
         'shield_until' => 'datetime',
@@ -55,6 +56,22 @@ class Gang extends Model
         'personal_shopper' => 'integer',
         'money_magnet' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $gang) {
+            if (isset($gang->protected_treasury) && (int) $gang->treasury < (int) $gang->protected_treasury) {
+                $gang->protected_treasury = max(0, (int) $gang->treasury);
+            }
+        });
+    }
+
+    public function getLootableTreasuryAttribute(): int
+    {
+        $protected = max(0, (int) ($this->protected_treasury ?? 0));
+
+        return max(0, (int) $this->treasury - $protected);
+    }
 
     public function hasActiveVipBoost(): bool
     {
