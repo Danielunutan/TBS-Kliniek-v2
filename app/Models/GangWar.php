@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class GangWar extends Model
 {
@@ -116,21 +117,22 @@ class GangWar extends Model
             if ($winner && $loser) {
                 $lockedWar->winner_gang_id = $winner->id;
 
-                // Transfer 10% of losing treasury (or minimum €250k) to winner
-                $transferAmount = max(250000, (int) round(($loser->treasury ?? 0) * 0.10));
-                $cashStolen = min((int) ($loser->treasury ?? 0), $transferAmount);
+                // Transfer 10% of losing lootable treasury (or minimum €250k up to lootable amount) to winner
+                $loserLootable = max(0, (int) ($loser->lootable_treasury ?? $loser->treasury ?? 0));
+                $transferAmount = $loserLootable > 0 ? max(250000, (int) round($loserLootable * 0.10)) : 0;
+                $cashStolen = min($loserLootable, $transferAmount);
 
                 $loser->treasury = max(0, ($loser->treasury ?? 0) - $cashStolen);
-                if (\Illuminate\Support\Facades\Schema::hasColumn('gangs', 'respect')) {
+                if (Schema::hasColumn('gangs', 'respect')) {
                     $loser->respect = max(0, ($loser->respect ?? 0) - (int) round($respectReward / 2));
                 }
                 $loser->save();
 
                 $winner->treasury = ($winner->treasury ?? 0) + $cashStolen + ($lockedWar->war_pot ?: 0);
-                if (\Illuminate\Support\Facades\Schema::hasColumn('gangs', 'respect')) {
+                if (Schema::hasColumn('gangs', 'respect')) {
                     $winner->respect = ($winner->respect ?? 0) + $respectReward;
                 }
-                // Grant 24h Kliniek Heerschappij (+20% hourly wage for gang)
+                // Grant 24h Kliniek Heerschappij (+25% hourly wage for gang)
                 $winner->war_dominance_until = now()->addHours(24);
                 $winner->save();
 
@@ -138,7 +140,7 @@ class GangWar extends Model
                     $winner->leader->addRespect($respectReward);
                 }
 
-                $lockedWar->summary = "🏆 Overwinning voor {$winner->name}! Score: {$lockedWar->challenger_score} vs {$lockedWar->defender_score}. Buit: €" . number_format($cashStolen + ($lockedWar->war_pot ?: 0), 0, ',', '.') . " en +{$respectReward} Respect!";
+                $lockedWar->summary = "🏆 Overwinning voor {$winner->name}! Score: {$lockedWar->challenger_score} vs {$lockedWar->defender_score}. Buit: €".number_format($cashStolen + ($lockedWar->war_pot ?: 0), 0, ',', '.')." en +{$respectReward} Respect!";
             } else {
                 // Onbeslist
                 $lockedWar->summary = "Gelijkspel! Beide bendes hebben de strijd gestaakt met gelijke score ({$lockedWar->challenger_score} - {$lockedWar->defender_score}).";
@@ -161,7 +163,7 @@ class GangWar extends Model
                 ->orWhere('defender_gang_id', $gangId);
         })
             ->where('status', 'active')
-            ->where('ends_at', '>', now())
+            ->latest('id')
             ->first();
     }
 

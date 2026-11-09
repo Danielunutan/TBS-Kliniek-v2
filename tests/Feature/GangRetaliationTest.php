@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\BloodFeud;
 use App\Models\Character;
 use App\Models\Gang;
-use App\Models\GangAttack;
 use App\Models\GangWar;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -153,5 +152,6 @@ class GangRetaliationTest extends TestCase
         $dashRes = $this->actingAs($user)->get(route('dashboard'));
         $dashRes->assertOk();
         $dashRes->assertSee('MIXXR Radio', false);
+        $dashRes->assertDontSee('Radio Kliniek FM', false);
     }
 }

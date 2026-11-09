@@ -106,7 +106,7 @@ return new class extends Migration
                     'migration' => '2026_11_07_120000_auto_solve_support_ticket_tbs_5ef_456',
                 ]
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Failed to log support_ticket_reply audit record in migration: '.$e->getMessage());
         }
     }

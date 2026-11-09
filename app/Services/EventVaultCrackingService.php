@@ -136,6 +136,9 @@ class EventVaultCrackingService
         $rows = EventVaultCracking::select('character_id', DB::raw('SUM(amount) as total_cracked'), DB::raw('MIN(created_at) as first_cracked_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
+            ->whereHas('character', function ($q) {
+                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+            })
             ->groupBy('character_id')
             ->orderByDesc('total_cracked')
             ->orderBy('first_cracked_at', 'asc')

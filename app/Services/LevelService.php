@@ -29,6 +29,11 @@ class LevelService
     public function addXp(Character $character, int $xpGain): array
     {
         $xpGain = max(0, $xpGain);
+        $comfortBonus = $character->getCellComfortBonusPct();
+        if ($comfortBonus > 0 && $xpGain > 0) {
+            $xpGain = (int) round($xpGain * (1.0 + ($comfortBonus / 100)));
+        }
+
         $oldLevel = $character->level;
         $character->xp += $xpGain;
         $character->total_xp += $xpGain;

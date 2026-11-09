@@ -466,7 +466,7 @@ class GangPropertyController extends Controller
             AuditLogService::log(
                 action: 'gang.scrap_vehicle',
                 category: 'gang',
-                description: "Bendevoertuig '{$vehicleName}' gesloopt voor €".number_format($scrapValue, 0, ',', '.')." schrootwaarde in bendekas",
+                description: "Bendevoertuig '{$vehicleName}' gesloopt voor €".number_format($scrapValue, 0, ',', '.').' schrootwaarde in bendekas',
                 character: $character,
                 user: $character->user,
                 amount: $scrapValue,
@@ -477,7 +477,7 @@ class GangPropertyController extends Controller
                 ]
             );
 
-            return back()->with('success', "🗑️ Bendevoertuig '{$vehicleName}' gesloopt. De schrootwaarde van €".number_format($scrapValue, 0, ',', '.')." is bijgeschreven in de bendekas!");
+            return back()->with('success', "🗑️ Bendevoertuig '{$vehicleName}' gesloopt. De schrootwaarde van €".number_format($scrapValue, 0, ',', '.').' is bijgeschreven in de bendekas!');
         });
     }
 
@@ -682,7 +682,7 @@ class GangPropertyController extends Controller
                     /** @var Gang $lockedGang */
                     $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
                     if ($lockedGang->treasury < $cost) {
-                        throw new \RuntimeException("Onvoldoende saldo in de bendekas! {$spec['name']} kost €".number_format($cost, 0, ',', '.')." voor deze cyclus (de kas bevat €".number_format($lockedGang->treasury, 0, ',', '.').').');
+                        throw new \RuntimeException("Onvoldoende saldo in de bendekas! {$spec['name']} kost €".number_format($cost, 0, ',', '.').' voor deze cyclus (de kas bevat €'.number_format($lockedGang->treasury, 0, ',', '.').').');
                     }
                     $lockedGang->treasury -= $cost;
                     $lockedGang->save();
@@ -704,7 +704,10 @@ class GangPropertyController extends Controller
                         ]
                     );
                 } else {
-                    $lockedProperty->assigned_npc_key = null;
+                    $assignedGangNpc = GangNpc::where('gang_id', $gang->id)
+                        ->where('assigned_property_id', $lockedProperty->id)
+                        ->first();
+                    $lockedProperty->assigned_npc_key = $assignedGangNpc?->npc_key;
                 }
 
                 $durationMinutes = $lockedProperty->effective_duration_minutes;
@@ -781,7 +784,6 @@ class GangPropertyController extends Controller
                 $lockedChar->save();
             }
 
-            $hadAssignedNpc = $lockedProperty->assigned_npc_key;
             $lockedProperty->update([
                 'production_status' => 'idle',
                 'production_started_at' => null,
@@ -789,11 +791,9 @@ class GangPropertyController extends Controller
                 'assigned_npc_key' => null,
             ]);
 
-            if ($hadAssignedNpc) {
-                GangNpc::where('gang_id', $lockedGang->id)
-                    ->where('assigned_property_id', $lockedProperty->id)
-                    ->delete();
-            }
+            GangNpc::where('gang_id', $lockedGang->id)
+                ->where('assigned_property_id', $lockedProperty->id)
+                ->delete();
 
             AuditLogService::log(
                 action: 'gang.claim_production',

@@ -2059,16 +2059,16 @@
 
             <!-- TAB 2: WINKEL -->
             @php
-                $gangTreasury = $myGang ? (int) ($myGang->treasury ?? 0) : 0;
-                $gangStars = $myGang ? (int) ($myGang->gang_stars ?? 0) : 0;
-                $personalCash = (int) ($character->cash ?? 0);
-                $personalStars = (int) ($character->stars ?? 0);
+                $gangTreasury = max(0, $myGang ? (int) ($myGang->treasury ?? 0) : 0);
+                $gangStars = max(0, $myGang ? (int) ($myGang->gang_stars ?? 0) : 0);
+                $personalCash = max(0, (int) ($character->cash ?? 0));
+                $personalStars = max(0, (int) ($character->stars ?? 0));
 
                 // Shop items can ONLY be bought with money from the gangpot (gang treasury)
                 $remainingKioskSlots = max(0, 1000 - (int) ($myGang?->bling_shops ?? 0));
-                $possibleBlingShops = min($remainingKioskSlots, (int) floor($gangTreasury / 50000));
-                $possibleProtection = (int) floor($gangTreasury / 15000);
-                $possiblePower = (int) floor($gangTreasury / 15000);
+                $possibleBlingShops = max(0, min($remainingKioskSlots, (int) floor($gangTreasury / 50000)));
+                $possibleProtection = max(0, (int) floor($gangTreasury / 15000));
+                $possiblePower = max(0, (int) floor($gangTreasury / 15000));
 
                 $currentMembersLimit = $myGang ? ($myGang->max_members ?? 10) : 10;
                 $remainingCapacity = max(0, 35 - $currentMembersLimit);
@@ -2114,6 +2114,11 @@
                             <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase flex items-center justify-center gap-1">
                                 <i class="fa-solid fa-vault text-emerald-600 dark:text-emerald-400 text-[10px]"></i> Bende Kas (Gangpot)
                             </span>
+                            @if(($myGang?->protected_treasury ?? 0) > 0)
+                                <span class="mt-1 inline-flex items-center gap-1 text-[9px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/60">
+                                    <i class="fa-solid fa-shield-halved text-[8px]"></i> €{{ number_format($myGang->protected_treasury, 0, ',', '.') }} kluis-beschermd tegen overvallen
+                                </span>
+                            @endif
                         </div>
                         <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70">
                             <div class="text-base sm:text-xl font-extrabold text-slate-700 dark:text-slate-200 font-mono">
@@ -2317,7 +2322,8 @@
                             <form action="{{ route('gangs.shop-buy') }}" method="POST" class="space-y-3">
                                 @csrf
                                 <input type="hidden" name="item_type" value="protection">
-                                <input type="hidden" name="quantity" :value="qty">
+                                <input type="hidden" name="quantity" :value="mode === 'budget' ? '' : qty">
+                                <input type="hidden" name="budget_cash" :value="mode === 'budget' ? budgetCash : ''">
 
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                                     <template x-if="mode === 'budget'">
@@ -2342,7 +2348,7 @@
                                                        x-model.number="qty" 
                                                        @input="onQtyChange()"
                                                        min="1"
-                                                       :max="maxQty"
+                                                       :max="Math.max(1, maxQty)"
                                                        placeholder="Aantal stuks"
                                                        class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-black text-slate-900 dark:text-white font-mono focus:outline-none focus:border-indigo-500">
                                             </div>
@@ -2484,7 +2490,8 @@
                             <form action="{{ route('gangs.shop-buy') }}" method="POST" class="space-y-3">
                                 @csrf
                                 <input type="hidden" name="item_type" value="power">
-                                <input type="hidden" name="quantity" :value="qty">
+                                <input type="hidden" name="quantity" :value="mode === 'budget' ? '' : qty">
+                                <input type="hidden" name="budget_cash" :value="mode === 'budget' ? budgetCash : ''">
 
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                                     <template x-if="mode === 'budget'">
@@ -2509,7 +2516,7 @@
                                                        x-model.number="qty" 
                                                        @input="onQtyChange()"
                                                        min="1"
-                                                       :max="maxQty"
+                                                       :max="Math.max(1, maxQty)"
                                                        placeholder="Aantal stuks"
                                                        class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-black text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500">
                                             </div>
@@ -4792,7 +4799,7 @@
                                     Officiële 24-Uurs Bendeoorlogen
                                 </h3>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
-                                    In plaats van doelloos schieten vechten bendes in een officiële 24-uurs oorlog om strategische zones (zoals de Luchtplaats, Kantine en Smokkellijn). De winnaar pakt aanzien, 10% van de vijandelijke kas en 24 uur lang +20% bende-uurloon!
+                                    In plaats van doelloos schieten vechten bendes in een officiële 24-uurs oorlog om strategische zones (zoals de Luchtplaats, Kantine en Smokkellijn). De winnaar pakt aanzien, 10% van de vijandelijke kas en 24 uur lang +25% bende-uurloon!
                                 </p>
                             </div>
 
@@ -4801,7 +4808,7 @@
                                     <i class="fa-solid fa-crown text-amber-500 text-sm"></i>
                                     <div>
                                         <span>Kliniek Heerschappij Actief!</span>
-                                        <span class="block text-[10px] font-medium opacity-80">+20% Bende-uurloon bonus</span>
+                                        <span class="block text-[10px] font-medium opacity-80">+25% Bende-uurloon bonus</span>
                                     </div>
                                 </div>
                             @endif
@@ -4912,11 +4919,16 @@
 
                                     <div class="shrink-0 flex items-center justify-end gap-2">
                                         @if($myGang->isOfficer($character) && !isset($activeWar) && !$isAlly && (int)$myGang->treasury >= 250000)
-                                            <form action="{{ route('gangs.declare-war') }}" method="POST"
-                                                  onsubmit="return confirm('Weet je zeker dat je een officiële 24-uurs bendeoorlog wilt verklaren aan {{ $rg->name }}? De inzet bedraagt €250.000 uit de bende kluis.');">
+                                            <form action="{{ route('gangs.declare-war') }}" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="target_gang_id" value="{{ $rg->id }}">
-                                                <button type="submit" class="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer">
+                                                <button type="submit" 
+                                                        data-confirm="Weet je zeker dat je een officiële 24-uurs bendeoorlog wilt verklaren aan {{ $rg->name }}? De inzet bedraagt €250.000 uit de bende kluis."
+                                                        data-confirm-title="24-Uurs Bendeoorlog Verklaren"
+                                                        data-confirm-btn="Oorlog Verklaren"
+                                                        data-confirm-type="warning"
+                                                        data-confirm-icon="fa-flag"
+                                                        class="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fa-solid fa-flag"></i>
                                                     <span>24u Oorlog</span>
                                                 </button>

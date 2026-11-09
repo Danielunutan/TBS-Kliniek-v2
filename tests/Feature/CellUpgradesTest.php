@@ -4,8 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\User;
-use App\Services\EnergyService;
-use App\Support\CellUpgradeCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -83,4 +81,3 @@ class CellUpgradesTest extends TestCase
         $this->assertEquals(10000, $character->cash);
     }
 }
-

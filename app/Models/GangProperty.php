@@ -155,11 +155,18 @@ class GangProperty extends Model
             ->where('assigned_property_id', $this->id)
             ->first();
 
+        $hasAssignedNpcYield = false;
         if ($assignedNpc && $assignedNpc->isActive() && $assignedNpc->bonus_type === 'production_yield') {
             $bonusFactor = 1 + ($assignedNpc->bonus_value / 100);
             $baseCash = (int) round($baseCash * $bonusFactor);
-        } elseif ($this->assigned_npc_key === 'productie_manager') {
-            $baseCash = (int) round($baseCash * 2.0); // Doubled cash payout for batch production manager!
+            $hasAssignedNpcYield = true;
+        }
+
+        // Batch production manager doubles cash payout (+100%) when hired for a cycle
+        if ($this->assigned_npc_key === 'productie_manager') {
+            if (! $hasAssignedNpcYield) {
+                $baseCash = (int) round($baseCash * 2.0);
+            }
         }
 
         return [

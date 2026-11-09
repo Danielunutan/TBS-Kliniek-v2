@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * Class Gang
@@ -190,9 +192,9 @@ class Gang extends Model
             return false;
         }
 
-        $dt = $this->war_dominance_until instanceof \Carbon\CarbonInterface
+        $dt = $this->war_dominance_until instanceof CarbonInterface
             ? $this->war_dominance_until
-            : \Illuminate\Support\Carbon::parse($this->war_dominance_until);
+            : Carbon::parse($this->war_dominance_until);
 
         return $dt->isFuture();
     }

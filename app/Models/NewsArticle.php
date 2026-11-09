@@ -276,7 +276,8 @@ class NewsArticle extends Model
         $text = preg_replace('/~~(.*?)~~/s', '<del class="line-through text-slate-400">$1</del>', $text);
 
         // GitHub-style Markdown Alerts: > [!IMPORTANT], > [!NOTE], > [!TIP], > [!WARNING], > [!CAUTION]
-        $text = preg_replace_callback('/(?:^(?:>|&gt;)[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\r?\n)((?:^(?:>|&gt;)[ \t]*.*$\r?\n?)+)/m', function ($matches) {
+        $alertPlaceholders = [];
+        $text = preg_replace_callback('/(?:^(?:>|&gt;)[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\r?\n)((?:^(?:>|&gt;)[ \t]*.*$\r?\n?)+)/mi', function ($matches) use (&$alertPlaceholders) {
             $type = strtoupper($matches[1]);
             $body = preg_replace('/^(?:>|&gt;)[ \t]?/m', '', $matches[2]);
             $body = trim($body);
@@ -289,15 +290,45 @@ class NewsArticle extends Model
                 default => ['border-purple-500', 'bg-purple-500/10 dark:bg-purple-950/40', 'text-purple-700 dark:text-purple-300', 'fa-circle-exclamation', 'Belangrijk'],
             };
 
-            // Format body inner lists or lines if needed
-            $body = preg_replace('/^[ \t]*[\-\*]\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 dark:text-slate-300 font-medium leading-relaxed">$1</li>', $body);
+            // Format body inline formatting
             $body = preg_replace('/(\*\*|\[b\])(.*?)(\*\*|\[\/b\])/is', '<strong class="font-extrabold text-slate-900 dark:text-white">$2</strong>', $body);
+            $body = preg_replace('/(\*|\[i\])(.*?)(\*|\[\/i\])/is', '<em class="italic text-slate-700 dark:text-slate-300">$2</em>', $body);
 
-            return "\n\n<div class=\"my-4 p-4 rounded-2xl {$bgClass} border-l-4 {$borderClass} shadow-xs\">\n"
+            // Group list items into <ul> directly inside alert body
+            if (preg_match('/^[ \t]*[\-\*]\s+/m', $body)) {
+                $body = preg_replace('/^[ \t]*[\-\*]\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 dark:text-slate-300 font-medium leading-relaxed">$1</li>', $body);
+                $body = preg_replace_callback('~((?:<li[^>]*>.*?</li>\s*)+)~s', function ($m) {
+                    $cleanItems = preg_replace('~</li>\s+<li~', '</li><li', trim($m[1]));
+
+                    return '<ul class="my-2 space-y-1">'.$cleanItems.'</ul>';
+                }, $body);
+            }
+
+            // Split by <ul>...</ul> to apply nl2br only to non-list text
+            $parts = preg_split('~(<ul\b[^>]*>.*?</ul>)~s', $body, -1, PREG_SPLIT_DELIM_CAPTURE);
+            $formattedParts = [];
+            foreach ($parts as $part) {
+                if (str_starts_with(trim($part), '<ul')) {
+                    $formattedParts[] = trim($part);
+                } else {
+                    $trimmed = trim($part);
+                    if ($trimmed !== '') {
+                        $formattedParts[] = nl2br($trimmed);
+                    }
+                }
+            }
+            $formattedBody = implode("\n", $formattedParts);
+
+            $alertHtml = "<div class=\"my-4 p-4 rounded-2xl {$bgClass} border-l-4 {$borderClass} shadow-xs\">\n"
                 ."<div class=\"flex items-center gap-2 mb-2 font-black text-xs uppercase tracking-wider {$titleClass}\"><i class=\"fa-solid {$icon}\"></i> {$defaultTitle}</div>\n"
-                ."<div class=\"text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed\">\n"
-                .nl2br($body)."\n"
-                ."</div>\n</div>\n\n";
+                ."<div class=\"text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed space-y-2\">\n"
+                .$formattedBody."\n"
+                ."</div>\n</div>";
+
+            $token = '<!--TBS_ALERT_'.count($alertPlaceholders).'-->';
+            $alertPlaceholders[$token] = $alertHtml;
+
+            return "\n\n".$token."\n\n";
         }, $text);
 
         // Quote
@@ -314,7 +345,7 @@ class NewsArticle extends Model
                 return '';
             }
 
-            return "<blockquote class=\"border-l-4 border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 dark:text-purple-200 italic\">".nl2br($inner)."</blockquote>\n";
+            return '<blockquote class="border-l-4 border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 dark:text-purple-200 italic">'.nl2br($inner)."</blockquote>\n";
         }, $text);
 
         // Community Credit Box: [credit=Username]Message[/credit]
@@ -374,14 +405,20 @@ class NewsArticle extends Model
                 return '';
             }
 
-            // Leave segments that already start with a block-level HTML tag as-is
-            if (preg_match('~^\s*<(?:h[1-6]|hr|ul|ol|li|div|blockquote|p)[ >]~i', $trimmed)) {
+            // Leave segments that already start with a block-level HTML tag or alert placeholder as-is
+            if (preg_match('~^\s*<(?:h[1-6]|hr|ul|ol|li|div|blockquote|p|!--)[ >]~i', $trimmed) || str_starts_with($trimmed, '<!--TBS_ALERT_')) {
                 return $trimmed;
             }
 
             return '<p class="mb-2 leading-relaxed">'.nl2br($trimmed).'</p>';
         }, $segments);
 
-        return implode('', $segments);
+        $html = implode('', $segments);
+
+        if (! empty($alertPlaceholders)) {
+            $html = str_replace(array_keys($alertPlaceholders), array_values($alertPlaceholders), $html);
+        }
+
+        return $html;
     }
 }

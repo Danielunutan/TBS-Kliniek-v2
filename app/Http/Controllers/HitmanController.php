@@ -180,6 +180,7 @@ class HitmanController extends Controller
 
         $escapedQ = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], strtolower($q));
         $targets = Character::where('id', '!=', $character->id)
+            ->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES)
             ->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", ['%'.$escapedQ.'%'])
             ->orderBy('name')
             ->limit(20)
@@ -581,11 +582,12 @@ class HitmanController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen liquidatieopdrachten uitvoeren!');
         }
 
-        if ($character->isInVoluntaryIsolation() && ! $request->boolean('confirm_break_isolation')) {
-            $remaining = $character->protection_until->diffForHumans(null, true);
+        if ($character->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
+            $remaining = $character->protection_until ? $character->protection_until->diffForHumans(null, true) : 'onbekend';
+            $shieldLabel = $character->hasMedicalShield() ? 'Medisch Infuus-Schild' : 'Vrijwillige Isolatie';
 
             return back()
-                ->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een contract uit te zetten.")
+                ->with('error', "⚠️ Je hebt momenteel een actief {$shieldLabel} (nog {$remaining})! Bevestig dat je je bescherming wilt beëindigen om een contract uit te zetten.")
                 ->with('error_url', route('isolation.index'));
         }
 
@@ -615,6 +617,10 @@ class HitmanController extends Controller
         $contract = $config[$validated['contract_id']];
         $target = Character::findOrFail($validated['target_id']);
 
+        if (in_array($target->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+            return back()->with('error', 'Dit doelwit kan niet worden aangevallen!');
+        }
+
         if ($target->id === $character->id) {
             return back()->with('error', 'Je kunt geen contract op jezelf plaatsen!');
         }
@@ -642,8 +648,8 @@ class HitmanController extends Controller
             return back()->with('error', 'Dit contract kost €'.number_format($contract['cost'], 0, ',', '.').'. Je hebt onvoldoende geld.');
         }
 
-        return Cache::lock('character_action_'.$target->user_id, 10)->block(5, function () use ($character, $target, $contract, $bloodFeud): RedirectResponse {
-            return DB::transaction(function () use ($character, $target, $contract, $bloodFeud): RedirectResponse {
+        return Cache::lock('character_action_'.$target->user_id, 10)->block(5, function () use ($character, $target, $contract): RedirectResponse {
+            return DB::transaction(function () use ($character, $target, $contract): RedirectResponse {
                 $firstId = min($character->id, $target->id);
                 $secondId = max($character->id, $target->id);
                 $lockedPair = Character::whereIn('id', [$firstId, $secondId])
@@ -747,11 +753,12 @@ class HitmanController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand liquideren!');
         }
 
-        if ($attacker->isInVoluntaryIsolation() && ! $request->boolean('confirm_break_isolation')) {
-            $remaining = $attacker->protection_until->diffForHumans(null, true);
+        if ($attacker->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
+            $remaining = $attacker->protection_until ? $attacker->protection_until->diffForHumans(null, true) : 'onbekend';
+            $shieldLabel = $attacker->hasMedicalShield() ? 'Medisch Infuus-Schild' : 'Vrijwillige Isolatie';
 
             return back()
-                ->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een liquidatie uit te voeren.")
+                ->with('error', "⚠️ Je hebt momenteel een actief {$shieldLabel} (nog {$remaining})! Bevestig dat je je bescherming wilt beëindigen om een liquidatie uit te voeren.")
                 ->with('error_url', route('isolation.index'));
         }
 
@@ -776,6 +783,10 @@ class HitmanController extends Controller
 
         if ($defender->id === $attacker->id) {
             return back()->with('error', 'Je kunt niet op jezelf schieten!');
+        }
+
+        if (in_array($defender->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+            return back()->with('error', 'Dit doelwit kan niet worden aangevallen!');
         }
 
         if ($defender->isImprisoned()) {
@@ -1110,6 +1121,8 @@ class HitmanController extends Controller
                                 'expires_at' => now()->addDays(7),
                             ]);
                         }
+
+                        Cache::put($pairKillKey, $pairKillsToday + 1, now()->endOfDay());
 
                         $lockedAttacker->addRespect($baseRespect);
                         $this->level->addXp($lockedAttacker, 400);

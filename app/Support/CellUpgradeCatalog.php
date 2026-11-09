@@ -120,4 +120,3 @@ class CellUpgradeCatalog
         return array_merge($tierData, ['level' => $nextLevel]);
     }
 }
-

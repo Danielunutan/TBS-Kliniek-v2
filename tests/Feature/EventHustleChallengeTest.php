@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\EventHustleEntry;
-use App\Models\NewsArticle;
 use App\Models\User;
 use App\Services\EventHustleChallengeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,6 +64,8 @@ class EventHustleChallengeTest extends TestCase
         $leaderboardData = EventHustleChallengeService::getLeaderboardData();
         $this->assertEquals(1, count($leaderboardData['leaderboard']));
         $this->assertEquals('EchteSpeler', $leaderboardData['leaderboard'][0]['name']);
+        $this->assertEquals(1, $leaderboardData['total_participants']);
+        $this->assertEquals(1, $leaderboardData['total_hustles_completed']);
     }
 
     public function test_news_article_exists_and_contains_hustle_leaderboard_component(): void
@@ -88,4 +89,3 @@ class EventHustleChallengeTest extends TestCase
         $response->assertSee('Kliniek Telecom', false);
     }
 }
-

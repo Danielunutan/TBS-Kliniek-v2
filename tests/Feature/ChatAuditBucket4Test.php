@@ -151,7 +151,7 @@ class ChatAuditBucket4Test extends TestCase
         $this->assertFileExists($pandenPath);
         $pandenContent = file_get_contents($pandenPath);
         $this->assertStringNotContainsString('onclick="return confirm(@js(', $pandenContent);
-        $this->assertStringContainsString('data-confirm="Weet je zeker dat je {{ $npcDef[\'name\'] }} wilt aannemen voor €{{ number_format($npcDef[\'cost\'], 0, \',\', \'.\') }} uit de bendekas?"', $pandenContent);
+        $this->assertStringContainsString('data-confirm="Weet je zeker dat je {{ $npcDef[\'name\'] }} wilt aannemen voor een 30-minuten shift voor €{{ number_format($npcDef[\'cost\'], 0, \',\', \'.\') }} uit de bendekas?"', $pandenContent);
 
         // 5. game/profile.blade.php
         $profilePath = resource_path('views/game/profile.blade.php');

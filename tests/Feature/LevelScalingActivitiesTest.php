@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
-use App\Models\Item;
 use App\Models\User;
 use App\Services\CooldownService;
 use Illuminate\Foundation\Testing\RefreshDatabase;

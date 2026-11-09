@@ -150,4 +150,3 @@ class TheftPvpLimitTest extends TestCase
         $this->assertEquals(5, (int) Cache::get($key));
     }
 }
-

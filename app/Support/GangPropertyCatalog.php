@@ -880,7 +880,7 @@ class GangPropertyCatalog
 
         $reason = null;
         if (! $allQualified) {
-            $reason = "Bende garage voldoet niet aan de voertuigeisen voor '{$catalogProp['name']}': " . implode(', ', $failedLabels) . '. Parkeer geschikte voertuigen in de Bende Garage.';
+            $reason = "Bende garage voldoet niet aan de voertuigeisen voor '{$catalogProp['name']}': ".implode(', ', $failedLabels).'. Parkeer geschikte voertuigen in de Bende Garage.';
         }
 
         return [
@@ -968,7 +968,6 @@ class GangPropertyCatalog
      * Costs scale proportionally with the property's base cash reward,
      * ensuring specialists are ALWAYS affordable and profitable for every tier of property.
      *
-     * @param int $baseRewardCash
      * @return array<string, array{key: string, name: string, cost: int, benefit: string, icon: string}>
      */
     public static function getBatchSpecialists(int $baseRewardCash = 0): array

@@ -371,7 +371,7 @@ class GarageController extends Controller
 
             $isOwner = (int) $characterVehicle->character_id === (int) $character->id;
             $isGangOfficer = $gang->isOfficer($character);
-            if (! ($isOwner || $isGangOfficer || $characterVehicle->is_gang_owned)) {
+            if (! ($isOwner || $isGangOfficer)) {
                 return back()->with('error', 'Alleen de eigenaar of bendebeheerders kunnen bendevoertuigen reviseren.');
             }
 
@@ -413,7 +413,7 @@ class GarageController extends Controller
                     ]
                 );
 
-                return back()->with('success', "🔧 Bende Garage revisie voltooid! {$lockedVehicle->vehicle->name} is weer in topconditie (100%) gebracht voor €".number_format($cost, 0, ',', '.')." vanuit de bendekas (persoonlijk saldo onaangeroerd).");
+                return back()->with('success', "🔧 Bende Garage revisie voltooid! {$lockedVehicle->vehicle->name} is weer in topconditie (100%) gebracht voor €".number_format($cost, 0, ',', '.').' vanuit de bendekas (persoonlijk saldo onaangeroerd).');
             });
         }
 

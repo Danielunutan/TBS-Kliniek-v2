@@ -357,6 +357,11 @@ class TheftService
                     ? max(1, (int) floor($cashStolen * 0.50))
                     : $cashStolen;
 
+                $safeProtectionPct = $lockedVictim->getCellCashProtectionPct();
+                if ($safeProtectionPct > 0) {
+                    $effectiveCashStolen = (int) floor($effectiveCashStolen * (1.0 - ($safeProtectionPct / 100)));
+                }
+
                 $available = max(0, (int) $lockedVictim->cash);
                 $taken = min($effectiveCashStolen, $available);
 

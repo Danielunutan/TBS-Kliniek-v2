@@ -247,18 +247,18 @@ class FightController extends Controller
                     if ($activeWar) {
                         $activeWar->addScore((int) $lockedAttacker->gang_id, 20);
                     }
+                }
 
-                    // If attacker attacked a member of another gang, victim's gang gets immediate retaliation rights
-                    if ($lockedDefender->gang_id !== $lockedAttacker->gang_id) {
-                        BloodFeud::firstOrCreate([
-                            'attacker_id' => $lockedAttacker->id,
-                            'victim_id' => $lockedDefender->id,
-                            'victim_gang_id' => $lockedDefender->gang_id,
-                            'is_avenged' => false,
-                        ], [
-                            'expires_at' => now()->addDays(7),
-                        ]);
-                    }
+                // If attacker attacked a member of another gang, victim's gang gets immediate retaliation rights
+                if ($lockedDefender->gang_id && (int) $lockedDefender->gang_id !== (int) $lockedAttacker->gang_id) {
+                    BloodFeud::firstOrCreate([
+                        'attacker_id' => $lockedAttacker->id,
+                        'victim_id' => $lockedDefender->id,
+                        'victim_gang_id' => $lockedDefender->gang_id,
+                        'is_avenged' => false,
+                    ], [
+                        'expires_at' => now()->addDays(7),
+                    ]);
                 }
 
                 // Record in 24 Hour Battle & events

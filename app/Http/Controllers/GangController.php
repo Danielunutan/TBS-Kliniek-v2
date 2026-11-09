@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Character;
 use App\Models\CharacterItem;
 use App\Models\CharacterVehicle;
+use App\Models\ControlPoint;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\GangAlliance;
 use App\Models\GangAttack;
 use App\Models\GangDonation;
-use App\Models\ControlPoint;
 use App\Models\GangItem;
 use App\Models\GangRequest;
 use App\Models\GangWar;
@@ -21,6 +21,7 @@ use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\GangWageService;
 use App\Services\LevelService;
+use App\Support\GangPropertyCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -806,9 +807,10 @@ class GangController extends Controller
                 }
             }
 
-            // Return all gang-stored vehicles owned by the departing character back to their personal garage
+            // Return all gang-stored vehicles owned by the departing character back to their personal garage (excluding donated gang-owned vehicles)
             CharacterVehicle::where('character_id', $lockedChar->id)
                 ->where('in_gang_garage', true)
+                ->where('is_gang_owned', false)
                 ->update([
                     'in_gang_garage' => false,
                     'gang_id' => null,
@@ -1254,9 +1256,10 @@ class GangController extends Controller
                 return back()->with('error', 'Alleen de bendeleider kan een co-leider uit de bende zetten.');
             }
 
-            // Return all gang-stored vehicles owned by the kicked member back to their personal garage
+            // Return all gang-stored vehicles owned by the kicked member back to their personal garage (excluding donated gang-owned vehicles)
             CharacterVehicle::where('character_id', $lockedMember->id)
                 ->where('in_gang_garage', true)
+                ->where('is_gang_owned', false)
                 ->update([
                     'in_gang_garage' => false,
                     'gang_id' => null,
@@ -1568,6 +1571,7 @@ class GangController extends Controller
                 ->update([
                     'in_gang_garage' => false,
                     'gang_id' => null,
+                    'is_gang_owned' => false,
                     'stored_at' => null,
                     'stored_by_character_id' => null,
                 ]);
@@ -1635,9 +1639,10 @@ class GangController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
+        $hasBudget = $request->filled('budget_cash');
         $validated = $request->validate([
             'item_type' => ['required', 'string', 'in:bling_shops,protection,power,max_members,gang_chat'],
-            'quantity' => ['nullable', 'integer', 'min:1', 'max:1000000000'],
+            'quantity' => ['nullable', 'integer', $hasBudget ? 'min:0' : 'min:1', 'max:1000000000'],
             'budget_cash' => ['nullable', 'numeric', 'min:0'],
         ], [
             'quantity.min' => 'Kies minimaal 1 om aan te schaffen.',
@@ -1660,7 +1665,7 @@ class GangController extends Controller
             }
 
             // Automatic calculation if budget_cash was provided
-            if ($request->filled('budget_cash') && $qty < 1) {
+            if ($request->filled('budget_cash') && ($qty < 1 || $request->input('mode') === 'budget')) {
                 $unitPrice = match ($itemType) {
                     'bling_shops' => 50000,
                     'protection', 'power' => 15000,
@@ -1711,7 +1716,7 @@ class GangController extends Controller
 
                 case 'bling_shops':
                     $currentKiosks = (int) ($lockedGang->bling_shops ?? 0);
-                    $maxKiosks = \App\Services\GangWageService::MAX_CONTRIBUTING_KIOSKS;
+                    $maxKiosks = GangWageService::MAX_CONTRIBUTING_KIOSKS;
                     if ($currentKiosks >= $maxKiosks) {
                         return back()
                             ->with('active_gang_tab', 'winkel')
@@ -1737,7 +1742,7 @@ class GangController extends Controller
 
                     return back()
                         ->with('active_gang_tab', 'winkel')
-                        ->with('success', "Succesvol {$qty} Smokkelkiosk(en) aangeschaft vanuit de bende kas! Het bende-basisloon is verhoogd met +€".number_format($qty * \App\Services\GangWageService::SHOP_BONUS_WAGE, 0, ',', '.').' per uur!');
+                        ->with('success', "Succesvol {$qty} Smokkelkiosk(en) aangeschaft vanuit de bende kas! Het bende-basisloon is verhoogd met +€".number_format($qty * GangWageService::SHOP_BONUS_WAGE, 0, ',', '.').' per uur!');
 
                 case 'protection':
                     $unitPrice = 15000;
@@ -2388,7 +2393,7 @@ class GangController extends Controller
                 $formattedRemainingDefense = number_format($newTotalDefense, 0, ',', '.');
 
                 $protectedNote = $protectedTreasury > 0
-                    ? " (restitutietegoed van €".number_format($protectedTreasury, 0, ',', '.')." is kluis-beschermd tegen overvallen)"
+                    ? ' (restitutietegoed van €'.number_format($protectedTreasury, 0, ',', '.').' is kluis-beschermd tegen overvallen)'
                     : '';
 
                 $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! Gevechtsrol (±15%): Aanval {$formattedAttackRoll} ({$attackRollPercent}% van {$formattedAttackerPower} power) vs Verdediging {$formattedDefenseRoll} ({$defenseRollPercent}% van {$formattedTargetDefense} bescherming{$npcBreakdownText}). Buit: €{$formattedStolenCash} ({$lootPercent}% plunderbare kas{$protectedNote}) geplunderd, verdediging van tegenstander -{$formattedDefenseDamage} punten (-{$damagePercent}%, nieuw: {$formattedRemainingDefense}), +{$respectGain} respect!";
@@ -2628,7 +2633,7 @@ class GangController extends Controller
             'properties' => $properties,
             'storedVehicles' => $storedVehicles,
             'npcs' => $npcs,
-            'propertyCatalog' => \App\Support\GangPropertyCatalog::all(),
+            'propertyCatalog' => GangPropertyCatalog::all(),
         ]);
     }
 
@@ -2695,7 +2700,7 @@ class GangController extends Controller
 
         $entryStake = 250000;
         if ((int) $myGang->treasury < $entryStake) {
-            return back()->with('error', 'Er is minimaal €' . number_format($entryStake, 0, ',', '.') . ' in de bende kluis nodig als oorlogsinzet!');
+            return back()->with('error', 'Er is minimaal €'.number_format($entryStake, 0, ',', '.').' in de bende kluis nodig als oorlogsinzet!');
         }
 
         return DB::transaction(function () use ($myGang, $targetGang, $character, $entryStake) {
@@ -2713,7 +2718,7 @@ class GangController extends Controller
                 'ends_at' => now()->addHours(24),
                 'challenger_score' => 0,
                 'defender_score' => 0,
-                'war_pot' => $entryStake * 2,
+                'war_pot' => $entryStake,
                 'respect_pot' => 100,
             ]);
 
@@ -2766,6 +2771,7 @@ class GangController extends Controller
 
         if ($war->ends_at && $war->ends_at->isFuture()) {
             $minsLeft = (int) now()->diffInMinutes($war->ends_at);
+
             return back()->with('info', "De bendeoorlog is nog volop bezig! Resterende tijd: {$minsLeft} minuten.");
         }
 
@@ -2773,7 +2779,7 @@ class GangController extends Controller
 
         $msg = $winner
             ? "🏆 Bendeoorlog afgesloten! '{$winner->name}' is uitgeroepen tot overwinnaar en claimt de oorlogsbuit en kliniekheerschappij!"
-            : "⚖️ Bendeoorlog afgesloten in een gelijkspel!";
+            : '⚖️ Bendeoorlog afgesloten in een gelijkspel!';
 
         return back()
             ->with('active_gang_tab', 'oorlog')

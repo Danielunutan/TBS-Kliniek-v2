@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Models\Character;
 use App\Models\CharacterVehicle;
 use App\Models\Gang;
 use App\Models\GangProperty;
 use App\Models\Heist;
 use App\Models\User;
 use App\Models\Vehicle;
+use Database\Seeders\VehicleAndHeistSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,7 +20,7 @@ class VehiclesAndSpecialistsTest extends TestCase
     {
         parent::setUp();
         $this->seed();
-        $this->seed(\Database\Seeders\VehicleAndHeistSeeder::class);
+        $this->seed(VehicleAndHeistSeeder::class);
     }
 
     public function test_airplanes_and_motorcycles_qualify_for_heists(): void

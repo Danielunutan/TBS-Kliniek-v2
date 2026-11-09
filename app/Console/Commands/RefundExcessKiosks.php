@@ -6,6 +6,7 @@ use App\Models\GameMessage;
 use App\Models\Gang;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RefundExcessKiosks extends Command
 {
@@ -42,6 +43,9 @@ class RefundExcessKiosks extends Command
                 $refundAmount = $excess * $unitPrice;
                 $lockedGang->bling_shops = $max;
                 $lockedGang->treasury += $refundAmount;
+                if (Schema::hasColumn('gangs', 'protected_treasury')) {
+                    $lockedGang->protected_treasury = ($lockedGang->protected_treasury ?? 0) + $refundAmount;
+                }
                 $lockedGang->save();
 
                 $formattedExcess = number_format($excess, 0, ',', '.');
@@ -68,4 +72,3 @@ class RefundExcessKiosks extends Command
         return Command::SUCCESS;
     }
 }
-

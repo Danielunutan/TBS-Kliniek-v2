@@ -51,7 +51,7 @@ class CellController extends Controller
         $character = $user->character;
 
         if ($character->isComatose()) {
-            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een ' . Character::REVIVE_SERUM_NAME . ' toe.');
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $catalogItem = CellUpgradeCatalog::get($upgradeKey);
@@ -82,6 +82,7 @@ class CellController extends Controller
             $cost = (int) $nextTier['cost'];
             if ((int) $lockedCharacter->cash < $cost) {
                 $tekort = number_format($cost - (int) $lockedCharacter->cash, 0, ',', '.');
+
                 return back()->with('error', "Onvoldoende contant geld op zak! Je hebt €{$tekort} te weinig voor deze upgrade.");
             }
 
@@ -95,7 +96,7 @@ class CellController extends Controller
             AuditLogService::log(
                 action: 'cell.upgrade',
                 category: 'economy',
-                description: "Celupgrade aangeschaft: {$catalogItem['name']} naar Level {$newLevel} voor €" . number_format($cost, 0, ',', '.'),
+                description: "Celupgrade aangeschaft: {$catalogItem['name']} naar Level {$newLevel} voor €".number_format($cost, 0, ',', '.'),
                 character: $lockedCharacter,
                 user: $lockedCharacter->user,
                 amount: $cost,
@@ -110,4 +111,3 @@ class CellController extends Controller
         });
     }
 }
-

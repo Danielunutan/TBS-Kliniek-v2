@@ -3,11 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
-use App\Models\ControlPoint;
 use App\Models\Gang;
 use App\Models\GangWar;
 use App\Models\User;
-use App\Services\ControlPointService;
 use App\Services\GangWageService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -146,5 +144,128 @@ class GangWageScalingAndWarsTest extends TestCase
 
         // Loser loses 10% treasury
         $this->assertLessThan(1000000, $gangB->treasury);
+    }
+
+    public function test_gang_war_settle_respects_protected_treasury(): void
+    {
+        $gangA = Gang::create([
+            'name' => 'Syndicate Alpha',
+            'tag' => 'SA',
+            'specialty' => 'violence',
+            'treasury' => 500000,
+            'respect' => 100,
+        ]);
+
+        $gangB = Gang::create([
+            'name' => 'Syndicate Beta',
+            'tag' => 'SB',
+            'specialty' => 'violence',
+            'treasury' => 1000000000, // 1 Billion
+            'protected_treasury' => 1000000000, // All 1 Billion is protected
+            'respect' => 100,
+        ]);
+
+        $war = GangWar::create([
+            'challenger_gang_id' => $gangA->id,
+            'defender_gang_id' => $gangB->id,
+            'status' => 'active',
+            'started_at' => now()->subHours(25),
+            'ends_at' => now()->subHour(),
+            'challenger_score' => 100,
+            'defender_score' => 10,
+            'war_pot' => 500000,
+            'respect_pot' => 100,
+        ]);
+
+        // Settle war where gangB loses but has 100% protected treasury
+        $winner = $war->settle();
+
+        $this->assertNotNull($winner);
+        $this->assertEquals($gangA->id, $winner->id);
+
+        $gangB->refresh();
+        // Since lootable treasury is 0, protected treasury is untouched
+        $this->assertEquals(1000000000, $gangB->treasury);
+        $this->assertEquals(1000000000, $gangB->protected_treasury);
+    }
+
+    public function test_expired_active_war_can_be_found_and_settled(): void
+    {
+        $gangA = Gang::create([
+            'name' => 'Challenger Gang',
+            'tag' => 'CHL',
+            'specialty' => 'violence',
+            'treasury' => 500000,
+        ]);
+
+        $gangB = Gang::create([
+            'name' => 'Defender Gang',
+            'tag' => 'DEF',
+            'specialty' => 'violence',
+            'treasury' => 500000,
+        ]);
+
+        $war = GangWar::create([
+            'challenger_gang_id' => $gangA->id,
+            'defender_gang_id' => $gangB->id,
+            'status' => 'active',
+            'started_at' => now()->subHours(25),
+            'ends_at' => now()->subMinute(),
+            'challenger_score' => 50,
+            'defender_score' => 30,
+            'war_pot' => 500000,
+        ]);
+
+        // findActiveForGang must still find the unsettled expired war so the UI can settle it
+        $found = GangWar::findActiveForGang($gangA->id);
+        $this->assertNotNull($found);
+        $this->assertEquals($war->id, $found->id);
+
+        $found->settle();
+        $this->assertEquals('finished', $war->fresh()->status);
+
+        // Once finished, findActiveForGang must return null
+        $this->assertNull(GangWar::findActiveForGang($gangA->id));
+    }
+
+    public function test_negative_respect_does_not_produce_negative_wage_bonus(): void
+    {
+        $service = app(GangWageService::class);
+
+        $gang = Gang::create([
+            'name' => 'Zero Respect Gang',
+            'tag' => 'ZRG',
+            'specialty' => 'violence',
+            'respect' => -500000,
+            'treasury' => 100000,
+            'bling_shops' => 0,
+        ]);
+
+        $wage = $service->calculateHourlyWage($gang);
+        $this->assertGreaterThanOrEqual(GangWageService::BASE_HOURLY_WAGE, $wage);
+
+        $breakdown = $service->getWageBreakdown($gang);
+        $this->assertEquals(0, $breakdown['respect_bonus_pct']);
+    }
+
+    public function test_refund_excess_kiosks_command_increments_protected_treasury(): void
+    {
+        $gang = Gang::create([
+            'name' => 'Kiosk Hoarder Gang',
+            'tag' => 'KHG',
+            'specialty' => 'contraband',
+            'bling_shops' => 1500, // 500 excess
+            'treasury' => 100000,
+            'protected_treasury' => 50000,
+        ]);
+
+        $this->artisan('gang:refund-excess-kiosks', ['--max' => 1000, '--price' => 50000])
+            ->assertSuccessful();
+
+        $gang->refresh();
+        $this->assertEquals(1000, $gang->bling_shops);
+        // 500 excess * €50,000 = €25,000,000 refund
+        $this->assertEquals(100000 + 25000000, $gang->treasury);
+        $this->assertEquals(50000 + 25000000, $gang->protected_treasury);
     }
 }

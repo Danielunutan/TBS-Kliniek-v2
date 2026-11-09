@@ -240,7 +240,7 @@ REPLY;
                                 'note' => 'Auto-replied via level scaling balance update migration',
                             ]
                         );
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         // Suppress log failures during migration
                     }
                 }

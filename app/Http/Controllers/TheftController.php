@@ -80,7 +80,7 @@ class TheftController extends Controller
 
         if ($character->isInVoluntaryIsolation()) {
             if (! $request->boolean('confirm_break_isolation')) {
-                $remaining = $character->protection_until->diffForHumans(null, true);
+                $remaining = $character->protection_until ? $character->protection_until->diffForHumans(null, true) : 'onbekend';
 
                 return back()
                     ->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om deze diefstal uit te voeren.")
@@ -102,6 +102,9 @@ class TheftController extends Controller
             $victim = Character::find($validated['victim_id']);
             if ($victim && $victim->id === $character->id) {
                 return back()->with('error', 'Je kunt je eigen zakken niet leegrollen!');
+            }
+            if ($victim && in_array($victim->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+                return back()->with('error', 'Dit doelwit kan niet worden bestolen!');
             }
         }
 

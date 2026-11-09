@@ -77,4 +77,3 @@ class GangShopBudgetCalculationTest extends TestCase
         $this->assertEquals(1000 + (2 * 5000), $gang->protection_points);
     }
 }
-

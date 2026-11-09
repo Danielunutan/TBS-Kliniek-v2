@@ -53,10 +53,10 @@ class NewsSystemTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Kliniek Nieuws');
         $response->assertSee('Hyves');
-        $response->assertSee('iOS App Update');
 
         $page2 = $this->get(route('news.index', ['page' => 2]));
         $page2->assertStatus(200);
+        $page2->assertSee('iOS App Update');
         $page2->assertSee('Ghost Mode update');
     }
 

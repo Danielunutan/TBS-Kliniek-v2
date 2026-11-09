@@ -92,7 +92,7 @@ window.tbsDashboardCustomizer = function() {
             { id: 'lockers', label: 'Kluisjes Kraken', icon: 'fa-lock-open', url: '{{ route("lockers.index") }}', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/60' },
             { id: 'bank', label: 'Bank & Lening', icon: 'fa-building-columns', url: '{{ route("bank.index") }}', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60' },
             { id: 'casino', label: 'Casino', icon: 'fa-dice', url: '{{ route("casino.index") }}', color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/60' },
-            { id: 'radio', label: 'Afdelingsradio', icon: 'fa-radio', url: '{{ route("radio.index") }}', color: 'text-pink-600 bg-pink-50 dark:bg-pink-950/60' },
+            { id: 'radio', label: 'Afdelingsradio', icon: 'fa-radio', url: 'https://mixxr.nl', color: 'text-pink-600 bg-pink-50 dark:bg-pink-950/60' },
             { id: 'cell', label: 'Mijn Cel', icon: 'fa-bed', url: '{{ route("cell.index") }}', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60' },
             { id: 'daily', label: 'Rad van Fortuin', icon: 'fa-dharmachakra', url: '{{ route("daily.index") }}', color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60' },
             { id: 'gang', label: 'Mijn Bende', icon: 'fa-users', url: '{{ route("gangs.index") }}', color: 'text-violet-600 bg-violet-50 dark:bg-violet-950/60' }
@@ -1157,7 +1157,7 @@ function tbsDashboardCustomizer() {
                                     <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse">
                                         Live Audio Stream
                                     </span>
-                                    <span class="text-xs font-black text-slate-900 dark:text-white">Radio Kliniek FM</span>
+                                    <span class="text-xs font-black text-slate-900 dark:text-white">MIXXR Radio FM</span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     Luister live naar je favoriete zenders tijdens het spelen op de hele website!
@@ -1165,7 +1165,7 @@ function tbsDashboardCustomizer() {
                             </div>
                         </div>
 
-                        <a href="{{ route('radio.index') }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1.5 self-start sm:self-center">
+                        <a href="https://mixxr.nl" target="_blank" rel="noopener" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1.5 self-start sm:self-center">
                             <i class="fa-solid fa-microphone-lines"></i>
                             <span>Shoutout Sturen (€150)</span>
                         </a>
@@ -1312,7 +1312,7 @@ function tbsDashboardCustomizer() {
                             <!-- Feedback melding -->
                             <template x-if="feedback">
                                 <div class="p-3 rounded-xl text-xs flex items-center gap-2.5"
-                                     :class="feedback.isError ? 'bg-rose-50 dark:rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'">
+                                     :class="feedback.isError ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'">
                                     <i class="fa-solid text-sm" :class="feedback.isError ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-check text-emerald-500'"></i>
                                     <span class="font-medium" x-text="feedback.message"></span>
                                 </div>

@@ -18,7 +18,7 @@ return new class extends Migration
             ->orWhere('name', 'Daniel')
             ->first() ?? Character::first();
 
-        $authorId = $authorChar ? $authorChar->id : 1;
+        $authorId = $authorChar?->id;
 
         $content = <<<'HTML'
 <div class="space-y-6 text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -69,9 +69,8 @@ HTML;
                 ['slug' => 'bendeoorlogen-celupgrades-en-nieuw-uurloon-systeem'],
                 [
                     'title' => 'Bendeoorlogen, Celupgrades en Nieuw Uurloon Systeem',
-                    'category' => 'Spelupdate',
                     'content' => $content,
-                    'author_character_id' => $authorId,
+                    'character_id' => $authorId,
                     'is_published' => true,
                     'published_at' => now(),
                 ]
@@ -95,7 +94,9 @@ HTML;
     public function down(): void
     {
         if (Schema::hasTable('news_articles')) {
-            NewsArticle::where('title', 'Bendeoorlogen, Celupgrades en Nieuw Uurloon Systeem')->delete();
+            NewsArticle::where('slug', 'bendeoorlogen-celupgrades-en-nieuw-uurloon-systeem')
+                ->orWhere('title', 'Bendeoorlogen, Celupgrades en Nieuw Uurloon Systeem')
+                ->delete();
         }
     }
 };

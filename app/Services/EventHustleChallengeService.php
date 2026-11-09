@@ -62,6 +62,10 @@ class EventHustleChallengeService
             return;
         }
 
+        if ($character instanceof Character && in_array($character->name, Character::EXCLUDED_SYSTEM_NAMES, true)) {
+            return;
+        }
+
         $characterId = $character instanceof Character ? $character->id : (int) $character;
         if (! $characterId) {
             return;
@@ -134,6 +138,9 @@ class EventHustleChallengeService
         $rows = EventHustleEntry::select('character_id', DB::raw('COUNT(*) as total_hustles'), DB::raw('MIN(created_at) as first_hustle_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
+            ->whereHas('character', function ($q) {
+                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+            })
             ->groupBy('character_id')
             ->orderByDesc('total_hustles')
             ->orderBy('first_hustle_at', 'asc')
@@ -298,7 +305,7 @@ class EventHustleChallengeService
         $title = 'SPOED EVENT De Grote Hossel Challenge - Win 750 Sterren + €150 Miljoen!';
 
         $content = "Beste patiënten en bewoners van de TBS Kliniek,\n\n"
-            ."Vanaf nu organiseren wij een gigantische nieuwe challenge die loopt tot en met donderdag 23.59 uur. "
+            .'Vanaf nu organiseren wij een gigantische nieuwe challenge die loopt tot en met donderdag 23.59 uur. '
             ."De speler die aan het einde van de race de allermeeste succesvolle hosselbeurten heeft neergezet op de zwaarste klussen, wint de ultieme hoofdprijs van maar liefst **750 Gouden Sterren ⭐ én €150.000.000 contant** op de bank!\n\n"
             ."[hustle_challenge_leaderboard]\n\n"
             ."### De Officiële Spelregels\n\n"

@@ -153,11 +153,11 @@ class LiquidatiePvPAndComaTest extends TestCase
         $shooter->refresh();
         $target->refresh();
 
-        // 45% of 100,000 cash = 45,000; 7% of 200,000 bank = 14,000; total = 59,000
+        // 45% of 100,000 cash = 45,000; bank is 100% safe (0% stolen); total = 45,000
         $this->assertEquals(49, $shooter->bullets);
-        $this->assertEquals(650000 + 59000, $shooter->cash);
+        $this->assertEquals(650000 + 45000, $shooter->cash);
         $this->assertEquals(55000, $target->cash);
-        $this->assertEquals(186000, $target->bank);
+        $this->assertEquals(200000, $target->bank);
         $this->assertEquals(9, $target->getLiquidationStreakDeaths());
         $this->assertTrue($target->isComatose());
         $this->assertEquals(0, $target->health);
@@ -238,7 +238,7 @@ class LiquidatiePvPAndComaTest extends TestCase
 
         $target->update(['daily_deaths_count' => 0, 'daily_deaths_date' => now()->format('Y-m-d')]);
 
-        for ($hit = 1; $hit <= 3; $hit++) {
+        for ($hit = 1; $hit <= Character::MAX_DAILY_LIQUIDATIONS_PER_TARGET; $hit++) {
             $shooter->refresh();
             $target->refresh();
             $shooter->update([
@@ -274,7 +274,7 @@ class LiquidatiePvPAndComaTest extends TestCase
             $resp->assertSessionHas('success');
         }
 
-        // 4th attempt on the same target today is blocked by Anti-Pestprotocol (max 3 per target per day)
+        // Subsequent attempt on the same target today is blocked by Anti-Pestprotocol
         $shooter->refresh();
         $target->refresh();
         $shooter->update([

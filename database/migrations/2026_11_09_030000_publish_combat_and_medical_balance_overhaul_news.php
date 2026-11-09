@@ -18,7 +18,7 @@ return new class extends Migration
             ->orWhere('name', 'Daniel')
             ->first() ?? Character::first();
 
-        $authorId = $authorChar ? $authorChar->id : 1;
+        $authorId = $authorChar?->id;
 
         $content = <<<'HTML'
 <div class="space-y-6 text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -81,11 +81,10 @@ HTML;
             ['slug' => 'grote-kliniek-balans-en-vechtsysteem-herziening'],
             [
                 'title' => 'Grote Kliniek Balans & Vechtsysteem Herziening',
-                'category' => 'Spelupdate',
-                'image' => 'images/news/pvp_update.png',
-                'excerpt' => 'Grondige herziening van het liquidatiesysteem met kogelplafonds, 100 procent veilige banken, wederzijdse levelgrenzen en een vol uur medische bescherming.',
+                'image_url' => 'images/news/pvp_update.png',
                 'content' => $content,
-                'author_id' => $authorId,
+                'character_id' => $authorId,
+                'is_published' => true,
                 'published_at' => now(),
                 'is_pinned' => true,
             ]
@@ -110,7 +109,7 @@ HTML;
                     );
                     Cache::forget("chat_last_id_{$ch}");
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
             }
         }
     }
@@ -123,4 +122,3 @@ HTML;
         NewsArticle::where('slug', 'grote-kliniek-balans-en-vechtsysteem-herziening')->delete();
     }
 };
-

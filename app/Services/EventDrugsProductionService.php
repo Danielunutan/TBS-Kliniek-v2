@@ -116,6 +116,9 @@ class EventDrugsProductionService
         $rows = EventDrugProduction::select('character_id', DB::raw('SUM(amount) as total_produced'), DB::raw('MIN(created_at) as first_produced_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<=', $end)
+            ->whereHas('character', function ($q) {
+                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+            })
             ->groupBy('character_id')
             ->orderByDesc('total_produced')
             ->orderBy('first_produced_at', 'asc')

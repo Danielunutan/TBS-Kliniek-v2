@@ -105,6 +105,9 @@ class EventCashHuntService
         $rows = EventCashEarning::select('character_id', DB::raw('SUM(amount) as total_earned'), DB::raw('MIN(created_at) as first_earned_at'))
             ->where('created_at', '>=', $start)
             ->where('created_at', '<', $end)
+            ->whereHas('character', function ($q) {
+                $q->whereNotIn('name', Character::EXCLUDED_SYSTEM_NAMES);
+            })
             ->groupBy('character_id')
             ->orderByDesc('total_earned')
             ->orderBy('first_earned_at', 'asc')

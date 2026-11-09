@@ -38,7 +38,7 @@ return new class extends Migration
                 $table->integer('challenger_score')->default(0);
                 $table->integer('defender_score')->default(0);
                 $table->foreignId('winner_gang_id')->nullable()->constrained('gangs')->nullOnDelete();
-                $table->integer('war_pot')->default(500000);
+                $table->unsignedBigInteger('war_pot')->default(500000);
                 $table->integer('respect_pot')->default(100);
                 $table->text('summary')->nullable();
                 $table->timestamps();
@@ -95,4 +95,3 @@ return new class extends Migration
         }
     }
 };
-

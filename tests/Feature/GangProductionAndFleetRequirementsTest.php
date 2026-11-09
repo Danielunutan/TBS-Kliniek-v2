@@ -11,6 +11,7 @@ use App\Models\Vehicle;
 use App\Services\GangWageService;
 use App\Support\GangPropertyCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class GangProductionAndFleetRequirementsTest extends TestCase
@@ -21,7 +22,7 @@ class GangProductionAndFleetRequirementsTest extends TestCase
     {
         return Vehicle::create([
             'name' => $name,
-            'slug' => \Illuminate\Support\Str::slug($name) . '-' . rand(1000, 9999),
+            'slug' => Str::slug($name).'-'.rand(1000, 9999),
             'type' => $type,
             'speed' => $speed,
             'price' => 100000,
@@ -37,7 +38,7 @@ class GangProductionAndFleetRequirementsTest extends TestCase
             'gang_role' => 'leader',
         ]);
         $gang = Gang::create([
-            'name' => 'Syndicate ' . rand(100, 999),
+            'name' => 'Syndicate '.rand(100, 999),
             'tag' => 'SYN',
             'specialty' => 'Transport',
             'treasury' => 10000000,

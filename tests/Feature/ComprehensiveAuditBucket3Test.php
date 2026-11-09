@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\ArmWrestleMatch;
-use App\Models\BankTransaction;
 use App\Models\Bounty;
 use App\Models\Character;
 use App\Models\CharacterVehicle;

@@ -2406,8 +2406,19 @@ class Character extends Model
      */
     public function activeVehicle(): ?CharacterVehicle
     {
-        return $this->characterVehicles()->where('in_gang_garage', false)->where('is_active', true)->with('vehicle')->first()
-            ?? $this->characterVehicles()->where('in_gang_garage', false)->with('vehicle')->first();
+        return $this->characterVehicles()
+            ->where('in_gang_garage', false)
+            ->where('is_for_sale', false)
+            ->where('current_condition', '>', 0)
+            ->where('is_active', true)
+            ->with('vehicle')
+            ->first()
+            ?? $this->characterVehicles()
+                ->where('in_gang_garage', false)
+                ->where('is_for_sale', false)
+                ->where('current_condition', '>', 0)
+                ->with('vehicle')
+                ->first();
     }
 
     /**
@@ -2541,6 +2552,11 @@ class Character extends Model
         }
 
         $amount = (float) $amount;
+
+        $comfortBonus = $this->getCellComfortBonusPct();
+        if ($comfortBonus > 0) {
+            $amount = round($amount * (1.0 + ($comfortBonus / 100)), 2);
+        }
 
         $today = now()->format('Y-m-d');
         $currentDate = $this->today_respect_date ? Carbon::parse($this->today_respect_date)->format('Y-m-d') : null;

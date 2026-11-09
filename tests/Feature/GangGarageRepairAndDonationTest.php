@@ -9,6 +9,7 @@ use App\Models\GangProperty;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class GangGarageRepairAndDonationTest extends TestCase
@@ -19,7 +20,7 @@ class GangGarageRepairAndDonationTest extends TestCase
     {
         return Vehicle::create([
             'name' => $name,
-            'slug' => \Illuminate\Support\Str::slug($name) . '-' . rand(1000, 9999),
+            'slug' => Str::slug($name).'-'.rand(1000, 9999),
             'type' => 'auto',
             'speed' => 90,
             'price' => $price,
@@ -39,7 +40,7 @@ class GangGarageRepairAndDonationTest extends TestCase
         ]);
 
         $gang = Gang::create([
-            'name' => 'Syndicate ' . rand(100, 999),
+            'name' => 'Syndicate '.rand(100, 999),
             'tag' => 'SYN',
             'specialty' => 'Transport',
             'treasury' => $treasury,

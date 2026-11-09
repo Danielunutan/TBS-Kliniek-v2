@@ -32,7 +32,7 @@
         return Math.min(1000, Math.max(0, parseInt(this.kiosks) || 0)) * 50;
     },
     get respectBonusPct() {
-        return Math.min(50, Math.floor((parseInt(this.respect) || 0) / 100000));
+        return Math.max(0, Math.min(50, Math.floor((Math.max(0, parseInt(this.respect) || 0)) / 100000)));
     },
     get warBonusPct() {
         return this.hasWarDominance ? 25 : 0;
@@ -373,7 +373,7 @@
                             <i class="fa-solid fa-trophy text-amber-500"></i>
                             <div>
                                 <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Kliniek Heerschappij (+25% Bendeoorlog Bonus)</span>
-                                <span class="text-[10px] text-slate-500 dark:text-slate-400">7 dagen lang na winst van een 24-uurs bendeoorlog.</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">24 uur lang na winst van een 24-uurs bendeoorlog.</span>
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">

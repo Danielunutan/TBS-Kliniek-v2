@@ -51,7 +51,7 @@ return new class extends Migration
                     );
                     Cache::forget("chat_last_id_{$ch}");
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Ignore chat broadcast errors in testing context
             }
         }
@@ -66,4 +66,3 @@ return new class extends Migration
         Schema::dropIfExists('event_hustle_entries');
     }
 };
-
