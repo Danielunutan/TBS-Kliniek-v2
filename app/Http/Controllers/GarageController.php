@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\CharacterVehicle;
+use App\Models\Gang;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\AuditLogService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
@@ -358,6 +360,67 @@ class GarageController extends Controller
 
         if ($characterVehicle->current_condition >= 100) {
             return back()->with('info', "De {$characterVehicle->vehicle->name} is al in topconditie (100%)!");
+        }
+
+        // Case 1: Voertuig staat in de Bende Garage -> Mag UITSLUITEND met bendekas geld gereviseerd worden
+        if ($characterVehicle->in_gang_garage) {
+            $gang = $character->gang;
+            if (! $gang || (int) $characterVehicle->gang_id !== (int) $gang->id) {
+                return back()->with('error', 'Dit voertuig staat niet in de garage van jouw bende.');
+            }
+
+            $isOwner = (int) $characterVehicle->character_id === (int) $character->id;
+            $isGangOfficer = $gang->isOfficer($character);
+            if (! ($isOwner || $isGangOfficer || $characterVehicle->is_gang_owned)) {
+                return back()->with('error', 'Alleen de eigenaar of bendebeheerders kunnen bendevoertuigen reviseren.');
+            }
+
+            return DB::transaction(function () use ($character, $characterVehicle, $gang) {
+                /** @var Gang $lockedGang */
+                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
+                /** @var CharacterVehicle $lockedVehicle */
+                $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->firstOrFail();
+
+                if ($lockedVehicle->current_condition >= 100) {
+                    return back()->with('info', "De {$lockedVehicle->vehicle->name} is al in topconditie (100%)!");
+                }
+
+                $cost = $lockedVehicle->repair_cost;
+                if ($lockedGang->treasury < $cost) {
+                    $formattedCost = number_format($cost, 0, ',', '.');
+                    $formattedTreasury = number_format($lockedGang->treasury, 0, ',', '.');
+
+                    return back()->with('error', "Onvoldoende saldo in de bendekas! Reviseren van {$lockedVehicle->vehicle->name} kost €{$formattedCost} uit de bendekas (huidige bendekas: €{$formattedTreasury}).");
+                }
+
+                // DEDUCT FROM GANG TREASURY ONLY - NO PERSONAL FUNDS TOUCHED!
+                $lockedGang->treasury -= $cost;
+                $lockedGang->save();
+
+                $lockedVehicle->update(['current_condition' => 100]);
+
+                AuditLogService::log(
+                    action: 'gang.repair_vehicle',
+                    category: 'gang',
+                    description: "Bendevoertuig '{$lockedVehicle->vehicle->name}' gereviseerd naar 100% voor €".number_format($cost, 0, ',', '.')." uit de bendekas van bende {$lockedGang->name}",
+                    character: $character,
+                    user: $character->user,
+                    amount: $cost,
+                    details: [
+                        'gang_id' => $lockedGang->id,
+                        'vehicle_id' => $lockedVehicle->id,
+                        'cost' => $cost,
+                    ]
+                );
+
+                return back()->with('success', "🔧 Bende Garage revisie voltooid! {$lockedVehicle->vehicle->name} is weer in topconditie (100%) gebracht voor €".number_format($cost, 0, ',', '.')." vanuit de bendekas (persoonlijk saldo onaangeroerd).");
+            });
+        }
+
+        // Case 2: Persoonlijk voertuig in eigen privévloot -> Betaald met persoonlijk geld
+        $isOwner = (int) $characterVehicle->character_id === (int) $character->id;
+        if (! $isOwner) {
+            return back()->with('error', 'Dit voertuig is niet in jouw bezit.');
         }
 
         return DB::transaction(function () use ($character, $characterVehicle) {

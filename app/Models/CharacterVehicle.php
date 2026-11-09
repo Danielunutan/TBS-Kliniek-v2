@@ -19,7 +19,9 @@ class CharacterVehicle extends Model
         'is_active' => 'boolean',
         'is_for_sale' => 'boolean',
         'in_gang_garage' => 'boolean',
+        'is_gang_owned' => 'boolean',
         'stored_at' => 'datetime',
+        'donated_at' => 'datetime',
         'total_heists_done' => 'integer',
     ];
 
@@ -36,6 +38,11 @@ class CharacterVehicle extends Model
     public function storedBy(): BelongsTo
     {
         return $this->belongsTo(Character::class, 'stored_by_character_id');
+    }
+
+    public function donatedBy(): BelongsTo
+    {
+        return $this->belongsTo(Character::class, 'donated_by_character_id');
     }
 
     public function vehicle(): BelongsTo

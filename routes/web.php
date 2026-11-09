@@ -594,7 +594,9 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     // Bende Garage & Wagenpark
     Route::get('/gangs/garage', [GangPropertyController::class, 'garage'])->name('gangs.garage');
     Route::post('/gangs/garage/stallen/{characterVehicle}', [GangPropertyController::class, 'storeVehicle'])->name('gangs.garage.store-vehicle');
+    Route::post('/gangs/garage/doneren/{characterVehicle}', [GangPropertyController::class, 'donateVehicle'])->name('gangs.garage.donate-vehicle');
     Route::post('/gangs/garage/ophalen/{characterVehicle}', [GangPropertyController::class, 'retrieveVehicle'])->name('gangs.garage.retrieve-vehicle');
+    Route::post('/gangs/garage/slopen/{characterVehicle}', [GangPropertyController::class, 'scrapVehicle'])->name('gangs.garage.scrap-vehicle');
 
     // Controlepunten (King of the Hill - Verover en Verdien)
     Route::get('/controlepunten', fn () => redirect()->route('dashboard')->with('info', 'De centrale controlepunten-pagina is opgeheven. Controlepunten kun je nu uitsluitend direct op de locaties zelf (Luchtplaats, Kantine, Sportzaal, Depot en Medicijnkluis) opeisen of overnemen!'))->name('control-points.index');

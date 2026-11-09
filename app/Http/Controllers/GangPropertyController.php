@@ -258,6 +258,10 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Dit voertuig staat te koop op de marktplaats en kan niet uit de bende garage worden gehaald.');
         }
 
+        if ($characterVehicle->is_gang_owned) {
+            return back()->with('error', 'Dit voertuig is officieel bende-eigendom (gedoneerd) en kan niet worden teruggehaald naar een privévloot.');
+        }
+
         // Only owner or gang officer can retrieve
         $isOwner = $characterVehicle->character_id === $character->id;
         $isOfficer = $gang->isOfficer($character);
@@ -285,6 +289,10 @@ class GangPropertyController extends Controller
                 return 'Dit voertuig staat te koop op de marktplaats en kan niet uit de bende garage worden gehaald.';
             }
 
+            if ($lockedVehicle->is_gang_owned) {
+                return 'Dit voertuig is officieel bende-eigendom (gedoneerd) en kan niet worden teruggehaald naar een privévloot.';
+            }
+
             /** @var Character $ownerChar */
             $ownerChar = $lockedVehicle->character_id === $lockedChar->id
                 ? $lockedChar
@@ -309,6 +317,168 @@ class GangPropertyController extends Controller
         }
 
         return back()->with('success', "🔑 De {$characterVehicle->vehicle->name} is succesvol uit de Bende Garage gehaald en terug in je persoonlijke wagenpark geplaatst!");
+    }
+
+    /**
+     * Donate a vehicle permanently to the gang fleet.
+     */
+    public function donateVehicle(Request $request, CharacterVehicle $characterVehicle): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen voertuigen doneren!');
+        }
+
+        if ($character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        $gang = $character->gang;
+        if (! $gang) {
+            return back()->with('error', 'Je zit niet in een bende.');
+        }
+
+        if ((int) $characterVehicle->character_id !== (int) $character->id) {
+            return back()->with('error', 'Alleen de eigenaar kan dit voertuig doneren aan de bende.');
+        }
+
+        if ($characterVehicle->is_for_sale) {
+            return back()->with('error', 'Dit voertuig staat te koop op de marktplaats en kan niet worden gedoneerd.');
+        }
+
+        if ($characterVehicle->is_gang_owned) {
+            return back()->with('info', 'Dit voertuig is al officieel bende-eigendom.');
+        }
+
+        $totalVehicleSlots = $gang->total_vehicle_slots;
+        $storedCount = $gang->storedVehicles()->count();
+        if (! $characterVehicle->in_gang_garage && $storedCount >= $totalVehicleSlots) {
+            return back()->with('error', 'De bende garage is vol! Breid eerst de stallingscapaciteit uit met Bende Panden.');
+        }
+
+        $errorMessage = DB::transaction(function () use ($character, $characterVehicle, $gang): ?string {
+            /** @var Character $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var CharacterVehicle|null $lockedVehicle */
+            $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+
+            if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
+                return 'Je bent momenteel niet in staat om voertuigen te doneren.';
+            }
+
+            if (! $lockedVehicle || (int) $lockedVehicle->character_id !== (int) $lockedChar->id) {
+                return 'Dit voertuig is niet van jou.';
+            }
+
+            if ($lockedVehicle->is_for_sale) {
+                return 'Dit voertuig staat te koop op de marktplaats.';
+            }
+
+            if ($lockedVehicle->is_gang_owned) {
+                return 'Dit voertuig is al bende-eigendom.';
+            }
+
+            $totalVehicleSlots = $lockedGang->total_vehicle_slots;
+            $storedCount = $lockedGang->storedVehicles()->count();
+            if (! $lockedVehicle->in_gang_garage && $storedCount >= $totalVehicleSlots) {
+                return 'De bende garage is inmiddels vol! Koop extra panden met garageplekken.';
+            }
+
+            $lockedVehicle->update([
+                'gang_id' => $lockedGang->id,
+                'in_gang_garage' => true,
+                'is_gang_owned' => true,
+                'is_active' => false,
+                'stored_at' => $lockedVehicle->stored_at ?? now(),
+                'stored_by_character_id' => $lockedChar->id,
+                'donated_at' => now(),
+                'donated_by_character_id' => $lockedChar->id,
+            ]);
+
+            // Award respect to the donor (which also increases gang total respect!)
+            $respectReward = 50;
+            $lockedChar->increment('respect', $respectReward);
+            if (Schema::hasColumn('gangs', 'respect')) {
+                $lockedGang->increment('respect', $respectReward);
+            }
+
+            AuditLogService::log(
+                action: 'gang.donate_vehicle',
+                category: 'gang',
+                description: "Voertuig '{$lockedVehicle->vehicle?->name}' definitief gedoneerd aan het Bende Wagenpark van [{$lockedGang->tag}] {$lockedGang->name}",
+                character: $lockedChar,
+                user: $lockedChar->user,
+                details: [
+                    'gang_id' => $lockedGang->id,
+                    'vehicle_id' => $lockedVehicle->id,
+                    'vehicle_name' => $lockedVehicle->vehicle?->name,
+                ]
+            );
+
+            return null;
+        });
+
+        if ($errorMessage) {
+            return back()->with('error', $errorMessage);
+        }
+
+        return back()->with('success', "🎁 Voertuig '{$characterVehicle->vehicle?->name}' is definitief gedoneerd aan bende [{$gang->tag}] {$gang->name}! De bende heeft +50 Respect ontvangen.");
+    }
+
+    /**
+     * Scrap a gang-owned vehicle to free up garage space (leaders/officers only).
+     */
+    public function scrapVehicle(Request $request, CharacterVehicle $characterVehicle): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if ($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) {
+            return back()->with('error', 'Je bent momenteel niet in staat om vlootbeheer uit te voeren.');
+        }
+
+        $gang = $character->gang;
+        if (! $gang || ! $gang->isOfficer($character)) {
+            return back()->with('error', 'Alleen bendeleiders of beheerders kunnen bendevoertuigen slopen.');
+        }
+
+        if (! $characterVehicle->in_gang_garage || (int) $characterVehicle->gang_id !== (int) $gang->id || ! $characterVehicle->is_gang_owned) {
+            return back()->with('error', 'Alleen gedoneerde bendevoertuigen kunnen door de bendeleiding worden gesloopt.');
+        }
+
+        return DB::transaction(function () use ($character, $characterVehicle, $gang) {
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->firstOrFail();
+            $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->firstOrFail();
+
+            $scrapValue = (int) round(($lockedVehicle->vehicle?->price_cash ?? 20000) * 0.25);
+            $lockedGang->treasury += $scrapValue;
+            $lockedGang->save();
+
+            $vehicleName = $lockedVehicle->vehicle?->name ?? 'Voertuig';
+            $lockedVehicle->delete();
+
+            AuditLogService::log(
+                action: 'gang.scrap_vehicle',
+                category: 'gang',
+                description: "Bendevoertuig '{$vehicleName}' gesloopt voor €".number_format($scrapValue, 0, ',', '.')." schrootwaarde in bendekas",
+                character: $character,
+                user: $character->user,
+                amount: $scrapValue,
+                details: [
+                    'gang_id' => $lockedGang->id,
+                    'vehicle_name' => $vehicleName,
+                    'scrap_value' => $scrapValue,
+                ]
+            );
+
+            return back()->with('success', "🗑️ Bendevoertuig '{$vehicleName}' gesloopt. De schrootwaarde van €".number_format($scrapValue, 0, ',', '.')." is bijgeschreven in de bendekas!");
+        });
     }
 
     /**

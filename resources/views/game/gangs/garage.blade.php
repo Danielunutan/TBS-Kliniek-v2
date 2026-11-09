@@ -179,9 +179,15 @@
                         <div>
                             <!-- Header / Badge -->
                             <div class="flex items-center justify-between gap-2 mb-3">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
-                                    {{ $veh->type ?? 'Voertuig' }}
-                                </span>
+                                @if($charVehicle->is_gang_owned)
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/70 flex items-center gap-1">
+                                        <i class="fa-solid fa-shield-halved"></i> Bende Eigendom
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">
+                                        {{ $veh->type ?? 'Voertuig' }} (Gestald)
+                                    </span>
+                                @endif
                                 <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
                                     <i class="fa-solid fa-gauge-high text-purple-500"></i> {{ $charVehicle->effective_speed }}% snelheid
                                 </span>
@@ -214,35 +220,72 @@
                             <!-- Owner Info -->
                             <div class="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 mb-3 flex items-center justify-between text-xs">
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <img src="{{ $charVehicle->character?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg') }}" alt="{{ $charVehicle->character?->name }}" class="w-6 h-6 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700">
-                                    <span class="truncate">
-                                        <span class="text-slate-400 dark:text-slate-500 text-[10px] block">Eigenaar:</span>
-                                        <a href="{{ route('profile.show', $charVehicle->character?->name ?? 'speler') }}" class="font-extrabold text-slate-800 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400">
-                                            {{ $charVehicle->character?->name ?? 'Onbekend' }}
-                                        </a>
-                                    </span>
+                                    @if($charVehicle->is_gang_owned)
+                                        <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-300 dark:border-amber-700">
+                                            <i class="fa-solid fa-crown text-[10px]"></i>
+                                        </div>
+                                        <span class="truncate">
+                                            <span class="text-slate-400 dark:text-slate-500 text-[10px] block">Bende Vloot:</span>
+                                            <span class="font-extrabold text-amber-700 dark:text-amber-300">
+                                                [{{ $gang->tag }}] {{ $gang->name }}
+                                            </span>
+                                            <span class="text-[9px] text-slate-400 block truncate">
+                                                Gedoneerd door {{ $charVehicle->donatedBy?->name ?? $charVehicle->character?->name ?? 'Lid' }}
+                                            </span>
+                                        </span>
+                                    @else
+                                        <img src="{{ $charVehicle->character?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg') }}" alt="{{ $charVehicle->character?->name }}" class="w-6 h-6 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700">
+                                        <span class="truncate">
+                                            <span class="text-slate-400 dark:text-slate-500 text-[10px] block">Eigenaar (Gestald):</span>
+                                            <a href="{{ route('profile.show', $charVehicle->character?->name ?? 'speler') }}" class="font-extrabold text-slate-800 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400">
+                                                {{ $charVehicle->character?->name ?? 'Onbekend' }}
+                                            </a>
+                                        </span>
+                                    @endif
                                 </div>
-                                @if($charVehicle->stored_at)
+                                @if($charVehicle->donated_at)
+                                    <span class="text-[10px] text-amber-600 dark:text-amber-400 font-mono">{{ $charVehicle->donated_at->diffForHumans() }}</span>
+                                @elseif($charVehicle->stored_at)
                                     <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{{ $charVehicle->stored_at->diffForHumans() }}</span>
                                 @endif
                             </div>
                         </div>
 
-                        <!-- Actions: Repareren & Terughalen -->
+                        <!-- Actions: Repareren (Uitsluitend via Bendekas), Doneren & Terughalen -->
                         <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                            @if(($isOwner || $isOfficer) && $charVehicle->current_condition < 100)
+                            <!-- Reviseren uitsluitend via Bendekas -->
+                            @if(($isOwner || $isOfficer || $charVehicle->is_gang_owned) && $charVehicle->current_condition < 100)
                                 <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" 
                                             {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
                                             class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-wrench text-[11px]"></i>
-                                        <span>Direct Reviseren (€{{ number_format($charVehicle->repair_cost, 0, ',', '.') }})</span>
+                                        <span>Reviseren via Bendekas (€{{ number_format($charVehicle->repair_cost, 0, ',', '.') }})</span>
                                     </button>
                                 </form>
                             @endif
 
-                            @if($isOwner || $isOfficer)
+                            <!-- Doneren aan Bende (als nog niet gedoneerd en huidige gebruiker is eigenaar) -->
+                            @if(! $charVehicle->is_gang_owned && $isOwner)
+                                <form action="{{ route('gangs.garage.donate-vehicle', $charVehicle) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" 
+                                            data-confirm="Weet je zeker dat je {{ $veh?->name }} definitief wilt doneren aan [{{ $gang->tag }}]? Het voertuig wordt permanent bende-eigendom!"
+                                            data-confirm-title="Voertuig Doneren aan Bende"
+                                            data-confirm-btn="Ja, Permanent Doneren"
+                                            data-confirm-type="warning"
+                                            data-confirm-icon="fa-gift"
+                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                            class="w-full py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300/70 dark:border-amber-700/60 font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-gift text-[11px]"></i>
+                                        <span>Doneer Definitief aan Bende (+50 Respect)</span>
+                                    </button>
+                                </form>
+                            @endif
+
+                            <!-- Terughalen (uitsluitend als NIET gedoneerd aan bende) -->
+                            @if(! $charVehicle->is_gang_owned && ($isOwner || $isOfficer))
                                 <form action="{{ route('gangs.garage.retrieve-vehicle', $charVehicle) }}" method="POST">
                                     @csrf
                                     <button type="submit" 
@@ -252,7 +295,24 @@
                                         <span>Terughalen naar Eigen Garage</span>
                                     </button>
                                 </form>
-                            @else
+                            @elseif($charVehicle->is_gang_owned && $isOfficer)
+                                <!-- Slopen voor schroot in bendekas (alleen voor bendebeheerders) -->
+                                @php $scrapVal = (int) round(($veh?->price_cash ?? 20000) * 0.25); @endphp
+                                <form action="{{ route('gangs.garage.scrap-vehicle', $charVehicle) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" 
+                                            data-confirm="Bendevoertuig {{ $veh?->name }} slopen voor €{{ number_format($scrapVal, 0, ',', '.') }} schrootwaarde in de bendekas?"
+                                            data-confirm-title="Bendevoertuig Slopen"
+                                            data-confirm-btn="Ja, Slopen"
+                                            data-confirm-type="danger"
+                                            data-confirm-icon="fa-trash-can"
+                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                            class="w-full py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300/70 dark:border-rose-800/60 font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-trash-can text-[11px]"></i>
+                                        <span>Slopen voor Bendekas (+€{{ number_format($scrapVal, 0, ',', '.') }})</span>
+                                    </button>
+                                </form>
+                            @elseif(! $charVehicle->is_gang_owned)
                                 <div class="text-center py-1 text-slate-400 dark:text-slate-500 text-[11px] font-bold italic">
                                     Alleen eigenaar of leiders kunnen dit voertuig beheren
                                 </div>
@@ -313,15 +373,32 @@
                             </div>
                         </div>
 
-                        <form action="{{ route('gangs.garage.store-vehicle', $myVehicle) }}" method="POST" class="pt-2">
-                            @csrf
-                            <button type="submit" 
-                                    @if($freeSlots <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                    class="w-full py-2 rounded-xl {{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-warehouse text-xs"></i>
-                                <span>{{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'Stallen in Bende Garage' : ($freeSlots <= 0 ? 'Bende Garage Vol' : 'Niet Beschikbaar') }}</span>
-                            </button>
-                        </form>
+                        <div class="pt-2 space-y-2">
+                            <form action="{{ route('gangs.garage.store-vehicle', $myVehicle) }}" method="POST">
+                                @csrf
+                                <button type="submit" 
+                                        @if($freeSlots <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2 rounded-xl {{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-warehouse text-xs"></i>
+                                    <span>{{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'Stallen in Bende Garage' : ($freeSlots <= 0 ? 'Bende Garage Vol' : 'Niet Beschikbaar') }}</span>
+                                </button>
+                            </form>
+
+                            <form action="{{ route('gangs.garage.donate-vehicle', $myVehicle) }}" method="POST">
+                                @csrf
+                                <button type="submit" 
+                                        data-confirm="Weet je zeker dat je {{ $v?->name }} definitief wilt overdragen aan bende [{{ $gang->tag }}]? Het voertuig wordt permanent bende-eigendom!"
+                                        data-confirm-title="Voertuig Doneren aan Bende"
+                                        data-confirm-btn="Ja, Definitief Doneren"
+                                        data-confirm-type="warning"
+                                        data-confirm-icon="fa-gift"
+                                        @if($freeSlots <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2 rounded-xl {{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300/70 dark:border-amber-700/60 cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-gift text-xs"></i>
+                                    <span>Doneer Direct als Bende-Eigendom (+50 Respect)</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 @endforeach
             </div>
