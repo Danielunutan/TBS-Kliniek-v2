@@ -24,26 +24,35 @@ class AdvancedPropertiesAndFleetWagesTest extends TestCase
         $this->seed();
     }
 
-    public function test_smokkelkiosken_are_capped_at_250_in_hourly_wage(): void
+    public function test_smokkelkiosken_scale_progressively_in_hourly_wage(): void
     {
         $service = app(GangWageService::class);
 
+        // Small gang with 500 kiosks: 500 * 100 = 50.000 (+150 base = 50150)
+        $smallGang = Gang::create([
+            'name' => 'Small Kiosks',
+            'tag' => 'SK',
+            'specialty' => 'Witwassen',
+            'treasury' => 1000000,
+            'bling_shops' => 500,
+        ]);
+        $this->assertEquals(50150, $service->calculateHourlyWage($smallGang));
+
+        // Giant gang with 2,083,684 kiosks: progressive bracket scaling yields 9,467,368 + 150 base = 9,467,518
         $gang = Gang::create([
             'name' => 'Kiosk Titans',
             'tag' => 'KT',
             'specialty' => 'Witwassen',
             'treasury' => 1000000,
-            'bling_shops' => 2083684, // Over 2 million kiosks!
+            'bling_shops' => 2083684,
         ]);
 
         $wage = $service->calculateHourlyWage($gang);
-        // Base is 150 + min(250, 2083684) * 100 = 150 + 25000 = 25150
-        $this->assertEquals(25150, $wage);
+        $this->assertEquals(9467518, $wage);
 
         $breakdown = $service->getWageBreakdown($gang);
         $this->assertEquals(2083684, $breakdown['kiosks_count']);
-        $this->assertEquals(250, $breakdown['kiosks_capped']);
-        $this->assertEquals(25000, $breakdown['kiosks_income']);
+        $this->assertEquals(9467368, $breakdown['kiosks_income']);
     }
 
     public function test_stored_vehicle_fleet_contributes_to_hourly_wage(): void

@@ -121,6 +121,7 @@ class GangController extends Controller
         }
 
         $wageDetails = $this->wageService->getWageDetails($character);
+        $wageBreakdown = $myGang ? $this->wageService->getWageBreakdown($myGang, $character) : [];
         $hourlyWage = $wageDetails['hourly_wage'];
         $dailyWage = $wageDetails['daily_wage'];
 
@@ -199,7 +200,7 @@ class GangController extends Controller
         $activeWar = $myGang ? GangWar::findActiveForGang($myGang->id) : null;
         $clinicZones = ControlPoint::with(['holder', 'gang'])->get();
 
-        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems', 'warsWon', 'warsLost', 'totalRespect', 'activeWar', 'clinicZones'));
+        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'wageBreakdown', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems', 'warsWon', 'warsLost', 'totalRespect', 'activeWar', 'clinicZones'));
     }
 
     /**
@@ -253,6 +254,7 @@ class GangController extends Controller
         $totalRespect = (float) $gangModel->members->sum('respect');
         $hourlyWage = $this->wageService->calculateHourlyWage($gangModel);
         $dailyWage = $this->wageService->calculateDailyWage($gangModel);
+        $wageBreakdown = $this->wageService->getWageBreakdown($gangModel, (int) $character->gang_id === (int) $gangModel->id ? $character : null);
 
         $isMyGang = (int) $character->gang_id === (int) $gangModel->id;
         $isOfficer = $isMyGang && $gangModel->isOfficer($character);
@@ -327,6 +329,7 @@ class GangController extends Controller
             'totalRespect',
             'hourlyWage',
             'dailyWage',
+            'wageBreakdown',
             'isMyGang',
             'isOfficer',
             'hasPendingRequest',

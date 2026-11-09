@@ -683,9 +683,9 @@
                         <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">SMOKKELKIOSKEN</span>
                         <div class="flex items-center justify-center gap-1.5 text-purple-700 dark:text-purple-400 text-lg font-black font-mono">
                             <i class="fa-solid fa-store text-xs text-purple-500"></i>
-                            <span>{{ $myGang->bling_shops ?? 0 }}</span>
+                            <span>{{ number_format($myGang->bling_shops ?? 0, 0, ',', '.') }}</span>
                         </div>
-                        <span class="text-[10px] text-slate-400 block font-medium">+€100/u (max 250 kiosken)</span>
+                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 block font-bold">+€{{ number_format($wageBreakdown['kiosks_income'] ?? 0, 0, ',', '.') }}/u</span>
                     </div>
 
                     <!-- Panden / Vastgoed -->
@@ -1096,6 +1096,118 @@
                                     <span class="font-bold text-slate-700 dark:text-slate-300">
                                         {{ $myGang->created_at ? $myGang->created_at->format('d-m-Y') : 'Onbekend' }}
                                     </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bende Uurloon Specificatie & Berekening Card -->
+                        <div class="bg-white dark:bg-slate-900 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl p-5 shadow-xs space-y-4">
+                            <div class="flex items-center justify-between border-b border-amber-100 dark:border-amber-900/40 pb-3">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-coins text-amber-500"></i>
+                                    <span>Uurloon Specificatie</span>
+                                </h4>
+                                <span class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-extrabold text-[10px] font-mono border border-amber-200 dark:border-amber-800/60">
+                                    Transparant
+                                </span>
+                            </div>
+
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                Het uurloon van jouw bende is direct opgebouwd uit actieve smokkelkiosken, bende vastgoed, de wagenpark vloot en vermenigvuldigd door respect en persoonlijke rang.
+                            </p>
+
+                            <!-- Inkomsten Componenten -->
+                            <div class="space-y-2 text-xs divide-y divide-slate-100 dark:divide-slate-800/60">
+                                <!-- Kiosken -->
+                                <div class="pt-2 flex items-center justify-between">
+                                    <div>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-store text-purple-500 text-[11px]"></i>
+                                            Smokkelkiosken
+                                        </span>
+                                        <span class="text-[10px] text-slate-400 block">
+                                            {{ number_format($wageBreakdown['kiosks_count'] ?? 0, 0, ',', '.') }} kiosken (progressieve staffel)
+                                        </span>
+                                    </div>
+                                    <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                        +€{{ number_format($wageBreakdown['kiosks_income'] ?? 0, 0, ',', '.') }}/u
+                                    </span>
+                                </div>
+
+                                <!-- Vastgoed / Panden -->
+                                <div class="pt-2 flex items-center justify-between">
+                                    <div>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-building text-indigo-500 text-[11px]"></i>
+                                            Bende Vastgoed & Labs
+                                        </span>
+                                        <span class="text-[10px] text-slate-400 block">
+                                            {{ $wageBreakdown['properties_count'] ?? 0 }} actieve panden (productie & opslag)
+                                        </span>
+                                    </div>
+                                    <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                        +€{{ number_format($wageBreakdown['properties_income'] ?? 0, 0, ',', '.') }}/u
+                                    </span>
+                                </div>
+
+                                <!-- Wagenpark -->
+                                <div class="pt-2 flex items-center justify-between">
+                                    <div>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-car text-blue-500 text-[11px]"></i>
+                                            Garage Wagenpark
+                                        </span>
+                                        <span class="text-[10px] text-slate-400 block">
+                                            {{ $wageBreakdown['vehicles_count'] ?? 0 }} bendevoertuigen (conditie gewogen)
+                                        </span>
+                                    </div>
+                                    <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                        +€{{ number_format($wageBreakdown['vehicles_income'] ?? 0, 0, ',', '.') }}/u
+                                    </span>
+                                </div>
+
+                                <!-- Bonussen & Multipliers -->
+                                <div class="pt-2 flex items-center justify-between">
+                                    <div>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-fire text-amber-500 text-[11px]"></i>
+                                            Bende Multipliers
+                                        </span>
+                                        <span class="text-[10px] text-slate-400 block">
+                                            Respect (+{{ $wageBreakdown['respect_bonus_pct'] ?? 0 }}%), Luxe Vastgoed (+{{ $wageBreakdown['luxury_bonus_pct'] ?? 0 }}%)
+                                        </span>
+                                    </div>
+                                    <span class="font-mono font-bold text-purple-600 dark:text-purple-400">
+                                        +{{ $wageBreakdown['total_bonus_pct'] ?? 0 }}% totaal
+                                    </span>
+                                </div>
+
+                                <!-- Persoonlijk Level & Functie -->
+                                <div class="pt-2 flex items-center justify-between">
+                                    <div>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-crown text-amber-500 text-[11px]"></i>
+                                            Persoonlijke Rang
+                                        </span>
+                                        <span class="text-[10px] text-slate-400 block">
+                                            {{ $wageBreakdown['role_name'] ?? 'Bendelid' }} &bull; Level {{ $character->level }} (+{{ $wageBreakdown['level_bonus_pct'] ?? 0 }}%)
+                                        </span>
+                                    </div>
+                                    <span class="font-mono font-bold text-amber-600 dark:text-amber-400">
+                                        {{ ($wageBreakdown['character_hourly_wage'] ?? 0) > ($wageBreakdown['collective_hourly_wage'] ?? 0) ? 'Verhoogd' : 'Basis' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Totalen samenvatting box -->
+                            <div class="bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/50 rounded-xl p-3 space-y-1.5">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-600 dark:text-slate-300 font-medium">Collectief Bende Basisloon:</span>
+                                    <span class="font-mono font-extrabold text-slate-900 dark:text-white">€{{ number_format($wageBreakdown['collective_hourly_wage'] ?? 0, 0, ',', '.') }}/u</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs pt-1 border-t border-amber-200/60 dark:border-amber-900/60">
+                                    <span class="text-amber-900 dark:text-amber-200 font-bold">Jouw Uitbetaling per Uur:</span>
+                                    <span class="font-mono font-black text-amber-700 dark:text-amber-300 text-sm">€{{ number_format($wageBreakdown['character_hourly_wage'] ?? $hourlyWage ?? 0, 0, ',', '.') }}/u</span>
                                 </div>
                             </div>
                         </div>
@@ -2026,9 +2138,13 @@
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Verhoogt het uurloon met +€100/uur per kiosk. Prijs: <strong class="text-slate-900 dark:text-white">€50.000</strong>
+                                    Verhoogt het bende-uurloon via een progressieve staffel (tot €100/kiosk voor de eerste 1.000 stuks, daarna staffelend). Prijs: <strong class="text-slate-900 dark:text-white">€50.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
                                     Uit Gangpot: <strong class="text-purple-700 dark:text-purple-400 font-extrabold">{{ number_format($possibleBlingShops, 0, ',', '.') }}x</strong>
+                                    @if(!empty($wageBreakdown['kiosks_income']))
+                                        <span class="text-slate-400 mx-1">&bull;</span>
+                                        Huidige Kiosk-winst: <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+€{{ number_format($wageBreakdown['kiosks_income'], 0, ',', '.') }}/u</strong>
+                                    @endif
                                 </p>
                             </div>
                             <form action="{{ route('gangs.shop-buy') }}" method="POST" class="flex items-center gap-2">
