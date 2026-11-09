@@ -251,6 +251,8 @@ class NewsArticle extends Model
             '[drug_event_leaderboard]',
             '[vault_challenge_leaderboard]',
             '[vault_event_leaderboard]',
+            '[hustle_challenge_leaderboard]',
+            '[hustle_event_leaderboard]',
         ], '', $text);
 
         // Headers

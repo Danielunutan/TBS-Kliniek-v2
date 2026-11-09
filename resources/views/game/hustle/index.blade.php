@@ -28,6 +28,32 @@
     }
 }">
 
+    <!-- GROTE HOSSEL CHALLENGE BANNER -->
+    @if(\App\Services\EventHustleChallengeService::isActive())
+    <div class="rounded-2xl p-4 sm:p-5 bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-amber-500/15 border-2 border-amber-400/80 dark:border-amber-400/60 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-start gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center text-xl shrink-0 shadow-md">
+                🏆
+            </div>
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider mb-1">
+                    <span>⚡ LIVE CHALLENGE BEZIG</span>
+                </div>
+                <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                    De Grote Hossel Challenge (Win 750 Sterren ⭐ + €150.000.000)
+                </h3>
+                <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                    Alleen succesvolle beurten op <strong>Recreatie Bookie</strong>, <strong>Shag Kartel</strong> en <strong>Kliniek Telecom</strong> tellen mee tot donderdag 23.59 uur.
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('news.show', 'de-grote-hossel-challenge-750-sterren-150m') }}" class="w-full md:w-auto px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black shadow-xs transition active:scale-95 text-center flex items-center justify-center gap-2 cursor-pointer shrink-0">
+            <i class="fa-solid fa-ranking-star"></i>
+            <span>Bekijk Live Ranglijst</span>
+        </a>
+    </div>
+    @endif
+
     <!-- Top Forensic Dossier Header -->
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
@@ -125,7 +151,7 @@
                 default => 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700',
             };
         @endphp
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 shadow-xs transition-all duration-200 flex flex-col justify-between gap-4 group">
+        <div class="bg-white dark:bg-slate-900 border-2 {{ in_array($h['id'], [4, 5, 6]) ? 'border-amber-400 dark:border-amber-500/60 shadow-md' : 'border-slate-200/90 dark:border-slate-800' }} hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 shadow-xs transition-all duration-200 flex flex-col justify-between gap-4 group">
             
             <div class="space-y-3">
                 <!-- Header with Icon & Tier -->
@@ -143,7 +169,23 @@
                             </h3>
                         </div>
                     </div>
+                    @if(in_array($h['id'], [4, 5, 6]))
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 border border-amber-300 shadow-xs shrink-0 animate-pulse">
+                            <i class="fa-solid fa-trophy text-[9px]"></i> Challenge Hossel
+                        </span>
+                    @else
+                        <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0">
+                            Regulier
+                        </span>
+                    @endif
                 </div>
+
+                @if(in_array($h['id'], [4, 5, 6]))
+                <div class="text-[10px] font-black text-amber-800 dark:text-amber-200 flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 rounded-lg px-2.5 py-1">
+                    <i class="fa-solid fa-star text-amber-500 text-[9px]"></i>
+                    <span>Telt mee voor de 750 Sterren + €150M Challenge</span>
+                </div>
+                @endif
 
                 <!-- Description -->
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed min-h-[34px]">

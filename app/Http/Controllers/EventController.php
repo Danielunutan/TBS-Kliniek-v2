@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\EventCashHuntService;
 use App\Services\EventDrugsProductionService;
+use App\Services\EventHustleChallengeService;
 use App\Services\EventVaultCrackingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,6 +44,18 @@ class EventController extends Controller
         $limit = max(1, min(100, (int) $request->query('limit', 15)));
         $character = Auth::user()?->character;
         $data = EventVaultCrackingService::getLeaderboardData($character?->id, $limit);
+
+        return response()->json($data);
+    }
+
+    /**
+     * Get real-time leaderboard data for the Hustle Challenge event.
+     */
+    public function hustleChallengeLeaderboard(Request $request): JsonResponse
+    {
+        $limit = max(1, min(100, (int) $request->query('limit', 15)));
+        $character = Auth::user()?->character;
+        $data = EventHustleChallengeService::getLeaderboardData($character?->id, $limit);
 
         return response()->json($data);
     }
