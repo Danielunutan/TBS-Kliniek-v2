@@ -72,3 +72,4 @@ class RestartHustleChallengeCommand extends Command
         }
     }
 }
+

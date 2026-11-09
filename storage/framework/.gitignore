@@ -8,4 +8,4 @@ routes.php
 routes.scanned.php
 schedule-*
 services.json
-!tbs_maintenance.json
+tbs_maintenance.json
