@@ -10,15 +10,19 @@ class LevelService
 {
     /**
      * Calculate XP required to reach the next level.
-     * Formula: ceil(350 * level ^ 1.75)
-     * Provides a solid, balanced progression curve where early levels require multiple completed activities
-     * and mid/late levels require dedicated effort without rapid consecutive level leaps.
+     * Balanced curve: smooth progression for levels 1-15, steady challenge for 16-35,
+     * and a natural exponential scaling above 35 so top players stay in a compact competitive bracket
+     * without out-leveling rivals or entering empty isolated level zones.
      */
     public function getXpRequiredForNextLevel(int $currentLevel): int
     {
         $safeLevel = max(1, $currentLevel);
 
-        return (int) ceil(350 * ($safeLevel ** 1.75));
+        if ($safeLevel <= 15) {
+            return (int) ceil(400 * ($safeLevel ** 1.6));
+        }
+
+        return (int) ceil(450 * ($safeLevel ** 1.9));
     }
 
     /**
@@ -34,13 +38,18 @@ class LevelService
             $xpGain = (int) round($xpGain * (1.0 + ($comfortBonus / 100)));
         }
 
+        // Natural catch-up bonus: early/mid levels (under level 20) earn +20% bonus XP to stay competitive
+        if ($character->level < 20 && $xpGain > 0) {
+            $xpGain = (int) round($xpGain * 1.20);
+        }
+
         $oldLevel = $character->level;
         $character->xp += $xpGain;
         $character->total_xp += $xpGain;
 
         $leveledUp = false;
         $totalCashReward = 0;
-        $maxLevelUpsPerAction = 15;
+        $maxLevelUpsPerAction = 1;
         $iterations = 0;
 
         while ($iterations < $maxLevelUpsPerAction) {
@@ -52,15 +61,15 @@ class LevelService
                 $leveledUp = true;
                 $iterations++;
 
-                // Level up rewards: max stats increase, cash bonus, vault tokens, full energy refill
+                // Level up rewards: stats, cash bonus, tokens, balanced +25 energy boost (no infinite full refill loop)
                 $bonusCash = $character->level * 150;
                 $bonusTokens = max(1, (int) floor($character->level / 2));
                 $totalCashReward += $bonusCash;
                 $character->cash += $bonusCash;
                 $character->vault_tokens = ($character->vault_tokens ?? 0) + $bonusTokens;
-                $character->energy = $character->max_energy;
+                $character->energy = min($character->max_energy, (int) $character->energy + 25);
                 if (! $character->isComatose()) {
-                    $character->health = $character->max_health;
+                    $character->health = min($character->max_health, (int) $character->health + 30);
                 }
                 $character->addRespect(5);
             } else {
