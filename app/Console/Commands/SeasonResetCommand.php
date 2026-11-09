@@ -109,11 +109,7 @@ class SeasonResetCommand extends Command
                 'prison_reason' => null,
                 'protection_until' => $protectionUntil,
 
-                // Geen VIP bij seizoenstart
-                'is_vip' => false,
-                'vip_expires_at' => null,
-
-                // Spullen & Mijlpalen
+                // Spullen & Mijlpalen (VIP status, VIP-punten, Sterren en Pompoenpitten blijven 100% behouden)
                 'bullets' => 50,
                 'masks' => 0,
                 'vault_tokens' => 5,
@@ -132,7 +128,7 @@ class SeasonResetCommand extends Command
             }
             $this->info("   -> {$characterCount} karakters succesvol gereset.");
 
-            // 2. Clear progress / seasonal tables
+            // 2. Clear progress / seasonal tables (Challenge tot vrijdag en Herfstquest blijven behouden)
             $tablesToTruncate = [
                 'character_missions',
                 'character_cooldowns',
@@ -145,18 +141,16 @@ class SeasonResetCommand extends Command
                 'character_connect_four_stats',
                 'fights',
                 'attacks',
-                'daily_battles',
-                'daily_battle_scores',
                 'loans',
                 'bank_transactions',
                 'xxl_cases',
                 'evening_vault_drops',
                 'koffer_logs',
                 'marketplace_listings',
-                'halloween_quest_progress',
                 'arm_wrestling_matches',
                 'bounties',
                 'blood_feuds',
+                'gang_wars',
                 'gang_items',
                 'gang_properties',
                 'gang_npcs',
@@ -222,6 +216,31 @@ class SeasonResetCommand extends Command
                     DB::table('control_points')->update($filteredCpUpdates);
                 }
                 $this->info('   -> Controleposten gereset naar neutraal.');
+            }
+
+            // 5. Oude nieuwsberichten opschonen (winnaars en kampioenen behouden)
+            $this->info('5. Oude nieuwsberichten opschonen (winnaars en kampioenen behouden)...');
+            if (Schema::hasTable('news_articles')) {
+                if (! $isDryRun) {
+                    $keepIds = DB::table('news_articles')
+                        ->where(function ($query) {
+                            $query->where('title', 'like', '%winnaar%')
+                                ->orWhere('title', 'like', '%uitslag%')
+                                ->orWhere('title', 'like', '%loterij%')
+                                ->orWhere('title', 'like', '%kampioen%')
+                                ->orWhere('content', 'like', '%winnaar%');
+                        })
+                        ->pluck('id');
+
+                    if (Schema::hasTable('news_comments')) {
+                        DB::table('news_comments')->whereNotIn('news_article_id', $keepIds)->delete();
+                    }
+
+                    DB::table('news_articles')
+                        ->whereNotIn('id', $keepIds)
+                        ->delete();
+                }
+                $this->info('   -> Oude artikelen verwijderd, winnaars en loterijberichten behouden.');
             }
 
             if ($isDryRun) {
