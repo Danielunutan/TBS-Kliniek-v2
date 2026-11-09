@@ -136,7 +136,7 @@ class IsolationProtectionAndPackagePrisonTest extends TestCase
 
         // Intercept package until a failure triggers (rate for package 4 is 25%, so fails frequently)
         $caught = false;
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 25; $i++) {
             $char->update(['is_in_prison' => false, 'energy' => 100]);
             CharacterCooldown::where('character_id', $char->id)->delete();
             $this->actingAs($user->fresh());

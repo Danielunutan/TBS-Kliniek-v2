@@ -130,9 +130,9 @@ class GangPropertiesTest extends TestCase
         $this->assertEquals('idle', $property->production_status);
         $this->assertNull($property->production_ends_at);
 
-        // Treasury increased by €90.000 and claiming character respect increased by 35
+        // Treasury increased by €90.000 and claiming character respect increased by 35 (or +135 with jackpot)
         $this->assertEquals($initialTreasury + 90000, $gang->fresh()->treasury);
-        $this->assertEquals($initialRespect + 35, (int) $character->fresh()->respect);
+        $this->assertContains((int) $character->fresh()->respect, [$initialRespect + 35, $initialRespect + 135]);
 
         Carbon::setTestNow();
     }

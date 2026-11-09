@@ -11,6 +11,7 @@ use App\Models\Vehicle;
 use App\Services\AuditLogService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -518,7 +519,7 @@ class GarageController extends Controller
                 "Voertuig Inruil: {$vehicleName}"
             );
 
-            app(\App\Services\LevelService::class)->addXp($lockedChar, 40);
+            app(LevelService::class)->addXp($lockedChar, 40);
 
             AuditLogService::log(
                 action: 'garage.sell_vehicle',

@@ -6,12 +6,14 @@ use App\Http\Middleware\CheckMaintenanceMode;
 use App\Support\ArmWrestleOutcome;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Cache;
 
 abstract class TestCase extends BaseTestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
+        Cache::flush();
         $lock = CheckMaintenanceMode::lockFilePath();
         if (file_exists($lock)) {
             @unlink($lock);
@@ -21,6 +23,7 @@ abstract class TestCase extends BaseTestCase
     protected function tearDown(): void
     {
         Carbon::setTestNow();
+        Cache::flush();
         $lock = CheckMaintenanceMode::lockFilePath();
         if (file_exists($lock)) {
             @unlink($lock);
