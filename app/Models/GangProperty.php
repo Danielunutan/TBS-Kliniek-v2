@@ -122,7 +122,7 @@ class GangProperty extends Model
             ->where('assigned_property_id', $this->id)
             ->first();
 
-        if ($assignedNpc && $assignedNpc->bonus_type === 'production_speed') {
+        if ($assignedNpc && $assignedNpc->isActive() && $assignedNpc->bonus_type === 'production_speed') {
             $speedFactor = 1 - min(0.75, $assignedNpc->bonus_value / 100);
 
             return max(5, (int) round($baseMinutes * $speedFactor));

@@ -13,6 +13,7 @@ use App\Models\GangAlliance;
 use App\Models\GangAttack;
 use App\Models\GangDonation;
 use App\Models\GangItem;
+use App\Models\GangNpc;
 use App\Models\GangRequest;
 use App\Models\GangWar;
 use App\Models\User;
@@ -2626,6 +2627,10 @@ class GangController extends Controller
         $character = $user->character;
         $gang = $character?->gang;
 
+        if ($gang) {
+            GangNpc::purgeExpiredForGang($gang);
+        }
+
         $wageDetails = $character ? $this->wageService->getWageDetails($character) : null;
         $properties = $gang ? $gang->properties()->get() : collect();
         $storedVehicles = $gang ? $gang->storedVehicles()->with('vehicle')->get() : collect();
@@ -2712,6 +2717,14 @@ class GangController extends Controller
         return DB::transaction(function () use ($myGang, $targetGang, $character, $entryStake) {
             $lockedMyGang = Gang::where('id', $myGang->id)->lockForUpdate()->first();
             $lockedTarget = Gang::where('id', $targetGang->id)->lockForUpdate()->first();
+
+            if (! $lockedMyGang || (int) $lockedMyGang->treasury < $entryStake) {
+                return back()->with('error', 'Er is minimaal €'.number_format($entryStake, 0, ',', '.').' in de bende kluis nodig als oorlogsinzet!');
+            }
+
+            if (! $lockedTarget || GangWar::findActiveForGang($lockedTarget->id)) {
+                return back()->with('error', "Bende '{$targetGang->name}' bevindt zich al in oorlog met een andere rivaliserende groepering!");
+            }
 
             $lockedMyGang->treasury = max(0, (int) $lockedMyGang->treasury - $entryStake);
             $lockedMyGang->save();

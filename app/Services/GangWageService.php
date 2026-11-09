@@ -268,6 +268,7 @@ class GangWageService
         $npcs = $gang->relationLoaded('npcs') ? $gang->npcs : $gang->npcs()->get();
         $npcsIncome = 0;
         $npcWageBonusPct = 0;
+        $contributingNpcsCount = 0;
         $npcCatalog = GangPropertyCatalog::npcs();
         $npcCounts = [];
         foreach ($npcs as $npc) {
@@ -280,6 +281,7 @@ class GangWageService
                 continue;
             }
 
+            $contributingNpcsCount++;
             $npcsIncome += 500;
             $nDef = $npcCatalog[$npc->npc_key] ?? null;
             if ($nDef && ($nDef['bonus_type'] ?? '') === 'wage_bonus') {
@@ -315,7 +317,7 @@ class GangWageService
             'properties_income' => $propsIncome,
             'vehicles_count' => $storedVehicles->count(),
             'vehicles_income' => $vehiclesIncome,
-            'npcs_count' => $npcs->count(),
+            'npcs_count' => $contributingNpcsCount,
             'npcs_income' => $npcsIncome,
             'subtotal_base' => $subtotalBase,
             'respect_bonus_pct' => $respectBonusPct,

@@ -867,6 +867,8 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Ongeldig NPC bendelid geselecteerd.');
         }
 
+        GangNpc::purgeExpiredForGang($gang);
+
         // Limit to max 5 active hires of the same specialist NPC type per 30 minutes
         $currentSameNpcCount = $gang->npcs()
             ->where('npc_key', $npcKey)
@@ -876,7 +878,7 @@ class GangPropertyController extends Controller
             ->count();
 
         if ($currentSameNpcCount >= GangNpc::MAX_ACTIVE_PER_TYPE) {
-            return back()->with('error', "Jullie bende heeft al het maximale aantal van ".GangNpc::MAX_ACTIVE_PER_TYPE." actieve specialisten van {$npcData['name']} in dienst voor dit 30-minuten contractblok!");
+            return back()->with('error', 'Jullie bende heeft al het maximale aantal van '.GangNpc::MAX_ACTIVE_PER_TYPE." actieve specialisten van {$npcData['name']} in dienst voor dit 30-minuten contractblok!");
         }
 
         if (($npcData['bonus_type'] ?? '') === 'defense' && $gang->npc_defense_bonus_percent >= Gang::MAX_NPC_DEFENSE_BONUS_PERCENT) {
@@ -905,6 +907,11 @@ class GangPropertyController extends Controller
             }
 
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            if (! $lockedGang) {
+                return 'Bende niet gevonden.';
+            }
+
+            GangNpc::purgeExpiredForGang($lockedGang);
 
             $currentDefenseBonus = $lockedGang->npc_defense_bonus_percent;
             if (($npcData['bonus_type'] ?? '') === 'defense' && $currentDefenseBonus >= Gang::MAX_NPC_DEFENSE_BONUS_PERCENT) {
@@ -920,7 +927,7 @@ class GangPropertyController extends Controller
                 ->count();
 
             if ($lockedSameNpcCount >= GangNpc::MAX_ACTIVE_PER_TYPE) {
-                return "Jullie bende heeft al het maximale aantal van ".GangNpc::MAX_ACTIVE_PER_TYPE." actieve specialisten van {$npcData['name']} in dienst voor dit 30-minuten contractblok!";
+                return 'Jullie bende heeft al het maximale aantal van '.GangNpc::MAX_ACTIVE_PER_TYPE." actieve specialisten van {$npcData['name']} in dienst voor dit 30-minuten contractblok!";
             }
 
             if ($lockedGang->npcs()->count() >= $lockedGang->total_npc_capacity) {

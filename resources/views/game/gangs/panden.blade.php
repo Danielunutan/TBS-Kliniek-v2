@@ -715,7 +715,11 @@
                                     data-confirm-icon="fa-user-plus"
                                     class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $isEnforcerAtCap && ! $isSameNpcAtCap && ! $character->isImprisoned() && ! $character->isComatose() && ! $character->needsReviveSerum()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i>
-                                @if($isEnforcerAtCap)
+                                @if($character->isImprisoned())
+                                    <span>In Isoleercel</span>
+                                @elseif($character->isComatose() || $character->needsReviveSerum())
+                                    <span>Code Blauw</span>
+                                @elseif($isEnforcerAtCap)
                                     <span>Max +{{ \App\Models\Gang::MAX_NPC_DEFENSE_BONUS_PERCENT }}% Enforcer Limiet</span>
                                 @elseif($isSameNpcAtCap)
                                     <span>Max 5x per 30 Min Bereikt</span>

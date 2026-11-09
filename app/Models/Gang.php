@@ -243,11 +243,16 @@ class Gang extends Model
     {
         $defenseNpcs = $this->relationLoaded('npcs')
             ? $this->npcs->filter(fn ($n) => ! $n->isExpired())->where('bonus_type', 'defense')
-            : $this->npcs()->where('bonus_type', 'defense')->get();
+            : $this->npcs()->where('bonus_type', 'defense')->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })->get();
 
         $sum = 0;
         $counts = [];
         foreach ($defenseNpcs as $npc) {
+            if ($npc->isExpired()) {
+                continue;
+            }
             $key = (string) $npc->npc_key;
             $counts[$key] = ($counts[$key] ?? 0) + 1;
             if ($counts[$key] <= GangNpc::MAX_ACTIVE_PER_TYPE) {

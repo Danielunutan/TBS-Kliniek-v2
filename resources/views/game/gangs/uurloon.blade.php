@@ -100,8 +100,8 @@
             this.pandenBase = 350000;
             this.pandenBonusPct = 95;
             this.vehiclesBase = 125000;
-            this.npcsIncome = 15000;
-            this.npcBonusPct = 80;
+            this.npcsIncome = 7500;
+            this.npcBonusPct = 50;
             this.respect = 2500000;
             this.hasWarDominance = true;
             this.charLevel = 50;
@@ -346,15 +346,15 @@
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
                             <i class="fa-solid fa-user-tie text-purple-500 mr-1"></i> Personeel Basisbijdrage (€/u)
                         </label>
-                        <input type="number" min="0" max="250000" step="500" x-model.number="npcsIncome" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white">
-                        <p class="text-[10px] text-slate-400">€500 per ingehuurde specialist.</p>
+                        <input type="number" min="0" max="10000" step="500" x-model.number="npcsIncome" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white">
+                        <p class="text-[10px] text-slate-400">€500 per ingehuurde specialist (max. 5 per type).</p>
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
                             <i class="fa-solid fa-money-bill-trend-up text-purple-500 mr-1"></i> Witwasser Uurloonbonus (%)
                         </label>
-                        <input type="number" min="0" max="500" step="5" x-model.number="npcBonusPct" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white">
-                        <p class="text-[10px] text-slate-400">+10% per witwasser specialist in de bende.</p>
+                        <input type="number" min="0" max="50" step="5" x-model.number="npcBonusPct" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white">
+                        <p class="text-[10px] text-slate-400">+10% per witwasser (maximaal 5 actieve witwassers = max +50%).</p>
                     </div>
                 </div>
 
@@ -572,7 +572,7 @@
                             <i class="fa-solid fa-users text-purple-500"></i>
                             <span>Personeel (NPCs)</span>
                         </span>
-                        <span class="text-[10px] font-bold text-slate-400 font-mono">{{ $npcs->count() }} specialisten</span>
+                        <span class="text-[10px] font-bold text-slate-400 font-mono">{{ $breakdown['npcs_count'] ?? $npcs->count() }} specialisten</span>
                     </div>
                     <div class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
                         +€{{ number_format($breakdown['npcs_income'] ?? 0, 0, ',', '.') }}/u

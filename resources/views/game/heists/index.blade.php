@@ -654,10 +654,10 @@
                                 <span>Wagen Vereist &ge;{{ $heist->min_speed_required }} km/u</span>
                             </a>
                         @elseif(! $hasCondition)
-                            <a href="{{ route('garage.index') }}" 
+                            <a href="{{ route('gangs.garage') }}" 
                                class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-wrench"></i>
-                                <span>Wagen Repareren in Garage</span>
+                                <span>Wagen Reviseren in Bende Garage</span>
                             </a>
                         @elseif(! $hasGangMasks)
                             <a href="{{ route('gangs.index', ['tab' => 'doneren']) }}" 

@@ -254,14 +254,17 @@
                         <!-- Actions: Repareren (Uitsluitend via Bendekas), Doneren & Terughalen -->
                         <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
                             <!-- Reviseren uitsluitend via Bendekas -->
-                            @if(($isOwner || $isOfficer || $charVehicle->is_gang_owned) && $charVehicle->current_condition < 100)
+                            @if(($isOwner || $isOfficer) && $charVehicle->current_condition < 100)
+                                @php
+                                    $canAffordRepair = (int) ($gang->treasury ?? 0) >= (int) $charVehicle->repair_cost;
+                                @endphp
                                 <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" 
-                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
-                                            class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                            {{ $character->isImprisoned() || $character->isComatose() || ! $canAffordRepair ? 'disabled' : '' }}
+                                            class="w-full py-2 rounded-xl {{ $canAffordRepair ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 cursor-pointer text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} disabled:opacity-50 disabled:cursor-not-allowed font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-wrench text-[11px]"></i>
-                                        <span>Reviseren via Bendekas (€{{ number_format($charVehicle->repair_cost, 0, ',', '.') }})</span>
+                                        <span>{{ $canAffordRepair ? 'Reviseren via Bendekas (€' . number_format($charVehicle->repair_cost, 0, ',', '.') . ')' : 'Te weinig in bendekas (€' . number_format($charVehicle->repair_cost, 0, ',', '.') . ')' }}</span>
                                     </button>
                                 </form>
                             @endif

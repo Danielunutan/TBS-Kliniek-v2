@@ -23,8 +23,8 @@ return new class extends Migration
         // 1. Purge any expired NPCs across all gangs
         try {
             GangNpc::purgeAllExpired();
-        } catch (\Throwable $e) {
-            Log::warning('Error during GangNpc::purgeAllExpired in migration: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::warning('Error during GangNpc::purgeAllExpired in migration: '.$e->getMessage());
         }
 
         // 2. Find any active groups with count > 5
@@ -80,6 +80,9 @@ return new class extends Migration
 
                 if ($totalRefund > 0) {
                     $lockedGang->treasury = (int) $lockedGang->treasury + $totalRefund;
+                    if (Schema::hasColumn('gangs', 'protected_treasury')) {
+                        $lockedGang->protected_treasury = (int) ($lockedGang->protected_treasury ?? 0) + $totalRefund;
+                    }
                     $lockedGang->save();
 
                     $formattedRefund = number_format($totalRefund, 0, ',', '.');
@@ -94,7 +97,7 @@ return new class extends Migration
                                 'title' => "⚖️ NPC Specialist Limiet & Restitutie: {$npcName}",
                                 'message' => "Er geldt voortaan een limiet van maximaal 5 actieve contracten per specialist per 30 minuten. Voor {$excessCount} overtollige contracten van {$npcName} is zojuist €{$formattedRefund} teruggestort in jullie bende kas!",
                             ]);
-                        } catch (\Throwable) {
+                        } catch (Throwable) {
                             // Ignore if notification cannot be sent
                         }
                     }

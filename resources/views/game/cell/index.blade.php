@@ -176,7 +176,7 @@
                                 @csrf
                                 <button type="submit" 
                                     @if(!$canAfford) disabled @endif
-                                    class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 shadow-xs cursor-pointer {{ $canAfford ? 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-60' }}">
+                                    class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 shadow-xs {{ $canAfford ? 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 cursor-pointer' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-60' }}">
                                     <i class="fa-solid fa-arrow-up"></i>
                                     <span>{{ $canAfford ? 'Upgrade Installeren' : 'Te Weinig Geld' }}</span>
                                 </button>

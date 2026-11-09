@@ -135,6 +135,7 @@ Bendes kunnen in [Bende Panden](/gangs/panden) vastgoed aankopen vanuit de gezam
 Bendes kunnen nu gespecialiseerde hulpkrachten inhuren om hun producties en veiligheid te maximaliseren:
 - Huur chemici, witwassers en zwaarbewapende bewakers in voor een contract van 30 minuten per productiecyclus.
 - Een handige live countdown toont precies wanneer het contract afloopt. Specialisten verhogen de opbrengst, verkorten de productietijd en beschermen je pand tegen invallen!
+- **Specialistenlimiet & Defensiecap:** Om monopolievorming te voorkomen geldt een limiet van maximaal 5 actieve contracten per specialist-type per 30 minuten, met een maximale Enforcer-verdedigingsbonus van +100%.
 
 ---
 

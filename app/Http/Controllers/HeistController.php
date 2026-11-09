@@ -188,19 +188,32 @@ class HeistController extends Controller
                 })->first();
             }
 
-            // Deduct masks directly from Gang Depot atomically under row lock
-            $masksDeducted = DB::transaction(function () use ($gang, $heist): bool {
+            // Atomically verify vehicle condition and deduct masks directly from Gang Depot under row lock
+            $reservationResult = DB::transaction(function () use ($gang, $heist, $charVehicle): string|bool {
+                /** @var CharacterVehicle|null $lockedVehicle */
+                $lockedVehicle = CharacterVehicle::where('id', $charVehicle->id)->lockForUpdate()->first();
+                if (! $lockedVehicle || $lockedVehicle->current_condition < $heist->min_condition_required || $lockedVehicle->current_condition <= 0) {
+                    return 'vehicle_condition';
+                }
+
                 /** @var Gang|null $lockedGang */
                 $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
                 if (! $lockedGang || (int) ($lockedGang->masks ?? 0) < $heist->required_mask_count) {
-                    return false;
+                    return 'masks';
                 }
                 $lockedGang->decrement('masks', $heist->required_mask_count);
 
                 return true;
             });
 
-            if (! $masksDeducted) {
+            if ($reservationResult === 'vehicle_condition') {
+                $vehName = $charVehicle->vehicle?->name ?? 'vluchtwagen';
+                $freshCond = $charVehicle->fresh()?->current_condition ?? 0;
+
+                return back()->with('error', "De conditie van de {$vehName} is inmiddels te laag ({$freshCond}%). Deze heist vereist minimaal {$heist->min_condition_required}%.");
+            }
+
+            if ($reservationResult !== true) {
                 return back()->with('error', "Onvoldoende maskers in het Bende Depot! Voor de {$heist->name} zijn {$heist->required_mask_count} maskers vereist in het Bende Depot.");
             }
 

@@ -1238,7 +1238,7 @@ function tbsDashboardCustomizer() {
                                     <img :src="(nowPlaying && nowPlaying.cover) ? nowPlaying.cover : 'https://mixxr.nl/album-art.png'" 
                                          alt="MIXXR" 
                                          class="w-full h-full object-cover"
-                                         x-on:error="$event.target.src = 'https://mixxr.nl/album-art.png'">
+                                         x-on:error="if (!$event.target.src.includes('album-art.png')) { $event.target.src = 'https://mixxr.nl/album-art.png'; }">
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block truncate"
@@ -1333,7 +1333,7 @@ function tbsDashboardCustomizer() {
                                             <img :src="track.cover || 'https://mixxr.nl/album-art.png'" 
                                                  alt="Cover" 
                                                  class="w-10 h-10 rounded-lg object-cover bg-slate-900 border border-purple-200 dark:border-purple-800 shrink-0"
-                                                 x-on:error="$event.target.src = 'https://mixxr.nl/album-art.png'">
+                                                 x-on:error="if (!$event.target.src.includes('album-art.png')) { $event.target.src = 'https://mixxr.nl/album-art.png'; }">
                                             <div class="min-w-0 truncate">
                                                 <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate" x-text="track.title"></h5>
                                                 <span class="text-[11px] text-slate-500 dark:text-purple-300/70 block truncate" x-text="track.artist"></span>
@@ -1447,7 +1447,7 @@ function tbsDashboardCustomizer() {
                                         @endif
                                     </div>
                                     @if(!empty($item['image']))
-                                        <img src="{{ $item['image'] }}" alt="MIXXR thumbnail" class="w-14 h-14 rounded-xl object-cover shrink-0 border border-purple-200 dark:border-purple-800 shadow-2xs" onerror="this.src='https://mixxr.nl/album-art.png'">
+                                        <img src="{{ $item['image'] }}" alt="MIXXR thumbnail" class="w-14 h-14 rounded-xl object-cover shrink-0 border border-purple-200 dark:border-purple-800 shadow-2xs" onerror="this.onerror=null;this.src='https://mixxr.nl/album-art.png';">
                                     @else
                                         <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-500 flex items-center justify-center shrink-0 border border-purple-200 dark:border-purple-800">
                                             <i class="fa-solid fa-newspaper text-xs"></i>

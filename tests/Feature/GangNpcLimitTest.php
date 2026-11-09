@@ -48,8 +48,8 @@ class GangNpcLimitTest extends TestCase
         for ($i = 0; $i < 15; $i++) {
             GangProperty::create([
                 'gang_id' => $gang->id,
-                'property_key' => 'gang_villa_' . $i,
-                'name' => 'Villa ' . $i,
+                'property_key' => 'gang_villa_'.$i,
+                'name' => 'Villa '.$i,
                 'type' => 'headquarters',
                 'purchase_price' => 1000000,
                 'npc_capacity' => 8,
