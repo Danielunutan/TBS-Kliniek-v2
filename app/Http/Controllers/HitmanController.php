@@ -842,6 +842,13 @@ class HitmanController extends Controller
             return back()->with('error', "Het levelverschil tussen jou en {$defender->name} is te groot (maximaal 15 levels verschil, tenzij er Bloedwraak of een Kopgeld-premie openstaat).");
         }
 
+        if ($attacker->hasIsolationProtection() && ! $request->boolean('confirm_break_isolation')) {
+            $remaining = $attacker->protection_until ? $attacker->protection_until->diffForHumans(null, true) : 'onbekend';
+            $shieldLabel = $attacker->hasMedicalShield() ? 'Medisch Infuus-Schild' : 'Vrijwillige Isolatie';
+
+            return back()->with('error', "⚠️ Je hebt momenteel een actief {$shieldLabel} (nog {$remaining})! Bevestig dat je je bescherming wilt beëindigen om deze aanslag uit te voeren.");
+        }
+
         // Take the target's action lock (the same lock his own requests use). Two shooters on one target then run one
         // after the other, so the second one sees the protection, cash and bounties that the first one left behind.
         $targetLock = Cache::lock('character_action_'.$defender->user_id, SerializeCharacterActions::LOCK_TTL_SECONDS);

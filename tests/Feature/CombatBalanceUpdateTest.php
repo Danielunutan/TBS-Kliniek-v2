@@ -112,4 +112,47 @@ class CombatBalanceUpdateTest extends TestCase
         $response->assertSessionHas('error');
         $this->assertStringContainsString('levelverschil', session('error'));
     }
+
+    public function test_attack_with_medical_shield_requires_confirmation_to_break(): void
+    {
+        $attackerUser = User::where('email', 'demo@tbskliniek.nl')->first();
+        $attacker = $attackerUser->character;
+        $attacker->update([
+            'level' => 30,
+            'energy' => 100,
+            'current_location' => 'Paviljoen 1 (Gesloten)',
+            'protection_until' => Carbon::now()->addMinutes(45),
+            'perks' => ['medical_shield_until' => Carbon::now()->addMinutes(45)->timestamp],
+        ]);
+
+        $this->assertTrue($attacker->hasMedicalShield());
+
+        $defender = Character::where('id', '!=', $attacker->id)->first();
+        $defender->update([
+            'level' => 30,
+            'current_location' => 'Paviljoen 1 (Gesloten)',
+            'protection_until' => null,
+        ]);
+
+        $this->actingAs($attackerUser);
+
+        // Without confirmation: blocked with warning
+        $response = $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+            'confirm_break_isolation' => 0,
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('Medisch Infuus-Schild', session('error'));
+
+        // With confirmation: succeeds and breaks shield
+        $responseConfirm = $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+            'confirm_break_isolation' => 1,
+        ]);
+
+        $responseConfirm->assertSessionHas('arena_battle');
+        $attacker->refresh();
+        $this->assertFalse($attacker->hasMedicalShield());
+    }
 }

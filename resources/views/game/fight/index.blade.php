@@ -13,7 +13,8 @@
     isolationModalOpen: false,
     pendingForm: null,
     targetName: '',
-    hasIsolation: {{ $character->isInVoluntaryIsolation() ? 'true' : 'false' }},
+    hasIsolation: {{ ($character->isInVoluntaryIsolation() || $character->hasMedicalShield()) ? 'true' : 'false' }},
+    isMedicalShield: {{ $character->hasMedicalShield() ? 'true' : 'false' }},
     handleAttack(event, name) {
         if (this.hasIsolation) {
             event.preventDefault();
@@ -968,17 +969,24 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Isolatie Vroegtijdig Beëindigen?</h3>
-                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400">Let op: je verlaat je veilige cel!</span>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white" x-text="isMedicalShield ? 'Beschermingsschild Beëindigen?' : 'Isolatie Vroegtijdig Beëindigen?'"></h3>
+                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400" x-text="isMedicalShield ? 'Let op: je verliest je actieve 60 minuten bescherming!' : 'Let op: je verlaat je veilige cel!'"></span>
                 </div>
             </div>
 
             <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                <template x-if="isMedicalShield">
+                    <p>
+                        Je hebt momenteel een actief <strong>Medisch Infuus-Schild</strong> (tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>).
+                    </p>
+                </template>
+                <template x-if="!isMedicalShield">
+                    <p>
+                        Je hebt momenteel <strong>Vrijwillige Isolatie</strong> aanstaan (tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>).
+                    </p>
+                </template>
                 <p>
-                    Je hebt momenteel <strong>Vrijwillige Isolatie</strong> aanstaan (tot <strong>{{ $character->protection_until?->format('d-m H:i') }}</strong>).
-                </p>
-                <p>
-                    Als je nu <span class="font-extrabold text-slate-900 dark:text-white" x-text="targetName"></span> berooft, verlaat je je cel en <strong>vervalt je isolatiebescherming direct</strong>. Andere patiënten kunnen jou daarna ook weer aanvallen!
+                    Als je nu <span class="font-extrabold text-slate-900 dark:text-white" x-text="targetName"></span> aanvalt, <strong>vervalt je beschermingsschild direct</strong>. Andere patiënten kunnen jou daarna ook weer aanvallen!
                 </p>
             </div>
 

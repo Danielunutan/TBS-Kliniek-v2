@@ -532,12 +532,13 @@ class FightController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand beroven!');
         }
 
-        $wasInIsolation = $attacker->isInVoluntaryIsolation();
+        $wasInIsolation = $attacker->hasIsolationProtection();
         if ($wasInIsolation && ! $request->boolean('confirm_break_isolation')) {
-            $remaining = $attacker->protection_until->diffForHumans(null, true);
+            $remaining = $attacker->protection_until ? $attacker->protection_until->diffForHumans(null, true) : 'onbekend';
+            $shieldLabel = $attacker->hasMedicalShield() ? 'Medisch Infuus-Schild' : 'Vrijwillige Isolatie';
 
             return back()
-                ->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Bevestig dat je je isolatie wilt beëindigen om een aanval uit te voeren.")
+                ->with('error', "⚠️ Je hebt momenteel een actief {$shieldLabel} (nog {$remaining})! Bevestig dat je je bescherming wilt laten vervallen om een aanval uit te voeren.")
                 ->with('error_url', route('isolation.index'));
         }
 
