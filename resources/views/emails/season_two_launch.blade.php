@@ -49,7 +49,7 @@
                                 Goed nieuws: <strong>Seizoen 2 Sprint is zojuist officieel afgetrapt in de TBS Kliniek!</strong>
                             </p>
                             <p style="font-size: 14px; line-height: 1.7; color: #475569; margin: 0 0 20px 0;">
-                                Naar aanleiding van de feedback van onze hechte community hebben we gekozen voor een <strong>volledig schone lei</strong>. Er ontstond een te grote scheefgroei in de economie, waardoor nieuwe spelers en eerlijke bendes op oneerlijke achterstand kwamen. Daarom begint nu <strong>iedereen zij aan zij gelijk op Level 1 met €250 zakgeld en €1.000 op de bank</strong>.
+                                Naar aanleiding van de enthousiaste reacties en feedback van onze hechte community starten we Seizoen 2 Sprint met een <strong>volledig frisse start</strong>! Een gloednieuw hoofdstuk waarin iedereen vanaf dag één zij aan zij start op Level 1 met €250 zakgeld en €1.000 op de bank voor een spannende, actievolle competitie.
                             </p>
 
                             <!-- Highlights Box -->

@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-#[Signature('tbs:send-season-two-newsletter {--dry-run : Toon alleen de ontvangers zonder daadwerkelijk te versturen} {--test-email= : Stuur alleen een testmail naar dit specifieke adres} {--limit= : Beperk het aantal e-mails}')]
+#[Signature('tbs:send-season-two-newsletter {--dry-run : Toon alleen de ontvangers zonder daadwerkelijk te versturen} {--test-email= : Stuur alleen een testmail naar dit specifieke adres} {--domain= : Filter op e-maildomein zoals gmail.com} {--limit= : Beperk het aantal e-mails}')]
 #[Description('Verstuur de officiële Seizoen 2 Sprint nieuwsbrief via Brevo naar alle geregistreerde spelers')]
 class SendSeasonTwoNewsletterCommand extends Command
 {
@@ -41,6 +41,8 @@ class SendSeasonTwoNewsletterCommand extends Command
             }
         }
 
+        $domain = $this->option('domain');
+
         $query = User::query()
             ->where(function ($q) {
                 $q->whereNull('newsletter_subscribed')
@@ -50,6 +52,10 @@ class SendSeasonTwoNewsletterCommand extends Command
             ->where('email', 'like', '%@%')
             ->where('is_banned', false)
             ->whereNotIn('email', ['1231231@spamok.nl']); // filter bekende throwaway testadressen
+
+        if ($domain) {
+            $query->where('email', 'like', "%@{$domain}");
+        }
 
         if ($limit) {
             $query->limit($limit);
