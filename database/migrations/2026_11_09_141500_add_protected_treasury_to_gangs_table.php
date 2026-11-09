@@ -34,8 +34,6 @@ return new class extends Migration
                 $protectedAmount = min((int) $gang->treasury, (int) $restitutionAmount);
                 DB::table('gangs')->where('id', $gangId)->update([
                     'protected_treasury' => $protectedAmount,
-                    // Give BadIntentions extra shield protection so they can organize in peace
-                    'shield_until' => $gangId === 5 ? now()->addHours(48) : $gang->shield_until,
                 ]);
             }
         }
@@ -53,3 +51,4 @@ return new class extends Migration
         }
     }
 };
+

@@ -275,17 +275,47 @@ class NewsArticle extends Model
         $text = preg_replace('/\[s\](.*?)\[\/s\]/i', '<del class="line-through text-slate-400">$1</del>', $text);
         $text = preg_replace('/~~(.*?)~~/s', '<del class="line-through text-slate-400">$1</del>', $text);
 
+        // GitHub-style Markdown Alerts: > [!IMPORTANT], > [!NOTE], > [!TIP], > [!WARNING], > [!CAUTION]
+        $text = preg_replace_callback('/(?:^(?:>|&gt;)[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\r?\n)((?:^(?:>|&gt;)[ \t]*.*$\r?\n?)+)/m', function ($matches) {
+            $type = strtoupper($matches[1]);
+            $body = preg_replace('/^(?:>|&gt;)[ \t]?/m', '', $matches[2]);
+            $body = trim($body);
+
+            [$borderClass, $bgClass, $titleClass, $icon, $defaultTitle] = match ($type) {
+                'TIP' => ['border-emerald-500', 'bg-emerald-500/10 dark:bg-emerald-950/40', 'text-emerald-700 dark:text-emerald-300', 'fa-lightbulb', 'Handige Tip'],
+                'WARNING' => ['border-amber-500', 'bg-amber-500/10 dark:bg-amber-950/40', 'text-amber-700 dark:text-amber-300', 'fa-triangle-exclamation', 'Waarschuwing'],
+                'CAUTION' => ['border-rose-500', 'bg-rose-500/10 dark:bg-rose-950/40', 'text-rose-700 dark:text-rose-300', 'fa-circle-exclamation', 'Let Op'],
+                'NOTE' => ['border-blue-500', 'bg-blue-500/10 dark:bg-blue-950/40', 'text-blue-700 dark:text-blue-300', 'fa-circle-info', 'Opmerking'],
+                default => ['border-purple-500', 'bg-purple-500/10 dark:bg-purple-950/40', 'text-purple-700 dark:text-purple-300', 'fa-circle-exclamation', 'Belangrijk'],
+            };
+
+            // Format body inner lists or lines if needed
+            $body = preg_replace('/^[ \t]*[\-\*]\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 dark:text-slate-300 font-medium leading-relaxed">$1</li>', $body);
+            $body = preg_replace('/(\*\*|\[b\])(.*?)(\*\*|\[\/b\])/is', '<strong class="font-extrabold text-slate-900 dark:text-white">$2</strong>', $body);
+
+            return "\n\n<div class=\"my-4 p-4 rounded-2xl {$bgClass} border-l-4 {$borderClass} shadow-xs\">\n"
+                ."<div class=\"flex items-center gap-2 mb-2 font-black text-xs uppercase tracking-wider {$titleClass}\"><i class=\"fa-solid {$icon}\"></i> {$defaultTitle}</div>\n"
+                ."<div class=\"text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed\">\n"
+                .nl2br($body)."\n"
+                ."</div>\n</div>\n\n";
+        }, $text);
+
         // Quote
         $text = preg_replace(
             '/\[quote\](.*?)\[\/quote\]/is',
             '<blockquote class="border-l-4 border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 dark:text-purple-200 italic">$1</blockquote>',
             $text
         );
-        $text = preg_replace(
-            '/^>\s+(.*?)$/m',
-            '<blockquote class="border-l-4 border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 dark:text-purple-200 italic">$1</blockquote>',
-            $text
-        );
+        // Group consecutive markdown quote lines into a single coherent blockquote
+        $text = preg_replace_callback('/((?:^(?:>|&gt;)[ \t]*.*$\r?\n?)+)/m', function ($matches) {
+            $inner = preg_replace('/^(?:>|&gt;)[ \t]?/m', '', $matches[1]);
+            $inner = trim($inner);
+            if ($inner === '') {
+                return '';
+            }
+
+            return "<blockquote class=\"border-l-4 border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 dark:text-purple-200 italic\">".nl2br($inner)."</blockquote>\n";
+        }, $text);
 
         // Community Credit Box: [credit=Username]Message[/credit]
         $text = preg_replace_callback('/\[credit=([a-zA-Z0-9_\-\s]+)\](.*?)\[\/credit\]/is', function ($m) {
