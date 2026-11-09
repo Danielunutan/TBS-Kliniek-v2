@@ -69,7 +69,7 @@ class ResetGangsAndEconomyCommand extends Command
 
             foreach ($gangTables as $tbl) {
                 if (Schema::hasTable($tbl)) {
-                    DB::table($tbl)->truncate();
+                    DB::table($tbl)->delete();
                     $this->line("   -> Tabel [{$tbl}] geleegd.");
                 }
             }
