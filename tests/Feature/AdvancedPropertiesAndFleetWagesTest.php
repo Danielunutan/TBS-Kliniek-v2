@@ -28,7 +28,7 @@ class AdvancedPropertiesAndFleetWagesTest extends TestCase
     {
         $service = app(GangWageService::class);
 
-        // Small gang with 500 kiosks: 500 * 100 = 50.000 (+150 base = 50150)
+        // Small gang with 500 kiosks: 500 * 50 = 25.000 (+150 base = 25150)
         $smallGang = Gang::create([
             'name' => 'Small Kiosks',
             'tag' => 'SK',
@@ -36,9 +36,9 @@ class AdvancedPropertiesAndFleetWagesTest extends TestCase
             'treasury' => 1000000,
             'bling_shops' => 500,
         ]);
-        $this->assertEquals(50150, $service->calculateHourlyWage($smallGang));
+        $this->assertEquals(25150, $service->calculateHourlyWage($smallGang));
 
-        // Giant gang with 2,083,684 kiosks: progressive bracket scaling yields 9,467,368 + 150 base = 9,467,518
+        // Giant gang with 2,083,684 kiosks: capped at 1.000 kiosks max = 1.000 * 50 = 50.000 + 150 base = 50150
         $gang = Gang::create([
             'name' => 'Kiosk Titans',
             'tag' => 'KT',
@@ -48,11 +48,12 @@ class AdvancedPropertiesAndFleetWagesTest extends TestCase
         ]);
 
         $wage = $service->calculateHourlyWage($gang);
-        $this->assertEquals(9467518, $wage);
+        $this->assertEquals(50150, $wage);
 
         $breakdown = $service->getWageBreakdown($gang);
         $this->assertEquals(2083684, $breakdown['kiosks_count']);
-        $this->assertEquals(9467368, $breakdown['kiosks_income']);
+        $this->assertEquals(1000, $breakdown['kiosks_capped']);
+        $this->assertEquals(50000, $breakdown['kiosks_income']);
     }
 
     public function test_stored_vehicle_fleet_contributes_to_hourly_wage(): void

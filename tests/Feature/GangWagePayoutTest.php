@@ -34,9 +34,9 @@ class GangWagePayoutTest extends TestCase
             'bling_shops' => 3,
         ]);
 
-        // Base 150 + 3 * 100 = 450 hourly
-        $this->assertEquals(450, $service->calculateHourlyWage($gang));
-        $this->assertEquals(10800, $service->calculateDailyWage($gang));
+        // Base 150 + 3 * 50 = 300 hourly
+        $this->assertEquals(300, $service->calculateHourlyWage($gang));
+        $this->assertEquals(7200, $service->calculateDailyWage($gang));
     }
 
     public function test_visiting_gangs_page_automatically_pays_out_pending_wages(): void
@@ -49,7 +49,7 @@ class GangWagePayoutTest extends TestCase
             'tag' => 'TBSB',
             'specialty' => 'Kantine Controle',
             'treasury' => 10000,
-            'bling_shops' => 2, // 150 + 200 = 350 / hour
+            'bling_shops' => 2, // 150 + 100 = 250 / hour
             'leader_character_id' => $character->id,
         ]);
 
@@ -69,11 +69,11 @@ class GangWagePayoutTest extends TestCase
 
         $character->refresh();
 
-        // 3 hours * 350 = 1050 added to cash (bank untouched)
-        $this->assertEquals(2050, $character->cash);
+        // 3 hours * 250 = 750 added to cash (bank untouched)
+        $this->assertEquals(1750, $character->cash);
         $this->assertEquals(5000, $character->bank);
         $response->assertSee('Bende Uurloon Ontvangen');
-        $response->assertSee('UURLOON €350');
+        $response->assertSee('UURLOON €250');
     }
 
     public function test_gang_pay_wages_artisan_command(): void
@@ -118,7 +118,7 @@ class GangWagePayoutTest extends TestCase
             'tag' => 'CMC',
             'specialty' => 'Kantine Controle',
             'treasury' => 1000,
-            'bling_shops' => 1, // 150 + 100 = 250 / hour
+            'bling_shops' => 1, // 150 + 50 = 200 / hour
             'leader_character_id' => $character->id,
         ]);
 
@@ -139,7 +139,7 @@ class GangWagePayoutTest extends TestCase
         $response->assertSessionHas('success');
 
         $character->refresh();
-        $this->assertEquals(2500, $character->cash); // 2000 + 2 * 250
+        $this->assertEquals(2400, $character->cash); // 2000 + 2 * 200
         $this->assertEquals(3000, $character->bank); // Bank remains untouched
     }
 
@@ -208,8 +208,8 @@ class GangWagePayoutTest extends TestCase
             'bling_shops' => 5,
         ]);
 
-        // Base with 5 shops: 150 + 5 * 100 = 650
-        $this->assertEquals(650, $service->calculateHourlyWage($gang));
+        // Base with 5 shops: 150 + 5 * 50 = 400
+        $this->assertEquals(400, $service->calculateHourlyWage($gang));
 
         // Add a warehouse (+€1.000) and a luxury penthouse (+€20.000 base, +12% wage bonus)
         GangProperty::create([
@@ -230,10 +230,10 @@ class GangWagePayoutTest extends TestCase
 
         $gang->load('properties');
 
-        // Subtotal = 650 (base) + 1000 (loods) + 20000 (penthouse) = 21650
+        // Subtotal = 400 (base) + 1000 (loods) + 20000 (penthouse) = 21400
         // Multiplier = 1 + 12% = 1.12
-        // Expected = round(21650 * 1.12) = 24248
-        $this->assertEquals(24248, $service->calculateHourlyWage($gang));
+        // Expected = round(21400 * 1.12) = 23968
+        $this->assertEquals(23968, $service->calculateHourlyWage($gang));
     }
 
     public function test_hourly_wage_is_globally_synchronized_and_creates_notifications(): void
@@ -273,8 +273,8 @@ class GangWagePayoutTest extends TestCase
         $this->artisan('gang:pay-wages')->assertSuccessful();
 
         $character->refresh();
-        // 13:00 to 15:00 = 2 hours * 250 = 500
-        $this->assertEquals(1500, $character->cash);
+        // 13:00 to 15:00 = 2 hours * 200 = 400
+        $this->assertEquals(1400, $character->cash);
         $this->assertEquals('2026-10-28 15:00:00', $character->last_gang_wage_at->format('Y-m-d H:i:s'));
 
         // Notification created

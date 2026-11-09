@@ -77,7 +77,14 @@ Als lid van een bende ontvang je elk heel uur automatisch een salaris op je bank
 ### Wat is er veranderd?
 Voorheen liepen uurloonbedragen uit de hand door oneindige kioskaankopen. Vanaf nu is het uurloon gebaseerd op een gezonde, tastbare en transparante economie. Jouw bende verdient geld met echte bezittingen:
 
-- **Kantine Kiosken (Stabiele Basis):** Kiosken geven een betrouwbare basisinkomst tot een maximum van 250 effectieve kiosken (€100 per kiosk per uur = maximaal €25.000 per uur). Zo hebben beginnende bendes direct een gezonde bodem.
+> [!IMPORTANT]
+> **Smokkelkiosken Limiet (1.000 max) & 100% Geld-Restitutie:**
+> Om de bende-economie voor iedereen transparant en eerlijk te houden, geldt er vanaf nu een officiële limiet van **maximaal 1.000 Smokkelkiosken per bende**.
+> - Iedere kiosk levert een vaste verhoging van **+€50 per uur** op aan het bende-basisloon (maximaal €50.000 per uur bij 1.000 stuks). Geen ingewikkelde staffels meer!
+> - **100% Restitutie:** Alle bendes die meer dan 1.000 kiosken bezaten, hebben voor elke overtollige kiosk de volledige aankoopwaarde van **€50.000 per stuk** direct teruggestort gekregen in hun gezamenlijke bendekas!
+> - Hierdoor hebben bendes honderden miljoenen tot ruim 1,6 miljard euro aan verse liquiditeit teruggekregen, direct inzetbaar voor de 10 nieuwe panden en garagevloten!
+
+- **Smokkelkiosken (Stabiele Basis, max 1.000):** Kiosken geven een betrouwbare basisinkomst van **€50 per kiosk per uur** tot het maximum van 1.000 stuks (maximaal €50.000 per uur). Zo hebben beginnende en groeiende bendes altijd een stabiele bodem.
 - **Actief Bende Wagenpark (24/7 Inkomsten):** Elk voertuig dat in de Bende Garage staat gestald, rijdt logistieke diensten voor de organisatie en genereert elk uur geld:
   - Motoren: €1.500 per uur per motor
   - Auto\'s: €4.000 per uur per auto

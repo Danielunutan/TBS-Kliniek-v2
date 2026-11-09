@@ -1126,7 +1126,7 @@
                                             Smokkelkiosken
                                         </span>
                                         <span class="text-[10px] text-slate-400 block">
-                                            {{ number_format($wageBreakdown['kiosks_count'] ?? 0, 0, ',', '.') }} kiosken (progressieve staffel)
+                                            {{ number_format($wageBreakdown['kiosks_count'] ?? 0, 0, ',', '.') }} kiosken (+€50/u per kiosk, max 1.000)
                                         </span>
                                     </div>
                                     <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">
@@ -2054,7 +2054,8 @@
                 $personalStars = (int) ($character->stars ?? 0);
 
                 // Shop items can ONLY be bought with money from the gangpot (gang treasury)
-                $possibleBlingShops = (int) floor($gangTreasury / 50000);
+                $remainingKioskSlots = max(0, 1000 - (int) ($myGang?->bling_shops ?? 0));
+                $possibleBlingShops = min($remainingKioskSlots, (int) floor($gangTreasury / 50000));
                 $possibleProtection = (int) floor($gangTreasury / 15000);
                 $possiblePower = (int) floor($gangTreasury / 15000);
 
@@ -2134,16 +2135,16 @@
                                     </h3>
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-[11px] font-mono">
                                         <i class="fa-solid fa-store text-[10px]"></i>
-                                        <span>In bezit: {{ number_format($myGang?->bling_shops ?? 0, 0, ',', '.') }} kiosken</span>
+                                        <span>In bezit: {{ number_format($myGang?->bling_shops ?? 0, 0, ',', '.') }} / 1.000 kiosken</span>
                                     </span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Verhoogt het bende-uurloon via een progressieve staffel (tot €100/kiosk voor de eerste 1.000 stuks, daarna staffelend). Prijs: <strong class="text-slate-900 dark:text-white">€50.000</strong>
+                                    Verhoogt het bende-basisloon met een vaste <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+€50 per uur per kiosk</strong> (maximaal 1.000 kiosken = +€50.000/u). Prijs: <strong class="text-slate-900 dark:text-white">€50.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
                                     Uit Gangpot: <strong class="text-purple-700 dark:text-purple-400 font-extrabold">{{ number_format($possibleBlingShops, 0, ',', '.') }}x</strong>
                                     @if(!empty($wageBreakdown['kiosks_income']))
                                         <span class="text-slate-400 mx-1">&bull;</span>
-                                        Huidige Kiosk-winst: <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+€{{ number_format($wageBreakdown['kiosks_income'], 0, ',', '.') }}/u</strong>
+                                        Huidige Kiosk-opbrengst: <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+€{{ number_format($wageBreakdown['kiosks_income'], 0, ',', '.') }}/u</strong>
                                     @endif
                                 </p>
                             </div>

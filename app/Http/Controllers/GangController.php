@@ -1690,6 +1690,21 @@ class GangController extends Controller
                         ->with('success', '🎉 Gefeliciteerd! De besloten Bende Chat is nu permanent ontgrendeld voor alle leden van de bende!');
 
                 case 'bling_shops':
+                    $currentKiosks = (int) ($lockedGang->bling_shops ?? 0);
+                    $maxKiosks = \App\Services\GangWageService::MAX_CONTRIBUTING_KIOSKS;
+                    if ($currentKiosks >= $maxKiosks) {
+                        return back()
+                            ->with('active_gang_tab', 'winkel')
+                            ->with('error', "Jullie bende heeft de maximale limiet van {$maxKiosks} Smokkelkiosken al bereikt!");
+                    }
+                    if ($currentKiosks + $qty > $maxKiosks) {
+                        $available = $maxKiosks - $currentKiosks;
+
+                        return back()
+                            ->with('active_gang_tab', 'winkel')
+                            ->with('error', "Jullie bende kan nog maximaal {$available} Smokkelkiosk(en) aanschaffen (limiet is {$maxKiosks} stuks).");
+                    }
+
                     $unitPrice = 50000;
                     $totalCost = $unitPrice * $qty;
                     if ($lockedGang->treasury < $totalCost) {
@@ -1697,12 +1712,12 @@ class GangController extends Controller
                     }
 
                     $lockedGang->treasury -= $totalCost;
-                    $lockedGang->bling_shops = ($lockedGang->bling_shops ?? 0) + $qty;
+                    $lockedGang->bling_shops = $currentKiosks + $qty;
                     $lockedGang->save();
 
                     return back()
                         ->with('active_gang_tab', 'winkel')
-                        ->with('success', "Succesvol {$qty} Smokkelkiosk(en) aangeschaft vanuit de bende kas! Het uurloon is verhoogd!");
+                        ->with('success', "Succesvol {$qty} Smokkelkiosk(en) aangeschaft vanuit de bende kas! Het bende-basisloon is verhoogd met +€".number_format($qty * \App\Services\GangWageService::SHOP_BONUS_WAGE, 0, ',', '.').' per uur!');
 
                 case 'protection':
                     $unitPrice = 15000;

@@ -623,7 +623,7 @@
                                 Smokkelkiosken
                             </span>
                             <span class="text-[10px] text-slate-400 block">
-                                {{ number_format($wageBreakdown['kiosks_count'] ?? 0, 0, ',', '.') }} kiosken (progressieve staffel)
+                                {{ number_format($wageBreakdown['kiosks_count'] ?? 0, 0, ',', '.') }} kiosken (+€50/u per kiosk, max 1.000)
                             </span>
                         </div>
                         <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">
