@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\GameSetting;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -117,22 +118,40 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
+        // Force logout and invalidate session for any logged-in non-admin player so they are immediately locked out
+        if ($user) {
+            Auth::guard('web')->logout();
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
+
         // Read metadata if available
         $metadata = self::getMetadata();
         $targetTime = $metadata['target_time'] ?? null;
 
-        // For AJAX, API, or JSON requests, return a clean JSON 503 response
-        if ($request->expectsJson() || $request->ajax() || $request->is('api/*')) {
+        // For AJAX, API, or JSON requests, return a clean JSON 503 response with redirect to lock the client onto the maintenance page
+        if ($request->expectsJson() || $request->ajax() || $request->is('api/*') || $request->header('X-TBS-Action') === 'true') {
             return response()->json([
+                'success' => false,
                 'maintenance' => true,
+                'reload' => true,
+                'redirect' => route('login'),
                 'message' => 'TBS Kliniek is tijdelijk in onderhoud! Naar aanleiding van jullie feedback voeren we een volledige en eerlijke reset door.',
                 'target_time' => $targetTime,
-            ], 503);
+            ], 503)->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+            ]);
         }
 
         return response()->view('maintenance', [
             'targetTime' => $targetTime,
             'seasonReset' => true,
-        ], 503);
+        ], 503)->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+        ]);
     }
 }

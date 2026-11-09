@@ -61,6 +61,39 @@ class MaintenanceModeTest extends TestCase
         $res->assertSee('De Kliniekdeuren Zijn Even Gesloten!');
         $res->assertSee('Tijdelijk in onderhoud voor een volledige en eerlijke reset!');
         $res->assertDontSee('22:00');
+        $this->assertGuest();
+    }
+
+    public function test_already_logged_in_players_are_logged_out_and_locked_on_maintenance_page_without_updating_online_status(): void
+    {
+        $user = User::factory()->create(['name' => 'ActieveSpeler', 'role' => 'user', 'is_onboarded' => true]);
+        $pastTime = now()->subHours(2);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'ActieveSpeler',
+            'is_onboarded' => true,
+            'last_active_at' => $pastTime,
+        ]);
+
+        // Player is actively logged in before maintenance
+        $this->actingAs($user)->get(route('dashboard'))->assertOk();
+        $character->refresh()->update(['last_active_at' => $pastTime]);
+
+        // Enable maintenance mode
+        Artisan::call('tbs:maintenance', ['action' => 'on']);
+
+        // Next background poll (realtime-stats) returns 503 with reload/redirect and logs the player out
+        $pollRes = $this->actingAs($user)
+            ->getJson(route('character.realtime-stats'));
+
+        $pollRes->assertStatus(503)
+            ->assertJson([
+                'maintenance' => true,
+                'reload' => true,
+            ]);
+
+        $this->assertGuest();
+        $this->assertEquals($pastTime->timestamp, $character->fresh()->last_active_at->timestamp);
     }
 
     public function test_daniel_can_bypass_maintenance_mode(): void

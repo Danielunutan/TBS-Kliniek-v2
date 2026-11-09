@@ -3057,6 +3057,10 @@
                 try {
                     const url = '{{ route('chat.public.messages') }}?channel=global' + (this.lastPublicId > 0 ? ('&after_id=' + this.lastPublicId) : '');
                     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (res.status === 503) {
+                        window.location.replace('{{ route('login') }}');
+                        return;
+                    }
                     const data = await res.json();
                     if (data.success && data.messages) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
@@ -3143,6 +3147,10 @@
                     const channel = 'gang_' + this.gangId;
                     const url = `{{ route('chat.public.messages') }}?channel=${channel}` + (this.lastGangId > 0 ? ('&after_id=' + this.lastGangId) : '');
                     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (res.status === 503) {
+                        window.location.replace('{{ route('login') }}');
+                        return;
+                    }
                     const data = await res.json();
                     if (data.success && data.messages) {
                         if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
@@ -3954,7 +3962,13 @@
                     if (checkDms) {
                         const pollDmUrl = '{{ route('chat.poll-incoming') }}' + (this.lastDirectDmId > 0 ? ('?after_dm_id=' + this.lastDirectDmId) : '');
                         fetch(pollDmUrl, { headers: { 'Accept': 'application/json' } })
-                            .then(r => r.json())
+                            .then(r => {
+                                if (r.status === 503) {
+                                    window.location.replace('{{ route('login') }}');
+                                    return null;
+                                }
+                                return r.json();
+                            })
                             .then(data => {
                                 if (data && data.success) {
                                     if (data.unread_dms !== undefined) {

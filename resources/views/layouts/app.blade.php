@@ -273,6 +273,26 @@
 
     @if($character)
     <script>
+        (function() {
+            if (window._tbsMaintenanceFetchInterceptorInstalled) return;
+            window._tbsMaintenanceFetchInterceptorInstalled = true;
+            const origFetch = window.fetch;
+            if (typeof origFetch !== 'function') return;
+            window.fetch = async function(...args) {
+                const res = await origFetch.apply(this, args);
+                try {
+                    if (res && res.status === 503 && !window._tbsMaintenanceReloading) {
+                        const resUrl = res.url ? new URL(res.url, window.location.origin) : null;
+                        if (!resUrl || resUrl.origin === window.location.origin) {
+                            window._tbsMaintenanceReloading = true;
+                            window.location.replace('{{ route('login') }}');
+                        }
+                    }
+                } catch (e) {}
+                return res;
+            };
+        })();
+
         function formatMoneyNL(val) {
             return '€' + new Intl.NumberFormat('nl-NL').format(Math.max(0, Math.round(val)));
         }
@@ -486,8 +506,16 @@
                                 'X-Requested-With': 'XMLHttpRequest'
                             }
                         });
+                        if (res.status === 503) {
+                            window.location.replace('{{ route('login') }}');
+                            return;
+                        }
                         if (res.ok) {
                             const data = await res.json();
+                            if (data && data.maintenance) {
+                                window.location.replace('{{ route('login') }}');
+                                return;
+                            }
                             this.applyStats(data);
                         }
                     } catch (e) {
@@ -567,7 +595,15 @@
                         'X-CSRF-TOKEN': csrfToken
                     }
                 });
+                if (res.status === 503) {
+                    window.location.replace('{{ route('login') }}');
+                    return false;
+                }
                 const data = await res.json();
+                if (data && data.maintenance) {
+                    window.location.replace('{{ route('login') }}');
+                    return false;
+                }
 
                 // 1. Instantly apply realtime stats if returned in response (even if already_full)
                 const statPayload = data.character || (data.energy !== undefined ? data : null);

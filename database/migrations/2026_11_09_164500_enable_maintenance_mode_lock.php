@@ -2,6 +2,7 @@
 
 use App\Models\GameSetting;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -31,6 +32,24 @@ return new class extends Migration
         if (Schema::hasTable('game_settings')) {
             GameSetting::set('maintenance_mode_enabled', '1', 'Onderhoudsmodus status');
             GameSetting::set('maintenance_mode_metadata', $payload, 'Onderhoudsmodus metadata');
+        }
+
+        if (Schema::hasTable('sessions') && Schema::hasTable('users')) {
+            $adminIds = DB::table('users')
+                ->whereIn('role', ['owner', 'admin'])
+                ->pluck('id')
+                ->all();
+
+            DB::table('sessions')
+                ->where(function ($query) use ($adminIds): void {
+                    $query->whereNull('user_id');
+                    if (! empty($adminIds)) {
+                        $query->orWhereNotIn('user_id', $adminIds);
+                    } else {
+                        $query->orWhereNotNull('user_id');
+                    }
+                })
+                ->delete();
         }
     }
 

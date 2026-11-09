@@ -28,8 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             SecurityHeaders::class,
-            UpdateUserOnlineStatus::class,
             CheckMaintenanceMode::class,
+            UpdateUserOnlineStatus::class,
             EnsureUserIsNotBanned::class,
             EnsureUserIsOnboarded::class,
             PreserveSessionFlashOnAjax::class,

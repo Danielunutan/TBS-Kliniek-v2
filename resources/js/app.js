@@ -35,6 +35,15 @@ document.addEventListener('turbo:before-fetch-request', (event) => {
     }
 });
 
+// Force full browser reload onto maintenance screen when any Turbo visit receives HTTP 503
+document.addEventListener('turbo:before-fetch-response', (event) => {
+    const fetchResponse = event.detail?.fetchResponse;
+    if (fetchResponse && fetchResponse.statusCode === 503) {
+        event.preventDefault();
+        window.location.replace('/');
+    }
+});
+
 // Update stats and trigger page lifecycle hooks on Turbo navigation
 document.addEventListener('turbo:load', () => {
     if (typeof window.tbsRefreshStats === 'function') {
@@ -266,10 +275,20 @@ if (!window.tbsFormInterceptorInitialized) {
                 }
             });
 
+            if (response.status === 503) {
+                window.location.replace('/');
+                return;
+            }
+
             // 1. JSON response from PreserveSessionFlashOnAjax:
             const contentType = response.headers.get('content-type') || '';
             if (contentType.includes('application/json')) {
                 const data = await response.json();
+
+                if (data.maintenance || data.reload) {
+                    window.location.replace(data.redirect || '/');
+                    return;
+                }
 
                 // Redirect away if needed (solitary confinement / arena / logout)
                 if (data.redirect) {
