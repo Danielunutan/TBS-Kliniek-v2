@@ -3,10 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Models\Character;
+use App\Models\Gang;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 #[Signature('tbs:inspect-respect')]
 #[Description('Inspect high respect characters and gangs')]
@@ -14,35 +14,36 @@ class InspectCharactersCommand extends Command
 {
     public function handle(): int
     {
-        $this->info("BOSSIE CASH/BANK CHANGES:");
-        $logs = DB::table('audit_logs')
-            ->where('character_id', 66)
-            ->where(function($q) {
-                $q->where('details', 'like', '%cash%')
-                  ->orWhere('details', 'like', '%bank%')
-                  ->orWhere('details', 'like', '%5000000%')
-                  ->orWhere('action', 'like', '%gang%')
-                  ->orWhere('action', 'like', '%bank%');
-            })
-            ->orderBy('id', 'desc')
-            ->limit(10)
+        $dennis = Character::find(86);
+        $this->info("DENNIS (#86): Level {$dennis->level}, Respect {$dennis->respect}, Cash €{$dennis->cash}, Bank €{$dennis->bank}");
+
+        $bossie = Character::find(66);
+        $this->info("BOSSIE (#66): Level {$bossie->level}, Respect {$bossie->respect}, Cash €{$bossie->cash}, Bank €{$bossie->bank}");
+
+        $chars = Character::where('cash', '>', 250)
+            ->orWhere('bank', '>', 1000)
+            ->orWhere('respect', '>', 10)
+            ->orWhere('level', '>', 1)
             ->get();
-        foreach ($logs as $l) {
-            $this->line("[{$l->created_at}] {$l->action}: {$l->details}");
+        $this->info("AFWIJKENDE KARAKTERS GEVONDEN: " . $chars->count());
+        foreach ($chars as $c) {
+            $this->line("#{$c->id} {$c->name}: Level {$c->level}, Resp {$c->respect}, Cash €{$c->cash}, Bank €{$c->bank}");
         }
 
-        $this->info("\nDENNIS THEFTS ON BOSSIE:");
-        $thefts = DB::table('audit_logs')
-            ->where('character_id', 86)
-            ->where('action', 'theft')
-            ->orderBy('id', 'asc')
+        $gangs = Gang::where('treasury', '>', 0)
+            ->orWhere('protected_treasury', '>', 0)
+            ->orWhere('respect', '>', 0)
+            ->orWhere('masks', '>', 0)
             ->get();
-        $totalStolen = 0;
-        foreach ($thefts as $t) {
-            $data = json_decode($t->details, true);
-            $stolen = $data['cash_stolen'] ?? 0;
-            $totalStolen += $stolen;
-            $this->line("[{$t->created_at}] Stolen: €" . number_format($stolen, 0, ',', '.') . " (Total so far: €" . number_format($totalStolen, 0, ',', '.') . ")");
+        $this->info("BENDES MET KAS/RESP/MASKERS > 0: " . $gangs->count());
+        foreach ($gangs as $g) {
+            $this->line("#{$g->id} {$g->name}: Kas €{$g->treasury}, Resp {$g->respect}, Chat {$g->has_gang_chat}");
+        }
+
+        $allGangs = Gang::all();
+        $this->info("TOTAAL BENDES STATUS:");
+        foreach ($allGangs as $g) {
+            $this->line("#{$g->id} {$g->name} [{$g->tag}]: Kas €{$g->treasury}, Prot €{$g->protected_treasury}, Resp {$g->respect}, Chat {$g->has_gang_chat}");
         }
 
         return self::SUCCESS;
