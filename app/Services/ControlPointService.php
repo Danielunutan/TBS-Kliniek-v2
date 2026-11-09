@@ -7,6 +7,7 @@ use App\Models\ControlPoint;
 use App\Models\ControlPointLog;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
+use App\Models\GangWar;
 use Illuminate\Support\Facades\DB;
 
 class ControlPointService
@@ -131,6 +132,14 @@ class ControlPointService
             $lockedPoint->captured_at = $now;
             $lockedPoint->total_captures++;
             $lockedPoint->save();
+
+            // Award Gang War points if participating in an active 24-hour Bendeoorlog
+            if ($lockedCharacter->gang_id) {
+                $activeWar = GangWar::findActiveForGang((int) $lockedCharacter->gang_id);
+                if ($activeWar) {
+                    $activeWar->addScore((int) $lockedCharacter->gang_id, 15);
+                }
+            }
 
             // Small respect bonus for taking a point
             $lockedCharacter->addRespect(1);

@@ -61,6 +61,12 @@ class EnergyService
             default => $character->isVip() ? 180 : self::REGEN_SECONDS,
         };
 
+        // Celupgrade: Boxspring & Traagschuim Matras (-8% tot -40% sneller herstel)
+        $bedReduction = $character->getCellEnergyIntervalReduction();
+        if ($bedReduction > 0.0) {
+            $regenInterval = max(60, (int) round($regenInterval * (1.0 - $bedReduction)));
+        }
+
         if ($secondsElapsed >= $regenInterval) {
             $pointsToRegen = (int) floor($secondsElapsed / $regenInterval);
             $leftoverSeconds = (int) ($secondsElapsed % $regenInterval);

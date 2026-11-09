@@ -1227,6 +1227,13 @@
                             </span>
                         @endif
                     </a>
+                    <a href="{{ route('cell.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('cell.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-bed w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                        <span>Mijn TBS Cel</span>
+                        <span class="ml-auto bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Upgrades
+                        </span>
+                    </a>
                     <a href="{{ route('depot.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('depot.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-boxes-stacked w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Depot (Inventaris)</span>

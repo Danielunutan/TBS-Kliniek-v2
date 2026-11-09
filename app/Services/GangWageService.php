@@ -59,9 +59,10 @@ class GangWageService
     ];
 
     /**
-     * Calculate hourly wage for a given gang including properties, NPCs, and luxury bonuses.
+     * Calculate hourly wage for a given gang including properties, NPCs, luxury bonuses,
+     * and character-specific level and inzet scaling.
      */
-    public function calculateHourlyWage(?Gang $gang): int
+    public function calculateHourlyWage(?Gang $gang, ?Character $character = null): int
     {
         if (! $gang) {
             return 0;
@@ -113,9 +114,45 @@ class GangWageService
 
         // Apply luxury and NPC percentage bonuses
         $totalBonusPct = $luxuryBonusPct + $npcWageBonusPct;
-        $multiplier = 1 + ($totalBonusPct / 100);
 
-        return (int) round($subtotal * $multiplier);
+        // 5. Gang War Dominance (Kliniek Heerschappij: +20% bonus na gewonnen bendeoorlog)
+        if (method_exists($gang, 'hasWarDominance') && $gang->hasWarDominance()) {
+            $totalBonusPct += 20;
+        }
+
+        $multiplier = 1 + ($totalBonusPct / 100);
+        $baseHourlyWage = (int) round($subtotal * $multiplier);
+
+        if (! $character) {
+            return $baseHourlyWage;
+        }
+
+        // 6. Character Level Scaling (+2.5% per character level for high-tier member value)
+        $charLevel = max(1, (int) ($character->level ?? 1));
+        $levelMultiplier = 1.0 + (($charLevel - 1) * 0.025);
+
+        // 7. Role Scaling (Leadership & Responsibilities)
+        $roleMultiplier = match ($character->gang_role ?? 'member') {
+            'leader' => 1.25,
+            'co_leader' => 1.15,
+            'officer' => 1.10,
+            default => 1.00,
+        };
+
+        // 8. Inzet & Activity Factor (active players maintain 100% full wage)
+        $activityMultiplier = 1.0;
+        if ($character->last_active_at) {
+            $hoursInactive = (int) $character->last_active_at->diffInHours(now());
+            if ($hoursInactive > 168) {
+                $activityMultiplier = 0.40;
+            } elseif ($hoursInactive > 72) {
+                $activityMultiplier = 0.70;
+            } elseif ($hoursInactive > 24) {
+                $activityMultiplier = 0.90;
+            }
+        }
+
+        return max(50, (int) round($baseHourlyWage * $levelMultiplier * $roleMultiplier * $activityMultiplier));
     }
 
     /**
@@ -147,8 +184,19 @@ class GangWageService
             ];
         }
 
-        $hourlyWage = $this->calculateHourlyWage($character->gang);
+        $baseWage = $this->calculateHourlyWage($character->gang);
+        $hourlyWage = $this->calculateHourlyWage($character->gang, $character);
         $dailyWage = $hourlyWage * 24;
+
+        $charLevel = max(1, (int) ($character->level ?? 1));
+        $levelBonusPct = (int) round(($charLevel - 1) * 2.5);
+
+        $roleBonusPct = match ($character->gang_role ?? 'member') {
+            'leader' => 25,
+            'co_leader' => 15,
+            'officer' => 10,
+            default => 0,
+        };
 
         $now = now();
 
@@ -170,8 +218,11 @@ class GangWageService
 
         return [
             'in_gang' => true,
+            'base_hourly_wage' => $baseWage,
             'hourly_wage' => $hourlyWage,
             'daily_wage' => $dailyWage,
+            'level_bonus_pct' => $levelBonusPct,
+            'role_bonus_pct' => $roleBonusPct,
             'pending_hours' => $pendingHours,
             'pending_amount' => $pendingAmount,
             'seconds_until_next' => $secondsUntilNext,
@@ -233,7 +284,7 @@ class GangWageService
             }
 
             $hours = min(168, $rawHours);
-            $hourlyWage = $this->calculateHourlyWage($gang);
+            $hourlyWage = $this->calculateHourlyWage($gang, $lockedCharacter);
             $totalPayout = $hours * $hourlyWage;
 
             // Advance last_gang_wage_at by the elapsed hours, snapped to the start of the hour

@@ -168,6 +168,7 @@ class Character extends Model
         'ad_vest_progress' => 'integer',
         'ad_daily_data' => 'array',
         'perks' => 'array',
+        'cell_upgrades' => 'array',
         'bullets' => 'integer',
         'vest_until' => 'datetime',
         'coma_until' => 'datetime',
@@ -436,6 +437,96 @@ class Character extends Model
 
         $perks[$perk] = $newExpiry->toIso8601String();
         $this->perks = $perks;
+    }
+
+    /**
+     * Get the current upgrade level for a specific cell upgrade (0-5).
+     */
+    public function getCellUpgradeLevel(string $key): int
+    {
+        $upgrades = $this->cell_upgrades;
+        if (! is_array($upgrades)) {
+            return 0;
+        }
+
+        return max(0, min(5, (int) ($upgrades[$key] ?? 0)));
+    }
+
+    /**
+     * Get all current cell upgrade levels keyed by upgrade identifier.
+     *
+     * @return array<string, int>
+     */
+    public function getCellUpgradeLevels(): array
+    {
+        $levels = is_array($this->cell_upgrades) ? $this->cell_upgrades : [];
+
+        return [
+            'bed' => max(0, min(5, (int) ($levels['bed'] ?? 0))),
+            'door' => max(0, min(5, (int) ($levels['door'] ?? 0))),
+            'safe' => max(0, min(5, (int) ($levels['safe'] ?? 0))),
+            'comfort' => max(0, min(5, (int) ($levels['comfort'] ?? 0))),
+        ];
+    }
+
+    /**
+     * Defense bonus from reinforced steel door and security system.
+     */
+    public function getCellDefenseBonus(): int
+    {
+        return match ($this->getCellUpgradeLevel('door')) {
+            1 => 100,
+            2 => 250,
+            3 => 500,
+            4 => 1000,
+            5 => 2000,
+            default => 0,
+        };
+    }
+
+    /**
+     * Energy regeneration interval reduction factor (0.0 to 0.40) from luxury bedding.
+     */
+    public function getCellEnergyIntervalReduction(): float
+    {
+        return match ($this->getCellUpgradeLevel('bed')) {
+            1 => 0.08,
+            2 => 0.16,
+            3 => 0.24,
+            4 => 0.32,
+            5 => 0.40,
+            default => 0.0,
+        };
+    }
+
+    /**
+     * Pocket cash percentage protected against loss in fights/liquidations (0% to 50%).
+     */
+    public function getCellCashProtectionPct(): int
+    {
+        return match ($this->getCellUpgradeLevel('safe')) {
+            1 => 10,
+            2 => 20,
+            3 => 30,
+            4 => 40,
+            5 => 50,
+            default => 0,
+        };
+    }
+
+    /**
+     * Bonus percentage for XP and Respect from luxury lounge and electronics (0% to 25%).
+     */
+    public function getCellComfortBonusPct(): int
+    {
+        return match ($this->getCellUpgradeLevel('comfort')) {
+            1 => 5,
+            2 => 10,
+            3 => 15,
+            4 => 20,
+            5 => 25,
+            default => 0,
+        };
     }
 
     /**

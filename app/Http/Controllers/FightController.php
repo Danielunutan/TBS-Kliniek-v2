@@ -6,6 +6,7 @@ use App\Models\Bounty;
 use App\Models\Character;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
+use App\Models\GangWar;
 use App\Services\CooldownService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
@@ -238,6 +239,14 @@ class FightController extends Controller
                     }
                 }
                 $lockedAttacker->save();
+
+                // Award points if involved in an active 24h Bendeoorlog
+                if ($lockedAttacker->gang_id && $lockedDefender->gang_id) {
+                    $activeWar = GangWar::areGangsAtWar((int) $lockedAttacker->gang_id, (int) $lockedDefender->gang_id);
+                    if ($activeWar) {
+                        $activeWar->addScore((int) $lockedAttacker->gang_id, 20);
+                    }
+                }
 
                 // Record in 24 Hour Battle & events
                 $this->battleService->record($lockedAttacker, 'kills', 1);
@@ -686,9 +695,9 @@ class FightController extends Controller
             cache()->put("fight_consecutive_attacks_{$attacker->id}", $consecutive, now()->addHours(2));
         }
 
-        // Combat calculation using effective strength & defense (including backpack equipment)
+        // Combat calculation using effective strength & defense (including backpack equipment and cell upgrades)
         $attackerPower = $attacker->getEffectiveStrength() + rand(5, 15);
-        $defenderPower = $defender->getEffectiveDefense() + rand(5, 15);
+        $defenderPower = $defender->getEffectiveDefense() + $defender->getCellDefenseBonus() + rand(5, 15);
 
         if ($attackerPower >= $defenderPower) {
             $defenderCash = max(0, (int) $defender->cash);
@@ -700,6 +709,10 @@ class FightController extends Controller
                 $stolenCash = max(15, (int) round($defenderCash * $stolenRatio));
                 if ($hasCashShield) {
                     $stolenCash = max(1, (int) floor($stolenCash * 0.50));
+                }
+                $safeProtectionPct = $defender->getCellCashProtectionPct();
+                if ($safeProtectionPct > 0) {
+                    $stolenCash = (int) floor($stolenCash * (1.0 - ($safeProtectionPct / 100)));
                 }
                 if ($stolenCash > $defenderCash) {
                     $stolenCash = $defenderCash;

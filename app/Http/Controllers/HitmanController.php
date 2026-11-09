@@ -8,6 +8,7 @@ use App\Models\BloodFeud;
 use App\Models\Bounty;
 use App\Models\Character;
 use App\Models\GameNotification;
+use App\Models\GangWar;
 use App\Models\User;
 use App\Services\AuditLogService;
 use App\Services\ChatBotService;
@@ -1011,6 +1012,10 @@ class HitmanController extends Controller
 
                         // Plunder 45% Cash only - Bank & Kluis are 100% safe upon liquidation! (halved by 50% when defender has active Cash Shield)
                         $shieldMultiplier = $lockedDefender->hasCashProtection() ? 0.50 : 1.0;
+                        $safeProtectionPct = $lockedDefender->getCellCashProtectionPct();
+                        if ($safeProtectionPct > 0) {
+                            $shieldMultiplier *= (1.0 - ($safeProtectionPct / 100));
+                        }
                         $stolenCash = (int) floor(max(0, (int) $lockedDefender->cash) * 0.45 * $shieldMultiplier);
                         $stolenBank = 0;
                         $totalStolen = $stolenCash;
@@ -1044,7 +1049,22 @@ class HitmanController extends Controller
                         }
 
                         $lockedAttacker->kills_count = ($lockedAttacker->kills_count ?? 0) + 1;
-                        $baseRespect = 60;
+
+                        // Check if attacker and defender gangs are engaged in an active 24-hour Bendeoorlog
+                        $activeWar = ($lockedAttacker->gang_id && $lockedDefender->gang_id)
+                            ? GangWar::areGangsAtWar($lockedAttacker->gang_id, $lockedDefender->gang_id)
+                            : null;
+
+                        if ($activeWar) {
+                            $activeWar->addScore((int) $lockedAttacker->gang_id, 50);
+                            $baseRespect = 100;
+                            if ($lockedAttacker->gang && Schema::hasColumn('gangs', 'respect')) {
+                                $lockedAttacker->gang->increment('respect', 50);
+                            }
+                        } else {
+                            // Aimless liquidations outside structured wars or blood feuds yield no glory or respect
+                            $baseRespect = 0;
+                        }
 
                         // Claim any open Bounties on defender
                         $bountyReward = 0;

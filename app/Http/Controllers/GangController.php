@@ -11,8 +11,10 @@ use App\Models\Gang;
 use App\Models\GangAlliance;
 use App\Models\GangAttack;
 use App\Models\GangDonation;
+use App\Models\ControlPoint;
 use App\Models\GangItem;
 use App\Models\GangRequest;
+use App\Models\GangWar;
 use App\Models\User;
 use App\Services\AuditLogService;
 use App\Services\EconomyService;
@@ -194,7 +196,10 @@ class GangController extends Controller
         $defaultTab = $myGang ? 'mijn_gang' : 'ranglijst';
         $activeTab = $forceTab ?? $request->query('tab', session('active_gang_tab', $defaultTab));
 
-        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems', 'warsWon', 'warsLost', 'totalRespect'));
+        $activeWar = $myGang ? GangWar::findActiveForGang($myGang->id) : null;
+        $clinicZones = ControlPoint::with(['holder', 'gang'])->get();
+
+        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems', 'warsWon', 'warsLost', 'totalRespect', 'activeWar', 'clinicZones'));
     }
 
     /**
@@ -2356,6 +2361,11 @@ class GangController extends Controller
                     'summary' => $summary,
                 ]);
 
+                $activeWar = GangWar::areGangsAtWar((int) $myGang->id, (int) $targetGang->id);
+                if ($activeWar) {
+                    $activeWar->addScore((int) $myGang->id, 25);
+                }
+
                 AuditLogService::log(
                     action: 'gang.attack_victory',
                     category: 'gang',
@@ -2575,5 +2585,125 @@ class GangController extends Controller
         }
 
         return back()->with('success', '💰 Succesvol €'.number_format($payout['amount'], 0, ',', '.')." bende-uurloon geïnd voor {$payout['hours']} uur en als contant geld op zak ontvangen!");
+    }
+
+    /**
+     * Declare an official 24-hour Gang War against a rival gang.
+     */
+    public function declareWar(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character->gang_id || ! $character->gang) {
+            return back()->with('error', 'Je bent geen lid van een bende!');
+        }
+
+        $myGang = $character->gang;
+        if (! $myGang->isOfficer($character)) {
+            return back()->with('error', 'Alleen de leider of een beheerder van de bende kan een officiële bendeoorlog verklaren!');
+        }
+
+        $targetGangId = (int) $request->input('target_gang_id');
+        $targetGang = Gang::find($targetGangId);
+
+        if (! $targetGang || $targetGang->id === $myGang->id) {
+            return back()->with('error', 'Ongeldig doelwit voor de bendeoorlog geselecteerd.');
+        }
+
+        if (GangWar::findActiveForGang($myGang->id)) {
+            return back()->with('error', 'Jullie bende bevindt zich momenteel al in een actieve 24-uurs bendeoorlog!');
+        }
+
+        if (GangWar::findActiveForGang($targetGang->id)) {
+            return back()->with('error', "Bende '{$targetGang->name}' bevindt zich al in oorlog met een andere rivaliserende groepering!");
+        }
+
+        $entryStake = 250000;
+        if ((int) $myGang->treasury < $entryStake) {
+            return back()->with('error', 'Er is minimaal €' . number_format($entryStake, 0, ',', '.') . ' in de bende kluis nodig als oorlogsinzet!');
+        }
+
+        return DB::transaction(function () use ($myGang, $targetGang, $character, $entryStake) {
+            $lockedMyGang = Gang::where('id', $myGang->id)->lockForUpdate()->first();
+            $lockedTarget = Gang::where('id', $targetGang->id)->lockForUpdate()->first();
+
+            $lockedMyGang->treasury = max(0, (int) $lockedMyGang->treasury - $entryStake);
+            $lockedMyGang->save();
+
+            $war = GangWar::create([
+                'challenger_gang_id' => $lockedMyGang->id,
+                'defender_gang_id' => $lockedTarget->id,
+                'status' => 'active',
+                'started_at' => now(),
+                'ends_at' => now()->addHours(24),
+                'challenger_score' => 0,
+                'defender_score' => 0,
+                'war_pot' => $entryStake * 2,
+                'respect_pot' => 100,
+            ]);
+
+            $targetOfficers = $lockedTarget->members()->whereIn('gang_role', ['leader', 'co_leader', 'officer'])->get();
+            foreach ($targetOfficers as $officer) {
+                GameNotification::create([
+                    'character_id' => $officer->id,
+                    'type' => 'gang_war',
+                    'icon' => 'fa-skull-crossbones',
+                    'title' => '🚨 24-Uurs Bendeoorlog Uitgeroepen!',
+                    'message' => "Bende '{$lockedMyGang->name}' heeft de oorlog aan jullie verklaard! Vecht 24 uur lang om de zones in de kliniek!",
+                ]);
+            }
+
+            AuditLogService::log(
+                action: 'gang.war_declared',
+                category: 'gang',
+                description: "Oorlog verklaard: {$lockedMyGang->name} daagt {$lockedTarget->name} uit voor 24-uurs strijd",
+                character: $character,
+                user: $character->user,
+                details: [
+                    'war_id' => $war->id,
+                    'challenger_gang_id' => $lockedMyGang->id,
+                    'defender_gang_id' => $lockedTarget->id,
+                ]
+            );
+
+            return back()
+                ->with('active_gang_tab', 'oorlog')
+                ->with('success', "⚔️ OORLOG VERKLAARD! De 24-uurs bendeoorlog tegen '{$lockedTarget->name}' is begonnen! Beheers zones (Luchtplaats, Kantine, Smokkellijn) en schakel tegenstanders uit om oorlogspunten te verzamelen!");
+        });
+    }
+
+    /**
+     * Finalize and settle a 24-hour Gang War.
+     */
+    public function settleWar(Request $request, GangWar $war): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character->gang_id) {
+            return back()->with('error', 'Je bent geen bendelid!');
+        }
+
+        if ($war->status !== 'active') {
+            return back()->with('info', 'Deze bendeoorlog is al afgerond.');
+        }
+
+        if ($war->ends_at && $war->ends_at->isFuture()) {
+            $minsLeft = (int) now()->diffInMinutes($war->ends_at);
+            return back()->with('info', "De bendeoorlog is nog volop bezig! Resterende tijd: {$minsLeft} minuten.");
+        }
+
+        $winner = $war->settle();
+
+        $msg = $winner
+            ? "🏆 Bendeoorlog afgesloten! '{$winner->name}' is uitgeroepen tot overwinnaar en claimt de oorlogsbuit en kliniekheerschappij!"
+            : "⚖️ Bendeoorlog afgesloten in een gelijkspel!";
+
+        return back()
+            ->with('active_gang_tab', 'oorlog')
+            ->with('success', $msg);
     }
 }

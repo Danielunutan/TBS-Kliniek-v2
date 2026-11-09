@@ -46,6 +46,7 @@ class Gang extends Model
         'last_attack_at' => 'datetime',
         'shield_until' => 'datetime',
         'vip_boost_until' => 'datetime',
+        'war_dominance_until' => 'datetime',
         'leave_fee_multiplier' => 'integer',
         'min_respect' => 'integer',
         'masks' => 'integer',
@@ -152,6 +153,24 @@ class Gang extends Model
     public function items(): HasMany
     {
         return $this->hasMany(GangItem::class);
+    }
+
+    public function activeWar(): ?GangWar
+    {
+        return GangWar::findActiveForGang($this->id);
+    }
+
+    public function hasWarDominance(): bool
+    {
+        if (! $this->war_dominance_until) {
+            return false;
+        }
+
+        $dt = $this->war_dominance_until instanceof \Carbon\CarbonInterface
+            ? $this->war_dominance_until
+            : \Illuminate\Support\Carbon::parse($this->war_dominance_until);
+
+        return $dt->isFuture();
     }
 
     public function getTotalStorageCapacityAttribute(): int

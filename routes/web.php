@@ -14,6 +14,7 @@ use App\Http\Controllers\BattlePassController;
 use App\Http\Controllers\BountyController;
 use App\Http\Controllers\BuyMeACoffeeWebhookController;
 use App\Http\Controllers\CasinoController;
+use App\Http\Controllers\CellController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\CombatTrainingController;
@@ -493,6 +494,10 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/perks', [PerkController::class, 'index'])->name('perks.index');
     Route::post('/perks/kopen/{perk}', [PerkController::class, 'buy'])->name('perks.buy');
 
+    // Mijn TBS Cel & Upgrades (Geldput, Energieherstel & Celverdediging)
+    Route::get('/cel', [CellController::class, 'index'])->name('cell.index');
+    Route::post('/cel/upgrade/{upgrade}', [CellController::class, 'upgrade'])->name('cell.upgrade');
+
     // Persoonlijk Depot (Garage, Opbergplaats & Event Varia)
     Route::get('/depot', [DepotController::class, 'index'])->name('depot.index');
     Route::post('/depot/verkopen/{characterItem}', [DepotController::class, 'sellItem'])->name('depot.sell-item');
@@ -573,6 +578,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::delete('/gangs/bondgenoot/{alliance}', [GangController::class, 'removeAlliance'])->name('gangs.remove-alliance');
     Route::post('/gangs/opheffen', [GangController::class, 'disband'])->name('gangs.disband');
     Route::post('/gangs/aanvallen', [GangController::class, 'attack'])->middleware('throttle:30,1')->name('gangs.attack');
+    Route::post('/gangs/oorlog/starten', [GangController::class, 'declareWar'])->middleware('throttle:10,1')->name('gangs.declare-war');
+    Route::post('/gangs/oorlog/{war}/settle', [GangController::class, 'settleWar'])->middleware('throttle:10,1')->name('gangs.settle-war');
     Route::post('/gangs/claim-uurloon', [GangController::class, 'claimWage'])->middleware('throttle:30,1')->name('gangs.claim-wage');
 
     // Bende Panden, Productie & NPC Rekruten

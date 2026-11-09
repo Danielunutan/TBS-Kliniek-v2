@@ -641,8 +641,13 @@
                         <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">UURLOON</span>
                         <div class="flex items-center justify-center gap-1 text-amber-700 dark:text-amber-400 text-lg font-black font-mono">
                             <i class="fa-solid fa-coins text-xs text-amber-500"></i>
-                            <span>€{{ number_format($hourlyWage ?? 0, 0, ',', '.') }}</span>
+                            <span>€{{ number_format($wageDetails['hourly_wage'] ?? $hourlyWage ?? 0, 0, ',', '.') }}</span>
                         </div>
+                        @if(!empty($wageDetails['level_bonus_pct']) || !empty($wageDetails['role_bonus_pct']))
+                            <span class="text-[9px] text-amber-600 dark:text-amber-400 font-bold block">
+                                +{{ ($wageDetails['level_bonus_pct'] ?? 0) + ($wageDetails['role_bonus_pct'] ?? 0) }}% Level &amp; Inzet
+                            </span>
+                        @endif
                         @if(isset($wageDetails) && $wageDetails['pending_hours'] > 0)
                             <form action="{{ route('gangs.claim-wage') }}" method="POST" class="pt-0.5">
                                 @csrf
@@ -4275,6 +4280,133 @@
                     </div>
                 </div>
 
+                <!-- 24-Uurs Bendeoorlog & Zone Beheersing (Nieuw) -->
+                @if(isset($activeWar) && $activeWar)
+                    <div class="rounded-2xl overflow-hidden border border-rose-300 dark:border-rose-800 bg-rose-50/80 dark:bg-rose-950/40 p-6 space-y-5 shadow-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600 text-white text-[11px] font-black tracking-wide uppercase shadow-2xs">
+                                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                    Officiële 24-Uurs Bendeoorlog Actief
+                                </span>
+                                <h3 class="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2 pt-1">
+                                    <span>{{ $activeWar->challengerGang?->name }}</span>
+                                    <span class="text-rose-600 dark:text-rose-400 font-mono text-sm">VS</span>
+                                    <span>{{ $activeWar->defenderGang?->name }}</span>
+                                </h3>
+                                <p class="text-xs text-slate-600 dark:text-slate-300">
+                                    Verover kliniekzones en schakel rivalen uit. De winnaar na 24 uur pakt 10% van de vijandelijke kas, respect en 24 uur Kliniek Heerschappij (+20% uurloon)!
+                                </p>
+                            </div>
+
+                            <!-- Countdown & Settle -->
+                            <div class="shrink-0 bg-white dark:bg-slate-900 p-4 rounded-xl border border-rose-200 dark:border-rose-900 text-center"
+                                 x-data="{ warSeconds: {{ $activeWar->getTimeRemainingSeconds() }} }"
+                                 x-init="setInterval(() => { if (warSeconds > 0) warSeconds--; }, 1000)">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">Resterende Oorlogstijd</span>
+                                <div class="text-lg font-black font-mono text-rose-600 dark:text-rose-400"
+                                     x-text="Math.floor(warSeconds / 3600) + 'u ' + Math.floor((warSeconds % 3600) / 60) + 'm ' + (warSeconds % 60) + 's'">
+                                    {{ gmdate('H:i:s', $activeWar->getTimeRemainingSeconds()) }}
+                                </div>
+                                @if($activeWar->getTimeRemainingSeconds() <= 0)
+                                    <form action="{{ route('gangs.settle-war', $activeWar) }}" method="POST" class="mt-2">
+                                        @csrf
+                                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs cursor-pointer">
+                                            🏆 Oorlog Beslechten &amp; Buit Claimen
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Scoreboard Bar -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+                                <span class="text-xs font-black text-slate-700 dark:text-slate-300 block truncate">{{ $activeWar->challengerGang?->name }}</span>
+                                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">{{ $activeWar->challenger_score }} Pts</div>
+                            </div>
+                            <div class="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+                                <span class="text-xs font-black text-slate-700 dark:text-slate-300 block truncate">{{ $activeWar->defenderGang?->name }}</span>
+                                <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400 font-mono">{{ $activeWar->defender_score }} Pts</div>
+                            </div>
+                        </div>
+
+                        <!-- Clinic Zones Contestation -->
+                        <div class="space-y-2 pt-1">
+                            <span class="text-xs font-black uppercase tracking-wide text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-flag text-rose-500"></i> Beheersing van Kliniekzones (+15 Pts per overname)
+                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                @foreach(($clinicZones ?? collect()) as $zone)
+                                    <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
+                                        <div class="min-w-0">
+                                            <span class="font-black text-slate-900 dark:text-white block truncate">{{ $zone->name }}</span>
+                                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block">{{ $zone->location_name }}</span>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            @if($zone->gang)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black {{ (int)$zone->current_gang_id === (int)$myGang->id ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' }}">
+                                                    [{{ $zone->gang->tag }}]
+                                                </span>
+                                            @else
+                                                <span class="text-[10px] text-slate-400 font-medium">Neutraal</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <!-- No Active War Banner -->
+                    <div class="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4 shadow-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 text-xs font-bold mb-0.5">
+                                    <i class="fa-solid fa-flag text-purple-600 dark:text-purple-400"></i> Kliniek Heerschappij &amp; Zones
+                                </span>
+                                <h3 class="text-lg font-black text-slate-900 dark:text-white">
+                                    Officiële 24-Uurs Bendeoorlogen
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
+                                    In plaats van doelloos schieten vechten bendes in een officiële 24-uurs oorlog om strategische zones (zoals de Luchtplaats, Kantine en Smokkellijn). De winnaar pakt aanzien, 10% van de vijandelijke kas en 24 uur lang +20% bende-uurloon!
+                                </p>
+                            </div>
+
+                            @if($myGang->hasWarDominance())
+                                <div class="px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 text-xs font-black flex items-center gap-2 shrink-0">
+                                    <i class="fa-solid fa-crown text-amber-500 text-sm"></i>
+                                    <div>
+                                        <span>Kliniek Heerschappij Actief!</span>
+                                        <span class="block text-[10px] font-medium opacity-80">+20% Bende-uurloon bonus</span>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Current Zones Status -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+                            @foreach(($clinicZones ?? collect()) as $zone)
+                                <div class="p-3 bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between gap-2 text-xs">
+                                    <div class="min-w-0">
+                                        <span class="font-black text-slate-900 dark:text-white block truncate">{{ $zone->name }}</span>
+                                        <span class="text-[10px] text-slate-500 dark:text-slate-400 block">{{ $zone->location_name }}</span>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        @if($zone->gang)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black {{ (int)$zone->current_gang_id === (int)$myGang->id ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
+                                                [{{ $zone->gang->tag }}]
+                                            </span>
+                                        @else
+                                            <span class="text-[10px] text-slate-400 font-medium">Neutraal</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Rival Gangs Target List -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -4355,7 +4487,18 @@
                                         </div>
                                     </div>
 
-                                    <div class="shrink-0 flex items-center justify-end">
+                                    <div class="shrink-0 flex items-center justify-end gap-2">
+                                        @if($myGang->isOfficer($character) && !isset($activeWar) && !$isAlly && (int)$myGang->treasury >= 250000)
+                                            <form action="{{ route('gangs.declare-war') }}" method="POST"
+                                                  onsubmit="return confirm('Weet je zeker dat je een officiële 24-uurs bendeoorlog wilt verklaren aan {{ $rg->name }}? De inzet bedraagt €250.000 uit de bende kluis.');">
+                                                @csrf
+                                                <input type="hidden" name="target_gang_id" value="{{ $rg->id }}">
+                                                <button type="submit" class="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-1.5 cursor-pointer">
+                                                    <i class="fa-solid fa-flag"></i>
+                                                    <span>24u Oorlog</span>
+                                                </button>
+                                            </form>
+                                        @endif
                                         <form action="{{ route('gangs.attack') }}" method="POST"
                                               data-confirm="Weet je zeker dat je bende '{{ $rg->name }}' wilt overvallen? Jullie aanvalsrol (±15%: {{ number_format($myMinPowerRoll, 0, ',', '.') }} – {{ number_format($myMaxPowerRoll, 0, ',', '.') }}) neemt het op tegen hun verdedigingsrol (±15%: {{ number_format($rgMinDefRoll, 0, ',', '.') }} – {{ number_format($rgMaxDefRoll, 0, ',', '.') }}{{ $rgNpcBonusPct > 0 ? ' inclusief +' . $rgNpcBonusPct . '% door Enforcers' : '' }}). Bij winst plunder je 8%–16% kas en sloop je 10%–20% verdediging; bij verlies kost dit 2%–5% van jullie Power!"
                                               data-confirm-title="Bende Oorlog Overval"
