@@ -93,7 +93,7 @@ Voorheen liepen uurloonbedragen uit de hand door oneindige kioskaankopen. Vanaf 
 - **Bende Panden & Vastgoed:** Elk aangeschaft pand levert een forse vaste uurloonbijdrage op plús een permanente percentagebonus (tot wel +40% per topfaciliteit).
 - **Bende Respect Bonus:** Hoe hoger het totale respect van jouw bende, hoe hoger de procentuele bonus over de totale pot (+1% per 100.000 respect tot maximaal +50%).
 - **Heerschappij Bonus (+25%):** Wint jouw bende een officiële 24-uurs bendeoorlog? Dan geniet de hele bende 7 dagen lang van een extra +25% bonus bovenop het hele uurloon!
-- **100% Veilig op de Bankrekening:** Bende-uurlonen worden vanaf nu **volledig veilig direct op je privobankrekening bijgeschreven** in plaats van contant op zak. Hierdoor loop je nooit meer het risico om offline met tientallen miljoenen aan onbeschermd contant geld verrast te worden!
+- **Contant Bende-Uurloon (Spanning & Geen Vanilla):** Bende-uurlonen worden direct contant op zak uitbetaald. Dit bewaart de echte misdaadspanning: zorg dat je alert blijft en je verdiende contanten op tijd veilig naar De Bank brengt! Met het nieuwe maximum van €25.000.000 buit per liquidatie blijft het spel spannend zonder dat je in één klap bankroet gaat.
 
 ### Eerlijke Salarisschaal per Rang
 De bende-loonpot wordt automatisch verdeeld over de leden naar gelang hun rang en inzet:

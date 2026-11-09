@@ -482,13 +482,13 @@ class GangWageService
             $lockedCharacter->last_gang_wage_at = $lastWageAnchor->copy()->addHours($rawHours)->startOfHour();
 
             if ($totalPayout > 0) {
-                // Veilig bijgeschreven op de bankrekening van het personage zodat offline spelers niet leeggeroofd worden
-                $lockedCharacter->bank += $totalPayout;
+                // Contant geld uitbetaling direct op zak van het personage (geen vanilla veilige modus)
+                $lockedCharacter->cash += $totalPayout;
                 EventCashHuntService::record($lockedCharacter, $totalPayout, 'gang_wage');
             }
 
             $lockedCharacter->save();
-            $character->bank = $lockedCharacter->bank;
+            $character->cash = $lockedCharacter->cash;
             $character->last_gang_wage_at = $lockedCharacter->last_gang_wage_at;
 
             if ($totalPayout > 0) {
@@ -496,9 +496,9 @@ class GangWageService
                 GameNotification::create([
                     'character_id' => $lockedCharacter->id,
                     'type' => 'gang_wage',
-                    'icon' => 'fa-building-columns',
+                    'icon' => 'fa-coins',
                     'title' => '💰 Bende Uurloon Uitbetaald!',
-                    'message' => "Je hebt zojuist voor {$hours} gewerkte uur(en) bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' veilig bijgeschreven gekregen op je bankrekening!',
+                    'message' => "Je hebt zojuist voor {$hours} gewerkte uur(en) bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld op zak ontvangen!',
                     'is_read' => false,
                 ]);
 
@@ -508,7 +508,7 @@ class GangWageService
                         'sender_id' => $lockedCharacter->id,
                         'sender_name' => 'Bende Salaris Administratie',
                         'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
-                        'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' veilig op je bankrekening ontvangen (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
+                        'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld ontvangen op zak (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
                         'type' => 'gang',
                     ]);
                 }

@@ -69,9 +69,9 @@ class GangWagePayoutTest extends TestCase
 
         $character->refresh();
 
-        // 3 hours * 250 = 750 added to bank (safely banked)
-        $this->assertEquals(1000, $character->cash);
-        $this->assertEquals(5750, $character->bank);
+        // 3 hours * 250 = 750 added to cash (bank untouched)
+        $this->assertEquals(1750, $character->cash);
+        $this->assertEquals(5000, $character->bank);
         $response->assertSee('Bende Uurloon Ontvangen');
         $response->assertSee('UURLOON €250');
     }
@@ -103,9 +103,9 @@ class GangWagePayoutTest extends TestCase
             ->assertSuccessful();
 
         $character->refresh();
-        // 2 hours * 150 = 300 added to bank (safely banked)
-        $this->assertEquals(500, $character->cash);
-        $this->assertEquals(10300, $character->bank);
+        // 2 hours * 150 = 300 added to cash (bank untouched)
+        $this->assertEquals(800, $character->cash);
+        $this->assertEquals(10000, $character->bank);
     }
 
     public function test_manual_claim_wage_endpoint(): void
@@ -139,8 +139,8 @@ class GangWagePayoutTest extends TestCase
         $response->assertSessionHas('success');
 
         $character->refresh();
-        $this->assertEquals(2000, $character->cash);
-        $this->assertEquals(3400, $character->bank); // 3000 + 2 * 200 deposited safely to bank
+        $this->assertEquals(2400, $character->cash); // 2000 + 2 * 200
+        $this->assertEquals(3000, $character->bank); // Bank remains untouched
     }
 
     public function test_officer_can_upload_gang_avatar_and_banner(): void
@@ -274,9 +274,9 @@ class GangWagePayoutTest extends TestCase
         $this->artisan('gang:pay-wages')->assertSuccessful();
 
         $character->refresh();
-        // 13:00 to 15:00 = 2 hours * 200 = 400 safely banked
-        $this->assertEquals(1000, $character->cash);
-        $this->assertEquals(5400, $character->bank);
+        // 13:00 to 15:00 = 2 hours * 200 = 400
+        $this->assertEquals(1400, $character->cash);
+        $this->assertEquals(5000, $character->bank);
         $this->assertEquals('2026-10-28 15:00:00', $character->last_gang_wage_at->format('Y-m-d H:i:s'));
 
         // Notification created
