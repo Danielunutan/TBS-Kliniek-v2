@@ -257,7 +257,7 @@
                 <i class="fa-solid fa-store text-xs text-purple-500"></i>
                 <span>{{ $gang->bling_shops ?? 0 }}</span>
             </div>
-            <span class="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">+€100/u per kiosk</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">+€100/u (max 250 kiosken)</span>
         </div>
 
         <!-- Panden / Vastgoed -->

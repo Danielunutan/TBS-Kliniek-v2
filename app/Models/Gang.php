@@ -207,6 +207,19 @@ class Gang extends Model
         return (int) $this->properties()->sum('npc_capacity');
     }
 
+    public function getTotalRespectAttribute(): int
+    {
+        if (isset($this->attributes['respect']) && (int) $this->attributes['respect'] > 0) {
+            return (int) $this->attributes['respect'];
+        }
+
+        if ($this->relationLoaded('members')) {
+            return (int) $this->members->sum('respect');
+        }
+
+        return (int) $this->members()->sum('respect');
+    }
+
     public function getNpcDefenseBonusPercentAttribute(): int
     {
         $sum = $this->relationLoaded('npcs')

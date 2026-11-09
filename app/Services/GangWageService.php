@@ -27,8 +27,14 @@ class GangWageService
     public const SHOP_BONUS_WAGE = 100;
 
     /**
+     * Maximum number of smokkelkiosken that contribute to the hourly wage.
+     * Prevents unlimited runaway inflation while keeping kiosk investments rewarding.
+     */
+    public const MAX_CONTRIBUTING_KIOSKS = 250;
+
+    /**
      * Property hourly base income catalog.
-     * Each commercial or industrial property owned by the gang adds substantial recurring hourly wage.
+     * Each commercial, industrial, or luxury property owned by the gang adds recurring hourly wage.
      */
     public const PROPERTY_HOURLY_BASE = [
         // 1. Opslag & Garages
@@ -40,14 +46,17 @@ class GangWageService
         'trucking_terminal' => 10000,
         'vliegveld_hangar' => 15000,
         'ondergrondse_bunker' => 20000,
-        // 2. Productie, Labs & Fabrieken
+        // 2. Productie, Labs, Administratie & Vluchtplan
         'wietkwekerij' => 4000,
         'valsgeld_drukkerij' => 7000,
         'sigaretten_fabriek' => 10000,
         'chemisch_lab' => 15000,
+        'administratie_kantoor' => 18000,
         'crypto_mining_bunker' => 20000,
+        'vluchtplan_complex' => 25000,
         'wapenfabriek' => 30000,
         'synthese_complex' => 40000,
+        'smokkelhaven_terminal' => 35000,
         // 3. Luxe Panden & Hoofdkwartieren
         'stripclub_lounge' => 10000,
         'casino_penthouse' => 15000,
@@ -59,8 +68,8 @@ class GangWageService
     ];
 
     /**
-     * Calculate hourly wage for a given gang including properties, NPCs, luxury bonuses,
-     * and character-specific level and inzet scaling.
+     * Calculate hourly wage for a given gang including properties, vehicle fleet, NPCs,
+     * respect dominance, and character-specific level and inzet scaling.
      */
     public function calculateHourlyWage(?Gang $gang, ?Character $character = null): int
     {
@@ -68,8 +77,10 @@ class GangWageService
             return 0;
         }
 
-        // 1. Base starting wage and Smokkelkiosken
-        $base = self::BASE_HOURLY_WAGE + (($gang->bling_shops ?? 0) * self::SHOP_BONUS_WAGE);
+        // 1. Base starting wage and capped Smokkelkiosken
+        $effectiveKiosks = min(self::MAX_CONTRIBUTING_KIOSKS, max(0, (int) ($gang->bling_shops ?? 0)));
+        $kiosksIncome = $effectiveKiosks * self::SHOP_BONUS_WAGE;
+        $base = self::BASE_HOURLY_WAGE + $kiosksIncome;
 
         // 2. Gang Properties (Panden)
         $properties = $gang->relationLoaded('properties')
@@ -82,7 +93,7 @@ class GangWageService
 
         foreach ($properties as $prop) {
             $key = $prop->property_key;
-            $propsIncome += (self::PROPERTY_HOURLY_BASE[$key] ?? 1000);
+            $propsIncome += (self::PROPERTY_HOURLY_BASE[$key] ?? 2500);
 
             $def = $catalog[$key] ?? null;
             if ($def && isset($def['wage_bonus_pct'])) {
@@ -90,7 +101,26 @@ class GangWageService
             }
         }
 
-        // 3. Hired Gang NPCs
+        // 3. Bende Wagenpark (Stored fleet in gang garage generates logistics / hustle revenue)
+        $storedVehicles = $gang->relationLoaded('storedVehicles')
+            ? $gang->storedVehicles
+            : $gang->storedVehicles()->with('vehicle')->get();
+
+        $vehiclesIncome = 0;
+        foreach ($storedVehicles as $sv) {
+            $vType = $sv->vehicle?->type ?? 'auto';
+            $vBase = match ($vType) {
+                'motor' => 1500,
+                'auto' => 4000,
+                'boot' => 12500,
+                'helikopter', 'vliegtuig' => 25000,
+                default => 3000,
+            };
+            $condPct = max(25, min(100, (int) ($sv->current_condition ?? 100))) / 100;
+            $vehiclesIncome += (int) round($vBase * $condPct);
+        }
+
+        // 4. Hired Gang NPCs
         $npcs = $gang->relationLoaded('npcs')
             ? $gang->npcs
             : $gang->npcs()->get();
@@ -110,31 +140,32 @@ class GangWageService
             }
         }
 
-        // 4. Gang Respect bonus (underworld dominance)
-        $respectBonus = min(50000, (int) round(($gang->respect ?? 0) / 40));
+        // 5. Gang Respect bonus (+1% per 100.000 respect, capped at +50%)
+        $gangRespect = (int) ($gang->total_respect ?? $gang->respect ?? 0);
+        $respectBonusPct = min(50, (int) floor($gangRespect / 100000));
 
-        $subtotal = $base + $propsIncome + $npcsIncome + $respectBonus;
-
-        // Apply luxury and NPC percentage bonuses
-        $totalBonusPct = $luxuryBonusPct + $npcWageBonusPct;
-
-        // 5. Gang War Dominance (Kliniek Heerschappij: +20% bonus na gewonnen bendeoorlog)
+        // 6. Gang War Dominance (Kliniek Heerschappij: +25% bonus na gewonnen bendeoorlog)
+        $warDominancePct = 0;
         if (method_exists($gang, 'hasWarDominance') && $gang->hasWarDominance()) {
-            $totalBonusPct += 20;
+            $warDominancePct = 25;
         }
 
-        $multiplier = 1 + ($totalBonusPct / 100);
+        $subtotal = $base + $propsIncome + $vehiclesIncome + $npcsIncome;
+
+        // Apply luxury, respect, NPC and war percentage multipliers
+        $totalBonusPct = $luxuryBonusPct + $respectBonusPct + $npcWageBonusPct + $warDominancePct;
+        $multiplier = 1.0 + ($totalBonusPct / 100);
         $baseHourlyWage = (int) round($subtotal * $multiplier);
 
         if (! $character) {
             return $baseHourlyWage;
         }
 
-        // 6. Character Level Scaling (+2.5% per character level for high-tier member value)
+        // 7. Character Level Scaling (+2.5% per character level for high-tier member value)
         $charLevel = max(1, (int) ($character->level ?? 1));
         $levelMultiplier = 1.0 + (($charLevel - 1) * 0.025);
 
-        // 7. Role Scaling (Leadership & Responsibilities)
+        // 8. Role Scaling (Leadership & Responsibilities)
         $roleMultiplier = match ($character->gang_role ?? 'member') {
             'leader' => 1.25,
             'co_leader' => 1.15,
@@ -142,20 +173,94 @@ class GangWageService
             default => 1.00,
         };
 
-        // 8. Inzet & Activity Factor (active players maintain 100% full wage)
+        // 9. Inzet & Activity Factor (active players maintain 100% full wage)
         $activityMultiplier = 1.0;
         if ($character->last_active_at) {
             $hoursInactive = (int) $character->last_active_at->diffInHours(now());
             if ($hoursInactive > 168) {
-                $activityMultiplier = 0.40;
+                $activityMultiplier = 0.35;
             } elseif ($hoursInactive > 72) {
-                $activityMultiplier = 0.70;
+                $activityMultiplier = 0.50;
             } elseif ($hoursInactive > 24) {
-                $activityMultiplier = 0.90;
+                $activityMultiplier = 0.75;
             }
         }
 
         return max(50, (int) round($baseHourlyWage * $levelMultiplier * $roleMultiplier * $activityMultiplier));
+    }
+
+    /**
+     * Get a comprehensive breakdown of wage components for UI display.
+     *
+     * @return array<string, mixed>
+     */
+    public function getWageBreakdown(?Gang $gang, ?Character $character = null): array
+    {
+        if (! $gang) {
+            return [];
+        }
+
+        $effectiveKiosks = min(self::MAX_CONTRIBUTING_KIOSKS, max(0, (int) ($gang->bling_shops ?? 0)));
+        $kiosksIncome = $effectiveKiosks * self::SHOP_BONUS_WAGE;
+
+        $properties = $gang->relationLoaded('properties') ? $gang->properties : $gang->properties()->get();
+        $propsIncome = 0;
+        $luxuryBonusPct = 0;
+        $catalog = GangPropertyCatalog::all();
+        foreach ($properties as $prop) {
+            $key = $prop->property_key;
+            $propsIncome += (self::PROPERTY_HOURLY_BASE[$key] ?? 2500);
+            $def = $catalog[$key] ?? null;
+            if ($def && isset($def['wage_bonus_pct'])) {
+                $luxuryBonusPct += (int) $def['wage_bonus_pct'];
+            }
+        }
+
+        $storedVehicles = $gang->relationLoaded('storedVehicles') ? $gang->storedVehicles : $gang->storedVehicles()->with('vehicle')->get();
+        $vehiclesIncome = 0;
+        foreach ($storedVehicles as $sv) {
+            $vType = $sv->vehicle?->type ?? 'auto';
+            $vBase = match ($vType) {
+                'motor' => 1500,
+                'auto' => 4000,
+                'boot' => 12500,
+                'helikopter', 'vliegtuig' => 25000,
+                default => 3000,
+            };
+            $condPct = max(25, min(100, (int) ($sv->current_condition ?? 100))) / 100;
+            $vehiclesIncome += (int) round($vBase * $condPct);
+        }
+
+        $gangRespect = (int) ($gang->total_respect ?? $gang->respect ?? 0);
+        $respectBonusPct = min(50, (int) floor($gangRespect / 100000));
+        $warDominancePct = method_exists($gang, 'hasWarDominance') && $gang->hasWarDominance() ? 25 : 0;
+        $totalBonusPct = $luxuryBonusPct + $respectBonusPct + $warDominancePct;
+
+        $collectiveWage = $this->calculateHourlyWage($gang);
+        $characterWage = $character ? $this->calculateHourlyWage($gang, $character) : $collectiveWage;
+
+        return [
+            'kiosks_count' => (int) ($gang->bling_shops ?? 0),
+            'kiosks_capped' => $effectiveKiosks,
+            'kiosks_income' => $kiosksIncome,
+            'properties_count' => $properties->count(),
+            'properties_income' => $propsIncome,
+            'vehicles_count' => $storedVehicles->count(),
+            'vehicles_income' => $vehiclesIncome,
+            'respect_bonus_pct' => $respectBonusPct,
+            'luxury_bonus_pct' => $luxuryBonusPct,
+            'war_dominance_pct' => $warDominancePct,
+            'total_bonus_pct' => $totalBonusPct,
+            'collective_hourly_wage' => $collectiveWage,
+            'character_hourly_wage' => $characterWage,
+            'level_multiplier' => $character ? 1.0 + ((max(1, (int) $character->level) - 1) * 0.02) : 1.0,
+            'role_multiplier' => match ($character?->gang_role ?? 'member') {
+                'leader' => 1.25,
+                'co_leader' => 1.15,
+                'officer' => 1.10,
+                default => 1.00,
+            },
+        ];
     }
 
     /**
