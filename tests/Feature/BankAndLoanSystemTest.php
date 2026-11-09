@@ -234,4 +234,34 @@ class BankAndLoanSystemTest extends TestCase
         $correctPinRes->assertRedirect(route('bank.index', ['tab' => 'vault']));
         $correctPinRes->assertSessionHas('success');
     }
+
+    public function test_player_can_deposit_and_withdraw_amounts_exceeding_two_billion(): void
+    {
+        [$user, $character] = $this->createInmate([
+            'cash' => 5000000000, // 5 billion
+            'bank' => 1000000000, // 1 billion
+        ]);
+
+        // Deposit 3.5 billion (which previously failed on max:2000000000)
+        $depositAmount = 3500000000;
+        $response = $this->actingAs($user)->post(route('bank.deposit'), [
+            'amount' => $depositAmount,
+        ]);
+
+        $response->assertSessionHas('success');
+        $character->refresh();
+        $this->assertEquals(1500000000, $character->cash);
+        $this->assertEquals(4500000000, $character->bank);
+
+        // Withdraw 2.5 billion
+        $withdrawAmount = 2500000000;
+        $withdrawRes = $this->actingAs($user)->post(route('bank.withdraw'), [
+            'amount' => $withdrawAmount,
+        ]);
+
+        $withdrawRes->assertSessionHas('success');
+        $character->refresh();
+        $this->assertEquals(2000000000, $character->bank);
+        $this->assertGreaterThan(1500000000, $character->cash);
+    }
 }

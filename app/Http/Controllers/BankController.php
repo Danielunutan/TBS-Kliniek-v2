@@ -93,7 +93,7 @@ class BankController extends Controller
     public function deposit(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:1', 'max:2000000000'],
+            'amount' => ['required', 'integer', 'min:1', 'max:1000000000000'],
         ]);
 
         /** @var User $user */
@@ -134,7 +134,7 @@ class BankController extends Controller
     public function withdraw(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:1', 'max:2000000000'],
+            'amount' => ['required', 'integer', 'min:1', 'max:1000000000000'],
         ]);
 
         /** @var User $user */
@@ -190,7 +190,7 @@ class BankController extends Controller
     public function requestLoan(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:'.Loan::MIN_LOAN_AMOUNT, 'max:2000000000'],
+            'amount' => ['required', 'integer', 'min:'.Loan::MIN_LOAN_AMOUNT, 'max:1000000000000'],
             'deposit_to' => ['nullable', 'string', 'in:cash,bank'],
         ]);
 
@@ -233,7 +233,7 @@ class BankController extends Controller
     public function repayLoan(Request $request, Loan $loan): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:1', 'max:2000000000'],
+            'amount' => ['required', 'integer', 'min:1', 'max:1000000000000'],
             'source' => ['required', 'string', 'in:cash,bank'],
         ]);
 
