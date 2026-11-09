@@ -211,6 +211,11 @@
                             <span>•</span>
                             <span><i class="fa-solid fa-boxes-stacked text-amber-500"></i> +{{ $p['storage_capacity'] ?? 0 }} opslag</span>
                         </div>
+                        @if(!empty($p['vehicle_requirements']))
+                            <div class="mt-1 text-[10px] font-black text-amber-600 dark:text-amber-400 truncate" title="{{ $p['vehicle_requirements']['description'] }}">
+                                <i class="fa-solid fa-car-rear text-amber-500"></i> {{ $p['vehicle_requirements']['description'] }}
+                            </div>
+                        @endif
                     </div>
 
                     <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
@@ -377,6 +382,17 @@
                     <span class="truncate">{{ $prop['perks_summary'] }}</span>
                 </div>
 
+                <!-- Vehicle Fleet Requirement Info if Specified -->
+                @if(!empty($prop['vehicle_requirements']))
+                <div class="bg-amber-500/10 dark:bg-amber-950/30 border border-amber-300/80 dark:border-amber-800/60 rounded-xl p-2.5 flex items-start gap-2 text-xs font-bold text-amber-800 dark:text-amber-200">
+                    <i class="fa-solid fa-car-rear text-amber-500 shrink-0 mt-0.5"></i>
+                    <div class="space-y-0.5">
+                        <span class="block text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">Garage Vloot Vereiste:</span>
+                        <div class="text-[11px] leading-snug">{{ $prop['vehicle_requirements']['description'] }}</div>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Production Status if Owned & Production Type -->
                 @if($isOwned && $prop['category'] === 'production')
                 <div class="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2">
@@ -415,6 +431,40 @@
                         </button>
                     </form>
                     @elseif(! $owned->isProducing() && $isOfficer)
+                    @php
+                        $fleetCheck = \App\Support\GangPropertyCatalog::checkFleetRequirements($gang, $prop['key']);
+                    @endphp
+
+                    @if(!empty($prop['vehicle_requirements']))
+                    <div class="p-2.5 rounded-xl {{ $fleetCheck['qualified'] ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-800/60' }} space-y-1.5">
+                        <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-wider">
+                            <span class="{{ $fleetCheck['qualified'] ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300' }}">
+                                Garage Vloot Check:
+                            </span>
+                            <span class="{{ $fleetCheck['qualified'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                                {{ $fleetCheck['qualified'] ? 'Vloot Gereed ✓' : 'Onvolledige Vloot ✗' }}
+                            </span>
+                        </div>
+                        <div class="space-y-1">
+                            @foreach($fleetCheck['rules'] as $rule)
+                            <div class="flex items-center justify-between text-[11px] font-bold {{ $rule['passed'] ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300' }}">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid {{ $rule['passed'] ? 'fa-check text-emerald-500' : 'fa-xmark text-rose-500' }}"></i>
+                                    <span>{{ $rule['label'] }}</span>
+                                </span>
+                                <span>{{ $rule['current'] }} / {{ $rule['required'] }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                        @if(!$fleetCheck['qualified'])
+                        <div class="pt-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center justify-between">
+                            <span>Parkeer vereiste wagens in de garage.</span>
+                            <a href="{{ route('gangs.garage') }}" class="underline font-black hover:text-rose-700 dark:hover:text-rose-300">Naar Garage &rarr;</a>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
+
                     <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}" class="space-y-2">
                         @csrf
                         <div class="space-y-1">
@@ -429,10 +479,10 @@
                             </select>
                         </div>
                         <button type="submit"
-                                @if($character->isImprisoned() || $character->isComatose()) disabled @endif
-                                class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                @if(!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                class="w-full py-2.5 rounded-xl {{ (!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i>
-                            <span>Start Productiecyclus</span>
+                            <span>{{ $fleetCheck['qualified'] ? 'Start Productiecyclus' : 'Vloot Vereist in Bende Garage' }}</span>
                         </button>
                     </form>
                     @endif

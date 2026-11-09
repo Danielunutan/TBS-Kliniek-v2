@@ -47,6 +47,20 @@ class GangProperty extends Model
         return GangPropertyCatalog::get($this->property_key);
     }
 
+    public function checkFleetRequirements(): array
+    {
+        if (! $this->gang || empty($this->property_key)) {
+            return [
+                'qualified' => true,
+                'description' => null,
+                'rules' => [],
+                'reason' => null,
+            ];
+        }
+
+        return GangPropertyCatalog::checkFleetRequirements($this->gang, $this->property_key);
+    }
+
     public function isProduction(): bool
     {
         return $this->type === 'production';

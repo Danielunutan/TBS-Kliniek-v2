@@ -464,6 +464,11 @@ class GangPropertyController extends Controller
             return back()->with('error', 'De vorige productiecyclus is voltooid! Claim eerst de opbrengst.');
         }
 
+        $fleetCheck = GangPropertyCatalog::checkFleetRequirements($gang, $property->property_key);
+        if (! $fleetCheck['qualified']) {
+            return back()->with('error', $fleetCheck['reason']);
+        }
+
         $specialists = [
             'chemisch_specialist' => [
                 'name' => 'Dr. Walter V. (Meesterchemicus)',
@@ -510,6 +515,11 @@ class GangPropertyController extends Controller
 
                 if ($lockedProperty->isProductionReady()) {
                     throw new \RuntimeException('De vorige productiecyclus is voltooid! Claim eerst de opbrengst.');
+                }
+
+                $fleetCheck = GangPropertyCatalog::checkFleetRequirements($gang, $lockedProperty->property_key);
+                if (! $fleetCheck['qualified']) {
+                    throw new \RuntimeException($fleetCheck['reason']);
                 }
 
                 if ($specialistKey !== 'none' && isset($specialists[$specialistKey])) {

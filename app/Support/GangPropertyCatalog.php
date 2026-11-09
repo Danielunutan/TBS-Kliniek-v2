@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Gang;
 use Illuminate\Support\Facades\Cache;
 
 class GangPropertyCatalog
@@ -348,6 +349,315 @@ class GangPropertyCatalog
                 'description' => 'Zwaarbewaakte diepzeekade met hijskranen en directe vaargeul naar open water. Onderschept en verdeelt hoogwaardige buitenlandse zendingen voor de bende.',
                 'perks_summary' => 'Productie: €450.000 Cash + 160 Respect (per 5 uur run) • +12% Uurloon Bonus • +250 Opslag • 6 Voertuigplekken • 3 NPC Slots',
             ],
+            'pantser_konvooi_depot' => [
+                'key' => 'pantser_konvooi_depot',
+                'name' => 'Zwaar Geldtransport & Pantserwagen Depot',
+                'category' => 'production',
+                'category_label' => 'Productie & Konvooi',
+                'icon' => 'fa-truck-shield',
+                'color' => 'amber',
+                'price' => 2900000,
+                'storage_capacity' => 180,
+                'vehicle_slots' => 4,
+                'npc_capacity' => 3,
+                'production_duration_minutes' => 240, // 4 uur
+                'production_reward_cash' => 550000,
+                'production_reward_respect' => 175,
+                'wage_bonus_pct' => 10,
+                'tagline' => 'Beveiligd konvooi voor interstatelijk contant geld transport',
+                'description' => 'Zwaarbeveiligd logistiek depot met kogelwerende laadpoorten. Vereist minimaal 2 bende-auto\'s in de Bende Garage om een bepantserd transport te laten rijden. Levert €550.000 cash en 175 Respect op per run.',
+                'perks_summary' => 'Productie: €550.000 Cash + 175 Respect (per 4u run) • Vereist 2x Auto (conditie ≥50%) • +10% Bende Uurloon • 4 Voertuigplekken',
+                'vehicle_requirements' => [
+                    'description' => 'Minimaal 2x Auto (conditie minstens 50%) in Bende Garage',
+                    'rules' => [
+                        [
+                            'types' => ['auto'],
+                            'min_count' => 2,
+                            'min_speed' => 0,
+                            'min_condition' => 50,
+                            'label' => '2x Auto (conditie ≥50%)',
+                        ],
+                    ],
+                ],
+            ],
+            'offshore_smokkel_dok' => [
+                'key' => 'offshore_smokkel_dok',
+                'name' => 'Diepzee Speedboot Dok & Smokkelloods',
+                'category' => 'production',
+                'category_label' => 'Productie & Smokkelvloot',
+                'icon' => 'fa-ship',
+                'color' => 'sky',
+                'price' => 3200000,
+                'storage_capacity' => 220,
+                'vehicle_slots' => 4,
+                'npc_capacity' => 3,
+                'production_duration_minutes' => 270, // 4.5 uur
+                'production_reward_cash' => 620000,
+                'production_reward_respect' => 200,
+                'wage_bonus_pct' => 12,
+                'tagline' => 'Geheime zeehaven aan open water voor internationale runs',
+                'description' => 'Verborgen scheepswerf met onderwater aanlegsteigers en snelle kraanbanen. Vereist minimaal 2 boten in de Bende Garage om de internationale smokkelroute operationeel te houden. Levert €620.000 en 200 Respect per run op.',
+                'perks_summary' => 'Productie: €620.000 Cash + 200 Respect (per 4.5u run) • Vereist 2x Boot (conditie ≥50%) • +12% Bende Uurloon • 4 Voertuigplekken',
+                'vehicle_requirements' => [
+                    'description' => 'Minimaal 2x Boot (conditie minstens 50%) in Bende Garage',
+                    'rules' => [
+                        [
+                            'types' => ['boot'],
+                            'min_count' => 2,
+                            'min_speed' => 0,
+                            'min_condition' => 50,
+                            'label' => '2x Boot (conditie ≥50%)',
+                        ],
+                    ],
+                ],
+            ],
+            'luchtdropping_hangar' => [
+                'key' => 'luchtdropping_hangar',
+                'name' => 'Nachtelijke Luchtdropping Hangar & Strip',
+                'category' => 'production',
+                'category_label' => 'Productie & Luchtvaart',
+                'icon' => 'fa-plane-departure',
+                'color' => 'violet',
+                'price' => 4500000,
+                'storage_capacity' => 300,
+                'vehicle_slots' => 5,
+                'npc_capacity' => 4,
+                'production_duration_minutes' => 360, // 6 uur
+                'production_reward_cash' => 850000,
+                'production_reward_respect' => 300,
+                'wage_bonus_pct' => 15,
+                'tagline' => 'Geheime landingsbaan voor nachtelijke parachutedroppings',
+                'description' => 'Onverlichte landingsbaan verscholen in het buitengebied met radardempende hangar. Vereist minimaal 2 luchtvoertuigen (helikopters of vliegtuigen) in de garage om zendingen over landsgrenzen te droppen. Levert €850.000 en 300 Respect op.',
+                'perks_summary' => 'Productie: €850.000 Cash + 300 Respect (per 6u run) • Vereist 2x Luchtvoertuig (conditie ≥50%) • +15% Bende Uurloon • 5 Voertuigplekken',
+                'vehicle_requirements' => [
+                    'description' => 'Minimaal 2x Luchtvoertuig (Helikopter of Vliegtuig, conditie minstens 50%) in Bende Garage',
+                    'rules' => [
+                        [
+                            'types' => ['helikopter', 'vliegtuig'],
+                            'min_count' => 2,
+                            'min_speed' => 0,
+                            'min_condition' => 50,
+                            'label' => '2x Helikopter of Vliegtuig (conditie ≥50%)',
+                        ],
+                    ],
+                ],
+            ],
+            'straatrace_omkat_hub' => [
+                'key' => 'straatrace_omkat_hub',
+                'name' => 'Nachtelijke Straatrace Syndicate & Tuner Hub',
+                'category' => 'production',
+                'category_label' => 'Productie & Tuning',
+                'icon' => 'fa-gauge-high',
+                'color' => 'orange',
+                'price' => 2600000,
+                'storage_capacity' => 160,
+                'vehicle_slots' => 5,
+                'npc_capacity' => 3,
+                'production_duration_minutes' => 210, // 3.5 uur
+                'production_reward_cash' => 480000,
+                'production_reward_respect' => 190,
+                'wage_bonus_pct' => 8,
+                'tagline' => 'Illegale midnight races en hoogtoerige circuits',
+                'description' => 'Ondergrondse racehal met testbanken en nitro-installaties. Vereist minimaal 3 snelle wagens of motoren (topsnelheid minimaal 80 km/u) in de garage om het illegale racecircuit te domineren. Levert €480.000 en 190 Respect op.',
+                'perks_summary' => 'Productie: €480.000 Cash + 190 Respect (per 3.5u run) • Vereist 3x Voertuig (Auto/Motor ≥80 km/u) • +8% Bende Uurloon • 5 Voertuigplekken',
+                'vehicle_requirements' => [
+                    'description' => 'Minimaal 3x Voertuig (Auto of Motor) met topsnelheid ≥ 80 km/u in Bende Garage',
+                    'rules' => [
+                        [
+                            'types' => ['auto', 'motor'],
+                            'min_count' => 3,
+                            'min_speed' => 80,
+                            'min_condition' => 40,
+                            'label' => '3x Snelle Voertuigen (Auto/Motor ≥80 km/u)',
+                        ],
+                    ],
+                ],
+            ],
+            'diamant_slijperij' => [
+                'key' => 'diamant_slijperij',
+                'name' => 'Hoogbeveiligde Diamantenslijperij & Goudsmelterij',
+                'category' => 'production',
+                'category_label' => 'Productie & Edelmetaal',
+                'icon' => 'fa-gem',
+                'color' => 'teal',
+                'price' => 3900000,
+                'storage_capacity' => 140,
+                'vehicle_slots' => 3,
+                'npc_capacity' => 3,
+                'production_duration_minutes' => 300, // 5 uur
+                'production_reward_cash' => 750000,
+                'production_reward_respect' => 250,
+                'wage_bonus_pct' => 14,
+                'tagline' => 'Slijpt ruwe stenen en giet goudstaven om naar anonieme baren',
+                'description' => 'Geheime smelterij met lasercutters en inductie-ovens in een kluiskelder. Vereist minimaal 1 auto en 1 motor in de garage voor zwaarbewaakte estafettetransporten. Levert €750.000 en 250 Respect per cyclus op.',
+                'perks_summary' => 'Productie: €750.000 Cash + 250 Respect (per 5u run) • Vereist 1x Auto + 1x Motor • +14% Bende Uurloon • 3 Voertuigplekken',
+                'vehicle_requirements' => [
+                    'description' => 'Minimaal 1x Auto én 1x Motor (conditie minstens 50%) in Bende Garage',
+                    'rules' => [
+                        [
+                            'types' => ['auto'],
+                            'min_count' => 1,
+                            'min_speed' => 0,
+                            'min_condition' => 50,
+                            'label' => '1x Auto (conditie ≥50%)',
+                        ],
+                        [
+                            'types' => ['motor'],
+                            'min_count' => 1,
+                            'min_speed' => 0,
+                            'min_condition' => 50,
+                            'label' => '1x Motor (conditie ≥50%)',
+                        ],
+                    ],
+                ],
+            ],
+            'militaire_drone_basis' => [
+                'key' => 'militaire_drone_basis',
+                'name' => 'Autonome Drone Smokkelbasis & Radartoren',
+                'category' => 'production',
+                'category_label' => 'Productie & Drones',
+                'icon' => 'fa-satellite-dish',
+                'color' => 'indigo',
+                'price' => 2200000,
+                'storage_capacity' => 110,
+                'vehicle_slots' => 2,
+                'npc_capacity' => 2,
+                'production_duration_minutes' => 150, // 2.5 uur
+                'production_reward_cash' => 380000,
+                'production_reward_respect' => 140,
+                'wage_bonus_pct' => 9,
+                'tagline' => 'Geautomatiseerde dronezwermen die radarpatrouilles omzeilen',
+                'description' => 'High-tech controleroom op een verlaten zendmast. Lanceert autonome drones met smokkelwaar over kliniekmuren en grenzen. Volledig autonoom en geruisloos. Levert €380.000 en 140 Respect per cyclus op.',
+                'perks_summary' => 'Productie: €380.000 Cash + 140 Respect (per 2.5u run) • Autonoom (Geen voertuigeis) • +9% Bende Uurloon • 2 Voertuigplekken',
+                'vehicle_requirements' => null,
+            ],
+            'casino_witwas_complex' => [
+                'key' => 'casino_witwas_complex',
+                'name' => 'Ondergronds VIP Casino & Witwas Speelpaleis',
+                'category' => 'production',
+                'category_label' => 'Productie & Gaming',
+                'icon' => 'fa-coins',
+                'color' => 'amber',
+                'price' => 4200000,
+                'storage_capacity' => 190,
+                'vehicle_slots' => 4,
+                'npc_capacity' => 4,
+                'production_duration_minutes' => 240, // 4 uur
+                'production_reward_cash' => 680000,
+                'production_reward_respect' => 220,
+                'wage_bonus_pct' => 15,
+                'tagline' => 'Draaiende roulettetafels en VIP kassa\'s die zwart geld wit wassen',
+                'description' => 'Ondergrondse speelzaal met beveiligde kluizen en croupiers. Vereist minimaal 2 snelle wagens (snelheid minimaal 75 km/u) in de garage om VIP gasten discreet te escorteren. Levert €680.000 en 220 Respect per cyclus op.',
+                'perks_summary' => 'Productie: €680.000 Cash + 220 Respect (per 4u run) • Vereist 2x Snelle Auto (≥75 km/u) • +15% Bende Uurloon • 4 Voertuigplekken',
+                'vehicle_requirements' => [
+                    'description' => 'Minimaal 2x Snelle Auto (topsnelheid ≥ 75 km/u) in Bende Garage',
+                    'rules' => [
+                        [
+                            'types' => ['auto'],
+                            'min_count' => 2,
+                            'min_speed' => 75,
+                            'min_condition' => 40,
+                            'label' => '2x Snelle Auto (snelheid ≥75 km/u)',
+                        ],
+                    ],
+                ],
+            ],
+            'spionage_aftap_bunker' => [
+                'key' => 'spionage_aftap_bunker',
+                'name' => 'Digitale Spionage & Politie Aftapcentrale',
+                'category' => 'production',
+                'category_label' => 'Productie & Intel',
+                'icon' => 'fa-user-secret',
+                'color' => 'cyan',
+                'price' => 2500000,
+                'storage_capacity' => 120,
+                'vehicle_slots' => 2,
+                'npc_capacity' => 3,
+                'production_duration_minutes' => 180, // 3 uur
+                'production_reward_cash' => 420000,
+                'production_reward_respect' => 160,
+                'wage_bonus_pct' => 10,
+                'tagline' => 'Onderschept politiesignalen, kluiscodes en concurrentiedossiers',
+                'description' => 'Geluidsdichte bunker met satellietontvangers en decryptie-eenheden. Verzamelt en verkoopt geheime politie- en rivaliserende bende-informatie aan de hoogste bieder op het darkweb. Levert €420.000 en 160 Respect per 3 uur op.',
+                'perks_summary' => 'Productie: €420.000 Cash + 160 Respect (per 3u run) • Intel Operatie • +10% Bende Uurloon • 2 Voertuigplekken',
+                'vehicle_requirements' => null,
+            ],
+            'chemische_raffinaderij' => [
+                'key' => 'chemische_raffinaderij',
+                'name' => 'Industriële Super-Synthese Raffinaderij',
+                'category' => 'production',
+                'category_label' => 'Productie & Chemie',
+                'icon' => 'fa-industry',
+                'color' => 'rose',
+                'price' => 5800000,
+                'storage_capacity' => 280,
+                'vehicle_slots' => 5,
+                'npc_capacity' => 4,
+                'production_duration_minutes' => 420, // 7 uur
+                'production_reward_cash' => 950000,
+                'production_reward_respect' => 350,
+                'wage_bonus_pct' => 18,
+                'tagline' => 'Megacomplex met chemische reactoren en koeltorens',
+                'description' => 'Gigantisch fabriekscomplex dat dag en nacht precursorgrondstoffen destilleert. Vereist minimaal 2 transportwagens (auto\'s met conditie minstens 60%) in de bende garage voor bulk chemicaliëntransport. Levert €950.000 en 350 Respect per cyclus op.',
+                'perks_summary' => 'Productie: €950.000 Cash + 350 Respect (per 7u run) • Vereist 2x Auto (conditie ≥60%) • +18% Bende Uurloon • 5 Voertuigplekken',
+                'vehicle_requirements' => [
+                    'description' => 'Minimaal 2x Auto (conditie minstens 60%) in Bende Garage',
+                    'rules' => [
+                        [
+                            'types' => ['auto'],
+                            'min_count' => 2,
+                            'min_speed' => 0,
+                            'min_condition' => 60,
+                            'label' => '2x Auto (conditie ≥60%)',
+                        ],
+                    ],
+                ],
+            ],
+            'kartel_distributie_fort' => [
+                'key' => 'kartel_distributie_fort',
+                'name' => 'Internationaal Kartel Distributiefort & Citadel',
+                'category' => 'production',
+                'category_label' => 'Productie & Citadel',
+                'icon' => 'fa-fort-awesome',
+                'color' => 'rose',
+                'price' => 8500000,
+                'storage_capacity' => 500,
+                'vehicle_slots' => 8,
+                'npc_capacity' => 6,
+                'production_duration_minutes' => 480, // 8 uur
+                'production_reward_cash' => 1500000,
+                'production_reward_respect' => 500,
+                'wage_bonus_pct' => 25,
+                'tagline' => 'Het ultieme internationale distributiebolwerk over land, zee en lucht',
+                'description' => 'Onneembaar zwaarbewaakt complex met eigen helipad, ondergrondse laadperrons en pantsermuren. Vereist een complete bendevloot van minimaal 4 voertuigen (waaronder minimaal 1 helikopter of vliegtuig én minimaal 2 auto\'s) in de bende garage om de gigantische cartel operatie te laten draaien. Levert €1.500.000 en 500 Respect per run op.',
+                'perks_summary' => 'Productie: €1.500.000 Cash + 500 Respect (per 8u run) • Vereist 4x Voertuigen (1x Lucht + 2x Auto) • +25% Bende Uurloon • 8 Voertuigplekken',
+                'vehicle_requirements' => [
+                    'description' => 'Minimaal 4 vlootvoertuigen in Bende Garage, waaronder 1x Luchtvoertuig en 2x Auto',
+                    'rules' => [
+                        [
+                            'types' => ['helikopter', 'vliegtuig'],
+                            'min_count' => 1,
+                            'min_speed' => 0,
+                            'min_condition' => 50,
+                            'label' => '1x Luchtvoertuig (Helikopter/Vliegtuig)',
+                        ],
+                        [
+                            'types' => ['auto'],
+                            'min_count' => 2,
+                            'min_speed' => 0,
+                            'min_condition' => 50,
+                            'label' => '2x Auto (conditie ≥50%)',
+                        ],
+                        [
+                            'types' => ['auto', 'motor', 'boot', 'helikopter', 'vliegtuig'],
+                            'min_count' => 4,
+                            'min_speed' => 0,
+                            'min_condition' => 25,
+                            'label' => '4x Bendevoertuigen Totaal in Garage',
+                        ],
+                    ],
+                ],
+            ],
 
             // ==========================================
             // 3. LUXE PANDEN, VILLA'S & HOOFDKWARTIEREN
@@ -494,6 +804,91 @@ class GangPropertyCatalog
     public static function get(string $key): ?array
     {
         return self::all()[$key] ?? null;
+    }
+
+    /**
+     * Check whether a gang satisfies the garage vehicle fleet requirements for a property.
+     *
+     * @return array{qualified: bool, description: ?string, rules: array, reason: ?string}
+     */
+    public static function checkFleetRequirements(Gang $gang, string $propertyKey): array
+    {
+        $catalogProp = self::get($propertyKey);
+        if (! $catalogProp || empty($catalogProp['vehicle_requirements'])) {
+            return [
+                'qualified' => true,
+                'description' => null,
+                'rules' => [],
+                'reason' => null,
+            ];
+        }
+
+        $reqConfig = $catalogProp['vehicle_requirements'];
+        $description = $reqConfig['description'] ?? null;
+        $rules = $reqConfig['rules'] ?? [];
+
+        $storedVehicles = $gang->relationLoaded('storedVehicles')
+            ? $gang->storedVehicles
+            : $gang->storedVehicles()->with('vehicle')->get();
+
+        $ruleResults = [];
+        $allQualified = true;
+        $failedLabels = [];
+
+        foreach ($rules as $rule) {
+            $allowedTypes = $rule['types'] ?? [];
+            $minCount = (int) ($rule['min_count'] ?? 1);
+            $minSpeed = (int) ($rule['min_speed'] ?? 0);
+            $minCondition = (int) ($rule['min_condition'] ?? 1);
+            $label = $rule['label'] ?? 'Vereist voertuig';
+
+            $matching = $storedVehicles->filter(function ($cv) use ($allowedTypes, $minSpeed, $minCondition) {
+                if (! $cv || ! $cv->vehicle) {
+                    return false;
+                }
+                if ($cv->current_condition < $minCondition) {
+                    return false;
+                }
+                if ($minSpeed > 0 && $cv->effective_speed < $minSpeed) {
+                    return false;
+                }
+                if (! empty($allowedTypes)) {
+                    $vType = $cv->vehicle->type;
+                    if (! in_array($vType, $allowedTypes, true)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            $count = $matching->count();
+            $passed = ($count >= $minCount);
+
+            if (! $passed) {
+                $allQualified = false;
+                $failedLabels[] = "{$label} ({$count}/{$minCount})";
+            }
+
+            $ruleResults[] = [
+                'label' => $label,
+                'required' => $minCount,
+                'current' => $count,
+                'passed' => $passed,
+            ];
+        }
+
+        $reason = null;
+        if (! $allQualified) {
+            $reason = "Bende garage voldoet niet aan de voertuigeisen voor '{$catalogProp['name']}': " . implode(', ', $failedLabels) . '. Parkeer geschikte voertuigen in de Bende Garage.';
+        }
+
+        return [
+            'qualified' => $allQualified,
+            'description' => $description,
+            'rules' => $ruleResults,
+            'reason' => $reason,
+        ];
     }
 
     /**
