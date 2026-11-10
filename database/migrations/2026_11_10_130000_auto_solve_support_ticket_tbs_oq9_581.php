@@ -24,17 +24,24 @@ return new class extends Migration
             return;
         }
 
+        // Production shows this ticket as admin id 74. Match on that id only together
+        // with the subject, so a different ticket with the same id cannot be answered.
         $ticket = SupportTicket::whereIn('ticket_number', ['TBS-0Q9-581', 'TBS-OQ9-581'])->first()
+            ?? SupportTicket::where('id', 74)
+                ->where('subject', 'like', '%controlepunt niet aanwezig%')
+                ->first()
             ?? SupportTicket::where('subject', 'like', '%controlepunt niet aanwezig%')
                 ->whereHas('character', fn ($q) => $q->where('name', 'WRDMarco'))
                 ->first();
 
         if (! $ticket) {
             // Log instead of failing, so the deploy continues. Staff can then answer by hand.
-            Log::warning('Ticket TBS-OQ9-581 niet gevonden; geen automatisch antwoord geplaatst.');
+            Log::warning('Ticket TBS-OQ9-581 (admin id 74) niet gevonden; geen automatisch antwoord geplaatst.');
 
             return;
         }
+
+        Log::info("Migratie 2026_11_10_130000: ticket {$ticket->ticket_number} (id {$ticket->id}) gevonden.");
 
         // Avoid a duplicate reply when the reply text already exists.
         $alreadyReplied = $ticket->messages()
