@@ -7,16 +7,20 @@
     open: false,
     init() {
         try {
-            if (!localStorage.getItem('tbs_lottery_discount_80_v3')) {
-                this.open = true;
+            if (!localStorage.getItem('tbs_lottery_discount_80_v4')) {
+                setTimeout(() => {
+                    this.open = true;
+                }, 350);
             }
         } catch(e) {
-            this.open = true;
+            setTimeout(() => {
+                this.open = true;
+            }, 350);
         }
     },
     closeModal() {
         try {
-            localStorage.setItem('tbs_lottery_discount_80_v3', 'true');
+            localStorage.setItem('tbs_lottery_discount_80_v4', 'true');
         } catch(e) {}
         this.open = false;
     }
@@ -24,7 +28,7 @@
 x-show="open" 
 x-cloak
 class="fixed inset-0 flex items-center justify-center p-3 pb-24 sm:p-4 lg:pb-4 overflow-y-auto"
-style="z-index: 99999;">
+style="display: none; z-index: 99999;">
     
     <!-- Backdrop -->
     <div class="fixed inset-0 transition-opacity" 
