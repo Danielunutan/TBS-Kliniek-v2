@@ -43,6 +43,21 @@ class SupportTicketMessage extends Model
                 } catch (\Throwable) {
                     // Silently ignore push failure
                 }
+
+                if ($msg->ticket && $msg->ticket->character_id) {
+                    try {
+                        GameNotification::create([
+                            'character_id' => $msg->ticket->character_id,
+                            'type' => 'ticket_reply',
+                            'icon' => 'fa-headset',
+                            'title' => 'Support Reactie ontvangen!',
+                            'message' => "Er is gereageerd op je support ticket: '{$msg->ticket->subject}'.",
+                            'is_read' => false,
+                        ]);
+                    } catch (\Throwable) {
+                        // Silently ignore notification failure
+                    }
+                }
             }
         });
     }
