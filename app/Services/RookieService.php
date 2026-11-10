@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\CharacterItem;
 use App\Models\Item;
@@ -124,7 +125,14 @@ class RookieService
     {
         return match ($key) {
             'first_theft' => (int) ($character->thefts_succeeded ?? 0) >= 1,
-            'bank_deposit' => (float) ($character->bank ?? 0) >= 500,
+            'bank_deposit' => (float) ($character->bank ?? 0) >= 500
+                || ! empty($character->perks['rookie_bank_deposited'])
+                || BankTransaction::where('character_id', $character->id)
+                    ->where('type', 'deposit')
+                    ->exists()
+                || BankTransaction::where('character_id', $character->id)
+                    ->where('balance_after', '>=', 500)
+                    ->exists(),
             'training' => max((int) $character->strength, (int) $character->defense, (int) $character->stamina) >= 11,
             'first_fight' => ((int) $character->fights_won + (int) $character->fights_lost) >= 1,
             'sponsor_vip' => (int) ($character->ads_watched_total ?? 0) >= 1 || (bool) $character->is_vip,

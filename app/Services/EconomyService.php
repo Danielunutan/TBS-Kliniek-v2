@@ -28,7 +28,15 @@ class EconomyService
 
             $locked->cash -= $amount;
             $locked->bank += $amount;
+
+            $perks = is_array($locked->perks) ? $locked->perks : [];
+            if (empty($perks['rookie_bank_deposited'])) {
+                $perks['rookie_bank_deposited'] = true;
+                $locked->perks = $perks;
+            }
+
             $locked->save();
+            $character->perks = $locked->perks;
 
             $character->cash = $locked->cash;
             $character->bank = $locked->bank;

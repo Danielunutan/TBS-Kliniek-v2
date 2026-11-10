@@ -193,4 +193,42 @@ class RookieQuestAndTourTest extends TestCase
         $response->assertSee('Interactieve Gevecht Simulator');
         $response->assertSee('Snelle Probleemoplosser voor Gevangenen');
     }
+
+    public function test_bank_deposit_task_remains_met_after_withdrawal_due_to_transaction_or_perk(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'BankTester',
+            'level' => 1,
+            'cash' => 1000,
+            'bank' => 0,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'strength' => 10,
+            'defense' => 10,
+            'stamina' => 10,
+            'is_onboarded' => true,
+        ]);
+
+        $economyService = app(\App\Services\EconomyService::class);
+        $economyService->deposit($character, 500);
+
+        // Withdraw back to 0
+        $character->refresh();
+        $this->assertEquals(500, $character->bank);
+        $character->cash += $character->bank;
+        $character->bank = 0;
+        $character->save();
+
+        $rookieService = app(RookieService::class);
+        $this->assertTrue($rookieService->isTaskConditionMet($character, 'bank_deposit'));
+
+        // Can claim successfully even with 0 current bank balance
+        $response = $this->actingAs($user)->postJson(route('rookie.claim', 'bank_deposit'));
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
+    }
 }

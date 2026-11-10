@@ -33,3 +33,4 @@ class GangInvitation extends Model
         return $this->belongsTo(Character::class, 'invited_by_id');
     }
 }
+
