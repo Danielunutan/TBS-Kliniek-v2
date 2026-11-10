@@ -54,3 +54,4 @@ class BroadcastLotteryDiscountCommand extends Command
         return Command::SUCCESS;
     }
 }
+

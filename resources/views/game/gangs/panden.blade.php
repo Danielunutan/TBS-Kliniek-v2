@@ -498,11 +498,15 @@
                     @if($assignableProductionNpcs->isNotEmpty() || $stationedNpc)
                     <form method="POST" action="{{ route('gangs.panden.assign-npc', $owned) }}" class="p-2.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-800/60 space-y-1.5">
                         @csrf
-                        <label class="block text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
-                            Stationeer Showroom Specialist (Gratis vanuit Dienst):
-                        </label>
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                                Showroom Specialist (Gratis vanuit Dienst):
+                            </label>
+                            <span class="text-[9px] font-bold text-indigo-500 lowercase">(selecteren wijst direct toe)</span>
+                        </div>
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <select name="npc_id"
+                                    onchange="this.form.submit()"
                                     @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
                                     class="w-full sm:flex-1 min-w-0 text-xs font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed">
                                 <option value="">— Geen showroom specialist gestationeerd —</option>
@@ -521,34 +525,125 @@
                     </form>
                     @endif
 
-                    <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}" class="space-y-2">
-                        @csrf
-                        @php
-                            $batchSpecialists = \App\Support\GangPropertyCatalog::getBatchSpecialists((int) ($owned->production_reward_cash ?? 0));
-                        @endphp
-                        <div class="space-y-1">
-                            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Huur Specialist voor deze Cyclus (Optioneel):
-                            </label>
-                            <select name="batch_specialist" 
-                                    @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ! $fleetCheck['qualified']) disabled @endif
-                                    class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-xs disabled:opacity-60 disabled:cursor-not-allowed">
-                                <option value="none">Standaard ploeg (Geen extra kosten)</option>
-                                <option value="chemisch_specialist">🧪 Dr. Walter V. &mdash; &euro;{{ number_format($batchSpecialists['chemisch_specialist']['cost'], 0, ',', '.') }} (-50% Productietijd)</option>
-                                <option value="productie_manager">💰 Dimitri De Opzichter &mdash; &euro;{{ number_format($batchSpecialists['productie_manager']['cost'], 0, ',', '.') }} (+100% Cash)</option>
-                                <option value="enforcer_kapitein">🛡️ Boris De Sloper &mdash; &euro;{{ number_format($batchSpecialists['enforcer_kapitein']['cost'], 0, ',', '.') }} (+Zware Verdediging)</option>
-                            </select>
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
-                                Let op: Een betaalde cyclus-specialist vervangt en ontkoppelt een eventueel gestationeerde showroom specialist.
-                            </p>
-                        </div>
-                        <button type="submit"
-                                @if(!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
-                                class="w-full py-2.5 rounded-xl {{ (!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-play"></i>
-                            <span>{{ $fleetCheck['qualified'] ? 'Start Productiecyclus' : 'Vloot Vereist in Bende Garage' }}</span>
-                        </button>
-                    </form>
+                    @php
+                        $batchSpecialists = \App\Support\GangPropertyCatalog::getBatchSpecialists((int) ($owned->production_reward_cash ?? 0));
+                    @endphp
+                    <div x-data="{
+                        baseMinutes: {{ (int) ($owned->production_duration_minutes ?? 60) }},
+                        baseCash: {{ (int) ($owned->production_reward_cash ?? 0) }},
+                        stationedNpc: {{ $stationedNpc ? json_encode([
+                            'id' => $stationedNpc->id,
+                            'name' => $stationedNpc->name,
+                            'type' => $stationedNpc->bonus_type,
+                            'value' => (int) $stationedNpc->bonus_value,
+                        ]) : 'null' }},
+                        selectedBatch: 'none',
+                        batchCosts: {
+                            none: 0,
+                            chemisch_specialist: {{ (int) $batchSpecialists['chemisch_specialist']['cost'] }},
+                            productie_manager: {{ (int) $batchSpecialists['productie_manager']['cost'] }},
+                            enforcer_kapitein: {{ (int) $batchSpecialists['enforcer_kapitein']['cost'] }}
+                        },
+                        formatEuro(amount) {
+                            return '€' + new Intl.NumberFormat('nl-NL').format(Math.round(amount));
+                        },
+                        get effectiveDuration() {
+                            if (this.selectedBatch === 'chemisch_specialist') {
+                                return Math.max(5, Math.round(this.baseMinutes * 0.5));
+                            }
+                            if (this.selectedBatch === 'none' && this.stationedNpc && this.stationedNpc.type === 'production_speed') {
+                                const factor = 1 - Math.min(0.75, Math.max(0, this.stationedNpc.value) / 100);
+                                return Math.max(5, Math.round(this.baseMinutes * factor));
+                            }
+                            return this.baseMinutes;
+                        },
+                        get effectiveCash() {
+                            if (this.selectedBatch === 'productie_manager') {
+                                return Math.round(this.baseCash * 2.0);
+                            }
+                            if (this.selectedBatch === 'none' && this.stationedNpc && this.stationedNpc.type === 'production_yield') {
+                                const factor = 1 + (Math.max(0, this.stationedNpc.value) / 100);
+                                return Math.round(this.baseCash * factor);
+                            }
+                            return this.baseCash;
+                        },
+                        get activeSpecialistLabel() {
+                            if (this.selectedBatch === 'chemisch_specialist') return '🧪 Dr. Walter V. (-50% Tijd)';
+                            if (this.selectedBatch === 'productie_manager') return '💰 Dimitri De Opzichter (+100% Cash)';
+                            if (this.selectedBatch === 'enforcer_kapitein') return '🛡️ Boris De Sloper (+Zware Verdediging)';
+                            if (this.stationedNpc) {
+                                return '👤 ' + this.stationedNpc.name + ' (' + (this.stationedNpc.type === 'production_speed' ? '-' + this.stationedNpc.value + '% Tijd' : '+' + this.stationedNpc.value + '% Cash') + ')';
+                            }
+                            return 'Standaard ploeg (Geen bonus)';
+                        }
+                    }" class="space-y-3">
+
+                        <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}" class="space-y-2.5">
+                            @csrf
+                            <input type="hidden" name="assign_npc_id" :value="stationedNpc ? stationedNpc.id : ''">
+
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                    Huur Specialist voor deze Cyclus (Optioneel):
+                                </label>
+                                <select name="batch_specialist" 
+                                        x-model="selectedBatch"
+                                        @if($character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum() || ! $fleetCheck['qualified']) disabled @endif
+                                        class="w-full text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 p-2 shadow-xs disabled:opacity-60 disabled:cursor-not-allowed">
+                                    <option value="none">Standaard ploeg (Geen extra kosten)</option>
+                                    <option value="chemisch_specialist">🧪 Dr. Walter V. &mdash; &euro;{{ number_format($batchSpecialists['chemisch_specialist']['cost'], 0, ',', '.') }} (-50% Productietijd)</option>
+                                    <option value="productie_manager">💰 Dimitri De Opzichter &mdash; &euro;{{ number_format($batchSpecialists['productie_manager']['cost'], 0, ',', '.') }} (+100% Cash)</option>
+                                    <option value="enforcer_kapitein">🛡️ Boris De Sloper &mdash; &euro;{{ number_format($batchSpecialists['enforcer_kapitein']['cost'], 0, ',', '.') }} (+Zware Verdediging)</option>
+                                </select>
+                            </div>
+
+                            <!-- Conflict Alert when Paid Specialist Replaces Stationed Specialist -->
+                            <div x-show="stationedNpc && selectedBatch !== 'none'" x-cloak class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-700 text-xs text-amber-800 dark:text-amber-200 space-y-0.5">
+                                <div class="font-bold flex items-center gap-1.5 text-[11px]">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                                    <span>Specialist Vervanging</span>
+                                </div>
+                                <p class="text-[10px] leading-relaxed">
+                                    Het inhuren van deze betaalde specialist vervangt <strong x-text="stationedNpc.name"></strong> voor deze cyclus. Specialistenbonussen kunnen niet gestapeld worden.
+                                </p>
+                            </div>
+
+                            <!-- LIVE PREVIEW REKENWONDER BOX -->
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2">
+                                <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5">
+                                    <span>Verwacht Resultaat van deze Cyclus:</span>
+                                    <span class="text-purple-600 dark:text-purple-400 font-bold" x-text="activeSpecialistLabel"></span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                                    <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/70">
+                                        <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Duur Productie</span>
+                                        <div class="font-black text-slate-900 dark:text-white mt-0.5">
+                                            <span x-text="effectiveDuration + ' min'"></span>
+                                            <span x-show="effectiveDuration < baseMinutes" class="text-emerald-500 text-[9px] font-bold block" x-text="'(' + Math.round((1 - (effectiveDuration / baseMinutes)) * 100) + '% sneller!)'"></span>
+                                        </div>
+                                    </div>
+                                    <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/70">
+                                        <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Opbrengst Cash</span>
+                                        <div class="font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                            <span x-text="formatEuro(effectiveCash)"></span>
+                                            <span x-show="effectiveCash > baseCash" class="text-amber-500 text-[9px] font-bold block" x-text="'+' + formatEuro(effectiveCash - baseCash) + ' bonus'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div x-show="batchCosts[selectedBatch] > 0" class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-200/60 dark:border-slate-700/60 text-slate-500">
+                                    <span>Kosten Specialist: <strong class="text-rose-500" x-text="'-' + formatEuro(batchCosts[selectedBatch])"></strong></span>
+                                    <span>Netto Bendewinst: <strong class="text-emerald-600 dark:text-emerald-400 font-black" x-text="formatEuro(effectiveCash - batchCosts[selectedBatch])"></strong></span>
+                                </div>
+                            </div>
+
+                            <button type="submit"
+                                    @if(!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) disabled @endif
+                                    class="w-full py-2.5 rounded-xl {{ (!$fleetCheck['qualified'] || $character->isImprisoned() || $character->isComatose() || $character->needsReviveSerum()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i>
+                                <span>{{ $fleetCheck['qualified'] ? 'Start Productiecyclus' : 'Vloot Vereist in Bende Garage' }}</span>
+                            </button>
+                        </form>
+                    </div>
                     @endif
                 </div>
                 @endif

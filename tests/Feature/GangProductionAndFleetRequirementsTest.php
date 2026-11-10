@@ -159,4 +159,45 @@ class GangProductionAndFleetRequirementsTest extends TestCase
         $this->assertEquals('producing', $prop->fresh()->production_status);
         $this->assertNotNull($prop->fresh()->production_ends_at);
     }
+
+    public function test_start_production_with_inline_assign_npc_id_stations_npc(): void
+    {
+        [$user, $char, $gang] = $this->createGangWithLeader();
+
+        $prop = GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'wietkwekerij',
+            'name' => 'Wietkwekerij',
+            'type' => 'production',
+            'purchase_price' => 500000,
+            'defense_rating' => 200,
+            'storage_capacity' => 100,
+            'vehicle_slots' => 2,
+            'npc_capacity' => 2,
+            'production_duration_minutes' => 60,
+            'production_reward_cash' => 100000,
+            'production_reward_respect' => 50,
+            'production_status' => 'idle',
+        ]);
+
+        $npc = \App\Models\GangNpc::create([
+            'gang_id' => $gang->id,
+            'npc_key' => 'botanist_wiet',
+            'name' => 'Groene Vingers Sjors',
+            'role_title' => 'Botanisch Expert',
+            'bonus_type' => 'production_yield',
+            'bonus_value' => 25,
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        $res = $this->actingAs($user)->post(route('gangs.panden.start-production', $prop), [
+            'batch_specialist' => 'none',
+            'assign_npc_id' => $npc->id,
+        ]);
+
+        $res->assertSessionHas('success');
+        $this->assertEquals($prop->id, $npc->fresh()->assigned_property_id);
+        $this->assertEquals($npc->npc_key, $prop->fresh()->assigned_npc_key);
+        $this->assertEquals(125000, $prop->fresh()->effective_reward_cash);
+    }
 }

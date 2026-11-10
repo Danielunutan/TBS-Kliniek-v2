@@ -698,10 +698,11 @@ class GangPropertyController extends Controller
         $specialists = GangPropertyCatalog::getBatchSpecialists((int) $property->production_reward_cash);
 
         $specialistKey = $request->input('batch_specialist', 'none');
+        $assignNpcId = $request->filled('assign_npc_id') ? (int) $request->input('assign_npc_id') : null;
         $hiredNotice = '';
 
         try {
-            $durationMinutes = DB::transaction(function () use ($character, $property, $gang, $specialists, $specialistKey, &$hiredNotice): int {
+            $durationMinutes = DB::transaction(function () use ($character, $property, $gang, $specialists, $specialistKey, $assignNpcId, &$hiredNotice): int {
                 /** @var Character|null $lockedChar */
                 $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
                 if (! $lockedChar || $lockedChar->isImprisoned() || $lockedChar->isComatose() || $lockedChar->needsReviveSerum()) {
@@ -775,6 +776,19 @@ class GangPropertyController extends Controller
                         ]
                     );
                 } else {
+                    if ($assignNpcId) {
+                        $candidateNpc = GangNpc::where('gang_id', $lockedGang->id)
+                            ->where('id', $assignNpcId)
+                            ->active()
+                            ->first();
+                        if ($candidateNpc && in_array($candidateNpc->bonus_type, ['production_speed', 'production_yield'], true)) {
+                            GangNpc::where('assigned_property_id', $lockedProperty->id)
+                                ->where('id', '!=', $candidateNpc->id)
+                                ->update(['assigned_property_id' => null]);
+                            $candidateNpc->update(['assigned_property_id' => $lockedProperty->id]);
+                            $lockedProperty->assigned_npc_key = $candidateNpc->npc_key;
+                        }
+                    }
                     $assignedGangNpc = GangNpc::where('gang_id', $lockedGang->id)
                         ->where('assigned_property_id', $lockedProperty->id)
                         ->active()
