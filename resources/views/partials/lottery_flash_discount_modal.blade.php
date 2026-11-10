@@ -6,21 +6,25 @@
 <div x-data="{
     open: false,
     init() {
-        if (!localStorage.getItem('tbs_lottery_discount_50_v1')) {
-            setTimeout(() => {
+        try {
+            if (!localStorage.getItem('tbs_lottery_discount_50_v2')) {
                 this.open = true;
-            }, 500);
+            }
+        } catch(e) {
+            this.open = true;
         }
     },
     closeModal() {
-        localStorage.setItem('tbs_lottery_discount_50_v1', 'true');
+        try {
+            localStorage.setItem('tbs_lottery_discount_50_v2', 'true');
+        } catch(e) {}
         this.open = false;
     }
 }" 
 x-show="open" 
 x-cloak
 class="fixed inset-0 flex items-center justify-center p-3 pb-24 sm:p-4 lg:pb-4 overflow-y-auto"
-style="display: none; z-index: 9999;">
+style="z-index: 99999;">
     
     <!-- Backdrop -->
     <div class="fixed inset-0 transition-opacity" 
@@ -93,3 +97,4 @@ style="display: none; z-index: 9999;">
 </div>
 @endif
 @endauth
+
