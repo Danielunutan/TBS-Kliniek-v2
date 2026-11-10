@@ -462,6 +462,20 @@
                             <span>Privé Chat</span>
                         </button>
 
+                        <!-- Uitnodigen voor Bende (voor bendeleiders & co-leiders) -->
+                        @if(Auth::check() && Auth::user()->character && Auth::user()->character->gang && Auth::user()->character->gang->isOfficer(Auth::user()->character) && !$profileCharacter->gang_id && Auth::user()->character->id !== $profileCharacter->id)
+                        <form action="{{ route('gangs.invite') }}" method="POST" class="inline-block">
+                            @csrf
+                            <input type="hidden" name="player_name" value="{{ $profileCharacter->name }}">
+                            <button type="submit" 
+                                    class="px-3.5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95" 
+                                    title="Nodig {{ $profileCharacter->name }} uit voor bende {{ Auth::user()->character->gang->name }}">
+                                <i class="fa-solid fa-paper-plane text-amber-300"></i>
+                                <span>Nodig Uit Voor Bende</span>
+                            </button>
+                        </form>
+                        @endif
+
                         @if(! $isExemptProfile && ! $isExemptViewer)
                         <!-- Give Respect (+1 Sigaret) Button -->
                         @if(! $hasGivenRespectToday)

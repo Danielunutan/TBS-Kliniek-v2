@@ -11,7 +11,7 @@
     $hasExplicitGangTab = !empty($activeTab) || session()->has('active_gang_tab') || in_array((string) request('tab'), $allowedGangTabs, true);
     $safeNoGangFallbackTab = in_array((string) request('tab'), ['alle_bendes', 'oprichten', 'ranglijst'], true) ? (string) request('tab') : 'alle_bendes';
 
-    $allowedBeheerTabs = ['leden', 'verzoeken', 'massa_bericht', 'bondgenoten', 'donaties', 'verwijderen'];
+    $allowedBeheerTabs = ['leden', 'uitnodigen', 'verzoeken', 'massa_bericht', 'bondgenoten', 'donaties', 'verwijderen'];
     $rawBeheerTab = (string) session('beheer_tab', request('beheer_tab', 'leden'));
     $safeBeheerTab = in_array($rawBeheerTab, $allowedBeheerTabs, true) ? $rawBeheerTab : 'leden';
     $hasExplicitBeheerTab = session()->has('beheer_tab') || in_array((string) request('beheer_tab'), $allowedBeheerTabs, true);
@@ -68,6 +68,62 @@
         sessionStorage.setItem('tbs_gang_beheer_tab', tab);
     }
 }">
+
+    <!-- Openstaande Bende Uitnodigingen voor Patiënten Zonder Bende -->
+    @if(!$myGang && isset($myPendingInvitations) && $myPendingInvitations->count() > 0)
+    <div class="bg-gradient-to-r from-purple-500/10 via-amber-500/10 to-purple-500/10 border-2 border-purple-500/40 rounded-2xl p-4 sm:p-5 shadow-md space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-200/60 dark:border-purple-800/60 pb-3">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-envelope-open-text text-purple-600 dark:text-purple-400"></i>
+                <span>Openstaande Bende Uitnodiging{{ $myPendingInvitations->count() > 1 ? 'en' : '' }} ({{ $myPendingInvitations->count() }})</span>
+            </h3>
+            <span class="text-xs font-bold text-purple-600 dark:text-purple-400">Kies een bende om direct gratis toe te treden</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            @foreach($myPendingInvitations as $invite)
+            <div class="p-4 bg-white dark:bg-slate-900 rounded-xl border border-purple-200 dark:border-purple-800 shadow-xs flex flex-col justify-between gap-3">
+                <div class="flex items-start gap-3">
+                    <img src="{{ $invite->gang->avatar_url }}" alt="{{ $invite->gang->name }}" class="w-12 h-12 rounded-xl object-cover border border-purple-300 dark:border-purple-700 shrink-0">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('gangs.show', $invite->gang->id) }}" class="font-extrabold text-sm text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 hover:underline truncate">
+                                {{ $invite->gang->name }}
+                            </a>
+                            <span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-mono text-[10px] font-black">[{{ $invite->gang->tag }}]</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            Uitgenodigd door <strong>{{ $invite->invitedBy?->name ?? 'Leiding' }}</strong> &bull; {{ $invite->created_at->diffForHumans() }}
+                        </p>
+                        @if($invite->message)
+                            <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 italic bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg border border-slate-200 dark:border-slate-700">"{{ $invite->message }}"</p>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <form action="{{ route('gangs.handle-invite', $invite) }}" method="POST" class="flex-1">
+                        @csrf
+                        <input type="hidden" name="action" value="accept">
+                        <button type="submit" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                            <i class="fa-solid fa-check"></i>
+                            <span>Accepteren & Toetreden</span>
+                        </button>
+                    </form>
+                    <form action="{{ route('gangs.handle-invite', $invite) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="action" value="decline">
+                        <button type="submit" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                            <i class="fa-solid fa-xmark"></i>
+                            <span>Afwijzen</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     <!-- Top Hero Banner (Rich TBS Kliniek Style - Hidden on Mijn Gang since it has full profile banner) -->
     <div x-show="activeGangTab !== 'mijn_gang'" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
@@ -3657,6 +3713,17 @@
                             <i class="fa-solid fa-users"></i>
                             <span>Leden ({{ $myGang->members->count() }})</span>
                         </button>
+                        <button type="button" @click="setBeheerTab('uitnodigen')" 
+                                :class="beheerTab === 'uitnodigen' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold'"
+                                class="px-3.5 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Uitnodigen</span>
+                            @if(isset($outgoingInvitations) && $outgoingInvitations->count() > 0)
+                                <span class="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-black">
+                                    {{ $outgoingInvitations->count() }}
+                                </span>
+                            @endif
+                        </button>
                         <button type="button" @click="setBeheerTab('verzoeken')" 
                                 :class="beheerTab === 'verzoeken' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold'"
                                 class="px-3.5 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
@@ -3787,6 +3854,169 @@
                 </div>
 
 
+
+                <!-- 1.5 UITNODIGEN TAB -->
+                <div x-show="beheerTab === 'uitnodigen'" class="space-y-6">
+                    <!-- Card 1: Direct Speler Uitnodigen Formulier -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-paper-plane text-purple-600 dark:text-purple-400"></i>
+                                    <span>Patiënt Uitnodigen Voor {{ $myGang->name }}</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Nodig patiënten uit de kliniek uit die nog geen bende hebben. Zodra zij accepteren worden ze direct lid.</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-black self-start sm:self-auto">
+                                Capaciteit: {{ $myGang->members->count() }}/{{ $myGang->max_members ?? 10 }}
+                            </span>
+                        </div>
+
+                        <form action="{{ route('gangs.invite') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Naam van de patiënt <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="player_name" 
+                                           required 
+                                           list="recruitable_players_list"
+                                           placeholder="Typ gebruikersnaam..." 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                    <datalist id="recruitable_players_list">
+                                        @foreach($recruitablePlayers ?? [] as $rp)
+                                            <option value="{{ $rp->name }}">{{ $rp->name }} (Level {{ $rp->level }})</option>
+                                        @endforeach
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Persoonlijk wervingsbericht <span class="text-slate-400 font-normal">(optioneel)</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="message" 
+                                           maxlength="255"
+                                           placeholder="Bijv: Welkom bij onze bende, we zoeken actieve vechters!" 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end pt-1">
+                                <button type="submit" 
+                                        class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs shadow-xs transition flex items-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-paper-plane text-amber-300"></i>
+                                    <span>Verstuur Uitnodiging</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Card 2: Aanbevolen Actieve Solospelers Quick-Recruit -->
+                    @if(isset($recruitablePlayers) && $recruitablePlayers->count() > 0)
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-user-check text-emerald-600 dark:text-emerald-400"></i>
+                                    <span>Actieve Patiënten Zonder Bende</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Recente actieve patiënten in de kliniek die nog nergens bij aangesloten zijn.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            @foreach($recruitablePlayers as $candidate)
+                            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between gap-3 transition hover:border-purple-300 dark:hover:border-purple-700">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <img src="{{ $candidate->avatar_url }}" alt="{{ $candidate->name }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
+                                    <div class="min-w-0">
+                                        <a href="{{ route('profile.show', $candidate->name) }}" class="font-extrabold text-xs text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 truncate block">
+                                            {{ $candidate->name }}
+                                        </a>
+                                        <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                            <span>Lvl {{ $candidate->level }}</span>
+                                            <span>&bull;</span>
+                                            <span>{{ number_format($candidate->respect, 0, ',', '.') }} respect</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <form action="{{ route('gangs.invite') }}" method="POST" class="shrink-0">
+                                    @csrf
+                                    <input type="hidden" name="player_name" value="{{ $candidate->name }}">
+                                    <button type="submit" 
+                                            class="px-2.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-[11px] font-black transition flex items-center gap-1 active:scale-95 cursor-pointer"
+                                            title="Nodig {{ $candidate->name }} direct uit">
+                                        <i class="fa-solid fa-plus text-xs"></i>
+                                        <span>Nodig Uit</span>
+                                    </button>
+                                </form>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Card 3: Openstaande Uitnodigingen -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+                                <span>Openstaande Uitnodigingen</span>
+                                @if(isset($outgoingInvitations) && $outgoingInvitations->count() > 0)
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-black">
+                                        {{ $outgoingInvitations->count() }} actief
+                                    </span>
+                                @endif
+                            </h3>
+                        </div>
+
+                        <div class="space-y-2.5">
+                            @forelse($outgoingInvitations ?? [] as $inv)
+                            <div class="p-3.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                                <div class="flex items-center gap-3">
+                                    @if($inv->character)
+                                    <img src="{{ $inv->character->avatar_url }}" alt="{{ $inv->character->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
+                                    @endif
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('profile.show', $inv->character?->name ?? '') }}" class="font-extrabold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 hover:underline">
+                                                {{ $inv->character?->name ?? 'Onbekend' }}
+                                            </a>
+                                            <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                                                (Level {{ $inv->character?->level ?? 1 }} &bull; {{ number_format($inv->character?->respect ?? 0, 0, ',', '.') }} respect)
+                                            </span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                            Uitgenodigd door <strong>{{ $inv->invitedBy?->name ?? 'Leiding' }}</strong> &bull; {{ $inv->created_at->diffForHumans() }}
+                                        </p>
+                                        @if($inv->message)
+                                            <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 italic bg-white dark:bg-slate-900/80 p-2 rounded-lg border border-slate-200/80 dark:border-slate-700">"{{ $inv->message }}"</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <form action="{{ route('gangs.cancel-invite', $inv) }}" method="POST" class="self-end sm:self-auto shrink-0">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/70 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                            title="Trek deze uitnodiging in">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                        <span>Intrekken</span>
+                                    </button>
+                                </form>
+                            </div>
+                            @empty
+                            <div class="py-8 text-center space-y-2">
+                                <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-sm">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Er zijn momenteel geen openstaande uitnodigingen verstuurd.</p>
+                            </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 2. VERZOEKEN TAB -->
                 <div x-show="beheerTab === 'verzoeken'" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">

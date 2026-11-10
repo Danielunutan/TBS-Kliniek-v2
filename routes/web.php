@@ -575,6 +575,9 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/gangs/opnemen', [GangController::class, 'withdraw'])->name('gangs.withdraw');
     Route::post('/gangs/massa-bericht', [GangController::class, 'massMessage'])->middleware('throttle:5,1')->name('gangs.mass-message');
     Route::post('/gangs/verzoeken/{requestRecord}/behandelen', [GangController::class, 'handleRequest'])->name('gangs.handle-request');
+    Route::post('/gangs/uitnodigen', [GangController::class, 'invitePlayer'])->middleware('throttle:30,1')->name('gangs.invite');
+    Route::post('/gangs/uitnodigingen/{invitation}/intrekken', [GangController::class, 'cancelInvite'])->name('gangs.cancel-invite');
+    Route::post('/gangs/uitnodigingen/{invitation}/behandelen', [GangController::class, 'handleInvite'])->name('gangs.handle-invite');
     Route::post('/gangs/bondgenoot', [GangController::class, 'addAlliance'])->name('gangs.add-alliance');
     Route::delete('/gangs/bondgenoot/{alliance}', [GangController::class, 'removeAlliance'])->name('gangs.remove-alliance');
     Route::post('/gangs/opheffen', [GangController::class, 'disband'])->name('gangs.disband');

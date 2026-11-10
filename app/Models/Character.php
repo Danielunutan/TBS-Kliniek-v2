@@ -1511,6 +1511,14 @@ class Character extends Model
     }
 
     /**
+     * Get gang invitations received by this character.
+     */
+    public function receivedGangInvitations(): HasMany
+    {
+        return $this->hasMany(GangInvitation::class, 'character_id');
+    }
+
+    /**
      * Get loans taken by this character.
      */
     public function loans(): HasMany

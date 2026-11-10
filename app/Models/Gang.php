@@ -136,6 +136,16 @@ class Gang extends Model
         return $this->hasMany(GangRequest::class);
     }
 
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(GangInvitation::class);
+    }
+
+    public function pendingInvitations(): HasMany
+    {
+        return $this->hasMany(GangInvitation::class)->where('status', 'pending');
+    }
+
     public function donations(): HasMany
     {
         return $this->hasMany(GangDonation::class);

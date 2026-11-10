@@ -13,6 +13,7 @@ use App\Models\GangAlliance;
 use App\Models\GangAttack;
 use App\Models\GangDonation;
 use App\Models\GangItem;
+use App\Models\GangInvitation;
 use App\Models\GangNpc;
 use App\Models\GangRequest;
 use App\Models\GangWar;
@@ -77,11 +78,37 @@ class GangController extends Controller
         })->values();
 
         $pendingGangRequestIds = [];
+        $myPendingInvitations = collect();
         if (! $character->gang_id) {
             $pendingGangRequestIds = GangRequest::where('character_id', $character->id)
                 ->where('status', 'pending')
                 ->pluck('gang_id', 'gang_id')
                 ->toArray();
+
+            $myPendingInvitations = GangInvitation::where('character_id', $character->id)
+                ->where('status', 'pending')
+                ->with(['gang.leader', 'invitedBy'])
+                ->latest()
+                ->get();
+        }
+
+        $outgoingInvitations = collect();
+        $recruitablePlayers = collect();
+        if ($myGang && $myGang->isOfficer($character)) {
+            $outgoingInvitations = $myGang->invitations()
+                ->where('status', 'pending')
+                ->with(['character', 'invitedBy'])
+                ->latest()
+                ->get();
+
+            $recruitablePlayers = Character::whereNull('gang_id')
+                ->where('id', '!=', $character->id)
+                ->whereDoesntHave('receivedGangInvitations', function ($q) use ($myGang) {
+                    $q->where('gang_id', $myGang->id)->where('status', 'pending');
+                })
+                ->orderByDesc('last_activity')
+                ->limit(20)
+                ->get(['id', 'name', 'avatar_url', 'level', 'respect', 'last_activity']);
         }
 
         $gangRankings = collect();
@@ -205,7 +232,7 @@ class GangController extends Controller
         $activeWar = $myGang ? GangWar::findActiveForGang($myGang->id) : null;
         $clinicZones = ControlPoint::with(['holder', 'gang'])->get();
 
-        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'wageBreakdown', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems', 'warsWon', 'warsLost', 'totalRespect', 'activeWar', 'clinicZones'));
+        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'wageBreakdown', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems', 'warsWon', 'warsLost', 'totalRespect', 'activeWar', 'clinicZones', 'myPendingInvitations', 'outgoingInvitations', 'recruitablePlayers'));
     }
 
     /**
@@ -725,6 +752,286 @@ class GangController extends Controller
             ->with('active_gang_tab', 'beheer')
             ->with('beheer_tab', 'verzoeken')
             ->with('info', 'Aanvraag afgewezen.');
+    }
+
+    /**
+     * Invite a solo player to join the gang.
+     */
+    public function invitePlayer(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+        $this->energyService->refresh($character);
+
+        $gang = $character->gang;
+        if (! $gang || ! $gang->isOfficer($character)) {
+            return back()->with('error', 'Alleen de bendeleider en co-leiders kunnen nieuwe leden uitnodigen.');
+        }
+
+        $validated = $request->validate([
+            'player_name' => ['required', 'string', 'max:50'],
+            'message' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $maxMembers = (int) ($gang->max_members ?? 10);
+        if ($gang->members()->count() >= $maxMembers) {
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'uitnodigen')
+                ->with('error', "De bende zit vol! De maximale capaciteit is {$maxMembers} leden.");
+        }
+
+        $target = Character::where('name', $validated['player_name'])->first();
+        if (! $target) {
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'uitnodigen')
+                ->with('error', "Patiënt '{$validated['player_name']}' is niet gevonden.");
+        }
+
+        if ((int) $target->id === (int) $character->id) {
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'uitnodigen')
+                ->with('error', 'Je kunt jezelf niet uitnodigen.');
+        }
+
+        if ($target->gang_id) {
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'uitnodigen')
+                ->with('error', "{$target->name} zit momenteel al in een bende.");
+        }
+
+        $existingPending = GangInvitation::where('gang_id', $gang->id)
+            ->where('character_id', $target->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($existingPending) {
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'uitnodigen')
+                ->with('error', "Er staat al een openstaande uitnodiging naar {$target->name}.");
+        }
+
+        $recentDeclined = GangInvitation::where('gang_id', $gang->id)
+            ->where('character_id', $target->id)
+            ->where('status', 'declined')
+            ->where('updated_at', '>=', now()->subDay())
+            ->exists();
+
+        if ($recentDeclined) {
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'uitnodigen')
+                ->with('error', "{$target->name} heeft onlangs een uitnodiging van jouw bende afgewezen. Probeer het over 24 uur opnieuw.");
+        }
+
+        $invitation = GangInvitation::create([
+            'gang_id' => $gang->id,
+            'character_id' => $target->id,
+            'invited_by_id' => $character->id,
+            'message' => $validated['message'] ?? null,
+            'status' => 'pending',
+        ]);
+
+        GameNotification::create([
+            'character_id' => $target->id,
+            'type' => 'gang_invite',
+            'icon' => 'fa-envelope-open-text',
+            'title' => '📩 Uitnodiging voor bende!',
+            'message' => "Bende '{$gang->name}' [{$gang->tag}] heeft je uitgenodigd om lid te worden! Ga naar Bendes om het te bekijken.",
+            'is_read' => false,
+        ]);
+
+        $customMsgText = ! empty($validated['message'])
+            ? "\n\nPersoonlijk bericht van {$character->name}:\n\"{$validated['message']}\""
+            : '';
+
+        GameMessage::create([
+            'recipient_id' => $target->id,
+            'sender_id' => $character->id,
+            'sender_name' => "{$character->name} ({$gang->name})",
+            'subject' => "📩 Bende Uitnodiging: {$gang->name} [{$gang->tag}]",
+            'content' => "Beste {$target->name},\n\nJe bent van harte uitgenodigd om lid te worden van bende **{$gang->name}** [{$gang->tag}]!{$customMsgText}\n\nGa in het menu naar Bendes om deze uitnodiging direct te accepteren of af te wijzen.",
+            'type' => 'gang',
+        ]);
+
+        return back()
+            ->with('active_gang_tab', 'beheer')
+            ->with('beheer_tab', 'uitnodigen')
+            ->with('success', "Uitnodiging succesvol verzonden naar {$target->name}!");
+    }
+
+    /**
+     * Cancel an outgoing gang invitation.
+     */
+    public function cancelInvite(GangInvitation $invitation): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+        $this->energyService->refresh($character);
+
+        $gang = $character->gang;
+        if (! $gang || ! $gang->isOfficer($character) || (int) $invitation->gang_id !== (int) $gang->id) {
+            return back()->with('error', 'Geen bevoegdheid om deze uitnodiging in te trekken.');
+        }
+
+        if ($invitation->status !== 'pending') {
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'uitnodigen')
+                ->with('error', 'Deze uitnodiging is niet meer openstaand.');
+        }
+
+        $invitation->status = 'cancelled';
+        $invitation->save();
+
+        return back()
+            ->with('active_gang_tab', 'beheer')
+            ->with('beheer_tab', 'uitnodigen')
+            ->with('success', "Uitnodiging naar {$invitation->character?->name} ingetrokken.");
+    }
+
+    /**
+     * Handle incoming gang invitation (Accept or Decline) by the invited player.
+     */
+    public function handleInvite(GangInvitation $invitation, Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+        $this->energyService->refresh($character);
+
+        if ((int) $invitation->character_id !== (int) $character->id) {
+            return back()->with('error', 'Deze uitnodiging is niet aan jou gericht.');
+        }
+
+        if ($invitation->status !== 'pending') {
+            return back()->with('error', 'Deze uitnodiging is niet meer openstaand.');
+        }
+
+        $action = $request->input('action', 'decline');
+
+        if ($action === 'accept') {
+            return DB::transaction(function () use ($invitation, $character): RedirectResponse {
+                /** @var GangInvitation|null $lockedInvite */
+                $lockedInvite = GangInvitation::where('id', $invitation->id)->lockForUpdate()->first();
+                if (! $lockedInvite || $lockedInvite->status !== 'pending') {
+                    return back()->with('error', 'Deze uitnodiging is al verwerkt.');
+                }
+
+                /** @var Character|null $lockedCharacter */
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+                if (! $lockedCharacter) {
+                    return back()->with('error', 'Karakter niet gevonden.');
+                }
+
+                if ($lockedCharacter->gang_id) {
+                    $lockedInvite->status = 'cancelled';
+                    $lockedInvite->save();
+
+                    return back()->with('error', 'Je zit momenteel al in een bende. Verlaat eerst je huidige bende.');
+                }
+
+                /** @var Gang|null $lockedGang */
+                $lockedGang = Gang::where('id', $lockedInvite->gang_id)->lockForUpdate()->first();
+                if (! $lockedGang) {
+                    $lockedInvite->status = 'cancelled';
+                    $lockedInvite->save();
+
+                    return back()->with('error', 'Deze bende bestaat niet meer.');
+                }
+
+                $maxMembers = (int) ($lockedGang->max_members ?? 10);
+                if ($lockedGang->members()->count() >= $maxMembers) {
+                    $lockedInvite->status = 'cancelled';
+                    $lockedInvite->save();
+
+                    return back()->with('error', "De bende '{$lockedGang->name}' zit inmiddels vol ({$maxMembers} leden).");
+                }
+
+                $lockedCharacter->gang_id = $lockedGang->id;
+                $lockedCharacter->gang_role = 'member';
+                $lockedCharacter->last_gang_wage_at = now()->startOfHour();
+
+                $candidatePerks = is_array($lockedCharacter->perks) ? $lockedCharacter->perks : [];
+                $grantedWelcomeVip = empty($candidatePerks['gang_welcome_vip_claimed']);
+                if ($grantedWelcomeVip) {
+                    $hasPermanentVip = ($lockedCharacter->is_vip && $lockedCharacter->vip_expires_at === null)
+                        || $lockedCharacter->getVipTier() === 4;
+                    $lockedCharacter->is_vip = true;
+                    if (! $hasPermanentVip) {
+                        $currentExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                            ? $lockedCharacter->vip_expires_at
+                            : now();
+                        $lockedCharacter->vip_expires_at = $currentExpiry->copy()->addDays(3);
+                    }
+                    $candidatePerks['gang_welcome_vip_claimed'] = true;
+                    $lockedCharacter->perks = $candidatePerks;
+                }
+                $lockedCharacter->save();
+
+                $lockedInvite->status = 'accepted';
+                $lockedInvite->save();
+
+                // Cancel all other pending invitations for this player
+                GangInvitation::where('character_id', $lockedCharacter->id)
+                    ->where('id', '!=', $lockedInvite->id)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'cancelled']);
+
+                // Cancel any pending join requests made by this player
+                GangRequest::where('character_id', $lockedCharacter->id)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'rejected']);
+
+                // Notify the officer who sent the invitation
+                if ($lockedInvite->invited_by_id) {
+                    GameNotification::create([
+                        'character_id' => $lockedInvite->invited_by_id,
+                        'type' => 'gang',
+                        'icon' => 'fa-user-check',
+                        'title' => '🎉 Uitnodiging geaccepteerd!',
+                        'message' => "{$lockedCharacter->name} heeft jouw uitnodiging voor '{$lockedGang->name}' geaccepteerd en is nu lid!",
+                        'is_read' => false,
+                    ]);
+                }
+
+                // Welcome notification for player
+                GameNotification::create([
+                    'character_id' => $lockedCharacter->id,
+                    'type' => 'gang',
+                    'icon' => 'fa-shield-halved',
+                    'title' => "Welkom bij {$lockedGang->name}!",
+                    'message' => "Je bent nu officieel lid van bende '{$lockedGang->name}' [{$lockedGang->tag}]!" . ($grantedWelcomeVip ? ' +3 Dagen Gratis VIP geactiveerd!' : ''),
+                    'is_read' => false,
+                ]);
+
+                return redirect()->route('gangs.index', ['tab' => 'mijn_gang'])
+                    ->with('success', "Gefeliciteerd! Je bent nu lid van {$lockedGang->name} [{$lockedGang->tag}]!");
+            });
+        }
+
+        // Decline action
+        $invitation->status = 'declined';
+        $invitation->save();
+
+        if ($invitation->invited_by_id) {
+            GameNotification::create([
+                'character_id' => $invitation->invited_by_id,
+                'type' => 'gang',
+                'icon' => 'fa-user-xmark',
+                'title' => 'Uitnodiging afgewezen',
+                'message' => "{$character->name} heeft de uitnodiging voor '{$invitation->gang?->name}' afgewezen.",
+                'is_read' => false,
+            ]);
+        }
+
+        return back()->with('info', "Je hebt de uitnodiging voor {$invitation->gang?->name} afgewezen.");
     }
 
     /**
