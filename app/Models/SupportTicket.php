@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WebPushService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,57 @@ class SupportTicket extends Model
         'last_reply_by_staff' => 'boolean',
         'metadata' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::updated(function (SupportTicket $ticket) {
+            if ($ticket->isDirty('status')) {
+                $newStatus = $ticket->status;
+                $charId = $ticket->character_id ?? $ticket->user?->character?->id;
+
+                if ($newStatus === 'gesloten') {
+                    if ($charId) {
+                        try {
+                            GameNotification::create([
+                                'character_id' => $charId,
+                                'type' => 'ticket_closed',
+                                'icon' => 'fa-circle-check',
+                                'title' => 'Support Ticket Afgehandeld',
+                                'message' => "Je support ticket '#{$ticket->ticket_number} - {$ticket->subject}' is gemarkeerd als afgehandeld/gesloten.",
+                                'is_read' => false,
+                            ]);
+                        } catch (\Throwable) {}
+                    }
+
+                    if ($ticket->user) {
+                        try {
+                            app(WebPushService::class)->sendToUser(
+                                $ticket->user,
+                                "Support Ticket Gesloten: {$ticket->subject}",
+                                "Je support ticket #{$ticket->ticket_number} is succesvol afgehandeld en gesloten.",
+                                "/help/tickets/{$ticket->id}",
+                                null,
+                                ['type' => 'support_closed', 'ticket_id' => $ticket->id]
+                            );
+                        } catch (\Throwable) {}
+                    }
+                } elseif ($newStatus === 'in_behandeling') {
+                    if ($charId) {
+                        try {
+                            GameNotification::create([
+                                'character_id' => $charId,
+                                'type' => 'ticket_status',
+                                'icon' => 'fa-clock',
+                                'title' => 'Support Ticket In Behandeling',
+                                'message' => "Je support ticket '#{$ticket->ticket_number} - {$ticket->subject}' is in behandeling genomen door het staff-team.",
+                                'is_read' => false,
+                            ]);
+                        } catch (\Throwable) {}
+                    }
+                }
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {

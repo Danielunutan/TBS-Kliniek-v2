@@ -44,10 +44,11 @@ class SupportTicketMessage extends Model
                     // Silently ignore push failure
                 }
 
-                if ($msg->ticket && $msg->ticket->character_id) {
+                $charId = $msg->ticket->character_id ?? $msg->ticket->user?->character?->id;
+                if ($charId) {
                     try {
                         GameNotification::create([
-                            'character_id' => $msg->ticket->character_id,
+                            'character_id' => $charId,
                             'type' => 'ticket_reply',
                             'icon' => 'fa-headset',
                             'title' => 'Support Reactie ontvangen!',
