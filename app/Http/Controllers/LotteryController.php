@@ -136,7 +136,7 @@ class LotteryController extends Controller
 
                 LotteryTicket::insert($tickets);
 
-                $discountMsg = $isDiscounted ? ' (met 50% korting & 100% naar de pot!)' : '';
+                $discountMsg = $isDiscounted ? ' (met 80% korting & 100% naar de pot!)' : '';
 
                 return back()->with('success', "Succes! Je hebt {$quantity} lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').$discountMsg.'. Veel geluk bij de trekking!');
             });
@@ -182,7 +182,7 @@ class LotteryController extends Controller
 
             LotteryTicket::insert($tickets);
 
-            $discountMsg = $isDiscounted ? ' (met 50% korting!)' : '';
+            $discountMsg = $isDiscounted ? ' (met 80% korting!)' : '';
 
             return back()->with('success', "Geweldig! Je hebt {$quantity} VIP lot(en) gekocht met {$totalStarsCost} sterren{$discountMsg}. De jackpot is met €".number_format(25000 * $quantity, 0, ',', '.').' verhoogd!');
         });

@@ -7,7 +7,7 @@
     open: false,
     init() {
         try {
-            if (!localStorage.getItem('tbs_lottery_discount_50_v2')) {
+            if (!localStorage.getItem('tbs_lottery_discount_80_v3')) {
                 this.open = true;
             }
         } catch(e) {
@@ -16,7 +16,7 @@
     },
     closeModal() {
         try {
-            localStorage.setItem('tbs_lottery_discount_50_v2', 'true');
+            localStorage.setItem('tbs_lottery_discount_80_v3', 'true');
         } catch(e) {}
         this.open = false;
     }
@@ -41,11 +41,14 @@ style="z-index: 99999;">
                 <span>Tijdelijke Mega Loterij Actie</span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                50% Korting op alle Loten!
+                80% Korting op alle Loten!
             </h2>
             <p class="text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                Grijp nu je kans op de megapot van de kliniek. Alle loterijloten zijn per direct <strong>gehalveerd in prijs</strong> én <strong>100% van de inleg</strong> stroomt rechtstreeks in de jackpot!
+                Grijp nu je kans op de megapot van de kliniek. Alle loterijloten zijn per direct <strong>80% goedkoper</strong> én <strong>100% van de inleg</strong> stroomt rechtstreeks in de jackpot!
             </p>
+            <div class="inline-block px-3 py-1 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs">
+                🚨 Trekking vanavond al om 22.00 uur!
+            </div>
         </div>
 
         @if($modalLotteryRound)
@@ -66,13 +69,13 @@ style="z-index: 99999;">
             <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                 <span class="text-[10px] font-black uppercase text-slate-400 block">Contant Lot</span>
                 <span class="line-through text-slate-400 text-xs block">€10.000</span>
-                <span class="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">€5.000</span>
-                <span class="text-[9px] font-black text-rose-500 uppercase block mt-0.5">50% KORTING</span>
+                <span class="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">€2.000</span>
+                <span class="text-[9px] font-black text-rose-500 uppercase block mt-0.5">80% KORTING</span>
             </div>
             <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                 <span class="text-[10px] font-black uppercase text-slate-400 block">VIP Sterren Lot</span>
                 <span class="line-through text-slate-400 text-xs block">15 Sterren</span>
-                <span class="text-base font-black text-amber-600 dark:text-amber-400 font-mono">8 Sterren</span>
+                <span class="text-base font-black text-amber-600 dark:text-amber-400 font-mono">3 Sterren</span>
                 <span class="text-[9px] font-black text-rose-500 uppercase block mt-0.5">+€25.000 POT BONUS</span>
             </div>
         </div>
