@@ -64,3 +64,4 @@ class PasswordResetCodeMail extends Mailable
         return [];
     }
 }
+

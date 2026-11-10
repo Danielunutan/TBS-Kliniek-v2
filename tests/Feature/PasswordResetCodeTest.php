@@ -116,3 +116,4 @@ class PasswordResetCodeTest extends TestCase
         $this->assertTrue(Hash::check('oudeWachtwoord123!', $user->password));
     }
 }
+
