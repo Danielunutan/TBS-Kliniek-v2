@@ -3,6 +3,7 @@
 @php
     $modalLotteryRound = \App\Models\LotteryRound::where('is_drawn', false)->orderByDesc('id')->first();
 @endphp
+@if($modalLotteryRound && $modalLotteryRound->draws_at && $modalLotteryRound->draws_at->isPast() === false && $modalLotteryRound->draws_at->isToday())
 <div x-data="{
     open: false,
     init() {
@@ -102,6 +103,7 @@ style="display: none; z-index: 99999;">
     </div>
 
 </div>
+@endif
 @endif
 @endauth
 

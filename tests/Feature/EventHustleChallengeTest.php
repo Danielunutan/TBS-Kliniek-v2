@@ -88,4 +88,37 @@ class EventHustleChallengeTest extends TestCase
         $response->assertSee('Shag Kartel', false);
         $response->assertSee('Kliniek Telecom', false);
     }
+
+    public function test_hustle_challenge_promo_modal_renders_on_game_pages(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'ActiveHustler',
+        ]);
+
+        $this->actingAs($user);
+        $response = $this->get(route('dashboard'));
+        $response->assertOk();
+        $response->assertSee('De Grote Hossel Challenge!');
+        $response->assertSee('tbs_hustle_challenge_promo_v1');
+        $response->assertSee('750');
+        $response->assertSee('€150M');
+    }
+
+    public function test_broadcast_hustle_challenge_command(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'NotifyHustler',
+        ]);
+
+        $this->artisan('tbs:broadcast-hustle-challenge')->assertSuccessful();
+
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $character->id,
+            'title' => '🏆 De Grote Hossel Challenge is Live!',
+        ]);
+    }
 }
