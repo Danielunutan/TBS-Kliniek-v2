@@ -760,7 +760,7 @@ class SponsorAdController extends Controller
                                 'price_paid' => 15,
                             ]);
 
-                            $rewardDetails = "🎟️ [15/15 Ads] GEFELICITEERD: +1 Loterij Ticket ontvangen ({$ticketNumber}) voor de 14-daagse trekking! Je maakt nu kans op de jackpot!";
+                            $rewardDetails = "🎟️ [15/15 Ads] GEFELICITEERD: +1 Loterij Ticket ontvangen ({$ticketNumber}) voor de 7-daagse trekking! Je maakt nu kans op de jackpot!";
                         } else {
                             $rewardCompleted = false;
                             $lockedCharacter->ad_lottery_progress = $currentProgress;

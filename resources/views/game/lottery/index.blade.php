@@ -9,13 +9,13 @@
             <div class="space-y-2.5 text-center lg:text-left">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-xs font-black uppercase tracking-wider">
                     <i class="fa-solid fa-crown text-amber-500"></i>
-                    <span>TBS Afdelingsloterij &bull; 14-Daagse Ronde #{{ $round->round_number }}</span>
+                    <span>TBS Afdelingsloterij &bull; 7-Daagse Ronde #{{ $round->round_number }}</span>
                 </div>
                 <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
                     Grijp de <span class="text-amber-500 dark:text-amber-400">Kliniek Jackpot!</span>
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed font-medium">
-                    Iedere cent bank opnamebelasting én leningtax stroomt rechtstreeks in deze pot. Koop loten met contant geld of sterren en maak kans op de volledige pot bij de 14-daagse trekking!
+                    Iedere cent bank opnamebelasting én leningtax stroomt rechtstreeks in deze pot. Koop loten met contant geld of sterren en maak kans op de volledige pot bij de 7-daagse trekking!
                 </p>
 
                 <!-- Tax and Payout info pills -->

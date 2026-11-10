@@ -157,7 +157,7 @@
                     'coma': 'IC Coma Ontwaken 💉',
                     'ic': 'IC Coma Ontwaken 💉',
                     'respect': '+1 Kliniek Respect 🔥',
-                    'lottery_ticket': '14-Daagse Loterij Ticket 🎟️',
+                    'lottery_ticket': '7-Daagse Loterij Ticket 🎟️',
                     'mask': '+1 Bivakmuts / Masker 🎭',
                     'vault_code': 'Geheime Kluiscode Voucher 🔐',
                     'true_crime': 'True Crime Dossier Wachttijd',

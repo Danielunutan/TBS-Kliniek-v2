@@ -480,7 +480,7 @@
                 </div>
             </div>
 
-            <!-- Card 2: 14-Daagse Loterij Ticket (15 Ads vereist) -->
+            <!-- Card 2: 7-Daagse Loterij Ticket (15 Ads vereist) -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-all duration-200 group">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/70 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
@@ -489,9 +489,9 @@
                     <div class="flex items-center gap-1.5 mb-1">
                         <span class="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 px-2 py-0.5 rounded-full font-black">15 Ads per Lot &bull; [{{ $character->ad_lottery_progress ?? 0 }}/15]</span>
                     </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">14-Daagse Loterij Ticket</h3>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">7-Daagse Loterij Ticket</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Bekijk 15 sponsor ads en ontvang direct 1 gratis lot voor de actieve 14-daagse loterijtrekking met gigantische jackpot!
+                        Bekijk 15 sponsor ads en ontvang direct 1 gratis lot voor de actieve 7-daagse loterijtrekking met gigantische jackpot!
                     </p>
 
                     <!-- Voortgangsbalk (0/15 t/m 14/15) -->

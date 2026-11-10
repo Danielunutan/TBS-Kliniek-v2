@@ -72,7 +72,7 @@ window.tbsDashboardCustomizer = function() {
             { key: 'tunnel', title: 'Geheime Ontsnappingstunnel', desc: 'Graafvoortgang, zandsokken legen en uitbraakroute', icon: 'fa-person-digging', bg: 'bg-amber-100 text-amber-700', isPremium: true, cost: 20 },
             { key: 'treatment', title: 'Behandeling & Verloftraject', desc: 'Dossier van Dr. Van Beek, behandelscore en verlof', icon: 'fa-user-doctor', bg: 'bg-teal-100 text-teal-700', isPremium: true, cost: 20 },
             { key: 'packages', title: 'Smokkelkoffers & Postkamer', desc: 'Onderschepte tassen, XXL koffers en kluistokens', icon: 'fa-box-open', bg: 'bg-purple-100 text-purple-700', isPremium: true, cost: 20 },
-            { key: 'lottery', title: 'Afdelingsloterij Jackpot', desc: 'De 14-daagse jackpot en trekkingsklok', icon: 'fa-ticket', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
+            { key: 'lottery', title: 'Afdelingsloterij Jackpot', desc: 'De 7-daagse jackpot en trekkingsklok', icon: 'fa-ticket', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
             { key: 'referral', title: 'Gratis VIP & Referral Kaart', desc: 'Vrienden uitnodigen voor gratis VIP lidmaatschap', icon: 'fa-crown', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
             { key: 'loginBonus', title: 'Avond Inlog Bonus (22:00)', desc: '7-daagse streak beloning en gratis kluiscodes', icon: 'fa-gift', bg: 'bg-emerald-100 text-emerald-700', isPremium: false, cost: 0 },
             { key: 'attributes', title: 'Karakter Eigenschappen & Stats', desc: 'Kracht, conditie, intelligentie en discipline', icon: 'fa-dumbbell', bg: 'bg-indigo-100 text-indigo-700', isPremium: false, cost: 0 },
@@ -720,7 +720,7 @@ function tbsDashboardCustomizer() {
                             <i class="fa-solid fa-crown text-amber-500"></i> Afdelingsloterij Ronde #{{ $lotteryRound->round_number }}
                         </span>
                         <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
-                            1x per 14 dagen
+                            1x per 7 dagen
                         </span>
                     </div>
                     <h2 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">

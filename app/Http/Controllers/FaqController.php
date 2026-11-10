@@ -397,8 +397,8 @@ class FaqController extends Controller
                 'icon' => 'fa-dice',
                 'questions' => [
                     [
-                        'q' => 'Hoe werkt de 14-daagse TBS Afdelingsloterij en de 50% Laatste Kwartier Korting?',
-                        'a' => "💡 IN HET KORT: Elke 14 dagen wint één speler de gigantische Loterij Jackpot, gevuld met alle bankbelastingen van de hele kliniek!\n\n📋 ZO WIN JE DE JACKPOT ('/loterij'):\n• 🎟️ Prijs per lot: €10.000 contant of 15 Sterren ⭐.\n• ⚡ PRO-TIP (Laatste Kwartier Korting): In de allerlaatste 15 minuten voor de trekking kosten loten maar de helft (€5.000 contant of 8 Sterren ⭐ per stuk)!\n• 💰 Uitbetaling: De winnaar krijgt 30% veilig op de bank en 70% contant uitbetaald.",
+                        'q' => 'Hoe werkt de 7-daagse TBS Afdelingsloterij en de 50% Laatste Kwartier Korting?',
+                        'a' => "💡 IN HET KORT: Elke 7 dagen wint één speler de gigantische Loterij Jackpot, gevuld met alle bankbelastingen van de hele kliniek!\n\n📋 ZO WIN JE DE JACKPOT ('/loterij'):\n• 🎟️ Prijs per lot: €10.000 contant of 15 Sterren ⭐.\n• ⚡ PRO-TIP (Laatste Kwartier Korting): In de allerlaatste 15 minuten voor de trekking kosten loten maar de helft (€5.000 contant of 8 Sterren ⭐ per stuk)!\n• 💰 Uitbetaling: De winnaar krijgt 30% veilig op de bank en 70% contant uitbetaald.",
                         'links' => [
                             ['text' => 'Naar de Afdelingsloterij', 'url' => route('lottery.index')],
                         ],

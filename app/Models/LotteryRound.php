@@ -105,7 +105,7 @@ class LotteryRound extends Model
                     'jackpot' => 25000,
                     'tax_collected' => 0,
                     'starts_at' => now(),
-                    'draws_at' => now()->addDays(14),
+                    'draws_at' => now()->addDays(7),
                     'is_drawn' => false,
                     'total_tickets_sold' => 0,
                 ]);
@@ -133,7 +133,7 @@ class LotteryRound extends Model
                         'jackpot' => 25000,
                         'tax_collected' => 0,
                         'starts_at' => now(),
-                        'draws_at' => now()->addDays(14),
+                        'draws_at' => now()->addDays(7),
                         'is_drawn' => false,
                         'total_tickets_sold' => 0,
                     ]);
@@ -150,7 +150,7 @@ class LotteryRound extends Model
                     'jackpot' => $round->jackpot + 25000,
                     'tax_collected' => 0,
                     'starts_at' => now(),
-                    'draws_at' => now()->addDays(14),
+                    'draws_at' => now()->addDays(7),
                     'is_drawn' => false,
                     'total_tickets_sold' => 0,
                 ]);
@@ -191,7 +191,7 @@ class LotteryRound extends Model
                 'jackpot' => 25000,
                 'tax_collected' => 0,
                 'starts_at' => now(),
-                'draws_at' => now()->addDays(14),
+                'draws_at' => now()->addDays(7),
                 'is_drawn' => false,
                 'total_tickets_sold' => 0,
             ]);

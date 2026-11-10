@@ -283,7 +283,7 @@ class SponsorRewardsTest extends TestCase
         $response->assertSee('+50 XP Boost');
         $response->assertSee('Direct Vrijkomen');
         $response->assertDontSee('+1 Kluismunt');
-        $response->assertSee('14-Daagse Loterij Ticket');
+        $response->assertSee('7-Daagse Loterij Ticket');
         $response->assertSee('15 Ads per Lot');
     }
 

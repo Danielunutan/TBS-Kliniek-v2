@@ -19,18 +19,18 @@ class LotteryFeatureTest extends TestCase
         $this->seed();
     }
 
-    public function test_lottery_page_renders_cleanly_with_14_day_round(): void
+    public function test_lottery_page_renders_cleanly_with_7_day_round(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $round = LotteryRound::current();
 
-        $this->assertEquals(14, (int) round(now()->diffInDays($round->draws_at, false)));
+        $this->assertEquals(7, (int) round(now()->diffInDays($round->draws_at, false)));
 
         $response = $this->actingAs($user)->get(route('lottery.index'));
         $response->assertOk();
         $response->assertSee('Grijp de');
         $response->assertSee('Kliniek Jackpot!');
-        $response->assertSee('14-Daagse Ronde #1');
+        $response->assertSee('7-Daagse Ronde #1');
         $response->assertSee('10.000');
         $response->assertSee('15 Sterren');
     }

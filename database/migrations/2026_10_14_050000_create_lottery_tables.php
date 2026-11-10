@@ -39,13 +39,13 @@ return new class extends Migration
             $table->index(['lottery_round_id', 'character_id']);
         });
 
-        // Initialize round 1 with starting jackpot of €25.000, drawing 14 days from now
+        // Initialize round 1 with starting jackpot of €25.000, drawing 7 days from now
         LotteryRound::create([
             'round_number' => 1,
             'jackpot' => 25000,
             'tax_collected' => 0,
             'starts_at' => now(),
-            'draws_at' => now()->addDays(14),
+            'draws_at' => now()->addDays(7),
             'is_drawn' => false,
             'total_tickets_sold' => 0,
         ]);
