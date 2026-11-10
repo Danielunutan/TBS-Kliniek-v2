@@ -109,6 +109,22 @@ class HeistController extends Controller
             return back()->with('error', "Voor deze Heist moet je minimaal Level {$heist->min_level} zijn!");
         }
 
+        if ($character->isInVoluntaryIsolation()) {
+            $remaining = $character->protection_until ? $character->protection_until->diffForHumans(null, true) : 'even';
+            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt geen Heist uitvoeren zolang je cel op slot zit.");
+        }
+
+        if ($character->hasMedicalShield()) {
+            $character->breakProtection();
+            \App\Models\GameNotification::create([
+                'character_id' => $character->id,
+                'type' => 'warning',
+                'icon' => 'fa-door-open',
+                'title' => 'Medisch Infuus-Schild Beëindigd',
+                'message' => 'Je hebt het ziekenhuisbed verlaten om een Heist uit te voeren. Je medisch infuusschild is per direct beëindigd.',
+            ]);
+        }
+
         // Gang requirements for Bende Heists
         if ($heist->is_gang_heist) {
             if (! $character->gang_id || ! $character->gang) {

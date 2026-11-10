@@ -1177,14 +1177,22 @@ class HitmanController extends Controller
                         $newWing = $this->evacuateToRandomWing($lockedDefender);
 
                         if ($defenderStreak < Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
-                            // Victims on hits 1-9 enter a 10-minute Intensive Care Coma with 60-minute post-coma medical shield (70 min total)
+                            // Victims on hits 1-9 enter a 10-minute Intensive Care Coma
+                            // Innocent victims receive 60-minute post-coma medical shield (70 min total).
+                            // Aggressors struck down via Blood Feud (retaliation) do NOT receive a 60-minute post-coma shield.
                             $lockedDefender->health = 0;
                             $lockedDefender->coma_until = now()->addMinutes(Character::LIQUIDATION_IC_COMA_MINUTES);
-                            $lockedDefender->grantMedicalShield(Character::LIQUIDATION_IC_COMA_MINUTES + 60);
+                            if ($bloodFeud) {
+                                $lockedDefender->grantMedicalShield(Character::LIQUIDATION_IC_COMA_MINUTES);
+                            } else {
+                                $lockedDefender->grantMedicalShield(Character::LIQUIDATION_IC_COMA_MINUTES + 60);
+                            }
                             $lockedDefender->save();
                         } else {
                             // 10th liquidation: Code Blauw (requires Forensisch Reanimatie-Serum)
-                            $lockedDefender->grantMedicalShield(60);
+                            if (! $bloodFeud) {
+                                $lockedDefender->grantMedicalShield(60);
+                            }
                             $lockedDefender->save();
                         }
 
@@ -1295,9 +1303,12 @@ class HitmanController extends Controller
                             $botService->sendLiquidationNotice($lockedAttacker, $headline.$feudSection.$bountySection.$attackerSummary, array_merge($commonMeta, ['role' => 'attacker']));
 
                             // 2. Defender (victim) report
+                            $medicalShieldDesc = $bloodFeud
+                                ? Character::LIQUIDATION_IC_COMA_MINUTES.' min IC-Coma (géén extra schild wegens bloedwraak)'
+                                : Character::LIQUIDATION_IC_COMA_MINUTES.' min IC-Coma & 60 min Medisch Infuus-Schild';
                             $defenderMedical = $defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
                                 ? "\n\n🚨 Medische Status (10/10 — CODE BLAUW): Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!'
-                                : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met spoed per brancard naar de Intensive Care afgevoerd (".Character::LIQUIDATION_IC_COMA_MINUTES." min IC-Coma & 60 min Medisch Infuus-Schild) op {$newWing}!";
+                                : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met spoed per brancard naar de Intensive Care afgevoerd ({$medicalShieldDesc}) op {$newWing}!";
                             $botService->sendLiquidationNotice($lockedDefender, $headline.$feudSection.$bountySection.$defenderMedical, array_merge($commonMeta, ['role' => 'defender']));
 
                             // 3. Additional involved parties (original blood-feud victim and/or bounty placers)
@@ -1327,12 +1338,15 @@ class HitmanController extends Controller
                                 'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!',
                             ]);
                         } else {
+                            $shieldNotice = $bloodFeud
+                                ? ' (geen extra infuusschild wegens bloedwraak)!'
+                                : ' met 60 min Medisch Infuus-Schild!';
                             GameNotification::create([
                                 'character_id' => $lockedDefender->id,
                                 'type' => 'skull',
                                 'icon' => 'fa-skull',
                                 'title' => "🚨 GELIQUIDEERD OP {$defenderWing} ({$defenderStreak}/10)!",
-                                'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je ligt ".Character::LIQUIDATION_IC_COMA_MINUTES." min op de Intensive Care ({$newWing}) met 60 min Medisch Infuus-Schild!",
+                                'message' => "{$lockedAttacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je ligt ".Character::LIQUIDATION_IC_COMA_MINUTES." min op de Intensive Care ({$newWing}){$shieldNotice}",
                             ]);
                         }
 

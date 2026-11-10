@@ -181,6 +181,22 @@ class PickpocketController extends Controller
                 return back()->with('error', 'Kritieke toestand (Code Blauw)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om bij bewustzijn te komen.');
             }
 
+            if ($character->isInVoluntaryIsolation()) {
+                $remaining = $character->protection_until ? $character->protection_until->diffForHumans(null, true) : 'even';
+                return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt niet zakkenrollen zolang je cel op slot zit.");
+            }
+
+            if ($character->hasMedicalShield()) {
+                $character->breakProtection();
+                \App\Models\GameNotification::create([
+                    'character_id' => $character->id,
+                    'type' => 'warning',
+                    'icon' => 'fa-door-open',
+                    'title' => 'Medisch Infuus-Schild Beëindigd',
+                    'message' => 'Je hebt het ziekenhuisbed verlaten om te zakkenrollen. Je medisch infuusschild is per direct beëindigd.',
+                ]);
+            }
+
             if ($this->cooldownService->isOnCooldown($character, 'pickpocket')) {
                 $remaining = $this->cooldownService->getRemainingSeconds($character, 'pickpocket');
                 $mins = ceil($remaining / 60);

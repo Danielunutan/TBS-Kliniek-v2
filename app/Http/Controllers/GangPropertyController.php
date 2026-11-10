@@ -1296,6 +1296,22 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Je moet lid zijn van een bende om een Bende Ripdeal uit te voeren.');
         }
 
+        if ($character->isInVoluntaryIsolation()) {
+            $remaining = $character->protection_until ? $character->protection_until->diffForHumans(null, true) : 'even';
+            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt geen Ripdeal uitvoeren zolang je cel op slot zit.");
+        }
+
+        if ($character->hasMedicalShield()) {
+            $character->breakProtection();
+            \App\Models\GameNotification::create([
+                'character_id' => $character->id,
+                'type' => 'warning',
+                'icon' => 'fa-door-open',
+                'title' => 'Medisch Infuus-Schild Beëindigd',
+                'message' => 'Je hebt het ziekenhuisbed verlaten om een bende-lab te overvallen. Je medisch infuusschild is per direct beëindigd.',
+            ]);
+        }
+
         if ((int) $property->gang_id === (int) $character->gang_id) {
             return back()->with('error', 'Je kunt niet je eigen bende-laboratorium beroven!');
         }
