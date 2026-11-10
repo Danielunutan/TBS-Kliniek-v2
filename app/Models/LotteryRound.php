@@ -48,27 +48,27 @@ class LotteryRound extends Model
     }
 
     /**
-     * Determine if 80% discount action is currently active.
+     * Determine if discount action is currently active.
      */
     public function hasDiscount(): bool
     {
-        return true;
+        return false;
     }
 
     /**
-     * Get price per ticket in cash (80% discount: €2.000 instead of €10.000).
+     * Get price per ticket in cash (50% discount in last quarter: €5.000 instead of €10.000).
      */
     public function getCashPricePerTicket(): int
     {
-        return $this->hasDiscount() || $this->isLastQuarter() ? 2000 : 10000;
+        return $this->hasDiscount() || $this->isLastQuarter() ? 5000 : 10000;
     }
 
     /**
-     * Get price per ticket in stars (80% discount: 3 stars instead of 15).
+     * Get price per ticket in stars (50% discount in last quarter: 8 stars instead of 15).
      */
     public function getStarsPricePerTicket(): int
     {
-        return $this->hasDiscount() || $this->isLastQuarter() ? 3 : 15;
+        return $this->hasDiscount() || $this->isLastQuarter() ? 8 : 15;
     }
 
     /**

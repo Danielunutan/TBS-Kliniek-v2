@@ -139,7 +139,7 @@ class LotteryController extends Controller
                     LotteryTicket::insert($chunk);
                 }
 
-                $discountMsg = $isDiscounted ? ' (met 80% korting & 100% naar de pot!)' : '';
+                $discountMsg = $isDiscounted ? ' (met Laatste Kwartier korting & 100% naar de pot!)' : '';
 
                 return back()->with('success', "Succes! Je hebt ".number_format($quantity, 0, ',', '.')." lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').$discountMsg.'. Veel geluk bij de trekking!');
             });
@@ -188,7 +188,7 @@ class LotteryController extends Controller
                 LotteryTicket::insert($chunk);
             }
 
-            $discountMsg = $isDiscounted ? ' (met 80% korting!)' : '';
+            $discountMsg = $isDiscounted ? ' (met Laatste Kwartier korting!)' : '';
 
             return back()->with('success', "Geweldig! Je hebt ".number_format($quantity, 0, ',', '.')." VIP lot(en) gekocht met ".number_format($totalStarsCost, 0, ',', '.')." sterren{$discountMsg}. De jackpot is met €".number_format(25000 * $quantity, 0, ',', '.').' verhoogd!');
         });

@@ -2659,9 +2659,6 @@
         <!-- SEASON 2 WELCOME POPUP WITH STARTER VAULT CODES -->
         @include('partials.season_welcome_modal')
 
-        <!-- LOTTERY FLASH 50% DISCOUNT & 100% POT CONTRIBUTION MODAL -->
-        @include('partials.lottery_flash_discount_modal')
-
         <!-- HUSTLE CHALLENGE PROMO POPUP MODAL -->
         @include('partials.hustle_challenge_promo_modal')
 

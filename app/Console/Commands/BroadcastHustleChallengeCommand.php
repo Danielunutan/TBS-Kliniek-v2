@@ -55,3 +55,4 @@ class BroadcastHustleChallengeCommand extends Command
         return Command::SUCCESS;
     }
 }
+
