@@ -2162,34 +2162,33 @@
                 <!-- VERTICAL DIVIDER -->
                 <div class="h-10 w-px bg-slate-200/90 dark:bg-slate-800 shrink-0 hidden xl:block"></div>
 
-                <!-- 3. CENTER-RIGHT: Financial Overview (Contant, Bank & Totaal vermogen) -->
-                <a href="{{ route('bank.index') }}" class="flex items-center gap-2.5 sm:gap-3 group cursor-pointer shrink-0 hover:opacity-95 transition select-none" title="Klik om naar De Bank te gaan">
-                    <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-slate-600 dark:text-slate-300 group-hover:bg-purple-600 dark:group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-600 transition-all duration-150 flex items-center justify-center text-lg shadow-2xs shrink-0">
-                        <i class="fa-solid fa-wallet"></i>
-                    </div>
-                    <div class="flex flex-col justify-center">
-                        <div class="flex items-center gap-2 text-xs sm:text-sm font-black font-mono leading-none">
-                            <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-500" title="Contant geld op zak">
-                                <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Zak:</span>
-                                <span x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
-                            </span>
+                <!-- 3. CENTER-RIGHT: Financial Overview (Clean Stash & Bank Badges matching VIP/Stars) -->
+                <div class="flex items-center gap-3 xl:gap-4 shrink-0">
+                    <!-- CONTANT OP ZAK -->
+                    <a href="{{ route('bank.index') }}" class="flex flex-col items-center gap-1 group cursor-pointer" title="Contant geld op zak &bull; Klik voor De Bank">
+                        <span class="text-[8px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-emerald-800/40 flex items-center gap-1">
+                            <span>CONTANT</span>
                             @if($character->hasWageProtection())
-                                <span class="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-black bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800" title="15 min. diefstalbescherming actief (nog {{ $character->getWageProtectionRemainingHuman() }})">
-                                    <i class="fa-solid fa-shield text-[7px] text-emerald-500"></i>
-                                </span>
+                                <i class="fa-solid fa-shield text-[7px] text-emerald-600 dark:text-emerald-400" title="15 min. diefstalbescherming actief (nog {{ $character->getWageProtectionRemainingHuman() }})"></i>
                             @endif
-                            <span class="text-slate-300 dark:text-slate-700">&bull;</span>
-                            <span class="inline-flex items-center gap-1 text-purple-700 dark:text-purple-300 group-hover:text-purple-400" title="Geld op de bank">
-                                <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Bank:</span>
-                                <span x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span>
-                            </span>
+                        </span>
+                        <div class="flex items-center gap-1 text-slate-900 dark:text-white font-black text-xs sm:text-sm leading-none group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition font-mono">
+                            <i class="fa-solid fa-money-bill-wave text-emerald-500 text-xs"></i>
+                            <span x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
                         </div>
-                        <div class="flex items-center gap-1 text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-1 leading-none">
-                            <span>Totaal vermogen:</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-300 font-mono" x-text="stats.totalFormatted">€{{ number_format($character->cash + $character->bank, 0, ',', '.') }}</span>
+                    </a>
+
+                    <!-- BANK -->
+                    <a href="{{ route('bank.index') }}" class="flex flex-col items-center gap-1 group cursor-pointer" title="Veilig op de bank &bull; Totaal vermogen: €{{ number_format($character->cash + $character->bank, 0, ',', '.') }}">
+                        <span class="text-[8px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-purple-800/40">
+                            BANK
+                        </span>
+                        <div class="flex items-center gap-1 text-slate-900 dark:text-white font-black text-xs sm:text-sm leading-none group-hover:text-purple-600 dark:group-hover:text-purple-400 transition font-mono">
+                            <i class="fa-solid fa-building-columns text-purple-500 text-xs"></i>
+                            <span x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
 
                 <!-- VERTICAL DIVIDER -->
                 <div class="h-10 w-px bg-slate-200/90 dark:bg-slate-800 shrink-0 hidden xl:block"></div>
