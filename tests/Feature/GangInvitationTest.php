@@ -208,4 +208,31 @@ class GangInvitationTest extends TestCase
         $invitation->refresh();
         $this->assertEquals('cancelled', $invitation->status);
     }
+
+    public function test_gang_page_loads_successfully_for_officer_and_solo_player(): void
+    {
+        $leaderUser = User::factory()->create();
+        $leader = Character::factory()->create([
+            'user_id' => $leaderUser->id,
+            'gang_role' => 'leader',
+        ]);
+        $gang = Gang::factory()->create([
+            'leader_character_id' => $leader->id,
+        ]);
+        $leader->update(['gang_id' => $gang->id]);
+
+        $soloUser = User::factory()->create();
+        $solo = Character::factory()->create([
+            'user_id' => $soloUser->id,
+            'gang_id' => null,
+            'last_active_at' => now(),
+        ]);
+
+        $responseOfficer = $this->actingAs($leaderUser)->get(route('gangs.index', ['tab' => 'beheer']));
+        $responseOfficer->assertOk();
+
+        $responseSolo = $this->actingAs($soloUser)->get(route('gangs.index'));
+        $responseSolo->assertOk();
+    }
 }
+

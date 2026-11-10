@@ -106,9 +106,9 @@ class GangController extends Controller
                 ->whereDoesntHave('receivedGangInvitations', function ($q) use ($myGang) {
                     $q->where('gang_id', $myGang->id)->where('status', 'pending');
                 })
-                ->orderByDesc('last_activity')
+                ->orderByDesc('last_active_at')
                 ->limit(20)
-                ->get(['id', 'name', 'avatar_url', 'level', 'respect', 'last_activity']);
+                ->get(['id', 'name', 'avatar', 'avatar_custom', 'level', 'respect', 'last_active_at']);
         }
 
         $gangRankings = collect();
