@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\LotteryRound;
+use App\Models\LotteryTicket;
 use App\Models\NewsArticle;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -60,6 +61,36 @@ class LotteryFeatureTest extends TestCase
         $this->assertEquals(48000, $char->cash);
         $this->assertEquals($initialJackpot + 2000, $round->jackpot);
         $this->assertEquals(1, $round->total_tickets_sold);
+    }
+
+    public function test_player_can_buy_bulk_tickets_fast_with_custom_quantity(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->cash = 1000000;
+        $char->save();
+
+        $round = LotteryRound::current();
+        $initialJackpot = $round->jackpot;
+
+        // Buy 300 tickets at €2.000 each = €600.000
+        $response = $this->actingAs($user)
+            ->from(route('lottery.index'))
+            ->post(route('lottery.buy'), [
+                'currency' => 'cash',
+                'quantity' => 300,
+            ]);
+
+        $response->assertRedirect(route('lottery.index'));
+        $response->assertSessionHas('success');
+
+        $char->refresh();
+        $round->refresh();
+
+        $this->assertEquals(400000, $char->cash);
+        $this->assertEquals($initialJackpot + 600000, $round->jackpot);
+        $this->assertEquals(300, $round->total_tickets_sold);
+        $this->assertEquals(300, LotteryTicket::where('lottery_round_id', $round->id)->where('character_id', $char->id)->count());
     }
 
     public function test_last_quarter_activates_fifty_percent_discount_on_tickets(): void

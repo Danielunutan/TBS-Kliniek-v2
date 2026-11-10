@@ -144,7 +144,22 @@
             </div>
 
             <!-- TAB 1: Kopen met Cash -->
-            <div class="p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-3">
+            <div class="p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-4"
+                 x-data="{
+                     qty: 100,
+                     price: {{ $cashPricePerTicket }},
+                     userCash: {{ (int) $character->cash }},
+                     get maxQty() {
+                         if (this.price <= 0) return 1;
+                         return Math.min(5000, Math.max(1, Math.floor(this.userCash / this.price)));
+                     },
+                     format(num) {
+                         return new Intl.NumberFormat('nl-NL').format(Math.max(0, Math.round(num)));
+                     },
+                     setMax() {
+                         this.qty = this.maxQty;
+                     }
+                 }">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <div class="flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-bold">€</span>
@@ -164,63 +179,100 @@
 
                 @php
                     $isLotteryBlocked = $character->isImprisoned() || $character->isComatose();
+                    $cashPresets = [10, 25, 50, 100, 250, 500, 1000, 2500];
                 @endphp
-                <form action="{{ route('lottery.buy') }}" method="POST" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+
+                <!-- 1-Klik Snelle Aankoopknoppen -->
+                <div class="space-y-1.5">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Snelle Aankoop (1 Klik):</span>
+                    <form action="{{ route('lottery.buy') }}" method="POST" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        @csrf
+                        <input type="hidden" name="currency" value="cash">
+
+                        @foreach($cashPresets as $q)
+                            @php
+                                $cost = $cashPricePerTicket * $q;
+                                $canAfford = ! $isLotteryBlocked && $character->cash >= $cost;
+                            @endphp
+                            <button type="submit" name="quantity" value="{{ $q }}"
+                                    {{ ! $canAfford ? 'disabled' : '' }}
+                                    class="p-2.5 rounded-xl border {{ $q >= 250 ? 'border-purple-300 dark:border-purple-700 bg-purple-50/60 dark:bg-purple-950/30 hover:bg-purple-100' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500' }} transition-all duration-150 active:scale-95 text-center cursor-pointer shadow-2xs touch-manipulation {{ ! $canAfford ? 'opacity-35 cursor-not-allowed' : '' }}">
+                                <span class="block text-xs font-black {{ $q >= 250 ? 'text-purple-700 dark:text-purple-300' : 'text-slate-900 dark:text-slate-100' }}">
+                                    {{ number_format($q, 0, ',', '.') }} Loten
+                                </span>
+                                <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                                    €{{ number_format($cost, 0, ',', '.') }}
+                                </span>
+                            </button>
+                        @endforeach
+                    </form>
+                </div>
+
+                <!-- Aangepast Aantal & MAX Kopen Balk -->
+                <form action="{{ route('lottery.buy') }}" method="POST" class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2.5 shadow-2xs">
                     @csrf
                     <input type="hidden" name="currency" value="cash">
 
-                    <button type="submit" name="quantity" value="1" 
-                            {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 1) ? 'disabled' : '' }}
-                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs touch-manipulation {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 1) ? 'opacity-40 cursor-not-allowed' : '' }}">
-                        <span class="block text-xs font-black text-slate-900 dark:text-slate-100">1 Lot</span>
-                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
-                            € {{ number_format($cashPricePerTicket * 1, 0, ',', '.') }}
-                            @if($isLastQuarter)
-                                <span class="line-through text-slate-400 text-[9px] block">€ 10.000</span>
-                            @endif
-                        </span>
-                    </button>
+                    <div class="flex items-center justify-between text-xs">
+                        <label class="font-extrabold uppercase text-[10px] tracking-wider text-slate-500 dark:text-slate-400">
+                            Aangepast Aantal of MAX Inzetten:
+                        </label>
+                        <button type="button" @click="setMax()" class="text-[10px] font-black uppercase text-purple-600 dark:text-purple-400 hover:underline cursor-pointer">
+                            🚀 Max Haalbaar (<span x-text="format(maxQty)"></span> loten)
+                        </button>
+                    </div>
 
-                    <button type="submit" name="quantity" value="5" 
-                            {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 5) ? 'disabled' : '' }}
-                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs touch-manipulation {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 5) ? 'opacity-40 cursor-not-allowed' : '' }}">
-                        <span class="block text-xs font-black text-slate-900 dark:text-slate-100">5 Loten</span>
-                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
-                            € {{ number_format($cashPricePerTicket * 5, 0, ',', '.') }}
-                            @if($isLastQuarter)
-                                <span class="line-through text-slate-400 text-[9px] block">€ 50.000</span>
-                            @endif
-                        </span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="qty = Math.max(1, qty - 50)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-black text-slate-700 dark:text-slate-300 text-sm flex items-center justify-center shrink-0 cursor-pointer active:scale-95">
+                            -50
+                        </button>
 
-                    <button type="submit" name="quantity" value="10" 
-                            {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 10) ? 'disabled' : '' }}
-                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs touch-manipulation {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 10) ? 'opacity-40 cursor-not-allowed' : '' }}">
-                        <span class="block text-xs font-black text-slate-900 dark:text-slate-100">10 Loten</span>
-                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
-                            € {{ number_format($cashPricePerTicket * 10, 0, ',', '.') }}
-                            @if($isLastQuarter)
-                                <span class="line-through text-slate-400 text-[9px] block">€ 100.000</span>
-                            @endif
-                        </span>
-                    </button>
+                        <div class="relative flex-1">
+                            <input type="number" name="quantity" x-model.number="qty" min="1" max="5000"
+                                   @if($isLotteryBlocked) disabled @endif
+                                   class="w-full text-center font-black text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-purple-500">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none">loten</span>
+                        </div>
 
-                    <button type="submit" name="quantity" value="25" 
-                            {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 25) ? 'disabled' : '' }}
-                            class="p-3 rounded-xl border border-purple-500/80 dark:border-purple-500 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs touch-manipulation {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 25) ? 'opacity-40 cursor-not-allowed' : '' }}">
-                        <span class="block text-xs font-black text-purple-950 dark:text-purple-100">25 Loten</span>
-                        <span class="block text-[11px] text-purple-700 dark:text-purple-300 font-bold mt-0.5">
-                            € {{ number_format($cashPricePerTicket * 25, 0, ',', '.') }}
-                            @if($isLastQuarter)
-                                <span class="line-through text-slate-400 text-[9px] block">€ 250.000</span>
-                            @endif
+                        <button type="button" @click="qty = Math.min(5000, qty + 50)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-black text-slate-700 dark:text-slate-300 text-sm flex items-center justify-center shrink-0 cursor-pointer active:scale-95">
+                            +50
+                        </button>
+
+                        <button type="button" @click="setMax()" class="px-3 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-black text-xs uppercase shrink-0 cursor-pointer active:scale-95">
+                            MAX
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-slate-500 text-[11px]">
+                            Totale Kosten: <strong class="text-emerald-600 dark:text-emerald-400 font-black" x-text="'€' + format(qty * price)"></strong>
                         </span>
-                    </button>
+                        <button type="submit"
+                                :disabled="{{ $isLotteryBlocked ? 'true' : 'false' }} || userCash < (qty * price) || qty < 1"
+                                class="py-2 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-cart-shopping mr-1"></i> Koop <span x-text="format(qty)"></span> Loten
+                        </button>
+                    </div>
                 </form>
             </div>
 
             <!-- TAB 2: Kopen met VIP Sterren -->
-            <div class="p-5 rounded-2xl bg-amber-50/80 dark:bg-slate-800/60 border border-amber-200/80 dark:border-amber-700/50 space-y-3">
+            <div class="p-5 rounded-2xl bg-amber-50/80 dark:bg-slate-800/60 border border-amber-200/80 dark:border-amber-700/50 space-y-4"
+                 x-data="{
+                     qty: 25,
+                     price: {{ $starsPricePerTicket }},
+                     userStars: {{ (int) ($character->stars ?? 0) }},
+                     get maxQty() {
+                         if (this.price <= 0) return 1;
+                         return Math.min(5000, Math.max(1, Math.floor(this.userStars / this.price)));
+                     },
+                     format(num) {
+                         return new Intl.NumberFormat('nl-NL').format(Math.max(0, Math.round(num)));
+                     },
+                     setMax() {
+                         this.qty = this.maxQty;
+                     }
+                 }">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <div class="flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-bold">★</span>
@@ -237,57 +289,82 @@
                     </span>
                 </div>
 
-                <form action="{{ route('lottery.buy') }}" method="POST" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                @php
+                    $starPresets = [5, 10, 25, 50, 100, 250, 500];
+                @endphp
+
+                <!-- 1-Klik Snelle Aankoopknoppen met Sterren -->
+                <div class="space-y-1.5">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-400 block">Snelle Aankoop (1 Klik):</span>
+                    <form action="{{ route('lottery.buy') }}" method="POST" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        @csrf
+                        <input type="hidden" name="currency" value="stars">
+
+                        @foreach($starPresets as $q)
+                            @php
+                                $cost = $starsPricePerTicket * $q;
+                                $canAfford = ! $isLotteryBlocked && ($character->stars ?? 0) >= $cost;
+                            @endphp
+                            <button type="submit" name="quantity" value="{{ $q }}"
+                                    {{ ! $canAfford ? 'disabled' : '' }}
+                                    class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700/60 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center cursor-pointer shadow-2xs touch-manipulation {{ ! $canAfford ? 'opacity-35 cursor-not-allowed' : '' }}">
+                                <span class="block text-xs font-black text-amber-950 dark:text-amber-200">
+                                    {{ number_format($q, 0, ',', '.') }} VIP Loten
+                                </span>
+                                <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
+                                    ★ {{ number_format($cost, 0, ',', '.') }}
+                                </span>
+                            </button>
+                        @endforeach
+                    </form>
+                </div>
+
+                <!-- Aangepast Aantal of MAX Inzetten met Sterren -->
+                <form action="{{ route('lottery.buy') }}" method="POST" class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700/60 space-y-2.5 shadow-2xs">
                     @csrf
                     <input type="hidden" name="currency" value="stars">
 
-                    <button type="submit" name="quantity" value="1" 
-                            {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 1) ? 'disabled' : '' }}
-                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs touch-manipulation {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 1) ? 'opacity-40 cursor-not-allowed' : '' }}">
-                        <span class="block text-xs font-black text-slate-900 dark:text-slate-100">1 VIP Lot</span>
-                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
-                            {{ $starsPricePerTicket * 1 }} Sterren
-                            @if($isLastQuarter)
-                                <span class="line-through text-slate-400 text-[9px] block">15 Sterren</span>
-                            @endif
-                        </span>
-                    </button>
+                    <div class="flex items-center justify-between text-xs">
+                        <label class="font-extrabold uppercase text-[10px] tracking-wider text-slate-500 dark:text-slate-400">
+                            Aangepast Aantal of MAX Inzetten:
+                        </label>
+                        <button type="button" @click="setMax()" class="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 hover:underline cursor-pointer">
+                            🚀 Max Haalbaar (<span x-text="format(maxQty)"></span> VIP loten)
+                        </button>
+                    </div>
 
-                    <button type="submit" name="quantity" value="5" 
-                            {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 5) ? 'disabled' : '' }}
-                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs touch-manipulation {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 5) ? 'opacity-40 cursor-not-allowed' : '' }}">
-                        <span class="block text-xs font-black text-slate-900 dark:text-slate-100">5 VIP Loten</span>
-                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
-                            {{ $starsPricePerTicket * 5 }} Sterren
-                            @if($isLastQuarter)
-                                <span class="line-through text-slate-400 text-[9px] block">75 Sterren</span>
-                            @endif
-                        </span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="qty = Math.max(1, qty - 10)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-black text-slate-700 dark:text-slate-300 text-sm flex items-center justify-center shrink-0 cursor-pointer active:scale-95">
+                            -10
+                        </button>
 
-                    <button type="submit" name="quantity" value="10" 
-                            {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 10) ? 'disabled' : '' }}
-                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs touch-manipulation {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 10) ? 'opacity-40 cursor-not-allowed' : '' }}">
-                        <span class="block text-xs font-black text-slate-900 dark:text-slate-100">10 VIP Loten</span>
-                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
-                            {{ $starsPricePerTicket * 10 }} Sterren
-                            @if($isLastQuarter)
-                                <span class="line-through text-slate-400 text-[9px] block">150 Sterren</span>
-                            @endif
-                        </span>
-                    </button>
+                        <div class="relative flex-1">
+                            <input type="number" name="quantity" x-model.number="qty" min="1" max="5000"
+                                   @if($isLotteryBlocked) disabled @endif
+                                   class="w-full text-center font-black text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2 focus:ring-2 focus:ring-amber-500">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none">loten</span>
+                        </div>
 
-                    <button type="submit" name="quantity" value="25" 
-                            {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 25) ? 'disabled' : '' }}
-                            class="p-3 rounded-xl border border-amber-400 bg-amber-100/80 dark:bg-amber-950/50 hover:bg-amber-200/80 dark:hover:bg-amber-900/50 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs touch-manipulation {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 25) ? 'opacity-40 cursor-not-allowed' : '' }}">
-                        <span class="block text-xs font-black text-amber-950 dark:text-amber-100">25 VIP Loten</span>
-                        <span class="block text-[11px] text-amber-800 dark:text-amber-300 font-bold mt-0.5">
-                            {{ $starsPricePerTicket * 25 }} Sterren
-                            @if($isLastQuarter)
-                                <span class="line-through text-slate-400 text-[9px] block">375 Sterren</span>
-                            @endif
+                        <button type="button" @click="qty = Math.min(5000, qty + 10)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-black text-slate-700 dark:text-slate-300 text-sm flex items-center justify-center shrink-0 cursor-pointer active:scale-95">
+                            +10
+                        </button>
+
+                        <button type="button" @click="setMax()" class="px-3 h-10 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-black text-xs uppercase shrink-0 cursor-pointer active:scale-95">
+                            MAX
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-slate-500 text-[11px]">
+                            Kosten: <strong class="text-amber-600 dark:text-amber-400 font-black" x-text="format(qty * price) + ' Sterren'"></strong>
+                            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 block" x-text="'+€' + format(qty * 25000) + ' jackpot boost!'"></span>
                         </span>
-                    </button>
+                        <button type="submit"
+                                :disabled="{{ $isLotteryBlocked ? 'true' : 'false' }} || userStars < (qty * price) || qty < 1"
+                                class="py-2 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-star mr-1"></i> Koop <span x-text="format(qty)"></span> VIP Loten
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

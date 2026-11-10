@@ -77,7 +77,7 @@ class LotteryController extends Controller
     {
         $validated = $request->validate([
             'currency' => ['required', 'string', 'in:cash,stars'],
-            'quantity' => ['required', 'integer', 'in:1,5,10,25'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:5000'],
         ]);
 
         $character = Auth::user()->character;
@@ -121,6 +121,7 @@ class LotteryController extends Controller
                 $lockedRound->increment('jackpot', $jackpotContribution);
                 $lockedRound->increment('total_tickets_sold', $quantity);
 
+                $now = now();
                 $tickets = [];
                 for ($i = 0; $i < $quantity; $i++) {
                     $tickets[] = [
@@ -129,16 +130,18 @@ class LotteryController extends Controller
                         'ticket_number' => 'TBS-'.str_pad((string) rand(10000, 99999), 5, '0', STR_PAD_LEFT),
                         'currency' => 'cash',
                         'price_paid' => $pricePerTicket,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'created_at' => $now,
+                        'updated_at' => $now,
                     ];
                 }
 
-                LotteryTicket::insert($tickets);
+                foreach (array_chunk($tickets, 250) as $chunk) {
+                    LotteryTicket::insert($chunk);
+                }
 
                 $discountMsg = $isDiscounted ? ' (met 80% korting & 100% naar de pot!)' : '';
 
-                return back()->with('success', "Succes! Je hebt {$quantity} lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').$discountMsg.'. Veel geluk bij de trekking!');
+                return back()->with('success', "Succes! Je hebt ".number_format($quantity, 0, ',', '.')." lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').$discountMsg.'. Veel geluk bij de trekking!');
             });
         }
 
@@ -157,7 +160,7 @@ class LotteryController extends Controller
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
             if (($lockedCharacter->stars ?? 0) < $totalStarsCost) {
-                return back()->with('error', "Niet genoeg sterren! Je hebt {$totalStarsCost} sterren nodig voor {$quantity} VIP lot(en).");
+                return back()->with('error', "Niet genoeg sterren! Je hebt ".number_format($totalStarsCost, 0, ',', '.')." sterren nodig voor ".number_format($quantity, 0, ',', '.')." VIP lot(en).");
             }
 
             $lockedCharacter->decrement('stars', $totalStarsCost);
@@ -167,6 +170,7 @@ class LotteryController extends Controller
             $lockedRound->increment('jackpot', $jackpotBonus);
             $lockedRound->increment('total_tickets_sold', $quantity);
 
+            $now = now();
             $tickets = [];
             for ($i = 0; $i < $quantity; $i++) {
                 $tickets[] = [
@@ -175,16 +179,18 @@ class LotteryController extends Controller
                     'ticket_number' => 'VIP-'.str_pad((string) rand(10000, 99999), 5, '0', STR_PAD_LEFT),
                     'currency' => 'stars',
                     'price_paid' => $starsPerTicket,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
             }
 
-            LotteryTicket::insert($tickets);
+            foreach (array_chunk($tickets, 250) as $chunk) {
+                LotteryTicket::insert($chunk);
+            }
 
             $discountMsg = $isDiscounted ? ' (met 80% korting!)' : '';
 
-            return back()->with('success', "Geweldig! Je hebt {$quantity} VIP lot(en) gekocht met {$totalStarsCost} sterren{$discountMsg}. De jackpot is met €".number_format(25000 * $quantity, 0, ',', '.').' verhoogd!');
+            return back()->with('success', "Geweldig! Je hebt ".number_format($quantity, 0, ',', '.')." VIP lot(en) gekocht met ".number_format($totalStarsCost, 0, ',', '.')." sterren{$discountMsg}. De jackpot is met €".number_format(25000 * $quantity, 0, ',', '.').' verhoogd!');
         });
     }
 
