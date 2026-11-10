@@ -19,6 +19,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\CombatTrainingController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\ComplexController;
 use App\Http\Controllers\ConnectFourController;
 use App\Http\Controllers\ControlPointController;
 use App\Http\Controllers\CooldownController;
@@ -183,6 +184,9 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     // Persoonlijke spelmeldingen
     Route::get('/meldingen', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/meldingen/alles-lezen', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+
+    // 2D Isometrische Virtuele Wereld (Habbo-stijl Client)
+    Route::get('/complex', [ComplexController::class, 'index'])->name('complex.index');
 
     // Dashboard & Widgets
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
