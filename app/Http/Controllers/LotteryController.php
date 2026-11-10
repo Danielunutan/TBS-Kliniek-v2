@@ -22,6 +22,7 @@ class LotteryController extends Controller
         $round = LotteryRound::current();
 
         $isLastQuarter = $round->isLastQuarter();
+        $isDiscounted = $round->hasDiscount() || $isLastQuarter;
         $cashPricePerTicket = $round->getCashPricePerTicket();
         $starsPricePerTicket = $round->getStarsPricePerTicket();
 
@@ -58,6 +59,7 @@ class LotteryController extends Controller
             'character',
             'round',
             'isLastQuarter',
+            'isDiscounted',
             'cashPricePerTicket',
             'starsPricePerTicket',
             'userTickets',
@@ -92,7 +94,7 @@ class LotteryController extends Controller
         $currency = $validated['currency'];
 
         $round = LotteryRound::current();
-        $isDiscounted = $round->isLastQuarter();
+        $isDiscounted = $round->hasDiscount() || $round->isLastQuarter();
 
         if ($currency === 'cash') {
             $pricePerTicket = $round->getCashPricePerTicket();
@@ -114,8 +116,8 @@ class LotteryController extends Controller
 
                 $lockedCharacter->decrement('cash', $totalCost);
 
-                // 80% of ticket sales go straight to the jackpot
-                $jackpotContribution = (int) round($totalCost * 0.80);
+                // 100% of ticket sales go straight to the jackpot pot!
+                $jackpotContribution = $totalCost;
                 $lockedRound->increment('jackpot', $jackpotContribution);
                 $lockedRound->increment('total_tickets_sold', $quantity);
 
@@ -134,7 +136,7 @@ class LotteryController extends Controller
 
                 LotteryTicket::insert($tickets);
 
-                $discountMsg = $isDiscounted ? ' (met 50% laatste kwartier korting!)' : '';
+                $discountMsg = $isDiscounted ? ' (met 50% korting & 100% naar de pot!)' : '';
 
                 return back()->with('success', "Succes! Je hebt {$quantity} lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').$discountMsg.'. Veel geluk bij de trekking!');
             });

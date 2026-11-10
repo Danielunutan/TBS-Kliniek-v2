@@ -79,9 +79,9 @@
                     <span class="text-sm font-extrabold text-slate-900 dark:text-white font-mono mt-0.5 block" x-text="format()">
                         {{ now()->diffForHumans($round->draws_at, true) }}
                     </span>
-                    @if($isLastQuarter)
+                    @if($isDiscounted)
                         <span class="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-md bg-rose-500 text-white font-black text-[10px] tracking-wide animate-pulse">
-                            🔥 LAATSTE KWARTIER: 50% KORTING!
+                            🔥 50% KORTING ACTIEF &bull; 100% NAAR DE POT!
                         </span>
                     @endif
                 </div>
@@ -89,8 +89,8 @@
         </div>
     </div>
 
-    @if($isLastQuarter)
-    <!-- Flash Deal Banner: Last Quarter 50% Discount Active -->
+    @if($isDiscounted)
+    <!-- Flash Deal Banner: 50% Discount Active -->
     <div class="rounded-2xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-400/80 dark:border-amber-500/60 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
         <div class="flex items-center gap-3.5">
             <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-xl font-black shrink-0 shadow-xs">
@@ -98,19 +98,19 @@
             </div>
             <div>
                 <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider">
-                    ⚡ LAATSTE KWARTIER ACTIE
+                    ⚡ TIJDELIJKE MEGA ACTIE
                 </div>
                 <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">
-                    50% Korting op alle Loterijloten is NU Actief!
+                    50% Korting op alle Loterijloten & 100% van de Opbrengst naar de Pot!
                 </h3>
                 <p class="text-xs text-slate-600 dark:text-slate-300">
-                    Er is minder dan 15 minuten tot de ontknoping. Pak extra loten voor slechts <strong class="text-emerald-600 dark:text-emerald-400">€5.000</strong> per lot (normaal €10.000). Bij de start van de nieuwe ronde geldt weer het standaardtijdperk!
+                    Pak extra loten voor slechts <strong class="text-emerald-600 dark:text-emerald-400">€5.000</strong> per lot (normaal €10.000) of <strong class="text-amber-600 dark:text-amber-400">8 VIP Sterren</strong>. Iedere cent die wordt uitgegeven stroomt 100% rechtstreeks in de megapot!
                 </p>
             </div>
         </div>
         <div class="shrink-0 self-start sm:self-center">
             <span class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow-xs inline-block">
-                50% PRIJSVERLAGING TOEGEPAST
+                50% KORTING &bull; 100% POT BOOST
             </span>
         </div>
     </div>
@@ -151,12 +151,13 @@
                         <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">Kopen met Contant Geld</h3>
                     </div>
                     <span class="text-xs font-bold text-slate-500 dark:text-slate-400">
-                        @if($isLastQuarter)
+                        @if($isDiscounted)
                             <span class="line-through text-slate-400 mr-1">€10.000</span>
                             <span class="text-emerald-600 dark:text-emerald-400 font-black">€{{ number_format($cashPricePerTicket, 0, ',', '.') }} per lot</span>
                             <span class="text-rose-500 text-[10px] font-black uppercase bg-rose-100 dark:bg-rose-950 px-1.5 py-0.5 rounded ml-1">-50%</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 text-[10px] font-bold ml-1">(100% naar pot!)</span>
                         @else
-                            €{{ number_format($cashPricePerTicket, 0, ',', '.') }} per lot (80% naar pot)
+                            €{{ number_format($cashPricePerTicket, 0, ',', '.') }} per lot (100% naar pot)
                         @endif
                     </span>
                 </div>
@@ -226,7 +227,7 @@
                         <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">Kopen met VIP Sterren</h3>
                     </div>
                     <span class="text-xs font-bold text-amber-700 dark:text-amber-300">
-                        @if($isLastQuarter)
+                        @if($isDiscounted)
                             <span class="line-through text-slate-400 mr-1">15 Sterren</span>
                             <span class="font-black text-amber-600 dark:text-amber-400">{{ $starsPricePerTicket }} Sterren / lot</span>
                             <span class="text-rose-500 text-[10px] font-black uppercase bg-rose-100 dark:bg-rose-950 px-1.5 py-0.5 rounded ml-1">-50%</span>

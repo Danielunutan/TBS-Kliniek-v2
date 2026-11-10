@@ -2652,6 +2652,9 @@
         <!-- SEASON 2 WELCOME POPUP WITH STARTER VAULT CODES -->
         @include('partials.season_welcome_modal')
 
+        <!-- LOTTERY FLASH 50% DISCOUNT & 100% POT CONTRIBUTION MODAL -->
+        @include('partials.lottery_flash_discount_modal')
+
         <!-- SITE-WIDE JURIDISCHE & COMPLIANCE FOOTER (Nederland & Europa AVG/GDPR) -->
         <footer class="mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 pt-10 pb-28 lg:pb-10 text-xs text-slate-500 dark:text-slate-400">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">

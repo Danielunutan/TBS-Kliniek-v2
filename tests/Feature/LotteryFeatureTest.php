@@ -57,8 +57,8 @@ class LotteryFeatureTest extends TestCase
         $char->refresh();
         $round->refresh();
 
-        $this->assertEquals(40000, $char->cash);
-        $this->assertEquals($initialJackpot + 8000, $round->jackpot);
+        $this->assertEquals(45000, $char->cash);
+        $this->assertEquals($initialJackpot + 5000, $round->jackpot);
         $this->assertEquals(1, $round->total_tickets_sold);
     }
 
@@ -85,7 +85,7 @@ class LotteryFeatureTest extends TestCase
 
         $initialJackpot = $round->jackpot;
 
-        // Buy 1 ticket at discounted price €5.000
+        // Buy 1 ticket at discounted price €5.000 (100% goes to pot)
         $response = $this->actingAs($user)
             ->from(route('lottery.index'))
             ->post(route('lottery.buy'), [
@@ -101,8 +101,8 @@ class LotteryFeatureTest extends TestCase
 
         // 50.000 - 5.000 = 45.000
         $this->assertEquals(45000, $char->cash);
-        // 80% of 5.000 = 4.000 added to jackpot
-        $this->assertEquals($initialJackpot + 4000, $round->jackpot);
+        // 100% of 5.000 = 5.000 added to jackpot
+        $this->assertEquals($initialJackpot + 5000, $round->jackpot);
     }
 
     public function test_lottery_draw_pays_thirty_percent_bank_and_seventy_percent_cash_and_publishes_news_and_opens_new_round(): void
@@ -153,7 +153,7 @@ class LotteryFeatureTest extends TestCase
         $this->assertEquals($round->round_number + 1, $nextRound->round_number);
         $this->assertEquals(25000, $nextRound->jackpot);
         $this->assertFalse($nextRound->isLastQuarter());
-        $this->assertEquals(10000, $nextRound->getCashPricePerTicket());
+        $this->assertEquals(5000, $nextRound->getCashPricePerTicket());
 
         // Check News article was created
         $news = NewsArticle::latest('id')->first();
