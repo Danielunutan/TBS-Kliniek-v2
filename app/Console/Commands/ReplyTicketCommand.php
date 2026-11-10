@@ -61,7 +61,33 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser->character ?? Character::where('name', 'like', '%daniel%')->first() ?? Character::first();
 
-        if ($ticket->id == 35 || str_contains(strtolower($ticket->subject), 'verwijder') || str_contains(strtolower($ticket->subject), 'account verqijderen')) {
+        if ($ticketNumber === 'TBS-UQU-581' || str_contains(strtolower($ticket->subject), 'controlepunt niet aanwezig') || str_contains(strtolower($ticket->subject), 'smokkellijn')) {
+            $replyMessage = "Beste WRDMarco,\n\n"
+                ."Hartelijk dank voor je melding en scherpe oplettendheid via dit support ticket! 🚩🛡️\n\n"
+                ."Je had helemaal gelijk: het 6e controlepunt 'De Ondergrondse Smokkellijn' (Smokkelcorridor & Buitenhek) was wel degelijk actief in het systeem en de database voor de 24-uurs bendeoorlog, maar de bijbehorende King of the Hill banner ontbrak nog op de smokkelpagina (/smokkelen).\n\n"
+                ."We hebben dit zojuist direct voor je opgelost en live gezet:\n\n"
+                ."1. **Ondergrondse Smokkellijn Banner Toegevoegd**:\n"
+                ."   - Als je nu naar **'Dealen & Smokkel' (/smokkelen)** gaat in het menu, zie je direct bovenaan de banner voor 'De Ondergrondse Smokkellijn' prijken.\n"
+                ."   - Je kunt dit controlepunt nu direct opeisen of overnemen voor jouw bende LA FAMILIA!\n\n"
+                ."2. **Oorlogspunten & Buit**:\n"
+                ."   - Het overnemen telt direct mee voor +15 oorlogspunten in de 24-uurs bendeoorlog en levert een passieve buit van +€75 per minuut op.\n\n"
+                ."Nogmaals hartelijk dank voor het melden van deze bug en heel veel succes in de strijd!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-DFL-977' || str_contains(strtolower($ticket->subject), 'neerschieten niet in zelfde') || str_contains(strtolower($ticket->subject), 'neerschieten')) {
+            $replyMessage = "Beste WRDMarco,\n\n"
+                ."Hartelijk dank voor je melding via dit ticket! 🎯📍\n\n"
+                ."Je had helemaal gelijk: voorheen was het technisch mogelijk om iemand te liquideren zonder dat je je in dezelfde kliniekafdeling bevond. Dit maakte liquidaties te gemakkelijk en ondermijnde de functie van detectives.\n\n"
+                ."We hebben dit direct opgelost in het liquidatiesysteem:\n\n"
+                ."1. **Zelfde Afdeling Verplicht**:\n"
+                ."   - Vanaf nu moeten zowel de dader als het slachtoffer zich fysiek in exact dezelfde afdeling bevinden (bijv. Vleugel A, B, Refter, etc.) om een liquidatie te kunnen starten.\n"
+                ."   - Bevindt het doelwit zich in een andere afdeling? Dan moet je eerst via 'Verplaatsen' naar de juiste afdeling reizen om toe te slaan.\n\n"
+                ."2. **Detectives & Anonimiteit**:\n"
+                ."   - Omdat profielen geen actuele locatie meer tonen, heeft het inhuren van detectives weer echt waarde gekregen om te achterhalen waar iemand verblijft.\n\n"
+                ."Nogmaals dank voor het melden van deze bug!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticket->id == 35 || str_contains(strtolower($ticket->subject), 'verwijder') || str_contains(strtolower($ticket->subject), 'account verqijderen')) {
             $replyMessage = "Beste {$ticket->character?->name},\n\n"
                 ."Bedankt voor je bericht via dit ticket inzake je account.\n\n"
                 ."Je mag voor het definitief laten verwijderen van je account en alle bijbehorende gegevens een e-mail sturen naar **privacy@tbs-kliniek.nl** vanaf het e-mailadres dat aan jouw account gekoppeld is.\n\n"

@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\AuditLog;
 use App\Models\Character;
-use App\Models\ChatMessage;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -14,11 +13,13 @@ use Illuminate\Support\Str;
 
 class AnalyzePlayerActivityCommand extends Command
 {
-    protected $signature = 'tbs:player-activity {name=Arjan} {--include-logs : Also scan web server access logs for active HTTP requests}';
-    protected $description = 'Bereken de actieve speeltijd van een speler op basis van alle interacties (database en optioneel webserver logs)';
+    protected $signature = 'tbs:player-activity {name=Arjan}';
+    protected $description = 'Bereken de actieve speeltijd van een speler op basis van alle interacties (database en webserver access logs)';
 
     public function handle(): int
     {
+        ini_set('memory_limit', '1024M');
+
         $search = $this->argument('name');
         $character = Character::where('name', 'like', "%{$search}%")->first();
 
@@ -56,11 +57,11 @@ class AnalyzePlayerActivityCommand extends Command
         $knownIps = $knownIps->unique()->filter()->values();
         $this->info("Bekende IP-adressen van {$character->name}: " . ($knownIps->isEmpty() ? 'geen gevonden' : $knownIps->implode(', ')));
 
-        // Collect all distinct timestamps of user actions
-        $timestamps = collect();
+        // Store all integer timestamps
+        $intTimestamps = [];
         $sourceBreakdown = [];
 
-        // 2. Scan ALL database tables dynamically for character_id or user_id references
+        // 2. Scan ALL database tables dynamically
         $this->info("\n--- 1. DATABASE TABELLEN DOORZOEKEN ---");
         try {
             $candidateColumns = DB::select("
@@ -75,7 +76,6 @@ class AnalyzePlayerActivityCommand extends Command
                 $table = $col->TABLE_NAME;
                 $column = $col->COLUMN_NAME;
 
-                // Determine whether to match by character_id or user_id
                 $idToMatch = in_array($column, ['user_id', 'author_id', 'creator_id']) ? $user?->id : $character->id;
                 if (! $idToMatch) {
                     continue;
@@ -87,7 +87,6 @@ class AnalyzePlayerActivityCommand extends Command
                 }
                 $scannedTables[$pairKey] = true;
 
-                // Find timestamp columns on this table
                 $timeCols = DB::select("
                     SELECT COLUMN_NAME 
                     FROM information_schema.COLUMNS 
@@ -111,14 +110,19 @@ class AnalyzePlayerActivityCommand extends Command
                             ->whereNotNull($tc)
                             ->pluck($tc);
 
-                        if ($records->isNotEmpty()) {
-                            $valid = $records->filter(function ($val) {
-                                return ! empty($val) && $val !== '0000-00-00 00:00:00';
-                            });
-                            if ($valid->isNotEmpty()) {
-                                $sourceBreakdown["{$table} ({$column} -> {$tc})"] = ($sourceBreakdown["{$table} ({$column} -> {$tc})"] ?? 0) + $valid->count();
-                                $timestamps = $timestamps->merge($valid);
+                        $addedCount = 0;
+                        foreach ($records as $val) {
+                            if (! empty($val) && $val !== '0000-00-00 00:00:00') {
+                                $ts = is_numeric($val) ? (int) $val : strtotime($val);
+                                if ($ts && $ts > 1000000) {
+                                    $intTimestamps[] = $ts;
+                                    $addedCount++;
+                                }
                             }
+                        }
+
+                        if ($addedCount > 0) {
+                            $sourceBreakdown["{$table} ({$column} -> {$tc})"] = ($sourceBreakdown["{$table} ({$column} -> {$tc})"] ?? 0) + $addedCount;
                         }
                     } catch (\Throwable $e) {
                         // ignore query error on incompatible table/column
@@ -129,30 +133,13 @@ class AnalyzePlayerActivityCommand extends Command
             $this->warn("Dynamische schema scan waarschuwing: " . $e->getMessage());
         }
 
-        // Specifically check casino and minigame cooldowns
-        if (Schema::hasTable('character_cooldowns')) {
-            $casinoCooldowns = DB::table('character_cooldowns')
-                ->where('character_id', $character->id)
-                ->where(function ($q) {
-                    $q->where('action', 'like', 'casino%')
-                      ->orWhere('action', 'like', '%roulette%')
-                      ->orWhere('action', 'like', '%slots%')
-                      ->orWhere('action', 'like', '%dice%');
-                })
-                ->get();
-            if ($casinoCooldowns->isNotEmpty()) {
-                $this->info("Casino cooldown registraties gevonden: " . $casinoCooldowns->count());
-            }
-        }
-
         // Print table breakdown
         $this->info("Gevonden database activiteitsrecords per tabel:");
         foreach ($sourceBreakdown as $source => $count) {
             $this->line("   - {$source}: {$count} acties");
         }
 
-        // 3. Scan Web Server Access Logs if available
-        $logTimestamps = collect();
+        // 3. Scan Web Server Access Logs
         $casinoRequests = collect();
         $logPaths = [
             '/var/www/vhosts/system/tbs-kliniek.nl/logs/access_ssl_log',
@@ -160,7 +147,6 @@ class AnalyzePlayerActivityCommand extends Command
             '/var/www/vhosts/system/tbs-kliniek.nl/logs/proxy_access_ssl_log',
         ];
 
-        // Also check rotated .gz logs
         for ($i = 1; $i <= 10; $i++) {
             $gzPath = "/var/www/vhosts/system/tbs-kliniek.nl/logs/access_ssl_log.processed.{$i}.gz";
             if (file_exists($gzPath)) {
@@ -176,6 +162,7 @@ class AnalyzePlayerActivityCommand extends Command
 
             $totalActiveLogEntries = 0;
             $totalCasinoHttpClicks = 0;
+            $ipArray = $knownIps->all();
 
             foreach ($readableLogs as $logPath) {
                 $isGz = Str::endsWith($logPath, '.gz');
@@ -185,20 +172,18 @@ class AnalyzePlayerActivityCommand extends Command
                 }
 
                 while (($line = $isGz ? gzgets($fp, 8192) : fgets($fp, 8192)) !== false) {
-                    // Quick check if any known IP appears in this line
-                    $matchedIp = false;
-                    foreach ($knownIps as $ip) {
+                    // Check if line contains any known IP
+                    $hasIp = false;
+                    foreach ($ipArray as $ip) {
                         if (str_contains($line, $ip)) {
-                            $matchedIp = true;
+                            $hasIp = true;
                             break;
                         }
                     }
-                    if (! $matchedIp) {
+                    if (! $hasIp) {
                         continue;
                     }
 
-                    // Extract IP, timestamp, method, url
-                    // Format: 84.86.22.190 - - [09/Nov/2026:06:33:27 +0000] "GET /path HTTP/1.1" 200 7257
                     if (! preg_match('/^(\S+)\s+\S+\s+\S+\s+\[([^\]]+)\]\s+"([A-Z]+)\s+([^\s\?]+)/', $line, $matches)) {
                         continue;
                     }
@@ -207,33 +192,41 @@ class AnalyzePlayerActivityCommand extends Command
                     $path = $matches[4];
                     $dateStr = $matches[2];
 
-                    // Filter out passive background polls and static assets
+                    // Exclude passive background polling and static assets
                     if (
                         $path === '/chat/poll-inkomend' ||
                         $path === '/cinema/poll' ||
                         $path === '/favicon.ico' ||
                         $path === '/up' ||
-                        Str::startsWith($path, ['/build/', '/vendor/', '/images/', '/img/']) ||
-                        Str::endsWith($path, ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2', '.ico', '.map', '.webp'])
+                        str_starts_with($path, '/build/') ||
+                        str_starts_with($path, '/vendor/') ||
+                        str_starts_with($path, '/images/') ||
+                        str_starts_with($path, '/img/') ||
+                        preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ico|map|webp)$/i', $path)
                     ) {
-                        continue; // skip passive or asset request
+                        continue;
                     }
 
                     // Track casino specific requests
-                    if (str_contains($path, 'casino') || str_contains($path, 'roulette') || str_contains($path, 'slots') || str_contains($path, 'highlow') || str_contains($path, 'numbergame') || str_contains($path, 'rps') || str_contains($path, 'lottery')) {
+                    if (
+                        str_contains($path, 'casino') ||
+                        str_contains($path, 'roulette') ||
+                        str_contains($path, 'slots') ||
+                        str_contains($path, 'highlow') ||
+                        str_contains($path, 'numbergame') ||
+                        str_contains($path, 'rps') ||
+                        str_contains($path, 'lottery')
+                    ) {
                         $totalCasinoHttpClicks++;
-                        $casinoRequests->push("{$method} {$path} [{$dateStr}]");
+                        if ($casinoRequests->count() < 25) {
+                            $casinoRequests->push("{$method} {$path} [{$dateStr}]");
+                        }
                     }
 
-                    // Parse timestamp
-                    try {
-                        $parsedDate = Carbon::createFromFormat('d/M/Y:H:i:s O', $dateStr);
-                        if ($parsedDate) {
-                            $logTimestamps->push($parsedDate->toDateTimeString());
-                            $totalActiveLogEntries++;
-                        }
-                    } catch (\Throwable $e) {
-                        // ignore parse failure
+                    $ts = strtotime($dateStr);
+                    if ($ts && $ts > 1000000) {
+                        $intTimestamps[] = $ts;
+                        $totalActiveLogEntries++;
                     }
                 }
 
@@ -244,47 +237,37 @@ class AnalyzePlayerActivityCommand extends Command
                 }
             }
 
-            $this->info("Actieve webserver verzoeken van Arjan gevonden (excl. passive pollers): {$totalActiveLogEntries}");
+            $this->info("Actieve webserver interacties van Arjan gevonden (excl. passive chat pollers): {$totalActiveLogEntries}");
             $this->info("Waarvan directe casino & mini-game verzoeken: {$totalCasinoHttpClicks}");
 
             if ($casinoRequests->isNotEmpty()) {
-                $this->info("Voorbeeld casino verzoeken uit web logs:");
-                foreach ($casinoRequests->take(8) as $cr) {
+                $this->info("Voorbeeld geregistreerde casino interacties uit web access logs:");
+                foreach ($casinoRequests->take(10) as $cr) {
                     $this->line("   - {$cr}");
                 }
             }
-
-            $timestamps = $timestamps->merge($logTimestamps);
-        } else {
-            $this->warn("\nWebserver logs niet rechtstreeks leesbaar als huidige gebruiker of geen logs gevonden.");
         }
 
         // 4. Calculate Clustering & Speeltijd
         $this->info("\n--- 3. SPEELTIJD BEREKENING (SESSION CLUSTERING) ---");
 
-        $sortedTimestamps = $timestamps->map(function ($t) {
-            try {
-                if (is_numeric($t)) {
-                    return (int) $t;
-                }
-                return Carbon::parse($t)->timestamp;
-            } catch (\Throwable $e) {
-                return null;
-            }
-        })->filter()->unique()->sort()->values();
+        // Deduplicate and sort timestamps
+        $intTimestamps = array_values(array_unique($intTimestamps));
+        sort($intTimestamps, SORT_NUMERIC);
+        $totalPoints = count($intTimestamps);
 
-        $this->info("Totaal aantal unieke interactie meetpunten (DB + HTTP): " . $sortedTimestamps->count());
+        $this->info("Totaal aantal unieke interactie meetpunten (Database + Echte Webserver Acties): {$totalPoints}");
 
-        if ($sortedTimestamps->isEmpty()) {
+        if ($totalPoints === 0) {
             $this->warn("Geen meetpunten gevonden voor deze speler.");
             return self::SUCCESS;
         }
 
-        // Test with different session gap thresholds: 3 min, 5 min, 10 min
+        // Multi-threshold comparison
         $thresholds = [
-            '3 minuten (zeer strikt: alleen aaneengesloten actie)' => 180,
-            '5 minuten (standaard: rekening houdend met lezen/nadenken/chatten)' => 300,
-            '10 minuten (ruim: langere pauzes tussen acties)' => 600,
+            '3 minuten (zeer strikt: alleen onafgebroken achter elkaar doorklikken)' => 180,
+            '5 minuten (standaard maatstaf: rekening houdend met lezen, chatten en nadenken)' => 300,
+            '10 minuten (ruime drempel: inclusief rustpauzes tussen acties)' => 600,
         ];
 
         foreach ($thresholds as $label => $maxGap) {
@@ -292,10 +275,10 @@ class AnalyzePlayerActivityCommand extends Command
             $sessionCount = 0;
             $prev = null;
 
-            foreach ($sortedTimestamps as $curr) {
+            foreach ($intTimestamps as $curr) {
                 if ($prev === null) {
                     $sessionCount++;
-                    $totalActiveSeconds += 60; // minimum 1 minuut per opstartsessie
+                    $totalActiveSeconds += 60;
                 } else {
                     $diff = $curr - $prev;
                     if ($diff <= $maxGap) {
@@ -314,18 +297,18 @@ class AnalyzePlayerActivityCommand extends Command
             $remHours = round($totalHours - ($days * 24), 1);
 
             $this->info("Drempel [{$label}]:");
-            $this->line("   -> {$totalMinutes} actieve minuten ({$totalHours} uur" . ($days > 0 ? " | {$days} dagen en {$remHours} uur" : "") . ") over {$sessionCount} afzonderlijke speelsessies");
+            $this->line("   -> {$totalMinutes} actieve minuten ({$totalHours} uur" . ($days > 0 ? " | {$days} dagen en {$remHours} uur" : "") . ") over {$sessionCount} aparte speelsessies");
         }
 
-        // Calculate primary 5-min threshold
+        // Detailed calculation for standard 5-minute threshold
         $maxGap = 300;
         $totalActiveSeconds = 0;
         $sessionCount = 0;
         $prev = null;
         $dailyActivity = [];
 
-        foreach ($sortedTimestamps as $curr) {
-            $day = Carbon::createFromTimestamp($curr)->toDateString();
+        foreach ($intTimestamps as $curr) {
+            $day = date('Y-m-d', $curr);
             if ($prev === null) {
                 $sessionCount++;
                 $totalActiveSeconds += 60;
@@ -351,14 +334,14 @@ class AnalyzePlayerActivityCommand extends Command
 
         $this->newLine();
         $this->info("==================================================");
-        $this->info("EINDCONCLUSIE VOOR {$character->name}:");
-        $this->info("Eerste geregistreerde actie: " . Carbon::createFromTimestamp($sortedTimestamps->first())->toDateTimeString());
-        $this->info("Laatste geregistreerde actie: " . Carbon::createFromTimestamp($sortedTimestamps->last())->toDateTimeString());
-        $this->info("Totaal actieve sessies: {$sessionCount}");
+        $this->info("EINDCONCLUSIE TOTALE ACTIEVE SPEELTIJD VOOR {$character->name}:");
+        $this->info("Eerste geregistreerde interactie: " . date('Y-m-d H:i:s', $intTimestamps[0]));
+        $this->info("Laatste geregistreerde interactie: " . date('Y-m-d H:i:s', $intTimestamps[$totalPoints - 1]));
+        $this->info("Totaal aantal aparte speelsessies: {$sessionCount}");
         $this->info("Totale ACTIEVE zuivere speeltijd: {$totalMinutes} minuten");
         $this->info("Totale ACTIEVE speeltijd in uren: {$totalHours} uur");
         if ($days > 0) {
-            $this->info("Omgerekend: {$days} dagen en {$remHours} uur");
+            $this->info("Omgerekend in hele dagen: {$days} dagen en {$remHours} uur");
         }
         $this->info("==================================================");
 
@@ -382,7 +365,7 @@ class AnalyzePlayerActivityCommand extends Command
                 ->get();
 
             $this->newLine();
-            $this->info("TOP 15 UITGEVOERDE ACTIES VAN {$character->name} (AuditLog):");
+            $this->info("TOP 15 UITGEVOERDE ACTIES IN HET SPEL (AuditLog):");
             foreach ($topActions as $a) {
                 $this->line("   - {$a->action}: {$a->total}x");
             }

@@ -26,6 +26,8 @@
     }
 }">
 
+    @include('game.control_points.banner', ['slug' => 'smokkellijn'])
+
     @if($character->isImprisoned())
     <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-3">
         <i class="fa-solid fa-lock text-rose-500 text-base shrink-0"></i>

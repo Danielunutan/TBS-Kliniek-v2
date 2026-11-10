@@ -601,7 +601,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/gangs/garage/slopen/{characterVehicle}', [GangPropertyController::class, 'scrapVehicle'])->name('gangs.garage.scrap-vehicle');
 
     // Controlepunten (King of the Hill - Verover en Verdien)
-    Route::get('/controlepunten', fn () => redirect()->route('dashboard')->with('info', 'De centrale controlepunten-pagina is opgeheven. Controlepunten kun je nu uitsluitend direct op de locaties zelf (Luchtplaats, Kantine, Sportzaal, Depot en Medicijnkluis) opeisen of overnemen!'))->name('control-points.index');
+    Route::get('/controlepunten', fn () => redirect()->route('dashboard')->with('info', 'De centrale controlepunten-pagina is opgeheven. Controlepunten kun je nu uitsluitend direct op de locaties zelf (Luchtplaats, Kantine, Sportzaal, Depot, Medicijnkluis en Smokkelen) opeisen of overnemen!'))->name('control-points.index');
     Route::post('/controlepunten/{point}/claim', [ControlPointController::class, 'capture'])->name('control-points.capture');
 
     // Marktplaats (Marketplace)
