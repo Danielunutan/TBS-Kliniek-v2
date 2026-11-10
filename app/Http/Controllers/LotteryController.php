@@ -25,13 +25,25 @@ class LotteryController extends Controller
         $cashPricePerTicket = $round->getCashPricePerTicket();
         $starsPricePerTicket = $round->getStarsPricePerTicket();
 
-        // User's tickets in active round
-        $userTickets = LotteryTicket::where('lottery_round_id', $round->id)
-            ->where('character_id', $character->id)
+        // User's tickets in active round: count efficiently via DB to avoid mobile RAM explosion
+        $ticketsQuery = LotteryTicket::where('lottery_round_id', $round->id)
+            ->where('character_id', $character->id);
+
+        $userTicketsCount = (int) (clone $ticketsQuery)->count();
+
+        // Breakdown by currency for quick overview pills
+        $ticketBreakdown = (clone $ticketsQuery)
+            ->selectRaw('currency, count(*) as count')
+            ->groupBy('currency')
+            ->pluck('count', 'currency')
+            ->all();
+
+        // Limit the active ticket instances to the latest 15 to keep DOM size and mobile layout fast
+        $userTickets = (clone $ticketsQuery)
             ->orderByDesc('id')
+            ->limit(15)
             ->get();
 
-        $userTicketsCount = $userTickets->count();
         $totalTickets = max(1, $round->total_tickets_sold);
         $winChance = $userTicketsCount > 0 ? round(($userTicketsCount / $totalTickets) * 100, 2) : 0;
 
@@ -50,6 +62,7 @@ class LotteryController extends Controller
             'starsPricePerTicket',
             'userTickets',
             'userTicketsCount',
+            'ticketBreakdown',
             'winChance',
             'pastRounds'
         ));

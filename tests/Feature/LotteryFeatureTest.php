@@ -164,4 +164,33 @@ class LotteryFeatureTest extends TestCase
         $this->assertStringContainsString('70% Contant Uitbetaald', $news->content);
         $this->assertStringContainsString('Ronde #'.$nextRound->round_number, $news->content);
     }
+
+    public function test_lottery_page_renders_fast_and_compact_with_many_tickets(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $round = LotteryRound::current();
+
+        // Create 50 tickets for this character
+        $ticketsData = [];
+        for ($i = 1; $i <= 50; $i++) {
+            $ticketsData[] = [
+                'lottery_round_id' => $round->id,
+                'character_id' => $char->id,
+                'ticket_number' => 'TBS-TEST-' . str_pad($i, 5, '0', STR_PAD_LEFT),
+                'currency' => $i % 2 === 0 ? 'cash' : 'stars',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        \App\Models\LotteryTicket::insert($ticketsData);
+        $round->increment('total_tickets_sold', 50);
+
+        $response = $this->actingAs($user)->get(route('lottery.index'));
+        $response->assertOk();
+        $response->assertSee('50 in bezit');
+        $response->assertSee('Contant');
+        $response->assertSee('★ VIP');
+        $response->assertSee('En nog 35 andere geregistreerde loten');
+    }
 }
