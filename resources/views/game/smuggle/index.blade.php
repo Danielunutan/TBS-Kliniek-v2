@@ -40,6 +40,9 @@
     </div>
     @endif
 
+    {{-- The Smokkellijn is a bende oorlog zone. Without this banner players cannot see or claim it. --}}
+    @include('game.control_points.banner', ['slug' => 'smokkellijn'])
+
     <!-- Top Command Banner -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
