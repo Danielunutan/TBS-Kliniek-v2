@@ -2667,7 +2667,7 @@ class GangController extends Controller
     /**
      * Manually claim any accrued gang wages.
      */
-    public function claimWage(): RedirectResponse
+    public function claimWage(Request $request): RedirectResponse
     {
         $character = Auth::user()->character;
         if (! $character->gang_id) {
@@ -2682,14 +2682,23 @@ class GangController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        $payout = $this->wageService->payoutPendingWages($character);
+        $destination = $request->input('destination', 'cash');
+        if (! in_array($destination, ['cash', 'bank'])) {
+            $destination = 'cash';
+        }
+
+        $payout = $this->wageService->payoutPendingWages($character, false, $destination);
         if (! $payout || $payout['amount'] <= 0) {
             $details = $this->wageService->getWageDetails($character);
 
             return back()->with('info', "Er is nog geen vol uur verstreken sinds je vorige uitbetaling. Volgende automatische uitbetaling over {$details['next_payout_human']}.");
         }
 
-        return back()->with('success', '💰 Succesvol €'.number_format($payout['amount'], 0, ',', '.')." bende-uurloon geïnd voor {$payout['hours']} uur en als contant geld op zak ontvangen!");
+        if ($destination === 'bank') {
+            return back()->with('success', '🏦 Succesvol €'.number_format($payout['amount'], 0, ',', '.')." bende-uurloon geïnd voor {$payout['hours']} uur en direct veilig op je bankrekening gestort!");
+        }
+
+        return back()->with('success', '💰 Succesvol €'.number_format($payout['amount'], 0, ',', '.')." bende-uurloon geïnd voor {$payout['hours']} uur! Je zakgeld is de komende 15 minuten 100% beschermd tegen diefstal en berovingen.");
     }
 
     /**

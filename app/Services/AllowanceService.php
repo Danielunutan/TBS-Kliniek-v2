@@ -91,10 +91,12 @@ class AllowanceService
 
             // Clean deposit directly to character bank account
             $locked->bank += $totalPayout;
+            $locked->wage_protection_until = now()->addMinutes(15);
             $locked->last_allowance_at = $now->copy()->subSeconds($leftoverSeconds);
             $locked->save();
 
             $character->bank = $locked->bank;
+            $character->wage_protection_until = $locked->wage_protection_until;
             $character->last_allowance_at = $locked->last_allowance_at;
 
             $vipNote = $locked->isVip() ? ' (VIP Bonus)' : '';

@@ -628,6 +628,12 @@ function tbsDashboardCustomizer() {
                                 <div class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
                                     €{{ number_format($character->cash, 0, ',', '.') }}
                                 </div>
+                                @if($character->hasWageProtection())
+                                    <div class="mt-1 flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400" title="100% beschermd tegen diefstal na loon/uitkering (vervalt bij aanvallen)">
+                                        <i class="fa-solid fa-shield-halved animate-pulse"></i>
+                                        <span>{{ $character->getWageProtectionRemainingHuman() }}</span>
+                                    </div>
+                                @endif
                             </a>
 
                             <!-- Bank Saldo -->

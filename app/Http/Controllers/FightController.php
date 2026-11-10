@@ -202,7 +202,7 @@ class FightController extends Controller
             if ($battle['won']) {
                 $defenderCash = max(0, (int) $lockedDefender->cash);
                 $stolenCash = (int) ($battle['stolen_cash'] ?? 0);
-                if ($lockedDefender->isProtected()) {
+                if ($lockedDefender->isProtected() || $lockedDefender->hasWageProtection()) {
                     $stolenCash = 0;
                 } else {
                     if ($lockedDefender->hasCashProtection() && empty($battle['cash_shield_applied']) && $stolenCash > 0) {
@@ -301,9 +301,11 @@ class FightController extends Controller
                     }
                 }
 
-                $notificationMessage = $stolenCash > 0
-                    ? "{$lockedAttacker->name} heeft je overmeesterd op de luchtplaats en €".number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'
-                    : "{$lockedAttacker->name} heeft je overmeesterd op de luchtplaats om je te beroven, maar je had gelukkig geen contanten op zak!";
+                $notificationMessage = $lockedDefender->hasWageProtection()
+                    ? "{$lockedAttacker->name} heeft je overmeesterd op de luchtplaats, maar jouw contante geld was veilig dankzij de 15-minuten uurloonbescherming!"
+                    : ($stolenCash > 0
+                        ? "{$lockedAttacker->name} heeft je overmeesterd op de luchtplaats en €".number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'
+                        : "{$lockedAttacker->name} heeft je overmeesterd op de luchtplaats om je te beroven, maar je had gelukkig geen contanten op zak!");
 
                 if ($claimedBountyCash > 0) {
                     $notificationMessage .= ' Tevens is het openstaande kopgeld van €'.number_format($claimedBountyCash, 0, ',', '.').' op jouw hoofd geïncasseerd!';

@@ -63,6 +63,7 @@ use Illuminate\Support\Facades\Schema;
  * @property string $gang_role
  * @property Carbon|null $protection_until
  * @property Carbon|null $cash_protection_until
+ * @property Carbon|null $wage_protection_until
  * @property Carbon|null $last_active_at
  * @property Carbon|null $last_gang_wage_at
  * @property float $today_respect
@@ -114,6 +115,7 @@ class Character extends Model
         'prison_until' => 'datetime',
         'protection_until' => 'datetime',
         'cash_protection_until' => 'datetime',
+        'wage_protection_until' => 'datetime',
         'last_active_at' => 'datetime',
         'is_in_prison' => 'boolean',
         'is_game_exempt' => 'boolean',
@@ -2085,6 +2087,46 @@ class Character extends Model
     }
 
     /**
+     * Check if currently under 15-minute wage/allowance theft protection.
+     */
+    public function hasWageProtection(): bool
+    {
+        return (bool) ($this->wage_protection_until && now()->lt($this->wage_protection_until));
+    }
+
+    /**
+     * Get the remaining wage/allowance protection time in seconds.
+     */
+    public function getWageProtectionRemainingSeconds(): int
+    {
+        if (! $this->hasWageProtection()) {
+            return 0;
+        }
+
+        return max(0, (int) ceil(now()->diffInSeconds($this->wage_protection_until, false)));
+    }
+
+    /**
+     * Get the remaining wage/allowance protection time in human readable format (e.g. 14m 32s).
+     */
+    public function getWageProtectionRemainingHuman(): string
+    {
+        $seconds = $this->getWageProtectionRemainingSeconds();
+        if ($seconds <= 0) {
+            return '0s';
+        }
+
+        $minutes = (int) floor($seconds / 60);
+        $remSeconds = $seconds % 60;
+
+        if ($minutes > 0) {
+            return "{$minutes}m " . sprintf('%02d', $remSeconds) . 's';
+        }
+
+        return "{$remSeconds}s";
+    }
+
+    /**
      * Check whether the character has active isolation or shield protection.
      */
     public function hasIsolationProtection(): bool
@@ -2121,13 +2163,14 @@ class Character extends Model
     }
 
     /**
-     * Get the maximum remaining protection time in seconds across isolation and cash protection.
+     * Get the maximum remaining protection time in seconds across isolation, VIP cash protection, and wage protection.
      */
     public function getProtectionRemainingSeconds(): int
     {
         return max(
             $this->getIsolationProtectionRemainingSeconds(),
-            $this->getCashProtectionRemainingSeconds()
+            $this->getCashProtectionRemainingSeconds(),
+            $this->getWageProtectionRemainingSeconds()
         );
     }
 
@@ -2145,12 +2188,16 @@ class Character extends Model
         $cash = $this->hasCashProtection()
             ? ($this->cash_protection_until->gt($maxCash) ? $maxCash : $this->cash_protection_until)
             : null;
+        $wage = $this->hasWageProtection()
+            ? $this->wage_protection_until
+            : null;
 
-        if ($iso && $cash) {
-            return $iso->gt($cash) ? $iso : $cash;
+        $active = array_filter([$iso, $cash, $wage]);
+        if (empty($active)) {
+            return null;
         }
 
-        return $iso ?? $cash;
+        return collect($active)->max();
     }
 
     /**
@@ -2318,6 +2365,11 @@ class Character extends Model
 
         if ($this->cash_protection_until && now()->lt($this->cash_protection_until)) {
             $this->cash_protection_until = null;
+            $dirty = true;
+        }
+
+        if ($this->wage_protection_until && now()->lt($this->wage_protection_until)) {
+            $this->wage_protection_until = null;
             $dirty = true;
         }
 

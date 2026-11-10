@@ -160,16 +160,44 @@
                 <span>Garage</span>
             </a>
             @if($inGang && $pendingHours > 0)
-            <form method="POST" action="{{ route('gangs.claim-wage') }}">
+            <form method="POST" action="{{ route('gangs.claim-wage') }}" class="flex items-center gap-2">
                 @csrf
-                <button type="submit" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 flex items-center gap-2 shadow-xs cursor-pointer">
+                <button type="submit" name="destination" value="cash" class="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 flex items-center gap-2 shadow-xs cursor-pointer" title="Uitbetalen op zak met 15 minuten 100% diefstalbescherming">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
-                    <span>Claim Nu (+€{{ number_format($pendingAmount, 0, ',', '.') }})</span>
+                    <span>Claim (+€{{ number_format($pendingAmount, 0, ',', '.') }})</span>
+                </button>
+                <button type="submit" name="destination" value="bank" class="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 flex items-center gap-2 shadow-xs cursor-pointer" title="Direct 100% veilig op je bankrekening storten">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span>Direct naar Bank</span>
                 </button>
             </form>
             @endif
         </div>
     </div>
+
+    @if($character->hasWageProtection())
+    <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-lg shrink-0 shadow-sm shadow-emerald-500/30">
+                <i class="fa-solid fa-shield-halved animate-pulse"></i>
+            </div>
+            <div>
+                <h4 class="text-xs sm:text-sm font-black text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
+                    <span>15 Minuten Diefstalbescherming Actief</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 font-mono">
+                        Nog {{ $character->getWageProtectionRemainingHuman() }}
+                    </span>
+                </h4>
+                <p class="text-[11px] text-emerald-700 dark:text-emerald-300 mt-0.5 leading-relaxed">
+                    Jouw contante zakgeld kan momenteel niet worden bestolen op de luchtplaats of gerold via zakkenrollen. Let op: deze bescherming vervalt direct zodra je zelf iemand aanvalt of berooft!
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('bank.index') }}" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider shrink-0 transition shadow-2xs">
+            <i class="fa-solid fa-building-columns mr-1"></i> Naar Bank
+        </a>
+    </div>
+    @endif
 
     <!-- Live KPI Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

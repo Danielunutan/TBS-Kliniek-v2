@@ -1797,9 +1797,14 @@
                 <!-- 3. Cash Pill -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="min-w-0 flex flex-col justify-center bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition text-left"
+                        class="min-w-0 flex flex-col justify-center bg-white dark:bg-slate-900 border {{ $character->hasWageProtection() ? 'border-emerald-400 dark:border-emerald-500/80 ring-1 ring-emerald-400/40' : 'border-slate-200/80 dark:border-slate-800' }} px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition text-left"
                         title="Contant geld (klik om te storten)">
-                    <span class="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 leading-none">Contant</span>
+                    <div class="flex items-center justify-between gap-1 leading-none">
+                        <span class="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 leading-none">Contant</span>
+                        @if($character->hasWageProtection())
+                        <i class="fa-solid fa-shield text-[8px] text-emerald-500" title="15 min. diefstalbescherming actief"></i>
+                        @endif
+                    </div>
                     <div class="flex items-center gap-1 mt-0.5 min-w-0">
                         <i class="fa-solid fa-money-bill-wave text-[9px] text-emerald-500 shrink-0"></i>
                         <span class="font-black text-slate-900 dark:text-white text-[10px] font-mono leading-none truncate" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
@@ -2167,7 +2172,13 @@
                             €{{ number_format($character->cash + $character->bank, 0, ',', '.') }}
                         </span>
                         <span class="hidden 2xl:inline text-[10px] font-medium text-slate-400 dark:text-purple-300/70 mt-1 leading-none">
-                            <span x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span> contant &middot; <span x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span> bank
+                            <span x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span> contant
+                            @if($character->hasWageProtection())
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800" title="15 min. diefstalbescherming actief (nog {{ $character->getWageProtectionRemainingHuman() }})">
+                                    <i class="fa-solid fa-shield text-[8px] text-emerald-500"></i> {{ $character->getWageProtectionRemainingHuman() }}
+                                </span>
+                            @endif
+                            &middot; <span x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span> bank
                         </span>
                     </div>
                 </a>
@@ -2941,6 +2952,12 @@
                             <span class="flex items-center gap-1"><i class="fa-solid fa-wallet"></i> Contant</span>
                             <span class="font-mono font-black text-xs" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
                         </div>
+                        @if($character->hasWageProtection())
+                        <div class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-shield text-[8px]"></i>
+                            <span>Beschermd (nog {{ $character->getWageProtectionRemainingHuman() }})</span>
+                        </div>
+                        @endif
                         @if($character->cash > 0)
                         <form action="{{ route('bank.deposit') }}" method="POST" class="mt-2">
                             @csrf

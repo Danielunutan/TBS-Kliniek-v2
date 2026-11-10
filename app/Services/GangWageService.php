@@ -447,7 +447,7 @@ class GangWageService
      *
      * @return array{hours: int, amount: int, hourly_wage: int, gang_name: string}|null
      */
-    public function payoutPendingWages(Character $character, bool $sendNotificationMessage = false): ?array
+    public function payoutPendingWages(Character $character, bool $sendNotificationMessage = false, string $destination = 'cash'): ?array
     {
         if (! $character->gang_id) {
             return null;
@@ -460,7 +460,7 @@ class GangWageService
 
         $now = now();
 
-        return DB::transaction(function () use ($character, $gang, $now, $sendNotificationMessage): ?array {
+        return DB::transaction(function () use ($character, $gang, $now, $sendNotificationMessage, $destination): ?array {
             /** @var Character|null $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
             if (! $lockedCharacter || ! $lockedCharacter->gang_id) {
@@ -501,23 +501,39 @@ class GangWageService
             $lockedCharacter->last_gang_wage_at = $lastWageAnchor->copy()->addHours($rawHours)->startOfHour();
 
             if ($totalPayout > 0) {
-                // Contant geld uitbetaling direct op zak van het personage (geen vanilla veilige modus)
-                $lockedCharacter->cash += $totalPayout;
-                EventCashHuntService::record($lockedCharacter, $totalPayout, 'gang_wage');
+                if ($destination === 'bank') {
+                    $lockedCharacter->bank += $totalPayout;
+                    \App\Models\BankTransaction::record(
+                        $lockedCharacter,
+                        'gang_wage',
+                        'bank',
+                        $totalPayout,
+                        $lockedCharacter->bank,
+                        "Bende Uurloon uitbetaald voor {$hours} uur bij {$gang->name} (+€".number_format($totalPayout, 0, ',', '.').')'
+                    );
+                } else {
+                    // Contant geld uitbetaling direct op zak met 15 minuten diefstalbescherming
+                    $lockedCharacter->cash += $totalPayout;
+                    $lockedCharacter->wage_protection_until = now()->addMinutes(15);
+                    EventCashHuntService::record($lockedCharacter, $totalPayout, 'gang_wage');
+                }
             }
 
             $lockedCharacter->save();
             $character->cash = $lockedCharacter->cash;
+            $character->bank = $lockedCharacter->bank;
+            $character->wage_protection_until = $lockedCharacter->wage_protection_until;
             $character->last_gang_wage_at = $lockedCharacter->last_gang_wage_at;
 
             if ($totalPayout > 0) {
+                $targetDesc = $destination === 'bank' ? 'veilig op je bankrekening gestort' : 'contant geld op zak ontvangen (🛡️ 15 minuten 100% beschermd tegen diefstal)';
                 // In-game bell notification (instantly visible on every page in header)
                 GameNotification::create([
                     'character_id' => $lockedCharacter->id,
                     'type' => 'gang_wage',
                     'icon' => 'fa-coins',
                     'title' => '💰 Bende Uurloon Uitbetaald!',
-                    'message' => "Je hebt zojuist voor {$hours} gewerkte uur(en) bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld op zak ontvangen!',
+                    'message' => "Je hebt zojuist voor {$hours} gewerkte uur(en) bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.')." {$targetDesc}!",
                     'is_read' => false,
                 ]);
 
@@ -527,7 +543,7 @@ class GangWageService
                         'sender_id' => $lockedCharacter->id,
                         'sender_name' => 'Bende Salaris Administratie',
                         'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
-                        'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld ontvangen op zak (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
+                        'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.')." {$targetDesc} (Uurloon: €".number_format($hourlyWage, 0, ',', '.').").",
                         'type' => 'gang',
                     ]);
                 }

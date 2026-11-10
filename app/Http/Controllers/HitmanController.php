@@ -1141,10 +1141,14 @@ class HitmanController extends Controller
                         $rawLoot = (int) floor(max(0, (int) $lockedDefender->cash) * 0.45);
                         $baseLoot = min(25000000, $rawLoot);
 
-                        $shieldMultiplier = $lockedDefender->hasCashProtection() ? 0.50 : 1.0;
-                        $safeProtectionPct = $lockedDefender->getCellCashProtectionPct();
-                        if ($safeProtectionPct > 0) {
-                            $shieldMultiplier *= (1.0 - ($safeProtectionPct / 100));
+                        if ($lockedDefender->hasWageProtection()) {
+                            $shieldMultiplier = 0.0;
+                        } else {
+                            $shieldMultiplier = $lockedDefender->hasCashProtection() ? 0.50 : 1.0;
+                            $safeProtectionPct = $lockedDefender->getCellCashProtectionPct();
+                            if ($safeProtectionPct > 0) {
+                                $shieldMultiplier *= (1.0 - ($safeProtectionPct / 100));
+                            }
                         }
                         $stolenCash = (int) floor($baseLoot * $shieldMultiplier);
                         $stolenBank = 0;

@@ -223,6 +223,19 @@ class TheftService
                 ];
             }
 
+            if ($victim->hasWageProtection()) {
+                $remaining = $victim->getWageProtectionRemainingHuman();
+
+                return [
+                    'success' => false,
+                    'message' => "{$victim->name} heeft een actieve 15-minuten uurloon/uitkeringsbescherming (nog {$remaining}) en kan momenteel niet worden bestolen!",
+                    'cash_stolen' => 0,
+                    'xp_gained' => 0,
+                    'jailed' => false,
+                    'jail_minutes' => 0,
+                ];
+            }
+
             // Daily PvP robbery limit per target person: 100 per day (1000 for VIP)
             $today = now()->toDateString();
             $targetDailyKey = "pvp_thefts_{$character->id}_{$victim->id}_{$today}";
@@ -239,6 +252,9 @@ class TheftService
                     'jail_minutes' => 0,
                 ];
             }
+
+            // Attacking/stealing from another player breaks the perpetrator's own isolation/wage protection (Fair Play rule)
+            $character->breakProtection();
         }
 
         $tier = self::TIERS[$tierKey];
@@ -372,7 +388,7 @@ class TheftService
             $cashStolen = DB::transaction(function () use ($victim, $cashStolen): int {
                 /** @var Character|null $lockedVictim */
                 $lockedVictim = Character::where('id', $victim->id)->lockForUpdate()->first();
-                if (! $lockedVictim || $lockedVictim->isProtected() || $lockedVictim->isGameExempt()) {
+                if (! $lockedVictim || $lockedVictim->isProtected() || $lockedVictim->hasWageProtection() || $lockedVictim->isGameExempt()) {
                     return 0;
                 }
 
