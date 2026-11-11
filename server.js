@@ -15,9 +15,12 @@ const dbPool = mysql.createPool({
 });
 
 async function getFreshTicket(username = 'Daniel') {
-    const ticket = 'tbs_sso_' + Math.random().toString(36).substring(2, 12);
+    const ticket = 'tbs_sso_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now();
     try {
-        await dbPool.query('UPDATE users SET auth_ticket = ? WHERE username = ?', [ticket, username]);
+        await dbPool.query(
+            'UPDATE users SET auth_ticket = ?, auth_ticket_expires_at = DATE_ADD(NOW(), INTERVAL 1 HOUR), auth_ticket_exchanged = 0 WHERE username = ?',
+            [ticket, username]
+        );
         return ticket;
     } catch (e) {
         console.error('Error setting ticket in DB:', e.message);
