@@ -9,7 +9,7 @@ const dbPool = mysql.createPool({
     host: '127.0.0.1',
     user: 'root',
     password: '',
-    database: 'plus',
+    database: 'habbo',
     waitForConnections: true,
     connectionLimit: 5,
 });
@@ -18,13 +18,26 @@ async function getFreshTicket(username = 'Daniel') {
     const ticket = 'tbs_sso_' + Math.random().toString(36).substring(2, 12) + '_' + Date.now();
     try {
         await dbPool.query(
-            'UPDATE users SET auth_ticket = ?, auth_ticket_expires_at = DATE_ADD(NOW(), INTERVAL 1 HOUR), auth_ticket_exchanged = 0 WHERE username = ?',
+            'UPDATE users SET auth_ticket = ? WHERE username = ?',
             [ticket, username]
         );
         return ticket;
     } catch (e) {
         console.error('Error setting ticket in DB:', e.message);
         return ticket;
+    }
+}
+
+async function isTicketValid(ticket) {
+    if (!ticket) return false;
+    try {
+        const [rows] = await dbPool.query(
+            'SELECT id FROM users WHERE auth_ticket = ? LIMIT 1',
+            [ticket]
+        );
+        return rows && rows.length > 0;
+    } catch (e) {
+        return false;
     }
 }
 
@@ -143,86 +156,33 @@ const server = http.createServer(async (req, res) => {
     const cleanUrl = req.url.split('?')[0];
     console.log('[HTTP REQ]', req.method, cleanUrl);
 
-    // 1. Root & index.html -> Serve Volt Client with dynamic SSO ticket and SSI configs inlined
+    // 1. Root & index.html -> Serve Nitro Client with dynamic SSO ticket
     if (cleanUrl === '/' || cleanUrl === '/index.html') {
         const urlObj = new URL(req.url, 'http://127.0.0.1:3000');
         let ticket = urlObj.searchParams.get('sso') || urlObj.searchParams.get('token');
-        if (!ticket) {
+        const isValid = await isTicketValid(ticket);
+        if (!ticket || !isValid) {
             ticket = await getFreshTicket('Daniel');
             res.writeHead(302, { Location: `/?sso=${ticket}` });
             res.end();
             return;
         }
-        const voltIndexPath = path.join(VOLT_DIR, 'index.html');
-        fs.readFile(voltIndexPath, (err, content) => {
+        const nitroIndexPath = path.join(PUBLIC_DIR, 'index.html');
+        fs.readFile(nitroIndexPath, (err, content) => {
             if (err) {
                 res.writeHead(500, { 'Content-Type': 'text/plain' });
                 res.end('500 Server Fout');
                 return;
             }
             let html = content.toString('utf8');
-            const clientModePath = path.join(VOLT_DIR, 'configuration', 'client-mode.json');
-            const rendererConfigPath = path.join(VOLT_DIR, 'configuration', 'renderer-config.json');
-            const uiConfigPath = path.join(VOLT_DIR, 'configuration', 'ui-config.json');
-            const petsPath = path.join(VOLT_DIR, 'configuration', 'pets.json');
-
-            if (fs.existsSync(clientModePath)) {
-                html = html.replace('<!--# include virtual="configuration/client-mode.json" -->', fs.readFileSync(clientModePath, 'utf8'));
-            }
-            if (fs.existsSync(rendererConfigPath)) {
-                html = html.replace('<!--# include virtual="configuration/renderer-config.json" -->', fs.readFileSync(rendererConfigPath, 'utf8'));
-            }
-            if (fs.existsSync(uiConfigPath)) {
-                html = html.replace('<!--# include virtual="configuration/ui-config.json" -->', fs.readFileSync(uiConfigPath, 'utf8'));
-            }
-            if (fs.existsSync(petsPath)) {
-                html = html.replace('<!--# include virtual="configuration/pets.json" -->', fs.readFileSync(petsPath, 'utf8'));
-            }
-            html = html.replace('<!--# include virtual="configuration/furnidata-version.json" -->', '{"version": "1"}');
-            html = html.replace('<!--# include virtual="configuration/gamedata-versions.json" -->', '{"files": {}}');
-
+            html = html.replace(/'tbs_test_token'/g, `'${ticket}'`);
             res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
             res.end(html);
         });
         return;
     }
 
-    // 2. Check if file exists in VOLT_DIR (client bundle, assets, configuration)
-    const voltFilePath = path.join(VOLT_DIR, cleanUrl);
-    if (fs.existsSync(voltFilePath) && !fs.statSync(voltFilePath).isDirectory()) {
-        const ext = path.extname(voltFilePath).toLowerCase();
-        fs.readFile(voltFilePath, (err, content) => {
-            if (err) {
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end('500 Server Fout');
-                return;
-            }
-            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
-            res.end(content);
-        });
-        return;
-    }
-
-    // 3. Check if file exists in HOTEL_FILES_DIR (/hotel-files/...)
-    if (cleanUrl.startsWith('/hotel-files/')) {
-        const relPath = cleanUrl.replace(/^\/hotel-files\//, '');
-        const hotelFilePath = path.join(HOTEL_FILES_DIR, relPath);
-        if (fs.existsSync(hotelFilePath) && !fs.statSync(hotelFilePath).isDirectory()) {
-            const ext = path.extname(hotelFilePath).toLowerCase();
-            fs.readFile(hotelFilePath, (err, content) => {
-                if (err) {
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end('500 Server Fout');
-                    return;
-                }
-                res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
-                res.end(content);
-            });
-            return;
-        }
-    }
-
-    // 4. Fallback to PUBLIC_DIR
+    // 2. Check if file exists directly in PUBLIC_DIR (Nitro client bundle, html, configs)
     const publicFilePath = path.join(PUBLIC_DIR, cleanUrl);
     if (fs.existsSync(publicFilePath) && !fs.statSync(publicFilePath).isDirectory()) {
         const ext = path.extname(publicFilePath).toLowerCase();
@@ -238,7 +198,7 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // 5. Fallback to ASSETS_DIR
+    // 3. Check if file exists in ASSETS_DIR (/assets/furniture/..., /assets/clothes/...)
     if (cleanUrl.startsWith('/assets/')) {
         const relPath = cleanUrl.replace(/^\/assets\//, '');
         const assetFilePath = path.join(ASSETS_DIR, relPath);
@@ -257,18 +217,52 @@ const server = http.createServer(async (req, res) => {
         }
     }
 
-    // 6. Fallback for root-level gamedata requests (e.g. /FurnitureData.json, /ProductData.json)
+    // 4. Check if file exists in HOTEL_FILES_DIR (/hotel-files/...)
+    if (cleanUrl.startsWith('/hotel-files/')) {
+        const relPath = cleanUrl.replace(/^\/hotel-files\//, '');
+        const hotelFilePath = path.join(HOTEL_FILES_DIR, relPath);
+        if (fs.existsSync(hotelFilePath) && !fs.statSync(hotelFilePath).isDirectory()) {
+            const ext = path.extname(hotelFilePath).toLowerCase();
+            fs.readFile(hotelFilePath, (err, content) => {
+                if (err) {
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end('500 Server Fout');
+                    return;
+                }
+                res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+                res.end(content);
+            });
+            return;
+        }
+    }
+
+    // 5. Fallback for image files requested at root (Habbo-Stories, c_images, catalogue)
     const baseName = path.basename(cleanUrl);
-    const gamedataFile = path.join(HOTEL_FILES_DIR, 'gamedata', baseName);
-    if (fs.existsSync(gamedataFile) && !fs.statSync(gamedataFile).isDirectory()) {
-        const ext = path.extname(gamedataFile).toLowerCase();
-        fs.readFile(gamedataFile, (err, content) => {
+    const storyCandidate = path.join(HOTEL_FILES_DIR, 'c_images', 'Habbo-Stories', baseName);
+    if (fs.existsSync(storyCandidate) && !fs.statSync(storyCandidate).isDirectory()) {
+        const ext = path.extname(storyCandidate).toLowerCase();
+        fs.readFile(storyCandidate, (err, content) => {
             if (err) {
                 res.writeHead(500, { 'Content-Type': 'text/plain' });
                 res.end('500 Server Fout');
                 return;
             }
-            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/json' });
+            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'image/png' });
+            res.end(content);
+        });
+        return;
+    }
+
+    const cImagesCandidate = path.join(HOTEL_FILES_DIR, 'c_images', baseName);
+    if (fs.existsSync(cImagesCandidate) && !fs.statSync(cImagesCandidate).isDirectory()) {
+        const ext = path.extname(cImagesCandidate).toLowerCase();
+        fs.readFile(cImagesCandidate, (err, content) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('500 Server Fout');
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'image/png' });
             res.end(content);
         });
         return;
