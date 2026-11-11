@@ -9,17 +9,21 @@ const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const ASSETS_DIR = path.join(__dirname, 'assets');
 
 // MIME types for static file serving
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
     '.js': 'text/javascript; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
-    '.json': 'application/json',
+    '.json': 'application/json; charset=utf-8',
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.svg': 'image/svg+xml',
     '.ico': 'image/x-icon',
+    '.mp3': 'audio/mpeg',
+    '.nitro': 'application/octet-stream',
+    '.bin': 'application/octet-stream',
 };
 
 // Rooms and State Storage (In-memory, extensible to database)
@@ -93,21 +97,63 @@ const rooms = {
 
 // HTTP Static File Server
 const server = http.createServer((req, res) => {
-    let filePath = path.join(PUBLIC_DIR, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
-    const ext = path.extname(filePath).toLowerCase();
+    // Add CORS headers for web client & WebGL textures
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', '*');
 
-    // Default to index.html if file doesn't exist (SPA style)
-    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-        filePath = path.join(PUBLIC_DIR, 'index.html');
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
     }
 
-    fs.readFile(filePath, (err, content) => {
+    const cleanUrl = req.url.split('?')[0];
+
+    // 1. Check if file exists directly in PUBLIC_DIR (client bundle, html, configs)
+    const publicFilePath = path.join(PUBLIC_DIR, cleanUrl === '/' ? 'index.html' : cleanUrl);
+    if (fs.existsSync(publicFilePath) && !fs.statSync(publicFilePath).isDirectory()) {
+        const ext = path.extname(publicFilePath).toLowerCase();
+        fs.readFile(publicFilePath, (err, content) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('500 Server Fout');
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+            res.end(content);
+        });
+        return;
+    }
+
+    // 2. Check if file exists in ASSETS_DIR (/assets/furniture/..., /assets/clothes/...)
+    if (cleanUrl.startsWith('/assets/')) {
+        const relPath = cleanUrl.replace(/^\/assets\//, '');
+        const assetFilePath = path.join(ASSETS_DIR, relPath);
+        if (fs.existsSync(assetFilePath) && !fs.statSync(assetFilePath).isDirectory()) {
+            const ext = path.extname(assetFilePath).toLowerCase();
+            fs.readFile(assetFilePath, (err, content) => {
+                if (err) {
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end('500 Server Fout');
+                    return;
+                }
+                res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+                res.end(content);
+            });
+            return;
+        }
+    }
+
+    // Default to index.html for SPA routing
+    const fallbackPath = path.join(PUBLIC_DIR, 'index.html');
+    fs.readFile(fallbackPath, (err, content) => {
         if (err) {
             res.writeHead(500, { 'Content-Type': 'text/plain' });
             res.end('500 Server Fout');
             return;
         }
-        res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         res.end(content);
     });
 });

@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>TBS Kliniek v2 - Retro Virtuele Wereld</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Volter', 'Ubuntu', 'Segoe UI', Tahoma, sans-serif;
+    }
+    body {
+      background: #0a0d14;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      color: #fff;
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #1b2430 0%, #0d1117 80%, #05070a 100%);
+    }
+    canvas#stage {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: crosshair;
+    }
+
+    /* Top HUD */
+    .top-hud {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      display: flex;
+      gap: 10px;
+      z-index: 50;
+    }
+    .hud-chip {
+      background: rgba(18, 24, 38, 0.92);
+      border: 2px solid #2d384e;
+      border-radius: 6px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .hud-chip .badge {
+      background: #f59e0b;
+      color: #111;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .hud-chip.cash .badge {
+      background: #10b981;
+      color: #fff;
+    }
+    .hud-chip.smoke-active {
+      border-color: #10b981;
+      animation: pulseGlow 1.5s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 4px rgba(16, 185, 129, 0.4); }
+      to { box-shadow: 0 0 12px rgba(16, 185, 129, 0.8); }
+    }
+
+    /* Speech bubble layer */
+    #speech-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 40;
+    }
+    .speech-bubble {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      background: #ffffff;
+      color: #1e2430;
+      padding: 5px 12px 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+      border: 2px solid #2c384a;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      animation: popIn 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 7px 6px 0;
+      border-style: solid;
+      border-color: #2c384a transparent transparent;
+      display: block;
+      width: 0;
+    }
+    .speech-bubble .bubble-head {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f59e0b;
+      border: 1px solid #1e2430;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #111;
+    }
+    .speech-bubble.shout {
+      background: #fff8db;
+      font-weight: 800;
+      color: #854d0e;
+      border-color: #b45309;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: translate(-50%, -85%) scale(0.85); }
+      100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+    }
+
+    /* Bottom Classic Habbo Toolbar */
+    .habbo-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      background: linear-gradient(to bottom, #2b394f 0%, #1a2332 100%);
+      border-top: 2px solid #4a5c7a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 60;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
+    }
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .h-btn {
+      background: linear-gradient(to bottom, #3f5270 0%, #263346 100%);
+      border: 1px solid #5a7299;
+      border-bottom: 2px solid #121924;
+      border-radius: 5px;
+      color: #f1f5f9;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.08s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .h-btn:hover {
+      background: linear-gradient(to bottom, #4d6487 0%, #2e3e55 100%);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .h-btn:active {
+      transform: translateY(1px);
+      border-bottom-width: 1px;
+    }
+    .h-btn.active {
+      background: linear-gradient(to bottom, #10b981 0%, #047857 100%);
+      border-color: #34d399;
+      color: #fff;
+    }
+    .h-btn.gold {
+      background: linear-gradient(to bottom, #f59e0b 0%, #b45309 100%);
+      border-color: #fbbf24;
+      color: #111;
+    }
+
+    /* Chat input in toolbar center */
+    .toolbar-chat {
+      flex: 1;
+      max-width: 440px;
+      margin: 0 12px;
+      position: relative;
+    }
+    .toolbar-chat input {
+      width: 100%;
+      background: #0f1622;
+      border: 2px solid #3c4c66;
+      border-radius: 6px;
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 40px 8px 12px;
+      outline: none;
+      transition: border 0.15s ease;
+    }
+    .toolbar-chat input:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+    }
+    .toolbar-chat button {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      bottom: 4px;
+      background: #f59e0b;
+      border: none;
+      border-radius: 4px;
+      color: #111;
+      font-weight: 800;
+      padding: 0 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    /* Habbo Windows / Modals */
+    .h-window {
+      position: absolute;
+      background: #1e293b;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+      z-index: 70;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 320px;
+      animation: modalPop 0.15s ease-out;
+    }
+    .h-window.open {
+      display: flex;
+    }
+    @keyframes modalPop {
+      0% { opacity: 0; transform: scale(0.95); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .h-window-title {
+      background: linear-gradient(to bottom, #334155 0%, #1e293b 100%);
+      border-bottom: 2px solid #0f172a;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #f8fafc;
+    }
+    .h-window-title .close-btn {
+      background: #ef4444;
+      border: 1px solid #b91c1c;
+      color: #fff;
+      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      line-height: 18px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .h-window-body {
+      padding: 14px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    /* Kledingkast / Wardrobe Styles */
+    .wardrobe-container {
+      display: flex;
+      gap: 16px;
+    }
+    .wardrobe-preview {
+      width: 140px;
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 8px;
+    }
+    .wardrobe-preview canvas {
+      image-rendering: pixelated;
+      margin-bottom: 12px;
+    }
+    .wardrobe-tabs, .catalog-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #334155;
+      padding-bottom: 6px;
+      overflow-x: auto;
+    }
+    .w-tab, .c-tab {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .w-tab.active, .c-tab.active {
+      background: #f59e0b;
+      color: #111;
+      border-color: #fbbf24;
+    }
+    .clothing-grid, .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      max-height: 270px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .cloth-card, .catalog-card {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      transition: all 0.1s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .cloth-card:hover, .cloth-card.selected, .catalog-card:hover {
+      border-color: #f59e0b;
+      background: #1e293b;
+    }
+    .color-swatches {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: 2px solid #000;
+      cursor: pointer;
+    }
+    .swatch.selected {
+      border-color: #fff;
+      transform: scale(1.15);
+    }
+
+    /* Effects grid */
+    .effects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .effect-card {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 10px 6px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .effect-card:hover, .effect-card.active {
+      border-color: #10b981;
+      background: #192b3a;
+    }
+
+    /* Inventory drawer */
+    .inv-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      min-height: 120px;
+    }
+    .inv-item {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .inv-item:hover, .inv-item.selected {
+      border-color: #f59e0b;
+      background: #1e293b;
+    }
+
+    /* Navigator room list */
+    .nav-room {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .nav-room:hover {
+      border-color: #f59e0b;
+      background: #192339;
+    }
+
+    /* Command helper list */
+    .cmd-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-bottom: 6px;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .cmd-item:hover {
+      background: #1e293b;
+      border-color: #f59e0b;
+    }
+    .cmd-badge {
+      background: #f59e0b;
+      color: #111;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <!-- Top HUD -->
+    <div class="top-hud">
+      <div class="hud-chip">
+        <span class="badge" id="hud-online">1 ONLINE</span>
+        <span id="hud-room-name">Cel 104 (Blok A)</span>
+      </div>
+      <div class="hud-chip cash">
+        <span class="badge">€</span>
+        <span id="hud-cash">2.850 Contant</span>
+      </div>
+      <div class="hud-chip" id="hud-smoke-status">
+        <span class="badge" style="background:#10b981; color:#fff;">EFFECT</span>
+        <span id="smoke-status-text">Geen</span>
+      </div>
+    </div>
+
+    <!-- Speech bubble layer -->
+    <div id="speech-layer"></div>
+
+    <!-- Main Isometric Canvas -->
+    <canvas id="stage" width="1280" height="720"></canvas>
+
+    <!-- Bottom Toolbar -->
+    <div class="habbo-bar">
+      <div class="toolbar-left">
+        <button class="h-btn" onclick="toggleWindow('win-nav')">
+          <span>🏨</span> Kamers
+        </button>
+        <button class="h-btn gold" onclick="toggleWindow('win-catalog')">
+          <span>🛒</span> Bajes Winkel
+        </button>
+        <button class="h-btn" onclick="toggleWindow('win-inv')">
+          <span>📦</span> Hand
+        </button>
+        <button class="h-btn" onclick="toggleWindow('win-wardrobe')">
+          <span>👕</span> Kledingkast
+        </button>
+        <button class="h-btn" onclick="toggleWindow('win-effects')">
+          <span>✨</span> Effecten
+        </button>
+      </div>
+
+      <div class="toolbar-chat">
+        <input type="text" id="chat-input" placeholder="Typ :enable 2, :dance 1, :smoke of praat..." maxlength="120" autocomplete="off" />
+        <button id="chat-send">Zeg</button>
+      </div>
+
+      <div class="toolbar-right">
+        <button class="h-btn" id="btn-smoke" onclick="toggleSmoke()">
+          <span>💨</span> <span id="btn-smoke-label">Joint</span>
+        </button>
+        <button class="h-btn" id="btn-dance" onclick="cycleDance()">
+          <span>💃</span> <span id="btn-dance-label">Dans</span>
+        </button>
+        <button class="h-btn" id="btn-sit" onclick="toggleSit()">
+          <span>🪑</span> Zitten
+        </button>
+        <button class="h-btn" id="btn-lay" onclick="toggleLay()">
+          <span>🛏️</span> Liggen
+        </button>
+        <button class="h-btn" onclick="toggleWindow('win-commands')">
+          <span>⚡</span> Commands
+        </button>
+      </div>
+    </div>
+
+    <!-- WINDOW: Grote Catalogus / Bajes Winkel (met 4 categorieën) -->
+    <div class="h-window" id="win-catalog" style="top: 70px; left: 60px; width: 540px;">
+      <div class="h-window-title">
+        <span>🛒 TBS Zwarte Markt & Catalogus</span>
+        <span class="close-btn" onclick="toggleWindow('win-catalog')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <div class="catalog-tabs">
+          <button class="c-tab active" onclick="switchCatalogTab('cell')">🔒 Cel & Beveiliging</button>
+          <button class="c-tab" onclick="switchCatalogTab('smuggle')">🌿 Smokkelwaar</button>
+          <button class="c-tab" onclick="switchCatalogTab('recreation')">🥊 Binnenplaats & Sport</button>
+          <button class="c-tab" onclick="switchCatalogTab('cartel')">👑 Cartel & VIP</button>
+        </div>
+        <div class="catalog-grid" id="catalog-items"></div>
+      </div>
+    </div>
+
+    <!-- WINDOW: Effecten Kiezer (:enable) -->
+    <div class="h-window" id="win-effects" style="top: 80px; right: 80px; width: 400px;">
+      <div class="h-window-title">
+        <span>✨ Actieve Effecten (:enable)</span>
+        <span class="close-btn" onclick="toggleWindow('win-effects')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">
+          Kies een retro effect om rondom je avatar te activeren. Je kunt dit ook typen als <code>:enable 2</code> in de chat.
+        </p>
+        <div class="effects-grid" id="effects-list">
+          <div class="effect-card" onclick="setEffect(0)"><span>🚫</span><div>Geen Effect</div><small>:enable 0</small></div>
+          <div class="effect-card" onclick="setEffect(1)"><span>✨</span><div>Sparkle Sterren</div><small>:enable 1</small></div>
+          <div class="effect-card" onclick="setEffect(2)"><span>🔥</span><div>TBS Hellfire</div><small>:enable 2</small></div>
+          <div class="effect-card" onclick="setEffect(3)"><span>🌿</span><div>Wietrook Haze</div><small>:enable 3</small></div>
+          <div class="effect-card" onclick="setEffect(4)"><span>☢️</span><div>Giftige Gloed</div><small>:enable 4</small></div>
+          <div class="effect-card" onclick="setEffect(5)"><span>👑</span><div>Gouden Gangster</div><small>:enable 5</small></div>
+          <div class="effect-card" onclick="setEffect(6)"><span>👻</span><div>Spook Zweven</div><small>:enable 6</small></div>
+          <div class="effect-card" onclick="setEffect(102)"><span>⚡</span><div>TBS Bliksem</div><small>:enable 102</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WINDOW: Retro Commands Helper -->
+    <div class="h-window" id="win-commands" style="bottom: 70px; right: 40px; width: 340px;">
+      <div class="h-window-title">
+        <span>⚡ Retro Commando Lijst</span>
+        <span class="close-btn" onclick="toggleWindow('win-commands')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <div class="cmd-item" onclick="insertCommand(':enable 2')">
+          <span><strong>:enable [1-102]</strong> Activeer effect</span>
+          <span class="cmd-badge">Effect</span>
+        </div>
+        <div class="cmd-item" onclick="insertCommand(':dance 1')">
+          <span><strong>:dance [1-4]</strong> Start een dans</span>
+          <span class="cmd-badge">Dans</span>
+        </div>
+        <div class="cmd-item" onclick="insertCommand(':smoke')">
+          <span><strong>:smoke</strong> Steek een jointje op</span>
+          <span class="cmd-badge">Wiet</span>
+        </div>
+        <div class="cmd-item" onclick="insertCommand(':sit')">
+          <span><strong>:sit</strong> Ga op de vloer zitten</span>
+          <span class="cmd-badge">Pose</span>
+        </div>
+        <div class="cmd-item" onclick="insertCommand(':lay')">
+          <span><strong>:lay</strong> Ga op de grond liggen</span>
+          <span class="cmd-badge">Pose</span>
+        </div>
+        <div class="cmd-item" onclick="insertCommand(':push ')">
+          <span><strong>:push [speler]</strong> Duw een speler weg</span>
+          <span class="cmd-badge">Troll</span>
+        </div>
+        <div class="cmd-item" onclick="insertCommand(':pull ')">
+          <span><strong>:pull [speler]</strong> Trek een speler naar je toe</span>
+          <span class="cmd-badge">Troll</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WINDOW: Kledingkast & Paspop -->
+    <div class="h-window" id="win-wardrobe" style="top: 70px; left: 50%; transform: translateX(-50%); width: 560px;">
+      <div class="h-window-title">
+        <span>👕 TBS Kledingkast & Paspop</span>
+        <span class="close-btn" onclick="toggleWindow('win-wardrobe')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <div class="wardrobe-container">
+          <div class="wardrobe-preview">
+            <canvas id="mannequin" width="90" height="120"></canvas>
+            <button class="h-btn gold" style="width:100%; justify-content:center;" onclick="saveFigureChanges()">
+              Opslaan
+            </button>
+          </div>
+          <div style="flex:1;">
+            <div class="wardrobe-tabs">
+              <button class="w-tab active" onclick="switchWardrobeTab('hair')">Kapsel</button>
+              <button class="w-tab" onclick="switchWardrobeTab('acc')">Accessoires</button>
+              <button class="w-tab" onclick="switchWardrobeTab('torso')">Bovenkleding</button>
+              <button class="w-tab" onclick="switchWardrobeTab('legs')">Broek & Schoenen</button>
+            </div>
+            <div id="wardrobe-items" class="clothing-grid"></div>
+            <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:12px;">Kleur kiezen</div>
+            <div class="color-swatches" id="wardrobe-colors"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WINDOW: Inventaris / Hand -->
+    <div class="h-window" id="win-inv" style="bottom: 70px; left: 80px; width: 360px;">
+      <div class="h-window-title">
+        <span>📦 Mijn Hand (Inventaris)</span>
+        <span class="close-btn" onclick="toggleWindow('win-inv')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">
+          Klik op een meubelstuk en klik daarna op een tegel in de cel om het neer te zetten.
+        </p>
+        <div class="inv-list" id="inv-grid"></div>
+        <div id="place-helper" style="display:none; margin-top:10px; background:#0f172a; padding:8px; border-radius:4px; font-size:12px; color:#f59e0b;">
+          Actief meubel geselecteerd. Klik in de cel om te plaatsen of druk op R om te draaien.
+        </div>
+      </div>
+    </div>
+
+    <!-- WINDOW: Kamers / Navigator -->
+    <div class="h-window" id="win-nav" style="top: 80px; right: 60px; width: 380px;">
+      <div class="h-window-title">
+        <span>🏨 TBS Navigator</span>
+        <span class="close-btn" onclick="toggleWindow('win-nav')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <div class="nav-room" onclick="switchRoom('cel-104')">
+          <div>
+            <strong style="font-size:13px;">🔒 Cel 104 (Blok A)</strong>
+            <div style="font-size:11px; color:#94a3b8;">Isolatie en basisverblijf</div>
+          </div>
+          <span style="font-size:11px; background:#10b981; color:#fff; padding:2px 8px; border-radius:10px;">Open</span>
+        </div>
+        <div class="nav-room" onclick="switchRoom('luchtplaats')">
+          <div>
+            <strong style="font-size:13px;">☀️ De Luchtplaats</strong>
+            <div style="font-size:11px; color:#94a3b8;">Buitenlucht, basketbal, jointjes roken</div>
+          </div>
+          <span style="font-size:11px; background:#f59e0b; color:#111; padding:2px 8px; border-radius:10px; font-weight:700;">Druk</span>
+        </div>
+        <div class="nav-room" onclick="switchRoom('kantine')">
+          <div>
+            <strong style="font-size:13px;">🍽️ Gevangenis Kantine</strong>
+            <div style="font-size:11px; color:#94a3b8;">Eetzaal en ontmoetingsplek</div>
+          </div>
+          <span style="font-size:11px; background:#64748b; color:#fff; padding:2px 8px; border-radius:10px;">Rustig</span>
+        </div>
+        <div class="nav-room" onclick="switchRoom('kelder')">
+          <div>
+            <strong style="font-size:13px;">💀 Cartel Kelder (VIP)</strong>
+            <div style="font-size:11px; color:#94a3b8;">Geheim smokkelhol van de bende</div>
+          </div>
+          <span style="font-size:11px; background:#ef4444; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700;">Geheim</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       TBS KLINIEK V2 - VOLLEDIGE RETRO BASIS MET MEUBELS, ENABLE & COMMANDS
+       ========================================================================== */
+
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    const mannequinCanvas = document.getElementById('mannequin');
+    const mCtx = mannequinCanvas.getContext('2d');
+    const speechLayer = document.getElementById('speech-layer');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - 54;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const TILE_W = 64;
+    const TILE_H = 32;
+    const GRID_COLS = 12;
+    const GRID_ROWS = 12;
+    const FLOOR_ELEVATION = 14;
+
+    let myId = 'user_' + Math.floor(Math.random() * 9000 + 1000);
+    let myName = 'Inmate_' + myId.slice(-4);
+    let myCash = 2850;
+
+    let myFigure = {
+      hair: 'short',
+      hairColor: '#3e2723',
+      skinColor: '#ffd1a4',
+      shirt: 'inmate_orange',
+      pants: 'inmate_orange',
+      shoes: 'black_boots',
+      accessory: 'joint'
+    };
+
+    let previewFigure = JSON.parse(JSON.stringify(myFigure));
+    let activeWardrobeTab = 'hair';
+    let activeCatalogTab = 'cell';
+
+    let me = {
+      id: myId,
+      name: myName,
+      x: 4,
+      y: 4,
+      targetX: 4,
+      targetY: 4,
+      facing: 2,
+      state: 'idle', // idle, walk, sit, lay, wave, dance
+      danceId: 0,
+      effectId: 0,
+      walkProgress: 1,
+      waveTimer: 0,
+      figure: myFigure,
+      isSmoking: false
+    };
+
+    let users = new Map();
+    users.set(myId, me);
+
+    let smokeParticles = [];
+    let effectParticles = [];
+
+    // Grote Catalogus met 4 Categorieën en 20+ TBS Items
+    const CATALOG_DATABASE = {
+      cell: [
+        { id: 'bed_prison', name: 'Stalen Celbed', price: 180, icon: '🛏️', desc: 'Metalen frame met matras' },
+        { id: 'toilet_steel', name: 'RVS Toilet', price: 210, icon: '🚽', desc: 'Roestvrij bajes sanitair' },
+        { id: 'stool_prison', name: 'Bajeskruk', price: 45, icon: '🪑', desc: 'Vastgeschroefd' },
+        { id: 'bars_gate', name: 'Tralie Hekwerk', price: 190, icon: '⛓️', desc: 'Zwaar stalen tralies' },
+        { id: 'cam_security', name: 'Bewakingscamera', price: 280, icon: '📹', desc: 'CCTV lens met rood ledje' },
+        { id: 'neon_prison', name: 'Knipperend Neon', price: 95, icon: '💡', desc: 'Koude witte tl-buis' }
+      ],
+      smuggle: [
+        { id: 'weed_plant', name: 'Wietplant Lamp', price: 450, icon: '🌿', desc: 'Groene plant onder paars groeilicht' },
+        { id: 'smuggle_crate', name: 'Smokkelkist', price: 350, icon: '📦', desc: 'Verborgen vak voor buit' },
+        { id: 'pack_cigarettes', name: 'Slof Sigaretten', price: 120, icon: '🚬', desc: 'Bajes betaalmiddel' },
+        { id: 'prison_shank', name: 'Handgemaakte Shank', price: 290, icon: '🔪', desc: 'Verborgen zelfverdediging' },
+        { id: 'smuggle_phone', name: 'Burner Telefoon', price: 650, icon: '📱', desc: 'Contact met de buitenwereld' },
+        { id: 'weed_baggies', name: 'Zakjes Wiet', price: 160, icon: '🍃', desc: 'Handel voor de luchtplaats' }
+      ],
+      recreation: [
+        { id: 'punching_bag', name: 'Lederen Bokszak', price: 420, icon: '🥊', desc: 'Om je conditie te trainen' },
+        { id: 'table_canteen', name: 'Metalen Eettafel', price: 120, icon: '🪵', desc: 'Stevige kantinetafel' },
+        { id: 'bench_press', name: 'Halterbank', price: 520, icon: '🏋️', desc: 'Pomp je spieren op' },
+        { id: 'basket_hoop', name: 'Basketbalring', price: 380, icon: '🏀', desc: 'Voor op het plein' },
+        { id: 'vending_machine', name: 'Frisdrank Automaat', price: 750, icon: '🥤', desc: 'Koude blikjes fris' }
+      ],
+      cartel: [
+        { id: 'boss_throne', name: 'Gouden Troon', price: 1200, icon: '👑', desc: 'Alleen voor de baas' },
+        { id: 'leather_armchair', name: 'Cartel Fauteuil', price: 600, icon: '🛋️', desc: 'Dieprood leer' },
+        { id: 'vault_safe', name: 'Zware Kluis', price: 850, icon: '🗄️', desc: 'Veilige opslag' },
+        { id: 'cash_stacks', name: 'Stapels Contant', price: 500, icon: '💵', desc: 'Witwassen maar' }
+      ]
+    };
+
+    const WARDROBE_DATA = {
+      hair: [
+        { id: 'short', name: 'Gemillimeterd', icon: '💇' },
+        { id: 'quiff', name: 'Bajes Kuif', icon: '👨' },
+        { id: 'braids', name: 'Vlechten', icon: '🧔' },
+        { id: 'bald', name: 'Kaalgeschoren', icon: '👨‍🦲' },
+        { id: 'durag', name: 'Zwarte Durag', icon: '🥷' },
+        { id: 'beanie', name: 'Grijze Beanie', icon: '🧢' },
+        { id: 'guard_cap', name: 'Bewakerspet', icon: '👮' }
+      ],
+      acc: [
+        { id: 'joint', name: 'Wiet Jointje', icon: '🚬' },
+        { id: 'cigar', name: 'Bazen Sigaar', icon: '🪵' },
+        { id: 'glasses', name: 'Cartel Zonnebril', icon: '🕶️' },
+        { id: 'scar', name: 'Bajes Litteken', icon: '🩹' },
+        { id: 'tattoo', name: 'Traantje Tattoo', icon: '💧' },
+        { id: 'none', name: 'Geen Accessoire', icon: '❌' }
+      ],
+      torso: [
+        { id: 'inmate_orange', name: 'TBS Oranje Overall', icon: '🦺' },
+        { id: 'hoodie_black', name: 'Zwarte Hoodie', icon: '🧥' },
+        { id: 'tank_white', name: 'Wit Hemd Tanktop', icon: '🎽' },
+        { id: 'track_grey', name: 'Grijs Trainingsjack', icon: '👕' },
+        { id: 'guard_uniform', name: 'Bewakers Uniform', icon: '👮‍♂️' },
+        { id: 'doctor_coat', name: 'Witte Doktersjas', icon: '🥼' }
+      ],
+      legs: [
+        { id: 'inmate_orange', name: 'TBS Oranje Broek', icon: '👖' },
+        { id: 'sweat_grey', name: 'Grijze Trainingsbroek', icon: '🩳' },
+        { id: 'jeans_black', name: 'Zwarte Spijkerbroek', icon: '👖' },
+        { id: 'guard_pants', name: 'Blauwe Uniformbroek', icon: '👖' }
+      ]
+    };
+
+    const COLOR_PALETTES = {
+      hair: ['#1e293b', '#3e2723', '#b45309', '#f59e0b', '#dc2626', '#e2e8f0'],
+      skin: ['#ffe0bd', '#ffd1a4', '#d19263', '#8d5524', '#4a2c11'],
+      clothing: ['#f97316', '#0f172a', '#3b82f6', '#10b981', '#dc2626', '#64748b', '#ffffff']
+    };
+
+    let myInventory = [
+      { id: 'inv_1', type: 'stool_prison', name: 'Bajeskruk' },
+      { id: 'inv_2', type: 'smuggle_crate', name: 'Smokkelkist' },
+      { id: 'inv_3', type: 'weed_plant', name: 'Wietplant Lamp' }
+    ];
+
+    let furniture = [
+      { id: 'f_bed', type: 'bed_prison', x: 1, y: 1, rot: 0 },
+      { id: 'f_toilet', type: 'toilet_steel', x: 1, y: 6, rot: 0 },
+      { id: 'f_table', type: 'table_canteen', x: 5, y: 4, rot: 0 },
+      { id: 'f_stool1', type: 'stool_prison', x: 5, y: 3, rot: 0 },
+      { id: 'f_stool2', type: 'stool_prison', x: 6, y: 3, rot: 0 },
+      { id: 'f_crate', type: 'smuggle_crate', x: 9, y: 1, rot: 0 },
+      { id: 'f_punch', type: 'punching_bag', x: 9, y: 9, rot: 0 }
+    ];
+
+    let selectedPlaceItem = null;
+    let selectedPlacementRotation = 0;
+
+    // WebSocket verbinding
+    let ws = null;
+    function connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${proto}//${location.host}`);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: 'join',
+          playerName: me.name,
+          isSmoking: me.isSmoking,
+          figure: me.figure
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleServerMessage(msg);
+        } catch (e) {
+          console.error('WS parse error', e);
+        }
+      };
+
+      ws.onclose = () => {
+        setTimeout(connectWS, 2500);
+      };
+    }
+
+    function handleServerMessage(msg) {
+      if (msg.type === 'room_state') {
+        msg.players.forEach(p => {
+          if (p.id !== me.id) {
+            users.set(p.id, {
+              id: p.id,
+              name: p.name,
+              x: p.x,
+              y: p.y,
+              targetX: p.x,
+              targetY: p.y,
+              facing: p.direction || 2,
+              state: p.isSitting ? 'sit' : (p.isLying ? 'lay' : 'idle'),
+              danceId: p.danceId || 0,
+              effectId: p.effectId || 0,
+              walkProgress: 1,
+              waveTimer: 0,
+              figure: p.figure || myFigure,
+              isSmoking: p.isSmoking || false
+            });
+          }
+        });
+        updateOnlineCount();
+      } else if (msg.type === 'player_join') {
+        const p = msg.player;
+        if (p.id !== me.id) {
+          users.set(p.id, {
+            id: p.id,
+            name: p.name,
+            x: p.x,
+            y: p.y,
+            targetX: p.x,
+            targetY: p.y,
+            facing: p.direction || 2,
+            state: 'idle',
+            danceId: 0,
+            effectId: 0,
+            walkProgress: 1,
+            waveTimer: 0,
+            figure: p.figure || myFigure,
+            isSmoking: p.isSmoking || false
+          });
+        }
+        updateOnlineCount();
+      } else if (msg.type === 'player_leave') {
+        users.delete(msg.playerId);
+        updateOnlineCount();
+      } else if (msg.type === 'player_move') {
+        const u = users.get(msg.playerId);
+        if (u) {
+          u.targetX = msg.x;
+          u.targetY = msg.y;
+          u.walkProgress = 0;
+          u.facing = msg.direction || u.facing;
+          u.state = 'walk';
+        }
+      } else if (msg.type === 'player_chat') {
+        showSpeechBubble(msg.playerId, msg.name, msg.text);
+      } else if (msg.type === 'player_effect') {
+        const u = users.get(msg.playerId);
+        if (u) u.effectId = msg.effectId;
+      } else if (msg.type === 'player_dance') {
+        const u = users.get(msg.playerId);
+        if (u) {
+          u.danceId = msg.danceId;
+          u.state = msg.danceId > 0 ? 'dance' : 'idle';
+        }
+      } else if (msg.type === 'player_sit') {
+        const u = users.get(msg.playerId);
+        if (u) u.state = msg.isSitting ? 'sit' : 'idle';
+      } else if (msg.type === 'player_lay') {
+        const u = users.get(msg.playerId);
+        if (u) u.state = msg.isLying ? 'lay' : 'idle';
+      } else if (msg.type === 'player_smoke') {
+        const u = users.get(msg.playerId);
+        if (u) u.isSmoking = msg.isSmoking;
+      } else if (msg.type === 'player_figure') {
+        const u = users.get(msg.playerId);
+        if (u) {
+          u.figure = msg.figure;
+          u.isSmoking = msg.isSmoking;
+        }
+      }
+    }
+
+    function updateOnlineCount() {
+      const el = document.getElementById('hud-online');
+      if (el) el.innerText = `${users.size} ONLINE`;
+    }
+
+    // Coord transformaties
+    function gridToScreen(gx, gy) {
+      const originX = canvas.width / 2;
+      const originY = 160;
+      const sx = originX + (gx - gy) * (TILE_W / 2);
+      const sy = originY + (gx + gy) * (TILE_H / 2);
+      return { x: sx, y: sy };
+    }
+
+    function screenToGrid(sx, sy) {
+      const originX = canvas.width / 2;
+      const originY = 160;
+      const dx = sx - originX;
+      const dy = sy - originY;
+      const gx = Math.floor((dx / (TILE_W / 2) + dy / (TILE_H / 2)) / 2);
+      const gy = Math.floor((dy / (TILE_H / 2) - dx / (TILE_W / 2)) / 2);
+      return { x: gx, y: gy };
+    }
+
+    // Input handling
+    let hoverTile = null;
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const g = screenToGrid(mouseX, mouseY);
+      if (g.x >= 0 && g.x < GRID_COLS && g.y >= 0 && g.y < GRID_ROWS) {
+        hoverTile = g;
+      } else {
+        hoverTile = null;
+      }
+    });
+
+    canvas.addEventListener('click', (e) => {
+      if (selectedPlaceItem && hoverTile) {
+        placeFurniAt(hoverTile.x, hoverTile.y);
+        return;
+      }
+
+      if (hoverTile) {
+        moveToTile(hoverTile.x, hoverTile.y);
+      }
+    });
+
+    function moveToTile(tx, ty) {
+      me.targetX = tx;
+      me.targetY = ty;
+      me.state = 'walk';
+      me.danceId = 0;
+      me.walkProgress = 0;
+
+      const dx = tx - me.x;
+      const dy = ty - me.y;
+      if (dx > 0 && dy === 0) me.facing = 2;
+      else if (dx < 0 && dy === 0) me.facing = 6;
+      else if (dx === 0 && dy > 0) me.facing = 4;
+      else if (dx === 0 && dy < 0) me.facing = 0;
+      else if (dx > 0 && dy > 0) me.facing = 3;
+      else if (dx < 0 && dy > 0) me.facing = 5;
+      else if (dx > 0 && dy < 0) me.facing = 1;
+      else if (dx < 0 && dy < 0) me.facing = 7;
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'move',
+          x: tx,
+          y: ty,
+          direction: me.facing
+        }));
+      }
+    }
+
+    // Retro Actions (:enable, :dance, :smoke, :sit, :lay)
+    function setEffect(effectId) {
+      me.effectId = effectId;
+      const names = {
+        0: 'Geen',
+        1: 'Sparkles',
+        2: 'TBS Hellfire 🔥',
+        3: 'Wietwalm 🌿',
+        4: 'Giftig ☢️',
+        5: 'Goud 👑',
+        6: 'Spook 👻',
+        102: 'Bliksem ⚡'
+      };
+      document.getElementById('smoke-status-text').innerText = names[effectId] || `Effect #${effectId}`;
+      toggleWindow('win-effects');
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'chat',
+          text: `:enable ${effectId}`
+        }));
+      }
+    }
+
+    function cycleDance() {
+      me.danceId = (me.danceId + 1) % 5;
+      me.state = me.danceId > 0 ? 'dance' : 'idle';
+      const label = document.getElementById('btn-dance-label');
+      const btn = document.getElementById('btn-dance');
+      if (me.danceId > 0) {
+        btn.classList.add('active');
+        label.innerText = `Dans ${me.danceId}`;
+      } else {
+        btn.classList.remove('active');
+        label.innerText = 'Dans';
+      }
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'chat',
+          text: `:dance ${me.danceId}`
+        }));
+      }
+    }
+
+    function toggleSit() {
+      me.state = (me.state === 'sit') ? 'idle' : 'sit';
+      me.danceId = 0;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'chat',
+          text: ':sit'
+        }));
+      }
+    }
+
+    function toggleLay() {
+      me.state = (me.state === 'lay') ? 'idle' : 'lay';
+      me.danceId = 0;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'chat',
+          text: ':lay'
+        }));
+      }
+    }
+
+    function toggleSmoke() {
+      me.isSmoking = !me.isSmoking;
+      const btn = document.getElementById('btn-smoke');
+      const label = document.getElementById('btn-smoke-label');
+      if (me.isSmoking) {
+        btn.classList.add('active');
+        label.innerText = 'Stoppen';
+      } else {
+        btn.classList.remove('active');
+        label.innerText = 'Joint';
+      }
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'chat',
+          text: ':smoke'
+        }));
+      }
+    }
+
+    function insertCommand(cmd) {
+      chatInput.value = cmd;
+      chatInput.focus();
+      toggleWindow('win-commands');
+    }
+
+    // Chat handling
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+
+    function sendChatMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      chatInput.value = '';
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'chat',
+          text: text
+        }));
+      }
+
+      // Toon bubble lokaal als het geen commando is
+      if (!text.startsWith(':') && !text.startsWith('/')) {
+        showSpeechBubble(me.id, me.name, text);
+      }
+    }
+
+    chatSend.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendChatMessage();
+    });
+
+    function showSpeechBubble(userId, userName, text) {
+      const bubble = document.createElement('div');
+      bubble.className = 'speech-bubble';
+      bubble.innerHTML = `
+        <div class="bubble-head">${userName.charAt(0)}</div>
+        <div><strong>${userName}:</strong> ${escapeHtml(text)}</div>
+      `;
+      speechLayer.appendChild(bubble);
+
+      const track = () => {
+        const u = users.get(userId);
+        if (!u) {
+          bubble.remove();
+          return;
+        }
+        const pos = gridToScreen(u.x, u.y);
+        bubble.style.left = `${pos.x}px`;
+        bubble.style.top = `${pos.y - 74}px`;
+      };
+      track();
+
+      const interval = setInterval(track, 1000 / 30);
+      setTimeout(() => {
+        clearInterval(interval);
+        bubble.style.transition = 'opacity 0.4s ease';
+        bubble.style.opacity = '0';
+        setTimeout(() => bubble.remove(), 400);
+      }, 5000);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Catalogus Logica
+    function switchCatalogTab(tab) {
+      activeCatalogTab = tab;
+      document.querySelectorAll('.c-tab').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderCatalogGrid();
+    }
+
+    function renderCatalogGrid() {
+      const container = document.getElementById('catalog-items');
+      container.innerHTML = '';
+      const items = CATALOG_DATABASE[activeCatalogTab] || [];
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'catalog-card';
+        card.innerHTML = `
+          <div style="font-size:28px; margin-bottom:4px;">${item.icon}</div>
+          <div style="font-size:12px; font-weight:800; color:#f1f5f9; margin-bottom:2px;">${item.name}</div>
+          <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">${item.desc}</div>
+          <div style="font-size:11px; font-weight:800; color:#10b981; margin-bottom:6px;">€ ${item.price}</div>
+          <button class="h-btn gold" style="width:100%; justify-content:center; padding:4px;" onclick="buyItem('${item.id}')">Kopen</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function buyItem(itemId) {
+      let found = null;
+      for (let cat in CATALOG_DATABASE) {
+        const f = CATALOG_DATABASE[cat].find(i => i.id === itemId);
+        if (f) { found = f; break; }
+      }
+      if (!found) return;
+
+      if (myCash < found.price) {
+        alert('Je hebt niet genoeg contant geld op zak!');
+        return;
+      }
+
+      myCash -= found.price;
+      document.getElementById('hud-cash').innerText = `${myCash.toLocaleString()} Contant`;
+      myInventory.push({
+        id: 'inv_' + Date.now(),
+        type: found.id,
+        name: found.name
+      });
+      alert(`${found.name} gekocht en in je Hand geplaatst!`);
+      toggleWindow('win-inv');
+    }
+
+    // Kledingkast / Wardrobe Logica
+    function switchWardrobeTab(tabKey) {
+      activeWardrobeTab = tabKey;
+      document.querySelectorAll('.w-tab').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderWardrobeItems();
+      renderColorSwatches();
+    }
+
+    function renderWardrobeItems() {
+      const container = document.getElementById('wardrobe-items');
+      container.innerHTML = '';
+      const items = WARDROBE_DATA[activeWardrobeTab] || [];
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'cloth-card';
+        if (activeWardrobeTab === 'hair' && previewFigure.hair === item.id) div.classList.add('selected');
+        if (activeWardrobeTab === 'acc' && previewFigure.accessory === item.id) div.classList.add('selected');
+        if (activeWardrobeTab === 'torso' && previewFigure.shirt === item.id) div.classList.add('selected');
+        if (activeWardrobeTab === 'legs' && previewFigure.pants === item.id) div.classList.add('selected');
+
+        div.innerHTML = `
+          <div style="font-size:22px; margin-bottom:4px;">${item.icon}</div>
+          <div>${item.name}</div>
+        `;
+        div.onclick = () => {
+          if (activeWardrobeTab === 'hair') previewFigure.hair = item.id;
+          if (activeWardrobeTab === 'acc') previewFigure.accessory = item.id;
+          if (activeWardrobeTab === 'torso') previewFigure.shirt = item.id;
+          if (activeWardrobeTab === 'legs') previewFigure.pants = item.id;
+          renderWardrobeItems();
+          renderMannequin();
+        };
+        container.appendChild(div);
+      });
+    }
+
+    function renderColorSwatches() {
+      const container = document.getElementById('wardrobe-colors');
+      container.innerHTML = '';
+      let palette = COLOR_PALETTES.clothing;
+      if (activeWardrobeTab === 'hair') palette = COLOR_PALETTES.hair;
+
+      palette.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'swatch';
+        swatch.style.background = color;
+        if (activeWardrobeTab === 'hair' && previewFigure.hairColor === color) swatch.classList.add('selected');
+
+        swatch.onclick = () => {
+          if (activeWardrobeTab === 'hair') previewFigure.hairColor = color;
+          renderColorSwatches();
+          renderMannequin();
+        };
+        container.appendChild(swatch);
+      });
+    }
+
+    function renderMannequin() {
+      mCtx.clearRect(0, 0, mannequinCanvas.width, mannequinCanvas.height);
+      const dummy = {
+        name: '',
+        x: 0,
+        y: 0,
+        facing: 2,
+        state: 'idle',
+        figure: previewFigure,
+        isSmoking: previewFigure.accessory === 'joint' || previewFigure.accessory === 'cigar'
+      };
+      drawFigureAt(mCtx, 45, 100, dummy, false);
+    }
+
+    function saveFigureChanges() {
+      myFigure = JSON.parse(JSON.stringify(previewFigure));
+      me.figure = myFigure;
+      toggleWindow('win-wardrobe');
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'update_figure',
+          figure: myFigure,
+          isSmoking: me.isSmoking
+        }));
+      }
+      alert('Nieuwe outfit opgeslagen!');
+    }
+
+    // Windows
+    function toggleWindow(winId) {
+      const win = document.getElementById(winId);
+      if (!win) return;
+      if (win.classList.contains('open')) {
+        win.classList.remove('open');
+      } else {
+        win.classList.add('open');
+        if (winId === 'win-catalog') renderCatalogGrid();
+        if (winId === 'win-inv') renderInventoryGrid();
+        if (winId === 'win-wardrobe') {
+          previewFigure = JSON.parse(JSON.stringify(me.figure));
+          renderWardrobeItems();
+          renderColorSwatches();
+          renderMannequin();
+        }
+      }
+    }
+
+    function renderInventoryGrid() {
+      const container = document.getElementById('inv-grid');
+      container.innerHTML = '';
+      if (myInventory.length === 0) {
+        container.innerHTML = '<div style="grid-column: span 3; color:#64748b; font-size:12px; text-align:center; padding:20px;">Je Hand is leeg.</div>';
+        return;
+      }
+      myInventory.forEach(item => {
+        let icon = '📦';
+        for (let cat in CATALOG_DATABASE) {
+          const f = CATALOG_DATABASE[cat].find(i => i.id === item.type);
+          if (f) { icon = f.icon; break; }
+        }
+
+        const div = document.createElement('div');
+        div.className = 'inv-item' + (selectedPlaceItem && selectedPlaceItem.id === item.id ? ' selected' : '');
+        div.innerHTML = `
+          <div style="font-size:24px; margin-bottom:4px;">${icon}</div>
+          <div style="font-size:11px; font-weight:700;">${item.name}</div>
+        `;
+        div.onclick = () => {
+          selectedPlaceItem = item;
+          document.getElementById('place-helper').style.display = 'block';
+          renderInventoryGrid();
+        };
+        container.appendChild(div);
+      });
+    }
+
+    function placeFurniAt(gx, gy) {
+      if (!selectedPlaceItem) return;
+      const newFurni = {
+        id: 'f_' + Date.now(),
+        type: selectedPlaceItem.type,
+        x: gx,
+        y: gy,
+        rot: selectedPlacementRotation
+      };
+      furniture.push(newFurni);
+      const idx = myInventory.findIndex(i => i.id === selectedPlaceItem.id);
+      if (idx !== -1) myInventory.splice(idx, 1);
+      selectedPlaceItem = null;
+      document.getElementById('place-helper').style.display = 'none';
+      renderInventoryGrid();
+    }
+
+    function switchRoom(roomKey) {
+      const names = {
+        'cel-104': 'Cel 104 (Blok A)',
+        'luchtplaats': 'De Luchtplaats (Buiten)',
+        'kantine': 'Gevangenis Kantine',
+        'kelder': 'Cartel Kelder (VIP)'
+      };
+      document.getElementById('hud-room-name').innerText = names[roomKey] || 'TBS Kamer';
+      toggleWindow('win-nav');
+
+      if (roomKey === 'luchtplaats') {
+        furniture = [
+          { id: 'f_punch1', type: 'punching_bag', x: 2, y: 2, rot: 0 },
+          { id: 'f_bench', type: 'bench_press', x: 2, y: 5, rot: 0 },
+          { id: 'f_table1', type: 'table_canteen', x: 6, y: 6, rot: 0 },
+          { id: 'f_weed', type: 'weed_plant', x: 9, y: 2, rot: 0 }
+        ];
+      } else {
+        furniture = [
+          { id: 'f_bed', type: 'bed_prison', x: 1, y: 1, rot: 0 },
+          { id: 'f_toilet', type: 'toilet_steel', x: 1, y: 6, rot: 0 },
+          { id: 'f_table', type: 'table_canteen', x: 5, y: 4, rot: 0 },
+          { id: 'f_crate', type: 'smuggle_crate', x: 9, y: 1, rot: 0 }
+        ];
+      }
+      me.x = 4;
+      me.y = 4;
+      me.targetX = 4;
+      me.targetY = 4;
+    }
+
+    // Render loop
+    let animFrame = 0;
+    function render() {
+      animFrame++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      users.forEach(u => {
+        if (u.state === 'walk') {
+          u.walkProgress += 0.08;
+          if (u.walkProgress >= 1) {
+            u.walkProgress = 1;
+            u.x = u.targetX;
+            u.y = u.targetY;
+            u.state = 'idle';
+          } else {
+            u.x += (u.targetX - u.x) * 0.15;
+            u.y += (u.targetY - u.y) * 0.15;
+          }
+        }
+
+        // Rookpartikels spawnen
+        if (u.isSmoking && Math.random() < 0.3) {
+          const p = gridToScreen(u.x, u.y);
+          smokeParticles.push({
+            x: p.x + 4,
+            y: p.y - 48,
+            vx: (Math.random() - 0.5) * 0.4 + 0.2,
+            vy: -0.8 - Math.random() * 0.6,
+            radius: 2 + Math.random() * 2,
+            alpha: 0.8,
+            life: 60
+          });
+        }
+      });
+
+      drawWalls();
+      drawFloorRim();
+      drawFloorTiles();
+
+      if (hoverTile) {
+        drawTileHighlight(hoverTile.x, hoverTile.y, selectedPlaceItem ? '#f59e0b' : '#38bdf8');
+      }
+
+      drawDepthSortedEntities();
+      updateAndDrawSmoke();
+
+      requestAnimationFrame(render);
+    }
+
+    function updateAndDrawSmoke() {
+      for (let i = smokeParticles.length - 1; i >= 0; i--) {
+        const s = smokeParticles[i];
+        s.x += s.vx;
+        s.y += s.vy;
+        s.radius += 0.08;
+        s.alpha -= 0.012;
+        s.life--;
+
+        if (s.life <= 0 || s.alpha <= 0) {
+          smokeParticles.splice(i, 1);
+          continue;
+        }
+
+        ctx.fillStyle = `rgba(220, 225, 235, ${s.alpha})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawWalls() {
+      const topCorner = gridToScreen(0, 0);
+      const leftCorner = gridToScreen(0, GRID_ROWS);
+      const rightCorner = gridToScreen(GRID_COLS, 0);
+      const wallHeight = 130;
+
+      // NW Wall
+      ctx.fillStyle = '#2d3a4d';
+      ctx.beginPath();
+      ctx.moveTo(topCorner.x, topCorner.y - wallHeight);
+      ctx.lineTo(leftCorner.x, leftCorner.y - wallHeight);
+      ctx.lineTo(leftCorner.x, leftCorner.y);
+      ctx.lineTo(topCorner.x, topCorner.y);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#222c3b';
+      ctx.lineWidth = 1;
+      for (let y = topCorner.y - wallHeight; y < topCorner.y; y += 18) {
+        ctx.beginPath();
+        ctx.moveTo(topCorner.x, y);
+        ctx.lineTo(leftCorner.x, y + (leftCorner.y - topCorner.y));
+        ctx.stroke();
+      }
+
+      // Tralieraam
+      const winX = topCorner.x - 90;
+      const winY = topCorner.y - 65;
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(winX, winY, 60, 40);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(winX, winY, 60, 40);
+      for (let bx = winX + 12; bx < winX + 60; bx += 12) {
+        ctx.beginPath();
+        ctx.moveTo(bx, winY);
+        ctx.lineTo(bx, winY + 40);
+        ctx.stroke();
+      }
+
+      // NE Wall
+      ctx.fillStyle = '#212a38';
+      ctx.beginPath();
+      ctx.moveTo(topCorner.x, topCorner.y - wallHeight);
+      ctx.lineTo(rightCorner.x, rightCorner.y - wallHeight);
+      ctx.lineTo(rightCorner.x, rightCorner.y);
+      ctx.lineTo(topCorner.x, topCorner.y);
+      ctx.closePath();
+      ctx.fill();
+
+      for (let y = topCorner.y - wallHeight; y < topCorner.y; y += 18) {
+        ctx.beginPath();
+        ctx.moveTo(topCorner.x, y);
+        ctx.lineTo(rightCorner.x, y + (rightCorner.y - topCorner.y));
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = '#151c27';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(leftCorner.x, leftCorner.y);
+      ctx.lineTo(topCorner.x, topCorner.y);
+      ctx.lineTo(rightCorner.x, rightCorner.y);
+      ctx.stroke();
+    }
+
+    function drawFloorRim() {
+      const leftCorner = gridToScreen(0, GRID_ROWS);
+      const bottomCorner = gridToScreen(GRID_COLS, GRID_ROWS);
+      const rightCorner = gridToScreen(GRID_COLS, 0);
+
+      ctx.fillStyle = '#141a24';
+      ctx.beginPath();
+      ctx.moveTo(leftCorner.x, leftCorner.y);
+      ctx.lineTo(bottomCorner.x, bottomCorner.y);
+      ctx.lineTo(bottomCorner.x, bottomCorner.y + FLOOR_ELEVATION);
+      ctx.lineTo(leftCorner.x, leftCorner.y + FLOOR_ELEVATION);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#1e2634';
+      ctx.beginPath();
+      ctx.moveTo(bottomCorner.x, bottomCorner.y);
+      ctx.lineTo(rightCorner.x, rightCorner.y);
+      ctx.lineTo(rightCorner.x, rightCorner.y + FLOOR_ELEVATION);
+      ctx.lineTo(bottomCorner.x, bottomCorner.y + FLOOR_ELEVATION);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#0d1118';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    function drawFloorTiles() {
+      for (let gx = 0; gx < GRID_COLS; gx++) {
+        for (let gy = 0; gy < GRID_ROWS; gy++) {
+          const p = gridToScreen(gx, gy);
+          const isEven = (gx + gy) % 2 === 0;
+
+          ctx.fillStyle = isEven ? '#334155' : '#273444';
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x + TILE_W / 2, p.y + TILE_H / 2);
+          ctx.lineTo(p.x, p.y + TILE_H);
+          ctx.lineTo(p.x - TILE_W / 2, p.y + TILE_H / 2);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = '#1e2837';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawTileHighlight(gx, gy, color) {
+      const p = gridToScreen(gx, gy);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + TILE_W / 2, p.y + TILE_H / 2);
+      ctx.lineTo(p.x, p.y + TILE_H);
+      ctx.lineTo(p.x - TILE_W / 2, p.y + TILE_H / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function drawDepthSortedEntities() {
+      let renderList = [];
+
+      furniture.forEach(f => {
+        renderList.push({ type: 'furni', data: f, depth: f.x + f.y });
+      });
+
+      users.forEach(u => {
+        renderList.push({ type: 'user', data: u, depth: u.x + u.y + 0.1 });
+      });
+
+      renderList.sort((a, b) => a.depth - b.depth);
+
+      renderList.forEach(item => {
+        if (item.type === 'furni') {
+          drawFurni(item.data);
+        } else {
+          drawAvatar(item.data);
+        }
+      });
+    }
+
+    function drawFurni(f) {
+      const p = gridToScreen(f.x, f.y);
+      const cx = p.x;
+      const cy = p.y + TILE_H / 2;
+
+      ctx.save();
+      if (f.type === 'bed_prison') {
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(cx - 24, cy - 20, 48, 18);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 22, cy - 24, 44, 8);
+        ctx.fillStyle = '#ea580c';
+        ctx.fillRect(cx - 10, cy - 25, 30, 8);
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(cx - 20, cy - 26, 10, 6);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 24, cy - 4, 3, 6);
+        ctx.fillRect(cx + 21, cy - 4, 3, 6);
+      } else if (f.type === 'table_canteen') {
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(cx - 30, cy - 22, 60, 8);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 28, cy - 22, 56, 2);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(cx - 26, cy - 14, 4, 16);
+        ctx.fillRect(cx + 22, cy - 14, 4, 16);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(cx - 4, cy - 26, 6, 4);
+      } else if (f.type === 'stool_prison') {
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 12, 10, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 2, cy - 8, 4, 10);
+      } else if (f.type === 'toilet_steel') {
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 10, cy - 20, 20, 20);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(cx - 8, cy - 22, 16, 4);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 6, cy - 16, 12, 8);
+      } else if (f.type === 'smuggle_crate') {
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(cx - 14, cy - 22, 28, 20);
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(cx - 12, cy - 20, 24, 16);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 14, cy - 18, 28, 3);
+        ctx.fillRect(cx - 14, cy - 9, 28, 3);
+      } else if (f.type === 'weed_plant') {
+        // Wietplant in pot onder paarse groeilamp
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 8, cy - 12, 16, 12);
+        // Groene wietbladeren
+        ctx.fillStyle = '#16a34a';
+        ctx.beginPath();
+        ctx.arc(cx, cy - 18, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath();
+        ctx.arc(cx - 4, cy - 22, 6, 0, Math.PI * 2);
+        ctx.arc(cx + 4, cy - 22, 6, 0, Math.PI * 2);
+        ctx.fill();
+        // Paarse gloed
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.25)';
+        ctx.beginPath();
+        ctx.arc(cx, cy - 20, 24, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (f.type === 'punching_bag') {
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 45);
+        ctx.lineTo(cx, cy - 30);
+        ctx.stroke();
+        ctx.fillStyle = '#991b1b';
+        ctx.fillRect(cx - 8, cy - 30, 16, 28);
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(cx - 7, cy - 29, 3, 26);
+      } else if (f.type === 'bench_press') {
+        // Halterbank
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 18, cy - 14, 36, 6);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 16, cy - 24, 4, 14);
+        ctx.fillRect(cx + 12, cy - 24, 4, 14);
+        // Stang en gewichten
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(cx - 20, cy - 26, 40, 3);
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(cx - 22, cy - 30, 4, 11);
+        ctx.fillRect(cx + 18, cy - 30, 4, 11);
+      } else if (f.type === 'boss_throne') {
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(cx - 16, cy - 34, 32, 34);
+        ctx.fillStyle = '#991b1b';
+        ctx.fillRect(cx - 11, cy - 30, 22, 24);
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(cx - 16, cy - 16, 6, 12);
+        ctx.fillRect(cx + 10, cy - 16, 6, 12);
+      }
+      ctx.restore();
+    }
+
+    function drawAvatar(u) {
+      const p = gridToScreen(u.x, u.y);
+      drawFigureAt(ctx, p.x, p.y + TILE_H / 2, u, true);
+    }
+
+    function drawFigureAt(targetCtx, cx, cy, u, showNameTag) {
+      const isSitting = u.state === 'sit';
+      const isWalking = u.state === 'walk';
+      const isLying = u.state === 'lay';
+      const isDancing = u.state === 'dance' || u.danceId > 0;
+      const fig = u.figure || myFigure;
+
+      // Dans en loop effecten
+      let danceBob = 0;
+      let legSwing = isWalking ? Math.sin(animFrame * 0.4) * 4 : 0;
+      if (isDancing) {
+        if (u.danceId === 1) danceBob = Math.abs(Math.sin(animFrame * 0.5)) * 6; // Pogo
+        if (u.danceId === 2) danceBob = Math.sin(animFrame * 0.3) * 3; // Step
+        if (u.danceId === 3) legSwing = Math.sin(animFrame * 0.6) * 5; // Roll
+        if (u.danceId === 4) danceBob = Math.sin(animFrame * 0.8) * 4; // Headbang
+      }
+
+      const walkBob = isWalking ? Math.sin(animFrame * 0.4) * 2 : 0;
+      const baseY = isSitting ? cy + 4 : (isLying ? cy + 8 : cy + walkBob - danceBob);
+
+      targetCtx.save();
+
+      // Retro :enable effecten achter avatar
+      drawRetroEffect(targetCtx, cx, baseY - 20, u.effectId);
+
+      // Schaduw
+      targetCtx.fillStyle = 'rgba(0,0,0,0.3)';
+      targetCtx.beginPath();
+      targetCtx.ellipse(cx, cy + 2, isLying ? 22 : 14, 7, 0, 0, Math.PI * 2);
+      targetCtx.fill();
+
+      // Liggen
+      if (isLying) {
+        targetCtx.fillStyle = '#f97316';
+        targetCtx.fillRect(cx - 20, baseY - 12, 34, 10);
+        targetCtx.fillStyle = '#0f172a';
+        targetCtx.fillRect(cx + 14, baseY - 12, 6, 10); // voeten
+        targetCtx.fillStyle = fig.skinColor || '#ffd1a4';
+        targetCtx.fillRect(cx - 24, baseY - 14, 12, 12); // hoofd
+        targetCtx.fillStyle = fig.hairColor || '#3e2723';
+        targetCtx.fillRect(cx - 25, baseY - 15, 13, 6);
+        targetCtx.restore();
+        return;
+      }
+
+      // Benen & Broek
+      let pantsColor = '#c2410c';
+      if (fig.pants === 'sweat_grey') pantsColor = '#64748b';
+      else if (fig.pants === 'jeans_black') pantsColor = '#1e293b';
+      else if (fig.pants === 'guard_pants') pantsColor = '#1e3a8a';
+
+      if (isSitting) {
+        targetCtx.fillStyle = pantsColor;
+        targetCtx.fillRect(cx - 8, baseY - 12, 16, 7);
+        targetCtx.fillStyle = '#0f172a';
+        targetCtx.fillRect(cx - 9, baseY - 6, 7, 6);
+        targetCtx.fillRect(cx + 2, baseY - 6, 7, 6);
+      } else {
+        targetCtx.fillStyle = pantsColor;
+        targetCtx.fillRect(cx - 6 + legSwing, baseY - 16, 5, 12);
+        targetCtx.fillRect(cx + 1 - legSwing, baseY - 16, 5, 12);
+        targetCtx.fillStyle = '#0f172a';
+        targetCtx.fillRect(cx - 7 + legSwing, baseY - 5, 6, 5);
+        targetCtx.fillRect(cx + 1 - legSwing, baseY - 5, 6, 5);
+      }
+
+      // Romp
+      const torsoY = isSitting ? baseY - 26 : baseY - 28;
+      let shirtColor = '#f97316';
+      if (fig.shirt === 'hoodie_black') shirtColor = '#0f172a';
+      else if (fig.shirt === 'tank_white') shirtColor = '#f8fafc';
+      else if (fig.shirt === 'track_grey') shirtColor = '#475569';
+      else if (fig.shirt === 'guard_uniform') shirtColor = '#1d4ed8';
+      else if (fig.shirt === 'doctor_coat') shirtColor = '#f1f5f9';
+
+      targetCtx.fillStyle = shirtColor;
+      targetCtx.fillRect(cx - 9, torsoY, 18, 14);
+
+      if (fig.shirt === 'inmate_orange') {
+        targetCtx.fillStyle = '#ffffff';
+        targetCtx.fillRect(cx - 7, torsoY + 3, 5, 3);
+      }
+
+      // Armen & Handen
+      if (u.state === 'wave' || isDancing) {
+        targetCtx.fillStyle = shirtColor;
+        targetCtx.fillRect(cx - 12, torsoY - 4, 4, 12);
+        targetCtx.fillRect(cx + 9, torsoY - 6, 4, 12);
+        targetCtx.fillStyle = fig.skinColor || '#ffd1a4';
+        targetCtx.fillRect(cx - 12, torsoY - 9, 5, 5);
+        targetCtx.fillRect(cx + 9, torsoY - 11, 5, 5);
+      } else {
+        targetCtx.fillStyle = shirtColor;
+        targetCtx.fillRect(cx - 12, torsoY + 2, 4, 10);
+        targetCtx.fillRect(cx + 8, torsoY + 2, 4, 10);
+        targetCtx.fillStyle = fig.skinColor || '#ffd1a4';
+        targetCtx.fillRect(cx - 12, torsoY + 11, 4, 4);
+        targetCtx.fillRect(cx + 8, torsoY + 11, 4, 4);
+      }
+
+      // Hoofd & Gezicht
+      const headY = torsoY - 17;
+      targetCtx.fillStyle = fig.skinColor || '#ffd1a4';
+      targetCtx.fillRect(cx - 8, headY, 16, 16);
+
+      targetCtx.fillStyle = '#0f172a';
+      targetCtx.fillRect(cx - 4, headY + 6, 2, 3);
+      targetCtx.fillRect(cx + 2, headY + 6, 2, 3);
+
+      // Accessoires
+      const acc = fig.accessory;
+      if (acc === 'joint' || u.isSmoking) {
+        targetCtx.fillStyle = '#ffffff';
+        targetCtx.fillRect(cx + 1, headY + 12, 6, 2);
+        targetCtx.fillStyle = '#f97316';
+        targetCtx.fillRect(cx + 7, headY + 12, 2, 2);
+      } else if (acc === 'cigar') {
+        targetCtx.fillStyle = '#78350f';
+        targetCtx.fillRect(cx + 1, headY + 11, 7, 3);
+        targetCtx.fillStyle = '#ea580c';
+        targetCtx.fillRect(cx + 8, headY + 11, 2, 3);
+      } else if (acc === 'glasses') {
+        targetCtx.fillStyle = '#000000';
+        targetCtx.fillRect(cx - 7, headY + 4, 14, 5);
+      }
+
+      // Kapsel
+      targetCtx.fillStyle = fig.hairColor || '#3e2723';
+      if (fig.hair === 'short') {
+        targetCtx.fillRect(cx - 8, headY - 2, 16, 5);
+      } else if (fig.hair === 'quiff') {
+        targetCtx.fillRect(cx - 9, headY - 5, 18, 8);
+      } else if (fig.hair === 'braids') {
+        targetCtx.fillRect(cx - 9, headY - 3, 18, 6);
+        targetCtx.fillRect(cx - 10, headY + 3, 3, 8);
+        targetCtx.fillRect(cx + 7, headY + 3, 3, 8);
+      } else if (fig.hair === 'durag') {
+        targetCtx.fillStyle = '#0f172a';
+        targetCtx.fillRect(cx - 9, headY - 3, 18, 9);
+      } else if (fig.hair === 'beanie') {
+        targetCtx.fillStyle = '#475569';
+        targetCtx.fillRect(cx - 9, headY - 5, 18, 8);
+      } else if (fig.hair === 'guard_cap') {
+        targetCtx.fillStyle = '#1e3a8a';
+        targetCtx.fillRect(cx - 10, headY - 6, 20, 7);
+        targetCtx.fillStyle = '#fbbf24';
+        targetCtx.fillRect(cx - 2, headY - 4, 4, 3);
+      }
+
+      // Naamtag
+      if (showNameTag && u.name) {
+        targetCtx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+        targetCtx.beginPath();
+        targetCtx.roundRect(cx - 36, headY - 20, 72, 15, 3);
+        targetCtx.fill();
+
+        targetCtx.fillStyle = '#f8fafc';
+        targetCtx.font = 'bold 9px sans-serif';
+        targetCtx.textAlign = 'center';
+        targetCtx.fillText(u.name, cx, headY - 9);
+      }
+
+      targetCtx.restore();
+    }
+
+    // Retro :enable effect visualizer
+    function drawRetroEffect(tCtx, x, y, effectId) {
+      if (!effectId) return;
+
+      tCtx.save();
+      if (effectId === 1) {
+        // Sparkles sterretjes
+        const angle = animFrame * 0.1;
+        tCtx.fillStyle = '#fef08a';
+        for (let i = 0; i < 4; i++) {
+          const a = angle + (i * Math.PI / 2);
+          const sx = x + Math.cos(a) * 22;
+          const sy = y + Math.sin(a) * 16;
+          tCtx.fillRect(sx - 2, sy - 2, 4, 4);
+        }
+      } else if (effectId === 2) {
+        // TBS Hellfire vlammen
+        tCtx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+        const flameOffset = Math.sin(animFrame * 0.3) * 3;
+        tCtx.beginPath();
+        tCtx.arc(x, y + 10, 20 + flameOffset, 0, Math.PI * 2);
+        tCtx.fill();
+        tCtx.fillStyle = '#f59e0b';
+        tCtx.beginPath();
+        tCtx.arc(x, y + 12, 12, 0, Math.PI * 2);
+        tCtx.fill();
+      } else if (effectId === 3) {
+        // Wietrook walm
+        tCtx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+        tCtx.beginPath();
+        tCtx.arc(x, y, 26 + Math.sin(animFrame * 0.2) * 4, 0, Math.PI * 2);
+        tCtx.fill();
+      } else if (effectId === 4) {
+        // Giftige radioactieve gloed
+        tCtx.fillStyle = 'rgba(34, 197, 94, 0.5)';
+        tCtx.beginPath();
+        tCtx.ellipse(x, y + 15, 24, 12, 0, 0, Math.PI * 2);
+        tCtx.fill();
+      } else if (effectId === 5) {
+        // Gouden Gangster aura
+        tCtx.strokeStyle = '#f59e0b';
+        tCtx.lineWidth = 2;
+        tCtx.beginPath();
+        tCtx.ellipse(x, y + 12, 22, 10, 0, 0, Math.PI * 2);
+        tCtx.stroke();
+      } else if (effectId === 6) {
+        // Spook effect
+        tCtx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        tCtx.beginPath();
+        tCtx.arc(x, y - 5, 20, 0, Math.PI * 2);
+        tCtx.fill();
+      } else if (effectId === 102) {
+        // Bliksem effect
+        tCtx.strokeStyle = '#38bdf8';
+        tCtx.lineWidth = 2;
+        if (Math.random() < 0.5) {
+          tCtx.beginPath();
+          tCtx.moveTo(x - 15, y - 20);
+          tCtx.lineTo(x, y);
+          tCtx.lineTo(x + 15, y + 15);
+          tCtx.stroke();
+        }
+      }
+      tCtx.restore();
+    }
+
+    // Start
+    connectWS();
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>
