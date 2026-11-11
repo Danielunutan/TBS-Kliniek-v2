@@ -6,14 +6,16 @@
     "images.url": "${asset.url}/images",
     "gamedata.url": "${asset.url}/gamedata",
     "sounds.url": "${asset.url}/furniture/sounds/%sample%.mp3",
-    "external.texts.url": [ "${gamedata.url}/json/ExternalTexts.json" ],
+    "external.texts.url": [
+        "${gamedata.url}/json/ExternalTexts.json"
+    ],
     "external.samples.url": "${hof.furni.url}/sounds/sound_machine_sample_%sample%.mp3",
     "furnidata.url": "${asset.url}/furniture/json/FurnitureData.json",
     "productdata.url": "${asset.url}/furniture/json/ProductData.json",
     "avatar.actions.url": "${gamedata.url}/json/HabboAvatarActions.json",
     "avatar.figuredata.url": "${asset.url}/clothes/json/FigureData.json",
     "avatar.figuremap.url": "${asset.url}/clothes/json/FigureMap.json",
-    "avatar.effectmap.url": "${gamedata.url}/json/EffectMap.json",
+    "avatar.effectmap.url": "${asset.url}/effects/json/EffectMap.json",
     "avatar.asset.url": "${asset.url}/clothes/nitro/%libname%.nitro",
     "avatar.asset.effect.url": "${asset.url}/effects/nitro/%libname%.nitro",
     "furni.asset.url": "${asset.url}/furniture/nitro/%libname%.nitro",

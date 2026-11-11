@@ -142,7 +142,18 @@ const server = http.createServer((req, res) => {
                 res.end(content);
             });
             return;
+        } else {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Asset not found', path: cleanUrl }));
+            return;
         }
+    }
+
+    // Return 404 for json / assets instead of HTML fallback
+    if (cleanUrl.endsWith('.json') || cleanUrl.endsWith('.nitro') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.gif') || cleanUrl.endsWith('.mp3')) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'File not found', path: cleanUrl }));
+        return;
     }
 
     // Default to index.html for SPA routing
