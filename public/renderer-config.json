@@ -35,14 +35,6 @@
     "system.pong.interval.ms": 20000,
     "room.color.skip.transition": true,
     "room.landscapes.enabled": true,
-    "avatar.mandatory.libraries": [
-        "bd:1",
-        "li:0"
-    ],
-    "avatar.mandatory.effect.libraries": [
-        "dance.1",
-        "dance.2",
-        "dance.3",
-        "dance.4"
-    ]
+    "avatar.mandatory.libraries": [],
+    "avatar.mandatory.effect.libraries": []
 }
