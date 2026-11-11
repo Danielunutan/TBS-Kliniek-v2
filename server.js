@@ -143,7 +143,7 @@ const server = http.createServer(async (req, res) => {
     const cleanUrl = req.url.split('?')[0];
     console.log('[HTTP REQ]', req.method, cleanUrl);
 
-    // 1. Root & index.html -> Serve Volt Client with dynamic SSO ticket
+    // 1. Root & index.html -> Serve Volt Client with dynamic SSO ticket and SSI configs inlined
     if (cleanUrl === '/' || cleanUrl === '/index.html') {
         const urlObj = new URL(req.url, 'http://127.0.0.1:3000');
         let ticket = urlObj.searchParams.get('sso') || urlObj.searchParams.get('token');
@@ -160,8 +160,29 @@ const server = http.createServer(async (req, res) => {
                 res.end('500 Server Fout');
                 return;
             }
+            let html = content.toString('utf8');
+            const clientModePath = path.join(VOLT_DIR, 'configuration', 'client-mode.json');
+            const rendererConfigPath = path.join(VOLT_DIR, 'configuration', 'renderer-config.json');
+            const uiConfigPath = path.join(VOLT_DIR, 'configuration', 'ui-config.json');
+            const petsPath = path.join(VOLT_DIR, 'configuration', 'pets.json');
+
+            if (fs.existsSync(clientModePath)) {
+                html = html.replace('<!--# include virtual="configuration/client-mode.json" -->', fs.readFileSync(clientModePath, 'utf8'));
+            }
+            if (fs.existsSync(rendererConfigPath)) {
+                html = html.replace('<!--# include virtual="configuration/renderer-config.json" -->', fs.readFileSync(rendererConfigPath, 'utf8'));
+            }
+            if (fs.existsSync(uiConfigPath)) {
+                html = html.replace('<!--# include virtual="configuration/ui-config.json" -->', fs.readFileSync(uiConfigPath, 'utf8'));
+            }
+            if (fs.existsSync(petsPath)) {
+                html = html.replace('<!--# include virtual="configuration/pets.json" -->', fs.readFileSync(petsPath, 'utf8'));
+            }
+            html = html.replace('<!--# include virtual="configuration/furnidata-version.json" -->', '{"version": "1"}');
+            html = html.replace('<!--# include virtual="configuration/gamedata-versions.json" -->', '{"files": {}}');
+
             res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-            res.end(content);
+            res.end(html);
         });
         return;
     }
@@ -234,6 +255,23 @@ const server = http.createServer(async (req, res) => {
             });
             return;
         }
+    }
+
+    // 6. Fallback for root-level gamedata requests (e.g. /FurnitureData.json, /ProductData.json)
+    const baseName = path.basename(cleanUrl);
+    const gamedataFile = path.join(HOTEL_FILES_DIR, 'gamedata', baseName);
+    if (fs.existsSync(gamedataFile) && !fs.statSync(gamedataFile).isDirectory()) {
+        const ext = path.extname(gamedataFile).toLowerCase();
+        fs.readFile(gamedataFile, (err, content) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('500 Server Fout');
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/json' });
+            res.end(content);
+        });
+        return;
     }
 
     // Return 404 for missing static assets
