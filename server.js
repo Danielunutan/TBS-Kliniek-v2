@@ -163,6 +163,16 @@ wss.on('connection', (ws) => {
                         direction: 4,
                         isSitting: false,
                         isWaving: false,
+                        isSmoking: data.isSmoking || false,
+                        figure: data.figure || {
+                            hair: 'short',
+                            hairColor: '#3e2723',
+                            skinColor: '#ffd1a4',
+                            shirt: 'inmate_orange',
+                            pants: 'inmate_orange',
+                            shoes: 'black_boots',
+                            accessory: 'joint'
+                        },
                     };
 
                     room.players.set(ws, playerData);
@@ -218,6 +228,107 @@ wss.on('connection', (ws) => {
                     const text = (data.text || '').trim().slice(0, 120);
                     if (!text) return;
 
+                    // Retro Command Parser (:enable, :dance, :push, :pull, :smoke, :lay, :sit, etc.)
+                    if (text.startsWith(':') || text.startsWith('/')) {
+                        const parts = text.slice(1).split(' ');
+                        const cmd = parts[0].toLowerCase();
+                        const arg = parts[1];
+
+                        if (cmd === 'enable') {
+                            const effId = parseInt(arg, 10) || 0;
+                            playerData.effectId = effId;
+                            broadcastToRoom(currentRoomId, {
+                                type: 'player_effect',
+                                playerId: clientId,
+                                effectId: effId,
+                            });
+                            return;
+                        }
+
+                        if (cmd === 'dance') {
+                            const danceId = parseInt(arg, 10) || 0;
+                            playerData.danceId = danceId;
+                            broadcastToRoom(currentRoomId, {
+                                type: 'player_dance',
+                                playerId: clientId,
+                                danceId: danceId,
+                            });
+                            return;
+                        }
+
+                        if (cmd === 'lay') {
+                            playerData.isLying = !playerData.isLying;
+                            if (playerData.isLying) playerData.isSitting = false;
+                            broadcastToRoom(currentRoomId, {
+                                type: 'player_lay',
+                                playerId: clientId,
+                                isLying: playerData.isLying,
+                            });
+                            return;
+                        }
+
+                        if (cmd === 'sit') {
+                            playerData.isSitting = !playerData.isSitting;
+                            if (playerData.isSitting) playerData.isLying = false;
+                            broadcastToRoom(currentRoomId, {
+                                type: 'player_sit',
+                                playerId: clientId,
+                                isSitting: playerData.isSitting,
+                            });
+                            return;
+                        }
+
+                        if (cmd === 'smoke') {
+                            playerData.isSmoking = !playerData.isSmoking;
+                            broadcastToRoom(currentRoomId, {
+                                type: 'player_smoke',
+                                playerId: clientId,
+                                isSmoking: playerData.isSmoking,
+                            });
+                            return;
+                        }
+
+                        if (cmd === 'push' || cmd === 'pull') {
+                            const room = rooms[currentRoomId];
+                            if (room && arg) {
+                                for (let [targetWs, targetPlayer] of room.players.entries()) {
+                                    if (targetPlayer.name.toLowerCase() === arg.toLowerCase()) {
+                                        let nx = targetPlayer.x;
+                                        let ny = targetPlayer.y;
+                                        if (cmd === 'push') {
+                                            const dx = Math.sign(targetPlayer.x - playerData.x) || 1;
+                                            const dy = Math.sign(targetPlayer.y - playerData.y);
+                                            nx = Math.max(0, Math.min(room.width - 1, targetPlayer.x + dx));
+                                            ny = Math.max(0, Math.min(room.height - 1, targetPlayer.y + dy));
+                                        } else {
+                                            // Pull towards caller
+                                            nx = playerData.x;
+                                            ny = playerData.y;
+                                        }
+                                        targetPlayer.x = nx;
+                                        targetPlayer.y = ny;
+                                        broadcastToRoom(currentRoomId, {
+                                            type: 'player_move',
+                                            playerId: targetPlayer.id,
+                                            x: nx,
+                                            y: ny,
+                                            direction: targetPlayer.direction,
+                                            isSitting: false,
+                                        });
+                                        broadcastToRoom(currentRoomId, {
+                                            type: 'player_chat',
+                                            playerId: clientId,
+                                            name: playerData.name,
+                                            text: `*${cmd === 'push' ? 'duwt' : 'trekt'} ${targetPlayer.name}*`,
+                                        });
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Normale chat
                     broadcastToRoom(currentRoomId, {
                         type: 'player_chat',
                         playerId: clientId,
@@ -241,7 +352,27 @@ wss.on('connection', (ws) => {
                             playerId: clientId,
                             isSitting: playerData.isSitting,
                         });
+                    } else if (data.action === 'smoke') {
+                        playerData.isSmoking = !playerData.isSmoking;
+                        broadcastToRoom(currentRoomId, {
+                            type: 'player_smoke',
+                            playerId: clientId,
+                            isSmoking: playerData.isSmoking,
+                        });
                     }
+                    break;
+                }
+
+                case 'update_figure': {
+                    if (!playerData || !currentRoomId) return;
+                    playerData.figure = data.figure;
+                    playerData.isSmoking = data.isSmoking !== undefined ? data.isSmoking : playerData.isSmoking;
+                    broadcastToRoom(currentRoomId, {
+                        type: 'player_figure',
+                        playerId: clientId,
+                        figure: playerData.figure,
+                        isSmoking: playerData.isSmoking,
+                    });
                     break;
                 }
 
