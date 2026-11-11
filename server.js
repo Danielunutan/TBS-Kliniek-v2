@@ -49,6 +49,8 @@ const VOLT_DIR = path.join(__dirname, 'volt-client');
 const HOTEL_FILES_DIR = path.join(__dirname, 'hotel-files');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const ASSETS_DIR = path.join(__dirname, 'assets');
+const STAR_GAME_DIR = path.join(__dirname, 'star-repo', 'public', 'game');
+const STAR_CLIENT_HUB_DIR = path.join(__dirname, 'star-repo', 'public', 'client-hub');
 
 // MIME types for static file serving
 const MIME_TYPES = {
@@ -197,40 +199,72 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // 3. Check if file exists in ASSETS_DIR (/assets/furniture/..., /assets/clothes/...)
-    if (cleanUrl.startsWith('/assets/')) {
-        const relPath = cleanUrl.replace(/^\/assets\//, '');
-        const assetFilePath = path.join(ASSETS_DIR, relPath);
-        if (fs.existsSync(assetFilePath) && !fs.statSync(assetFilePath).isDirectory()) {
-            const ext = path.extname(assetFilePath).toLowerCase();
-            fs.readFile(assetFilePath, (err, content) => {
-                if (err) {
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end('500 Server Fout');
-                    return;
-                }
-                res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
-                res.end(content);
-            });
+    // 3. Game directory for Star assets (/game/bundled/figure, /game/bundled/furniture, etc.)
+    if (cleanUrl.startsWith('/game/')) {
+        const relPath = cleanUrl.replace(/^\/game\//, '');
+        const gameFilePath = path.join(STAR_GAME_DIR, relPath);
+        if (fs.existsSync(gameFilePath) && !fs.statSync(gameFilePath).isDirectory()) {
+            const ext = path.extname(gameFilePath).toLowerCase();
+            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+            fs.createReadStream(gameFilePath).pipe(res);
             return;
         }
     }
 
-    // 4. Check if file exists in HOTEL_FILES_DIR (/hotel-files/...)
+    // 4. Client Hub directory (/client-hub/...)
+    if (cleanUrl.startsWith('/client-hub/')) {
+        const relPath = cleanUrl.replace(/^\/client-hub\//, '');
+        const hubFilePath = path.join(STAR_CLIENT_HUB_DIR, relPath);
+        if (fs.existsSync(hubFilePath) && !fs.statSync(hubFilePath).isDirectory()) {
+            const ext = path.extname(hubFilePath).toLowerCase();
+            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+            fs.createReadStream(hubFilePath).pipe(res);
+            return;
+        }
+    }
+
+    // 5. Check if file exists in ASSETS_DIR (/assets/furniture/..., /assets/clothes/...) with fallback to Star assets
+    if (cleanUrl.startsWith('/assets/')) {
+        const relPath = cleanUrl.replace(/^\/assets\//, '');
+        let assetFilePath = path.join(ASSETS_DIR, relPath);
+
+        // Fallbacks to Star game directory
+        if (!fs.existsSync(assetFilePath)) {
+            if (relPath.startsWith('clothes/nitro/')) {
+                const fName = relPath.replace('clothes/nitro/', '');
+                const starCand = path.join(STAR_GAME_DIR, 'bundled', 'figure', fName);
+                if (fs.existsSync(starCand)) assetFilePath = starCand;
+            } else if (relPath.startsWith('furniture/nitro/')) {
+                const fName = relPath.replace('furniture/nitro/', '');
+                const starCand = path.join(STAR_GAME_DIR, 'bundled', 'furniture', fName);
+                if (fs.existsSync(starCand)) assetFilePath = starCand;
+            } else if (relPath.startsWith('effects/nitro/')) {
+                const fName = relPath.replace('effects/nitro/', '');
+                const starCand = path.join(STAR_GAME_DIR, 'bundled', 'effect', fName);
+                if (fs.existsSync(starCand)) assetFilePath = starCand;
+            } else if (relPath.startsWith('c_images/')) {
+                const fName = relPath.replace('c_images/', '');
+                const starCand = path.join(STAR_GAME_DIR, 'c_images', fName);
+                if (fs.existsSync(starCand)) assetFilePath = starCand;
+            }
+        }
+
+        if (fs.existsSync(assetFilePath) && !fs.statSync(assetFilePath).isDirectory()) {
+            const ext = path.extname(assetFilePath).toLowerCase();
+            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+            fs.createReadStream(assetFilePath).pipe(res);
+            return;
+        }
+    }
+
+    // 6. Check if file exists in HOTEL_FILES_DIR (/hotel-files/...)
     if (cleanUrl.startsWith('/hotel-files/')) {
         const relPath = cleanUrl.replace(/^\/hotel-files\//, '');
         const hotelFilePath = path.join(HOTEL_FILES_DIR, relPath);
         if (fs.existsSync(hotelFilePath) && !fs.statSync(hotelFilePath).isDirectory()) {
             const ext = path.extname(hotelFilePath).toLowerCase();
-            fs.readFile(hotelFilePath, (err, content) => {
-                if (err) {
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end('500 Server Fout');
-                    return;
-                }
-                res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
-                res.end(content);
-            });
+            res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+            fs.createReadStream(hotelFilePath).pipe(res);
             return;
         }
     }
