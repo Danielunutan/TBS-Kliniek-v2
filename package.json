@@ -1,26 +1,14 @@
 {
-    "$schema": "https://www.schemastore.org/package.json",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "build": "node ./node_modules/vite/bin/vite.js build",
-        "dev": "vite"
-    },
-    "devDependencies": {
-        "@tailwindcss/vite": "^4.0.0",
-        "concurrently": "^10.0.3",
-        "laravel-vite-plugin": "^3.1",
-        "tailwindcss": "^4.0.0",
-        "vite": "^8.0.0"
-    },
-    "optionalDependencies": {
-        "@laravel/multiplex": "^0.4.1"
-    },
-    "dependencies": {
-        "@alpinejs/collapse": "^3.17.5",
-        "@fortawesome/fontawesome-free": "^7.3.1",
-        "@hotwired/turbo": "^8.0.23",
-        "alpine-turbo-drive-adapter": "^2.2.0",
-        "alpinejs": "^3.17.4"
-    }
+  "name": "tbs-kliniek-v2",
+  "version": "1.0.0",
+  "description": "TBS Kliniek v2 - 2D Isometrische Virtuele RP Wereld",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
 }
