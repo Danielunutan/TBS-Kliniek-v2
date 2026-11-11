@@ -1,5 +1,5 @@
 {
-    "socket.url": "ws://127.0.0.1:3000",
+    "socket.url": "ws://127.0.0.1:2096",
     "asset.url": "http://127.0.0.1:3000/assets",
     "image.library.url": "http://127.0.0.1:3000/assets/c_images/",
     "hof.furni.url": "http://127.0.0.1:3000/assets/furniture",
