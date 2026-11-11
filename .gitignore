@@ -2,3 +2,15 @@ node_modules/
 nitro-client/
 .env
 .DS_Store
+*.sql
+*.zip
+*.jar
+star-repo/
+installer-repo/
+plus-temp/
+plusemu-source/
+default-assets/
+server-emulator/
+hotel-files/
+
+

@@ -160,8 +160,7 @@ const server = http.createServer(async (req, res) => {
     if (cleanUrl === '/' || cleanUrl === '/index.html') {
         const urlObj = new URL(req.url, 'http://127.0.0.1:3000');
         let ticket = urlObj.searchParams.get('sso') || urlObj.searchParams.get('token');
-        const isValid = await isTicketValid(ticket);
-        if (!ticket || !isValid) {
+        if (!ticket) {
             ticket = await getFreshTicket('Daniel');
             res.writeHead(302, { Location: `/?sso=${ticket}` });
             res.end();
