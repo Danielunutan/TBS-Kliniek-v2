@@ -162,6 +162,49 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server });
 let clientCounter = 0;
 
+function createEvaPacket(headerId, encodeFn = null) {
+    const body = [];
+    const writer = {
+        writeInt: (val) => {
+            const buf = Buffer.alloc(4);
+            buf.writeInt32BE(Number(val) || 0, 0);
+            body.push(buf);
+        },
+        writeShort: (val) => {
+            const buf = Buffer.alloc(2);
+            buf.writeInt16BE(Number(val) || 0, 0);
+            body.push(buf);
+        },
+        writeByte: (val) => {
+            const buf = Buffer.alloc(1);
+            buf.writeUInt8(Number(val) || 0, 0);
+            body.push(buf);
+        },
+        writeBoolean: (val) => {
+            const buf = Buffer.alloc(1);
+            buf.writeUInt8(val ? 1 : 0, 0);
+            body.push(buf);
+        },
+        writeString: (val) => {
+            const str = String(val || '');
+            const strBuf = Buffer.from(str, 'utf-8');
+            const lenBuf = Buffer.alloc(2);
+            lenBuf.writeInt16BE(strBuf.length, 0);
+            body.push(lenBuf);
+            body.push(strBuf);
+        }
+    };
+
+    if (encodeFn) encodeFn(writer);
+
+    const bodyBuf = Buffer.concat(body);
+    const packet = Buffer.alloc(4 + 2 + bodyBuf.length);
+    packet.writeInt32BE(2 + bodyBuf.length, 0);
+    packet.writeInt16BE(headerId, 4);
+    bodyBuf.copy(packet, 6);
+    return packet;
+}
+
 function broadcastToRoom(roomId, message, excludeSocket = null) {
     const room = rooms[roomId];
     if (!room) return;
@@ -183,7 +226,89 @@ wss.on('connection', (ws) => {
     ws.isAlive = true;
     ws.on('pong', () => { ws.isAlive = true; });
 
-    ws.on('message', (raw) => {
+    ws.on('message', (raw, isBinary) => {
+        // 1. Binary EVA Wire Format Packet from Nitro Client
+        if (isBinary || (Buffer.isBuffer(raw) && raw.length >= 6)) {
+            const buf = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
+            if (buf.length >= 6) {
+                const packetLen = buf.readInt32BE(0);
+                const headerId = buf.readInt16BE(4);
+
+                console.log(`[Habbo Packet IN] Header: ${headerId}, Len: ${packetLen}`);
+
+                // SECURITY_TICKET (2419) or CLIENT_HELLO (4000)
+                if (headerId === 2419 || headerId === 4000) {
+                    console.log('[Habbo Packet OUT] Sending AUTHENTICATED (2491)');
+                    ws.send(createEvaPacket(2491), { binary: true });
+                    return;
+                }
+
+                // USER_INFO (357) -> InfoRetrieveMessageComposer
+                if (headerId === 357) {
+                    console.log('[Habbo Packet OUT] Sending USER_INFO (2725) & CREDITS (3475)');
+                    // USER_INFO (2725)
+                    ws.send(createEvaPacket(2725, (w) => {
+                        w.writeInt(1001); // userId
+                        w.writeString('Inmate_402'); // username
+                        w.writeString('hr-115-42.hd-190-1.ch-215-62.lg-270-62.sh-290-62'); // figure
+                        w.writeString('M'); // gender
+                        w.writeString('TBS Kliniek Blok A'); // motto
+                        w.writeString('Gedetineerde'); // realName
+                        w.writeBoolean(false); // directMail
+                        w.writeInt(42); // respectsReceived
+                        w.writeInt(3); // respectsRemaining
+                        w.writeInt(3); // respectsPetRemaining
+                        w.writeBoolean(true); // streamPublishingAllowed
+                        w.writeString('2026-11-11'); // lastAccessDate
+                        w.writeBoolean(false); // canChangeName
+                        w.writeBoolean(false); // safetyLocked
+                    }), { binary: true });
+
+                    // USER_CREDITS (3475)
+                    ws.send(createEvaPacket(3475, (w) => {
+                        w.writeString('2850.0');
+                    }), { binary: true });
+
+                    // USER_CURRENCY (2018)
+                    ws.send(createEvaPacket(2018, (w) => {
+                        w.writeInt(1); // total
+                        w.writeInt(0); // duckets
+                        w.writeInt(150); // amount
+                    }), { binary: true });
+
+                    // USER_PERMISSIONS (411)
+                    ws.send(createEvaPacket(411, (w) => {
+                        w.writeInt(2); // clubLevel
+                        w.writeInt(7); // securityLevel
+                        w.writeBoolean(false); // isAmbassador
+                    }), { binary: true });
+
+                    // USER_SUBSCRIPTION (954)
+                    ws.send(createEvaPacket(954, (w) => {
+                        w.writeString('habbo_club');
+                        w.writeInt(999);
+                        w.writeInt(1);
+                        w.writeInt(1);
+                        w.writeInt(1);
+                        w.writeBoolean(true);
+                        w.writeBoolean(true);
+                        w.writeInt(100);
+                        w.writeInt(100);
+                        w.writeInt(999999);
+                        w.writeInt(0);
+                    }), { binary: true });
+                    return;
+                }
+
+                // CLIENT_PONG or ping
+                if (headerId === 2596) {
+                    ws.send(createEvaPacket(2596), { binary: true });
+                    return;
+                }
+            }
+        }
+
+        // 2. JSON Packets
         try {
             const data = JSON.parse(raw.toString());
 
