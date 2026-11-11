@@ -298,3 +298,4 @@ server.listen(PORT, '127.0.0.1', () => {
     console.log(`  Realtime WebSockets actief & klaar voor verbindingen!`);
     console.log(`=================================================\n`);
 });
+

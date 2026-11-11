@@ -1,1072 +1,1474 @@
 <!DOCTYPE html>
-<html lang="nl" class="h-full bg-slate-950 text-slate-100 select-none">
+<html lang="nl">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TBS Kliniek v2 &bull; 2D Virtuele RP Wereld</title>
-    
-    <!-- Tailwind CSS & FontAwesome -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>TBS Kliniek v2 - Isometrische Virtuele Wereld</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Volter', 'Ubuntu', 'Segoe UI', Tahoma, sans-serif;
+    }
+    body {
+      background: #11141a;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      color: #fff;
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #1b2430 0%, #0d1117 80%, #05070a 100%);
+    }
+    canvas#stage {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: crosshair;
+    }
 
-    <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        body {
-            overflow: hidden;
-            touch-action: none;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        canvas {
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            image-rendering: pixelated;
-        }
-        .chat-bubble {
-            animation: bubbleFloat 5s forwards cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes bubbleFloat {
-            0% { opacity: 0; transform: translateY(10px) scale(0.9); }
-            10% { opacity: 1; transform: translateY(0px) scale(1); }
-            80% { opacity: 1; transform: translateY(-10px) scale(1); }
-            100% { opacity: 0; transform: translateY(-25px) scale(0.95); pointer-events: none; }
-        }
-    </style>
+    /* Top HUD */
+    .top-hud {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      display: flex;
+      gap: 12px;
+      z-index: 50;
+    }
+    .hud-chip {
+      background: rgba(18, 24, 38, 0.88);
+      border: 2px solid #2d384e;
+      border-radius: 6px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .hud-chip .badge {
+      background: #f59e0b;
+      color: #111;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .hud-chip.cash .badge {
+      background: #10b981;
+      color: #fff;
+    }
+
+    /* Speech bubble layer */
+    #speech-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 40;
+    }
+    .speech-bubble {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      background: #ffffff;
+      color: #1e2430;
+      padding: 5px 12px 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+      border: 2px solid #2c384a;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      animation: popIn 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 7px 6px 0;
+      border-style: solid;
+      border-color: #2c384a transparent transparent;
+      display: block;
+      width: 0;
+    }
+    .speech-bubble .bubble-head {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f59e0b;
+      border: 1px solid #1e2430;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #111;
+    }
+    .speech-bubble.shout {
+      background: #fff8db;
+      font-weight: 800;
+      color: #854d0e;
+      border-color: #b45309;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: translate(-50%, -85%) scale(0.85); }
+      100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+    }
+
+    /* Bottom Classic Habbo Toolbar */
+    .habbo-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      background: linear-gradient(to bottom, #2b394f 0%, #1a2332 100%);
+      border-top: 2px solid #4a5c7a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 60;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
+    }
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .h-btn {
+      background: linear-gradient(to bottom, #3f5270 0%, #263346 100%);
+      border: 1px solid #5a7299;
+      border-bottom: 2px solid #121924;
+      border-radius: 5px;
+      color: #f1f5f9;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.08s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .h-btn:hover {
+      background: linear-gradient(to bottom, #4d6487 0%, #2e3e55 100%);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .h-btn:active {
+      transform: translateY(1px);
+      border-bottom-width: 1px;
+    }
+    .h-btn.active {
+      background: linear-gradient(to bottom, #f59e0b 0%, #b45309 100%);
+      border-color: #fbbf24;
+      color: #111;
+      text-shadow: none;
+    }
+
+    /* Chat input in toolbar center */
+    .toolbar-chat {
+      flex: 1;
+      max-width: 580px;
+      margin: 0 16px;
+      position: relative;
+    }
+    .toolbar-chat input {
+      width: 100%;
+      background: #0f1622;
+      border: 2px solid #3c4c66;
+      border-radius: 6px;
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 40px 8px 12px;
+      outline: none;
+      transition: border 0.15s ease;
+    }
+    .toolbar-chat input:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+    }
+    .toolbar-chat button {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      bottom: 4px;
+      background: #f59e0b;
+      border: none;
+      border-radius: 4px;
+      color: #111;
+      font-weight: 800;
+      padding: 0 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    /* Habbo Windows / Modals */
+    .h-window {
+      position: absolute;
+      background: #1e293b;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+      z-index: 70;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 320px;
+      animation: modalPop 0.15s ease-out;
+    }
+    .h-window.open {
+      display: flex;
+    }
+    @keyframes modalPop {
+      0% { opacity: 0; transform: scale(0.95); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .h-window-title {
+      background: linear-gradient(to bottom, #334155 0%, #1e293b 100%);
+      border-bottom: 2px solid #0f172a;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #f8fafc;
+      cursor: move;
+    }
+    .h-window-title .close-btn {
+      background: #ef4444;
+      border: 1px solid #b91c1c;
+      color: #fff;
+      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      line-height: 18px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .h-window-body {
+      padding: 14px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    /* Catalog / Store Grid */
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .catalog-card {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+    .catalog-card:hover {
+      border-color: #f59e0b;
+      transform: translateY(-2px);
+      background: #192339;
+    }
+    .card-preview {
+      width: 60px;
+      height: 60px;
+      background: #1e293b;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      border: 1px solid #334155;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 4px;
+    }
+    .card-price {
+      font-size: 11px;
+      font-weight: 800;
+      color: #10b981;
+      margin-bottom: 8px;
+    }
+    .card-buy {
+      background: #10b981;
+      border: none;
+      color: #fff;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .card-buy:hover {
+      background: #059669;
+    }
+
+    /* Inventory drawer */
+    .inv-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      min-height: 120px;
+    }
+    .inv-item {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .inv-item:hover, .inv-item.selected {
+      border-color: #f59e0b;
+      background: #1e293b;
+    }
+
+    /* User Profile Dossier */
+    .dossier {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .dossier-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 6px;
+      background: #f59e0b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 900;
+      border: 2px solid #111;
+    }
+    .dossier-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Navigator room list */
+    .nav-room {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .nav-room:hover {
+      border-color: #f59e0b;
+      background: #192339;
+    }
+
+    /* Action bar over avatar selection */
+    .avatar-action-popup {
+      position: absolute;
+      display: none;
+      background: #0f172a;
+      border: 2px solid #f59e0b;
+      border-radius: 6px;
+      padding: 6px;
+      gap: 6px;
+      z-index: 55;
+      transform: translate(-50%, -120%);
+    }
+  </style>
 </head>
-<body class="h-full w-full flex flex-col bg-slate-950 overflow-hidden" x-data="tbsV2Client()">
-
-    <!-- TOP HEADER (Habbo Style Steel Banner) -->
-    <header class="h-12 bg-slate-900 border-b border-slate-800 px-3 sm:px-4 flex items-center justify-between z-30 shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full" :class="connected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
-                <span class="font-black text-xs sm:text-sm tracking-wider uppercase text-white" x-text="currentRoom.name"></span>
-            </div>
-            <span class="hidden md:inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950/80 text-purple-300 border border-purple-800/80">
-                <i class="fa-solid fa-users text-[9px] mr-1"></i> <span x-text="players.length"></span> in deze kamer
-            </span>
-        </div>
-
-        <div class="flex items-center gap-2">
-            <!-- Room Navigator Button -->
-            <button type="button" @click="toggleNavigator()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer">
-                <i class="fa-solid fa-compass"></i>
-                <span class="hidden sm:inline">Navigator</span>
-            </button>
-
-            <!-- Build / Furniture Mode -->
-            <button type="button" @click="toggleInventory()" :class="inventoryOpen ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'" class="px-3 py-1.5 rounded-lg font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition active:scale-95 cursor-pointer">
-                <i class="fa-solid fa-couch"></i>
-                <span class="hidden sm:inline">Meubels</span>
-            </button>
-
-            <!-- Zoom Controls -->
-            <div class="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700">
-                <button type="button" @click="zoomOut()" class="w-7 h-7 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 rounded transition text-xs">
-                    <i class="fa-solid fa-minus"></i>
-                </button>
-                <button type="button" @click="zoomIn()" class="w-7 h-7 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 rounded transition text-xs">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- MAIN GAME CANVAS STAGE -->
-    <main class="relative flex-1 w-full h-full overflow-hidden bg-slate-950 cursor-crosshair" id="canvas-container">
-        <!-- HTML5 Canvas for the Isometric World -->
-        <canvas id="gameCanvas" class="absolute inset-0 block w-full h-full"></canvas>
-
-        <!-- FLOATING CHAT BUBBLES CONTAINER OVER CANVAS -->
-        <div id="speech-bubbles" class="pointer-events-none absolute inset-0 overflow-hidden z-20"></div>
-
-        <!-- TILE HOVER INFO TOOLTIP -->
-        <div x-show="hoveredTile" x-cloak class="pointer-events-none absolute top-3 left-3 bg-slate-900/90 backdrop-blur-xs border border-slate-700/80 rounded-lg px-2.5 py-1 text-[11px] font-mono font-bold text-slate-300 z-10 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full" :class="hoveredTile?.walkable ? 'bg-emerald-400' : 'bg-rose-500'"></span>
-            <span>Tegel: [<span x-text="hoveredTile?.x"></span>, <span x-text="hoveredTile?.y"></span>]</span>
-            <span x-show="hoveredTile?.item" class="text-amber-400" x-text="'&bull; ' + hoveredTile?.item?.name"></span>
-        </div>
-
-        <!-- QUICK ACTION CONTROLS ON RIGHT -->
-        <div class="absolute right-3 top-3 flex flex-col gap-2 z-10">
-            <button type="button" @click="wave()" class="w-10 h-10 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-amber-400 flex items-center justify-center text-sm shadow-lg transition active:scale-95" title="Zwaaien">
-                <i class="fa-solid fa-hand"></i>
-            </button>
-            <button type="button" @click="toggleSit()" class="w-10 h-10 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-sky-400 flex items-center justify-center text-sm shadow-lg transition active:scale-95" title="Zitten / Opstaan">
-                <i class="fa-solid fa-chair"></i>
-            </button>
-            <button type="button" @click="resetCamera()" class="w-10 h-10 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 flex items-center justify-center text-sm shadow-lg transition active:scale-95" title="Camera Resetten">
-                <i class="fa-solid fa-arrows-to-dot"></i>
-            </button>
-        </div>
-    </main>
-
-    <!-- INVENTORY / FURNITURE DRAWER -->
-    <div x-show="inventoryOpen" x-cloak 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="transform translate-y-full opacity-0"
-         x-transition:enter-end="transform translate-y-0 opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="transform translate-y-0 opacity-100"
-         x-transition:leave-end="transform translate-y-full opacity-0"
-         class="absolute bottom-16 inset-x-0 mx-auto max-w-2xl bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-t-2xl p-4 shadow-2xl z-30 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-couch text-purple-400"></i>
-                <h3 class="text-xs font-black uppercase tracking-wider text-white">Mijn Spullen &bull; Meubels Plaatsen</h3>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] text-slate-400">Klik op meubel & klik op tegel</span>
-                <button type="button" @click="inventoryOpen = false" class="text-slate-400 hover:text-white p-1 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Furniture List -->
-        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto pr-1">
-            <template x-for="item in catalogItems" :key="item.id">
-                <div @click="selectItemToPlace(item)" 
-                     :class="selectedFurniToPlace?.id === item.id ? 'border-amber-400 bg-amber-500/20 ring-2 ring-amber-400' : 'border-slate-800 bg-slate-800/80 hover:border-slate-600'"
-                     class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 cursor-pointer transition active:scale-95 text-center">
-                    <i :class="item.icon" class="text-xl my-1" :style="'color: ' + item.color"></i>
-                    <span class="text-[10px] font-bold text-slate-200 truncate w-full" x-text="item.name"></span>
-                </div>
-            </template>
-        </div>
-
-        <div x-show="selectedFurniToPlace" class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span class="text-amber-400 font-bold" x-text="'Geselecteerd: ' + selectedFurniToPlace?.name"></span>
-            <div class="flex items-center gap-2">
-                <button type="button" @click="cancelPlacing()" class="px-3 py-1 rounded-lg bg-rose-900/60 hover:bg-rose-800 text-rose-200 text-xs font-bold">
-                    Annuleren
-                </button>
-            </div>
-        </div>
+<body>
+  <div id="game-container">
+    <!-- Top HUD -->
+    <div class="top-hud">
+      <div class="hud-chip">
+        <span class="badge" id="hud-online">1 ONLINE</span>
+        <span id="hud-room-name">Cel 104 (Blok A)</span>
+      </div>
+      <div class="hud-chip cash">
+        <span class="badge">€</span>
+        <span id="hud-cash">1.450 Contant</span>
+      </div>
+      <div class="hud-chip">
+        <span class="badge" style="background:#8b5cf6; color:#fff;">RP</span>
+        <span id="hud-role">Gedetineerde</span>
+      </div>
     </div>
 
-    <!-- HABBO NAVIGATOR MODAL -->
-    <div x-show="navigatorOpen" x-cloak 
-         class="fixed inset-0 flex items-center justify-center p-3 z-50 overflow-y-auto"
-         style="background-color: rgba(15, 23, 42, 0.8); backdrop-filter: blur(6px);">
-        <div class="relative w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-5 space-y-4"
-             @click.outside="navigatorOpen = false">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-compass text-amber-500 text-base"></i>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-white">De Kliniek Navigator</h3>
-                </div>
-                <button type="button" @click="navigatorOpen = false" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-xs"></i>
-                </button>
-            </div>
+    <!-- Speech bubble layer -->
+    <div id="speech-layer"></div>
 
-            <!-- Navigator Tabs -->
-            <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
-                <button type="button" @click="navTab = 'my'" :class="navTab === 'my' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'" class="px-3 py-1 rounded-lg text-xs font-bold transition">
-                    Mijn Cellen
-                </button>
-                <button type="button" @click="navTab = 'public'" :class="navTab === 'public' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'" class="px-3 py-1 rounded-lg text-xs font-bold transition">
-                    Openbare Afdelingen
-                </button>
-                <button type="button" @click="navTab = 'gang'" :class="navTab === 'gang' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'" class="px-3 py-1 rounded-lg text-xs font-bold transition">
-                    Bende Hoofdkwartieren
-                </button>
-            </div>
+    <!-- Main Isometric Canvas -->
+    <canvas id="stage" width="1280" height="720"></canvas>
 
-            <!-- Rooms List -->
-            <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
-                <template x-for="room in getFilteredRooms()" :key="room.id">
-                    <div @click="switchRoom(room.id)" 
-                         class="p-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 flex items-center justify-between cursor-pointer transition active:scale-98 group">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg" :class="room.bgClass">
-                                <i :class="room.icon"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-black text-white group-hover:text-amber-400 transition" x-text="room.name"></h4>
-                                <p class="text-[11px] text-slate-400 leading-tight" x-text="room.desc"></p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
+    <!-- Bottom Toolbar -->
+    <div class="habbo-bar">
+      <div class="toolbar-left">
+        <button class="h-btn" id="btn-rooms" onclick="toggleWindow('win-nav')">
+          <span>🏨</span> Kamers
+        </button>
+        <button class="h-btn" id="btn-shop" onclick="toggleWindow('win-catalog')">
+          <span>🛒</span> Winkel
+        </button>
+        <button class="h-btn" id="btn-inv" onclick="toggleWindow('win-inv')">
+          <span>📦</span> Hand
+        </button>
+      </div>
+
+      <div class="toolbar-chat">
+        <input type="text" id="chat-input" placeholder="Zeg iets in de cel..." maxlength="120" autocomplete="off" />
+        <button id="chat-send">Zeg</button>
+      </div>
+
+      <div class="toolbar-right">
+        <button class="h-btn" id="btn-sit" onclick="toggleSit()">
+          <span>🪑</span> Zitten
+        </button>
+        <button class="h-btn" id="btn-wave" onclick="triggerWave()">
+          <span>👋</span> Zwaaien
+        </button>
+        <button class="h-btn" id="btn-me" onclick="toggleWindow('win-profile')">
+          <span>👤</span> Mijn Dossier
+        </button>
+      </div>
     </div>
 
-    <!-- BOTTOM CHAT BAR & HABBO CONSOLE -->
-    <footer class="h-14 bg-slate-900 border-t border-slate-800 px-3 sm:px-4 flex items-center gap-2 sm:gap-3 z-30 shrink-0">
-        <!-- Avatar Preview Badge -->
-        <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-person text-amber-400 text-base"></i>
+    <!-- WINDOW: Catalogus / Winkel -->
+    <div class="h-window" id="win-catalog" style="top: 80px; left: 60px; width: 420px;">
+      <div class="h-window-title">
+        <span>🛒 TBS Smokkelwinkel</span>
+        <span class="close-btn" onclick="toggleWindow('win-catalog')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">
+          Koop legitiem of gesmokkeld meubilair voor je eigen cel. Items worden direct in je Hand geplaatst.
+        </p>
+        <div class="catalog-grid" id="catalog-items"></div>
+      </div>
+    </div>
+
+    <!-- WINDOW: Inventaris / Hand -->
+    <div class="h-window" id="win-inv" style="bottom: 70px; left: 80px; width: 360px;">
+      <div class="h-window-title">
+        <span>📦 Mijn Hand (Inventaris)</span>
+        <span class="close-btn" onclick="toggleWindow('win-inv')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">
+          Klik op een meubelstuk en klik daarna op een tegel in de cel om het neer te zetten.
+        </p>
+        <div class="inv-list" id="inv-grid"></div>
+        <div id="place-helper" style="display:none; margin-top:10px; background:#0f172a; padding:8px; border-radius:4px; font-size:12px; color:#f59e0b;">
+          Actief meubel geselecteerd. Klik in de cel om te plaatsen of druk op R om te draaien.
         </div>
+      </div>
+    </div>
 
-        <!-- Chat Input Form -->
-        <form @submit.prevent="sendChat()" class="flex-1 flex items-center gap-2">
-            <div class="relative flex-1">
-                <input type="text" x-model="chatInput" maxlength="120"
-                       placeholder="Typ een bericht... (Druk op Enter)"
-                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-medium text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
-            </div>
-            <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shrink-0 transition active:scale-95 cursor-pointer">
-                <i class="fa-solid fa-paper-plane mr-1 sm:inline hidden"></i> Zeg
-            </button>
-        </form>
-
-        <!-- Player Name Pill -->
-        <div class="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-800 text-xs">
-            <input type="text" x-model="playerName" @change="updatePlayerName()" class="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs font-extrabold text-amber-400 text-center">
-            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Lvl 1</span>
+    <!-- WINDOW: Kamers / Navigator -->
+    <div class="h-window" id="win-nav" style="top: 80px; right: 60px; width: 380px;">
+      <div class="h-window-title">
+        <span>🏨 TBS Navigator</span>
+        <span class="close-btn" onclick="toggleWindow('win-nav')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <div class="nav-room" onclick="switchRoom('cel-104')">
+          <div>
+            <strong style="font-size:13px;">🔒 Cel 104 (Blok A)</strong>
+            <div style="font-size:11px; color:#94a3b8;">Isolatie en basisverblijf</div>
+          </div>
+          <span style="font-size:11px; background:#10b981; color:#fff; padding:2px 8px; border-radius:10px;">Open</span>
         </div>
-    </footer>
-
-    <!-- JAVASCRIPT: ENGINE & WEBSOCKET CLIENT -->
-    <script>
-        function tbsV2Client() {
-            return {
-                ws: null,
-                connected: false,
-                myId: null,
-                playerName: localStorage.getItem('tbs_v2_name') || 'Inmate_' + Math.floor(Math.random() * 899 + 100),
-
-                navigatorOpen: false,
-                inventoryOpen: false,
-                navTab: 'my',
-                chatInput: '',
-                selectedFurniToPlace: null,
-                hoveredTile: null,
-
-                currentRoom: {
-                    id: 'cell_104',
-                    name: 'Mijn Cel #104',
-                    desc: 'Je eigen beveiligde isolatiecel',
-                    width: 7,
-                    height: 7,
-                    doorX: 6,
-                    doorY: 6,
-                },
-
-                allRooms: [
-                    { id: 'cell_104', type: 'my', name: 'Mijn Cel #104', desc: 'Je eigen cel met stalen deur en betonnen muren', icon: 'fa-solid fa-door-closed', bgClass: 'bg-amber-500/20 text-amber-400' },
-                    { id: 'luchtplaats', type: 'public', name: 'De Luchtplaats', desc: 'Centrale buitenplaats met basketbalring en bankjes', icon: 'fa-solid fa-sun', bgClass: 'bg-sky-500/20 text-sky-400' },
-                    { id: 'kantine', type: 'public', name: 'Recreatiezaal & Kantine', desc: 'Kaarttafels, TV hoek en ontmoetingsplek', icon: 'fa-solid fa-utensils', bgClass: 'bg-emerald-500/20 text-emerald-400' },
-                    { id: 'bende_hq', type: 'gang', name: 'Cartel Hoofdkwartier', desc: 'Besloten clubhuis met geheime kluizen en vergadertafel', icon: 'fa-solid fa-skull', bgClass: 'bg-purple-500/20 text-purple-400' },
-                ],
-
-                catalogItems: [
-                    { id: 'bed', name: 'Stalen Celbed', icon: 'fa-solid fa-bed', color: '#94a3b8', canSit: true },
-                    { id: 'chair', name: 'Bajeskruk', icon: 'fa-solid fa-chair', color: '#cbd5e1', canSit: true },
-                    { id: 'table', name: 'Metalen Tafel', icon: 'fa-solid fa-table', color: '#64748b', canSit: false },
-                    { id: 'toilet', name: 'RVS Toilet', icon: 'fa-solid fa-toilet', color: '#e2e8f0', canSit: true },
-                    { id: 'crate', name: 'Smokkelkist', icon: 'fa-solid fa-box', color: '#d97706', canSit: false },
-                    { id: 'punching_bag', name: 'Bokszak', icon: 'fa-solid fa-mitten', color: '#ef4444', canSit: false },
-                ],
-
-                placedItems: [],
-                players: [],
-
-                // Canvas & Engine
-                canvas: null,
-                ctx: null,
-                camera: {
-                    x: 0,
-                    y: 0,
-                    zoom: 1.0,
-                    isDragging: false,
-                    dragStartX: 0,
-                    dragStartY: 0,
-                },
-                tileWidth: 64,
-                tileHeight: 32,
-
-                init() {
-                    this.canvas = document.getElementById('gameCanvas');
-                    this.ctx = this.canvas.getContext('2d');
-                    
-                    this.setupResize();
-                    this.setupEvents();
-                    this.centerCamera();
-                    this.connectWebSocket();
-
-                    const loop = () => {
-                        this.update();
-                        this.render();
-                        requestAnimationFrame(loop);
-                    };
-                    loop();
-                },
-
-                connectWebSocket() {
-                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                    const wsUrl = `${protocol}//${window.location.host}`;
-                    
-                    this.ws = new WebSocket(wsUrl);
-
-                    this.ws.onopen = () => {
-                        this.connected = true;
-                        this.ws.send(JSON.stringify({
-                            type: 'join_room',
-                            roomId: this.currentRoom.id,
-                            playerName: this.playerName
-                        }));
-                    };
-
-                    this.ws.onmessage = (event) => {
-                        try {
-                            const msg = JSON.parse(event.data);
-                            this.handleServerMessage(msg);
-                        } catch(e) {}
-                    };
-
-                    this.ws.onclose = () => {
-                        this.connected = false;
-                        // Auto-reconnect after 2 seconds
-                        setTimeout(() => this.connectWebSocket(), 2000);
-                    };
-                },
-
-                handleServerMessage(msg) {
-                    switch(msg.type) {
-                        case 'room_state':
-                            this.currentRoom = msg.room;
-                            this.placedItems = msg.furniture || [];
-                            this.players = msg.players || [];
-                            this.myId = msg.myId;
-                            this.centerCamera();
-                            break;
-
-                        case 'player_join':
-                            this.players = this.players.filter(p => p.id !== msg.player.id);
-                            this.players.push(msg.player);
-                            break;
-
-                        case 'player_leave':
-                            this.players = this.players.filter(p => p.id !== msg.playerId);
-                            break;
-
-                        case 'player_move': {
-                            const p = this.players.find(x => x.id === msg.playerId);
-                            if (p) {
-                                this.walkPlayerTo(p, msg.targetX, msg.targetY, msg.isSitting);
-                            }
-                            break;
-                        }
-
-                        case 'player_chat':
-                            this.createSpeechBubble(msg.name, msg.text, msg.playerId);
-                            break;
-
-                        case 'player_wave': {
-                            const p = this.players.find(x => x.id === msg.playerId);
-                            if (p) {
-                                p.isWaving = true;
-                                p.waveTimer = 90;
-                            }
-                            break;
-                        }
-
-                        case 'player_sit': {
-                            const p = this.players.find(x => x.id === msg.playerId);
-                            if (p) {
-                                p.isSitting = msg.isSitting;
-                            }
-                            break;
-                        }
-
-                        case 'furni_placed':
-                            this.placedItems = this.placedItems.filter(it => it.x !== msg.item.x || it.y !== msg.item.y);
-                            this.placedItems.push(msg.item);
-                            break;
-                    }
-                },
-
-                updatePlayerName() {
-                    localStorage.setItem('tbs_v2_name', this.playerName);
-                    if (this.ws && this.connected) {
-                        this.ws.send(JSON.stringify({
-                            type: 'join_room',
-                            roomId: this.currentRoom.id,
-                            playerName: this.playerName
-                        }));
-                    }
-                },
-
-                setupResize() {
-                    const resize = () => {
-                        const container = document.getElementById('canvas-container');
-                        if (!container) return;
-                        this.canvas.width = container.clientWidth * window.devicePixelRatio;
-                        this.canvas.height = container.clientHeight * window.devicePixelRatio;
-                        this.ctx.imageSmoothingEnabled = false;
-                    };
-                    window.addEventListener('resize', resize);
-                    resize();
-                },
-
-                centerCamera() {
-                    const container = document.getElementById('canvas-container');
-                    if (!container) return;
-                    this.camera.x = (container.clientWidth / 2);
-                    this.camera.y = (container.clientHeight / 2) - 80;
-                },
-
-                setupEvents() {
-                    const canvas = this.canvas;
-
-                    canvas.addEventListener('mousedown', (e) => {
-                        if (e.button === 0) {
-                            this.handleCanvasClick(e.clientX, e.clientY);
-                        } else if (e.button === 2) {
-                            this.camera.isDragging = true;
-                            this.camera.dragStartX = e.clientX - this.camera.x;
-                            this.camera.dragStartY = e.clientY - this.camera.y;
-                        }
-                    });
-
-                    window.addEventListener('mousemove', (e) => {
-                        if (this.camera.isDragging) {
-                            this.camera.x = e.clientX - this.camera.dragStartX;
-                            this.camera.y = e.clientY - this.camera.dragStartY;
-                        }
-                        this.updateHoverTile(e.clientX, e.clientY);
-                    });
-
-                    window.addEventListener('mouseup', () => {
-                        this.camera.isDragging = false;
-                    });
-
-                    // Mobile touch
-                    let touchStartX = 0;
-                    let touchStartY = 0;
-                    let touchMoved = false;
-
-                    canvas.addEventListener('touchstart', (e) => {
-                        if (e.touches.length === 1) {
-                            touchStartX = e.touches[0].clientX;
-                            touchStartY = e.touches[0].clientY;
-                            touchMoved = false;
-                        }
-                    }, { passive: true });
-
-                    canvas.addEventListener('touchmove', (e) => {
-                        if (e.touches.length === 1) {
-                            const dx = Math.abs(e.touches[0].clientX - touchStartX);
-                            const dy = Math.abs(e.touches[0].clientY - touchStartY);
-                            if (dx > 8 || dy > 8) {
-                                touchMoved = true;
-                                this.camera.x += (e.touches[0].clientX - touchStartX) * 0.4;
-                                this.camera.y += (e.touches[0].clientY - touchStartY) * 0.4;
-                                touchStartX = e.touches[0].clientX;
-                                touchStartY = e.touches[0].clientY;
-                            }
-                        }
-                    }, { passive: true });
-
-                    canvas.addEventListener('touchend', (e) => {
-                        if (!touchMoved && e.changedTouches.length > 0) {
-                            const touch = e.changedTouches[0];
-                            this.handleCanvasClick(touch.clientX, touch.clientY);
-                        }
-                    });
-
-                    canvas.addEventListener('wheel', (e) => {
-                        e.preventDefault();
-                        if (e.deltaY < 0) this.zoomIn();
-                        else this.zoomOut();
-                    }, { passive: false });
-
-                    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-                },
-
-                screenToTile(screenX, screenY) {
-                    const rect = this.canvas.getBoundingClientRect();
-                    const clickX = (screenX - rect.left - this.camera.x) / this.camera.zoom;
-                    const clickY = (screenY - rect.top - this.camera.y) / this.camera.zoom;
-                    const halfW = this.tileWidth / 2;
-                    const halfH = this.tileHeight / 2;
-                    return {
-                        x: Math.floor((clickX / halfW + clickY / halfH) / 2),
-                        y: Math.floor((clickY / halfH - clickX / halfW) / 2)
-                    };
-                },
-
-                tileToScreen(tileX, tileY) {
-                    const halfW = this.tileWidth / 2;
-                    const halfH = this.tileHeight / 2;
-                    return {
-                        x: (tileX - tileY) * halfW,
-                        y: (tileX + tileY) * halfH
-                    };
-                },
-
-                updateHoverTile(clientX, clientY) {
-                    const coords = this.screenToTile(clientX, clientY);
-                    if (coords.x >= 0 && coords.x < this.currentRoom.width &&
-                        coords.y >= 0 && coords.y < this.currentRoom.height) {
-                        const itemOnTile = this.placedItems.find(it => it.x === coords.x && it.y === coords.y);
-                        this.hoveredTile = {
-                            x: coords.x,
-                            y: coords.y,
-                            walkable: !itemOnTile || itemOnTile.canSit,
-                            item: itemOnTile || null
-                        };
-                    } else {
-                        this.hoveredTile = null;
-                    }
-                },
-
-                handleCanvasClick(clientX, clientY) {
-                    const coords = this.screenToTile(clientX, clientY);
-                    if (coords.x < 0 || coords.x >= this.currentRoom.width ||
-                        coords.y < 0 || coords.y >= this.currentRoom.height) {
-                        return;
-                    }
-
-                    if (this.selectedFurniToPlace) {
-                        this.placeItemAt(coords.x, coords.y);
-                        return;
-                    }
-
-                    const furni = this.placedItems.find(it => it.x === coords.x && it.y === coords.y);
-                    const shouldSit = furni && furni.canSit;
-
-                    const myAvatar = this.players.find(p => p.id === this.myId);
-                    if (myAvatar) {
-                        this.walkPlayerTo(myAvatar, coords.x, coords.y, shouldSit);
-                        if (this.ws && this.connected) {
-                            this.ws.send(JSON.stringify({
-                                type: 'move',
-                                x: myAvatar.x,
-                                y: myAvatar.y,
-                                targetX: coords.x,
-                                targetY: coords.y,
-                                direction: myAvatar.direction,
-                                isSitting: shouldSit
-                            }));
-                        }
-                    }
-                },
-
-                walkPlayerTo(player, targetX, targetY, shouldSitOnArrival) {
-                    player.isSitting = false;
-                    player.isWaving = false;
-
-                    const path = [];
-                    let currX = Math.round(player.x);
-                    let currY = Math.round(player.y);
-
-                    while (currX !== targetX || currY !== targetY) {
-                        if (currX < targetX) currX++;
-                        else if (currX > targetX) currX--;
-
-                        if (currY < targetY) currY++;
-                        else if (currY > targetY) currY--;
-
-                        path.push({ x: currX, y: currY });
-                    }
-
-                    player.path = path;
-                    player.shouldSitOnArrival = shouldSitOnArrival;
-                },
-
-                update() {
-                    this.players.forEach(p => {
-                        if (p.path && p.path.length > 0) {
-                            p.isWalking = true;
-                            const nextStep = p.path[0];
-                            const dx = nextStep.x - p.x;
-                            const dy = nextStep.y - p.y;
-                            const dist = Math.hypot(dx, dy);
-                            const speed = 0.08;
-
-                            if (dist <= speed) {
-                                p.x = nextStep.x;
-                                p.y = nextStep.y;
-                                p.path.shift();
-
-                                if (p.path.length === 0) {
-                                    p.isWalking = false;
-                                    if (p.shouldSitOnArrival) {
-                                        p.isSitting = true;
-                                    }
-                                }
-                            } else {
-                                p.x += (dx / dist) * speed;
-                                p.y += (dy / dist) * speed;
-
-                                if (dx > 0 && dy === 0) p.direction = 2;
-                                else if (dx > 0 && dy > 0) p.direction = 3;
-                                else if (dx === 0 && dy > 0) p.direction = 4;
-                                else if (dx < 0 && dy > 0) p.direction = 5;
-                                else if (dx < 0 && dy === 0) p.direction = 6;
-                                else if (dx < 0 && dy < 0) p.direction = 7;
-                                else if (dx === 0 && dy < 0) p.direction = 0;
-                                else if (dx > 0 && dy < 0) p.direction = 1;
-                            }
-                        }
-
-                        if (p.isWaving) {
-                            p.waveTimer = (p.waveTimer || 90) - 1;
-                            if (p.waveTimer <= 0) p.isWaving = false;
-                        }
-                    });
-                },
-
-                render() {
-                    const ctx = this.ctx;
-                    const dpr = window.devicePixelRatio || 1;
-
-                    ctx.save();
-                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-                    // Clear canvas with prison atmosphere
-                    ctx.fillStyle = '#020617';
-                    ctx.fillRect(0, 0, this.canvas.width / dpr, this.canvas.height / dpr);
-
-                    ctx.translate(this.camera.x, this.camera.y);
-                    ctx.scale(this.camera.zoom, this.camera.zoom);
-
-                    this.drawWalls(ctx);
-                    this.drawFloor(ctx);
-                    this.drawDepthSortedEntities(ctx);
-
-                    ctx.restore();
-                },
-
-                drawWalls(ctx) {
-                    const rW = this.currentRoom.width;
-                    const rH = this.currentRoom.height;
-                    const wallHeight = 110;
-
-                    // North-West Wall (Left)
-                    ctx.fillStyle = '#334155';
-                    ctx.strokeStyle = '#1e293b';
-                    ctx.lineWidth = 1.5;
-
-                    ctx.beginPath();
-                    const topStart = this.tileToScreen(0, 0);
-                    const topEnd = this.tileToScreen(rW, 0);
-                    ctx.moveTo(topStart.x, topStart.y);
-                    ctx.lineTo(topEnd.x, topEnd.y);
-                    ctx.lineTo(topEnd.x, topEnd.y - wallHeight);
-                    ctx.lineTo(topStart.x, topStart.y - wallHeight);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.stroke();
-
-                    // Security Barred Window
-                    const winPos = this.tileToScreen(rW / 2, 0);
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(winPos.x - 24, winPos.y - wallHeight + 25, 48, 36);
-                    ctx.strokeStyle = '#64748b';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(winPos.x - 24, winPos.y - wallHeight + 25, 48, 36);
-
-                    // Iron Bars
-                    ctx.strokeStyle = '#94a3b8';
-                    ctx.lineWidth = 2;
-                    for (let bx = winPos.x - 16; bx <= winPos.x + 16; bx += 10) {
-                        ctx.beginPath();
-                        ctx.moveTo(bx, winPos.y - wallHeight + 25);
-                        ctx.lineTo(bx, winPos.y - wallHeight + 61);
-                        ctx.stroke();
-                    }
-
-                    // North-East Wall (Right)
-                    ctx.fillStyle = '#1e293b';
-                    ctx.strokeStyle = '#0f172a';
-                    ctx.beginPath();
-                    const rightEnd = this.tileToScreen(0, rH);
-                    ctx.moveTo(topStart.x, topStart.y);
-                    ctx.lineTo(rightEnd.x, rightEnd.y);
-                    ctx.lineTo(rightEnd.x, rightEnd.y - wallHeight);
-                    ctx.lineTo(topStart.x, topStart.y - wallHeight);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.stroke();
-                },
-
-                drawFloor(ctx) {
-                    const rW = this.currentRoom.width;
-                    const rH = this.currentRoom.height;
-                    const halfW = this.tileWidth / 2;
-                    const halfH = this.tileHeight / 2;
-
-                    for (let x = 0; x < rW; x++) {
-                        for (let y = 0; y < rH; y++) {
-                            const p = this.tileToScreen(x, y);
-
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(p.x + halfW, p.y + halfH);
-                            ctx.lineTo(p.x, p.y + this.tileHeight);
-                            ctx.lineTo(p.x - halfW, p.y + halfH);
-                            ctx.closePath();
-
-                            const isAlt = (x + y) % 2 === 0;
-                            ctx.fillStyle = isAlt ? '#475569' : '#3f4e64';
-                            ctx.fill();
-
-                            ctx.strokeStyle = '#1e293b';
-                            ctx.lineWidth = 1;
-                            ctx.stroke();
-
-                            if (this.hoveredTile && this.hoveredTile.x === x && this.hoveredTile.y === y) {
-                                ctx.fillStyle = this.hoveredTile.walkable ? 'rgba(52, 211, 153, 0.4)' : 'rgba(244, 63, 94, 0.4)';
-                                ctx.fill();
-                                ctx.strokeStyle = this.hoveredTile.walkable ? '#10b981' : '#f43f5e';
-                                ctx.lineWidth = 2;
-                                ctx.stroke();
-                            }
-                        }
-                    }
-                },
-
-                drawDepthSortedEntities(ctx) {
-                    const entities = [];
-
-                    this.placedItems.forEach(it => {
-                        entities.push({ type: 'furni', depth: it.x + it.y + 0.1, item: it });
-                    });
-
-                    this.players.forEach(p => {
-                        entities.push({ type: 'avatar', depth: p.x + p.y + 0.5, player: p });
-                    });
-
-                    if (this.selectedFurniToPlace && this.hoveredTile) {
-                        entities.push({
-                            type: 'ghost',
-                            depth: this.hoveredTile.x + this.hoveredTile.y + 0.2,
-                            item: this.selectedFurniToPlace,
-                            x: this.hoveredTile.x,
-                            y: this.hoveredTile.y
-                        });
-                    }
-
-                    entities.sort((a, b) => a.depth - b.depth);
-
-                    entities.forEach(ent => {
-                        if (ent.type === 'furni') this.drawFurniture(ctx, ent.item);
-                        else if (ent.type === 'avatar') this.drawAvatar(ctx, ent.player);
-                        else if (ent.type === 'ghost') this.drawGhostFurni(ctx, ent.item, ent.x, ent.y);
-                    });
-                },
-
-                drawFurniture(ctx, it) {
-                    const p = this.tileToScreen(it.x, it.y);
-                    const halfH = this.tileHeight / 2;
-
-                    ctx.save();
-                    switch (it.type) {
-                        case 'bed':
-                            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                            ctx.beginPath();
-                            ctx.ellipse(p.x, p.y + halfH + 8, 30, 14, 0, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            ctx.fillStyle = '#64748b';
-                            ctx.fillRect(p.x - 22, p.y - 18, 44, 26);
-                            ctx.fillStyle = '#cbd5e1';
-                            ctx.fillRect(p.x - 20, p.y - 16, 40, 22);
-                            ctx.fillStyle = '#f8fafc';
-                            ctx.fillRect(p.x - 18, p.y - 14, 12, 18);
-                            ctx.strokeStyle = '#334155';
-                            ctx.lineWidth = 1.5;
-                            ctx.strokeRect(p.x - 22, p.y - 18, 44, 26);
-                            break;
-
-                        case 'table':
-                            ctx.fillStyle = 'rgba(0,0,0,0.25)';
-                            ctx.beginPath();
-                            ctx.ellipse(p.x, p.y + halfH + 6, 26, 12, 0, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            ctx.strokeStyle = '#1e293b';
-                            ctx.lineWidth = 2.5;
-                            ctx.strokeRect(p.x - 18, p.y - 10, 36, 16);
-
-                            ctx.fillStyle = '#475569';
-                            ctx.fillRect(p.x - 20, p.y - 18, 40, 14);
-                            ctx.strokeStyle = '#0f172a';
-                            ctx.strokeRect(p.x - 20, p.y - 18, 40, 14);
-                            break;
-
-                        case 'chair':
-                            ctx.fillStyle = 'rgba(0,0,0,0.25)';
-                            ctx.beginPath();
-                            ctx.ellipse(p.x, p.y + halfH, 12, 7, 0, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            ctx.strokeStyle = '#334155';
-                            ctx.lineWidth = 2;
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y - 10);
-                            ctx.lineTo(p.x, p.y + 4);
-                            ctx.stroke();
-
-                            ctx.fillStyle = '#94a3b8';
-                            ctx.beginPath();
-                            ctx.ellipse(p.x, p.y - 10, 10, 6, 0, 0, Math.PI * 2);
-                            ctx.fill();
-                            ctx.strokeStyle = '#1e293b';
-                            ctx.stroke();
-                            break;
-
-                        case 'toilet':
-                            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                            ctx.beginPath();
-                            ctx.ellipse(p.x, p.y + halfH, 14, 8, 0, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            ctx.fillStyle = '#cbd5e1';
-                            ctx.fillRect(p.x - 10, p.y - 30, 20, 18);
-                            ctx.fillStyle = '#e2e8f0';
-                            ctx.beginPath();
-                            ctx.ellipse(p.x, p.y - 10, 11, 8, 0, 0, Math.PI * 2);
-                            ctx.fill();
-                            ctx.strokeStyle = '#475569';
-                            ctx.stroke();
-                            break;
-
-                        case 'crate':
-                            ctx.fillStyle = '#b45309';
-                            ctx.fillRect(p.x - 14, p.y - 16, 28, 20);
-                            ctx.strokeStyle = '#78350f';
-                            ctx.lineWidth = 1.5;
-                            ctx.strokeRect(p.x - 14, p.y - 16, 28, 20);
-                            break;
-
-                        case 'punching_bag':
-                            ctx.fillStyle = '#ef4444';
-                            ctx.fillRect(p.x - 8, p.y - 35, 16, 32);
-                            ctx.strokeStyle = '#991b1b';
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(p.x - 8, p.y - 35, 16, 32);
-                            break;
-                    }
-                    ctx.restore();
-                },
-
-                drawGhostFurni(ctx, it, tileX, tileY) {
-                    const p = this.tileToScreen(tileX, tileY);
-                    ctx.save();
-                    ctx.globalAlpha = 0.55;
-                    ctx.fillStyle = '#fbbf24';
-                    ctx.fillRect(p.x - 16, p.y - 18, 32, 22);
-                    ctx.strokeStyle = '#d97706';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(p.x - 16, p.y - 18, 32, 22);
-                    ctx.restore();
-                },
-
-                drawAvatar(ctx, p) {
-                    const pt = this.tileToScreen(p.x, p.y);
-                    const halfH = this.tileHeight / 2;
-                    const bob = p.isWalking ? Math.sin(Date.now() * 0.015) * 2.5 : 0;
-                    const sitOffset = p.isSitting ? 10 : 0;
-                    const isMe = p.id === this.myId;
-
-                    ctx.save();
-                    ctx.translate(pt.x, pt.y + halfH + bob + sitOffset);
-
-                    // Floor Shadow
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-                    ctx.beginPath();
-                    ctx.ellipse(0, 4, 14, 7, 0, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Orange Inmate Pants
-                    ctx.fillStyle = '#ea580c';
-                    if (p.isSitting) {
-                        ctx.fillRect(-7, -12, 14, 10);
-                        ctx.fillStyle = '#0f172a';
-                        ctx.fillRect(-7, -2, 14, 6);
-                    } else if (p.isWalking) {
-                        const stride = Math.sin(Date.now() * 0.015) * 5;
-                        ctx.fillRect(-7, -18, 6, 16 + stride);
-                        ctx.fillRect(1, -18, 6, 16 - stride);
-                        ctx.fillStyle = '#0f172a';
-                        ctx.fillRect(-8, -2 + stride, 8, 5);
-                        ctx.fillRect(0, -2 - stride, 8, 5);
-                    } else {
-                        ctx.fillRect(-6, -18, 5, 16);
-                        ctx.fillRect(1, -18, 5, 16);
-                        ctx.fillStyle = '#0f172a';
-                        ctx.fillRect(-7, -2, 7, 5);
-                        ctx.fillRect(0, -2, 7, 5);
-                    }
-
-                    // Torso (Inmate Vest)
-                    ctx.fillStyle = isMe ? '#f97316' : '#d97706';
-                    ctx.fillRect(-8, -34, 16, 18);
-                    ctx.fillStyle = '#fdba74';
-                    ctx.fillRect(-5, -34, 10, 8);
-
-                    // Arms
-                    ctx.fillStyle = '#fdba74';
-                    if (p.isWaving) {
-                        const waveAngle = Math.sin(Date.now() * 0.02) * 4;
-                        ctx.fillRect(8, -42 + waveAngle, 6, 14);
-                        ctx.fillRect(-11, -32, 4, 14);
-                    } else {
-                        ctx.fillRect(-11, -32, 4, 14);
-                        ctx.fillRect(7, -32, 4, 14);
-                    }
-
-                    // Head & Face
-                    ctx.fillStyle = '#fdba74';
-                    ctx.fillRect(-7, -48, 14, 14);
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(-8, -52, 16, 5);
-                    ctx.fillRect(-8, -48, 3, 5);
-
-                    // Eyes
-                    ctx.fillStyle = '#0f172a';
-                    if (p.direction >= 2 && p.direction <= 4) {
-                        ctx.fillRect(0, -44, 2, 3);
-                        ctx.fillRect(4, -44, 2, 3);
-                    } else {
-                        ctx.fillRect(-4, -44, 2, 3);
-                        ctx.fillRect(0, -44, 2, 3);
-                    }
-
-                    // Name Tag
-                    ctx.fillStyle = isMe ? 'rgba(245, 158, 11, 0.9)' : 'rgba(15, 23, 42, 0.85)';
-                    ctx.beginPath();
-                    ctx.roundRect(-25, -66, 50, 13, 4);
-                    ctx.fill();
-                    ctx.strokeStyle = isMe ? '#d97706' : '#334155';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-
-                    ctx.fillStyle = isMe ? '#0f172a' : '#ffffff';
-                    ctx.font = 'bold 9px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(p.name, 0, -56);
-
-                    ctx.restore();
-                },
-
-                sendChat() {
-                    const text = this.chatInput.trim();
-                    if (!text || !this.ws || !this.connected) return;
-
-                    this.ws.send(JSON.stringify({
-                        type: 'chat',
-                        text: text
-                    }));
-                    this.chatInput = '';
-                },
-
-                createSpeechBubble(name, text, playerId) {
-                    const container = document.getElementById('speech-bubbles');
-                    if (!container) return;
-
-                    const p = this.players.find(x => x.id === playerId);
-                    const posX = p ? p.x : this.currentRoom.doorX - 1;
-                    const posY = p ? p.y : this.currentRoom.doorY - 1;
-
-                    const pt = this.tileToScreen(posX, posY);
-                    const headX = (pt.x * this.camera.zoom) + this.camera.x;
-                    const headY = (pt.y * this.camera.zoom) + this.camera.y - 75;
-
-                    const bubble = document.createElement('div');
-                    bubble.className = 'chat-bubble absolute px-3 py-1.5 rounded-xl bg-white text-slate-900 font-extrabold text-xs shadow-xl border border-slate-300 max-w-xs';
-                    bubble.style.left = `${headX}px`;
-                    bubble.style.top = `${headY}px`;
-                    bubble.style.transform = 'translate(-50%, -100%)';
-                    bubble.innerText = `${name}: ${text}`;
-
-                    container.appendChild(bubble);
-
-                    setTimeout(() => {
-                        if (bubble.parentNode) bubble.parentNode.removeChild(bubble);
-                    }, 5000);
-                },
-
-                wave() {
-                    if (this.ws && this.connected) {
-                        this.ws.send(JSON.stringify({ type: 'action', action: 'wave' }));
-                    }
-                },
-
-                toggleSit() {
-                    if (this.ws && this.connected) {
-                        this.ws.send(JSON.stringify({ type: 'action', action: 'sit' }));
-                    }
-                },
-
-                resetCamera() {
-                    this.centerCamera();
-                    this.camera.zoom = 1.0;
-                },
-
-                zoomIn() {
-                    this.camera.zoom = Math.min(1.8, this.camera.zoom + 0.15);
-                },
-
-                zoomOut() {
-                    this.camera.zoom = Math.max(0.6, this.camera.zoom - 0.15);
-                },
-
-                toggleNavigator() {
-                    this.navigatorOpen = !this.navigatorOpen;
-                    if (this.navigatorOpen) this.inventoryOpen = false;
-                },
-
-                getFilteredRooms() {
-                    return this.allRooms.filter(r => r.type === this.navTab);
-                },
-
-                switchRoom(roomId) {
-                    if (this.ws && this.connected) {
-                        this.ws.send(JSON.stringify({
-                            type: 'join_room',
-                            roomId: roomId,
-                            playerName: this.playerName
-                        }));
-                    }
-                    this.navigatorOpen = false;
-                },
-
-                toggleInventory() {
-                    this.inventoryOpen = !this.inventoryOpen;
-                    if (this.inventoryOpen) this.navigatorOpen = false;
-                },
-
-                selectItemToPlace(item) {
-                    this.selectedFurniToPlace = item;
-                },
-
-                cancelPlacing() {
-                    this.selectedFurniToPlace = null;
-                },
-
-                placeItemAt(x, y) {
-                    if (!this.selectedFurniToPlace || !this.ws || !this.connected) return;
-
-                    this.ws.send(JSON.stringify({
-                        type: 'place_furni',
-                        itemType: this.selectedFurniToPlace.id,
-                        itemName: this.selectedFurniToPlace.name,
-                        x: x,
-                        y: y,
-                        canSit: this.selectedFurniToPlace.canSit
-                    }));
-
-                    this.selectedFurniToPlace = null;
-                }
-            };
+        <div class="nav-room" onclick="switchRoom('luchtplaats')">
+          <div>
+            <strong style="font-size:13px;">☀️ De Luchtplaats</strong>
+            <div style="font-size:11px; color:#94a3b8;">Buitenlucht, basketbal, bende deals</div>
+          </div>
+          <span style="font-size:11px; background:#f59e0b; color:#111; padding:2px 8px; border-radius:10px; font-weight:700;">Druk</span>
+        </div>
+        <div class="nav-room" onclick="switchRoom('kantine')">
+          <div>
+            <strong style="font-size:13px;">🍽️ Gevangenis Kantine</strong>
+            <div style="font-size:11px; color:#94a3b8;">Eetzaal en ontmoetingsplek</div>
+          </div>
+          <span style="font-size:11px; background:#64748b; color:#fff; padding:2px 8px; border-radius:10px;">Rustig</span>
+        </div>
+        <div class="nav-room" onclick="switchRoom('kelder')">
+          <div>
+            <strong style="font-size:13px;">💀 Cartel Kelder (VIP)</strong>
+            <div style="font-size:11px; color:#94a3b8;">Geheim smokkelhol van de bende</div>
+          </div>
+          <span style="font-size:11px; background:#ef4444; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700;">Geheim</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WINDOW: Dossier / Profiel -->
+    <div class="h-window" id="win-profile" style="top: 100px; left: 50%; transform: translateX(-50%); width: 380px;">
+      <div class="h-window-title">
+        <span id="profile-title">👤TBS Patiëntendossier</span>
+        <span class="close-btn" onclick="toggleWindow('win-profile')">✕</span>
+      </div>
+      <div class="h-window-body">
+        <div class="dossier">
+          <div class="dossier-avatar" id="profile-avatar">🤠</div>
+          <div>
+            <h4 id="profile-name" style="font-size:15px; margin-bottom:2px;">BajesKlant_402</h4>
+            <div id="profile-role" style="font-size:12px; color:#f59e0b; font-weight:700;">Gedetineerde • Blok A</div>
+            <div id="profile-status" style="font-size:11px; color:#94a3b8; margin-top:4px;">"Geen genade op de luchtplaats"</div>
+          </div>
+        </div>
+        <div class="dossier-actions">
+          <button class="h-btn" style="flex:1;" onclick="alert('Ruil aanvraag verstuurd!')">🤝 Ruilen</button>
+          <button class="h-btn" style="flex:1;" onclick="alert('Fluistermodus geactiveerd')">🤫 Fluisteren</button>
+          <button class="h-btn" style="flex:1;" onclick="alert('Vriendenverzoek verzonden')">⭐ Vriend</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       TBS KLINIEK V2 - AUTHENTIEKE ISOMETRISCHE ENGINE
+       ========================================================================== */
+
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    const speechLayer = document.getElementById('speech-layer');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - 54;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Isometrische constanten (klassieke Habbo 1:2 isometric projection)
+    const TILE_W = 64;
+    const TILE_H = 32;
+    const GRID_COLS = 12;
+    const GRID_ROWS = 12;
+    const FLOOR_ELEVATION = 14; // Dikte van de 3D Habbo vloerrand
+
+    // State
+    let myId = 'user_' + Math.floor(Math.random() * 9000 + 1000);
+    let myName = 'Inmate_' + myId.slice(-4);
+    let myCash = 1450;
+    let selectedPlaceItem = null;
+    let selectedPlacementRotation = 0;
+    let selectedUserForDossier = null;
+
+    let me = {
+      id: myId,
+      name: myName,
+      x: 4,
+      y: 4,
+      targetX: 4,
+      targetY: 4,
+      facing: 2, // 0..7
+      state: 'idle', // idle, walk, sit, wave
+      walkProgress: 1,
+      color: '#f97316', // Oranje bajes pak
+      hairColor: '#3e2723',
+      skinColor: '#ffd1a4',
+      waveTimer: 0
+    };
+
+    let users = new Map();
+    users.set(myId, me);
+
+    // Bajes Meubels Catalogus
+    const CATALOG_DEFINITIONS = [
+      { id: 'bed_prison', name: 'Stalen Celbed', price: 180, icon: '🛏️', desc: 'Stalen kooi met dun matras', w: 1, h: 2 },
+      { id: 'table_canteen', name: 'Metalen Eettafel', price: 120, icon: '🪵', desc: 'Zware tafel die niet omgegooid kan worden', w: 2, h: 1 },
+      { id: 'stool_prison', name: 'Bajeskruk', price: 45, icon: '🪑', desc: 'Vastgeschroefde metalen kruk', w: 1, h: 1 },
+      { id: 'toilet_steel', name: 'RVS Cel Toilet', price: 210, icon: '🚽', desc: 'Onbreekbaar roestvrij staal', w: 1, h: 1 },
+      { id: 'smuggle_crate', name: 'Smokkelkist', price: 350, icon: '📦', desc: 'Verborgen vak voor contrabande', w: 1, h: 1 },
+      { id: 'punching_bag', name: 'Lederen Bokszak', price: 420, icon: '🥊', desc: 'Om je frustraties op bot te vieren', w: 1, h: 1 },
+      { id: 'boss_throne', name: 'Gouden Troon', price: 950, icon: '👑', desc: 'Alleen voor de echte baas van Blok A', w: 1, h: 1 }
+    ];
+
+    // Mijn geplaatste en inventaris meubels
+    let myInventory = [
+      { id: 'inv_1', type: 'stool_prison', name: 'Bajeskruk' },
+      { id: 'inv_2', type: 'smuggle_crate', name: 'Smokkelkist' }
+    ];
+
+    let furniture = [
+      { id: 'f_bed', type: 'bed_prison', x: 1, y: 1, rot: 0 },
+      { id: 'f_toilet', type: 'toilet_steel', x: 1, y: 6, rot: 0 },
+      { id: 'f_table', type: 'table_canteen', x: 5, y: 4, rot: 0 },
+      { id: 'f_stool1', type: 'stool_prison', x: 5, y: 3, rot: 0 },
+      { id: 'f_stool2', type: 'stool_prison', x: 6, y: 3, rot: 0 },
+      { id: 'f_crate', type: 'smuggle_crate', x: 9, y: 1, rot: 0 },
+      { id: 'f_punch', type: 'punching_bag', x: 9, y: 9, rot: 0 }
+    ];
+
+    // WebSocket verbinding
+    let ws = null;
+    function connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${proto}//${location.host}`);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: 'join',
+          id: me.id,
+          name: me.name,
+          x: me.x,
+          y: me.y
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleServerMessage(msg);
+        } catch (e) {
+          console.error('WS parse error', e);
         }
-    </script>
+      };
+
+      ws.onclose = () => {
+        setTimeout(connectWS, 2500);
+      };
+    }
+
+    function handleServerMessage(msg) {
+      if (msg.type === 'room_state') {
+        msg.users.forEach(u => {
+          if (u.id !== me.id) {
+            users.set(u.id, {
+              ...u,
+              walkProgress: 1,
+              targetX: u.x,
+              targetY: u.y,
+              state: u.state || 'idle',
+              waveTimer: 0
+            });
+          }
+        });
+        updateOnlineCount();
+      } else if (msg.type === 'user_joined') {
+        if (msg.user.id !== me.id) {
+          users.set(msg.user.id, {
+            ...msg.user,
+            walkProgress: 1,
+            targetX: msg.user.x,
+            targetY: msg.user.y,
+            state: 'idle',
+            waveTimer: 0
+          });
+        }
+        updateOnlineCount();
+      } else if (msg.type === 'user_left') {
+        users.delete(msg.userId);
+        updateOnlineCount();
+      } else if (msg.type === 'user_moved') {
+        const u = users.get(msg.userId);
+        if (u && msg.userId !== me.id) {
+          u.targetX = msg.x;
+          u.targetY = msg.y;
+          u.walkProgress = 0;
+          u.facing = msg.facing;
+          u.state = 'walk';
+        }
+      } else if (msg.type === 'user_action') {
+        const u = users.get(msg.userId);
+        if (u) {
+          u.state = msg.action;
+          if (msg.action === 'wave') u.waveTimer = 60;
+        }
+      } else if (msg.type === 'chat') {
+        showSpeechBubble(msg.userId, msg.name, msg.text, msg.shout);
+      } else if (msg.type === 'furni_placed') {
+        furniture.push(msg.furni);
+      }
+    }
+
+    function updateOnlineCount() {
+      const el = document.getElementById('hud-online');
+      if (el) el.innerText = `${users.size} ONLINE`;
+    }
+
+    // Coord transformaties
+    function gridToScreen(gx, gy) {
+      const originX = canvas.width / 2;
+      const originY = 160;
+      const sx = originX + (gx - gy) * (TILE_W / 2);
+      const sy = originY + (gx + gy) * (TILE_H / 2);
+      return { x: sx, y: sy };
+    }
+
+    function screenToGrid(sx, sy) {
+      const originX = canvas.width / 2;
+      const originY = 160;
+      const dx = sx - originX;
+      const dy = sy - originY;
+      const gx = Math.floor((dx / (TILE_W / 2) + dy / (TILE_H / 2)) / 2);
+      const gy = Math.floor((dy / (TILE_H / 2) - dx / (TILE_W / 2)) / 2);
+      return { x: gx, y: gy };
+    }
+
+    // Input handling
+    let hoverTile = null;
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const g = screenToGrid(mouseX, mouseY);
+      if (g.x >= 0 && g.x < GRID_COLS && g.y >= 0 && g.y < GRID_ROWS) {
+        hoverTile = g;
+      } else {
+        hoverTile = null;
+      }
+    });
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // Check of er op een avatar is geklikt
+      for (let [uid, u] of users.entries()) {
+        const pos = gridToScreen(u.x, u.y);
+        const dist = Math.hypot(mouseX - pos.x, mouseY - (pos.y - 35));
+        if (dist < 26) {
+          openUserDossier(u);
+          return;
+        }
+      }
+
+      // Check plaatsingsmodus
+      if (selectedPlaceItem && hoverTile) {
+        placeFurniAt(hoverTile.x, hoverTile.y);
+        return;
+      }
+
+      // Anders lopen naar tegel
+      if (hoverTile) {
+        moveToTile(hoverTile.x, hoverTile.y);
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') {
+        selectedPlacementRotation = (selectedPlacementRotation + 1) % 4;
+      }
+    });
+
+    function moveToTile(tx, ty) {
+      me.targetX = tx;
+      me.targetY = ty;
+      me.state = 'walk';
+      me.walkProgress = 0;
+
+      // Richting bepalen (0..7)
+      const dx = tx - me.x;
+      const dy = ty - me.y;
+      if (dx > 0 && dy === 0) me.facing = 2; // SE
+      else if (dx < 0 && dy === 0) me.facing = 6; // NW
+      else if (dx === 0 && dy > 0) me.facing = 4; // SW
+      else if (dx === 0 && dy < 0) me.facing = 0; // NE
+      else if (dx > 0 && dy > 0) me.facing = 3; // S
+      else if (dx < 0 && dy > 0) me.facing = 5; // W
+      else if (dx > 0 && dy < 0) me.facing = 1; // E
+      else if (dx < 0 && dy < 0) me.facing = 7; // N
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'move',
+          x: tx,
+          y: ty,
+          facing: me.facing
+        }));
+      }
+    }
+
+    function toggleSit() {
+      me.state = (me.state === 'sit') ? 'idle' : 'sit';
+      broadcastAction(me.state);
+    }
+
+    function triggerWave() {
+      me.state = 'wave';
+      me.waveTimer = 75;
+      broadcastAction('wave');
+    }
+
+    function broadcastAction(action) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'action',
+          action: action
+        }));
+      }
+    }
+
+    // Chat handling
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+
+    function sendChatMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      chatInput.value = '';
+
+      const isShout = text === text.toUpperCase() && text.length > 3;
+      showSpeechBubble(me.id, me.name, text, isShout);
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'chat',
+          text: text,
+          shout: isShout
+        }));
+      }
+    }
+
+    chatSend.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendChatMessage();
+    });
+
+    function showSpeechBubble(userId, userName, text, shout) {
+      const bubble = document.createElement('div');
+      bubble.className = 'speech-bubble' + (shout ? ' shout' : '');
+      bubble.innerHTML = `
+        <div class="bubble-head">${userName.charAt(0)}</div>
+        <div><strong>${userName}:</strong> ${escapeHtml(text)}</div>
+      `;
+      speechLayer.appendChild(bubble);
+
+      const track = () => {
+        const u = users.get(userId);
+        if (!u) {
+          bubble.remove();
+          return;
+        }
+        const pos = gridToScreen(u.x, u.y);
+        bubble.style.left = `${pos.x}px`;
+        bubble.style.top = `${pos.y - 70}px`;
+      };
+      track();
+
+      const interval = setInterval(track, 1000 / 30);
+      setTimeout(() => {
+        clearInterval(interval);
+        bubble.style.transition = 'opacity 0.4s ease';
+        bubble.style.opacity = '0';
+        setTimeout(() => bubble.remove(), 400);
+      }, 5000);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Render Loop
+    let animFrame = 0;
+    function render() {
+      animFrame++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Update avatar bewegingen
+      users.forEach(u => {
+        if (u.state === 'walk') {
+          u.walkProgress += 0.08;
+          if (u.walkProgress >= 1) {
+            u.walkProgress = 1;
+            u.x = u.targetX;
+            u.y = u.targetY;
+            u.state = 'idle';
+          } else {
+            u.x += (u.targetX - u.x) * 0.15;
+            u.y += (u.targetY - u.y) * 0.15;
+          }
+        }
+        if (u.waveTimer > 0) {
+          u.waveTimer--;
+          if (u.waveTimer === 0 && u.state === 'wave') u.state = 'idle';
+        }
+      });
+
+      // 1. Muren tekenen (NW & NE wand van de kamer)
+      drawWalls();
+
+      // 2. 3D Vloer Rand (Habbo 3D platform rim)
+      drawFloorRim();
+
+      // 3. Vloertegels
+      drawFloorTiles();
+
+      // 4. Hover tegel highlight
+      if (hoverTile) {
+        drawTileHighlight(hoverTile.x, hoverTile.y, selectedPlaceItem ? '#f59e0b' : '#38bdf8');
+      }
+
+      // 5. Gesorteerde diepte rendering van meubels en avatars
+      drawDepthSortedEntities();
+
+      requestAnimationFrame(render);
+    }
+
+    // Teken klassieke Habbo muren
+    function drawWalls() {
+      const topCorner = gridToScreen(0, 0);
+      const leftCorner = gridToScreen(0, GRID_ROWS);
+      const rightCorner = gridToScreen(GRID_COLS, 0);
+      const wallHeight = 130;
+
+      // Noordwestelijke muur (helder verlicht)
+      ctx.fillStyle = '#2d3a4d';
+      ctx.beginPath();
+      ctx.moveTo(topCorner.x, topCorner.y - wallHeight);
+      ctx.lineTo(leftCorner.x, leftCorner.y - wallHeight);
+      ctx.lineTo(leftCorner.x, leftCorner.y);
+      ctx.lineTo(topCorner.x, topCorner.y);
+      ctx.closePath();
+      ctx.fill();
+
+      // NW muur baksteen naden
+      ctx.strokeStyle = '#222c3b';
+      ctx.lineWidth = 1;
+      for (let y = topCorner.y - wallHeight; y < topCorner.y; y += 18) {
+        ctx.beginPath();
+        ctx.moveTo(topCorner.x, y);
+        ctx.lineTo(leftCorner.x, y + (leftCorner.y - topCorner.y));
+        ctx.stroke();
+      }
+
+      // Tralieraam in NW muur
+      const winX = topCorner.x - 90;
+      const winY = topCorner.y - 65;
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(winX, winY, 60, 40);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(winX, winY, 60, 40);
+      // Tralies
+      for (let bx = winX + 12; bx < winX + 60; bx += 12) {
+        ctx.beginPath();
+        ctx.moveTo(bx, winY);
+        ctx.lineTo(bx, winY + 40);
+        ctx.stroke();
+      }
+
+      // Noordoostelijke muur (in lichte schaduw)
+      ctx.fillStyle = '#212a38';
+      ctx.beginPath();
+      ctx.moveTo(topCorner.x, topCorner.y - wallHeight);
+      ctx.lineTo(rightCorner.x, rightCorner.y - wallHeight);
+      ctx.lineTo(rightCorner.x, rightCorner.y);
+      ctx.lineTo(topCorner.x, topCorner.y);
+      ctx.closePath();
+      ctx.fill();
+
+      // NE muur naden
+      for (let y = topCorner.y - wallHeight; y < topCorner.y; y += 18) {
+        ctx.beginPath();
+        ctx.moveTo(topCorner.x, y);
+        ctx.lineTo(rightCorner.x, y + (rightCorner.y - topCorner.y));
+        ctx.stroke();
+      }
+
+      // Muur plint lijsten
+      ctx.strokeStyle = '#151c27';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(leftCorner.x, leftCorner.y);
+      ctx.lineTo(topCorner.x, topCorner.y);
+      ctx.lineTo(rightCorner.x, rightCorner.y);
+      ctx.stroke();
+    }
+
+    // 3D Vloer Rand (De iconische Habbo verhoogde vloer)
+    function drawFloorRim() {
+      const leftCorner = gridToScreen(0, GRID_ROWS);
+      const bottomCorner = gridToScreen(GRID_COLS, GRID_ROWS);
+      const rightCorner = gridToScreen(GRID_COLS, 0);
+
+      // Zuid-West flank (donkerder)
+      ctx.fillStyle = '#141a24';
+      ctx.beginPath();
+      ctx.moveTo(leftCorner.x, leftCorner.y);
+      ctx.lineTo(bottomCorner.x, bottomCorner.y);
+      ctx.lineTo(bottomCorner.x, bottomCorner.y + FLOOR_ELEVATION);
+      ctx.lineTo(leftCorner.x, leftCorner.y + FLOOR_ELEVATION);
+      ctx.closePath();
+      ctx.fill();
+
+      // Zuid-Oost flank
+      ctx.fillStyle = '#1e2634';
+      ctx.beginPath();
+      ctx.moveTo(bottomCorner.x, bottomCorner.y);
+      ctx.lineTo(rightCorner.x, rightCorner.y);
+      ctx.lineTo(rightCorner.x, rightCorner.y + FLOOR_ELEVATION);
+      ctx.lineTo(bottomCorner.x, bottomCorner.y + FLOOR_ELEVATION);
+      ctx.closePath();
+      ctx.fill();
+
+      // Omlijning van de vloerrand
+      ctx.strokeStyle = '#0d1118';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Vloertegels tekenen (met Habbo checker patroon)
+    function drawFloorTiles() {
+      for (let gx = 0; gx < GRID_COLS; gx++) {
+        for (let gy = 0; gy < GRID_ROWS; gy++) {
+          const p = gridToScreen(gx, gy);
+          const isEven = (gx + gy) % 2 === 0;
+
+          ctx.fillStyle = isEven ? '#334155' : '#273444';
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x + TILE_W / 2, p.y + TILE_H / 2);
+          ctx.lineTo(p.x, p.y + TILE_H);
+          ctx.lineTo(p.x - TILE_W / 2, p.y + TILE_H / 2);
+          ctx.closePath();
+          ctx.fill();
+
+          // Subtiele tegelnaad
+          ctx.strokeStyle = '#1e2837';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawTileHighlight(gx, gy, color) {
+      const p = gridToScreen(gx, gy);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + TILE_W / 2, p.y + TILE_H / 2);
+      ctx.lineTo(p.x, p.y + TILE_H);
+      ctx.lineTo(p.x - TILE_W / 2, p.y + TILE_H / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // Sortering van entiteiten op diepte (gx + gy) voor correcte overlap
+    function drawDepthSortedEntities() {
+      let renderList = [];
+
+      furniture.forEach(f => {
+        renderList.push({ type: 'furni', data: f, depth: f.x + f.y });
+      });
+
+      users.forEach(u => {
+        renderList.push({ type: 'user', data: u, depth: u.x + u.y + 0.1 });
+      });
+
+      renderList.sort((a, b) => a.depth - b.depth);
+
+      renderList.forEach(item => {
+        if (item.type === 'furni') {
+          drawFurni(item.data);
+        } else {
+          drawAvatar(item.data);
+        }
+      });
+    }
+
+    // Teken een specifiek meubel met Habbo pixelart shading
+    function drawFurni(f) {
+      const p = gridToScreen(f.x, f.y);
+      const cx = p.x;
+      const cy = p.y + TILE_H / 2;
+
+      ctx.save();
+      if (f.type === 'bed_prison') {
+        // Stalen Celbed met kussen en deken
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(cx - 24, cy - 20, 48, 18);
+        // Matras
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 22, cy - 24, 44, 8);
+        // Oranje gevangenis deken
+        ctx.fillStyle = '#ea580c';
+        ctx.fillRect(cx - 10, cy - 25, 30, 8);
+        // Wit kussen
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(cx - 20, cy - 26, 10, 6);
+        // Bedframe poten
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 24, cy - 4, 3, 6);
+        ctx.fillRect(cx + 21, cy - 4, 3, 6);
+      } else if (f.type === 'table_canteen') {
+        // Zware metalen kantinetafel
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(cx - 30, cy - 22, 60, 8);
+        // Blad glans
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 28, cy - 22, 56, 2);
+        // Metalen poten
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(cx - 26, cy - 14, 4, 16);
+        ctx.fillRect(cx + 22, cy - 14, 4, 16);
+        // Koffiemok op tafel
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(cx - 4, cy - 26, 6, 4);
+      } else if (f.type === 'stool_prison') {
+        // Ronde kruk
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 12, 10, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 2, cy - 8, 4, 10);
+      } else if (f.type === 'toilet_steel') {
+        // RVS Bajes Toilet
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 10, cy - 20, 20, 20);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(cx - 8, cy - 22, 16, 4);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 6, cy - 16, 12, 8);
+      } else if (f.type === 'smuggle_crate') {
+        // Houten kist met beslag
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(cx - 14, cy - 22, 28, 20);
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(cx - 12, cy - 20, 24, 16);
+        // IJzeren banden
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(cx - 14, cy - 18, 28, 3);
+        ctx.fillRect(cx - 14, cy - 9, 28, 3);
+      } else if (f.type === 'punching_bag') {
+        // Bokszak hangend aan ketting
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 45);
+        ctx.lineTo(cx, cy - 30);
+        ctx.stroke();
+        ctx.fillStyle = '#991b1b';
+        ctx.fillRect(cx - 8, cy - 30, 16, 28);
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(cx - 7, cy - 29, 3, 26);
+      } else if (f.type === 'boss_throne') {
+        // Gouden troon
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(cx - 16, cy - 34, 32, 34);
+        // Rood pluche
+        ctx.fillStyle = '#991b1b';
+        ctx.fillRect(cx - 11, cy - 30, 22, 24);
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(cx - 16, cy - 16, 6, 12);
+        ctx.fillRect(cx + 10, cy - 16, 6, 12);
+      }
+      ctx.restore();
+    }
+
+    // Teken Habbo Chibi Pixel Avatar
+    function drawAvatar(u) {
+      const p = gridToScreen(u.x, u.y);
+      const cx = p.x;
+      const cy = p.y + TILE_H / 2;
+
+      const isSitting = u.state === 'sit';
+      const isWalking = u.state === 'walk';
+      const isWaving = u.state === 'wave';
+
+      // Loop bobbing effect
+      const walkBob = isWalking ? Math.sin(animFrame * 0.4) * 2 : 0;
+      const legSwing = isWalking ? Math.sin(animFrame * 0.4) * 4 : 0;
+
+      const baseY = isSitting ? cy + 4 : cy + walkBob;
+
+      // 1. Schaduw onder avatar
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 2, 14, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Benen / Schoenen
+      if (isSitting) {
+        // Zittende benen naar voren
+        ctx.fillStyle = '#c2410c'; // Donker oranje broek
+        ctx.fillRect(cx - 8, baseY - 12, 16, 7);
+        // Zwarte kistjes
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(cx - 9, baseY - 6, 7, 6);
+        ctx.fillRect(cx + 2, baseY - 6, 7, 6);
+      } else {
+        // Staande / Lopende benen
+        ctx.fillStyle = '#c2410c';
+        // Linker been
+        ctx.fillRect(cx - 6 + legSwing, baseY - 16, 5, 12);
+        // Rechter been
+        ctx.fillRect(cx + 1 - legSwing, baseY - 16, 5, 12);
+        // Zwarte kistjes
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(cx - 7 + legSwing, baseY - 5, 6, 5);
+        ctx.fillRect(cx + 1 - legSwing, baseY - 5, 6, 5);
+      }
+
+      // 3. Romp (Oranje bajes overall)
+      const torsoY = isSitting ? baseY - 26 : baseY - 28;
+      ctx.fillStyle = u.color;
+      ctx.fillRect(cx - 9, torsoY, 18, 14);
+
+      // Rits en gevangenisnummer badge
+      ctx.fillStyle = '#ea580c';
+      ctx.fillRect(cx - 1, torsoY, 2, 14);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 7, torsoY + 3, 5, 3);
+
+      // 4. Armen
+      if (isWaving) {
+        // Linker arm rustig
+        ctx.fillStyle = u.color;
+        ctx.fillRect(cx - 12, torsoY + 2, 4, 10);
+        // Rechter arm omhoog zwaaiend
+        const waveAngle = Math.sin(animFrame * 0.5) * 4;
+        ctx.fillRect(cx + 9, torsoY - 8, 4, 10);
+        // Zwaaiende handpalm
+        ctx.fillStyle = u.skinColor;
+        ctx.fillRect(cx + 8 + waveAngle, torsoY - 13, 6, 5);
+      } else {
+        ctx.fillStyle = u.color;
+        ctx.fillRect(cx - 12, torsoY + 2, 4, 10);
+        ctx.fillRect(cx + 8, torsoY + 2, 4, 10);
+        // Handen
+        ctx.fillStyle = u.skinColor;
+        ctx.fillRect(cx - 12, torsoY + 11, 4, 4);
+        ctx.fillRect(cx + 8, torsoY + 11, 4, 4);
+      }
+
+      // 5. Hoofd & Gezicht
+      const headY = torsoY - 17;
+      ctx.fillStyle = u.skinColor;
+      ctx.fillRect(cx - 8, headY, 16, 16);
+
+      // Ogen (Habbo pixel stijl)
+      ctx.fillStyle = '#0f172a';
+      if (u.facing >= 2 && u.facing <= 6) {
+        ctx.fillRect(cx - 4, headY + 6, 2, 3);
+        ctx.fillRect(cx + 2, headY + 6, 2, 3);
+      }
+
+      // 6. Haar / Mutserij
+      ctx.fillStyle = u.hairColor;
+      ctx.fillRect(cx - 9, headY - 3, 18, 7);
+      ctx.fillRect(cx - 9, headY + 2, 3, 6);
+
+      // 7. Naamtag boven hoofd
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+      ctx.beginPath();
+      ctx.roundRect(cx - 36, headY - 20, 72, 15, 3);
+      ctx.fill();
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(u.name, cx, headY - 9);
+    }
+
+    // Meubel plaatsen
+    function placeFurniAt(gx, gy) {
+      if (!selectedPlaceItem) return;
+
+      const newFurni = {
+        id: 'f_' + Date.now(),
+        type: selectedPlaceItem.type,
+        x: gx,
+        y: gy,
+        rot: selectedPlacementRotation
+      };
+
+      furniture.push(newFurni);
+
+      // Verwijder uit inventaris
+      const idx = myInventory.findIndex(i => i.id === selectedPlaceItem.id);
+      if (idx !== -1) myInventory.splice(idx, 1);
+
+      selectedPlaceItem = null;
+      document.getElementById('place-helper').style.display = 'none';
+      renderInventoryGrid();
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'place_furni',
+          furni: newFurni
+        }));
+      }
+    }
+
+    // Windows open/sluit logica
+    function toggleWindow(winId) {
+      const win = document.getElementById(winId);
+      if (!win) return;
+      if (win.classList.contains('open')) {
+        win.classList.remove('open');
+      } else {
+        // Sluit eventuele andere geopende vensters niet per se, Habbo kan multi-window
+        win.classList.add('open');
+        if (winId === 'win-catalog') renderCatalogGrid();
+        if (winId === 'win-inv') renderInventoryGrid();
+        if (winId === 'win-profile') openUserDossier(me);
+      }
+    }
+
+    function openUserDossier(u) {
+      selectedUserForDossier = u;
+      document.getElementById('profile-name').innerText = u.name;
+      document.getElementById('profile-avatar').innerText = u.name.charAt(0);
+      document.getElementById('profile-role').innerText = (u.id === me.id) ? 'Gedetineerde • Cel 104' : 'TBS Patiënt • Blok A';
+      document.getElementById('win-profile').classList.add('open');
+    }
+
+    function renderCatalogGrid() {
+      const container = document.getElementById('catalog-items');
+      container.innerHTML = '';
+      CATALOG_DEFINITIONS.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'catalog-card';
+        card.innerHTML = `
+          <div class="card-preview">${item.icon}</div>
+          <div class="card-title">${item.name}</div>
+          <div class="card-price">€ ${item.price}</div>
+          <button class="card-buy" onclick="buyCatalogItem('${item.id}')">Kopen</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function buyCatalogItem(itemId) {
+      const def = CATALOG_DEFINITIONS.find(d => d.id === itemId);
+      if (!def) return;
+
+      if (myCash < def.price) {
+        alert('Je hebt niet genoeg contanten op zak!');
+        return;
+      }
+
+      myCash -= def.price;
+      document.getElementById('hud-cash').innerText = `${myCash.toLocaleString()} Contant`;
+
+      const newInvItem = {
+        id: 'inv_' + Date.now(),
+        type: def.id,
+        name: def.name
+      };
+      myInventory.push(newInvItem);
+      alert(`${def.name} gekocht en in je Hand geplaatst!`);
+      toggleWindow('win-inv');
+    }
+
+    function renderInventoryGrid() {
+      const container = document.getElementById('inv-grid');
+      container.innerHTML = '';
+
+      if (myInventory.length === 0) {
+        container.innerHTML = '<div style="grid-column: span 3; color:#64748b; font-size:12px; text-align:center; padding:20px;">Je Hand is leeg. Koop meubels in de Winkel!</div>';
+        return;
+      }
+
+      myInventory.forEach(item => {
+        const def = CATALOG_DEFINITIONS.find(d => d.id === item.type);
+        const div = document.createElement('div');
+        div.className = 'inv-item' + (selectedPlaceItem && selectedPlaceItem.id === item.id ? ' selected' : '');
+        div.innerHTML = `
+          <div style="font-size:24px; margin-bottom:4px;">${def ? def.icon : '📦'}</div>
+          <div style="font-size:11px; font-weight:700;">${item.name}</div>
+        `;
+        div.onclick = () => {
+          selectedPlaceItem = item;
+          document.getElementById('place-helper').style.display = 'block';
+          renderInventoryGrid();
+        };
+        container.appendChild(div);
+      });
+    }
+
+    function switchRoom(roomKey) {
+      const names = {
+        'cel-104': 'Cel 104 (Blok A)',
+        'luchtplaats': 'De Luchtplaats (Buiten)',
+        'kantine': 'Gevangenis Kantine',
+        'kelder': 'Cartel Kelder (VIP)'
+      };
+      document.getElementById('hud-room-name').innerText = names[roomKey] || 'TBS Kamer';
+      toggleWindow('win-nav');
+
+      // Reset meubels en posities passend bij kamer
+      if (roomKey === 'luchtplaats') {
+        furniture = [
+          { id: 'f_punch1', type: 'punching_bag', x: 2, y: 2, rot: 0 },
+          { id: 'f_punch2', type: 'punching_bag', x: 2, y: 5, rot: 0 },
+          { id: 'f_table1', type: 'table_canteen', x: 6, y: 6, rot: 0 },
+          { id: 'f_stool1', type: 'stool_prison', x: 6, y: 5, rot: 0 }
+        ];
+      } else {
+        furniture = [
+          { id: 'f_bed', type: 'bed_prison', x: 1, y: 1, rot: 0 },
+          { id: 'f_toilet', type: 'toilet_steel', x: 1, y: 6, rot: 0 },
+          { id: 'f_table', type: 'table_canteen', x: 5, y: 4, rot: 0 },
+          { id: 'f_stool1', type: 'stool_prison', x: 5, y: 3, rot: 0 },
+          { id: 'f_crate', type: 'smuggle_crate', x: 9, y: 1, rot: 0 }
+        ];
+      }
+
+      me.x = 4;
+      me.y = 4;
+      me.targetX = 4;
+      me.targetY = 4;
+    }
+
+    // Start engine en verbind met WebSocket
+    connectWS();
+    requestAnimationFrame(render);
+  </script>
 </body>
 </html>
