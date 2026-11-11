@@ -3,6 +3,27 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebSocketServer, WebSocket } from 'ws';
+import mysql from 'mysql2/promise';
+
+const dbPool = mysql.createPool({
+    host: '127.0.0.1',
+    user: 'root',
+    password: '',
+    database: 'habbo',
+    waitForConnections: true,
+    connectionLimit: 5,
+});
+
+async function getFreshTicket(username = 'Daniel') {
+    const ticket = 'tbs_sso_' + Math.random().toString(36).substring(2, 12);
+    try {
+        await dbPool.query('UPDATE users SET auth_ticket = ? WHERE username = ?', [ticket, username]);
+        return ticket;
+    } catch (e) {
+        console.error('Error setting ticket in DB:', e.message);
+        return ticket;
+    }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -109,15 +130,27 @@ const server = http.createServer((req, res) => {
     }
 
     const cleanUrl = req.url.split('?')[0];
+    console.log('[HTTP REQ]', req.method, cleanUrl);
 
     // 1. Check if file exists directly in PUBLIC_DIR (client bundle, html, configs)
     const publicFilePath = path.join(PUBLIC_DIR, cleanUrl === '/' ? 'index.html' : cleanUrl);
     if (fs.existsSync(publicFilePath) && !fs.statSync(publicFilePath).isDirectory()) {
         const ext = path.extname(publicFilePath).toLowerCase();
-        fs.readFile(publicFilePath, (err, content) => {
+        fs.readFile(publicFilePath, async (err, content) => {
             if (err) {
                 res.writeHead(500, { 'Content-Type': 'text/plain' });
                 res.end('500 Server Fout');
+                return;
+            }
+            if (ext === '.html') {
+                let html = content.toString('utf8');
+                const urlObj = new URL(req.url, 'http://127.0.0.1:3000');
+                if (!urlObj.searchParams.get('sso')) {
+                    const ticket = await getFreshTicket('Daniel');
+                    html = html.replace(/'tbs_test_token'/g, `'${ticket}'`);
+                }
+                res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                res.end(html);
                 return;
             }
             res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
@@ -143,6 +176,7 @@ const server = http.createServer((req, res) => {
             });
             return;
         } else {
+            console.log('[HTTP 404 Asset Missing]:', cleanUrl);
             res.writeHead(404, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Asset not found', path: cleanUrl }));
             return;
@@ -151,6 +185,7 @@ const server = http.createServer((req, res) => {
 
     // Return 404 for json / assets instead of HTML fallback
     if (cleanUrl.endsWith('.json') || cleanUrl.endsWith('.nitro') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.gif') || cleanUrl.endsWith('.mp3')) {
+        console.log('[HTTP 404 File Missing]:', cleanUrl);
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'File not found', path: cleanUrl }));
         return;
